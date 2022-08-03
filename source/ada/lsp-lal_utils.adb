@@ -22,7 +22,10 @@ with System;
 
 with GNATCOLL.Utils;
 
+with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
+with VSS.String_Vectors;
+with VSS.Unicode;
 
 with Langkit_Support;
 with Langkit_Support.Symbols; use Langkit_Support.Symbols;
@@ -31,8 +34,6 @@ with Libadalang.Doc_Utils;
 with Libadalang.Sources;
 
 with Laltools.Call_Hierarchy;
-
-with VSS.Unicode;
 
 with Libadalang.Lexer;
 with Langkit_Support.Diagnostics;
@@ -1842,5 +1843,73 @@ package body LSP.Lal_Utils is
 
       return Parent;
    end Skip_Dotted_Names;
+
+   -------------------
+   -- Span_To_Slice --
+   -------------------
+
+   procedure Span_To_Slice
+     (Text  : VSS.Strings.Virtual_String;
+      Span  : LSP.Messages.Span;
+      Slice : out VSS.Strings.Virtual_String)
+   is
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
+      Dummy : Boolean;
+      Lines : VSS.String_Vectors.Virtual_String_Vector;
+      Line  : VSS.Strings.Virtual_String;
+      Num   : Natural := Natural (Span.first.line) + 1;
+   begin
+      Lines :=
+        Text.Split_Lines
+          (Terminators     => LSP.Common.LSP_New_Line_Function_Set,
+           Keep_Terminator => True);
+      Line := Lines.Element (Num);
+
+      declare
+         J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.At_First_Character;
+         U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+           J1.First_UTF16_Offset;
+      begin
+         while Span.first.character /= J1.First_UTF16_Offset - U1
+           and then J1.Forward
+         loop
+            null;
+         end loop;
+
+         if Span.first.line /= Span.last.line then
+            Slice.Append
+              (Line.Slice (J1.Marker, Line.After_Last_Character.Marker));
+         end if;
+
+         loop
+            Num := Num + 1;
+            exit when Num > Natural (Span.last.line);
+            Slice.Append (Lines.Element (Num));
+         end loop;
+
+         Line := Lines.Element (Natural (Span.last.line) + 1);
+         declare
+            J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
+              Line.At_First_Character;
+            U2 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+              J2.First_UTF16_Offset;
+         begin
+            while Span.last.character /= J2.First_UTF16_Offset - U2
+              and then J2.Forward
+            loop
+               null;
+            end loop;
+            Dummy := J2.Backward;
+
+            if Span.first.line /= Span.last.line then
+               Slice.Append
+                 (Line.Slice (Line.At_First_Character.Marker, J2.Marker));
+            else
+               Slice.Append (Line.Slice (J1.Marker, J2.Marker));
+            end if;
+         end;
+      end;
+   end Span_To_Slice;
 
 end LSP.Lal_Utils;

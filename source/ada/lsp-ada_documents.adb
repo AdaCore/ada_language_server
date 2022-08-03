@@ -25,6 +25,7 @@ with GNATCOLL.VFS;
 
 with VSS.Characters;
 with VSS.Strings.Conversions;
+with VSS.Strings.Cursors.Iterators.Characters;
 
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
@@ -607,6 +608,323 @@ package body LSP.Ada_Documents is
       end;
    end Diff;
 
+   ------------------
+   -- Diff_Symbols --
+   ------------------
+
+   procedure Diff_Symbols
+     (Self     : Document;
+      Span     : LSP.Messages.Span;
+      New_Text : VSS.Strings.Virtual_String;
+      Edit     : out LSP.Messages.TextEdit_Vector)
+   is
+      use LSP.Types;
+      use LSP.Messages;
+      use VSS.Strings;
+      use VSS.Characters;
+
+      Old_Text  : VSS.Strings.Virtual_String;
+      Old_Lines : VSS.String_Vectors.Virtual_String_Vector;
+      Old_Line  : VSS.Strings.Virtual_String;
+      Old_Length, New_Length : Natural;
+
+      First_Marker : VSS.Strings.Markers.Character_Marker;
+      Last_Marker  : VSS.Strings.Markers.Character_Marker;
+
+   begin
+      Self.Span_To_Markers (Span, First_Marker, Last_Marker);
+
+      Old_Text  := Self.Text.Slice (First_Marker, Last_Marker);
+      Old_Lines := Old_Text.Split_Lines
+        (Terminators     => LSP_New_Line_Function_Set,
+         Keep_Terminator => True);
+      Old_Line := Old_Lines.Element (Old_Lines.Length);
+
+      Old_Length := Integer (Character_Length (Old_Text));
+      New_Length := Integer (Character_Length (New_Text));
+
+      declare
+         type LCS_Array is array
+           (Natural range 0 .. Old_Length,
+            Natural range 0 .. New_Length) of Integer;
+         type LCS_Array_Access is access all LCS_Array;
+
+         procedure Free is
+           new Ada.Unchecked_Deallocation (LCS_Array, LCS_Array_Access);
+
+         LCS    : LCS_Array_Access := new LCS_Array;
+         Match  : Integer;
+         Delete : Integer;
+         Insert : Integer;
+
+         Old_Char : VSS.Strings.Cursors.Iterators.Characters.
+           Character_Iterator := Old_Text.At_First_Character;
+         New_Char : VSS.Strings.Cursors.Iterators.Characters.
+           Character_Iterator := New_Text.At_First_Character;
+
+         Dummy : Boolean;
+
+         Old_Index, New_Index : Integer;
+
+         Changed_Block_Text : VSS.Strings.Virtual_String;
+         Changed_Block_Span : LSP.Messages.Span := ((0, 0), (0, 0));
+         Span_Set           : Boolean := False;
+
+         --  to calculate span
+         Current_Line_Number : Line_Number :=
+           (if Natural (Span.last.character) = 0
+            then Span.last.line - 1
+            else Span.last.line);
+         --  we do not have a line at all when the range end is on the
+         --  begin of a line, so set Current_Line_Number to the previous one
+         Old_Lines_Number    : Natural := Old_Lines.Length;
+         Cursor              : VSS.Strings.Cursors.Iterators.Characters.
+           Character_Iterator := Old_Line.After_Last_Character;
+
+         procedure Backward;
+         --  Move old line Cursor backward, update Old_Line and
+         --  Old_Lines_Number if needed
+
+         function Get_Position (Insert : Boolean) return Position;
+         --  get Position for a Span based on Cursor to prepare first/last
+         --  position for changes
+
+         procedure Prepare_Last_Span (Insert : Boolean);
+         --  Store position based on Cursor to Changed_Block_Span.last if
+         --  it is not stored yet
+
+         procedure Prepare_Change
+           (Insert : Boolean;
+            Char   : VSS.Characters.Virtual_Character);
+         --  Collect change information for Text_Edit in Changed_Block_Text
+         --  and Changed_Block_Span
+
+         procedure Add_Prepared_Change;
+         --  Add prepared New_String and corresponding Span into Text_Edit
+
+         --------------
+         -- Backward --
+         --------------
+
+         procedure Backward is
+         begin
+            if not Cursor.Backward
+              and then Old_Lines_Number > 1
+            then
+               Current_Line_Number := Current_Line_Number - 1;
+               Old_Lines_Number    := Old_Lines_Number - 1;
+               Old_Line            := Old_Lines.Element (Old_Lines_Number);
+               Cursor.Set_At_Last (Old_Line);
+            end if;
+
+            Old_Index := Old_Index - 1;
+            Dummy     := Old_Char.Backward;
+         end Backward;
+
+         ------------------
+         -- Get_Position --
+         ------------------
+
+         function Get_Position (Insert : Boolean) return Position
+         is
+            --------------
+            -- Backward --
+            --------------
+
+            function Backward return Position;
+            function Backward return Position is
+               C : VSS.Strings.Cursors.Iterators.Characters.
+                 Character_Iterator := Old_Line.At_Character (Cursor);
+            begin
+               --  "Cursor" is after the current character but we should
+               --  insert before it
+               if C.Backward then
+                  return
+                    (line      => Current_Line_Number,
+                     character => C.First_UTF16_Offset);
+               else
+                  return
+                    (line      => Current_Line_Number,
+                     character => 0);
+               end if;
+            end Backward;
+
+         begin
+            if not Cursor.Has_Element then
+               return
+                 (line      => Current_Line_Number,
+                  character => 0);
+
+            elsif Insert then
+               --  "Cursor" is after the current character but we should
+               --  insert before it
+               return Backward;
+
+            else
+               return
+                 (line      => Current_Line_Number,
+                  character => Cursor.First_UTF16_Offset);
+            end if;
+         end Get_Position;
+
+         -----------------------
+         -- Prepare_Last_Span --
+         -----------------------
+
+         procedure Prepare_Last_Span (Insert : Boolean) is
+         begin
+            if not Span_Set then
+               --  it is the first portion of a changed block so store
+               --  last position of the changes
+               Span_Set := True;
+               Changed_Block_Span.last := Get_Position (Insert);
+            end if;
+         end Prepare_Last_Span;
+
+         --------------------
+         -- Prepare_Change --
+         --------------------
+
+         procedure Prepare_Change
+           (Insert : Boolean;
+            Char   : VSS.Characters.Virtual_Character) is
+         begin
+            Prepare_Last_Span (Insert);
+            --  accumulating new text for the changed block
+            Changed_Block_Text.Prepend (Char);
+         end Prepare_Change;
+
+         -------------------------
+         -- Add_Prepared_Change --
+         -------------------------
+
+         procedure Add_Prepared_Change is
+         begin
+            if not Span_Set then
+               --  No information for Text_Edit
+               return;
+            end if;
+
+            Changed_Block_Span.first := Get_Position (False);
+
+            LSP.Messages.Prepend
+              (Edit, LSP.Messages.TextEdit'
+                 (span    => Changed_Block_Span,
+                  newText => Changed_Block_Text));
+
+            --  clearing
+            Changed_Block_Text.Clear;
+
+            Changed_Block_Span := ((0, 0), (0, 0));
+            Span_Set := False;
+         end Add_Prepared_Change;
+
+      begin
+         --  prepare LCS
+
+         --  default values for line 0
+         for Index in 0 .. Old_Length loop
+            LCS (Index, 0) := -5 * Index;
+         end loop;
+
+         --  default values for the first column
+         for Index in 0 .. New_Length loop
+            LCS (0, Index) := -5 * Index;
+         end loop;
+
+         --  calculate LCS
+         for Row in 1 .. Old_Length loop
+            New_Char.Set_At_First (New_Text);
+            for Column in 1 .. New_Length loop
+               Match := LCS (Row - 1, Column - 1) +
+                 (if Old_Char.Element = New_Char.Element
+                  then 10   --  +10 is the 'weight' for equal lines
+                  else -1); --  and -1 for the different
+
+               Delete := LCS (Row - 1, Column) - 5;
+               Insert := LCS (Row, Column - 1) - 5;
+
+               LCS (Row, Column) := Integer'Max (Match, Insert);
+               LCS (Row, Column) := Integer'Max (LCS (Row, Column), Delete);
+
+               Dummy := New_Char.Forward;
+            end loop;
+            Dummy := Old_Char.Forward;
+         end loop;
+
+         --  iterate over LCS and create Text_Edit
+
+         Old_Char.Set_At_Last (Old_Text);
+         New_Char.Set_At_Last (New_Text);
+         Old_Index := Old_Length;
+         New_Index := New_Length;
+
+         while Old_Index > 0
+           and then New_Index > 0
+         loop
+            if LCS (Old_Index, New_Index) =
+              LCS (Old_Index - 1, New_Index - 1) +
+              (if Old_Char.Element = New_Char.Element
+               then 10
+               else -1)
+            then
+               --  both has elements
+               if Old_Char.Element = New_Char.Element then
+                  --  elements are equal, add prepared Text_Edit
+                  Add_Prepared_Change;
+               else
+                  --  elements are different, change old one by new
+                  Prepare_Change (False, New_Char.Element);
+               end if;
+
+               --  move old element cursors backward
+               Backward;
+
+               New_Index := New_Index - 1;
+               Dummy     := New_Char.Backward;
+
+            elsif LCS (Old_Index, New_Index) =
+              LCS (Old_Index - 1, New_Index) - 5
+            then
+               --  element has been deleted, move old cursor backward
+               Prepare_Last_Span (False);
+               Backward;
+
+            elsif LCS (Old_Index, New_Index) =
+              LCS (Old_Index, New_Index - 1) - 5
+            then
+               --  element has been inserted
+               Prepare_Change (True, New_Char.Element);
+
+               New_Index := New_Index - 1;
+               Dummy     := New_Char.Backward;
+            end if;
+         end loop;
+
+         while Old_Index > 0 loop
+            --  deleted
+            Prepare_Last_Span (False);
+            Backward;
+         end loop;
+
+         while New_Index > 0 loop
+            --  inserted
+            Prepare_Change (True, New_Char.Element);
+
+            New_Index := New_Index - 1;
+            Dummy     := New_Char.Backward;
+         end loop;
+
+         Add_Prepared_Change;
+         Free (LCS);
+
+      exception
+         when others =>
+            Free (LCS);
+            raise;
+      end;
+   end Diff_Symbols;
+
    ----------------
    -- Formatting --
    ----------------
@@ -678,7 +996,6 @@ package body LSP.Ada_Documents is
       --  the GNAT standard way for messages (i.e: <filename>:<sloc>: <msg>)
 
       if not PP_Messages.Is_Empty then
-
          declare
             Filename : constant String := URI_To_File
               (Self => Context, URI => Self.URI);
@@ -718,19 +1035,39 @@ package body LSP.Ada_Documents is
          --  diff for a part of the document
 
          Out_Span := Self.To_LSP_Range (Out_Sloc);
-         Diff
-           (Self,
-            VSS.Strings.Conversions.To_Virtual_String (S.all),
-            Span,
-            Out_Span,
-            Edit);
+
+         --  Use line diff if the range is too wide
+         if Span.last.line - Span.first.line > 5 then
+            Diff
+              (Self,
+               VSS.Strings.Conversions.To_Virtual_String (S.all),
+               Span,
+               Out_Span,
+               Edit);
+         else
+            declare
+               Formatted : constant VSS.Strings.Virtual_String :=
+                 VSS.Strings.Conversions.To_Virtual_String (S.all);
+               Slice     : VSS.Strings.Virtual_String;
+
+            begin
+               LSP.Lal_Utils.Span_To_Slice (Formatted, Out_Span, Slice);
+
+               Diff_Symbols
+                 (Self,
+                  Span,
+                  Slice,
+                  Edit);
+            end;
+         end if;
       end if;
 
       GNAT.Strings.Free (S);
       return True;
 
    exception
-      when others =>
+      when E : others =>
+         Lal_PP_Output.Trace (E);
          GNAT.Strings.Free (S);
          return False;
    end Formatting;
@@ -870,10 +1207,9 @@ package body LSP.Ada_Documents is
              (1 .. Char_Vectors.Last_Index (Output) - 1);
          Edit_Text  : constant VSS.Strings.Virtual_String :=
            VSS.Strings.Conversions.To_Virtual_String (Output_Str);
-         Text_Edit  : constant LSP.Messages.TextEdit := (Edit_Span, Edit_Text);
 
       begin
-         Edit.Append (Text_Edit);
+         Self.Diff_Symbols (Edit_Span, Edit_Text, Edit);
       end;
 
       return True;
