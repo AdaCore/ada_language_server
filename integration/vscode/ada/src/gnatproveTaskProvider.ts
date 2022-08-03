@@ -55,7 +55,7 @@ export default class gnatproveTaskProvider implements vscode.TaskProvider<vscode
 
         // Arguments for proof of selected region need to be evaluated here
         if (definition.taskKind == taskKinds.proveRegion) {
-            const args = getGnatproveArgs('${config:ada.projectFile}', ['-u', '${fileBasename}', '--limit-region=${fileBasename}:' + getSelectedRegion(vscode.window.activeTextEditor)]);
+            const args = getGnatproveArgs(['-u', '${fileBasename}', '--limit-region=${fileBasename}:' + getSelectedRegion(vscode.window.activeTextEditor)]);
             const shell = new vscode.ShellExecution('gnatprove', args);
             return new vscode.Task(definition, vscode.TaskScope.Workspace, task.name, 'ada', shell, '$ada');
         }
@@ -67,7 +67,7 @@ export default class gnatproveTaskProvider implements vscode.TaskProvider<vscode
                 .then(subprogram =>
                 {
                     let args = (definition.taskKind == taskKinds.examineSubprogram) ? ['--mode=flow'] : [];
-                    args = getGnatproveArgs('${config:ada.projectFile}', args.concat(['-u', '${fileBasename}', '--limit-subp=${fileBasename}:' + subprogram]));
+                    args = getGnatproveArgs(args.concat(['-u', '${fileBasename}', '--limit-subp=${fileBasename}:' + subprogram]));
                     const shell = new vscode.ShellExecution('gnatprove', args);
                     return new vscode.Task(definition, vscode.TaskScope.Workspace, task.name, 'ada', shell, '$ada');
                 });
@@ -96,14 +96,14 @@ const getTasks = (): vscode.Task[] => {
     // Examine the project
     const examineProject = makeTask(
         taskKinds.examineProject,
-        getGnatproveArgs('${config:ada.projectFile}', ['--mode=flow']),
+        getGnatproveArgs(['--mode=flow']),
         'Examine project'
     );
 
     // Examine the file
     const examineFile = makeTask(
         taskKinds.examineFile,
-        getGnatproveArgs('${config:ada.projectFile}', ['--mode=flow', '-u', '${fileBasename}']),
+        getGnatproveArgs(['--mode=flow', '-u', '${fileBasename}']),
         'Examine file'
     );
 
@@ -117,14 +117,14 @@ const getTasks = (): vscode.Task[] => {
     // Prove the project
     const proveProject = makeTask(
         taskKinds.proveProject,
-        getGnatproveArgs('${config:ada.projectFile}', []),
+        getGnatproveArgs([]),
         'Prove project'
     );
 
     // Prove the file
     const proveFile = makeTask(
         taskKinds.proveFile,
-        getGnatproveArgs('${config:ada.projectFile}', ['-u', '${fileBasename}']),
+        getGnatproveArgs(['-u', '${fileBasename}']),
         'Prove file'
     );
 
@@ -145,7 +145,7 @@ const getTasks = (): vscode.Task[] => {
     // Prove the selected line line
     const proveLine = makeTask(
         taskKinds.proveLine,
-        getGnatproveArgs('${config:ada.projectFile}', ['-u', '${fileBasename}', '--limit-line=${fileBasename}:${lineNumber}']),
+        getGnatproveArgs(['-u', '${fileBasename}', '--limit-line=${fileBasename}:${lineNumber}']),
         'Prove line'
     );
 
@@ -208,14 +208,14 @@ const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
     }
 };
 
-const getGnatproveArgs = (projectFile: string, args: string[]): string[] => {
+const getGnatproveArgs = (args: string[]): string[] => {
     // Append args (if any) and `-gnatef` to generate full file names in errors/warnings
     const p_gnatef = ['-cargs', '-gnatef'];
-    return commonArgs(projectFile).concat(args, p_gnatef);
+    return commonArgs().concat(args, p_gnatef);
 };
 
-//  return '-P project.gpr -XVAR=value` optiona
-const commonArgs = (projectFile?: string): string[] => {
+//  return '-P project.gpr -XVAR=value` options
+const commonArgs = (): string[] => {
     const vars: string[][] = Object.entries(
         vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
     );
@@ -223,8 +223,11 @@ const commonArgs = (projectFile?: string): string[] => {
         const option = '-X' + item[0] + '=' + item[1];
         return args.concat([option]);
     };
+
     // Set projectFile is any
-    const prj = projectFile ? ['-P', projectFile] : [];
+    const prj = vscode.workspace.getConfiguration('ada').get(
+        'projectFile') != "" ? ['-P', "${config:ada.projectFile}"] : [];
+
     // for each scenarioVariables put `-Xname=value` option
     return vars.reduce(fold, prj);
 };
