@@ -1246,8 +1246,7 @@ package body LSP.Ada_Handlers is
         (Context : Context_Access;
          Node    : Libadalang.Analysis.Ada_Node;
          Result  : out LSP.Messages.CodeAction_Vector;
-         Found   : in out Boolean;
-         Done    : in out Boolean);
+         Found   : in out Boolean);
       --  Look for a possible refactoring in given Node.
       --  Return Found = True if some refactoring is possible. Populate
       --  Result with Code_Actions in this case. Return Done = True if futher
@@ -1256,14 +1255,6 @@ package body LSP.Ada_Handlers is
       procedure Append_Project_Status
         (Result : in out LSP.Messages.CodeAction_Vector);
       --  Append project status code action if needed
-
-      Found_Named_Parameters : Boolean := False;
-      --  We propose only one choice of Named_Parameters refactoring per
-      --  request. So, if a user clicks on `1` in `A (B (1))` we propose the
-      --  refactoring for B (1), but not for A (...) call. We consider this
-      --  as better user experience.
-      --
-      --  This boolean filter to detect such refactoring duplication.
 
       ----------------------------------
       -- Has_Assoc_Without_Designator --
@@ -1401,12 +1392,8 @@ package body LSP.Ada_Handlers is
         (Context : Context_Access;
          Node    : Libadalang.Analysis.Ada_Node;
          Result  : out LSP.Messages.CodeAction_Vector;
-         Found   : in out Boolean;
-         Done    : in out Boolean)
+         Found   : in out Boolean)
       is
-         procedure Append_Command (Node : Libadalang.Analysis.Ada_Node);
-         --  Contruct a command and append it to Result
-
          procedure Change_Parameters_Type_Code_Action;
          --  Checks if the Change Parameters Type refactoring tool is avaiable,
          --  and if so, appends a Code Action with its Command.
@@ -1423,49 +1410,13 @@ package body LSP.Ada_Handlers is
          --  Checks if the Introduce Parameter refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Named_Parameters_Code_Action;
+         --  Checks if the Named Parameters refactoring is available, and if
+         --  so, appends a Code Action with its Command.
+
          procedure Pull_Up_Declaration_Code_Action;
          --  Checks if the Pull Up Declaration refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
-
-         --------------------
-         -- Append_Command --
-         --------------------
-
-         procedure Append_Command (Node : Libadalang.Analysis.Ada_Node) is
-            Command : LSP.Ada_Handlers.Named_Parameters_Commands.Command;
-            Pointer : LSP.Commands.Command_Pointer;
-            Item    : LSP.Messages.CodeAction;
-            Where   : constant LSP.Messages.Location :=
-              LSP.Lal_Utils.Get_Node_Location (Node);
-         begin
-            if Found_Named_Parameters then
-               return;
-            end if;
-
-            Command.Initialize
-              (Context => Context.all,
-               Where   => ((uri => Where.uri), Where.span.first));
-
-            Pointer.Set (Command);
-
-            Item :=
-              (title       => "Name parameters in the call",
-               kind        => (Is_Set => True,
-                               Value  => LSP.Messages.RefactorRewrite),
-               diagnostics => (Is_Set => False),
-               disabled    => (Is_Set => False),
-               edit        => (Is_Set => False),
-               isPreferred => (Is_Set => False),
-               command     => (Is_Set => True,
-                               Value  =>
-                                 (Is_Unknown => False,
-                                  title      => <>,
-                                  Custom     => Pointer)));
-
-            Result.Append (Item);
-            Found := True;
-            Found_Named_Parameters := True;
-         end Append_Command;
 
          ----------------------------------------
          -- Change_Parameters_Type_Code_Action --
@@ -1500,6 +1451,8 @@ package body LSP.Ada_Handlers is
                      span    => Params.span,
                      alsKind => LSP.Messages.Empty_Set),
                   Syntax_Rules                => Syntax_Rules);
+
+               Found := True;
             end if;
          end Change_Parameters_Type_Code_Action;
 
@@ -1533,6 +1486,8 @@ package body LSP.Ada_Handlers is
                     (uri     => Params.textDocument.uri,
                      span    => Params.span,
                      alsKind => LSP.Messages.Empty_Set));
+
+               Found := True;
             end if;
          end Change_Parameters_Default_Value_Code_Action;
 
@@ -1591,7 +1546,6 @@ package body LSP.Ada_Handlers is
                   end if;
 
                   Found := True;
-                  Done := True;
                end if;
             end if;
          end Extract_Subprogram_Code_Action;
@@ -1625,8 +1579,103 @@ package body LSP.Ada_Handlers is
                     (uri     => Params.textDocument.uri,
                      span    => Params.span,
                      alsKind => LSP.Messages.Empty_Set));
+
+               Found := True;
             end if;
          end Introduce_Parameter_Code_Action;
+
+         ----------------------------------
+         -- Named_Parameters_Code_Action --
+         ----------------------------------
+
+         procedure Named_Parameters_Code_Action is
+            Aux_Node : Libadalang.Analysis.Ada_Node := Node;
+            Done     : Boolean := False;
+            --  We propose only one choice of Named_Parameters refactoring per
+            --  request. So, if a user clicks on `1` in `A (B (1))` we propose
+            --  the refactoring for B (1), but not for A (...) call. We
+            --  consider this as better user experience.
+            --
+            --  This boolean filter to detect such refactoring duplication.
+
+            procedure Append_Command (Node : Libadalang.Analysis.Ada_Node);
+            --  Contruct a command and append it to Result
+
+            --------------------
+            -- Append_Command --
+            --------------------
+
+            procedure Append_Command (Node : Libadalang.Analysis.Ada_Node) is
+               Command : LSP.Ada_Handlers.Named_Parameters_Commands.Command;
+               Pointer : LSP.Commands.Command_Pointer;
+               Item    : LSP.Messages.CodeAction;
+               Where   : constant LSP.Messages.Location :=
+                 LSP.Lal_Utils.Get_Node_Location (Node);
+
+            begin
+               Command.Initialize
+                 (Context => Context.all,
+                  Where   => ((uri => Where.uri), Where.span.first));
+
+               Pointer.Set (Command);
+
+               Item :=
+                 (title       => "Name parameters in the call",
+                  kind        => (Is_Set => True,
+                                  Value  => LSP.Messages.RefactorRewrite),
+                  diagnostics => (Is_Set => False),
+                  disabled    => (Is_Set => False),
+                  edit        => (Is_Set => False),
+                  isPreferred => (Is_Set => False),
+                  command     => (Is_Set => True,
+                                  Value  =>
+                                    (Is_Unknown => False,
+                                     title      => <>,
+                                     Custom     => Pointer)));
+
+               Result.Append (Item);
+
+               Done := True;
+               Found := True;
+            end Append_Command;
+
+         begin
+            while not Done and then not Aux_Node.Is_Null loop
+               case Aux_Node.Kind is
+                  when Libadalang.Common.Ada_Stmt
+                     | Libadalang.Common.Ada_Basic_Decl =>
+
+                     Done := True;
+
+                  when Libadalang.Common.Ada_Basic_Assoc_List =>
+                     if Has_Assoc_Without_Designator
+                          (Aux_Node.As_Basic_Assoc_List)
+                     then
+                        Append_Command (Aux_Node);
+                     end if;
+
+                  when Libadalang.Common.Ada_Call_Expr =>
+                     declare
+                        List : constant Libadalang.Analysis.Ada_Node :=
+                          Aux_Node.As_Call_Expr.F_Suffix;
+
+                     begin
+                        if not List.Is_Null
+                          and then List.Kind in
+                                     Libadalang.Common.Ada_Basic_Assoc_List
+                          and then Has_Assoc_Without_Designator
+                                     (List.As_Basic_Assoc_List)
+                        then
+                           Append_Command (List);
+                        end if;
+                     end;
+                  when others =>
+                     null;
+               end case;
+
+               Aux_Node := Aux_Node.Parent;
+            end loop;
+         end Named_Parameters_Code_Action;
 
          -------------------------------------
          -- Pull_Up_Declaration_Code_Action --
@@ -1664,39 +1713,15 @@ package body LSP.Ada_Handlers is
                      alsKind => Empty_Set));
 
                Found := True;
-               Done := True;
             end if;
          end Pull_Up_Declaration_Code_Action;
 
          Kind : constant Libadalang.Common.Ada_Node_Kind_Type := Node.Kind;
 
       begin
+         Named_Parameters_Code_Action;
+
          case Kind is
-            when Libadalang.Common.Ada_Stmt
-               | Libadalang.Common.Ada_Basic_Decl =>
-
-               Done := True;
-
-            when Libadalang.Common.Ada_Basic_Assoc_List =>
-               if Has_Assoc_Without_Designator (Node.As_Basic_Assoc_List) then
-                  Append_Command (Node);
-               end if;
-
-            when Libadalang.Common.Ada_Call_Expr =>
-               declare
-                  List : constant Libadalang.Analysis.Ada_Node :=
-                    Node.As_Call_Expr.F_Suffix;
-               begin
-                  if not List.Is_Null
-                    and then List.Kind in
-                      Libadalang.Common.Ada_Basic_Assoc_List
-                      and then Has_Assoc_Without_Designator
-                        (List.As_Basic_Assoc_List)
-                  then
-                     Append_Command (List);
-                  end if;
-               end;
-
             when Libadalang.Common.Ada_Identifier =>
                declare
                   Name      : constant Libadalang.Analysis.Name
@@ -1837,7 +1862,6 @@ package body LSP.Ada_Handlers is
                        Requires_Full_Specification);
 
                   Found := True;
-                  Done := True;
                end if;
             end;
          end if;
@@ -1878,7 +1902,6 @@ package body LSP.Ada_Handlers is
                   Parameters_Indices => Parameter_Indices_Range);
 
                Found := True;
-               Done := True;
             end if;
          end;
 
@@ -1909,7 +1932,6 @@ package body LSP.Ada_Handlers is
                end loop;
 
                Found := True;
-               Done := True;
             end if;
          end;
 
@@ -1938,7 +1960,6 @@ package body LSP.Ada_Handlers is
                end loop;
 
                Found := True;
-               Done := True;
             end if;
          end;
 
@@ -1961,7 +1982,6 @@ package body LSP.Ada_Handlers is
                   Target_Separate => Target_Separate);
 
                Found := True;
-               Done := True;
             end if;
          end;
       end Analyse_Node;
@@ -1976,14 +1996,10 @@ package body LSP.Ada_Handlers is
          Result   : out LSP.Messages.CodeAction_Vector;
          Found    : in out Boolean)
       is
-         Done : Boolean := False;  --  True when futher analysis has no sense
-         Node : Libadalang.Analysis.Ada_Node :=
+         Node : constant Libadalang.Analysis.Ada_Node :=
            Document.Get_Node_At (Context.all, Params.span.first);
       begin
-         while not Done and then not Node.Is_Null loop
-            Analyse_Node (Context, Node, Result, Found, Done);
-            Node := Node.Parent;
-         end loop;
+         Analyse_Node (Context, Node, Result, Found);
       end Analyse_In_Context;
 
       ---------------------------
