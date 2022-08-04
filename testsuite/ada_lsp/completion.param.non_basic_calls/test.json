@@ -1,0 +1,266 @@
+[
+   {
+      "comment": [
+          "Test param completion for: expression function, null procedure and",
+          "procedure without a body"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 ",",
+                                 "'",
+                                 "("
+                             ],
+                             "resolveProvider": true
+                         }
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile":"$URI{default.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                  "token": "<ANY>",
+                  "value": {
+                    "kind": "end"
+                  }
+                }
+            }
+        ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   function Bar\n     (I, J, K : Integer; L : Float := 1.0) return Float is (L);\n   procedure Bar (A, B : Integer) is null;\n   procedure Bar (C : String);\n   X : Float;\nbegin\n   X := Bar (\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 7,
+                  "character": 13
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "detail": "procedure Bar (C : String)",
+                        "documentation": "at foo.adb (5:4)",
+                        "sortText": "+00",
+                        "insertText": "C => ${1:String})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "C",
+                        "kind": 5,
+                        "sortText": "+01",
+                        "insertText": "C => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "detail": "procedure Bar (A, B : Integer) is null",
+                        "documentation": "at foo.adb (4:4)",
+                        "sortText": "+02",
+                        "insertText": "${1:A : Integer}, ${2:B : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+03",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+04",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "detail": "function Bar\n  (I, J, K : Integer; L : Float := 1.0) return Float",
+                        "documentation": "at foo.adb (2:4)",
+                        "sortText": "+05",
+                        "insertText": "I => ${1:Integer}, J => ${2:Integer}, K => ${3:Integer}, L => ${4:Float})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "I",
+                        "kind": 5,
+                        "sortText": "+06",
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "J",
+                        "kind": 5,
+                        "sortText": "+07",
+                        "insertText": "J => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "K",
+                        "kind": 5,
+                        "sortText": "+08",
+                        "insertText": "K => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "L",
+                        "kind": 5,
+                        "sortText": "+09",
+                        "insertText": "L => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "shutdown"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

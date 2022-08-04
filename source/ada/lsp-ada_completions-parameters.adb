@@ -83,7 +83,10 @@ package body LSP.Ada_Completions.Parameters is
 
    begin
       for N of reverse Context.Find_All_Env_Elements (Name_Node) loop
-         if N.Kind in Ada_Basic_Subp_Decl then
+         if N.Kind in Ada_Basic_Subp_Decl
+           | Ada_Null_Subp_Decl_Range
+           | Ada_Expr_Function_Range
+         then
             declare
                Assoc : LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data;
                Spec : constant Libadalang.Analysis.Base_Subp_Spec
