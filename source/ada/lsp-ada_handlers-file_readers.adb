@@ -15,8 +15,13 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;               use Ada.Exceptions;
+with Ada.Characters.Handling;
 with GNAT.Strings;                 use GNAT.Strings;
 with GNATCOLL.Traces;              use GNATCOLL.Traces;
+
+with GNATCOLL.VFS;                 use GNATCOLL.VFS;
+with GNATCOLL.Iconv;               use GNATCOLL.Iconv;
 with VSS.Strings;                  use VSS.Strings;
 with VSS.Strings.Conversions;
 with LSP.Ada_Documents;            use LSP.Ada_Documents;
@@ -26,6 +31,104 @@ with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
 package body LSP.Ada_Handlers.File_Readers is
 
    Me : constant Trace_Handle := Create ("ALS.FILE_READERS");
+
+   function Read_And_Convert_To_UTF8
+     (Filename : String; Charset : String)
+      return GNAT.Strings.String_Access;
+   --  Read the file content from Filename and convert it from the original
+   --  Charset to UTF-8.
+
+   ------------------------------
+   -- Read_And_Convert_To_UTF8 --
+   ------------------------------
+
+   function Read_And_Convert_To_UTF8
+     (Filename : String; Charset : String)
+      return GNAT.Strings.String_Access
+   is
+      Raw        : GNAT.Strings.String_Access;
+      Decoded    : GNAT.Strings.String_Access;
+   begin
+      --  Read the file (this call uses MMAP)
+      Raw := Create_From_UTF8 (Filename).Read_File;
+
+      if Raw = null then
+         return null;
+      end if;
+
+      --  Convert the file if it's not already encoded in utf-8
+
+      if Ada.Characters.Handling.To_Lower (Charset) = "utf-8" then
+         Decoded := Raw;
+      else
+         declare
+            State        : constant Iconv_T := Iconv_Open (UTF8, Charset);
+            Outbuf       : Byte_Sequence (1 .. 4096);
+            Input_Index  : Positive := Raw'First;
+            Conv_Result  : Iconv_Result := Full_Buffer;
+            Output_Index : Positive;
+         begin
+            while Conv_Result = Full_Buffer loop
+               Output_Index := 1;
+               Iconv (State        => State,
+                      Inbuf        => Raw.all,
+                      Input_Index  => Input_Index,
+                      Outbuf       => Outbuf,
+                      Output_Index => Output_Index,
+                      Result       => Conv_Result);
+
+               --  Append the converted contents
+               if Decoded /= null then
+                  declare
+                     Tmp : GNAT.Strings.String_Access := Decoded;
+                  begin
+                     Decoded := new String'
+                       (Tmp.all & Outbuf (1 .. Output_Index - 1));
+                     GNAT.Strings.Free (Tmp);
+                  end;
+               else
+                  Decoded := new String'(Outbuf (1 .. Output_Index - 1));
+               end if;
+            end loop;
+
+            GNAT.Strings.Free (Raw);
+            Iconv_Close (State);
+
+            case Conv_Result is
+               when Success =>
+                  --  The conversion was successful
+                  null;
+               when others =>
+                  Me.Trace
+                    ("Failed to convert '" & Filename & "' to UTF-8: "
+                    & Conv_Result'Img);
+                  return null;
+            end case;
+         exception
+            when E : others =>
+
+               Me.Trace
+                 ("Exception caught when reading '" & Filename & "':"
+                  & Exception_Message (E));
+               return null;
+         end;
+      end if;
+
+      --  Convert the string to a Virtual_String for easier handling
+
+      return Decoded;
+   exception
+      when E : others =>
+         if Decoded /= null then
+            GNAT.Strings.Free (Decoded);
+         end if;
+
+         Me.Trace
+           ("Exception caught when reading '" & Filename & "':"
+            & Exception_Message (E));
+
+         return null;
+   end Read_And_Convert_To_UTF8;
 
    ----------
    -- Read --
@@ -56,7 +159,7 @@ package body LSP.Ada_Handlers.File_Readers is
          Buffer := new String'
            (VSS.Strings.Conversions.To_UTF_8_String (Doc.Text));
       else
-         Buffer := Create_From_UTF8 (Filename).Read_File;
+         Buffer := Read_And_Convert_To_UTF8 (Filename, Charset);
 
          --  Return an empty sring when failing to read the file (i.e: when the
          --  file has been deleted).
