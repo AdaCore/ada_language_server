@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Wide_Unbounded;
 
 with Langkit_Support.Text;
@@ -122,13 +123,25 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
                Null_Unbounded_Wide_Wide_String;
          use type Ada.Strings.Wide_Wide_Unbounded.
            Unbounded_Wide_Wide_String;
+
       begin
          if Suggestion.With_Clause_Text /= "" then
-            --  Add with clause and prefix
+            if Suggestion.Prefix_Text /= "" then
+               --  Add with clause and prefix
+               Title :=
+                 Title
+                 & "Add 'with' clause for "
+                 & Suggestion.With_Clause_Text
+                 & " and prefix the object with "
+                 & Suggestion.Prefix_Text;
 
-            Title := Title & "Add 'with' clause for "
-              & Suggestion.With_Clause_Text & " and prefix the object with "
-              & Suggestion.Prefix_Text;
+            else
+               --  Add with clause and leave the prefix as it is
+               Title :=
+                 Title
+                 & "Add 'with' clause for "
+                 & Suggestion.With_Clause_Text;
+            end if;
          else
             --  Only add prefix
 
@@ -167,96 +180,84 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       Commands_Vector.Append (Item);
    end Append_Suggestion;
 
-   -------------
-   -- Execute --
-   -------------
+   ----------------------------------
+   -- Command_To_Refactoring_Edits --
+   ----------------------------------
 
-   overriding procedure Execute
-     (Self    : Command;
-      Handler : not null access LSP.Server_Notification_Receivers.
-        Server_Notification_Receiver'Class;
-      Client : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
-      Error : in out LSP.Errors.Optional_ResponseError)
+   function Command_To_Refactoring_Edits
+     (Self     : Command;
+      Context  : LSP.Ada_Contexts.Context;
+      Document : LSP.Ada_Documents.Document_Access)
+      return Laltools.Refactor.Refactoring_Edits
    is
-      use type Libadalang.Common.Ada_Node_Kind_Type;
-      use type Libadalang.Slocs.Source_Location;
-      use type VSS.Strings.Virtual_String;
+      use Langkit_Support.Text;
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+      use Libadalang.Slocs;
+      use Laltools.Refactor;
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
 
-      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
-        LSP.Ada_Handlers.Message_Handler (Handler.all);
-      Context         : LSP.Ada_Contexts.Context renames
-        Message_Handler.Contexts.Get (Self.Context).all;
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
-      Apply    : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
-      Node     : constant Libadalang.Analysis.Ada_Node :=
+      Node : Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
-      Loc      : LSP.Messages.Location;
-      Edit     : LSP.Messages.AnnotatedTextEdit;
 
-      Edits    : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
-      Version  : constant LSP.Messages.VersionedTextDocumentIdentifier :=
-        Document.Versioned_Identifier;
+      Edits :  Laltools.Refactor.Refactoring_Edits;
+
    begin
-      Apply.params.label :=
-        (Is_Set => True,
-         Value  =>
-           VSS.Strings.Conversions.To_Virtual_String (Command'External_Tag));
-      if Message_Handler.Versioned_Documents then
-         Edits.documentChanges.Append
-           (LSP.Messages.Document_Change'
-              (Kind               => LSP.Messages.Text_Document_Edit,
-               Text_Document_Edit =>
-                 (textDocument => (Version.uri, (True, Version.version)),
-                  edits        => <>)));
-      end if;
-
-      --  Add prefix.
+      --  Add prefix
 
       if not Self.Prefix.Is_Empty
-        and then Node.Kind = Libadalang.Common.Ada_Identifier
+        and then Node.Kind in Ada_Identifier
       then
          --  If this is a DottedName them remove the current prefix and replace
          --  it by the suggested one. Otherwise, just add the prepend the
          --  prefix
 
-         if Node.Parent.Kind = Libadalang.Common.Ada_Dotted_Name then
+         while Node.Parent.Kind in Ada_Dotted_Name_Range loop
+            Node := Node.Parent;
+         end loop;
+
+         if Node.Kind in Ada_Dotted_Name_Range then
+            Node := Node.As_Dotted_Name.F_Suffix.As_Ada_Node;
+         end if;
+
+         if Node.Parent.Kind = Ada_Dotted_Name then
             --  Node.Parent is the full Dotted Name: this includes the
             --  current prefixes and the identifier. Using this SLOC instead
             --  of only the current prefixes SLOC is better since this covers
             --  cases when the Dotted Name is splitted in multiple lines.
 
-            Loc := LSP.Lal_Utils.Get_Node_Location (Node.Parent);
-            Edit.span := (Loc.span.first, Loc.span.last);
-            Edit.newText :=
-              Self.Prefix & VSS.Strings.To_Virtual_String (Node.Text);
-         else
-            Loc := LSP.Lal_Utils.Get_Node_Location (Node);
-            Edit.span := (Loc.span.first, Loc.span.first);
-            Edit.newText := Self.Prefix;
-         end if;
+            Safe_Insert
+              (Edits     => Edits.Text_Edits,
+               File_Name => Node.Unit.Get_Filename,
+               Edit      =>
+                 Text_Edit'
+                   (Location =>
+                      Make_Range
+                        (Start_Sloc
+                           (Node.Parent.As_Dotted_Name.F_Prefix.Sloc_Range),
+                         Start_Sloc (Node.Sloc_Range)),
+                    Text     =>
+                      Ada.Strings.Unbounded.To_Unbounded_String
+                        (To_UTF8 (To_Wide_Wide_String (Self.Prefix)))));
 
-         if Message_Handler.Versioned_Documents then
-            Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);
          else
-            if Edits.changes.Contains (Self.Where.textDocument.uri) then
-               Edits.changes (Self.Where.textDocument.uri).Append
-                 (LSP.Messages.TextEdit (Edit));
-            else
-               declare
-                  Text_Edits : LSP.Messages.TextEdit_Vector;
-               begin
-                  Text_Edits.Append (LSP.Messages.TextEdit (Edit));
-                  Edits.changes.Include
-                    (Self.Where.textDocument.uri, Text_Edits);
-               end;
-            end if;
+            Safe_Insert
+              (Edits     => Edits.Text_Edits,
+               File_Name => Node.Unit.Get_Filename,
+               Edit      =>
+                 Text_Edit'
+                   (Location =>
+                      Make_Range
+                        (Start_Sloc (Node.Sloc_Range),
+                         Start_Sloc (Node.Sloc_Range)),
+                    Text     =>
+                      Ada.Strings.Unbounded.To_Unbounded_String
+                        (To_UTF8 (To_Wide_Wide_String (Self.Prefix)))));
          end if;
       end if;
 
-      --  Add with clause.
+      --  Add with clause
 
       if not Self.With_Clause.Is_Empty then
          declare
@@ -270,38 +271,83 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
                  Last      => Last);
          begin
             if S /= Libadalang.Slocs.No_Source_Location then
-               Edit.span := LSP.Lal_Utils.To_Span (S);
                if Last then
-                  Edit.newText :=
-                    Document.Line_Terminator
-                      & "with " & Self.With_Clause & ";";
+                  Safe_Insert
+                    (Edits     => Edits.Text_Edits,
+                     File_Name => Node.Unit.Get_Filename,
+                     Edit      =>
+                       Text_Edit'
+                         (Location => Make_Range (S, S),
+                          Text     =>
+                            Ada.Strings.Unbounded.To_Unbounded_String
+                              (To_UTF8 (To_Wide_Wide_String
+                               (Document.Line_Terminator
+                               & "with " & Self.With_Clause & ";")))));
 
                else
-                  Edit.newText :=
-                    "with " & Self.With_Clause & ";"
-                      & Document.Line_Terminator;
+                  Safe_Insert
+                    (Edits     => Edits.Text_Edits,
+                     File_Name => Node.Unit.Get_Filename,
+                     Edit      =>
+                       Text_Edit'
+                         (Location => Make_Range (S, S),
+                          Text     =>
+                            Ada.Strings.Unbounded.To_Unbounded_String
+                              (To_UTF8 (To_Wide_Wide_String
+                               ("with " & Self.With_Clause & ";"
+                                  & Document.Line_Terminator)))));
                end if;
 
-               if Message_Handler.Versioned_Documents then
-                  Edits.documentChanges (1).Text_Document_Edit.edits.Append
-                    (Edit);
-               else
-                  if Edits.changes.Contains (Self.Where.textDocument.uri) then
-                     Edits.changes (Self.Where.textDocument.uri).Append
-                       (LSP.Messages.TextEdit (Edit));
-                  else
-                     declare
-                        Text_Edits : LSP.Messages.TextEdit_Vector;
-                     begin
-                        Text_Edits.Append (LSP.Messages.TextEdit (Edit));
-                        Edits.changes.Include
-                          (Self.Where.textDocument.uri, Text_Edits);
-                     end;
-                  end if;
-               end if;
             end if;
          end;
       end if;
+
+      return Edits;
+   end Command_To_Refactoring_Edits;
+
+   -------------
+   -- Execute --
+   -------------
+
+   overriding procedure Execute
+     (Self    : Command;
+      Handler : not null access LSP.Server_Notification_Receivers.
+        Server_Notification_Receiver'Class;
+      Client : not null access LSP.Client_Message_Receivers.
+        Client_Message_Receiver'Class;
+      Error : in out LSP.Errors.Optional_ResponseError)
+   is
+      use Laltools.Refactor;
+      use LSP.Messages;
+      use LSP.Types;
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
+
+      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
+        LSP.Ada_Handlers.Message_Handler (Handler.all);
+      Context         : LSP.Ada_Contexts.Context renames
+        Message_Handler.Contexts.Get (Self.Context).all;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
+
+      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
+      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
+      Label           : Optional_Virtual_String renames Apply.params.label;
+
+      Edits : constant Refactoring_Edits :=
+        Self.Command_To_Refactoring_Edits (Context, Document);
+
+   begin
+      Workspace_Edits :=
+        LSP.Lal_Utils.To_Workspace_Edit
+          (Edits               => Edits,
+           Resource_Operations => Message_Handler.Resource_Operations,
+           Versioned_Documents => Message_Handler.Versioned_Documents,
+           Document_Provider   => Message_Handler'Access);
+      Label :=
+        (Is_Set => True,
+         Value  => To_Virtual_String (Command'External_Tag));
 
       Client.On_Workspace_Apply_Edit_Request (Apply);
 
