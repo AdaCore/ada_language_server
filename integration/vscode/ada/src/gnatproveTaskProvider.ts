@@ -15,8 +15,10 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 
+import { none } from 'fp-ts/lib/Option';
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
+import { integer } from 'vscode-languageclient';
 
 enum taskKinds {
     examineProject,    // Examine the project
@@ -63,13 +65,19 @@ export default class gnatproveTaskProvider implements vscode.TaskProvider<vscode
         else if (definition.taskKind == taskKinds.examineSubprogram
                  || definition.taskKind == taskKinds.proveSubprogram)
         {
-            return getSubprogram(vscode.window.activeTextEditor)
-                .then(subprogram =>
+            return getSubprogramSymbol(vscode.window.activeTextEditor)
+                .then(Symbol =>
                 {
-                    let args = (definition.taskKind == taskKinds.examineSubprogram) ? ['--mode=flow'] : [];
-                    args = getGnatproveArgs(args.concat(['-u', '${fileBasename}', '--limit-subp=${fileBasename}:' + subprogram]));
-                    const shell = new vscode.ShellExecution('gnatprove', args);
-                    return new vscode.Task(definition, vscode.TaskScope.Workspace, task.name, 'ada', shell, '$ada');
+                    if (Symbol) {
+                        const subprogram_line: string = (Symbol.range.start.line + 1).toString()
+                        let args = (definition.taskKind == taskKinds.examineSubprogram) ? ['--mode=flow'] : [];
+                        args = getGnatproveArgs(args.concat(['-u', '${fileBasename}', '--limit-subp=${fileBasename}:' + subprogram_line]));
+                        const shell = new vscode.ShellExecution('gnatprove', args);
+                        return new vscode.Task(definition, vscode.TaskScope.Workspace, task.name, 'ada', shell, '$ada');
+                    }
+                    else {
+                        return task;
+                    }
                 });
         }
         else {
@@ -161,8 +169,16 @@ const getTasks = (): vscode.Task[] => {
     return result;
 };
 
-const getSubprogram = async (editor: vscode.TextEditor | undefined): Promise<string> => {
-    let subprogramLine = 0;
+/**
+ * Return the DocumentSymbol associated to the subprogram enclosing the
+ * the given editor's cursor position, if any.
+ * @param {vscode.TextEditor | undefined} editor - The editor in which we want
+ * to find the suprogram's body enclosing the cursor's position.
+ * @return {vscode.DocumentSymbol | null} Return the symbol corresponding to the
+ * enclosing subprogram or null if not found.
+ */
+export const getSubprogramSymbol = async (editor: vscode.TextEditor | undefined): Promise<vscode.DocumentSymbol|null> => {
+      let subprogramLine = 0;
     if (editor) {
         const line = editor.selection.active.line;
 
@@ -190,12 +206,12 @@ const getSubprogram = async (editor: vscode.TextEditor | undefined): Promise<str
         let scopeSymbols = subprograms.filter(sym => line >= sym.range.start.line && line <= sym.range.end.line);
         if (scopeSymbols.length > 0) {
             scopeSymbols.sort((a,b) => (a.range.end.line - a.range.start.line) - (b.range.end.line - b.range.start.line));
-            subprogramLine = scopeSymbols[0].range.start.line;
+            return scopeSymbols[0];
         };
     };
-    // Line numbers start at 0 in VS Code, and at 1 in GNAT
-    return (subprogramLine + 1).toString();
-};
+
+    return null;
+}
 
 const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
     if (editor) {
