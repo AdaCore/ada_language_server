@@ -27,6 +27,7 @@ import * as process from 'process';
 import GPRTaskProvider from './gprTaskProvider';
 import cleanTaskProvider from './cleanTaskProvider';
 import gnatproveTaskProvider from './gnatproveTaskProvider';
+import { getSubprogramSymbol } from './gnatproveTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { string } from 'fp-ts';
@@ -40,6 +41,47 @@ let alsTaskProvider: vscode.Disposable[] = [
         new gnatproveTaskProvider()
     ),
 ];
+
+/**
+ * Add a subprogram box above the subprogram enclosing the cursor's position, if any.
+ *
+ * @example:
+ *
+ *  -------
+ *  - Foo -
+ *  -------
+ *
+ *  procedure Foo is
+ */
+function addSupbrogramBox() {
+    const activeEditor = vscode.window.activeTextEditor;
+
+    getSubprogramSymbol(activeEditor)
+        .then(symbol => {
+            if (symbol !== null) {
+                const name: string = symbol.name ?? ""
+                const insertPos = new vscode.Position(symbol.range.start.line, 0);
+                const indentationRange = new vscode.Range(insertPos, symbol.range.start)
+                const indentation: string = activeEditor?.document.getText(indentationRange) ?? ""
+                const eol: string = activeEditor?.document.eol == vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+
+                // Generate the subprogram box after retrieving the indentation of the line of
+                // the subprogram's body declaration.
+                let text: string = indentation + "---" + '-'.repeat(name.length) + "---" + eol
+                    + indentation + "-- " + name + " --" + eol
+                    + indentation + "---" + '-'.repeat(name.length) + "---" + eol
+                    + eol;
+
+                activeEditor?.document.eol.toString
+                if (activeEditor) {
+
+                    activeEditor.edit(editBuilder => {
+                        editBuilder.insert(insertPos, text);
+                    });
+                }
+            }
+        })
+}
 
 export function activate(context: vscode.ExtensionContext): void {
     function createClient(id: string, name: string, extra: string[], pattern: string) {
@@ -125,6 +167,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(configChanged));
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
+    context.subscriptions.push(vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBox));
 
     //  Check if we need to add some source directories to the workspace (e.g: when imported projects'
     //  source directories are not placed under the root project's directory).

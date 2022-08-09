@@ -418,6 +418,10 @@
             {
                 "command": "ada.otherFile",
                 "title": "Go to other Ada file"
+            },
+            {
+                "command": "ada.subprogramBox",
+                "title": "Add subprogram box"
             }
         ],
         "keybindings": [
