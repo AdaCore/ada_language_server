@@ -159,7 +159,7 @@
                             "character": 3
                         },
                         "end": {
-                            "line": 3,
+                            "line": 2,
                             "character": 3
                         }
                     },
@@ -317,19 +317,6 @@
                                         {
                                             "range": {
                                                 "start": {
-                                                    "line": 2,
-                                                    "character": 3
-                                                },
-                                                "end": {
-                                                    "line": 2,
-                                                    "character": 3
-                                                }
-                                            },
-                                            "newText": "A.B."
-                                        },
-                                        {
-                                            "range": {
-                                                "start": {
                                                     "line": 0,
                                                     "character": 0
                                                 },
@@ -339,6 +326,19 @@
                                                 }
                                             },
                                             "newText": "with A;\n"
+                                        },
+                                        {
+                                            "range": {
+                                                "start": {
+                                                    "line": 2,
+                                                    "character": 3
+                                                },
+                                                "end": {
+                                                    "line": 2,
+                                                    "character": 3
+                                                }
+                                            },
+                                            "newText": "A.B."
                                         }
                                     ]
                                 }

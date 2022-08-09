@@ -175,6 +175,7 @@
                 {
                     "id": 2,
                     "result": [
+                        "<HAS>",
                         {
                             "title": "Pull Up Declaration",
                             "kind": "refactor.extract",
@@ -197,34 +198,6 @@
                                                 }
                                             }
                                         }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "title": "Add Parameter",
-                            "kind": "refactor.rewrite",
-                            "command": {
-                                "title": "",
-                                "command": "als-refactor-add-parameters",
-                                "arguments": [
-                                    {
-                                        "context_id": "Default",
-                                        "where": {
-                                            "uri": "$URI{main.adb}",
-                                            "range": {
-                                                "start": {
-                                                    "line": 3,
-                                                    "character": 16
-                                                },
-                                                "end": {
-                                                    "line": 3,
-                                                    "character": 16
-                                                }
-                                            }
-                                        },
-                                        "newParameter": "",
-                                        "requiresFullSpecification": true
                                     }
                                 ]
                             }
