@@ -9,8 +9,10 @@
         "vscode": "^1.64.2"
     },
     "categories": [
-        "Programming Languages"
+        "Programming Languages",
+        "Extension Packs"
     ],
+    "extensionPack": ["webfreak.debug"],
     "activationEvents": [
         "onLanguage:ada",
         "onLanguage:gpr",
@@ -417,20 +419,37 @@
         "commands": [
             {
                 "command": "ada.otherFile",
-                "title": "Go to other Ada file"
+                "title": "Ada: Go to other file"
             },
             {
                 "command": "ada.subprogramBox",
-                "title": "Add subprogram box"
+                "title": "Ada: Add subprogram box"
             }
         ],
         "keybindings": [
             {
                 "command": "ada.otherFile",
-                "key": "Alt+O",
-                "when": "editorLangId == 'ada' && editorTextFocus"
+                "key": "alt+O",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "ada.subprogramBox",
+                "key": "alt+shift+B",
+                "when": "editorLangId == ada && editorTextFocus"
             }
-        ]
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "ada.otherFile",
+                    "when": "editorLangId == ada"
+                },
+                {
+                    "command": "ada.subprogramBox",
+                    "when": "editorLangId == ada"
+                }
+            ]
+        }
     },
     "devDependencies": {
         "@types/glob": "7.2.0",
