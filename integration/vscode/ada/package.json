@@ -9,8 +9,10 @@
         "vscode": "^1.64.2"
     },
     "categories": [
-        "Programming Languages"
+        "Programming Languages",
+        "Extension Packs"
     ],
+    "extensionPack": ["webfreak.debug"],
     "activationEvents": [
         "onLanguage:ada",
         "onLanguage:gpr",
