@@ -1879,7 +1879,7 @@ package body LSP.Lal_Utils is
 
          if Span.first.line /= Span.last.line then
             Slice.Append
-              (Line.Slice (J1.Marker, Line.After_Last_Character.Marker));
+              (Line.Slice (J1.Marker, Line.At_Last_Character.Marker));
          end if;
 
          loop
