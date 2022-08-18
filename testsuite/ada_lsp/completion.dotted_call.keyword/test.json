@@ -1,0 +1,372 @@
+[
+   {
+      "comment": [
+         "Test completion snippet for DottedName",
+         "when having a keyword (here Do) as a temporary identifier"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+             "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail"
+                              ]
+                           }
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Bar; use Bar;\nwith Ada.Text_IO;\n\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Obj.\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 7
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "100&1A",
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{bar.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 3,
+                                 "character": 6
+                              },
+                              "end": {
+                                 "line": 3,
+                                 "character": 18
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "Do_Nothing",
+                        "kind": 3,
+                        "sortText": "100&2Do_Nothing",
+                        "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{bar.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 72
+                              }
+                           }
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 7
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 7
+                        }
+                     },
+                     "text": "D"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "100&1A",
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{bar.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 3,
+                                 "character": 6
+                              },
+                              "end": {
+                                 "line": 3,
+                                 "character": 18
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "Do_Nothing",
+                        "kind": 3,
+                        "sortText": "100&2Do_Nothing",
+                        "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{bar.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 72
+                              }
+                           }
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 8
+                        }
+                     },
+                     "text": "o"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 9
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 12,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Do_Nothing",
+                        "kind": 3,
+                        "sortText": "100&1Do_Nothing",
+                        "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{bar.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 72
+                              }
+                           }
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
