@@ -286,6 +286,24 @@ package LSP.Ada_Contexts is
    function Charset (Self : Context) return String;
    --  Return the charset for this context
 
+   function Project_Attribute_Value
+     (Self         : Context;
+      Attribute    : GNATCOLL.Projects.Attribute_Pkg_String;
+      Index        : String := "";
+      Default      : String := "";
+      Use_Extended : Boolean := False) return String;
+   --  Returns the value for Self's project Attribute.
+   --  Default is returned if the attribute wasn't set by the user and
+   --  has no default value.
+   --  The corresponding attribute would have been set in the project as:
+   --      for Attribute use "value";
+   --  or
+   --      for Attribute (Index) use "value";
+   --
+   --  If Use_Extended is True and the attribute is not defined in Project
+   --  itself, then the attribute is looked up in the project extended by
+   --  Project (if any).
+
 private
 
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record

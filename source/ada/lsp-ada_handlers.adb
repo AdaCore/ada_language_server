@@ -3906,10 +3906,26 @@ package body LSP.Ada_Handlers is
       ---------------------
 
       procedure Process_Context (C : Context_Access) is
+         use GNATCOLL.Projects;
+         use Laltools.Refactor.Safe_Rename;
+
          Node       : constant Ada_Node := C.Get_Node_At (Document, Position);
-         Name_Node  : constant Name := Laltools.Common.Get_Node_As_Name (Node);
+         Name_Node  : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Node);
          Definition : constant Defining_Name :=
            Laltools.Common.Resolve_Name_Precisely (Name_Node);
+
+         function Attribute_Value_Provider_Callback
+           (Attribute : GNATCOLL.Projects.Attribute_Pkg_String;
+            Index : String := "";
+            Default : String := "";
+            Use_Extended : Boolean := False)
+            return String
+          is (C.Project_Attribute_Value
+                (Attribute, Index, Default, Use_Extended));
+
+         Attribute_Value_Provider : constant Attribute_Value_Provider_Access :=
+           Attribute_Value_Provider_Callback'Unrestricted_Access;
 
          function Analysis_Units return Analysis_Unit_Array is
            (C.Analysis_Units);
@@ -4145,11 +4161,12 @@ package body LSP.Ada_Handlers is
          end if;
 
          Safe_Renamer := Laltools.Refactor.Safe_Rename.Create_Safe_Renamer
-           (Definition => Definition,
-            New_Name   =>
+           (Definition               => Definition,
+            New_Name                 =>
               Libadalang.Text.To_Unbounded_Text
                 (VSS.Strings.Conversions.To_Wide_Wide_String (Value.newName)),
-            Algorithm  => Algorithm);
+            Algorithm                => Algorithm,
+            Attribute_Value_Provider => Attribute_Value_Provider);
 
          Context_Edits := Safe_Renamer.Refactor (Analysis_Units'Access);
 
