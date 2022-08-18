@@ -1051,4 +1051,18 @@ package body LSP.Ada_Contexts is
       return Ada.Strings.Unbounded.To_String (Self.Charset);
    end Charset;
 
+   -----------------------------
+   -- Project_Attribute_Value --
+   -----------------------------
+
+   function Project_Attribute_Value
+     (Self         : Context;
+      Attribute    : Attribute_Pkg_String;
+      Index        : String := "";
+      Default      : String := "";
+      Use_Extended : Boolean := False) return String
+   is (if Self.Tree = null then Default
+       else Root_Project (Self.Tree.all).
+              Attribute_Value (Attribute, Index, Default,  Use_Extended));
+
 end LSP.Ada_Contexts;
