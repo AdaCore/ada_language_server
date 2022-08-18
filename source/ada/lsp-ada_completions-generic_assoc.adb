@@ -136,6 +136,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                      then VSS.Strings.To_Virtual_String
                        (Param_Types (Desg).Node.Text)
                      else "");
+                  Doc       : VSS.Strings.Virtual_String;
                begin
                   --  Check if Desg is already present
                   if not In_Parent (Desg, Designators) then
@@ -157,12 +158,21 @@ package body LSP.Ada_Completions.Generic_Assoc is
                         Item.insertText.Value.Append (Name);
                         Item.insertText.Value.Append (" => ");
                         Item.kind := (True, LSP.Messages.Field);
+                        Doc := Item.insertText.Value;
+
                         if Param_Types (Desg).Is_Value then
                            Item.insertText.Value.Append (Type_Text);
                            Item.label.Append (" => ");
                            Item.label.Append (Type_Text);
                         end if;
+
+                        Item.documentation :=
+                          (Is_Set => True,
+                           Value  => LSP.Messages.String_Or_MarkupContent'
+                             (Is_String => True,
+                              String    => Doc));
                         Unsorted_Res.Append (Item);
+
                      end if;
 
                      if Use_Named_Notation then
