@@ -39,6 +39,7 @@ package body LSP.Ada_Completions.Names is
    is
       use all type Libadalang.Analysis.Base_Id;
       use all type Libadalang.Common.Ada_Node_Kind_Type;
+      use type Libadalang.Common.Token_Kind;
 
       Parent   : Libadalang.Analysis.Ada_Node;
       --  The parent of the node to complete.
@@ -50,6 +51,21 @@ package body LSP.Ada_Completions.Names is
 
       Use_Snippets : Boolean := Self.Snippets_Enabled;
 
+      --  Error recovery for Obj.XXX with XXX a keyword => LAL will often
+      --  consider it as:
+      --  - CallStmt
+      --     - Dotted_Name
+      --  - ErrorStmt/LoopStmt/etc.
+      Error_Dotted_Recovery : constant Boolean :=
+        Libadalang.Analysis.Is_Keyword
+          (Token   => Token,
+           Version => Libadalang.Common.Ada_2012)
+        and then
+          Libadalang.Common.Kind
+            (Libadalang.Common.Data
+               (Libadalang.Common.Previous
+                  (Token, Exclude_Trivia => True)))
+          = Libadalang.Common.Ada_Dot;
    begin
       --  Get the outermost dotted name of which node is a prefix, so that when
       --  completing in a situation such as the following:
@@ -172,7 +188,7 @@ package body LSP.Ada_Completions.Names is
 
                      Names.Include
                        (DN.P_Canonical_Part,
-                        (Is_Dot_Call (Item),
+                        (Error_Dotted_Recovery or else Is_Dot_Call (Item),
                          Is_Visible (Item),
                          Use_Snippets,
                          Completion_Count,
