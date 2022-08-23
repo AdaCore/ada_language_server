@@ -200,6 +200,10 @@ package LSP.Ada_Contexts is
    function File_Count (Self : Context) return Natural;
    --  Return number of files known to this context.
 
+   function Get_PP_Options (Self : Context) return
+     Utils.Command_Lines.Command_Line;
+   --  Return the command line for the Pretty Printer
+
    function Analysis_Units
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
    --  Return the analysis units for all Ada sources known to this context
@@ -351,6 +355,10 @@ private
        is (Self.Source_Files.Iterate);
 
    function File_Count (Self : Context) return Natural
-       is (Self.Source_Files.Length);
+   is (Self.Source_Files.Length);
+
+   function Get_PP_Options (Self : Context) return
+     Utils.Command_Lines.Command_Line is
+       (Utils.Command_Lines.Copy_Command_Line (Self.PP_Options));
 
 end LSP.Ada_Contexts;
