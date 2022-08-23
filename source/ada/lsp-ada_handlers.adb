@@ -1252,7 +1252,7 @@ package body LSP.Ada_Handlers is
       --  Result with Code_Actions in this case. Return Done = True if futher
       --  analysis has no sense.
 
-      procedure Append_Project_Status
+      procedure Append_Project_Status_Code_Actions
         (Result : in out LSP.Messages.CodeAction_Vector);
       --  Append project status code action if needed
 
@@ -1999,14 +1999,19 @@ package body LSP.Ada_Handlers is
          Node : constant Libadalang.Analysis.Ada_Node :=
            Document.Get_Node_At (Context.all, Params.span.first);
       begin
+         if Node.Is_Null then
+            Found := False;
+            return;
+         end if;
+
          Analyse_Node (Context, Node, Result, Found);
       end Analyse_In_Context;
 
-      ---------------------------
-      -- Append_Project_Status --
-      ---------------------------
+      ----------------------------------------
+      -- Append_Project_Status_Code_Actions --
+      ----------------------------------------
 
-      procedure Append_Project_Status
+      procedure Append_Project_Status_Code_Actions
         (Result : in out LSP.Messages.CodeAction_Vector)
       is
          use type VSS.Strings.Virtual_String;
@@ -2085,7 +2090,7 @@ package body LSP.Ada_Handlers is
             when Invalid_Project_Configured =>
                null;
          end case;
-      end Append_Project_Status;
+      end Append_Project_Status_Code_Actions;
 
       use type LSP.Messages.Position;
 
@@ -2110,7 +2115,7 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Params.span.first = (0, 0) then
-         Append_Project_Status (Response.result);
+         Append_Project_Status_Code_Actions (Response.result);
       end if;
 
       return Response;
