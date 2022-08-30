@@ -145,6 +145,7 @@ package body LSP.Ada_Completions is
    procedure Pretty_Print_Snippet
      (Context : LSP.Ada_Contexts.Context;
       Prefix  : String;
+      Offset  : Natural;
       Span    : LSP.Messages.Span;
       Rule    : Libadalang.Common.Grammar_Rule;
       Result  : in out LSP.Messages.CompletionItem)
@@ -396,11 +397,7 @@ package body LSP.Ada_Completions is
                     Filename => "",
                     Buffer   => Full,
                     Rule     => Rule);
-               --  -2 because:
-               --  - align using the column before the cursor
-               --  - and "column = offset - 1"
-               Pp.Actions.Set_Partial_Gnatpp_Offset
-                 (Integer (Span.first.character) - 2);
+               Pp.Actions.Set_Partial_Gnatpp_Offset (Offset);
                Pp.Actions.Format_Vector
                  (Cmd            => Cmd,
                   Input          => Input,

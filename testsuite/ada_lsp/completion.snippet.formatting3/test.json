@@ -1,11 +1,11 @@
 [
    {
       "comment": [
-         "Test the formatting of snippet via GNATPP => when adding",
-         "parameters in a call it should reformat the existing parameters"
+         "Test the formatting of snippet via GNATPP for package generic",
+         "instantiation"
       ]
    },
-   {
+ {
       "start": {
          "cmd": [
              "${ALS}",
@@ -90,7 +90,7 @@
                   "uri": "$URI{foo.adb}",
                   "languageId": "Ada",
                   "version": 0,
-                  "text": "procedure Foo is\n\n   procedure Bar (A, BBBBB, CCCCCCC : Integer; DDD : Float);\n\n   procedure Bar (A, BBBBB, CCCCCCC : Integer; DDD : Float) is\n   begin\n      null;\n   end Bar;\n\nbegin\n   Bar \nend Foo;\n"
+                  "text": "procedure Foo is\n\n   generic\n      A      : Integer;\n      BBBBBB : Float;\n      CCCC   : String;\n      with procedure Bar (X : Integer);\n   package Foo_Bar is\n      procedure Do_Nothing;\n\n      procedure Do_Nothing is\n      begin\n         null;\n      end Do_Nothing;\n   end Foo_Bar;\n\n   package Pack is new Foo_Bar \nbegin\n   null;\nend Foo;\n"
                }
             }
          },
@@ -105,18 +105,18 @@
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}",
-                  "version": 1
+                  "version": 4
                },
                "contentChanges": [
                   {
                      "range": {
                         "start": {
-                           "line": 10,
-                           "character": 7
+                           "line": 16,
+                           "character": 31
                         },
                         "end": {
-                           "line": 10,
-                           "character": 7
+                           "line": 16,
+                           "character": 31
                         }
                      },
                      "text": "("
@@ -131,15 +131,15 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 5,
+            "id": 8,
             "method": "textDocument/completion",
             "params": {
                "textDocument": {
                   "uri": "$URI{foo.adb}"
                },
                "position": {
-                  "line": 10,
-                  "character": 8
+                  "line": 16,
+                  "character": 32
                },
                "context": {
                   "triggerKind": 2
@@ -148,28 +148,29 @@
          },
          "wait": [
             {
-               "id": 5,
+               "id": 8,
                "result": {
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Params of Bar",
+                        "label": "Params of Foo_Bar",
                         "kind": 15,
                         "sortText": "+0",
-                        "insertText": "A => ${1:Integer}, BBBBB => ${2:Integer}, CCCCCCC => ${3:Integer}, DDD => ${4:Float})$0",
+                        "insertText": "A => ${1:A      : Integer;}, BBBBBB => ${2:BBBBBB : Float;}, CCCC => ${3:CCCC   : String;}, Bar => ${4:with procedure Bar (X : Integer);})$0",
                         "insertTextFormat": 2,
+                        "insertTextMode": 1,
                         "textEdit": {
                            "range": {
                               "start": {
-                                 "line": 10,
-                                 "character": 3
+                                 "line": 16,
+                                 "character": 23
                               },
                               "end": {
-                                 "line": 10,
-                                 "character": 8
+                                 "line": 16,
+                                 "character": 32
                               }
                            },
-                           "newText": "Bar\n     (A       => ${1:Integer},\n      BBBBB   => ${2:Integer},\n      CCCCCCC => ${3:Integer},\n      DDD     => ${4:Float})$0"
+                           "newText": "Foo_Bar\n     (A      => ${1:A      : Integer;},\n      BBBBBB => ${2:BBBBBB : Float;},\n      CCCC   => ${3:CCCC   : String;},\n      Bar    => ${4:with procedure Bar (X : Integer);})$0"
                         },
                         "additionalTextEdits": [],
                         "data": {
@@ -180,8 +181,8 @@
                                  "character": 3
                               },
                               "end": {
-                                 "line": 2,
-                                 "character": 60
+                                 "line": 14,
+                                 "character": 15
                               }
                            }
                         }
@@ -189,32 +190,36 @@
                      {
                         "label": "A",
                         "kind": 5,
+                        "documentation": "A => ",
                         "sortText": "+1",
                         "insertText": "A => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "BBBBB",
+                        "label": "BBBBBB",
                         "kind": 5,
+                        "documentation": "BBBBBB => ",
                         "sortText": "+2",
-                        "insertText": "BBBBB => ",
+                        "insertText": "BBBBBB => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "CCCCCCC",
+                        "label": "CCCC",
                         "kind": 5,
+                        "documentation": "CCCC => ",
                         "sortText": "+3",
-                        "insertText": "CCCCCCC => ",
+                        "insertText": "CCCC => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      },
                      {
-                        "label": "DDD",
+                        "label": "Bar",
                         "kind": 5,
+                        "documentation": "Bar => ",
                         "sortText": "+4",
-                        "insertText": "DDD => ",
+                        "insertText": "Bar => ",
                         "insertTextFormat": 1,
                         "additionalTextEdits": []
                      }
@@ -228,179 +233,116 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 12,
+            "id": 11,
             "method": "completionItem/resolve",
             "params": {
-               "label": "A",
-               "kind": 5,
-               "sortText": "+1",
-               "insertText": "A => ",
-               "insertTextFormat": 1,
-               "additionalTextEdits": []
-            }
-         },
-         "wait": [
-            {
-               "id": 12,
-               "result": {
-                  "label": "A",
-                  "kind": 5,
-                  "sortText": "+1",
-                  "insertText": "A => ",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 2
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 10,
-                           "character": 8
-                        },
-                        "end": {
-                           "line": 10,
-                           "character": 8
-                        }
+               "label": "Params of Foo_Bar",
+               "kind": 15,
+               "sortText": "+0",
+               "insertText": "A => ${1:A      : Integer;}, BBBBBB => ${2:BBBBBB : Float;}, CCCC => ${3:CCCC   : String;}, Bar => ${4:with procedure Bar (X : Integer);})$0",
+               "insertTextFormat": 2,
+               "insertTextMode": 1,
+               "textEdit": {
+                  "range": {
+                     "start": {
+                        "line": 16,
+                        "character": 23
                      },
-                     "text": "A => "
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 3
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 10,
-                           "character": 13
-                        },
-                        "end": {
-                           "line": 10,
-                           "character": 13
-                        }
-                     },
-                     "text": "1,"
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 21,
-            "method": "textDocument/completion",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}"
-               },
-               "position": {
-                  "line": 10,
-                  "character": 15
-               },
-               "context": {
-                  "triggerKind": 2
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": 21,
-               "result": {
-                  "isIncomplete": false,
-                  "items": [
-                     {
-                        "label": "Params of Bar",
-                        "kind": 15,
-                        "sortText": "+0",
-                        "insertText": " BBBBB => ${2:Integer}, CCCCCCC => ${3:Integer}, DDD => ${4:Float})$0",
-                        "insertTextFormat": 2,
-                        "textEdit": {
-                           "range": {
-                              "start": {
-                                 "line": 10,
-                                 "character": 3
-                              },
-                              "end": {
-                                 "line": 10,
-                                 "character": 15
-                              }
-                           },
-                           "newText": "Bar\n     (A       => 1,\n      BBBBB   => ${2:Integer},\n      CCCCCCC => ${3:Integer},\n      DDD     => ${4:Float})$0"
-                        },
-                        "additionalTextEdits": [],
-                        "data": {
-                           "uri": "$URI{foo.adb}",
-                           "range": {
-                              "start": {
-                                 "line": 2,
-                                 "character": 3
-                              },
-                              "end": {
-                                 "line": 2,
-                                 "character": 60
-                              }
-                           }
-                        }
-                     },
-                     {
-                        "label": "BBBBB",
-                        "kind": 5,
-                        "sortText": "+1",
-                        "insertText": " BBBBB => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "CCCCCCC",
-                        "kind": 5,
-                        "sortText": "+2",
-                        "insertText": " CCCCCCC => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
-                     },
-                     {
-                        "label": "DDD",
-                        "kind": 5,
-                        "sortText": "+3",
-                        "insertText": " DDD => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                     "end": {
+                        "line": 16,
+                        "character": 32
                      }
-                  ]
+                  },
+                  "newText": "Foo_Bar\n     (A      => ${1:A      : Integer;},\n      BBBBBB => ${2:BBBBBB : Float;},\n      CCCC   => ${3:CCCC   : String;},\n      Bar    => ${4:with procedure Bar (X : Integer);})$0"
+               },
+               "additionalTextEdits": [],
+               "data": {
+                  "uri": "$URI{foo.adb}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 3
+                     },
+                     "end": {
+                        "line": 14,
+                        "character": 15
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 11,
+               "result": {
+                  "label": "Params of Foo_Bar",
+                  "kind": 15,
+                  "detail": "generic\n      A      : Integer;\n      BBBBBB : Float;\n      CCCC   : String;\n      with procedure Bar (X : Integer);\n   package Foo_Bar is\n      procedure Do_Nothing;\n\n      procedure Do_Nothing is\n      begin\n         null;\n      end Do_Nothing;\n   end Foo_Bar;",
+                  "documentation": "at foo.adb (3:4)",
+                  "sortText": "+0",
+                  "insertText": "A => ${1:A      : Integer;}, BBBBBB => ${2:BBBBBB : Float;}, CCCC => ${3:CCCC   : String;}, Bar => ${4:with procedure Bar (X : Integer);})$0",
+                  "insertTextFormat": 2,
+                  "insertTextMode": 1,
+                  "textEdit": {
+                     "range": {
+                        "start": {
+                           "line": 16,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 16,
+                           "character": 32
+                        }
+                     },
+                     "newText": "Foo_Bar\n     (A      => ${1:A      : Integer;},\n      BBBBBB => ${2:BBBBBB : Float;},\n      CCCC   => ${3:CCCC   : String;},\n      Bar    => ${4:with procedure Bar (X : Integer);})$0"
+                  },
+                  "additionalTextEdits": [],
+                  "data": {
+                     "uri": "$URI{foo.adb}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 14,
+                           "character": 15
+                        }
+                     }
+                  }
                }
             }
          ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 6
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 16,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 16,
+                           "character": 23
+                        }
+                     },
+                     "text": "Foo_Bar\n     (A      => A      : Integer;,\n      BBBBBB => BBBBBB : Float;,\n      CCCC   => CCCC   : String;,\n      Bar    => with procedure Bar (X : Integer);)"
+                  }
+               ]
+            }
+         },
+         "wait": []
       }
    },
    {
@@ -421,7 +363,7 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 31,
+            "id": 16,
             "method": "shutdown"
          },
          "wait": [
@@ -433,7 +375,7 @@
                }
             },
             {
-               "id": 31,
+               "id": 16,
                "result": null
             }
          ]
