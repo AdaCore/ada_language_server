@@ -208,7 +208,7 @@
                                  "character": 8
                               }
                             },
-                            "newText": "Bar\n   (AAAAAAAA     => ${1:Integer},\n    BB           => ${2:Integer},\n    CCCCCCCC     => ${3:Integer},\n    DDDDDDDDDDDD => ${4:Integer},\n    E            => ${5:Integer})$0"
+                            "newText": "Bar\n     (AAAAAAAA     => ${1:Integer},\n      BB           => ${2:Integer},\n      CCCCCCCC     => ${3:Integer},\n      DDDDDDDDDDDD => ${4:Integer},\n      E            => ${5:Integer})$0"
                         },
                         "additionalTextEdits": [],
                         "data": {
@@ -282,7 +282,7 @@
                                  "character": 8
                               }
                             },
-                            "newText": "Bar\n   (A => ${1:Integer},\n    B => ${2:Integer},\n    C => ${3:Integer},\n    D => ${4:Integer},\n    E => ${5:Integer},\n    F => ${6:Integer},\n    G => ${7:Integer},\n    H => ${8:Integer},\n    I => ${9:Integer},\n    J => ${10:Integer})$0"
+                            "newText": "Bar\n     (A => ${1:Integer},\n      B => ${2:Integer},\n      C => ${3:Integer},\n      D => ${4:Integer},\n      E => ${5:Integer},\n      F => ${6:Integer},\n      G => ${7:Integer},\n      H => ${8:Integer},\n      I => ${9:Integer},\n      J => ${10:Integer})$0"
                         },
                         "additionalTextEdits": [],
                         "data": {

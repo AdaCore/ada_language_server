@@ -36,11 +36,17 @@ package body LSP.Ada_Completions.Parameters is
      (C       : Libadalang.Analysis.Call_Expr;
       Context : not null LSP.Ada_Handlers.Context_Access)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
+   function Get_Prefix_Node
+     (C      : Libadalang.Analysis.Call_Expr;
+      Column : out Langkit_Support.Slocs.Column_Number)
+      return Libadalang.Analysis.Ada_Node'Class;
 
    package Call_Expr_Completion is new
      LSP.Ada_Completions.Generic_Assoc
        (Element              => Libadalang.Analysis.Call_Expr,
         Null_Element         => Libadalang.Analysis.No_Call_Expr,
+        Pretty_Print_Rule    => Libadalang.Common.Param_Assoc_Rule,
+        Get_Prefix_Node      => Get_Prefix_Node,
         Search_Element       => LSP.Lal_Utils.Get_Call_Expr,
         Get_Designators      => LSP.Lal_Utils.Get_Call_Designators,
         Get_Spec_Designators => Get_Spec_Call_Expr_Designators);
@@ -55,14 +61,51 @@ package body LSP.Ada_Completions.Parameters is
      (A       : Libadalang.Analysis.Aggregate;
       Context : not null LSP.Ada_Handlers.Context_Access)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
+   function Get_Prefix_Node
+     (A      : Libadalang.Analysis.Aggregate;
+      Column : out Langkit_Support.Slocs.Column_Number)
+      return Libadalang.Analysis.Ada_Node'Class;
 
    package Aggregate_Completion is new
      LSP.Ada_Completions.Generic_Assoc
        (Element              => Libadalang.Analysis.Aggregate,
         Null_Element         => Libadalang.Analysis.No_Aggregate,
+        Pretty_Print_Rule    => Libadalang.Common.Param_Assoc_Rule,
+        Get_Prefix_Node      => Get_Prefix_Node,
         Search_Element       => Get_Aggregate,
         Get_Designators      => Get_Designators,
         Get_Spec_Designators => Get_Spec_Aggregate_Designators);
+
+   function Get_Generic_Package
+     (N : Libadalang.Analysis.Ada_Node'Class)
+      return Libadalang.Analysis.Generic_Package_Instantiation;
+   function Get_Designators
+     (G : Libadalang.Analysis.Generic_Package_Instantiation)
+      return Laltools.Common.Node_Vectors.Vector;
+   function Get_Decl_Designators
+     (G       : Libadalang.Analysis.Generic_Package_Instantiation;
+      Context : not null LSP.Ada_Handlers.Context_Access)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
+   function Get_Prefix_Node
+     (G      : Libadalang.Analysis.Generic_Package_Instantiation;
+      Column : out Langkit_Support.Slocs.Column_Number)
+      return Libadalang.Analysis.Ada_Node'Class;
+
+   package Generic_Package_Completion is new
+     LSP.Ada_Completions.Generic_Assoc
+       (Element              =>
+           Libadalang.Analysis.Generic_Package_Instantiation,
+        Null_Element         =>
+           Libadalang.Analysis.No_Generic_Package_Instantiation,
+        --  GNATpp is having trouble formatting a LAL tree representing
+        --  Generic_Package_Instanciation_Rule
+        --  => retrieve the nested Assoc_List and format it as a function
+        --  call.
+        Pretty_Print_Rule    => Libadalang.Common.Param_Assoc_Rule,
+        Get_Prefix_Node      => Get_Prefix_Node,
+        Search_Element       => Get_Generic_Package,
+        Get_Designators      => Get_Designators,
+        Get_Spec_Designators => Get_Decl_Designators);
 
    ------------------------------------
    -- Get_Spec_Call_Expr_Designators --
@@ -428,6 +471,140 @@ package body LSP.Ada_Completions.Parameters is
       return Res;
    end Get_Spec_Aggregate_Designators;
 
+   -------------------------
+   -- Get_Generic_Package --
+   -------------------------
+
+   function Get_Generic_Package
+     (N : Libadalang.Analysis.Ada_Node'Class)
+      return Libadalang.Analysis.Generic_Package_Instantiation
+   is
+   begin
+      if N.Kind in Ada_Generic_Package_Instantiation_Range then
+         return N.As_Generic_Package_Instantiation;
+      end if;
+
+      declare
+         N_Parent : constant Libadalang.Analysis.Ada_Node'Class := N.Parent;
+      begin
+         if not N_Parent.Is_Null
+           and then N_Parent.Kind in Ada_Generic_Package_Instantiation_Range
+         then
+            return N_Parent.As_Generic_Package_Instantiation;
+         end if;
+      end;
+      return No_Generic_Package_Instantiation;
+   end Get_Generic_Package;
+
+   ---------------------
+   -- Get_Designators --
+   ---------------------
+
+   function Get_Designators
+     (G : Libadalang.Analysis.Generic_Package_Instantiation)
+      return Laltools.Common.Node_Vectors.Vector
+   is
+      Designator : Libadalang.Analysis.Ada_Node;
+      Res        : Laltools.Common.Node_Vectors.Vector;
+   begin
+      for Assoc of G.F_Params loop
+         Designator := Assoc.As_Param_Assoc.F_Designator;
+         if Designator /= No_Ada_Node then
+            Res.Append (Designator);
+         end if;
+      end loop;
+
+      return Res;
+   end Get_Designators;
+
+   --------------------------
+   -- Get_Decl_Designators --
+   --------------------------
+
+   function Get_Decl_Designators
+     (G       : Libadalang.Analysis.Generic_Package_Instantiation;
+      Context : not null LSP.Ada_Handlers.Context_Access)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
+   is
+      Res       :
+        LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
+      Name_Node : constant Libadalang.Analysis.Name := G.F_Generic_Pkg_Name;
+   begin
+      for N of reverse Context.Find_All_Env_Elements (Name_Node) loop
+         if N.Kind in Ada_Generic_Package_Decl_Range then
+            declare
+               Assoc : LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data;
+               Decl  : constant Libadalang.Analysis.Generic_Package_Decl
+                 := N.As_Generic_Package_Decl;
+            begin
+               Assoc.Title.Append ("Params of ");
+               Assoc.Title.Append
+                 (VSS.Strings.To_Virtual_String (Name_Node.Text));
+               Assoc.Decl := N.As_Basic_Decl;
+
+               for Param of Decl.F_Formal_Part.F_Decls loop
+                  if Param.Kind in Ada_Generic_Formal then
+                     declare
+                        Gen_Formal : constant Generic_Formal :=
+                          Param.As_Generic_Formal;
+                        Param_Name : constant Name :=
+                          Gen_Formal.F_Decl.P_Defining_Name.F_Name;
+                     begin
+                        Assoc.Param_Types.Include
+                          (Gen_Formal.F_Decl.P_Defining_Name.F_Name,
+                           (Node     => Gen_Formal.As_Ada_Node,
+                            Is_Value => False));
+                        Assoc.Param_Vector.Append (Param_Name.As_Ada_Node);
+                     end;
+                  end if;
+               end loop;
+               Res.Append (Assoc);
+            end;
+         end if;
+      end loop;
+
+      return Res;
+   end Get_Decl_Designators;
+
+   ---------------------
+   -- Get_Prefix_Node --
+   ---------------------
+
+   function Get_Prefix_Node
+     (C      : Libadalang.Analysis.Call_Expr;
+      Column : out Langkit_Support.Slocs.Column_Number)
+      return Libadalang.Analysis.Ada_Node'Class is
+   begin
+      Column := C.Parent.Sloc_Range.Start_Column;
+      return C.Parent;
+   end Get_Prefix_Node;
+
+   ---------------------
+   -- Get_Prefix_Node --
+   ---------------------
+
+   function Get_Prefix_Node
+     (A      : Libadalang.Analysis.Aggregate;
+      Column : out Langkit_Support.Slocs.Column_Number)
+      return Libadalang.Analysis.Ada_Node'Class is
+   begin
+      Column := A.Parent.Sloc_Range.Start_Column;
+      return A.Parent;
+   end Get_Prefix_Node;
+
+   ----------------
+   -- Get_Prefix --
+   ----------------
+
+   function Get_Prefix_Node
+     (G      : Libadalang.Analysis.Generic_Package_Instantiation;
+      Column : out Langkit_Support.Slocs.Column_Number)
+      return Libadalang.Analysis.Ada_Node'Class is
+   begin
+      Column := G.Sloc_Range.Start_Column;
+      return G.F_Generic_Pkg_Name;
+   end Get_Prefix_Node;
+
    ------------------------
    -- Propose_Completion --
    ------------------------
@@ -455,6 +632,16 @@ package body LSP.Ada_Completions.Parameters is
          Unsorted_Res => Unsorted_Res);
 
       Aggregate_Completion.Propose_Completion
+        (Self         => Self,
+         Sloc         => Sloc,
+         Token        => Token,
+         Node         => Node,
+         Limit        => Self.Named_Notation_Threshold,
+         Filter       => Filter,
+         Names        => Names,
+         Unsorted_Res => Unsorted_Res);
+
+      Generic_Package_Completion.Propose_Completion
         (Self         => Self,
          Sloc         => Sloc,
          Token        => Token,

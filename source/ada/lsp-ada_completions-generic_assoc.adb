@@ -52,6 +52,9 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Prefix      : VSS.Strings.Virtual_String;
       --  The whole string before the snippet (including whitespaces)
 
+      Column      : Langkit_Support.Slocs.Column_Number;
+      --  Use Column as the block indentation
+
       Prefix_Span : LSP.Messages.Span;
       --  The span covering Prefix.
 
@@ -275,8 +278,10 @@ package body LSP.Ada_Completions.Generic_Assoc is
                     (Context => Self.Context.all,
                      Prefix  =>
                        VSS.Strings.Conversions.To_UTF_8_String (Prefix),
+                     --  "column = offset - 1"
+                     Offset  => Integer (Column) - 1,
                      Span    => Prefix_Span,
-                     Rule    => Libadalang.Common.Param_Assoc_Rule,
+                     Rule    => Pretty_Print_Rule,
                      Result  => Item);
                   Unsorted_Res.Append (Item);
                end;
@@ -292,7 +297,8 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Prefix_Span :=
         Self.Document.To_LSP_Range
           (Langkit_Support.Slocs.Make_Range
-             (Langkit_Support.Slocs.Start_Sloc (Node.Parent.Sloc_Range),
+             (Langkit_Support.Slocs.Start_Sloc
+                (Get_Prefix_Node (Elem_Node, Column => Column).Sloc_Range),
               Sloc));
       Prefix := Self.Document.Get_Text_At
         (Prefix_Span.first, Prefix_Span.last);

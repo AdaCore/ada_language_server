@@ -46,6 +46,15 @@ generic
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
    --  Return all the specs matching E
 
+   Pretty_Print_Rule : Libadalang.Common.Grammar_Rule;
+   --  Rule used to pretty print the completion item
+
+   with function Get_Prefix_Node
+     (E      : Element;
+      Column : out Langkit_Support.Slocs.Column_Number)
+      return Libadalang.Analysis.Ada_Node'Class;
+   --  Get the node needed to match Pretty_Print_Rule
+   --  Column represent the block indentation level
 package LSP.Ada_Completions.Generic_Assoc is
    procedure Propose_Completion
      (Self         :
