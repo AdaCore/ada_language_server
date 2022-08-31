@@ -47,7 +47,6 @@ with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Common; use LSP.Common;
 with LSP.Lal_Utils;
 
-with Pp.Actions;
 with Pp.Scanner;
 
 with Utils.Char_Vectors;
@@ -1122,7 +1121,6 @@ package body LSP.Ada_Documents is
          end loop;
       end Append_PP_Messages;
 
-      Input  : Char_Vector;
       Output : Char_Vector;
 
       PP_Messages : Pp.Scanner.Source_Message_Vector;
@@ -1139,52 +1137,22 @@ package body LSP.Ada_Documents is
 
       Unit                 : constant Analysis_Unit :=
         Self.Unit (Context);
-      Start_Node, End_Node : Ada_Node;
       Enclosing_Node       : Ada_Node;
-
-      Offset : Natural := 0;
 
    begin
       Context.Trace.Trace ("On Range_Formatting");
-
-      Context.Trace.Trace ("Get_Selected_Region_Enclosing_Node");
-      Get_Selected_Region_Enclosing_Node
-        (Unit             => Unit,
-         SL_Range         => Input_Selection_Range,
-         Start_Node       => Start_Node,
-         End_Node         => End_Node,
-         Enclosing_Node   => Enclosing_Node,
-         Input_Sel        => Input,
-         Output_Sel_Range => Output_Selection_Range);
-      Context.Trace.Trace ("Start_Node: " & Start_Node.Image);
-      Context.Trace.Trace ("End_Node: " & End_Node.Image);
-      Context.Trace.Trace ("Enclosing_Node: " & Enclosing_Node.Image);
-      Context.Trace.Trace
-        ("Output_Selection_Range: " & Image (Output_Selection_Range));
-
-      Context.Trace.Trace
-        ("Get_Starting_Offset and Set_Partial_Gnatpp_Offset");
-      Offset :=
-        Get_Starting_Offset
-          (Node                   => Enclosing_Node,
-           PP_Indent              =>
-             Pp.Command_Lines.PP_Indentation (PP_Options),
-           PP_Indent_Continuation =>
-             Pp.Command_Lines.PP_Indent_Continuation (PP_Options));
-      Context.Trace.Trace (Offset'Image);
-      if Offset /= 0 then
-         Pp.Actions.Set_Partial_Gnatpp_Offset (Offset - 1);
-      end if;
-
-      Context.Trace.Trace ("Format_Vector");
+      Context.Trace.Trace ("Format_Selection");
       begin
-         Pp.Actions.Format_Vector
-           (Cmd            => PP_Options,
-            Input          => Input,
-            Node           => Enclosing_Node,
-            Output         => Output,
-            Messages       => PP_Messages,
-            Partial_Gnatpp => True);
+         Format_Selection
+           (Main_Unit                => Unit,
+            Input_Selection_Range    => Input_Selection_Range,
+            Output                   => Output,
+            Output_Selection_Range   => Output_Selection_Range,
+            PP_Messages              => PP_Messages,
+            Formatted_Node           => Enclosing_Node,
+            PP_Options               => PP_Options,
+            Force_Source_Line_Breaks => False);
+
       exception
          when others =>
             Append_PP_Messages (PP_Messages);
