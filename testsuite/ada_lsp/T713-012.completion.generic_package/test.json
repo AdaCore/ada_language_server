@@ -1,0 +1,674 @@
+[
+   {
+      "comment": [
+          "Test completion for Generic package parameters"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 31570,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true,
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail"
+                              ]
+                           }
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {}
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+          "wait": [
+              {
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "result": {
+                      "capabilities": {
+                          "textDocumentSync": 2,
+                          "completionProvider": {
+                              "triggerCharacters": [
+                                  ".",
+                                  ",",
+                                  "'",
+                                  "("
+                              ],
+                              "resolveProvider": true
+                          },
+                          "hoverProvider": true,
+                          "declarationProvider": true,
+                          "definitionProvider": true,
+                          "typeDefinitionProvider": true,
+                          "implementationProvider": true,
+                          "referencesProvider": true,
+                          "codeActionProvider": {
+                          },
+                          "renameProvider": {
+                          },
+                          "foldingRangeProvider": true,
+                          "executeCommandProvider": {},
+                          "alsReferenceKinds": [
+                              "reference",
+                              "access",
+                              "write",
+                              "call",
+                              "dispatching call",
+                              "parent",
+                              "child",
+                              "overriding"
+                          ]
+                      }
+                  }
+              }
+          ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "\nwith G;\npackage Inst is\n   type String_Ptr is access all String;\n   --  package I is new G (String, String_Ptr);\n   package I is new G \nend Inst;\n\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 22
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 22
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               },
+               "position": {
+                  "line": 5,
+                  "character": 23
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Params of G",
+                        "kind": 15,
+                        "sortText": "+0",
+                        "insertText": "${1:Elt_Type : type Elt_Type(<>) is limited private;}, ${2:Elt_Ptr : type Elt_Ptr is access all Elt_Type;})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{src/g.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 2,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 14,
+                                 "character": 6
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "Elt_Type",
+                        "kind": 5,
+                        "documentation": "Elt_Type => ",
+                        "sortText": "+1",
+                        "insertText": "Elt_Type => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Elt_Ptr",
+                        "kind": 5,
+                        "documentation": "Elt_Ptr => ",
+                        "sortText": "+2",
+                        "insertText": "Elt_Ptr => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Params of G",
+               "kind": 15,
+               "sortText": "+0",
+               "insertText": "${1:Elt_Type : type Elt_Type(<>) is limited private;}, ${2:Elt_Ptr : type Elt_Ptr is access all Elt_Type;})$0",
+               "insertTextFormat": 2,
+               "additionalTextEdits": [],
+               "data": {
+                  "uri": "$URI{src/g.ads}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 0
+                     },
+                     "end": {
+                        "line": 14,
+                        "character": 6
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 11,
+               "result": {
+                  "label": "Params of G",
+                  "kind": 15,
+                  "detail": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                  "documentation": "at g.ads (3:1)\n\nSource:",
+                  "sortText": "+0",
+                  "insertText": "${1:Elt_Type : type Elt_Type(<>) is limited private;}, ${2:Elt_Ptr : type Elt_Ptr is access all Elt_Type;})$0",
+                  "insertTextFormat": 2,
+                  "additionalTextEdits": [],
+                  "data": {
+                     "uri": "$URI{src/g.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 14,
+                           "character": 6
+                        }
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Elt_Type",
+               "kind": 5,
+               "documentation": "Elt_Type => ",
+               "sortText": "+1",
+               "insertText": "Elt_Type => ",
+               "insertTextFormat": 1,
+               "additionalTextEdits": []
+            }
+         },
+         "wait": [
+            {
+               "id": 12,
+               "result": {
+                  "label": "Elt_Type",
+                  "kind": 5,
+                  "documentation": "Elt_Type => ",
+                  "sortText": "+1",
+                  "insertText": "Elt_Type => ",
+                  "insertTextFormat": 1,
+                  "additionalTextEdits": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 23
+                        }
+                     },
+                     "text": "Elt_Type => "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 35
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 35
+                        }
+                     },
+                     "text": "String"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 10
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 41
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 41
+                        }
+                     },
+                     "text": ","
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 23,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               },
+               "position": {
+                  "line": 5,
+                  "character": 42
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 23,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Params of G",
+                        "kind": 15,
+                        "sortText": "+0",
+                        "insertText": " Elt_Ptr => ${2:type Elt_Ptr is access all Elt_Type;})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{src/g.ads}",
+                           "range": {
+                              "start": {
+                                 "line": 2,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 14,
+                                 "character": 6
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "Elt_Ptr",
+                        "kind": 5,
+                        "documentation": " Elt_Ptr => ",
+                        "sortText": "+1",
+                        "insertText": " Elt_Ptr => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 28,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Params of G",
+               "kind": 15,
+               "sortText": "+0",
+               "insertText": " Elt_Ptr => ${2:type Elt_Ptr is access all Elt_Type;})$0",
+               "insertTextFormat": 2,
+               "additionalTextEdits": [],
+               "data": {
+                  "uri": "$URI{src/g.ads}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 0
+                     },
+                     "end": {
+                        "line": 14,
+                        "character": 6
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 28,
+               "result": {
+                  "label": "Params of G",
+                  "kind": 15,
+                  "detail": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                  "documentation": "at g.ads (3:1)\n\nSource:",
+                  "sortText": "+0",
+                  "insertText": " Elt_Ptr => ${2:type Elt_Ptr is access all Elt_Type;})$0",
+                  "insertTextFormat": 2,
+                  "additionalTextEdits": [],
+                  "data": {
+                     "uri": "$URI{src/g.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 14,
+                           "character": 6
+                        }
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 11
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 42
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 42
+                        }
+                     },
+                     "text": " Elt_Ptr => type Elt_Ptr is access all Elt_Type;)"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 13
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 54
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 54
+                        }
+                     },
+                     "text": "String_Ptr"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 23
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 65
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 65
+                        }
+                     },
+                     "text": ";"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 51,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/inst.ads}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "id": 51,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

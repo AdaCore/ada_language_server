@@ -115,6 +115,7 @@ package LSP.Ada_Completions is
    procedure Pretty_Print_Snippet
      (Context : LSP.Ada_Contexts.Context;
       Prefix  : String;
+      Offset  : Natural;
       Span    : LSP.Messages.Span;
       Rule    : Libadalang.Common.Grammar_Rule;
       Result  : in out LSP.Messages.CompletionItem);

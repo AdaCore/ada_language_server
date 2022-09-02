@@ -22,7 +22,9 @@ import {
     LanguageClientOptions,
     Middleware,
     ServerOptions,
+    ExecutableOptions
 } from 'vscode-languageclient/node';
+import { platform } from 'os';
 import * as process from 'process';
 import GPRTaskProvider from './gprTaskProvider';
 import cleanTaskProvider from './cleanTaskProvider';
@@ -91,10 +93,34 @@ export function activate(context: vscode.ExtensionContext): void {
         // let debugOptions = { execArgv: [] };
         // If the extension is launched in debug mode then the debug server options are used
         // Otherwise the run options are used
+
+        // Retrieve the user's custom environment variables if specified in their
+        // settings/workspace: we'll then launch any child process with this custom
+        // environment
+        var user_platform = platform();
+        var env_config_name: string = "terminal.integrated.env.linux";
+
+        switch (user_platform) {
+            case 'darwin': env_config_name = "terminal.integrated.env.osx"
+                break;
+            case 'win32': env_config_name = "terminal.integrated.env.windows";
+                break;
+            default: env_config_name = "terminal.integrated.env.linux";
+        }
+
+        const custom_env = vscode.workspace.getConfiguration().get(
+            env_config_name) ?? Object.create(null)
+
+        for (let var_name in custom_env) {
+            process.env[var_name] = custom_env[var_name];
+        }
+
+        // Options to control the server
         const serverOptions: ServerOptions = {
             run: { command: serverModule, args: extra },
-            debug: { command: serverModule, args: extra },
+            debug: { command: serverModule, args: extra }
         };
+
         // Options to control the language client
         const clientOptions: LanguageClientOptions = {
             // Register the server for ada sources documents
