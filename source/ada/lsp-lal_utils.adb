@@ -325,7 +325,8 @@ package body LSP.Lal_Utils is
               Ada_Task_Body =>
             return LSP.Messages.Module;
 
-         when Ada_Type_Decl =>
+         when Ada_Concrete_Type_Decl |
+              Ada_Formal_Type_Decl =>
             return (if Laltools.Common.Is_Structure (Node)
                     then LSP.Messages.Struct
                     else LSP.Messages.Class);
