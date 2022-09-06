@@ -86,6 +86,7 @@ jobs:
         with:
           repository: AdaCore/gnatdoc
           path: subprojects/gnatdoc
+          ref: edge
       - uses: actions/cache@v2
         with:
           path: ./cached_gnat
