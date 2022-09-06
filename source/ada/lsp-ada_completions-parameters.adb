@@ -406,7 +406,7 @@ package body LSP.Ada_Completions.Parameters is
          return Res;
       end if;
 
-      if Aggr_Type.Kind in Ada_Type_Decl_Range then
+      if Aggr_Type.Kind in Ada_Type_Decl then
          declare
             Base_Type  : constant Base_Type_Decl :=
               Aggr_Type.P_Base_Type (Origin => A);
