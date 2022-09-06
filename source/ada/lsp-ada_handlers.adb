@@ -1288,7 +1288,7 @@ package body LSP.Ada_Handlers is
                   TD := TE.As_Subtype_Indication.P_Designated_Type_Decl;
 
                   if TD.Is_Null
-                    or else not (TD.Kind in Ada_Type_Decl_Range)
+                    or else not (TD.Kind in Ada_Type_Decl)
                   then
                      return False;
                   end if;

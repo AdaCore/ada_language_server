@@ -321,7 +321,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
                   if TD.Is_Null
                     or else
-                      not (TD.Kind in Libadalang.Common.Ada_Type_Decl_Range)
+                      not (TD.Kind in Libadalang.Common.Ada_Type_Decl)
                   then
                      return Libadalang.Analysis.No_Base_Subp_Spec;
                   end if;
