@@ -1,0 +1,27 @@
+with "print_utils.gpr";
+
+project Default is
+
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj";
+   type MAIN_NUMBER_Type is
+      ("MAIN_1", "MAIN_2");
+   MAIN_NUMBER : MAIN_NUMBER_Type := external ("MAIN_NUMBER", "MAIN_1");
+
+   case MAIN_NUMBER is
+      when "MAIN_2" =>
+         for Main use ("main_2.adb");
+
+      when "MAIN_1" =>
+         for Main use ("main_1.adb");
+   end case;
+
+   --  Use the same executable name for main source files
+   package Builder is
+      for Executable ("main_1.adb") use "main";
+      for Executable ("main_2.adb") use "main";
+   end Builder;
+
+   for Create_Missing_Dirs use "True";
+
+end Default;

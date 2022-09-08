@@ -1,0 +1,38 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"ada.projectFile": "default.gpr",
+
+		// Set a workspace-specific environment for Linux/OSX platforms
+		"terminal.integrated.env.linux": {
+			//  Set MAIN_NUMBER scenario variable to MAIN_2 directly from the environment
+			"MAIN_NUMBER": "MAIN_2",
+
+			//  Optionally, you can append the Ada toolchain of your choice to the PATH environment variable
+			//  if you want to use a different toolchain.
+			//  "PATH": "<PATH_TO_TOOLCHAIN>:${env:PATH}",
+
+			//  Append the path to the directory containing print_utils.gpr project file dependency to
+			//  the GPR_PROJECT_PATH environment variable
+			"GPR_PROJECT_PATH": "./imported:${env:GPR_PROJECT_PATH}"
+		},
+
+		// Set a workspace-specific environment for Windows
+		"terminal.integrated.env.windows": {
+			//  Set MAIN_NUMBER scenario variable to MAIN_2 directly from the environment
+			"MAIN_NUMBER": "MAIN_2",
+
+			//  Optionally, you can append the Ada toolchain of your choice to the PATH environment variable
+			//  if you want to use a different toolchain.
+			//  "PATH": "<PATH_TO_TOOLCHAIN>;${env:PATH}",
+
+			//  Append the path to the directory containing print_utils.gpr project file dependency to
+			//  the GPR_PROJECT_PATH environment variable
+			"GPR_PROJECT_PATH": ".\\imported;${env:GPR_PROJECT_PATH}:"
+		}
+	}
+}
