@@ -280,19 +280,6 @@
                            {
                               "range": {
                                  "start": {
-                                    "line": 8,
-                                    "character": 28
-                                 },
-                                 "end": {
-                                    "line": 8,
-                                    "character": 28
-                                 }
-                              },
-                              "newText": "Bar."
-                           },
-                           {
-                              "range": {
-                                 "start": {
                                     "line": 1,
                                     "character": 34
                                  },
@@ -302,6 +289,19 @@
                                  }
                               },
                               "newText": "\nwith Bar;"
+                           },
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 8,
+                                    "character": 28
+                                 },
+                                 "end": {
+                                    "line": 8,
+                                    "character": 28
+                                 }
+                              },
+                              "newText": "Bar."
                            }
                         ]
                      }

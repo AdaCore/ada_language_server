@@ -21,6 +21,7 @@ with Ada.Streams;
 
 with VSS.Strings;
 
+with Laltools.Refactor;
 with Laltools.Refactor_Imports;
 
 with LSP.Client_Message_Receivers;
@@ -74,6 +75,14 @@ private
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : Command);
    --  Write the command in a JSON Stream
+
+   function Command_To_Refactoring_Edits
+     (Self     : Command;
+      Context  : LSP.Ada_Contexts.Context;
+      Document : LSP.Ada_Documents.Document_Access)
+      return Laltools.Refactor.Refactoring_Edits;
+   --  Converts Self into Laltools.Refactor.Refactoring_Edits that can be
+   --  converted in a WorkspaceEdit.
 
    for Command'Write use Write_Command;
    for Command'External_Tag use "als-refactor-imports";
