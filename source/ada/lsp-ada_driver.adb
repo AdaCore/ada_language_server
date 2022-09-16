@@ -170,6 +170,10 @@ procedure LSP.Ada_Driver is
 
    ALS_Home               : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("ALS_HOME");
+   GPR_Path               : constant VSS.Strings.Virtual_String :=
+     VSS.Application.System_Environment.Value ("GPR_PROJECT_PATH");
+   Path                   : constant VSS.Strings.Virtual_String :=
+     VSS.Application.System_Environment.Value ("PATH");
    Home_Dir               : constant Virtual_File :=
      Create_From_UTF8
        (VSS.Strings.Conversions.To_UTF_8_String
@@ -271,6 +275,10 @@ begin
 
    Server_Trace.Trace ("Initializing server ...");
 
+   Server_Trace.Trace
+     ("GPR PATH: " & VSS.Strings.Conversions.To_UTF_8_String (GPR_Path));
+   Server_Trace.Trace
+     ("PATH: " & VSS.Strings.Conversions.To_UTF_8_String (Path));
    --  Start monitoring the memory if the memory monitor trace is active
 
    Memory_Monitor_Enabled := Create ("DEBUG.ADA_MEMORY").Is_Active;
