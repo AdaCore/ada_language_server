@@ -3075,6 +3075,7 @@ package body LSP.Ada_Handlers is
       Options : constant
         GNATdoc.Comments.Options.Extractor_Options :=
           (Style    => Self.Options.Documentation.Style,
+           Pattern  => <>,
            Fallback => True);
 
    begin
