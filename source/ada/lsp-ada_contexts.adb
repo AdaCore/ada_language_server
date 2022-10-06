@@ -37,6 +37,8 @@ with Langkit_Support.Slocs;
 
 with Utils.Command_Lines.Common;
 
+with Pp.Actions;
+
 package body LSP.Ada_Contexts is
 
    Indexing_Trace   : constant Trace_Handle := Create ("ALS.INDEXING", Off);
@@ -890,8 +892,11 @@ package body LSP.Ada_Contexts is
       Self.Source_Dirs.Clear;
       Self.Tree := null;
 
-      --  Destroy GnatPP command line
+      --  Destroy gnatpp's command line
       Utils.Command_Lines.Clear (Self.PP_Options);
+
+      --  Cleanup gnatpp's template tables
+      Pp.Actions.Clear_Template_Tables;
    end Free;
 
    -----------------
