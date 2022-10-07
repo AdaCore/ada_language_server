@@ -335,9 +335,11 @@ package body LSP.Ada_Contexts is
       end if;
 
       declare
+         use VSS.Strings;
          Lal_Result : constant Basic_Decl_Array :=
                         Decl.P_Base_Subp_Declarations;
-         Our_Result : Basic_Decl_Array (1 .. Lal_Result'Length - 1);
+         Our_Result : Basic_Decl_Array
+           (Lal_Result'First .. Lal_Result'Last - 1);
          Index      : Positive := 1;
       begin
          --  Libadalang returns an empty array if this is not a subprogram
@@ -349,7 +351,7 @@ package body LSP.Ada_Contexts is
          --  The result returned by Libadalang includes self; we want to remove
          --  this from the list.
          for J of Lal_Result loop
-            if J /= Decl then
+            if Node_Location_Image (J) /= Node_Location_Image (Decl) then
                Our_Result (Index) := J;
                Index := Index + 1;
             end if;
