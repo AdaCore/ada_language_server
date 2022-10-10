@@ -1171,8 +1171,7 @@ package body LSP.Ada_Documents is
          Edit_Span  : constant LSP.Messages.Span :=
            Self.To_LSP_Range (Output_Selection_Range);
          Output_Str : constant String :=
-           Char_Vectors.Elems (Output)
-             (1 .. Char_Vectors.Last_Index (Output) - 1);
+           Char_Vectors.Elems (Output) (1 .. Char_Vectors.Last_Index (Output));
          Edit_Text  : constant VSS.Strings.Virtual_String :=
            VSS.Strings.Conversions.To_Virtual_String (Output_Str);
 
