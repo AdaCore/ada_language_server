@@ -29,6 +29,9 @@ with Spawn.Processes; use Spawn.Processes;
 
 package body LSP.Raw_Clients is
 
+   Parse_Exception : exception;
+   --   Local exception raised when parsing invalid data
+
    New_Line : constant String :=
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
 
@@ -297,7 +300,7 @@ package body LSP.Raw_Clients is
                   Content_Length := Positive'Value (Buffer (From .. Next - 1));
                end;
             else
-               raise Constraint_Error with "Unexpected header:" & Buffer;
+               raise Parse_Exception with "Unexpected header:" & Buffer;
             end if;
 
             Next := Next + New_Line'Length;
@@ -325,12 +328,24 @@ package body LSP.Raw_Clients is
                   Start := Index (Client.Buffer, New_Line & New_Line);
 
                   if Start /= 0 then
-                     Parse_Headers
-                       (Slice (Client.Buffer, 1, Start + 1),
-                        Client.To_Read);
-
-                     Delete
-                       (Client.Buffer, 1, Start + 2 * New_Line'Length - 1);
+                     begin
+                        Parse_Headers
+                          (Slice (Client.Buffer, 1, Start + 1),
+                           Client.To_Read);
+                        Delete
+                          (Client.Buffer, 1, Start + 2 * New_Line'Length - 1);
+                     exception
+                        when E : Parse_Exception =>
+                           Client.On_Exception (E);
+                           --  Delete the first line
+                           Start :=
+                             Index (Client.Buffer,
+                                    "" & Ada.Characters.Latin_1.LF);
+                           Delete
+                             (Client.Buffer, 1, Start);
+                           --  Reset start to 0 => we didn't find a header
+                           Start := 0;
+                     end;
                   end if;
                end if;
 
