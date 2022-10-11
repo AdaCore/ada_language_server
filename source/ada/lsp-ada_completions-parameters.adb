@@ -55,7 +55,9 @@ package body LSP.Ada_Completions.Parameters is
      (N : Libadalang.Analysis.Ada_Node'Class)
       return Libadalang.Analysis.Aggregate;
    function Get_Designators
-     (A : Libadalang.Analysis.Aggregate)
+     (A              : Libadalang.Analysis.Aggregate;
+      Sloc           : Langkit_Support.Slocs.Source_Location;
+      Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector;
    function Get_Spec_Aggregate_Designators
      (A       : Libadalang.Analysis.Aggregate;
@@ -80,7 +82,9 @@ package body LSP.Ada_Completions.Parameters is
      (N : Libadalang.Analysis.Ada_Node'Class)
       return Libadalang.Analysis.Generic_Package_Instantiation;
    function Get_Designators
-     (G : Libadalang.Analysis.Generic_Package_Instantiation)
+     (G              : Libadalang.Analysis.Generic_Package_Instantiation;
+      Sloc           : Langkit_Support.Slocs.Source_Location;
+      Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector;
    function Get_Decl_Designators
      (G       : Libadalang.Analysis.Generic_Package_Instantiation;
@@ -185,11 +189,16 @@ package body LSP.Ada_Completions.Parameters is
    ---------------------
 
    function Get_Designators
-     (A : Libadalang.Analysis.Aggregate)
+     (A              : Libadalang.Analysis.Aggregate;
+      Sloc           : Langkit_Support.Slocs.Source_Location;
+      Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector
    is
+      pragma Unreferenced (Sloc);
       Res : Laltools.Common.Node_Vectors.Vector;
    begin
+      Unnamed_Params := 0;
+
       for Assoc of A.F_Assocs loop
          if Assoc.Kind in Ada_Aggregate_Assoc_Range then
             for Alt of Assoc.As_Aggregate_Assoc.F_Designators loop
@@ -501,16 +510,29 @@ package body LSP.Ada_Completions.Parameters is
    ---------------------
 
    function Get_Designators
-     (G : Libadalang.Analysis.Generic_Package_Instantiation)
+     (G              : Libadalang.Analysis.Generic_Package_Instantiation;
+      Sloc           : Langkit_Support.Slocs.Source_Location;
+      Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector
    is
+      use Langkit_Support.Slocs;
       Designator : Libadalang.Analysis.Ada_Node;
       Res        : Laltools.Common.Node_Vectors.Vector;
    begin
+      Unnamed_Params := 0;
+
       for Assoc of G.F_Params loop
          Designator := Assoc.As_Param_Assoc.F_Designator;
          if Designator /= No_Ada_Node then
             Res.Append (Designator);
+         else
+            if Res.Is_Empty
+            --  Count only the unnamed params at the start
+              and then Start_Sloc (Assoc.Sloc_Range) < Sloc
+            --  Prevent adding false parameter because of LAL recovery
+            then
+               Unnamed_Params := Unnamed_Params + 1;
+            end if;
          end if;
       end loop;
 

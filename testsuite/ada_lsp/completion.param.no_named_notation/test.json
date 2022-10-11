@@ -1,0 +1,400 @@
+[
+   {
+      "comment": [
+         "test automatically generated"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+             {
+                 "jsonrpc": "2.0",
+                 "id": 1,
+                 "result": {
+                     "capabilities": {
+                         "textDocumentSync": 2,
+                         "completionProvider": {
+                             "triggerCharacters": [
+                                 ".",
+                                 ",",
+                                 "'",
+                                 "("
+                             ],
+                             "resolveProvider": true
+                         }
+                     }
+                 }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false,
+                     "documentationStyle": "gnat",
+                     "foldComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Bar; use Bar;\n\nprocedure Foo is\n   M : My_Access := null;\nbegin\n   Hello (1);\n\n   Bar.Hello (1, B => 1);\n\n   M.Hello (1);\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 5,
+                           "character": 11
+                        },
+                        "end": {
+                           "line": 5,
+                           "character": 11
+                        }
+                     },
+                     "text": ","
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 5,
+                  "character": 12
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Params of Hello",
+                        "kind": 15,
+                        "sortText": "+0",
+                        "insertText": " A => ${2:Integer}, B => ${3:Float})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                        "documentation": "at bar.ads (11:4)"
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "documentation": " A => ",
+                        "sortText": "+1",
+                        "insertText": " A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "documentation": " B => ",
+                        "sortText": "+2",
+                        "insertText": " B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "Params of Hello",
+                        "kind": 15,
+                        "sortText": "+3",
+                        "insertText": " ${2:B : Float})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "detail": "procedure Hello (A : Integer; B : Float)",
+                        "documentation": "at bar.ads (3:4)"
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "documentation": " B => ",
+                        "sortText": "+4",
+                        "insertText": " B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 23
+                        }
+                     },
+                     "text": ","
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 7,
+                  "character": 24
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 13,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Params of Bar.Hello",
+                        "kind": 15,
+                        "sortText": "+0",
+                        "insertText": " A => ${2:Integer})$0",
+                        "insertTextFormat": 2,
+                        "additionalTextEdits": [],
+                        "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                        "documentation": "at bar.ads (11:4)"
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "documentation": " A => ",
+                        "sortText": "+1",
+                        "insertText": " A => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 9,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 9,
+                           "character": 13
+                        }
+                     },
+                     "text": ","
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 19,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 9,
+                  "character": 14
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 19,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Params of M.Hello",
+                        "kind": 15,
+                        "sortText": "+0",
+                        "insertText": " ${2:B : Float})$0",
+                        "insertTextFormat": 2,
+                        "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                        "documentation": "at bar.ads (11:4)"
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "documentation": " B => ",
+                        "sortText": "+1",
+                        "insertText": " B => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
