@@ -420,13 +420,18 @@ package body LSP.Lal_Utils is
    --------------------------
 
    function Get_Call_Designators
-     (Node : Libadalang.Analysis.Call_Expr)
+     (Node           : Libadalang.Analysis.Call_Expr;
+      Sloc           : Langkit_Support.Slocs.Source_Location;
+      Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector
    is
+      use Langkit_Support.Slocs;
       Designator : Libadalang.Analysis.Ada_Node;
       Res        : Laltools.Common.Node_Vectors.Vector :=
         Laltools.Common.Node_Vectors.Empty_Vector;
    begin
+      Unnamed_Params := 0;
+
       if Node = No_Call_Expr then
          return Res;
       end if;
@@ -442,6 +447,14 @@ package body LSP.Lal_Utils is
                Designator := Assoc.As_Param_Assoc.F_Designator;
                if Designator /= No_Ada_Node then
                   Res.Append (Designator);
+               else
+                  if Res.Is_Empty
+                  --  Count only the unnamed params at the start
+                    and then Start_Sloc (Assoc.Sloc_Range) < Sloc
+                  --  Prevent adding false parameter because of LAL recovery
+                  then
+                     Unnamed_Params := Unnamed_Params + 1;
+                  end if;
                end if;
             end loop;
          end if;
