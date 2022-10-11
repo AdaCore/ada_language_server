@@ -37,8 +37,13 @@ generic
    --  Return Null_Element if there is no such Element.
 
    with function Get_Designators
-     (E : Element) return Laltools.Common.Node_Vectors.Vector;
-   --  Return the current list of Designators for E
+     (E              : Element;
+      Sloc           : Langkit_Support.Slocs.Source_Location;
+      Unnamed_Params : out Natural)
+      return Laltools.Common.Node_Vectors.Vector;
+   --  Return the current list of Designators for E.
+   --  Unnamed_Params correspond to the number of parameters without
+   --  designators before Sloc.
 
    with function Get_Spec_Designators
      (E       : Element;

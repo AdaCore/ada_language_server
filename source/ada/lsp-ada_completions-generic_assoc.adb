@@ -48,6 +48,10 @@ package body LSP.Ada_Completions.Generic_Assoc is
       --  Empty if we already have a whitespace before a ","
 
       Designators       : Laltools.Common.Node_Vectors.Vector;
+      --  Current list of designators
+
+      Unnamed_Params    : Natural;
+      --  The number of parameters without designators already present
 
       Prefix      : VSS.Strings.Virtual_String;
       --  The whole string before the snippet (including whitespaces)
@@ -133,6 +137,13 @@ package body LSP.Ada_Completions.Generic_Assoc is
            or else (Limit > 0
                     and then (Snippet_Index = 1
                               or else Snippet_Index >= Limit));
+
+         Nb_Params          : Natural := Unnamed_Params;
+         --  We already have Skip params
+
+         Total_Params       : constant Natural :=
+           Natural (Spec_Designators.Length);
+         --  The maximum number of params
       begin
          if Match_Designators (Designators, Spec_Designators) then
 
@@ -233,6 +244,9 @@ package body LSP.Ada_Completions.Generic_Assoc is
                   end if;
                   Snippet_Index := Snippet_Index - 1;
                end;
+
+               Nb_Params := Nb_Params + 1;
+               exit when Nb_Params = Total_Params;
             end loop;
 
             --  If the string is empty => nothing to do
@@ -303,7 +317,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       Prefix := Self.Document.Get_Text_At
         (Prefix_Span.first, Prefix_Span.last);
 
-      Designators := Get_Designators (Elem_Node);
+      Designators := Get_Designators (Elem_Node, Sloc, Unnamed_Params);
 
       if Token_Kind = Ada_Whitespace then
          Token_Kind := Kind (Data (Previous (Token, Exclude_Trivia => True)));
@@ -320,13 +334,18 @@ package body LSP.Ada_Completions.Generic_Assoc is
            (E       => Elem_Node,
             Context => Self.Context)
          loop
-            Generate_Snippets
-              (Spec_Designators  => Spec.Param_Vector,
-               Param_Types       => Spec.Param_Types,
-               Decl              => Spec.Decl,
-               Title             => Spec.Title,
-               Snippet_Prefix    => Spec.Prefix,
-               Completion_Prefix => Completion_Prefix);
+            --  Too many params to match Spec
+            if Natural (Spec.Param_Vector.Length)
+              > Natural (Designators.Length) + Unnamed_Params
+            then
+               Generate_Snippets
+                 (Spec_Designators  => Spec.Param_Vector,
+                  Param_Types       => Spec.Param_Types,
+                  Decl              => Spec.Decl,
+                  Title             => Spec.Title,
+                  Snippet_Prefix    => Spec.Prefix,
+                  Completion_Prefix => Completion_Prefix);
+            end if;
          end loop;
       end;
    end Propose_Completion;
