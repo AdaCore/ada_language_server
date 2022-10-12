@@ -892,9 +892,6 @@ package body LSP.Ada_Contexts is
       Self.Source_Dirs.Clear;
       Self.Tree := null;
 
-      --  Destroy gnatpp's command line
-      Utils.Command_Lines.Clear (Self.PP_Options);
-
       --  Cleanup gnatpp's template tables
       Pp.Actions.Clear_Template_Tables;
    end Free;
