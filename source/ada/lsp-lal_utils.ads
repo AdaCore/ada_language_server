@@ -211,9 +211,13 @@ package LSP.Lal_Utils is
    --  recovery.
 
    function Get_Call_Designators
-     (Node : Libadalang.Analysis.Call_Expr)
+     (Node           : Libadalang.Analysis.Call_Expr;
+      Sloc           : Langkit_Support.Slocs.Source_Location;
+      Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector;
    --  Return the list of designator in the current call_expr
+   --  Unnamed_Params correspond to the number of parameters without
+   --  designators before Sloc.
 
    procedure Get_Call_Expr_Name
      (Node             : Libadalang.Analysis.Ada_Node'Class;
