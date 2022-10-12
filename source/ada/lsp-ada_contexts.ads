@@ -358,7 +358,6 @@ private
    is (Self.Source_Files.Length);
 
    function Get_PP_Options (Self : Context) return
-     Utils.Command_Lines.Command_Line is
-       (Utils.Command_Lines.Copy_Command_Line (Self.PP_Options));
+     Utils.Command_Lines.Command_Line is (Self.PP_Options);
 
 end LSP.Ada_Contexts;
