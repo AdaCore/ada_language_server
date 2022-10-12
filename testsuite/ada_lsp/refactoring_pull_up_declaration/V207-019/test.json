@@ -259,7 +259,7 @@
                                                     "character": 0
                                                 }
                                             },
-                                            "newText": "\n   procedure Foo is null;\n"
+                                            "newText": "   procedure Foo is null;\n\n"
                                         },
                                         {
                                             "range": {
