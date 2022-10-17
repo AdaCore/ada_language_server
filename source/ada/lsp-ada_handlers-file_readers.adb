@@ -15,120 +15,105 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;               use Ada.Exceptions;
-with Ada.Characters.Handling;
 with GNAT.Strings;                 use GNAT.Strings;
-with GNATCOLL.Traces;              use GNATCOLL.Traces;
 
+with GNATCOLL.Traces;              use GNATCOLL.Traces;
 with GNATCOLL.VFS;                 use GNATCOLL.VFS;
-with GNATCOLL.Iconv;               use GNATCOLL.Iconv;
+
 with VSS.Strings;                  use VSS.Strings;
+pragma Warnings
+  (Off, "unit ""VSS.Strings.Character_Iterators"" is not referenced");
+--  GNAT 20220919 report this package as unused, however it is necessary to
+--  make visible full declaration of Character_Iterator.
+with VSS.Strings.Character_Iterators;
+with VSS.Strings.Converters.Decoders;
 with VSS.Strings.Conversions;
+
 with LSP.Ada_Documents;            use LSP.Ada_Documents;
 with Libadalang.Preprocessing;     use Libadalang.Preprocessing;
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
+with Langkit_Support.Slocs;
+with Langkit_Support.Text;
 
 package body LSP.Ada_Handlers.File_Readers is
 
+   use all type VSS.Strings.Converters.Converter_Flag;
+
    Me : constant Trace_Handle := Create ("ALS.FILE_READERS");
 
-   function Read_And_Convert_To_UTF8
-     (Filename : String; Charset : String)
-      return GNAT.Strings.String_Access;
-   --  Read the file content from Filename and convert it from the original
-   --  Charset to UTF-8.
+   procedure Read_And_Decode
+     (Filename : String;
+      Charset  : VSS.Strings.Virtual_String;
+      Decoded  : out VSS.Strings.Virtual_String;
+      Error    : out VSS.Strings.Virtual_String);
+   --  Read the file content from Filename and decode it from the original
+   --  Charset.
 
-   ------------------------------
-   -- Read_And_Convert_To_UTF8 --
-   ------------------------------
+   Decoder_Flags : constant VSS.Strings.Converters.Converter_Flags :=
+     (Stateless     => True,
+      --  Data is decoded as single chunk, don't save state but report error
+      --  for incomplete byte sequences at the end of data
+      Stop_On_Error => False,
+      --  Errors should be reported but not to stop decoding of the following
+      --  data
+      Process_BOM   => True);
+      --  Byte-Order-Mark at the beginning of the data should be ignored if
+      --  present
+   --  Default flags for the text decoder.
 
-   function Read_And_Convert_To_UTF8
-     (Filename : String; Charset : String)
-      return GNAT.Strings.String_Access
+   ---------------------
+   -- Read_And_Decode --
+   ---------------------
+
+   procedure Read_And_Decode
+     (Filename : String;
+      Charset  : VSS.Strings.Virtual_String;
+      Decoded  : out VSS.Strings.Virtual_String;
+      Error    : out VSS.Strings.Virtual_String)
    is
-      Raw        : GNAT.Strings.String_Access;
-      Decoded    : GNAT.Strings.String_Access;
+      Raw     : GNAT.Strings.String_Access;
+      Decoder : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
+
    begin
       --  Read the file (this call uses MMAP)
+
       Raw := Create_From_UTF8 (Filename).Read_File;
 
       if Raw = null then
-         return null;
+         Decoded.Clear;
+         Error := "Unable to read file";
+
+         return;
       end if;
 
-      --  Convert the file if it's not already encoded in utf-8
+      Decoder.Initialize (Charset, Decoder_Flags);
 
-      if Ada.Characters.Handling.To_Lower (Charset) = "utf-8" then
-         Decoded := Raw;
-      else
-         declare
-            State        : constant Iconv_T := Iconv_Open (UTF8, Charset);
-            Outbuf       : Byte_Sequence (1 .. 4096);
-            Input_Index  : Positive := Raw'First;
-            Conv_Result  : Iconv_Result := Full_Buffer;
-            Output_Index : Positive;
-         begin
-            while Conv_Result = Full_Buffer loop
-               Output_Index := 1;
-               Iconv (State        => State,
-                      Inbuf        => Raw.all,
-                      Input_Index  => Input_Index,
-                      Outbuf       => Outbuf,
-                      Output_Index => Output_Index,
-                      Result       => Conv_Result);
-
-               --  Append the converted contents
-               if Decoded /= null then
-                  declare
-                     Tmp : GNAT.Strings.String_Access := Decoded;
-                  begin
-                     Decoded := new String'
-                       (Tmp.all & Outbuf (1 .. Output_Index - 1));
-                     GNAT.Strings.Free (Tmp);
-                  end;
-               else
-                  Decoded := new String'(Outbuf (1 .. Output_Index - 1));
-               end if;
-            end loop;
-
-            GNAT.Strings.Free (Raw);
-            Iconv_Close (State);
-
-            case Conv_Result is
-               when Success =>
-                  --  The conversion was successful
-                  null;
-               when others =>
-                  Me.Trace
-                    ("Failed to convert '" & Filename & "' to UTF-8: "
-                    & Conv_Result'Img);
-                  return null;
-            end case;
-         exception
-            when E : others =>
-
-               Me.Trace
-                 ("Exception caught when reading '" & Filename & "':"
-                  & Exception_Message (E));
-               return null;
-         end;
-      end if;
-
-      --  Convert the string to a Virtual_String for easier handling
-
-      return Decoded;
-   exception
-      when E : others =>
-         if Decoded /= null then
-            GNAT.Strings.Free (Decoded);
-         end if;
+      if not Decoder.Is_Valid then
+         --  Charset is not supported, fallback to "utf-8".
 
          Me.Trace
-           ("Exception caught when reading '" & Filename & "':"
-            & Exception_Message (E));
+           ("Encoding '"
+            & VSS.Strings.Conversions.To_UTF_8_String (Charset)
+            & "' is not supported by text decoder.");
 
-         return null;
-   end Read_And_Convert_To_UTF8;
+         Decoder.Initialize ("utf-8", Decoder_Flags);
+      end if;
+
+      pragma Assert (Decoder.Is_Valid);
+      --  At this point decoder is initialized to decode ether given encoding
+      --  or fallback encoding "utf-8", which is known to be supported.
+
+      declare
+         Encoded : constant Ada.Streams.Stream_Element_Array (1 .. Raw'Length)
+           with Import, Address => Raw.all'Address;
+
+      begin
+         Decoded := Decoder.Decode (Encoded);
+         Error   := Decoder.Error_Message;
+      end;
+
+      GNAT.Strings.Free (Raw);
+   end Read_And_Decode;
 
    ----------
    -- Read --
@@ -143,28 +128,36 @@ package body LSP.Ada_Handlers.File_Readers is
       Diagnostics : in out
         Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
    is
-      Doc    : Document_Access;
-      Source : Preprocessed_Source := Preprocessed_Source'
-        (Buffer => null, Last => 0);
-      Buffer : GNAT.Strings.String_Access;
+      Doc   : Document_Access;
+      Text  : VSS.Strings.Virtual_String;
+      Error : VSS.Strings.Virtual_String;
+
    begin
       --  First check if the file is an open document
+
       Doc := Self.Handler.Get_Open_Document
         (URI   => LSP.Types.File_To_URI (Filename),
          Force => False);
 
       --  Preprocess the document's contents if open, or the file contents if
       --  not.
-      if Doc /= null then
-         Buffer := new String'
-           (VSS.Strings.Conversions.To_UTF_8_String (Doc.Text));
-      else
-         Buffer := Read_And_Convert_To_UTF8 (Filename, Charset);
 
-         --  Return an empty sring when failing to read the file (i.e: when the
-         --  file has been deleted).
-         if Buffer = null then
-            Buffer := new String'("");
+      if Doc /= null then
+         Text := Doc.Text;
+
+      else
+         Read_And_Decode
+           (Filename => Filename,
+            Charset  => VSS.Strings.Conversions.To_Virtual_String (Charset),
+            Decoded  => Text,
+            Error    => Error);
+
+         if not Error.Is_Empty then
+            Diagnostics.Append
+              (Langkit_Support.Diagnostics.Diagnostic'
+                 (Langkit_Support.Slocs.No_Source_Location_Range,
+                  VSS.Strings.Conversions.To_Unbounded_Wide_Wide_String
+                    (Error)));
          end if;
       end if;
 
@@ -172,36 +165,63 @@ package body LSP.Ada_Handlers.File_Readers is
       --  Otherwise, just decode the contents of the document/file.
 
       if Self.Preprocessing_Data /= No_Preprocessor_Data then
-         Libadalang.Preprocessing.Preprocess
-           (Data        => Self.Preprocessing_Data,
-            Filename    => Filename,
-            Input       => Buffer.all,
-            Contents    => Source,
-            Diagnostics => Diagnostics);
+         declare
+            Buffer : GNAT.Strings.String_Access :=
+              new String
+                (1 .. Integer (Text.After_Last_Character.First_UTF8_Offset));
+            --  Size of the "utf-8" encoded data for text is known, so
+            --  allocate necessary space and fill it later. Allocation on the
+            --  stack can't be use here due to potential stack overflow.
+            Source : Preprocessed_Source := Preprocessed_Source'
+              (Buffer => null, Last => 0);
 
-         if Source.Buffer = null then
-            --  Log the diagnostics when processing has failed
-            for Diag of Diagnostics loop
-               Me.Trace (Langkit_Support.Diagnostics.To_Pretty_String (Diag));
-            end loop;
-         end if;
+         begin
+            VSS.Strings.Conversions.Set_UTF_8_String (Text, Buffer.all);
+
+            Libadalang.Preprocessing.Preprocess
+              (Data        => Self.Preprocessing_Data,
+               Filename    => Filename,
+               Input       => Buffer.all,
+               Contents    => Source,
+               Diagnostics => Diagnostics);
+
+            if Source.Buffer = null then
+               --  Log the diagnostics when processing has failed
+
+               for Diag of Diagnostics loop
+                  Me.Trace
+                    (Langkit_Support.Diagnostics.To_Pretty_String (Diag));
+               end loop;
+            end if;
+
+            --  Decode the preprocessed buffer (or the initial contents when
+            --  there is no preprocessing needed) in utf-8.
+
+            Decode_Buffer
+              (Buffer      => (if Source.Buffer /= null then
+                                    Source.Buffer (1 .. Source.Last)
+                               else
+                                  Buffer.all),
+               Charset     => "utf-8",
+               Read_BOM    => Read_BOM,
+               Contents    => Contents,
+               Diagnostics => Diagnostics);
+
+            Free (Source);
+            GNAT.Strings.Free (Buffer);
+         end;
+
+      else
+         Contents :=
+           (Buffer =>
+               new Langkit_Support.Text.Text_Type
+                     (1 .. Natural (Text.Character_Length)),
+            First  => 1,
+            Last   => Natural (Text.Character_Length));
+
+         VSS.Strings.Conversions.Set_Wide_Wide_String
+           (Text, Contents.Buffer.all);
       end if;
-
-      --  Decode the preprocessed buffer (or the initial contents when there is
-      --  no preprocessing needed) in utf-8.
-
-      Decode_Buffer
-        (Buffer      => (if Source.Buffer /= null then
-                            Source.Buffer (1 .. Source.Last)
-                         else
-                            Buffer.all),
-         Charset     => "utf-8",
-         Read_BOM    => Read_BOM,
-         Contents    => Contents,
-         Diagnostics => Diagnostics);
-
-      Free (Source);
-      GNAT.Strings.Free (Buffer);
    end Read;
 
 end LSP.Ada_Handlers.File_Readers;
