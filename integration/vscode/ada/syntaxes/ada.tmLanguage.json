@@ -11,7 +11,13 @@
     "patterns": [
         {
             "name": "comment.line.ada",
-            "match": "--[^\\n\\r]*"
+            "begin": "--",
+            "end": "[\\n\\r]",
+            "patterns": [
+                {
+                    "include": "#gnatdoc_tag"
+                }
+            ]
         },
         {
             "name": "constant.numeric.ada",
@@ -85,6 +91,15 @@
         "based_literal": {
             "name": "constant.numeric.ada",
             "match": "\\d[0-9_]*#[0-9a-fA-F][0-9a-fA-F_]*(\\.[0-9a-fA-F][0-9a-fA-F_]*)?#([eE][-+]?\\d[0-9_]*)?"
+        },
+        "gnatdoc_tag": {
+            "name": "comment.gnatdoc.tag.ada",
+            "match": "@(description|format|group|noformat|private|return|summary)|@(enum|exception|field|formal|image|param)[\\t ]+([^\\t ]*)",
+            "captures": {
+                "3": {
+                    "name": "comment.gnatdoc.id.ada"
+                }
+            }
         }
     }
 }
