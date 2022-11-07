@@ -1,0 +1,266 @@
+[
+   {
+      "comment": [
+         "Test semanticTokens to skip tokens not supported by a client.",
+         "Initialize request skips `namespace` (package) token type and",
+         "`declaration` token modifier. Server responses with 3 tokens:",
+         "token `Ada` is skipped, because it is a package/namespace, so",
+         "this token type isn't supported by the client.",
+         "Next token `Unchecked_Conversion` is returned as `function`",
+         "with `defaultLibrary` modifier. Then token `My_Type` as",
+         "`type` with `static` modifier (and no `declaration` modifier).",
+         "Then `Integer` as `type` and [`static` + `defaultLibrary`]",
+         "modifier. Token types/modifiers encoding differs from",
+         "'standard encoding' - the code decreased by one."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 31570,
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "snippetSupport": true
+                        },
+                        "dynamicRegistration": true
+                     },
+                     "semanticTokens": {
+                        "refreshSupport":true,
+                        "dynamicRegistration":true,
+                        "tokenTypes": ["type","class","enum","interface","struct","typeParameter","parameter","variable","property","enumMember","event","function","method","macro","keyword","modifier","comment","string","number","regexp","operator"],
+                        "tokenModifiers": ["definition","readonly","static","deprecated","abstract","async","modification","documentation","defaultLibrary"],
+                        "formats":["relative"],
+                        "requests": {
+                           "range": true,
+                            "full": true
+                        },
+                        "overlappingTokenSupport" : true,
+                        "multilineTokenSupport" : true
+                     },
+                     "definition": {},
+                     "hover": {},
+                     "formatting": {
+                        "dynamicRegistration": true
+                     },
+                     "implementation": {},
+                     "codeLens": {},
+                     "typeDefinition": {},
+                     "selectionRange": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "synchronization": {},
+                     "references": {},
+                     "rangeFormatting": {},
+                     "onTypeFormatting": {},
+                     "declaration": {},
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "colorProvider": {}
+                  },
+                  "workspace": {
+                     "applyEdit": true,
+                     "executeCommand": {},
+                     "didChangeWatchedFiles": {},
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {},
+                     "semanticTokens": {
+                        "refreshSupport": true
+                     }
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+          "wait": [
+              {
+                  "jsonrpc": "2.0",
+                  "id": 1,
+                  "result": {
+                      "capabilities": {
+                          "textDocumentSync": 2,
+                          "completionProvider": {
+                              "triggerCharacters": [
+                                  ".",
+                                  ",",
+                                  "'",
+                                  "("
+                              ],
+                              "resolveProvider": true
+                          },
+                          "semanticTokensProvider": {
+                            "legend": {
+                              "tokenTypes": ["type","class","enum","interface","struct","typeParameter","parameter","variable","property","enumMember","function","keyword","modifier","comment","string","number","operator"],
+                              "tokenModifiers": ["definition","readonly","static","deprecated","abstract","modification","documentation","defaultLibrary"]
+                            },
+                            "range": true,
+                            "full": {}
+                          },
+                          "hoverProvider": true,
+                          "declarationProvider": true,
+                          "definitionProvider": true,
+                          "typeDefinitionProvider": true,
+                          "implementationProvider": true,
+                          "referencesProvider": true,
+                          "codeActionProvider": {
+                          },
+                          "renameProvider": {
+                          },
+                          "foldingRangeProvider": true,
+                          "executeCommandProvider": {},
+                          "alsReferenceKinds": [
+                              "reference",
+                              "access",
+                              "write",
+                              "call",
+                              "dispatching call",
+                              "parent",
+                              "child",
+                              "overriding"
+                          ]
+                      }
+                  }
+              }
+          ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}", 
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Ada.Unchecked_Conversion;\nprocedure Foo is\n\n   type My_Type is new Integer range 1 .. 10;\n\n   X, Y : My_Type := 1;  --  Decl with multiple defining names\nbegin\n   X := Y + My_Type (9);\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/semanticTokens/range",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "range": {
+                   "start": {
+                       "line": 0,
+                       "character": 0
+                   }, 
+                   "end": {
+                       "line": 4,
+                       "character": 0
+                   }
+                }
+            }
+         },
+         "wait": [
+                   {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                     "data": [
+                        0,
+                        9,
+                        20,
+                        10,
+                        128,
+
+                        1,
+                        10,
+                        3,
+                        10,
+                        0,
+
+                        2,
+                        8,
+                        7,
+                        0,
+                        4,
+
+                        0,
+                        15,
+                        7,
+                        0,
+                        132
+                     ]
+                    }
+                   }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
