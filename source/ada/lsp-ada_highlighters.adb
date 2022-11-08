@@ -31,6 +31,9 @@ package body LSP.Ada_Highlighters is
    Highlighter_Debug : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.HIGHLIGHTERS.DEBUG", GNATCOLL.Traces.Off);
 
+   Skip : LSP.Messages.SemanticTokenTypes renames LSP.Messages.macro;
+   --  A dedicated token type for unsupported tokens
+
    package Highlights_Holders is
       type Highlights_Holder is tagged limited private;
       --  Highlights_Holder stores style for each token in the range given
@@ -344,8 +347,6 @@ package body LSP.Ada_Highlighters is
                   Start : constant Langkit_Support.Slocs.Source_Location :=
                     Langkit_Support.Slocs.Start_Sloc (Sloc_Range);
 
-                  Skip  : LSP.Messages.SemanticTokenTypes renames macro;
-
                   Map   : constant array (Libadalang.Common.Token_Kind) of
                     LSP.Messages.SemanticTokenTypes :=
                       (Ada_All .. Ada_Xor | Ada_With => keyword,
@@ -353,7 +354,7 @@ package body LSP.Ada_Highlighters is
                        Ada_String | Ada_Char => a_string,
                        Ada_Decimal | Ada_Integer => number,
                        Ada_Comment => comment,
-                       Ada_Identifier => modifier,
+                       Ada_Identifier => Skip,
                        others => Skip);
 
                   Mapped_Token : constant LSP.Messages.SemanticTokenTypes :=
@@ -367,7 +368,8 @@ package body LSP.Ada_Highlighters is
                   --  literal, or +/- before exponent in numeric literal, etc.
                   if Value.Is_Set or
                     (Mapped_Token /= Skip and then
-                       Value.Modifiers /= Highlights_Holders.Empty)
+                     Self.Token_Types.Contains (Mapped_Token) and then
+                     Value.Modifiers /= Highlights_Holders.Empty)
                   then
                      pragma Assert
                        (Sloc_Range.End_Line = Sloc_Range.Start_Line);
@@ -704,6 +706,9 @@ package body LSP.Ada_Highlighters is
          if Token < From_Token or To_Token < Token then
             --  Skip uninteresting tokens
             return;
+         elsif not Self.Token_Types.Contains (Kind) then
+            --  Skip unsupported tokens
+            return;
          end if;
 
          Holder.Set_Token_Kind (Token, Kind);
@@ -719,6 +724,9 @@ package body LSP.Ada_Highlighters is
       begin
          if Token < From_Token or To_Token < Token then
             --  Skip uninteresting tokens
+            return;
+         elsif not Self.Token_Modifiers.Contains (Kind) then
+            --  Skip unsupported tokens
             return;
          end if;
 
