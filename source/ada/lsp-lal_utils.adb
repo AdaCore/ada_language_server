@@ -1661,9 +1661,11 @@ package body LSP.Lal_Utils is
       if In_Sloc = Langkit_Support.Slocs.No_Source_Location_Range then
          --  Return full range of Output
          Out_Sloc := In_Sloc;
+         Langkit_Support.Symbols.Destroy (Symbols);
          return;
       elsif Node.Unit.Token_Count = 0 then  --  Ignore a cornercase for now
          Out_Sloc := Langkit_Support.Slocs.No_Source_Location_Range;
+         Langkit_Support.Symbols.Destroy (Symbols);
          return;
       end if;
 
