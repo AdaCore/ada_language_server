@@ -393,7 +393,7 @@ private
      (Self     : Document;
       Span     : LSP.Messages.Span;
       New_Text : VSS.Strings.Virtual_String;
-      Edit     : out LSP.Messages.TextEdit_Vector);
+      Edit     : in out LSP.Messages.TextEdit_Vector);
    --  Create a diff between document Text inside Span and New_Chunk and
    --  return Text_Edit. Tests individual symbols instead of lines
    --  as above. Do not use it for large text slices because it
