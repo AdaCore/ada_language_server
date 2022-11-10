@@ -615,7 +615,7 @@ package body LSP.Ada_Documents is
      (Self     : Document;
       Span     : LSP.Messages.Span;
       New_Text : VSS.Strings.Virtual_String;
-      Edit     : out LSP.Messages.TextEdit_Vector)
+      Edit     : in out LSP.Messages.TextEdit_Vector)
    is
       use LSP.Types;
       use LSP.Messages;
@@ -1121,68 +1121,50 @@ package body LSP.Ada_Documents is
          end loop;
       end Append_PP_Messages;
 
-      Output : Char_Vector;
-
-      PP_Messages : Pp.Scanner.Source_Message_Vector;
-
-      Input_Selection_Range : constant Source_Location_Range :=
-        (if Span = LSP.Messages.Empty_Span then
-           No_Source_Location_Range
-         else
-           Make_Range
-             (Self.Get_Source_Location (Span.first),
-              Self.Get_Source_Location (Span.last)));
-
-      Output_Selection_Range : Source_Location_Range;
-
-      Unit                 : constant Analysis_Unit :=
-        Self.Unit (Context);
-      Enclosing_Node       : Ada_Node;
-
    begin
       Context.Trace.Trace ("On Range_Formatting");
+
       Context.Trace.Trace ("Format_Selection");
-      begin
-         Format_Selection
-           (Main_Unit                => Unit,
-            Input_Selection_Range    => Input_Selection_Range,
-            Output                   => Output,
-            Output_Selection_Range   => Output_Selection_Range,
-            PP_Messages              => PP_Messages,
-            Formatted_Node           => Enclosing_Node,
-            PP_Options               => PP_Options,
-            Force_Source_Line_Breaks => False);
-
-      exception
-         when others =>
-            Append_PP_Messages (PP_Messages);
-            return False;
-      end;
-
-      if not PP_Messages.Is_Empty then
-         Context.Trace.Trace
-           ("Non empty PP_Messages - appending them to Messages");
-         Append_PP_Messages (PP_Messages);
-         return False;
-      end if;
-
-      Context.Trace.Trace ("Computing Range_Formatting Text_Edits");
       declare
-         Edit_Span  : constant LSP.Messages.Span :=
-           Self.To_LSP_Range (Output_Selection_Range);
-         Output_Str : constant String :=
-           Char_Vectors.Elems (Output) (1 .. Char_Vectors.Last_Index (Output));
-         Edit_Text  : constant VSS.Strings.Virtual_String :=
-           VSS.Strings.Conversions.To_Virtual_String (Output_Str);
+         Unit                    : constant Analysis_Unit :=
+           Self.Unit (Context);
+         Input_Selection_Range   : constant Source_Location_Range :=
+           (if Span = LSP.Messages.Empty_Span then No_Source_Location_Range
+            else Make_Range
+                (Self.Get_Source_Location (Span.first),
+                 Self.Get_Source_Location (Span.last)));
+         Partial_Formatting_Edit :
+           constant Laltools.Partial_GNATPP.Partial_Formatting_Edit :=
+             Format_Selection (Unit, Input_Selection_Range, PP_Options);
 
       begin
-         Self.Diff_Symbols (Edit_Span, Edit_Text, Edit);
-      end;
+         if not Partial_Formatting_Edit.Diagnostics.Is_Empty then
+            Append_PP_Messages (Partial_Formatting_Edit.Diagnostics);
+            Context.Trace.Trace
+              ("Non empty diagnostics from GNATPP - "
+               & "not continuing with Range_Formatting");
+            return False;
+         end if;
 
-      return True;
+         Context.Trace.Trace ("Computing Range_Formatting Text_Edits");
+         Edit.Clear;
+         declare
+            Edit_Span : constant LSP.Messages.Span :=
+              Self.To_LSP_Range (Partial_Formatting_Edit.Edit.Location);
+            Edit_Text : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.Conversions.To_Virtual_String
+                (Partial_Formatting_Edit.Edit.Text);
+
+         begin
+            Edit.Append (TextEdit'(Edit_Span, Edit_Text));
+         end;
+
+         return True;
+      end;
 
    exception
-      when others =>
+      when E : others =>
+         Log (Self.Trace, E, "in Range_Formatting");
          return False;
    end Range_Formatting;
 
