@@ -145,6 +145,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+00",
+                        "filterText": "Bar (",
                         "insertText": "${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
                         "textEdit": {
@@ -195,6 +196,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+03",
+                        "filterText": "Bar (",
                         "insertText": "AAAAAAAA => ${1:Integer}, BB => ${2:Integer}, CCCCCCCC => ${3:Integer}, DDDDDDDDDDDD => ${4:Integer}, E => ${5:Integer})$0",
                         "insertTextFormat": 2,
                         "textEdit": {
@@ -269,6 +271,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+09",
+                        "filterText": "Bar (",
                         "insertText": "A => ${1:Integer}, B => ${2:Integer}, C => ${3:Integer}, D => ${4:Integer}, E => ${5:Integer}, F => ${6:Integer}, G => ${7:Integer}, H => ${8:Integer}, I => ${9:Integer}, J => ${10:Integer})$0",
                         "insertTextFormat": 2,
                         "textEdit": {
