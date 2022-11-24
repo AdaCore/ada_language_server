@@ -156,6 +156,7 @@
                         "label": "Params of Foo_Bar",
                         "kind": 15,
                         "sortText": "+0",
+                        "filterText": "Foo_Bar (",
                         "insertText": "A => ${1:A      : Integer;}, BBBBBB => ${2:BBBBBB : Float;}, CCCC => ${3:CCCC   : String;}, Bar => ${4:with procedure Bar (X : Integer);})$0",
                         "insertTextFormat": 2,
                         "insertTextMode": 1,
