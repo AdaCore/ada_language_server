@@ -1,0 +1,234 @@
+[
+    {
+        "comment":[
+            "Do FindAllReferenfes, then change subproject, run command `als-reload-project` and do it again."
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync": 2,
+                        "executeCommandProvider": {
+                            "commands": [
+                                "<HAS>",
+                                "als-reload-project"
+                            ]
+                        },
+                        "referencesProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada": {
+                            "projectFile": "choices.gpr"
+                        }
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{to_be_called.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "procedure To_Be_Called is\nbegin\n   null;\nend To_Be_Called;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-1",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{to_be_called.adb}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 15
+                    },
+                    "context": {
+                        "includeDeclaration":false
+                    }
+                }
+            },
+            "sortReply": { "result": "uri" },
+            "wait":[{
+                "id": "references-1",
+                "result":[{
+                    "uri": "$URI{choices/second.adb}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 5
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 17
+                        }
+                    },
+                    "alsKind": ["reference"]
+                }, {
+                    "uri": "$URI{choices/second.adb}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 3
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 15
+                        }
+                    },
+                    "alsKind": ["call"]
+                }]
+            }]
+        }
+    },  {
+        "shell": ["${PYTHON}", "${DIR}/change_project.py" ]
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"sw1",
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-reload-project",
+                    "arguments": [
+                    ]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": "sw1",
+                    "result": null
+                }
+            ]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"references-2",
+                "method":"textDocument/references",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{to_be_called.adb}"
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 15
+                    },
+                    "context": {
+                        "includeDeclaration":false
+                    }
+                }
+            },
+            "sortReply": { "result": "uri" },
+            "wait":[{
+                "id": "references-2",
+                "result":[{
+                    "uri": "$URI{choices/second.adb}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 5
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 17
+                        }
+                    },
+                    "alsKind": ["reference"]
+                }, {
+                    "uri": "$URI{choices/second.adb}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 3
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 15
+                        }
+                    },
+                    "alsKind": ["call"]
+                }, {
+                    "uri": "$URI{subproject/third.adb}",
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 5
+                        },
+                        "end": {
+                            "line": 0,
+                            "character": 17
+                        }
+                    },
+                    "alsKind": ["reference"]
+                }, {
+                    "uri": "$URI{subproject/third.adb}",
+                    "range": {
+                        "start": {
+                            "line": 3,
+                            "character": 3
+                        },
+                        "end": {
+                            "line": 3,
+                            "character": 15
+                        }
+                    },
+                    "alsKind": ["call"]
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

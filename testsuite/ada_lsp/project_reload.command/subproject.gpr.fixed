@@ -1,0 +1,6 @@
+with "base";
+project Subproject is
+   for Source_Dirs use (
+      "subproject"  --  Uncomment this and reload project
+   );
+end Subproject;
