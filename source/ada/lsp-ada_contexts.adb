@@ -38,6 +38,7 @@ with Langkit_Support.Slocs;
 with Utils.Command_Lines.Common;
 
 with Pp.Actions;
+with Langkit_Support.Text;
 
 package body LSP.Ada_Contexts is
 
@@ -46,6 +47,31 @@ package body LSP.Ada_Contexts is
    Formatting_Trace : constant Trace_Handle := Create ("ALS.FORMATTING", On);
 
    use type Libadalang.Analysis.Analysis_Unit;
+
+   type LSP_Context_Event_Handler_Type
+   is new Libadalang.Analysis.Event_Handler_Interface with record
+      Trace : Trace_Handle;
+   end record;
+   --  LAL event handler used to log units that have notbeen found when
+   --  requested.
+
+   overriding procedure Unit_Requested_Callback
+     (Self               : in out LSP_Context_Event_Handler_Type;
+      Context            : Libadalang.Analysis.Analysis_Context'Class;
+      Name               : Langkit_Support.Text.Text_Type;
+      From               : Libadalang.Analysis.Analysis_Unit'Class;
+      Found              : Boolean;
+      Is_Not_Found_Error : Boolean);
+
+   overriding procedure Unit_Parsed_Callback
+     (Self     : in out LSP_Context_Event_Handler_Type;
+      Context  : Libadalang.Analysis.Analysis_Context'Class;
+      Unit     : Libadalang.Analysis.Analysis_Unit'Class;
+      Reparsed : Boolean)
+   is null;
+
+   overriding procedure Release (Self : in out LSP_Context_Event_Handler_Type)
+   is null;
 
    function Get_Charset (Self : Context'Class) return String;
    --  Return the charset with which the context was initialized
@@ -82,6 +108,25 @@ package body LSP.Ada_Contexts is
    --  Update the gnatpp formatting options using the LSP ones.
    --  Options that are explicitly specified in the .gpr file take precedence
    --  over LSP options.
+
+   -----------------------------
+   -- Unit_Requested_Callback --
+   -----------------------------
+
+   overriding procedure Unit_Requested_Callback
+     (Self               : in out LSP_Context_Event_Handler_Type;
+      Context            : Libadalang.Analysis.Analysis_Context'Class;
+      Name               : Langkit_Support.Text.Text_Type;
+      From               : Libadalang.Analysis.Analysis_Unit'Class;
+      Found              : Boolean;
+      Is_Not_Found_Error : Boolean) is
+   begin
+      if not Found then
+         Self.Trace.Trace
+           ("Failed to request the following unit: "
+            & Langkit_Support.Text.To_UTF8 (Name));
+      end if;
+   end Unit_Requested_Callback;
 
    -------------------------
    -- Append_Declarations --
@@ -756,6 +801,9 @@ package body LSP.Ada_Contexts is
            Project          => Root,
            Env              => Get_Environment (Root),
            Is_Project_Owner => False);
+
+      Self.Event_Handler := Libadalang.Analysis.Create_Event_Handler_Reference
+        (LSP_Context_Event_Handler_Type'(Trace => Self.Trace));
 
       Self.Reload;
       Update_Source_Files;

@@ -313,6 +313,7 @@ private
    type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
       Id             : VSS.Strings.Virtual_String;
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
+      Event_Handler  : Libadalang.Analysis.Event_Handler_Reference;
       LAL_Context    : Libadalang.Analysis.Analysis_Context;
       Charset        : Ada.Strings.Unbounded.Unbounded_String;
 
