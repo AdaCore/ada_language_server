@@ -20,7 +20,6 @@
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 with VSS.String_Vectors;
-
 with VSS.Strings;
 private with VSS.Strings.Markers;
 

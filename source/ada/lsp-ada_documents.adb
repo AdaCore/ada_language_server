@@ -2527,28 +2527,39 @@ package body LSP.Ada_Documents is
       Item                    : in out LSP.Messages.CompletionItem;
       Compute_Doc_And_Details : Boolean)
    is
-      use LSP.Messages;
    begin
       --  Compute the 'documentation' and 'detail' fields immediately if
       --  requested (i.e: when the client does not support lazy computation
       --  for these fields or if we are dealing with predefined types).
       if Compute_Doc_And_Details or else LSP.Lal_Utils.Is_Synthetic (BD) then
-         Item.detail := (True, LSP.Lal_Utils.Compute_Completion_Detail (BD));
-
-         --  Property_Errors can occur when calling
-         --  Get_Documentation on unsupported docstrings, so
-         --  add an exception handler to catch them and recover.
+         declare
+            Loc_Text  : VSS.Strings.Virtual_String;
+            Doc_Text  : VSS.Strings.Virtual_String;
+            Decl_Text : VSS.Strings.Virtual_String;
          begin
+            LSP.Lal_Utils.Get_Tooltip_Text
+              (BD        => BD,
+               Trace     => Context.Trace,
+               Style     => Context.Get_Documentation_Style,
+               Loc_Text  => Loc_Text,
+               Doc_Text  => Doc_Text,
+               Decl_Text => Decl_Text);
+
+            Item.detail := (True, Decl_Text);
+
+            if not Doc_Text.Is_Empty then
+               Loc_Text.Append
+                 (VSS.Strings.To_Virtual_String
+                    ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
+
+               Loc_Text.Append (Doc_Text);
+            end if;
+
             Item.documentation :=
               (Is_Set => True,
-               Value  => String_Or_MarkupContent'
+               Value  => LSP.Messages.String_Or_MarkupContent'
                  (Is_String => True,
-                  String    => LSP.Lal_Utils.Compute_Completion_Doc (BD)));
-
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               LSP.Common.Log (Context.Trace, E);
-               Item.documentation := (others => <>);
+                  String    => Loc_Text));
          end;
       else
          --  Set node's location to the 'data' field of the completion item, so

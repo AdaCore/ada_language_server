@@ -96,8 +96,6 @@ with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 with Libadalang.Preprocessing;
 
-with GNATdoc.Comments.Helpers;
-
 with URIs;
 
 package body LSP.Ada_Handlers is
@@ -669,8 +667,11 @@ package body LSP.Ada_Handlers is
       Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
       Self.Project_Tree := new Project_Tree;
 
-      C.Initialize (Reader, Self.Follow_Symlinks,
-                    As_Fallback_Context => True);
+      C.Initialize
+        (File_Reader         => Reader,
+         Follow_Symlinks     => Self.Follow_Symlinks,
+         Style               => Self.Options.Documentation.Style,
+         As_Fallback_Context => True);
 
       --  Note: we would call Load_Implicit_Project here, but this has
       --  two problems:
@@ -3101,9 +3102,7 @@ package body LSP.Ada_Handlers is
 
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
-      Decl_Lines         : VSS.String_Vectors.Virtual_String_Vector;
       Decl_Text          : VSS.Strings.Virtual_String;
-      Comments_Lines     : VSS.String_Vectors.Virtual_String_Vector;
       Comments_Text      : VSS.Strings.Virtual_String;
       Location_Text      : VSS.Strings.Virtual_String;
 
@@ -3111,12 +3110,6 @@ package body LSP.Ada_Handlers is
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
-
-      Options : constant
-        GNATdoc.Comments.Options.Extractor_Options :=
-          (Style    => Self.Options.Documentation.Style,
-           Pattern  => <>,
-           Fallback => True);
 
    begin
       Self.Imprecise_Resolve_Name (C, Value, Defining_Name_Node);
@@ -3132,30 +3125,13 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      --  Extract documentation with GNATdoc when supported.
-
-      GNATdoc.Comments.Helpers.Get_Plain_Text_Documentation
-        (Defining_Name_Node, Options, Decl_Lines, Comments_Lines);
-
-      Decl_Text := Decl_Lines.Join_Lines (VSS.Strings.LF, False);
-      Comments_Text := Comments_Lines.Join_Lines (VSS.Strings.LF, False);
-
-      --  Obtain documentation when GNATdoc support is missing.
-
-      if Comments_Text.Is_Empty then
-         Comments_Text :=
-           VSS.Strings.To_Virtual_String
-             (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
-      end if;
-
-      if Decl_Text.Is_Empty
-        or else not Decl.P_Subp_Spec_Or_Null.Is_Null
-      then
-         --  For subprograms additional information is added, use old code to
-         --  obtain it yet.
-
-         Decl_Text := Get_Hover_Text (Decl, Decl_Lines);
-      end if;
+      LSP.Lal_Utils.Get_Tooltip_Text
+        (BD        => Decl,
+         Trace     => Self.Trace,
+         Style     => C.Get_Documentation_Style,
+         Loc_Text  => Location_Text,
+         Doc_Text  => Comments_Text,
+         Decl_Text => Decl_Text);
 
       if Decl_Text.Is_Empty then
          return Response;
@@ -4861,10 +4837,13 @@ package body LSP.Ada_Handlers is
            Libadalang.Preprocessing.Create_Preprocessor_Data
              (Default_Config, File_Configs);
 
-         C.Initialize (Reader, Self.Follow_Symlinks);
+         C.Initialize
+           (Reader,
+            Style           => Self.Options.Documentation.Style,
+            Follow_Symlinks => Self.Follow_Symlinks);
 
          C.Load_Project
-           (Self.Project_Tree,
+           (Tree    => Self.Project_Tree,
             Root    => P,
             Charset => VSS.Strings.Conversions.To_UTF_8_String (Charset));
 
@@ -5748,25 +5727,35 @@ package body LSP.Ada_Handlers is
       --  Compute the completion item's details
       if not Node.Is_Null then
          declare
-            BD : constant Libadalang.Analysis.Basic_Decl :=
+            BD        : constant Libadalang.Analysis.Basic_Decl :=
               Node.As_Basic_Decl;
+            Loc_Text  : VSS.Strings.Virtual_String;
+            Doc_Text  : VSS.Strings.Virtual_String;
+            Decl_Text : VSS.Strings.Virtual_String;
          begin
-            Item.detail := (True, Compute_Completion_Detail (BD));
+            LSP.Lal_Utils.Get_Tooltip_Text
+              (BD          => BD,
+               Trace       => C.Trace,
+               Style       => Self.Options.Documentation.Style,
+               Loc_Text    => Loc_Text,
+               Doc_Text    => Doc_Text,
+               Decl_Text => Decl_Text);
 
-            --  Property_Errors can occur when calling
-            --  Get_Documentation on unsupported docstrings, so
-            --  add an exception handler to catch them and recover.
+            Item.detail := (True, Decl_Text);
+
+            if not Doc_Text.Is_Empty then
+               Loc_Text.Append
+                 (VSS.Strings.To_Virtual_String
+                    ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
+
+               Loc_Text.Append (Doc_Text);
+            end if;
 
             Item.documentation :=
               (Is_Set => True,
                Value  => LSP.Messages.String_Or_MarkupContent'
                  (Is_String => True,
-                  String    => LSP.Lal_Utils.Compute_Completion_Doc (BD)));
-
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               LSP.Common.Log (C.Trace, E);
-               Item.documentation := (others => <>);
+                  String    => Loc_Text));
          end;
 
          Response.result := Item;
