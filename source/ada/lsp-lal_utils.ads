@@ -18,6 +18,9 @@
 --  This package provides some Libadalang related utility subprograms.
 
 with GNATCOLL.VFS;
+with GNATCOLL.Traces;
+
+with GNATdoc.Comments.Options;
 
 with LSP.Ada_Contexts;
 with LSP.Messages;
@@ -258,17 +261,20 @@ package LSP.Lal_Utils is
       Messages : out Pp.Scanner.Source_Message_Vector);
    --  A wrapper around Pp.Actions.Format_Vector that populates Out_Range,
 
-   function Compute_Completion_Detail
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
-   --  Return a suitable string that should be used for the
-   --  CompletionItem.detail field. It currently returns the same text used
-   --  for textDocument/hover requests (tooltips).
-
-   function Compute_Completion_Doc
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
-   --  Return a suitable string that should be used for the
-   --  CompletionItem.documentation field. It currently returns the comments
-   --  associated with the given basic decl and its location.
+   procedure Get_Tooltip_Text
+     (BD        : Libadalang.Analysis.Basic_Decl;
+      Trace     : GNATCOLL.Traces.Trace_Handle;
+      Style     : GNATdoc.Comments.Options.Documentation_Style;
+      Loc_Text  : out VSS.Strings.Virtual_String;
+      Doc_Text  : out VSS.Strings.Virtual_String;
+      Decl_Text : out VSS.Strings.Virtual_String);
+   --  Get all the information needed to produce tooltips (hover and completion
+   --  requests) for the given declaration.
+   --  Style is used by GNATdoc for extracting the associated comments.
+   --  Loc_Text contains the declaration's location text (e.g: a.adb (11:1)).
+   --  Doc_Text contains the comments associated with the declaration.
+   --  Decl_Text contains the code corresponding to the declaration, formatted
+   --  by GNATdoc when possible.
 
    function To_Virtual_String
      (Item : Langkit_Support.Text.Text_Type)

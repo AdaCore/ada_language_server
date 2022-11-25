@@ -646,6 +646,7 @@ package body LSP.Ada_Contexts is
      (Self                : in out Context;
       File_Reader         : File_Reader_Interface'Class;
       Follow_Symlinks     : Boolean;
+      Style               : GNATdoc.Comments.Options.Documentation_Style;
       As_Fallback_Context : Boolean := False) is
    begin
       Self.Follow_Symlinks := Follow_Symlinks;
@@ -658,6 +659,8 @@ package body LSP.Ada_Contexts is
          With_Trivia   => True,
          Charset       => Self.Get_Charset,
          Tab_Stop      => 1);
+      Self.Style := Style;
+
       --  Tab stop is set 1 to disable "visible character guessing" by LAL.
       Self.Is_Fallback_Context := As_Fallback_Context;
    end Initialize;

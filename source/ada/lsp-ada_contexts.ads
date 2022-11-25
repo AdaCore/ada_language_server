@@ -24,6 +24,8 @@ with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with GNATdoc.Comments.Options;
+
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
 with Laltools.Common;
 
@@ -53,10 +55,13 @@ package LSP.Ada_Contexts is
      (Self                : in out Context;
       File_Reader         : File_Reader_Interface'Class;
       Follow_Symlinks     : Boolean;
+      Style               : GNATdoc.Comments.Options.Documentation_Style;
       As_Fallback_Context : Boolean := False);
    --  Initialize the context, set Follow_Symlinks flag.
    --  As_Fallback_Context should be set when we are creating the "fallback"
    --  context based on the empty project.
+   --  Style is used to extract the documentation of entities, for tooltips
+   --  in particular.
 
    procedure Load_Project
      (Self     : in out Context;
@@ -212,6 +217,10 @@ package LSP.Ada_Contexts is
      Utils.Command_Lines.Command_Line;
    --  Return the command line for the Pretty Printer
 
+   function Get_Documentation_Style (Self : Context) return
+     GNATdoc.Comments.Options.Documentation_Style;
+   --  Get the documentation style used for this context.
+
    function Analysis_Units
      (Self : Context) return Libadalang.Analysis.Analysis_Unit_Array;
    --  Return the analysis units for all Ada sources known to this context
@@ -348,6 +357,10 @@ private
                     (Pp.Command_Lines.Descriptor'Access);
       --  Object to keep gnatpp options
 
+      Style : GNATdoc.Comments.Options.Documentation_Style :=
+        GNATdoc.Comments.Options.GNAT;
+      --  The context's documentation style.
+
       Follow_Symlinks : Boolean := True;
       --  See LSP.Ada_Handlers for description
 
@@ -368,5 +381,8 @@ private
 
    function Get_PP_Options (Self : Context) return
      Utils.Command_Lines.Command_Line is (Self.PP_Options);
+
+   function Get_Documentation_Style (Self : Context) return
+     GNATdoc.Comments.Options.Documentation_Style is (Self.Style);
 
 end LSP.Ada_Contexts;
