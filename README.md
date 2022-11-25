@@ -41,7 +41,7 @@ extension at
     - [Getting started](#getting-started)
     - [Auto-detected tasks](#auto-detected-tasks)
       - [Short demo](#short-demo)
-    - [Go to other Ada file](#go-to-other-ada-file)
+    - [Commands and shortcuts](#commands-and-shortcuts)
     - [Launch the extension to debug it](#launch-the-extension-to-debug-it)
     - [Configuration](#configuration)
   - [Integration with Coc.NVim](#integration-with-cocnvim)
@@ -170,11 +170,24 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
 
 [A demo for auto-detected tasks](https://github.com/AdaCore/ada_language_server/wiki/auto_detected_tasks.mp4)
 
-### Go to other Ada file
+### Commands and shortcuts
 
-The extension contributes a command and a corresponding key binding to
-switch between specification and implementation Ada files.
+The extension contributes a few commands and corresponding key bindings.
+
+#### Ada: Go to other file
+
+This command switches between specification and implementation Ada files.
 The default shortcut is `Alt+O`.
+
+#### Ada: Add subprogram box
+
+This command inserts a comment box before the current subprogram body.
+The default shortcut is `Alt+Shift+B`.
+
+#### Ada: Reload project
+
+This command reloads the current project.
+The default shortcut is `None`.
 
 ### Launch the extension to debug it
 

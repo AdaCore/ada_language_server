@@ -20,11 +20,13 @@
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
-with VSS.String_Vectors;
 
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
+
+with VSS.Strings;
+with VSS.String_Vectors;
 
 private with GNATdoc.Comments.Options;
 
@@ -193,6 +195,15 @@ private
    --  Parses an LSP.Types.Optional_LSP_Any and creates an
    --  Experimental_Client_Capabilities object.
 
+   type Scenario_Variable_List is record
+      Names  : VSS.String_Vectors.Virtual_String_Vector;
+      Values : VSS.String_Vectors.Virtual_String_Vector;
+   end record;
+
+   No_Scenario_Variable : constant Scenario_Variable_List :=
+     (Names  => VSS.String_Vectors.Empty_Virtual_String_Vector,
+      Values => VSS.String_Vectors.Empty_Virtual_String_Vector);
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -213,6 +224,9 @@ private
       Root : Virtual_File;
       --  The directory passed under rootURI/rootPath during the initialize
       --  request.
+
+      Charset : VSS.Strings.Virtual_String;
+      --  A character set for Libadalang
 
       Diagnostics_Enabled : Boolean := True;
       --  Whether to publish diagnostics
@@ -312,6 +326,12 @@ private
       -- Project handling --
       ----------------------
 
+      Project_File : VSS.Strings.Virtual_String;
+      --  The currently loaded project tree
+
+      Scenario_Variables : Scenario_Variable_List;
+      --  Scenario variables used to load a current project
+
       Project_Tree : GNATCOLL.Projects.Project_Tree_Access;
       --  The currently loaded project tree
 
@@ -321,6 +341,13 @@ private
       Project_Predefined_Sources : LSP.Ada_File_Sets.Indexed_File_Set;
       --  A cache for the predefined sources in the loaded project (typically,
       --  runtime files).
+
+      Relocate_Build_Tree : VSS.Strings.Virtual_String;
+      --  Value of `relocateBuildTree`. See `--relocate-build-tree[=dir]`
+      --  of `gprbuild`.
+
+      Root_Dir : VSS.Strings.Virtual_String;
+      --  Value of `rootDir`. See `--root-dir=dir` of `gprbuild`.
 
       Project_Status : Load_Project_Status := No_Project_Found;
       --  Status of loading the project
@@ -620,5 +647,8 @@ private
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
       return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response;
+
+   procedure Reload_Project (Self : access Message_Handler);
+   --  Reload current project
 
 end LSP.Ada_Handlers;
