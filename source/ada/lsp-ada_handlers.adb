@@ -309,12 +309,12 @@ package body LSP.Ada_Handlers is
 
    procedure Load_Project
      (Self                : access Message_Handler;
-      GPR                 : Virtual_File;
-      Scenario            : LSP.Types.LSP_Any;
-      Charset             : String;
+      Project_File        : VSS.Strings.Virtual_String;
+      Scenario            : Scenario_Variable_List;
+      Charset             : VSS.Strings.Virtual_String;
       Status              : Load_Project_Status;
-      Relocate_Build_Tree : Virtual_File := No_File;
-      Root_Dir            : Virtual_File := No_File);
+      Relocate_Build_Tree : VSS.Strings.Virtual_String;
+      Root_Dir            : VSS.Strings.Virtual_String);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
 
@@ -326,6 +326,21 @@ package body LSP.Ada_Handlers is
      (Self : Message_Handler'Class;
       URI  : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
    --  Turn URI into path
+
+   function To_Virtual_File
+     (Value : VSS.Strings.Virtual_String) return Virtual_File is
+       (Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Value)));
+   --  Cast Virtual_String to Virtual_File
+
+   function To_FS
+     (Value : VSS.Strings.Virtual_String) return Filesystem_String is
+       (To_Virtual_File (Value).Full_Name);
+   --  Cast Virtual_String to Filesystem_String
+
+   function To_Virtual_String
+     (Value : Virtual_File) return VSS.Strings.Virtual_String is
+       (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
+   --  Cast Virtual_File to Virtual_String
 
    -----------------------
    -- Contexts_For_File --
@@ -615,6 +630,21 @@ package body LSP.Ada_Handlers is
       end loop;
    end Reload_Implicit_Project_Dirs;
 
+   --------------------
+   -- Reload_Project --
+   --------------------
+
+   procedure Reload_Project (Self : access Message_Handler) is
+   begin
+      Self.Load_Project
+        (Self.Project_File,
+         Self.Scenario_Variables,
+         Self.Charset,
+         Self.Project_Status,
+         Self.Relocate_Build_Tree,
+         Self.Root_Dir);
+   end Reload_Project;
+
    ---------------------------
    -- Load_Implicit_Project --
    ---------------------------
@@ -694,7 +724,10 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
-      Self.Root := Self.To_File (URI).Dir;
+      if Self.Root = No_File then
+         Self.Root := Self.To_File (URI).Dir;
+      end if;
+
       Self.Ensure_Project_Loaded;
    end Ensure_Project_Loaded;
 
@@ -703,9 +736,9 @@ package body LSP.Ada_Handlers is
    ---------------------------
 
    procedure Ensure_Project_Loaded (Self : access Message_Handler) is
-      GPRs_Found : Natural := 0;
-      Files      : File_Array_Access;
-      GPR        : Virtual_File;
+      GPRs_Found   : Natural := 0;
+      Files        : File_Array_Access;
+      Project_File : VSS.Strings.Virtual_String;
    begin
       if not Self.Contexts.Is_Empty then
          --  Rely on the fact that there is at least one context initialized
@@ -720,16 +753,16 @@ package body LSP.Ada_Handlers is
       --  in this directory, looking for .gpr files.
 
       Files := Self.Root.Read_Dir (Files_Only);
-      if Files /= null then
-         for X of Files.all loop
-            if Ends_With (+X.Base_Name, ".gpr") then
-               GPRs_Found := GPRs_Found + 1;
-               exit when GPRs_Found > 1;
-               GPR := X;
-            end if;
-         end loop;
-         Unchecked_Free (Files);
-      end if;
+
+      for X of Files.all loop
+         if X.Has_Suffix (".gpr") then
+            GPRs_Found := GPRs_Found + 1;
+            exit when GPRs_Found > 1;
+            Project_File := To_Virtual_String (X);
+         end if;
+      end loop;
+
+      Unchecked_Free (Files);
 
       --  What we do depends on the number of .gpr files found:
 
@@ -738,10 +771,18 @@ package body LSP.Ada_Handlers is
 
          Self.Load_Implicit_Project (No_Project_Found);
       elsif GPRs_Found = 1 then
-         --  We have not found exactly one .gpr file: load the default
-         --  project.
-         Self.Trace.Trace ("Loading " & GPR.Display_Base_Name);
-         Self.Load_Project (GPR, No_Any, "iso-8859-1", Single_Project_Found);
+         --  We have found exactly one .gpr file: let's load it.
+         Self.Trace.Trace
+           ("Loading " &
+              VSS.Strings.Conversions.To_UTF_8_String (Project_File));
+
+         Self.Load_Project
+           (Project_File,
+            No_Scenario_Variable,
+            "iso-8859-1",
+            Single_Project_Found,
+            Relocate_Build_Tree => "",
+            Root_Dir => "");
       else
          --  We have found more than one project: warn the user!
 
@@ -1160,8 +1201,7 @@ package body LSP.Ada_Handlers is
          Root := ".";
       end if;
 
-      Self.Root :=
-        Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Root));
+      Self.Root := To_Virtual_File (Root);
       Self.Client := Value;
 
       --  Log the context root
@@ -4220,8 +4260,7 @@ package body LSP.Ada_Handlers is
 
                      Unit := C.Get_AU
                        (GNATCOLL.VFS.Create_From_UTF8
-                          (String (Text_Edit_Ordered_Maps.Key
-                           (Text_Edits_Cursor))));
+                          (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor)));
                      Node := Unit.Root.Lookup
                        ((Text_Edit.Location.Start_Line,
                          Text_Edit.Location.Start_Column));
@@ -4326,6 +4365,8 @@ package body LSP.Ada_Handlers is
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
+      procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
+
       relocateBuildTree                 : constant String :=
         "relocateBuildTree";
       rootDir                           : constant String :=
@@ -4358,11 +4399,35 @@ package body LSP.Ada_Handlers is
         "logThreshold";
 
       Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
+      Variables : Scenario_Variable_List;
+
+      function Property (Name : String) return VSS.Strings.Virtual_String is
+        (if Ada.Has_Field (Name)
+         then VSS.Strings.Conversions.To_Virtual_String
+           (String'(Get (Get (Ada, Name))))
+         else VSS.Strings.Empty_Virtual_String);
+
+      ------------------
+      -- Add_Variable --
+      ------------------
+
+      procedure Add_Variable
+        (Name : String; Value : GNATCOLL.JSON.JSON_Value) is
+      begin
+         if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
+            Variables.Names.Append
+              (VSS.Strings.Conversions.To_Virtual_String (Name));
+
+            Variables.Values.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (String'(Value.Get)));
+         end if;
+      end Add_Variable;
+
       File      : VSS.Strings.Virtual_String;
-      Charset   : Unbounded_String;
-      Variables : LSP.Types.LSP_Any;
-      Relocate  : Virtual_File := No_File;
-      Root      : Virtual_File := No_File;
+      Charset   : VSS.Strings.Virtual_String;
+      Relocate  : VSS.Strings.Virtual_String;
+      Root      : VSS.Strings.Virtual_String;
 
       --  Is client capable of dynamically registering file operations?
       Dynamically_Register_File_Operations : constant Boolean :=
@@ -4372,33 +4437,20 @@ package body LSP.Ada_Handlers is
 
    begin
       if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
-         if Ada.Has_Field (relocateBuildTree) then
-            Relocate := Create_From_UTF8 (Get (Get (Ada, relocateBuildTree)));
-         end if;
+         Relocate := Property (relocateBuildTree);
+         Root := Property (rootDir);
+         Charset := Property (defaultCharset);
+         File := Property (projectFile);
 
-         if Ada.Has_Field (rootDir) then
-            Root := Create_From_UTF8 (Get (Get (Ada, rootDir)));
-         end if;
-
-         if Ada.Has_Field (projectFile) then
-            File :=
-              VSS.Strings.Conversions.To_Virtual_String
-                (String'(Get (Get (Ada, projectFile))));
-
-            --  Drop uri scheme if present
-            if File.Starts_With ("file:") then
-               File := Self.URI_To_File (File);
-            end if;
+         --  Drop uri scheme if present
+         if File.Starts_With ("file:") then
+            File := Self.URI_To_File (File);
          end if;
 
          if Ada.Has_Field (scenarioVariables) and then
            Ada.Get (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
          then
-            Variables := Ada.Get (scenarioVariables);
-         end if;
-
-         if Ada.Has_Field (defaultCharset) then
-            Charset := Ada.Get (defaultCharset);
+            Ada.Get (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
          end if;
 
          --  It looks like the protocol does not allow clients to say whether
@@ -4475,29 +4527,13 @@ package body LSP.Ada_Handlers is
       end if;
 
       if not File.Is_Empty then
-         --  The projectFile may be either an absolute path or a
-         --  relative path; if so, we're assuming it's relative
-         --  to Self.Root.
-         declare
-            Project_File : constant String :=
-              VSS.Strings.Conversions.To_UTF_8_String (File);
-            GPR          : Virtual_File;
-
-         begin
-            if Is_Absolute_Path (Project_File) then
-               GPR := Create_From_UTF8 (Project_File);
-            else
-               GPR := Join (Self.Root, Create_From_UTF8 (Project_File));
-            end if;
-
-            Self.Load_Project
-              (GPR,
-               Variables,
-               To_String (Charset),
-               Valid_Project_Configured,
-               Relocate,
-               Root);
-         end;
+         Self.Load_Project
+           (File,
+            Variables,
+            Charset,
+            Valid_Project_Configured,
+            Relocate,
+            Root);
       end if;
 
       Self.Ensure_Project_Loaded;
@@ -4753,34 +4789,19 @@ package body LSP.Ada_Handlers is
 
    procedure Load_Project
      (Self                : access Message_Handler;
-      GPR                 : Virtual_File;
-      Scenario            : LSP.Types.LSP_Any;
-      Charset             : String;
+      Project_File        : VSS.Strings.Virtual_String;
+      Scenario            : Scenario_Variable_List;
+      Charset             : VSS.Strings.Virtual_String;
       Status              : Load_Project_Status;
-      Relocate_Build_Tree : Virtual_File := No_File;
-      Root_Dir            : Virtual_File := No_File)
+      Relocate_Build_Tree : VSS.Strings.Virtual_String;
+      Root_Dir            : VSS.Strings.Virtual_String)
    is
       use GNATCOLL.Projects;
       Errors     : LSP.Messages.ShowMessageParams;
       Error_Text : VSS.String_Vectors.Virtual_String_Vector;
 
       procedure Create_Context_For_Non_Aggregate (P : Project_Type);
-      procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
       procedure On_Error (Text : String);
-
-      ------------------
-      -- Add_Variable --
-      ------------------
-
-      procedure Add_Variable
-        (Name : String; Value : GNATCOLL.JSON.JSON_Value)
-      is
-         use type GNATCOLL.JSON.JSON_Value_Type;
-      begin
-         if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
-            Self.Project_Environment.Change_Environment (Name, Value.Get);
-         end if;
-      end Add_Variable;
 
       --------------
       -- On_Error --
@@ -4841,15 +4862,33 @@ package body LSP.Ada_Handlers is
              (Default_Config, File_Configs);
 
          C.Initialize (Reader, Self.Follow_Symlinks);
-         C.Load_Project (Tree    => Self.Project_Tree,
-                         Root    => P,
-                         Charset => Charset);
+
+         C.Load_Project
+           (Self.Project_Tree,
+            Root    => P,
+            Charset => VSS.Strings.Conversions.To_UTF_8_String (Charset));
+
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
+      GPR : Virtual_File := To_Virtual_File (Project_File);
+
    begin
+      --  The projectFile may be either an absolute path or a
+      --  relative path; if so, we're assuming it's relative
+      --  to Self.Root.
+      if not GPR.Is_Absolute_Path then
+         GPR := Join (Self.Root, GPR);
+      end if;
+
       --  Unload the project tree and the project environment
       Self.Release_Contexts_And_Project_Info;
+
+      Self.Project_File := Project_File;
+      Self.Scenario_Variables := Scenario;
+      Self.Relocate_Build_Tree := Relocate_Build_Tree;
+      Self.Root_Dir := Root_Dir;
+      Self.Charset := Charset;
 
       --  We're loading an actual project
       Self.Project_Status := Status;
@@ -4861,17 +4900,16 @@ package body LSP.Ada_Handlers is
       Initialize (Self.Project_Environment);
       Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
 
-      if Relocate_Build_Tree /= No_File then
-         Self.Project_Environment.Set_Build_Tree_Dir
-           (Relocate_Build_Tree.Full_Name);
-      end if;
-      if Root_Dir /= No_File then
-         Self.Project_Environment.Set_Root_Dir
-           (Root_Dir.Full_Name);
-      end if;
-      if not Scenario.Is_Empty then
-         Scenario.Map_JSON_Object (Add_Variable'Access);
-      end if;
+      Self.Project_Environment.Set_Build_Tree_Dir
+        (To_FS (Relocate_Build_Tree));
+
+      Self.Project_Environment.Set_Root_Dir (To_FS (Root_Dir));
+
+      for J in 1 .. Scenario.Names.Length loop
+         Self.Project_Environment.Change_Environment
+           (VSS.Strings.Conversions.To_UTF_8_String (Scenario.Names (J)),
+            VSS.Strings.Conversions.To_UTF_8_String (Scenario.Values (J)));
+      end loop;
 
       begin
          Self.Project_Tree := new Project_Tree;
