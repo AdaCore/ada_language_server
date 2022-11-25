@@ -1,0 +1,5 @@
+with "subproject.gpr";
+
+project Choices is
+   for Source_Dirs use ("choices");
+end Choices;

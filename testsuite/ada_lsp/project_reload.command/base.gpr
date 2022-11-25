@@ -1,0 +1,3 @@
+project Base is
+   for Source_Dirs use (".");
+end Base;
