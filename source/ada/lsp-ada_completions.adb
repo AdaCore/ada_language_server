@@ -49,7 +49,7 @@ package body LSP.Ada_Completions is
 
    Me_Formatting : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create
-       ("ALS.COMPLETION.FORMATTING", Default => GNATCOLL.Traces.Off);
+       ("ALS.COMPLETION.FORMATTING", Default => GNATCOLL.Traces.On);
 
    ------------------------
    -- Is_Full_Sloc_Equal --
@@ -422,6 +422,14 @@ package body LSP.Ada_Completions is
                Result.insertTextMode :=
                  (Is_Set => True,
                   Value  => asIs);
+
+               --  Label is too verbose and can conflict with client filtering
+               --  set filterText to the content of the span we are replacing.
+               Result.filterText :=
+                 (Is_Set => True,
+                  Value  =>
+                    VSS.Strings.Conversions.To_Virtual_String (Prefix));
+
                Result.textEdit :=
                  (Is_Set => True,
                   Value  =>

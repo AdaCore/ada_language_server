@@ -156,6 +156,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+0",
+                        "filterText": "Bar (",
                         "insertText": "A => ${1:Integer}, BBBBB => ${2:Integer}, CCCCCCC => ${3:Integer}, DDD => ${4:Float})$0",
                         "insertTextFormat": 2,
                         "textEdit": {
@@ -343,6 +344,7 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+0",
+                        "filterText": "Bar (A => 1,",
                         "insertText": " BBBBB => ${2:Integer}, CCCCCCC => ${3:Integer}, DDD => ${4:Float})$0",
                         "insertTextFormat": 2,
                         "textEdit": {
