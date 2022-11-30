@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix: # Build debug and production
         debug: ['', 'debug']      # '' if production, 'debug' for debug
-        os: [macos-10.15, ubuntu-18.04, windows-latest]
+        os: [macos-11, ubuntu-20.04, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python 3.8
@@ -65,22 +65,6 @@ jobs:
         with:
           repository: AdaCore/templates-parser
           path: subprojects/templates-parser
-      - name: Get Langkit
-        uses: actions/checkout@v2
-        with:
-          repository: AdaCore/langkit
-          path: subprojects/langkit
-      - name: Get gpr
-        uses: actions/checkout@v2
-        with:
-          repository: AdaCore/gpr
-          path: subprojects/gpr
-          ref: edge
-      - name: Get gprconfig_kb
-        uses: actions/checkout@v2
-        with:
-          repository: AdaCore/gprconfig_kb
-          path: subprojects/gpr/gprconfig_kb
       - name: Get GNATdoc
         uses: actions/checkout@v2
         with:
