@@ -424,6 +424,10 @@
                 "title": "Ada: Go to other file"
             },
             {
+                "command": "als-reload-project",
+                "title": "Ada: Reload project"
+            },
+            {
                 "command": "ada.subprogramBox",
                 "title": "Ada: Add subprogram box"
             }
