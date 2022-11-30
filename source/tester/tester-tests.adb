@@ -404,6 +404,8 @@ package body Tester.Tests is
       Listener.Process.Set_Program (Cmd);
       Listener.Process.Set_Arguments (Args);
       Listener.Process.Start;
+      Listener.Process.Close_Standard_Output;
+      Listener.Process.Close_Standard_Error;
 
       loop
          Spawn.Processes.Monitor_Loop (Timeout => 10);
