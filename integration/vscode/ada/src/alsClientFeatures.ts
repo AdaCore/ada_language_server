@@ -47,22 +47,20 @@ export class ALSClientFeatures implements StaticFeature {
      * that this client can provide user inputs
      */
     fillClientCapabilities(capabilities: ClientCapabilities): void {
+        const advanced_refactorings = [
+            'add_parameter',
+            'change_parameters_type',
+            'change_parameters_default_value',
+            'replace_type',
+        ];
         if (capabilities.experimental === undefined) {
             capabilities.experimental = {
-                advanced_refactorings: [
-                    'add_parameter',
-                    'change_parameters_type',
-                    'change_parameters_default_value',
-                ],
+                advanced_refactorings: advanced_refactorings,
             };
         } else {
             (
                 capabilities.experimental as { advanced_refactorings: string[] }
-            ).advanced_refactorings = [
-                'add_parameter',
-                'change_parameters_type',
-                'change_parameters_default_value',
-            ];
+            ).advanced_refactorings = advanced_refactorings;
         }
     }
 

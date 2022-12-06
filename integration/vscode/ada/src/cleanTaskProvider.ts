@@ -17,7 +17,6 @@
 
 import * as vscode from 'vscode';
 
-
 export default class cleanTaskProvider implements vscode.TaskProvider<vscode.Task> {
     public static cleanTaskType = 'gprclean';
     cleanTasks: vscode.Task[] | undefined;

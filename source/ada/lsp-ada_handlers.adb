@@ -60,6 +60,7 @@ with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor_Replace_Type;
 with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
@@ -89,6 +90,7 @@ with Laltools.Refactor.Pull_Up_Declaration;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 with Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
+with Laltools.Refactor.Replace_Type;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -1462,6 +1464,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Pull Up Declaration refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Replace_Type_Code_Action;
+         --  Checks if the Replace Type refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          ----------------------------------------
          -- Change_Parameters_Type_Code_Action --
          ----------------------------------------
@@ -1913,6 +1919,37 @@ package body LSP.Ada_Handlers is
             end if;
          end Pull_Up_Declaration_Code_Action;
 
+         ------------------------------
+         -- Replace_Type_Code_Action --
+         ------------------------------
+
+         procedure Replace_Type_Code_Action is
+            use LSP.Ada_Handlers.Refactor_Replace_Type;
+            use Laltools.Refactor.Replace_Type;
+
+            use Langkit_Support.Slocs;
+
+            Location : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
+               Column_Number (Params.span.first.character) + 1);
+
+            Replace_Type_Command :
+              LSP.Ada_Handlers.Refactor_Replace_Type.Command;
+
+         begin
+            if Is_Replace_Type_Available (Node.Unit, Location) then
+               Replace_Type_Command.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (Params.textDocument.uri,
+                     Params.span,
+                     LSP.Messages.Empty_Set));
+
+               Found := True;
+            end if;
+         end Replace_Type_Code_Action;
+
       begin
          Named_Parameters_Code_Action;
 
@@ -2100,6 +2137,13 @@ package body LSP.Ada_Handlers is
                Found := True;
             end if;
          end;
+
+         --  Replace Type
+         if Self.Experimental_Client_Capabilities.
+              Advanced_Refactorings (Replace_Type)
+         then
+            Replace_Type_Code_Action;
+         end if;
       end Analyse_Node;
 
       ------------------------
@@ -6467,8 +6511,7 @@ package body LSP.Ada_Handlers is
                (Advanced_Refactorings => [others => False])
       do
          if Value.Is_Set then
-            if Value.Value.
-              Has_Field ("advanced_refactorings")
+            if Value.Value.Has_Field ("advanced_refactorings")
               and then Value.Value.Get ("advanced_refactorings").Kind in
                          GNATCOLL.JSON.JSON_Array_Type
             then

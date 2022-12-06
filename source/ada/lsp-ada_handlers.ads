@@ -176,7 +176,8 @@ private
    --  Project status when an implicit project loaded
 
    type Advanced_Refactorings is
-     (Add_Parameter, Change_Parameters_Type, Change_Parameters_Default_Value);
+     (Add_Parameter, Change_Parameters_Type, Change_Parameters_Default_Value,
+      Replace_Type);
    --  Enum with the advanced refactorings that clients might support
 
    type Advanced_Refactorings_Capabilities is
