@@ -904,8 +904,7 @@ package body LSP.Ada_Contexts is
      (Self         : Context;
       Document     : LSP.Ada_Documents.Document_Access;
       Position     : LSP.Messages.TextDocumentPositionParams'Class;
-      Project_Only : Boolean := True;
-      Previous     : Boolean := False)
+      Project_Only : Boolean := True)
       return Libadalang.Analysis.Ada_Node
    is
       use type Libadalang.Analysis.Ada_Node;
@@ -920,8 +919,6 @@ package body LSP.Ada_Contexts is
       Name     : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         Self.URI_To_File (URI);
       File     : constant Virtual_File := Create_From_UTF8 (Name);
-      Col_Incr : constant Langkit_Support.Slocs.Column_Number :=
-        (if Previous then 0 else 1);
    begin
       --  We're about to get a node from an analysis unit. Either the document
       --  is open for it, in which case we read the document, or the
@@ -932,7 +929,8 @@ package body LSP.Ada_Contexts is
 
       if Document /= null then
          return Document.Get_Node_At
-           (Self, Position.position, Previous => Previous);
+           (Context   => Self,
+            Position  => Position.position);
       elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
          Unit := Self.Get_AU (File);
 
@@ -944,13 +942,66 @@ package body LSP.Ada_Contexts is
            ((Line   => Langkit_Support.Slocs.Line_Number
              (Position.position.line) + 1,
              Column => Langkit_Support.Slocs.Column_Number
-               (Position.position.character) + Col_Incr));
+               (Position.position.character) + 1));
          --  ??? Incorrect conversion of UTF16 offset to Column_Number
 
       else
          return Libadalang.Analysis.No_Ada_Node;
       end if;
    end Get_Node_At;
+
+   ------------------
+   -- Get_Token_At --
+   ------------------
+
+   function Get_Token_At
+     (Self         : Context;
+      Document     : LSP.Ada_Documents.Document_Access;
+      Position     : LSP.Messages.TextDocumentPositionParams'Class;
+      Project_Only : Boolean := True)
+      return Libadalang.Common.Token_Reference
+   is
+      use type Libadalang.Analysis.Ada_Node;
+      use type LSP.Ada_Documents.Document_Access;
+      use type Langkit_Support.Slocs.Line_Number;
+      use type Langkit_Support.Slocs.Column_Number;
+
+      Unit : Libadalang.Analysis.Analysis_Unit;
+
+      URI      : constant LSP.Messages.DocumentUri :=
+        Position.textDocument.uri;
+      Name     : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+        Self.URI_To_File (URI);
+      File     : constant Virtual_File := Create_From_UTF8 (Name);
+   begin
+      --  We're about to get a node from an analysis unit. Either the document
+      --  is open for it, in which case we read the document, or the
+      --  document is not open for it. In this case, resolve this only
+      --  if the file belongs to the project (unless if Project_Only is False):
+      --  we don't want to pollute the LAL context with units that are not in
+      --  the project.
+
+      if Document /= null then
+         return Document.Get_Token_At
+           (Context   => Self,
+            Position  => Position.position);
+      elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
+         Unit := Self.Get_AU (File);
+
+         if Unit.Root = Libadalang.Analysis.No_Ada_Node then
+            return Libadalang.Common.No_Token;
+         end if;
+
+         return Unit.Lookup_Token
+           ((Line   => Langkit_Support.Slocs.Line_Number
+             (Position.position.line) + 1,
+             Column => Langkit_Support.Slocs.Column_Number
+               (Position.position.character) + 1));
+
+      else
+         return Libadalang.Common.No_Token;
+      end if;
+   end Get_Token_At;
 
    --------
    -- Id --

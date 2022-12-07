@@ -129,10 +129,9 @@ package LSP.Ada_Documents is
    --  Populate Result with a symbol hierarchy from the document.
 
    function Get_Node_At
-     (Self     : Document;
-      Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position;
-      Previous : Boolean := False)
+     (Self      : Document;
+      Context   : LSP.Ada_Contexts.Context;
+      Position  : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node;
    --  Get Libadalang Node for given position in the document.
 
@@ -313,6 +312,13 @@ package LSP.Ada_Documents is
    function Line_Terminator
      (Self : Document'Class) return VSS.Strings.Virtual_String;
    --  Return line terminator for the document
+
+   function Get_Token_At
+     (Self     : Document'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position)
+      return Libadalang.Common.Token_Reference;
+   --  Return a token at the given Position.
 
    function Get_Tokens
      (Self        : Document'Class;

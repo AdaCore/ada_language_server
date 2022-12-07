@@ -33,13 +33,17 @@ with VSS.Strings.Conversions;
 package body LSP.Ada_Completions.Parameters is
 
    function Get_Spec_Call_Expr_Designators
-     (C       : Libadalang.Analysis.Call_Expr;
-      Context : not null LSP.Ada_Handlers.Context_Access)
+     (C             : Libadalang.Analysis.Call_Expr;
+      Context       : not null LSP.Ada_Handlers.Context_Access;
+      For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
    function Get_Prefix_Node
      (C      : Libadalang.Analysis.Call_Expr;
       Column : out Langkit_Support.Slocs.Column_Number)
       return Libadalang.Analysis.Ada_Node'Class;
+   function To_Node
+     (C : Libadalang.Analysis.Call_Expr)
+      return Libadalang.Analysis.Ada_Node'Class is (C);
 
    package Call_Expr_Completion is new
      LSP.Ada_Completions.Generic_Assoc
@@ -49,7 +53,8 @@ package body LSP.Ada_Completions.Parameters is
         Get_Prefix_Node      => Get_Prefix_Node,
         Search_Element       => LSP.Lal_Utils.Get_Call_Expr,
         Get_Designators      => LSP.Lal_Utils.Get_Call_Designators,
-        Get_Spec_Designators => Get_Spec_Call_Expr_Designators);
+        Get_Spec_Designators => Get_Spec_Call_Expr_Designators,
+        To_Node              => To_Node);
 
    function Get_Aggregate
      (N : Libadalang.Analysis.Ada_Node'Class)
@@ -57,16 +62,21 @@ package body LSP.Ada_Completions.Parameters is
    function Get_Designators
      (A              : Libadalang.Analysis.Aggregate;
       Sloc           : Langkit_Support.Slocs.Source_Location;
+      Prefixed       : out Boolean;
       Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector;
    function Get_Spec_Aggregate_Designators
-     (A       : Libadalang.Analysis.Aggregate;
-      Context : not null LSP.Ada_Handlers.Context_Access)
+     (A             : Libadalang.Analysis.Aggregate;
+      Context       : not null LSP.Ada_Handlers.Context_Access;
+      For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
    function Get_Prefix_Node
      (A      : Libadalang.Analysis.Aggregate;
       Column : out Langkit_Support.Slocs.Column_Number)
       return Libadalang.Analysis.Ada_Node'Class;
+   function To_Node
+     (A : Libadalang.Analysis.Aggregate)
+      return Libadalang.Analysis.Ada_Node'Class is (A);
 
    package Aggregate_Completion is new
      LSP.Ada_Completions.Generic_Assoc
@@ -76,7 +86,8 @@ package body LSP.Ada_Completions.Parameters is
         Get_Prefix_Node      => Get_Prefix_Node,
         Search_Element       => Get_Aggregate,
         Get_Designators      => Get_Designators,
-        Get_Spec_Designators => Get_Spec_Aggregate_Designators);
+        Get_Spec_Designators => Get_Spec_Aggregate_Designators,
+        To_Node              => To_Node);
 
    function Get_Generic_Package
      (N : Libadalang.Analysis.Ada_Node'Class)
@@ -84,16 +95,21 @@ package body LSP.Ada_Completions.Parameters is
    function Get_Designators
      (G              : Libadalang.Analysis.Generic_Package_Instantiation;
       Sloc           : Langkit_Support.Slocs.Source_Location;
+      Prefixed       : out Boolean;
       Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector;
    function Get_Decl_Designators
-     (G       : Libadalang.Analysis.Generic_Package_Instantiation;
-      Context : not null LSP.Ada_Handlers.Context_Access)
+     (G             : Libadalang.Analysis.Generic_Package_Instantiation;
+      Context       : not null LSP.Ada_Handlers.Context_Access;
+      For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
    function Get_Prefix_Node
      (G      : Libadalang.Analysis.Generic_Package_Instantiation;
       Column : out Langkit_Support.Slocs.Column_Number)
       return Libadalang.Analysis.Ada_Node'Class;
+   function To_Node
+     (G : Libadalang.Analysis.Generic_Package_Instantiation)
+      return Libadalang.Analysis.Ada_Node'Class is (G);
 
    package Generic_Package_Completion is new
      LSP.Ada_Completions.Generic_Assoc
@@ -109,15 +125,17 @@ package body LSP.Ada_Completions.Parameters is
         Get_Prefix_Node      => Get_Prefix_Node,
         Search_Element       => Get_Generic_Package,
         Get_Designators      => Get_Designators,
-        Get_Spec_Designators => Get_Decl_Designators);
+        Get_Spec_Designators => Get_Decl_Designators,
+        To_Node              => To_Node);
 
    ------------------------------------
    -- Get_Spec_Call_Expr_Designators --
    ------------------------------------
 
    function Get_Spec_Call_Expr_Designators
-     (C       : Libadalang.Analysis.Call_Expr;
-      Context : not null LSP.Ada_Handlers.Context_Access)
+     (C             : Libadalang.Analysis.Call_Expr;
+      Context       : not null LSP.Ada_Handlers.Context_Access;
+      For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
    is
       Is_First_Param : Boolean := True;
@@ -150,7 +168,10 @@ package body LSP.Ada_Completions.Parameters is
                         Param_Type : constant Type_Expr := Param.F_Type_Expr;
                      begin
                         for Id of Param.F_Ids loop
-                           if not (Is_First_Param and then Is_Dotted_Name) then
+                           if For_Signature
+                             or else
+                               not (Is_First_Param and then Is_Dotted_Name)
+                           then
                               Assoc.Param_Types.Include
                                 (Id,
                                  (Node     => Param_Type.As_Ada_Node,
@@ -181,6 +202,14 @@ package body LSP.Ada_Completions.Parameters is
       if N.Kind in Libadalang.Common.Ada_Aggregate_Range then
          return N.As_Aggregate;
       end if;
+
+      for P of N.Parents loop
+         if not P.Is_Null
+           and then P.Kind in Libadalang.Common.Ada_Aggregate_Range
+         then
+            return P.As_Aggregate;
+         end if;
+      end loop;
       return No_Aggregate;
    end Get_Aggregate;
 
@@ -191,6 +220,7 @@ package body LSP.Ada_Completions.Parameters is
    function Get_Designators
      (A              : Libadalang.Analysis.Aggregate;
       Sloc           : Langkit_Support.Slocs.Source_Location;
+      Prefixed       : out Boolean;
       Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector
    is
@@ -198,12 +228,31 @@ package body LSP.Ada_Completions.Parameters is
       Res : Laltools.Common.Node_Vectors.Vector;
    begin
       Unnamed_Params := 0;
+      Prefixed := False;
 
       for Assoc of A.F_Assocs loop
          if Assoc.Kind in Ada_Aggregate_Assoc_Range then
-            for Alt of Assoc.As_Aggregate_Assoc.F_Designators loop
-               Res.Append (Alt.As_Ada_Node);
-            end loop;
+            declare
+               Alt_List : constant Alternatives_List :=
+                 Assoc.As_Aggregate_Assoc.F_Designators;
+               Added    : Boolean := False;
+            begin
+               for Alt of Alt_List loop
+                  if Alt.Kind in Ada_Identifier_Range then
+                     --  Named Param
+                     Res.Append (Alt.As_Ada_Node);
+                     Added := True;
+                  end if;
+               end loop;
+
+               if Res.Is_Empty then
+                  --  Unnamed Param before the first named param
+                  Unnamed_Params := Unnamed_Params + 1;
+               elsif not Added then
+                  --  Param after a named param => no name yet
+                  Res.Append (No_Ada_Node);
+               end if;
+            end;
          end if;
       end loop;
 
@@ -215,11 +264,12 @@ package body LSP.Ada_Completions.Parameters is
    ------------------------------------
 
    function Get_Spec_Aggregate_Designators
-     (A       : Libadalang.Analysis.Aggregate;
-      Context : not null LSP.Ada_Handlers.Context_Access)
+     (A             : Libadalang.Analysis.Aggregate;
+      Context       : not null LSP.Ada_Handlers.Context_Access;
+      For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
    is
-      pragma Unreferenced (Context);
+      pragma Unreferenced (Context, For_Signature);
       Res       :
         LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
       Expr_Type : constant Base_Type_Decl := A.P_Expression_Type;
@@ -493,15 +543,13 @@ package body LSP.Ada_Completions.Parameters is
          return N.As_Generic_Package_Instantiation;
       end if;
 
-      declare
-         N_Parent : constant Libadalang.Analysis.Ada_Node'Class := N.Parent;
-      begin
-         if not N_Parent.Is_Null
-           and then N_Parent.Kind in Ada_Generic_Package_Instantiation_Range
+      for P of N.Parents loop
+         if not P.Is_Null
+           and then P.Kind in Ada_Generic_Package_Instantiation_Range
          then
-            return N_Parent.As_Generic_Package_Instantiation;
+            return P.As_Generic_Package_Instantiation;
          end if;
-      end;
+      end loop;
       return No_Generic_Package_Instantiation;
    end Get_Generic_Package;
 
@@ -512,6 +560,7 @@ package body LSP.Ada_Completions.Parameters is
    function Get_Designators
      (G              : Libadalang.Analysis.Generic_Package_Instantiation;
       Sloc           : Langkit_Support.Slocs.Source_Location;
+      Prefixed       : out Boolean;
       Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector
    is
@@ -520,18 +569,21 @@ package body LSP.Ada_Completions.Parameters is
       Res        : Laltools.Common.Node_Vectors.Vector;
    begin
       Unnamed_Params := 0;
+      Prefixed := False;
 
       for Assoc of G.F_Params loop
          Designator := Assoc.As_Param_Assoc.F_Designator;
          if Designator /= No_Ada_Node then
             Res.Append (Designator);
          else
-            if Res.Is_Empty
-            --  Count only the unnamed params at the start
-              and then Start_Sloc (Assoc.Sloc_Range) < Sloc
+            if Start_Sloc (Assoc.Sloc_Range) < Sloc then
             --  Prevent adding false parameter because of LAL recovery
-            then
-               Unnamed_Params := Unnamed_Params + 1;
+               if Res.Is_Empty then
+                  --  Count only the unnamed params at the start
+                  Unnamed_Params := Unnamed_Params + 1;
+               else
+                  Res.Append (No_Ada_Node);
+               end if;
             end if;
          end if;
       end loop;
@@ -544,10 +596,12 @@ package body LSP.Ada_Completions.Parameters is
    --------------------------
 
    function Get_Decl_Designators
-     (G       : Libadalang.Analysis.Generic_Package_Instantiation;
-      Context : not null LSP.Ada_Handlers.Context_Access)
+     (G             : Libadalang.Analysis.Generic_Package_Instantiation;
+      Context       : not null LSP.Ada_Handlers.Context_Access;
+      For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
    is
+      pragma Unreferenced (For_Signature);
       Res       :
         LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
       Name_Node : constant Libadalang.Analysis.Name := G.F_Generic_Pkg_Name;
@@ -690,5 +744,81 @@ package body LSP.Ada_Completions.Parameters is
          end loop;
       end;
    end Propose_Completion;
+
+   ------------------------
+   -- Propose_Signatures --
+   ------------------------
+
+   procedure Propose_Signatures
+     (Context         : not null LSP.Ada_Handlers.Context_Access;
+      Node            : Libadalang.Analysis.Ada_Node;
+      Cursor          : Langkit_Support.Slocs.Source_Location;
+      Prev_Signatures : LSP.Messages.Optional_SignatureHelpContext;
+      Res             : in out LSP.Messages.SignatureHelp)
+   is
+      use type LSP.Messages.SignatureHelpTriggerKind;
+      use type VSS.Strings.Virtual_String;
+      Filter_Signatures : LSP.Messages.Optional_SignatureHelpContext :=
+        (Is_Set => False);
+   begin
+      --  Special handling of typecast
+      declare
+         Call_Node : constant Libadalang.Analysis.Call_Expr
+           := LSP.Lal_Utils.Get_Call_Expr (Node);
+      begin
+         if not Call_Node.Is_Null then
+            declare
+               Name_Node  : constant Libadalang.Analysis.Name :=
+                 Call_Node.As_Call_Expr.F_Name;
+            begin
+               if not Name_Node.P_Name_Designated_Type.Is_Null
+               --  Do we have the previous signatures?
+                 and then Prev_Signatures.Is_Set
+                 and then Prev_Signatures.Value.activeSignatureHelp.Is_Set
+               then
+                  --  typecast inside previous signatures => keep them
+                  Res := Prev_Signatures.Value.activeSignatureHelp.Value;
+                  return;
+               end if;
+            end;
+         end if;
+      end;
+
+      if Prev_Signatures.Is_Set
+        and then Prev_Signatures.Value.isRetrigger
+        and then Prev_Signatures.Value.activeSignatureHelp.Is_Set
+        and then
+          (Prev_Signatures.Value.triggerKind /= LSP.Messages.TriggerCharacter
+           or else
+           --  Adding a ',' will not add new results only filter the previous
+             (Prev_Signatures.Value.triggerCharacter.Is_Set
+              and then Prev_Signatures.Value.triggerCharacter.Value = ","))
+      then
+         --  At this point, we are filtering the previous signatures
+         Filter_Signatures := Prev_Signatures;
+      end if;
+
+      Call_Expr_Completion.Propose_Signatures
+        (Context         => Context,
+         Node            => Node,
+         Cursor          => Cursor,
+         Prev_Signatures => Filter_Signatures,
+         Res             => Res);
+
+      Aggregate_Completion.Propose_Signatures
+        (Context         => Context,
+         Node            => Node,
+         Cursor          => Cursor,
+         Prev_Signatures => Filter_Signatures,
+         Res             => Res,
+         Lazy            => True);
+
+      Generic_Package_Completion.Propose_Signatures
+        (Context         => Context,
+         Node            => Node,
+         Cursor          => Cursor,
+         Prev_Signatures => Filter_Signatures,
+         Res             => Res);
+   end Propose_Signatures;
 
 end LSP.Ada_Completions.Parameters;
