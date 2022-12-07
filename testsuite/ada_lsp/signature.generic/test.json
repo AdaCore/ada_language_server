@@ -1,0 +1,638 @@
+[
+   {
+      "comment": [
+         "Test signatureHelp when writing a simple generic instantiation."
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 13950,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [{
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "hoverProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                            ".",
+                            ",",
+                            "'",
+                            "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
+                     "definitionProvider": true
+                  }
+               }
+            }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "\nwith G;\npackage Inst is\n   type String_Ptr is access all String;\n   package I is new G \nend Inst;\n\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 22
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 22
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 23
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "(",
+                  "isRetrigger": false
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 9,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                        "documentation": "Source:",
+                        "parameters": [
+                           {
+                              "label": "Elt_Type"
+                           },
+                           {
+                              "label": "Elt_Ptr"
+                           }
+                        ],
+                        "activeParameter": 0
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 23
+                        }
+                     },
+                     "text": "String"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 9
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 29
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 29
+                        }
+                     },
+                     "text": ","
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 33,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 30
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": ",",
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                           "documentation": "Source:",
+                           "parameters": [
+                              {
+                                 "label": "Elt_Type"
+                              },
+                              {
+                                 "label": "Elt_Ptr"
+                              }
+                           ],
+                           "activeParameter": 0
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 33,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                        "documentation": "Source:",
+                        "parameters": [
+                           {
+                              "label": "Elt_Type"
+                           },
+                           {
+                              "label": "Elt_Ptr"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 10
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 30
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 30
+                        }
+                     },
+                     "text": " "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 37,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 31
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                           "documentation": "Source:",
+                           "parameters": [
+                              {
+                                 "label": "Elt_Type"
+                              },
+                              {
+                                 "label": "Elt_Ptr"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 37,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                        "documentation": "Source:",
+                        "parameters": [
+                           {
+                              "label": "Elt_Type"
+                           },
+                           {
+                              "label": "Elt_Ptr"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 11
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 31
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 31
+                        }
+                     },
+                     "text": "S"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 41,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 32
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                           "documentation": "Source:",
+                           "parameters": [
+                              {
+                                 "label": "Elt_Type"
+                              },
+                              {
+                                 "label": "Elt_Ptr"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 41,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                        "documentation": "Source:",
+                        "parameters": [
+                           {
+                              "label": "Elt_Type"
+                           },
+                           {
+                              "label": "Elt_Ptr"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 12
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 32
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 32
+                        }
+                     },
+                     "text": "tring_Ptr"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}",
+                  "version": 21
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 41
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 41
+                        }
+                     },
+                     "text": ")"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 69,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 42
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
+                           "documentation": "Source:",
+                           "parameters": [
+                              {
+                                 "label": "Elt_Type"
+                              },
+                              {
+                                 "label": "Elt_Ptr"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 69,
+               "result": {
+                  "signatures": [],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/inst.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 73,
+            "method": "shutdown"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

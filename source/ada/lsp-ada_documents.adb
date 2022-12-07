@@ -116,13 +116,6 @@ package body LSP.Ada_Documents is
       From : out VSS.Strings.Markers.Character_Marker;
       To   : out VSS.Strings.Markers.Character_Marker);
 
-   function Get_Token_At
-     (Self     : Document'Class;
-      Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position)
-      return Libadalang.Common.Token_Reference;
-   --  Return a token at the given Position.
-
    -----------------------
    -- Recompute_Indexes --
    -----------------------
@@ -1657,27 +1650,19 @@ package body LSP.Ada_Documents is
    -----------------
 
    function Get_Node_At
-     (Self     : Document;
-      Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Messages.Position;
-      Previous : Boolean := False)
+     (Self      : Document;
+      Context   : LSP.Ada_Contexts.Context;
+      Position  : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node
    is
       use Langkit_Support.Slocs;
-
       Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit (Context);
-      Sloc : Langkit_Support.Slocs.Source_Location :=
-        Self.Get_Source_Location (Position);
    begin
       if Unit.Root = No_Ada_Node then
          return No_Ada_Node;
       end if;
 
-      if Previous and then Sloc.Column > 0 then
-         Sloc.Column := Sloc.Column - 1;
-      end if;
-
-      return Unit.Root.Lookup (Sloc);
+      return Unit.Root.Lookup (Self.Get_Source_Location (Position));
    end Get_Node_At;
 
    ------------------------

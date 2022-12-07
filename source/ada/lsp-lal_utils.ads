@@ -21,7 +21,6 @@ with GNATCOLL.VFS;
 
 with LSP.Ada_Contexts;
 with LSP.Messages;
-with LSP.Types;
 
 with Laltools.Common;
 with Laltools.Refactor;
@@ -213,46 +212,12 @@ package LSP.Lal_Utils is
    function Get_Call_Designators
      (Node           : Libadalang.Analysis.Call_Expr;
       Sloc           : Langkit_Support.Slocs.Source_Location;
+      Prefixed       : out Boolean;
       Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector;
    --  Return the list of designator in the current call_expr
    --  Unnamed_Params correspond to the number of parameters without
    --  designators before Sloc.
-
-   procedure Get_Call_Expr_Name
-     (Node             : Libadalang.Analysis.Ada_Node'Class;
-      Cursor           : Langkit_Support.Slocs.Source_Location;
-      Active_Position  : out LSP.Types.LSP_Number;
-      Designator       : out Libadalang.Analysis.Ada_Node;
-      Prev_Designators : out Laltools.Common.Node_Vectors.Vector;
-      Name_Node        : out Libadalang.Analysis.Name);
-   --  If Node is inside a Call_Expr returns the following:
-   --  Active_Position: the index of the parameter in the Call_Expr
-   --  Designator: the designator of the Active_Position
-   --  Prev_Designators: the designators found before the Active_Position
-   --  Name_Node: the name of the Call_Expr
-   --  Cursor: the position of the cursor when the request was triggered
-
-   procedure Get_Parameters
-     (Node : Libadalang.Analysis.Basic_Decl;
-      Parameters : in out LSP.Messages.ParameterInformation_Vector);
-   --  Append all the parameters of Node inside Parameters
-
-   function Get_Active_Parameter
-     (Node             : Libadalang.Analysis.Basic_Decl;
-      Designator       : Libadalang.Analysis.Ada_Node;
-      Prev_Designators : Laltools.Common.Node_Vectors.Vector;
-      Position         : LSP.Types.LSP_Number)
-      return LSP.Types.LSP_Number;
-   --  Return the position of Designator in the parameters of Node else -1
-   --  If Designator is null try check if Position is a valid parameter index
-   --  Verify that Node parameters matches all the previous designators.
-
-   function Match_Designators
-     (Params      : Libadalang.Analysis.Param_Spec_Array;
-      Designators : Laltools.Common.Node_Vectors.Vector)
-      return Boolean;
-   --  Return True if Params contains all Designators
 
    function To_Call_Hierarchy_Item
      (Name : Libadalang.Analysis.Defining_Name)
