@@ -125,6 +125,9 @@ package body LSP.Ada_Handlers is
    --  Use partial formatting mode of gnatpp if On. Otherwise, use diff
    --  algorithm.
 
+   Max_Indexed_Contexts : constant := 10;
+   --  Maximum number of context where file is indexed.
+
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
       As_Flags => [LSP.Messages.Parent => True, others => False]);
@@ -5109,6 +5112,8 @@ package body LSP.Ada_Handlers is
             Cursor : File_Sets.Cursor := Self.Files_To_Index.First;
             File   : constant GNATCOLL.VFS.Virtual_File :=
               File_Sets.Element (Cursor);
+            Count  : Natural := 0;
+
          begin
             Self.Files_To_Index.Delete (Cursor);
             Self.Total_Files_Indexed := Self.Total_Files_Indexed + 1;
@@ -5121,6 +5126,10 @@ package body LSP.Ada_Handlers is
                   --  Set Reparse to False to avoid issues with LAL envs
                   --  for now (see T226-048 for more info).
                   Context.Index_File (File, Reparse => False);
+
+                  Count := Count + 1;
+
+                  exit when Count > Max_Indexed_Contexts;
                end loop;
 
                --  Check whether another request is pending. If so, pause
