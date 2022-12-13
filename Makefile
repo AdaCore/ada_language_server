@@ -24,7 +24,7 @@ endif
 LIBRARY_TYPE?=relocatable
 
 # Build mode (dev or prod)
-BUILD_MODE=dev
+BUILD_MODE?=dev
 
 # Whether to enable coverage (empty for no, any other value for yes)
 COVERAGE=
