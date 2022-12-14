@@ -98,7 +98,7 @@ package body LSP.Ada_Completions is
                Info      : constant Name_Information := Names (Cursor);
                Name      : constant Libadalang.Analysis.Defining_Name :=
                  Completion_Maps.Key (Cursor);
-               Selector  : constant Libadalang.Analysis.Single_Tok_Node :=
+               Selector  : constant Libadalang.Analysis.Name :=
                  Name.P_Relative_Name;
                Label     : VSS.Strings.Virtual_String;
                Canonical : VSS.Strings.Virtual_String;
