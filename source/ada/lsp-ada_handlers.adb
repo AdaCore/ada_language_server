@@ -60,6 +60,7 @@ with LSP.Ada_Handlers.Refactor_Move_Parameter;
 with LSP.Ada_Handlers.Refactor_Remove_Parameter;
 with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor_Sort_Dependencies;
 with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
@@ -86,6 +87,7 @@ with Laltools.Refactor.Suppress_Separate;
 with Laltools.Refactor.Extract_Subprogram;
 with Laltools.Refactor.Introduce_Parameter;
 with Laltools.Refactor.Pull_Up_Declaration;
+with Laltools.Refactor.Sort_Dependencies;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
 with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 with Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
@@ -1462,6 +1464,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Pull Up Declaration refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Sort_Dependencies_Code_Action;
+         --  Checks if the Sort Dependencies refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          ----------------------------------------
          -- Change_Parameters_Type_Code_Action --
          ----------------------------------------
@@ -1913,8 +1919,42 @@ package body LSP.Ada_Handlers is
             end if;
          end Pull_Up_Declaration_Code_Action;
 
+         -----------------------------------
+         -- Sort_Dependencies_Code_Action --
+         -----------------------------------
+
+         procedure Sort_Dependencies_Code_Action is
+            use Langkit_Support.Slocs;
+            use Libadalang.Analysis;
+            use Laltools.Refactor.Sort_Dependencies;
+            use LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+            use LSP.Messages;
+
+            Location        : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
+               Column_Number (Params.span.first.character) + 1);
+
+            Sort_Dependencies_Command :
+              LSP.Ada_Handlers.Refactor_Sort_Dependencies.Command;
+
+         begin
+            if Is_Sort_Dependencies_Available (Node.Unit, Location) then
+               Sort_Dependencies_Command.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (uri     => Params.textDocument.uri,
+                     span    => Params.span,
+                     alsKind => Empty_Set));
+
+               Found := True;
+            end if;
+         end Sort_Dependencies_Code_Action;
+
       begin
          Named_Parameters_Code_Action;
+
+         Sort_Dependencies_Code_Action;
 
          Import_Package_Code_Action;
 
