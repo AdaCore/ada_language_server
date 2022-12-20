@@ -96,7 +96,7 @@ package body LSP.Ada_Completions.End_Names is
             when Libadalang.Common.Ada_Accept_Stmt_With_Stmts_Range =>
 
                return VSS.Strings.To_Virtual_String
-                 (Node.As_Accept_Stmt_With_Stmts.F_Name.Text);
+                 (Node.As_Accept_Stmt_With_Stmts.F_Body_Decl.F_Name.Text);
 
             when Libadalang.Common.Ada_Select_Stmt_Range =>
                return "select";
