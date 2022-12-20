@@ -2627,7 +2627,8 @@ package body LSP.Ada_Handlers is
 
          if Entry_Decl_Node /= Libadalang.Analysis.No_Entry_Decl then
             for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
-               Append_Location (Response.result, Accept_Node.F_Name);
+               Append_Location
+                 (Response.result, Accept_Node.F_Body_Decl.F_Name);
             end loop;
          end if;
       end Resolve_In_Context;
