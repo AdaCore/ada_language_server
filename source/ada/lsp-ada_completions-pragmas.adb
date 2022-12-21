@@ -40,7 +40,9 @@ package body LSP.Ada_Completions.Pragmas is
       Parent : constant Libadalang.Analysis.Ada_Node :=
         (if Node.Is_Null then Node else Node.Parent);
    begin
-      if Parent.Kind in Libadalang.Common.Ada_Pragma_Node_Range then
+      if not Parent.Is_Null and then
+        Parent.Kind in Libadalang.Common.Ada_Pragma_Node_Range
+      then
          declare
             Prefix : constant VSS.Strings.Virtual_String :=
               VSS.Strings.To_Virtual_String (Node.Text);

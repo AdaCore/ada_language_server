@@ -39,6 +39,12 @@ package LSP.Ada_Completions.Filters is
    function Is_Attribute_Ref (Self : in out Filter'Class) return Boolean;
    --  Check if we complete "'<attribute>" text
 
+   function Is_Semicolon (Self : in out Filter'Class) return Boolean;
+   --  Check if we complete right after ";"
+
+   function Is_Comma (Self : in out Filter'Class) return Boolean;
+   --  Check if we complete right after ","
+
 private
 
    type Filter is tagged limited record
@@ -47,6 +53,8 @@ private
       Is_End_Label       : LSP.Types.Optional_Boolean;
       Is_Numeric_Literal : LSP.Types.Optional_Boolean;
       Is_Attribute       : LSP.Types.Optional_Boolean;
+      Is_Semicolon       : LSP.Types.Optional_Boolean;
+      Is_Comma           : LSP.Types.Optional_Boolean;
    end record;
 
 end LSP.Ada_Completions.Filters;

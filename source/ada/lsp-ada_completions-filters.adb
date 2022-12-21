@@ -129,6 +129,50 @@ package body LSP.Ada_Completions.Filters is
       return Self.Is_Attribute.Value;
    end Is_Attribute_Ref;
 
+   ------------------
+   -- Is_Semicolon --
+   ------------------
+
+   function Is_Semicolon (Self : in out Filter'Class) return Boolean is
+   begin
+      if not Self.Is_Semicolon.Is_Set then
+         declare
+            use all type Libadalang.Common.Token_Kind;
+
+            Token_Kind : constant Libadalang.Common.Token_Kind :=
+              Kind (Self.Token);
+         begin
+            Self.Is_Semicolon :=
+              (True,
+               Token_Kind = Ada_Semicolon);
+         end;
+      end if;
+
+      return Self.Is_Semicolon.Value;
+   end Is_Semicolon;
+
+   --------------
+   -- Is_Comma --
+   --------------
+
+   function Is_Comma (Self : in out Filter'Class) return Boolean is
+   begin
+      if not Self.Is_Comma.Is_Set then
+         declare
+            use all type Libadalang.Common.Token_Kind;
+
+            Token_Kind : constant Libadalang.Common.Token_Kind :=
+              Kind (Self.Token);
+         begin
+            Self.Is_Comma :=
+              (True,
+               Token_Kind = Ada_Comma);
+         end;
+      end if;
+
+      return Self.Is_Comma.Value;
+   end Is_Comma;
+
    ------------------------
    -- Is_Numeric_Literal --
    ------------------------
