@@ -641,7 +641,15 @@
                }
             }
          },
-         "wait": []
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{src/inst.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
       }
    },
    {
@@ -652,13 +660,6 @@
             "method": "shutdown"
          },
          "wait": [
-            {
-               "method": "textDocument/publishDiagnostics",
-               "params": {
-                  "uri": "$URI{src/inst.ads}",
-                  "diagnostics": []
-               }
-            },
             {
                "id": 51,
                "result": null

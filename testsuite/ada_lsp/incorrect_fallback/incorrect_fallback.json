@@ -236,7 +236,12 @@
             "id": 2,
             "method": "shutdown"
          },
-         "wait": []
+         "wait": [
+            {
+               "id": 2,
+               "result": null
+            }
+         ]
       }
    },
    {
@@ -246,12 +251,7 @@
             "jsonrpc": "2.0",
             "method": "exit"
          },
-         "wait": [
-            {
-               "id": 2,
-               "result": null
-            }
-         ]
+         "wait": []
       }
    },
    {

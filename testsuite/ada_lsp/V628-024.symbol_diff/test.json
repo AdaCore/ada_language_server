@@ -226,11 +226,19 @@
             "method": "textDocument/didClose",
             "params": {
                "textDocument": {
-                  "uri": "file:///home/ogorodnik/adacore/tests/hello/src/main.adb"
+                  "uri": "$URI{main.adb}"
                }
             }
          },
-         "wait": []
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
       }
    },
    {
@@ -241,13 +249,6 @@
             "method": "shutdown"
          },
          "wait": [
-            {
-               "method": "textDocument/publishDiagnostics",
-               "params": {
-                  "uri": "file:///home/ogorodnik/adacore/tests/hello/src/main.adb",
-                  "diagnostics": []
-               }
-            },
             {
                "id": 9,
                "result": null
