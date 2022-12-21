@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,49 +14,22 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--  A completion provider for use-clauses
 
-with VSS.Strings;
+package LSP.Ada_Completions.Use_Clauses is
 
-with LSP.Predefined_Completion;
-
-package body LSP.Ada_Completions.Aspects is
-
-   ------------------------
-   -- Propose_Completion --
-   ------------------------
+   type Use_Clause_Completion_Provider is
+     new Completion_Provider with null record;
 
    overriding procedure Propose_Completion
-     (Self   : Aspect_Completion_Provider;
+     (Self   : Use_Clause_Completion_Provider;
       Sloc   : Langkit_Support.Slocs.Source_Location;
       Token  : Libadalang.Common.Token_Reference;
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList)
-   is
-      pragma Unreferenced (Filter);
-      pragma Unreferenced (Names);
+      Result : in out LSP.Messages.CompletionList);
+   --  Get completion for use-clauses if we have a with-clause node on the
+   --  same line.
 
-      Parent : constant Libadalang.Analysis.Ada_Node :=
-        (if Node.Is_Null then Node else Node.Parent);
-   begin
-      if not Parent.Is_Null and then
-        Parent.Kind in Libadalang.Common.Ada_Aspect_Assoc_Range
-      then
-         declare
-            Prefix : constant VSS.Strings.Virtual_String :=
-              VSS.Strings.To_Virtual_String (Node.Text);
-
-         begin
-            LSP.Predefined_Completion.Get_Aspects
-              (Prefix => Prefix,
-               Result => Result.items);
-         end;
-      elsif Node.Kind in Libadalang.Common.Ada_Aspect_Spec_Range then
-         LSP.Predefined_Completion.Get_Aspects
-           (Prefix => VSS.Strings.Empty_Virtual_String,
-            Result => Result.items);
-      end if;
-   end Propose_Completion;
-
-end LSP.Ada_Completions.Aspects;
+end LSP.Ada_Completions.Use_Clauses;
