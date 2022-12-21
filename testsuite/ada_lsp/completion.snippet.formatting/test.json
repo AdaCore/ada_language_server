@@ -399,7 +399,15 @@
                }
             }
          },
-         "wait": []
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{foo.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
       }
    },
    {
@@ -410,13 +418,6 @@
             "method": "shutdown"
          },
          "wait": [
-            {
-               "method": "textDocument/publishDiagnostics",
-               "params": {
-                  "uri": "$URI{foo.adb}",
-                  "diagnostics": []
-               }
-            },
             {
                "id": 53,
                "result": null
