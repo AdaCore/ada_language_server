@@ -14,8 +14,8 @@ jobs:
     name: Build and deploy
     strategy:
       fail-fast: false
-      matrix: # Build debug and production
-        debug: ['', 'debug']      # '' if production, 'debug' for debug
+      matrix: # Build debug and/or production
+        debug: ['']      # '' if production, 'debug' for debug
         os: [macos-11, ubuntu-20.04, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -119,13 +119,13 @@ jobs:
           if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]]; then
               TAG="${GITHUB_REF##*/}"
               .github/workflows/release.sh ""      "${{ secrets.GITHUB_TOKEN }}" $TAG
-              .github/workflows/release.sh "debug" "${{ secrets.GITHUB_TOKEN }}" $TAG
+              # .github/workflows/release.sh "debug" "${{ secrets.GITHUB_TOKEN }}" $TAG
           else
               TAG="$DEFAULT_TAG"
           fi
           echo "TAG=$TAG" >> $GITHUB_ENV
           .github/workflows/pack-binaries.sh ""      "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
-          .github/workflows/pack-binaries.sh "debug" "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
+          # .github/workflows/pack-binaries.sh "debug" "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
       - name: Archive ALS vsix
         uses: actions/upload-artifact@v2
         with:

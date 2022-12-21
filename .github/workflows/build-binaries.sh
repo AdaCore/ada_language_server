@@ -7,7 +7,7 @@ prefix=/tmp/ADALIB_DIR
 
 if [ $RUNNER_OS = Windows ]; then
     prefix=/opt/ADALIB_DIR
-    mount `cmd /c cd | cut -d\: -f1`:/opt /opt
+    mount `cygpath -w $RUNNER_TEMP|cut -d: -f1`:/opt /opt
 fi
 
 export GPR_PROJECT_PATH=$prefix/share/gpr:\
