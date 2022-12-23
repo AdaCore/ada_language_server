@@ -204,7 +204,7 @@ package body Tester.Tests is
       Self.Send_Message (Text);
 
       loop
-         Spawn.Processes.Monitor_Loop (Timeout => 100);
+         Spawn.Processes.Monitor_Loop (Timeout => 0.1);
          exit when GNATCOLL.JSON.Length (Self.Waits) = 0;
 
          if Ada.Calendar.Clock - Self.Started > Timeout
@@ -408,7 +408,7 @@ package body Tester.Tests is
       Listener.Process.Close_Standard_Error;
 
       loop
-         Spawn.Processes.Monitor_Loop (Timeout => 10);
+         Spawn.Processes.Monitor_Loop (Timeout => 0.01);
          exit when Listener.Done;
       end loop;
 
@@ -469,7 +469,7 @@ package body Tester.Tests is
       Self.Start;
 
       loop
-         Spawn.Processes.Monitor_Loop (Timeout => 1);
+         Spawn.Processes.Monitor_Loop (Timeout => 0.001);
          exit when Self.Is_Server_Running;
       end loop;
 
@@ -511,7 +511,7 @@ package body Tester.Tests is
       end if;
 
       loop
-         Spawn.Processes.Monitor_Loop (Timeout => 1);
+         Spawn.Processes.Monitor_Loop (Timeout => 0.001);
          exit when not Self.Is_Server_Running;
       end loop;
 
