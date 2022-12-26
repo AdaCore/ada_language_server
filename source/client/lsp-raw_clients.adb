@@ -71,7 +71,7 @@ package body LSP.Raw_Clients is
 
    function Is_Server_Running (Self : Raw_Client'Class) return Boolean is
    begin
-      return Self.Server.Status in Spawn.Processes.Running;
+      return Self.Server.Status in Spawn.Running;
    end Is_Server_Running;
 
    -------------------------------
