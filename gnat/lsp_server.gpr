@@ -59,7 +59,10 @@ project LSP_Server is
          when "static" | "static-pic" =>
             case OS is
                when "Windows_NT" =>
-                  for Switches ("Ada") use ("-static", "-static-libstdc++", "-static-libgcc");
+                  for Switches ("Ada") use
+                    ("-static", "-static-libstdc++", "-static-libgcc",
+                     "-fstack-protector");
+                  --  Stack protector forces libssp.a linking for libgmp.a
                when "osx" | "unix" =>
                   --  On UNIX, we want to link libc dynamically: needed to find
                   --  a recent version of iconv_open (and a recommended practice)
