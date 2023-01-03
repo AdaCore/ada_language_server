@@ -279,6 +279,7 @@ types_to_print = {
     'ALS_ShowDependenciesKind',
     'ALS_Unit_Description',
     'ALS_ShowDependenciesParams',
+    'ALS_Source_Dir_Description',
     #  'ALS_Debug_Kinds',
     #  'ALSDebugParams',
     'Search_Kind',
@@ -506,6 +507,7 @@ reserver_named = \
     "write": "write",
     "static_call": "call",
     "dispatching_call": "dispatching call",
+    "overriding_decl": "overriding",
     "parent": "parent",
     "child": "child",
     "empty": "",            # For CodeActionKind

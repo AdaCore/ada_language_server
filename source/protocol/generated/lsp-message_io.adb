@@ -4506,6 +4506,8 @@ package body LSP.Message_IO is
                Optional_Nullable_String'Read (S, V.rootPath);
             elsif Key = "rootUri" then
                Nullable_String'Read (S, V.rootUri);
+            elsif Key = "initializationOptions" then
+               LSP.Types.Optional_LSP_Any'Read (S, V.initializationOptions);
             elsif Key = "capabilities" then
                ClientCapabilities'Read (S, V.capabilities);
             elsif Key = "trace" then
@@ -4540,6 +4542,8 @@ package body LSP.Message_IO is
       Optional_Nullable_String'Write (S, V.rootPath);
       JS.Key ("rootUri");
       Nullable_String'Write (S, V.rootUri);
+      JS.Key ("initializationOptions");
+      LSP.Types.Optional_LSP_Any'Write (S, V.initializationOptions);
       JS.Key ("capabilities");
       ClientCapabilities'Write (S, V.capabilities);
       JS.Key ("trace");
