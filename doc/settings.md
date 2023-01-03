@@ -1,6 +1,38 @@
 # Ada Language Server configuration
 
-The LSP has a dedicated notification to signal the server the change of configuration settings. Any setting should be inside a `ada` JSON object.
+The ALS reads initial configuration from the `initializationOptions`
+property of the `initialize` request (if any) and then updates
+the configuration with each `workspace/didChangeConfiguration`
+notification. Any setting in `workspace/didChangeConfiguration` should
+be inside an `ada` JSON object, while there is no such wrapping object
+for `initializationOptions`. On the protocol level messages look like:
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 123,
+    "method": "initialize",
+    "params": {
+        "initializationOptions": {
+            "projectFile": "right_project.gpr"
+        },
+        ...
+    }
+}
+
+{
+    "jsonrpc": "2.0",
+    "method": "workspace/didChangeConfiguration",
+    "params": {
+       "settings": {
+          "ada": {
+             "projectFile": "right_project.gpr"
+          }
+       }
+    }
+}
+```
+
 Ada Language Server understands these settings:
 
  * [projectFile](#projectFile)
