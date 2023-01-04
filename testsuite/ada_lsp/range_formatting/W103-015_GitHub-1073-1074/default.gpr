@@ -1,0 +1,6 @@
+project Default is
+   for Main use ("foo.adb");
+   package Pretty_Printer is
+      for Default_Switches ("Ada") use ("--source-line-breaks");
+   end Pretty_Printer;
+end Default;
