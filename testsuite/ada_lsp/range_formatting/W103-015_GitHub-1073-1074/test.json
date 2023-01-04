@@ -1,0 +1,195 @@
+[
+    {
+        "comment": [
+            "Test that range formats the whole file"
+        ]
+    },
+    {
+        "start": {
+            "cmd": [
+                "${ALS}"
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "processId": 31570,
+                    "capabilities": {
+                        "textDocument": {
+                            "synchronization": {
+                                "dynamicRegistration": false,
+                                "willSave": true,
+                                "willSaveWaitUntil": true,
+                                "didSave": true
+                            },
+                            "completion": {},
+                            "definition": {},
+                            "hover": {},
+                            "formatting": {
+                                "dynamicRegistration": true
+                            },
+                            "implementation": {},
+                            "codeLens": {},
+                            "typeDefinition": {},
+                            "selectionRange": {},
+                            "documentHighlight": {},
+                            "documentSymbol": {
+                                "hierarchicalDocumentSymbolSupport": true
+                            },
+                            "references": {},
+                            "rangeFormatting": {},
+                            "onTypeFormatting": {},
+                            "declaration": {},
+                            "foldingRange": {
+                                "lineFoldingOnly": true
+                            },
+                            "colorProvider": {}
+                        },
+                        "workspace": {
+                            "applyEdit": true,
+                            "executeCommand": {},
+                            "didChangeWatchedFiles": {},
+                            "workspaceEdit": {},
+                            "didChangeConfiguration": {},
+                            "semanticTokens": {
+                                "refreshSupport": true
+                            }
+                        }
+                    },
+                    "rootUri": "$URI{.}"
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "result": {
+                        "capabilities": {
+                            "documentFormattingProvider": true,
+                            "documentRangeFormattingProvider": true
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "initialized"
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "workspace/didChangeConfiguration",
+                "params": {
+                    "settings": {
+                        "ada": {
+                            "projectFile": "$URI{default.gpr}",
+                            "scenarioVariables": {},
+                            "defaultCharset": "ISO-8859-1"
+                        }
+                    }
+                }
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "textDocument/didOpen",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{foo.adb}",
+                        "languageId": "Ada",
+                        "version": 0,
+                        "text": "with -- context_clause_start\n Ada.Text_IO;\n\nprocedure Debug\nis begin\n  null;\nend Debug;\n"
+                    }
+                }
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "textDocument/rangeFormatting",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{foo.adb}"
+                    },
+                    "options": {
+                        "tabSize": 8,
+                        "insertSpaces": true,
+                        "insertFinalNewline": true,
+                        "trimFinalNewlines": true
+                    },
+                    "range": {
+                        "start": {
+                            "line": 0,
+                            "character": 0
+                        },
+                        "end": {
+                            "line": 7,
+                            "character": 0
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": [
+                        {
+                            "range": {
+                                "start": {
+                                    "line": 0,
+                                    "character": 0
+                                },
+                                "end": {
+                                    "line": 6,
+                                    "character": 10
+                                }
+                            },
+                            "newText": "with -- context_clause_start\n       Ada.Text_IO;\n\nprocedure Debug\nis begin\n        null;\nend Debug;"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "textDocument/didClose",
+                "params": {
+                    "textDocument": {
+                        "uri": "$URI{foo.adb}"
+                    }
+                }
+            },
+            "wait": []
+        }
+    },
+    {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
