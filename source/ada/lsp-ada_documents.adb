@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Wide_Wide_Latin_1;
+with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.Strings;
@@ -2819,8 +2820,8 @@ package body LSP.Ada_Documents is
 
       Filter : LSP.Ada_Completions.Filters.Filter;
    begin
-      if Parent.Is_Null
-        or else (Parent.Kind not in
+      if not Parent.Is_Null
+        and then (Parent.Kind not in
           Libadalang.Common.Ada_Dotted_Name | Libadalang.Common.Ada_End_Name
           and then Node.Kind in Libadalang.Common.Ada_String_Literal_Range)
       then
@@ -2836,13 +2837,23 @@ package body LSP.Ada_Documents is
       Filter.Initialize (Token, Node);
 
       for Provider of Providers loop
-         Provider.Propose_Completion
-           (Sloc   => Sloc,
-            Token  => Token,
-            Node   => Node,
-            Filter => Filter,
-            Names  => Names,
-            Result => Result);
+         begin
+            Provider.Propose_Completion
+              (Sloc   => Sloc,
+               Token  => Token,
+               Node   => Node,
+               Filter => Filter,
+               Names  => Names,
+               Result => Result);
+
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               LSP.Common.Log
+                 (Context.Trace,
+                  E,
+                  "LAL EXCEPTION occurred with following completion provider: "
+                  & Ada.Tags.Expanded_Name (Provider'Tag));
+         end;
       end loop;
 
       Context.Trace.Trace
