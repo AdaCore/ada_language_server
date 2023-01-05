@@ -18,49 +18,6 @@
                 "id": 1,
                 "method": "initialize",
                 "params": {
-                    "processId": 31570,
-                    "capabilities": {
-                        "textDocument": {
-                            "synchronization": {
-                                "dynamicRegistration": false,
-                                "willSave": true,
-                                "willSaveWaitUntil": true,
-                                "didSave": true
-                            },
-                            "completion": {},
-                            "definition": {},
-                            "hover": {},
-                            "formatting": {
-                                "dynamicRegistration": true
-                            },
-                            "implementation": {},
-                            "codeLens": {},
-                            "typeDefinition": {},
-                            "selectionRange": {},
-                            "documentHighlight": {},
-                            "documentSymbol": {
-                                "hierarchicalDocumentSymbolSupport": true
-                            },
-                            "references": {},
-                            "rangeFormatting": {},
-                            "onTypeFormatting": {},
-                            "declaration": {},
-                            "foldingRange": {
-                                "lineFoldingOnly": true
-                            },
-                            "colorProvider": {}
-                        },
-                        "workspace": {
-                            "applyEdit": true,
-                            "executeCommand": {},
-                            "didChangeWatchedFiles": {},
-                            "workspaceEdit": {},
-                            "didChangeConfiguration": {},
-                            "semanticTokens": {
-                                "refreshSupport": true
-                            }
-                        }
-                    },
                     "rootUri": "$URI{.}"
                 }
             },
@@ -70,8 +27,7 @@
                     "id": 1,
                     "result": {
                         "capabilities": {
-                            "documentFormattingProvider": true,
-                            "documentRangeFormattingProvider": true
+                            "documentFormattingProvider": true
                         }
                     }
                 }
