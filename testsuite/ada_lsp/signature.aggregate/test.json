@@ -1,0 +1,704 @@
+[
+   {
+      "comment": [
+         "Test signatureHelp when writing a simple aggregate instantiation."
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 13950,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [{
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "hoverProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                            ".",
+                            ",",
+                            "'",
+                            "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
+                     "definitionProvider": true
+                  }
+               }
+            }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "workspace/didChangeConfiguration"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   type Pos is record\n      X\n        , Y, Z : Integer;\n   end record;\n\n   P : Pos := Pos'\nbegin\n   null;\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 18
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 18
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 19
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "(",
+                  "isRetrigger": false
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "X"
+                           },
+                           {
+                              "label": "Y"
+                           },
+                           {
+                              "label": "Z"
+                           }
+                        ],
+                        "activeParameter": 0
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 19
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 19
+                        }
+                     },
+                     "text": "1"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 20
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "X"
+                              },
+                              {
+                                 "label": "Y"
+                              },
+                              {
+                                 "label": "Z"
+                              }
+                           ],
+                           "activeParameter": 0
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 11,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "X"
+                           },
+                           {
+                              "label": "Y"
+                           },
+                           {
+                              "label": "Z"
+                           }
+                        ],
+                        "activeParameter": 0
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 20
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 20
+                        }
+                     },
+                     "text": ","
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 21
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": ",",
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "X"
+                              },
+                              {
+                                 "label": "Y"
+                              },
+                              {
+                                 "label": "Z"
+                              }
+                           ],
+                           "activeParameter": 0
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 13,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "X"
+                           },
+                           {
+                              "label": "Y"
+                           },
+                           {
+                              "label": "Z"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 21
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 21
+                        }
+                     },
+                     "text": " 2,"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 21,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 24
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": ",",
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "X"
+                              },
+                              {
+                                 "label": "Y"
+                              },
+                              {
+                                 "label": "Z"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 21,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "X"
+                           },
+                           {
+                              "label": "Y"
+                           },
+                           {
+                              "label": "Z"
+                           }
+                        ],
+                        "activeParameter": 2
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 7
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 24
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 24
+                        }
+                     },
+                     "text": " X => 3"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 38,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 31
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "X"
+                              },
+                              {
+                                 "label": "Y"
+                              },
+                              {
+                                 "label": "Z"
+                              }
+                           ],
+                           "activeParameter": 1
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 38,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "X"
+                           },
+                           {
+                              "label": "Y"
+                           },
+                           {
+                              "label": "Z"
+                           }
+                        ],
+                        "activeParameter": 0
+                     }
+                  ],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 14
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 31
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 31
+                        }
+                     },
+                     "text": ")"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 42,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 32
+               },
+               "context": {
+                  "triggerKind": 3,
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "type Pos is record\n   X\n     , Y, Z : Integer;\nend record;",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "X"
+                              },
+                              {
+                                 "label": "Y"
+                              },
+                              {
+                                 "label": "Z"
+                              }
+                           ],
+                           "activeParameter": 0
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 42,
+               "result": {
+                  "signatures": [],
+                  "activeSignature": 0,
+                  "activeParameter": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 45,
+            "method": "shutdown"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

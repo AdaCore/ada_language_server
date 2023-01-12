@@ -1,0 +1,334 @@
+[
+   {
+      "comment": [
+         "Test signatureHelp when writing a complex aggregate instantiation."
+      ]
+   }, 
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 13950,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [{
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "hoverProvider": true,
+                     "referencesProvider": true,
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                            ".",
+                            ",",
+                            "'",
+                            "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
+                     },
+                     "definitionProvider": true
+                  }
+               }
+            }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   type Foo (X, Y, Z : Boolean; I : Integer) is record\n      case X is\n         when True =>\n            case Y is\n               when True =>\n                  A : Integer;\n               when False =>\n                  B : Integer;\n            end case;\n         when others =>\n            case Z is\n               when True =>\n                  C : Float;\n               when False =>\n                  D : Float;\n            end case;\n      end case;\n   end record;\n\n   F : Foo := Foo'\nbegin\n   null;\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 20,
+                           "character": 18
+                        },
+                        "end": {
+                           "line": 20,
+                           "character": 18
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 20,
+                  "character": 19
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "(",
+                  "isRetrigger": false
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "type Foo (X, Y, Z : Boolean; I : Integer) is record\n   case X is\n      when True =>\n         case Y is\n            when True =>\n               A : Integer;\n            when False =>\n               B : Integer;\n         end case;\n      when others =>\n         case Z is\n            when True =>\n               C : Float;\n            when False =>\n               D : Float;\n         end case;\n   end case;\nend record;",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "X"
+                           },
+                           {
+                              "label": "Z"
+                           },
+                           {
+                              "label": "Y"
+                           },
+                           {
+                              "label": "I"
+                           },
+                           {
+                              "label": "D"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 20,
+                           "character": 19
+                        },
+                        "end": {
+                           "line": 20,
+                           "character": 19
+                        }
+                     },
+                     "text": "1,"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 15,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 20,
+                  "character": 21
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "method": "textDocument/signatureHelp",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 20,
+                  "character": 21
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": ",",
+                  "isRetrigger": true,
+                  "activeSignatureHelp": {
+                     "signatures": [
+                        {
+                           "label": "type Foo (X, Y, Z : Boolean; I : Integer) is record\n   case X is\n      when True =>\n         case Y is\n            when True =>\n               A : Integer;\n            when False =>\n               B : Integer;\n         end case;\n      when others =>\n         case Z is\n            when True =>\n               C : Float;\n            when False =>\n               D : Float;\n         end case;\n   end case;\nend record;",
+                           "documentation": "",
+                           "parameters": [
+                              {
+                                 "label": "X"
+                              },
+                              {
+                                 "label": "Z"
+                              },
+                              {
+                                 "label": "Y"
+                              },
+                              {
+                                 "label": "I"
+                              },
+                              {
+                                 "label": "D"
+                              }
+                           ],
+                           "activeParameter": 0
+                        }
+                     ],
+                     "activeSignature": 0,
+                     "activeParameter": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 16,
+               "result": {
+                  "signatures": [
+                     {
+                        "label": "type Foo (X, Y, Z : Boolean; I : Integer) is record\n   case X is\n      when True =>\n         case Y is\n            when True =>\n               A : Integer;\n            when False =>\n               B : Integer;\n         end case;\n      when others =>\n         case Z is\n            when True =>\n               C : Float;\n            when False =>\n               D : Float;\n         end case;\n   end case;\nend record;",
+                        "documentation": "",
+                        "parameters": [
+                           {
+                              "label": "X"
+                           },
+                           {
+                              "label": "Z"
+                           },
+                           {
+                              "label": "Y"
+                           },
+                           {
+                              "label": "I"
+                           },
+                           {
+                              "label": "D"
+                           }
+                        ],
+                        "activeParameter": 1
+                     }
+                  ],
+                  "activeSignature": 0
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 43,
+            "method": "shutdown"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

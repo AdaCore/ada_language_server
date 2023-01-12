@@ -206,19 +206,19 @@
                 "id": 6,
                 "result": {
                     "isIncomplete": false,
-                    "items": ["<HAS>",
-                              {
-                                  "label": "Decimal (invisible)",
-                                  "kind": 9,
-                                  "detail": "package Ada.Decimal ",
-                                  "documentation": "at a-decima.ads (38:1)\n\nThis is the 128-bit version of this package",
-                                  "sortText": "~100&08Decimal",
-                                  "filterText": "Decimal",
-                                  "insertText": "Decimal",
-                                  "additionalTextEdits": [
-                                  ]
-                              }
-                             ]
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "Decimal (invisible)",
+                        "kind": 9,
+                        "detail": "package Ada.Decimal ",
+                        "documentation": "at a-decima.ads (38:1)\n\nThe compiler makes a number of assumptions based on the following five\nconstants (e.g. there is an assumption that decimal values can always\nbe represented in 128-bit signed binary form), so code modifications are\nrequired to increase these constants.",
+                        "sortText": "~100&08Decimal",
+                        "filterText": "Decimal",
+                        "insertText": "Decimal",
+                        "additionalTextEdits": []
+                     }
+                  ]
                }
             }
          ]

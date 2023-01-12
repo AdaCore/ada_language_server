@@ -32,7 +32,6 @@ with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
 with VSS.Characters.Latin;
-with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
 
@@ -96,8 +95,6 @@ with Libadalang.Common;    use Libadalang.Common;
 with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 with Libadalang.Preprocessing;
-
-with GNATdoc.Comments.Helpers;
 
 with URIs;
 
@@ -670,8 +667,11 @@ package body LSP.Ada_Handlers is
       Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
       Self.Project_Tree := new Project_Tree;
 
-      C.Initialize (Reader, Self.Follow_Symlinks,
-                    As_Fallback_Context => True);
+      C.Initialize
+        (File_Reader         => Reader,
+         Follow_Symlinks     => Self.Follow_Symlinks,
+         Style               => Self.Options.Documentation.Style,
+         As_Fallback_Context => True);
 
       --  Note: we would call Load_Implicit_Project here, but this has
       --  two problems:
@@ -3103,9 +3103,7 @@ package body LSP.Ada_Handlers is
 
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
-      Decl_Lines         : VSS.String_Vectors.Virtual_String_Vector;
       Decl_Text          : VSS.Strings.Virtual_String;
-      Comments_Lines     : VSS.String_Vectors.Virtual_String_Vector;
       Comments_Text      : VSS.Strings.Virtual_String;
       Location_Text      : VSS.Strings.Virtual_String;
 
@@ -3113,12 +3111,6 @@ package body LSP.Ada_Handlers is
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
-
-      Options : constant
-        GNATdoc.Comments.Options.Extractor_Options :=
-          (Style    => Self.Options.Documentation.Style,
-           Pattern  => <>,
-           Fallback => True);
 
    begin
       Self.Imprecise_Resolve_Name (C, Value, Defining_Name_Node);
@@ -3134,30 +3126,13 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      --  Extract documentation with GNATdoc when supported.
-
-      GNATdoc.Comments.Helpers.Get_Plain_Text_Documentation
-        (Defining_Name_Node, Options, Decl_Lines, Comments_Lines);
-
-      Decl_Text := Decl_Lines.Join_Lines (VSS.Strings.LF, False);
-      Comments_Text := Comments_Lines.Join_Lines (VSS.Strings.LF, False);
-
-      --  Obtain documentation when GNATdoc support is missing.
-
-      if Comments_Text.Is_Empty then
-         Comments_Text :=
-           VSS.Strings.To_Virtual_String
-             (Libadalang.Doc_Utils.Get_Documentation (Decl).Doc.To_String);
-      end if;
-
-      if Decl_Text.Is_Empty
-        or else not Decl.P_Subp_Spec_Or_Null.Is_Null
-      then
-         --  For subprograms additional information is added, use old code to
-         --  obtain it yet.
-
-         Decl_Text := Get_Hover_Text (Decl, Decl_Lines);
-      end if;
+      LSP.Lal_Utils.Get_Tooltip_Text
+        (BD        => Decl,
+         Trace     => Self.Trace,
+         Style     => C.Get_Documentation_Style,
+         Loc_Text  => Location_Text,
+         Doc_Text  => Comments_Text,
+         Decl_Text => Decl_Text);
 
       if Decl_Text.Is_Empty then
          return Response;
@@ -3502,14 +3477,14 @@ package body LSP.Ada_Handlers is
       Request : LSP.Messages.Server_Requests.Signature_Help_Request)
       return LSP.Messages.Server_Responses.SignatureHelp_Response
    is
-      use Libadalang.Analysis;
       use Langkit_Support.Slocs;
-      use LSP.Messages;
-      use type VSS.Strings.Virtual_String;
+      use Libadalang.Analysis;
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
-      Value   : LSP.Messages.SignatureHelpParams renames
+      Value      : LSP.Messages.SignatureHelpParams renames
         Request.params;
-      Response : LSP.Messages.Server_Responses.SignatureHelp_Response
+      Prev_Value : LSP.Messages.SignatureHelpParams := Value;
+      Response   : LSP.Messages.Server_Responses.SignatureHelp_Response
         (Is_Error => False);
 
       C : constant Context_Access :=
@@ -3520,282 +3495,87 @@ package body LSP.Ada_Handlers is
 
       Node : Libadalang.Analysis.Ada_Node;
       Sloc : Langkit_Support.Slocs.Source_Location;
-
-      Name_Node        : Libadalang.Analysis.Name;
-      Prev_Designators : Laltools.Common.Node_Vectors.Vector;
-      Designator       : Libadalang.Analysis.Ada_Node;
-      Active_Position  : LSP.Types.LSP_Number;
-      Active_Signature : LSP.Types.LSP_Number := 0;
-
-      procedure Add_Signature (Decl_Node : Libadalang.Analysis.Basic_Decl);
-      --  Add the signature of Decl_Node if it matches the current context.
-
-      procedure Filter_Signature
-        (Signature_Info : SignatureInformation;
-         Designator     : Libadalang.Analysis.Ada_Node;
-         Position       : LSP.Types.LSP_Number;
-         Is_Active      : Boolean);
-      --  Filter the signatures returned by the client using the current
-      --  current Position and designator.
-      --  Set Active_Signature to 0 when Is_Active and filtered out.
-
-      function Is_Signature_Active
-        (Parameters      : ParameterInformation_Vector;
-         Sig_Label       : VSS.Strings.Virtual_String;
-         Position        : LSP.Types.LSP_Number;
-         Designator      : Libadalang.Analysis.Ada_Node;
-         Active_Position : out LSP.Types.LSP_Number)
-         return Boolean;
-      --  Return True if Parameters is valid for the current Position and
-      --  Designator.
-      --  Active_Position will point to the active parameter inside Parameters.
-
-      -------------------
-      -- Add_Signature --
-      -------------------
-
-      procedure Add_Signature (Decl_Node : Libadalang.Analysis.Basic_Decl)
-      is
-         Param_Index : constant LSP.Types.LSP_Number :=
-           Get_Active_Parameter
-             (Node             => Decl_Node,
-              Designator       => Designator,
-              Prev_Designators => Prev_Designators,
-              Position         => Active_Position);
-      begin
-         if Param_Index = -1 then
-            return;
-         end if;
-
-         declare
-            Signature : LSP.Messages.SignatureInformation :=
-              (label          => Get_Hover_Text (Decl_Node),
-               documentation  =>
-                 (Is_Set => True,
-                  Value  =>
-                    (Is_String => True,
-                     String    =>
-                       VSS.Strings.To_Virtual_String
-                         (Libadalang.Doc_Utils.Get_Documentation
-                              (Decl_Node).Doc.To_String))),
-               activeParameter =>
-                 (Is_Set => True,
-                  Value  => Param_Index),
-               others          => <>
-              );
-         begin
-            Get_Parameters (Decl_Node, Signature.parameters);
-            Response.result.signatures.Append (Signature);
-         end;
-      end Add_Signature;
-
-      ----------------------
-      -- Filter_Signature --
-      ----------------------
-
-      procedure Filter_Signature
-        (Signature_Info : SignatureInformation;
-         Designator     : Libadalang.Analysis.Ada_Node;
-         Position       : LSP.Types.LSP_Number;
-         Is_Active      : Boolean)
-      is
-         Active_Position : LSP.Types.LSP_Number;
-      begin
-         if Is_Signature_Active
-           (Parameters      => Signature_Info.parameters,
-            Sig_Label       => Signature_Info.label,
-            Position        => Position,
-            Designator      => Designator,
-            Active_Position => Active_Position)
-         then
-            declare
-               New_Signature : SignatureInformation := Signature_Info;
-            begin
-               --  Reuse Signature_Info after updating the active_position
-               New_Signature.activeParameter := (Is_Set => True,
-                                                 Value  => Active_Position);
-               Response.result.signatures.Append (New_Signature);
-            end;
-         elsif Is_Active then
-            Active_Signature := 0;
-         end if;
-      end Filter_Signature;
-
-      -------------------------
-      -- Is_Signature_Active --
-      -------------------------
-
-      function Is_Signature_Active
-        (Parameters      : ParameterInformation_Vector;
-         Sig_Label       : VSS.Strings.Virtual_String;
-         Position        : LSP.Types.LSP_Number;
-         Designator      : Libadalang.Analysis.Ada_Node;
-         Active_Position : out LSP.Types.LSP_Number)
-         return Boolean is
-      begin
-         Active_Position := 0;
-         if Designator = No_Ada_Node then
-            --  Check if Position is valid in Parameters (Note: Position starts
-            --  at 0)
-            Active_Position := Position;
-            return Position < LSP_Number (Parameters.Length);
-         else
-            declare
-               Name : constant VSS.Strings.Virtual_String :=
-                 LSP.Lal_Utils.To_Virtual_String (Designator.Text);
-
-            begin
-               for Param of Parameters loop
-                  declare
-                     use type VSS.Unicode.UTF16_Code_Unit_Offset;
-
-                     First   :
-                       VSS.Strings.Character_Iterators.Character_Iterator
-                         := Sig_Label.At_First_Character;
-                     Last    :
-                       VSS.Strings.Character_Iterators.Character_Iterator
-                         := Sig_Label.At_First_Character;
-                     Success : Boolean with Unreferenced;
-
-                  begin
-                     --  Convert to lower case?
-                     if Param.label.Is_String then
-                        if Param.label.String = Name then
-                           return True;
-                        end if;
-
-                     else
-                        while First.First_UTF16_Offset < Param.label.From
-                          and then First.Forward
-                        loop
-                           null;
-                        end loop;
-
-                        --  'till' is exclusive offset, thus lookup for it
-                        --  location and move backward to point to last
-                        --  character of the slice
-
-                        while Last.First_UTF16_Offset < Param.label.Till
-                          and then Last.Forward
-                        loop
-                           null;
-                        end loop;
-
-                        Success := Last.Backward;
-
-                        if Sig_Label.Slice (First, Last) = Name then
-                           return True;
-                        end if;
-                     end if;
-
-                     Active_Position := Active_Position + 1;
-                  end;
-               end loop;
-            end;
-         end if;
-
-         return False;
-      end Is_Signature_Active;
-
    begin
       Response.result := (others => <>);
-
-      Node := C.Get_Node_At (Document, Value, Previous => True);
       Sloc := Document.Get_Source_Location (Value.position);
 
-      --  Check if we are inside a function call and get the caller name
-      Get_Call_Expr_Name
-        (Node             => Node,
-         Cursor           => Sloc,
-         Active_Position  => Active_Position,
-         Designator       => Designator,
-         Prev_Designators => Prev_Designators,
-         Name_Node        => Name_Node);
+      --  Move the cursor to the previous character: this is more resilient
+      --  to invalid code.
+      if Prev_Value.position.character > 0 then
+         Prev_Value.position.character := Prev_Value.position.character - 1;
+      end if;
+      Node := C.Get_Node_At (Document, Prev_Value);
 
-      if Name_Node = Libadalang.Analysis.No_Name then
-         --  Try again with the current position
-         Node := C.Get_Node_At (Document, Value, Previous => False);
-         Get_Call_Expr_Name
-           (Node             => Node,
-            Cursor           => Sloc,
-            Active_Position  => Active_Position,
-            Designator       => Designator,
-            Prev_Designators => Prev_Designators,
-            Name_Node        => Name_Node);
-
-         if Name_Node = Libadalang.Analysis.No_Name then
+      declare
+         Name_Node  : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Node);
+      begin
+         --  Is this a type cast?
+         if Name_Node /= No_Ada_Node
+           and then Name_Node.P_Name_Designated_Type /= No_Ada_Node
+         --  Does the cast make sense?
+         --   and then Active_Position = 0
+         --  Do we have the previous signatures?
+           and then Value.context.Is_Set
+           and then Value.context.Value.activeSignatureHelp.Is_Set
+         then
+            --  At this point, the user is writing a typecast in a previous
+            --  signature => keep showing the previous signatures.
+            Response.result := Value.context.Value.activeSignatureHelp.Value;
             return Response;
          end if;
-      end if;
+      end;
 
-      --  Is this a type cast?
-      if Name_Node.P_Name_Designated_Type /= No_Ada_Node
-        --  Does the cast make sense?
-        and then Active_Position = 0
-        --  Do we have the previous signatures?
-        and then Value.context.Is_Set
-        and then Value.context.Value.activeSignatureHelp.Is_Set
-      then
-         --  At this point, the user is writing a typecast in a previous
-         --  signature => keep showing the previous signatures.
-         Response.result := Value.context.Value.activeSignatureHelp.Value;
-         return Response;
-      end if;
+      --  Try to get signatures before the cursor location
+      --  i.e "Foo (1,|" => "Foo (1|,"
+      LSP.Ada_Completions.Parameters.Propose_Signatures
+        (Context         => C,
+         Node            => Node,
+         Cursor          => Sloc,
+         Prev_Signatures => Value.context,
+         Res             => Response.result);
 
-      if Value.context.Is_Set
-        and then Value.context.Value.isRetrigger
-        and then Value.context.Value.activeSignatureHelp.Is_Set
-        and then
-          (Value.context.Value.triggerKind /= TriggerCharacter
-           or else
-           --  Adding a ',' will not add new results only filter the previous
-             (Value.context.Value.triggerCharacter.Is_Set
-              and then Value.context.Value.triggerCharacter.Value = ","))
-      then
-         --  At this point, we are filtering the previous signatures:
-         --  * Don't recompute the list of signature
-         --  * Keep the previous activeSignature if not filtered out
-
+      --  Retry to get signature in the previous non whitespace token
+      --  i.e. "Foo (1, 2 + |" => "Foo (1, 2 +|"
+      if Response.result.signatures.Is_Empty then
          declare
-            Prev_Res : SignatureHelp renames
-              Value.context.Value.activeSignatureHelp.Value;
-            --  Use index to find the activeSignature
-            Index    : LSP.Types.LSP_Number := 0;
+            Token : Libadalang.Common.Token_Reference :=
+              C.Get_Token_At (Document, Prev_Value);
          begin
-            if Prev_Res.activeSignature.Is_Set then
-               Active_Signature := Prev_Res.activeSignature.Value;
-            else
-               Active_Signature := 0;
-            end if;
-
-            for Signature_Info of Prev_Res.signatures loop
-               Filter_Signature
-                 (Signature_Info => Signature_Info,
-                  Designator     => Designator,
-                  Position       => Active_Position,
-                  Is_Active      => Index = Active_Signature);
-               Index := Index + 1;
-            end loop;
-         end;
-      else
-
-         for N of C.Find_All_Env_Elements (Name_Node) loop
-            if N.Kind in Ada_Subp_Decl_Range
-              | Ada_Null_Subp_Decl_Range
-                | Ada_Expr_Function_Range
+            if Token /= No_Token
+              and then Kind (Data (Token)) = Ada_Whitespace
             then
-               Add_Signature (N.As_Basic_Decl);
+               Token :=
+                 Libadalang.Common.Previous (Token, Exclude_Trivia => True);
             end if;
-         end loop;
+
+            Prev_Value.position :=
+              To_Span
+                (Langkit_Support.Slocs.Start_Sloc
+                   (Sloc_Range (Data (Token)))).first;
+         end;
+
+         Node := C.Get_Node_At (Document, Prev_Value);
+         LSP.Ada_Completions.Parameters.Propose_Signatures
+           (Context         => C,
+            Node            => Node,
+            Cursor          => Sloc,
+            Prev_Signatures => Value.context,
+            Res             => Response.result);
       end if;
 
-      --  Set the active values to default
-      Response.result.activeSignature := (Is_Set => True,
-                                          Value  => Active_Signature);
-      --  activeParameter will be ignored because it is properly set in
-      --  the signatures.
-      Response.result.activeParameter := (Is_Set => True,
-                                          Value  => 0);
+      --  Retry to get signatures in the cursor position.
+      --  It handles the edge case of nested function closing
+      --  i.e. "Foo (Bar (1)|"
+      if Response.result.signatures.Is_Empty then
+         Node := C.Get_Node_At (Document, Value);
+         LSP.Ada_Completions.Parameters.Propose_Signatures
+           (Context         => C,
+            Node            => Node,
+            Cursor          => Sloc,
+            Prev_Signatures => Value.context,
+            Res             => Response.result);
+      end if;
 
       return Response;
    end On_Signature_Help_Request;
@@ -4863,10 +4643,13 @@ package body LSP.Ada_Handlers is
            Libadalang.Preprocessing.Create_Preprocessor_Data
              (Default_Config, File_Configs);
 
-         C.Initialize (Reader, Self.Follow_Symlinks);
+         C.Initialize
+           (Reader,
+            Style           => Self.Options.Documentation.Style,
+            Follow_Symlinks => Self.Follow_Symlinks);
 
          C.Load_Project
-           (Self.Project_Tree,
+           (Tree    => Self.Project_Tree,
             Root    => P,
             Charset => VSS.Strings.Conversions.To_UTF_8_String (Charset));
 
@@ -5752,25 +5535,35 @@ package body LSP.Ada_Handlers is
       --  Compute the completion item's details
       if not Node.Is_Null then
          declare
-            BD : constant Libadalang.Analysis.Basic_Decl :=
+            BD        : constant Libadalang.Analysis.Basic_Decl :=
               Node.As_Basic_Decl;
+            Loc_Text  : VSS.Strings.Virtual_String;
+            Doc_Text  : VSS.Strings.Virtual_String;
+            Decl_Text : VSS.Strings.Virtual_String;
          begin
-            Item.detail := (True, Compute_Completion_Detail (BD));
+            LSP.Lal_Utils.Get_Tooltip_Text
+              (BD          => BD,
+               Trace       => C.Trace,
+               Style       => Self.Options.Documentation.Style,
+               Loc_Text    => Loc_Text,
+               Doc_Text    => Doc_Text,
+               Decl_Text => Decl_Text);
 
-            --  Property_Errors can occur when calling
-            --  Get_Documentation on unsupported docstrings, so
-            --  add an exception handler to catch them and recover.
+            Item.detail := (True, Decl_Text);
+
+            if not Doc_Text.Is_Empty then
+               Loc_Text.Append
+                 (VSS.Strings.To_Virtual_String
+                    ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
+
+               Loc_Text.Append (Doc_Text);
+            end if;
 
             Item.documentation :=
               (Is_Set => True,
                Value  => LSP.Messages.String_Or_MarkupContent'
                  (Is_String => True,
-                  String    => LSP.Lal_Utils.Compute_Completion_Doc (BD)));
-
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               LSP.Common.Log (C.Trace, E);
-               Item.documentation := (others => <>);
+                  String    => Loc_Text));
          end;
 
          Response.result := Item;

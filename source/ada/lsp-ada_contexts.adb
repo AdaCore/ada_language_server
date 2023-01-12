@@ -38,6 +38,7 @@ with Langkit_Support.Slocs;
 with Utils.Command_Lines.Common;
 
 with Pp.Actions;
+with Langkit_Support.Text;
 
 package body LSP.Ada_Contexts is
 
@@ -46,6 +47,31 @@ package body LSP.Ada_Contexts is
    Formatting_Trace : constant Trace_Handle := Create ("ALS.FORMATTING", On);
 
    use type Libadalang.Analysis.Analysis_Unit;
+
+   type LSP_Context_Event_Handler_Type
+   is new Libadalang.Analysis.Event_Handler_Interface with record
+      Trace : Trace_Handle;
+   end record;
+   --  LAL event handler used to log units that have notbeen found when
+   --  requested.
+
+   overriding procedure Unit_Requested_Callback
+     (Self               : in out LSP_Context_Event_Handler_Type;
+      Context            : Libadalang.Analysis.Analysis_Context'Class;
+      Name               : Langkit_Support.Text.Text_Type;
+      From               : Libadalang.Analysis.Analysis_Unit'Class;
+      Found              : Boolean;
+      Is_Not_Found_Error : Boolean);
+
+   overriding procedure Unit_Parsed_Callback
+     (Self     : in out LSP_Context_Event_Handler_Type;
+      Context  : Libadalang.Analysis.Analysis_Context'Class;
+      Unit     : Libadalang.Analysis.Analysis_Unit'Class;
+      Reparsed : Boolean)
+   is null;
+
+   overriding procedure Release (Self : in out LSP_Context_Event_Handler_Type)
+   is null;
 
    function Get_Charset (Self : Context'Class) return String;
    --  Return the charset with which the context was initialized
@@ -82,6 +108,25 @@ package body LSP.Ada_Contexts is
    --  Update the gnatpp formatting options using the LSP ones.
    --  Options that are explicitly specified in the .gpr file take precedence
    --  over LSP options.
+
+   -----------------------------
+   -- Unit_Requested_Callback --
+   -----------------------------
+
+   overriding procedure Unit_Requested_Callback
+     (Self               : in out LSP_Context_Event_Handler_Type;
+      Context            : Libadalang.Analysis.Analysis_Context'Class;
+      Name               : Langkit_Support.Text.Text_Type;
+      From               : Libadalang.Analysis.Analysis_Unit'Class;
+      Found              : Boolean;
+      Is_Not_Found_Error : Boolean) is
+   begin
+      if not Found then
+         Self.Trace.Trace
+           ("Failed to request the following unit: "
+            & Langkit_Support.Text.To_UTF8 (Name));
+      end if;
+   end Unit_Requested_Callback;
 
    -------------------------
    -- Append_Declarations --
@@ -601,6 +646,7 @@ package body LSP.Ada_Contexts is
      (Self                : in out Context;
       File_Reader         : File_Reader_Interface'Class;
       Follow_Symlinks     : Boolean;
+      Style               : GNATdoc.Comments.Options.Documentation_Style;
       As_Fallback_Context : Boolean := False) is
    begin
       Self.Follow_Symlinks := Follow_Symlinks;
@@ -613,6 +659,8 @@ package body LSP.Ada_Contexts is
          With_Trivia   => True,
          Charset       => Self.Get_Charset,
          Tab_Stop      => 1);
+      Self.Style := Style;
+
       --  Tab stop is set 1 to disable "visible character guessing" by LAL.
       Self.Is_Fallback_Context := As_Fallback_Context;
    end Initialize;
@@ -756,6 +804,9 @@ package body LSP.Ada_Contexts is
            Project          => Root,
            Env              => Get_Environment (Root),
            Is_Project_Owner => False);
+
+      Self.Event_Handler := Libadalang.Analysis.Create_Event_Handler_Reference
+        (LSP_Context_Event_Handler_Type'(Trace => Self.Trace));
 
       Self.Reload;
       Update_Source_Files;
@@ -904,8 +955,7 @@ package body LSP.Ada_Contexts is
      (Self         : Context;
       Document     : LSP.Ada_Documents.Document_Access;
       Position     : LSP.Messages.TextDocumentPositionParams'Class;
-      Project_Only : Boolean := True;
-      Previous     : Boolean := False)
+      Project_Only : Boolean := True)
       return Libadalang.Analysis.Ada_Node
    is
       use type Libadalang.Analysis.Ada_Node;
@@ -920,8 +970,6 @@ package body LSP.Ada_Contexts is
       Name     : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
         Self.URI_To_File (URI);
       File     : constant Virtual_File := Create_From_UTF8 (Name);
-      Col_Incr : constant Langkit_Support.Slocs.Column_Number :=
-        (if Previous then 0 else 1);
    begin
       --  We're about to get a node from an analysis unit. Either the document
       --  is open for it, in which case we read the document, or the
@@ -932,7 +980,8 @@ package body LSP.Ada_Contexts is
 
       if Document /= null then
          return Document.Get_Node_At
-           (Self, Position.position, Previous => Previous);
+           (Context   => Self,
+            Position  => Position.position);
       elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
          Unit := Self.Get_AU (File);
 
@@ -944,13 +993,66 @@ package body LSP.Ada_Contexts is
            ((Line   => Langkit_Support.Slocs.Line_Number
              (Position.position.line) + 1,
              Column => Langkit_Support.Slocs.Column_Number
-               (Position.position.character) + Col_Incr));
+               (Position.position.character) + 1));
          --  ??? Incorrect conversion of UTF16 offset to Column_Number
 
       else
          return Libadalang.Analysis.No_Ada_Node;
       end if;
    end Get_Node_At;
+
+   ------------------
+   -- Get_Token_At --
+   ------------------
+
+   function Get_Token_At
+     (Self         : Context;
+      Document     : LSP.Ada_Documents.Document_Access;
+      Position     : LSP.Messages.TextDocumentPositionParams'Class;
+      Project_Only : Boolean := True)
+      return Libadalang.Common.Token_Reference
+   is
+      use type Libadalang.Analysis.Ada_Node;
+      use type LSP.Ada_Documents.Document_Access;
+      use type Langkit_Support.Slocs.Line_Number;
+      use type Langkit_Support.Slocs.Column_Number;
+
+      Unit : Libadalang.Analysis.Analysis_Unit;
+
+      URI      : constant LSP.Messages.DocumentUri :=
+        Position.textDocument.uri;
+      Name     : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+        Self.URI_To_File (URI);
+      File     : constant Virtual_File := Create_From_UTF8 (Name);
+   begin
+      --  We're about to get a node from an analysis unit. Either the document
+      --  is open for it, in which case we read the document, or the
+      --  document is not open for it. In this case, resolve this only
+      --  if the file belongs to the project (unless if Project_Only is False):
+      --  we don't want to pollute the LAL context with units that are not in
+      --  the project.
+
+      if Document /= null then
+         return Document.Get_Token_At
+           (Context   => Self,
+            Position  => Position.position);
+      elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
+         Unit := Self.Get_AU (File);
+
+         if Unit.Root = Libadalang.Analysis.No_Ada_Node then
+            return Libadalang.Common.No_Token;
+         end if;
+
+         return Unit.Lookup_Token
+           ((Line   => Langkit_Support.Slocs.Line_Number
+             (Position.position.line) + 1,
+             Column => Langkit_Support.Slocs.Column_Number
+               (Position.position.character) + 1));
+
+      else
+         return Libadalang.Common.No_Token;
+      end if;
+   end Get_Token_At;
 
    --------
    -- Id --
