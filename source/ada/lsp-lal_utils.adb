@@ -15,10 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Wide_Unbounded;
 with System;
+
+with GNATdoc.Comments.Helpers;
 
 with GNATCOLL.Utils;
 
@@ -75,6 +76,11 @@ package body LSP.Lal_Utils is
       Node   : Libadalang.Analysis.Ada_Node) return Boolean;
    --  Evaluate the Restricted_Kind_Predicate filter
    --  See Is_Restricted_Kind for details.
+
+   function Get_Decl_Text
+     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
+   --  Return the code associated with the given declaration, in a formatted
+   --  way.
 
    ---------------------
    -- Append_Location --
@@ -422,6 +428,7 @@ package body LSP.Lal_Utils is
    function Get_Call_Designators
      (Node           : Libadalang.Analysis.Call_Expr;
       Sloc           : Langkit_Support.Slocs.Source_Location;
+      Prefixed       : out Boolean;
       Unnamed_Params : out Natural)
       return Laltools.Common.Node_Vectors.Vector
    is
@@ -431,6 +438,7 @@ package body LSP.Lal_Utils is
         Laltools.Common.Node_Vectors.Empty_Vector;
    begin
       Unnamed_Params := 0;
+      Prefixed := False;
 
       if Node = No_Call_Expr then
          return Res;
@@ -439,7 +447,19 @@ package body LSP.Lal_Utils is
       declare
          Suffix_Node : constant Libadalang.Analysis.Ada_Node'Class :=
            Node.F_Suffix;
+         Name_Node   : constant Libadalang.Analysis.Name := Node.F_Name;
       begin
+         if Name_Node.Kind in Ada_Dotted_Name_Range then
+            declare
+               Dot_Name : constant Dotted_Name := Name_Node.As_Dotted_Name;
+            begin
+               --  Check if the prefix is a parameter
+               if Dot_Name.P_Is_Dot_Call (Imprecise_Fallback => True) then
+                  Prefixed := True;
+               end if;
+            end;
+         end if;
+
          if Suffix_Node /= Libadalang.Analysis.No_Ada_Node
            and then Suffix_Node.Kind in Ada_Assoc_List_Range
          then
@@ -448,12 +468,14 @@ package body LSP.Lal_Utils is
                if Designator /= No_Ada_Node then
                   Res.Append (Designator);
                else
-                  if Res.Is_Empty
-                  --  Count only the unnamed params at the start
-                    and then Start_Sloc (Assoc.Sloc_Range) < Sloc
-                  --  Prevent adding false parameter because of LAL recovery
-                  then
-                     Unnamed_Params := Unnamed_Params + 1;
+                  if Start_Sloc (Assoc.Sloc_Range) < Sloc then
+                     --  Prevent adding false parameter because of LAL recovery
+                     if Res.Is_Empty then
+                        --  Count only the unnamed params at the start
+                        Unnamed_Params := Unnamed_Params + 1;
+                     else
+                        Res.Append (No_Ada_Node);
+                     end if;
                   end if;
                end if;
             end loop;
@@ -461,324 +483,6 @@ package body LSP.Lal_Utils is
       end;
       return Res;
    end Get_Call_Designators;
-
-   ------------------------
-   -- Get_Call_Expr_Name --
-   ------------------------
-
-   procedure Get_Call_Expr_Name
-     (Node             : Libadalang.Analysis.Ada_Node'Class;
-      Cursor           : Langkit_Support.Slocs.Source_Location;
-      Active_Position  : out LSP.Types.LSP_Number;
-      Designator       : out Libadalang.Analysis.Ada_Node;
-      Prev_Designators : out Laltools.Common.Node_Vectors.Vector;
-      Name_Node        : out Libadalang.Analysis.Name)
-   is
-      use Langkit_Support.Slocs;
-      In_Assoc_List  : Boolean  := False;
-      --  True if the cursor is a node of the Assoc_List
-      Is_New_Param  : Boolean  := False;
-
-      Call_Expr_Node : constant Libadalang.Analysis.Call_Expr :=
-        Get_Call_Expr (Node);
-
-      function Cursor_In_Node (N : Ada_Node) return Boolean;
-      --  Check if N contains the cursor
-
-      function Cursor_On_Last_Par return Boolean;
-      --  Return True when the cursor is located on the closing parenthesis
-      --  of Call_Expr_Node
-
-      --------------------
-      -- Cursor_In_Node --
-      --------------------
-
-      function Cursor_In_Node (N : Ada_Node) return Boolean is
-      begin
-         case Libadalang.Analysis.Compare (N, Cursor) is
-            when Inside =>
-               In_Assoc_List := True;
-               return True;
-            when Before =>
-               --  Case to handle:
-               --      Foo (1, |
-               --      Bar (1, 2);
-               --  LAL error recovery will assume that Bar (1, 2); is the
-               --  second param of Foo. At this point we are in the Assoc_List
-               --  and we need to stop going through the list of parameters.
-               In_Assoc_List := True;
-               return True;
-            when After =>
-               In_Assoc_List := False;
-               return False;
-         end case;
-      end Cursor_In_Node;
-
-      ------------------------
-      -- Cursor_On_Last_Par --
-      ------------------------
-
-      function Cursor_On_Last_Par return Boolean is
-         Call_Text : constant Langkit_Support.Text.Text_Type :=
-           Call_Expr_Node.Text;
-         Open_Cpt  : Natural := 0;
-         Close_Cpt : Natural := 0;
-      begin
-         if Call_Text (Call_Text'Last) /= ')' then
-            --  Not on a closing parenthesis
-            return False;
-         end if;
-
-         --  Count the open/closing parentheses
-         for C of Call_Text loop
-            if C = '(' then
-               Open_Cpt := Open_Cpt + 1;
-            elsif C = ')' then
-               Close_Cpt := Close_Cpt + 1;
-            end if;
-         end loop;
-
-         return Open_Cpt = Close_Cpt;
-      end Cursor_On_Last_Par;
-
-   begin
-      Active_Position := 0;
-      Designator := Libadalang.Analysis.No_Ada_Node;
-      Prev_Designators := Laltools.Common.Node_Vectors.Empty_Vector;
-      Name_Node := Libadalang.Analysis.No_Name;
-
-      if Call_Expr_Node = No_Call_Expr
-        or else (End_Sloc (Call_Expr_Node.Sloc_Range) = Cursor
-                 and then Cursor_On_Last_Par)
-      then
-         return;
-      end if;
-
-      declare
-         Suffix_Node : constant Libadalang.Analysis.Ada_Node'Class :=
-           Call_Expr_Node.F_Suffix;
-      begin
-         Name_Node := Call_Expr_Node.F_Name;
-
-         if Name_Node.Kind in Ada_Dotted_Name_Range then
-            declare
-               Dot_Name : constant Dotted_Name := Name_Node.As_Dotted_Name;
-            begin
-               --  If the prefix is a parameter then increase the
-               --  Active_Position by 1
-               if Dot_Name.P_Is_Dot_Call (Imprecise_Fallback => True) then
-                  Active_Position := Active_Position + 1;
-               end if;
-            end;
-         end if;
-
-         if Suffix_Node = Libadalang.Analysis.No_Ada_Node then
-            return;
-         end if;
-
-         --  Find the position in the Assoc_List
-         if Suffix_Node.Kind in Ada_Assoc_List_Range then
-            declare
-               Assoc_Text : constant Langkit_Support.Text.Text_Type :=
-                 Suffix_Node.Text;
-            begin
-               --  In case of "Foo (1," the assoc_list text will be "1,"
-               Is_New_Param := Assoc_Text (Assoc_Text'Last) = ',';
-            end;
-
-            for Assoc of Suffix_Node.As_Assoc_List loop
-               Designator := Assoc.As_Param_Assoc.F_Designator;
-               Active_Position := Active_Position + 1;
-               exit when Cursor_In_Node (Assoc.As_Ada_Node);
-               if Designator /= No_Ada_Node then
-                  Prev_Designators.Append (Designator);
-               end if;
-            end loop;
-         end if;
-
-         if not In_Assoc_List and then Is_New_Param then
-            --  The user has written "Foo (1,|" or "Foo (1, |" at this point
-            --  LAL only has one node in the Assoc_List however we are at the
-            --  second active position.
-            Designator := No_Ada_Node;
-         else
-            Active_Position := Active_Position - 1;
-         end if;
-      end;
-   end Get_Call_Expr_Name;
-
-   --------------------
-   -- Get_Parameters --
-   --------------------
-
-   procedure Get_Parameters
-     (Node : Libadalang.Analysis.Basic_Decl;
-      Parameters : in out LSP.Messages.ParameterInformation_Vector)
-   is
-      Spec : constant Libadalang.Analysis.Base_Subp_Spec :=
-        Node.P_Subp_Spec_Or_Null;
-   begin
-      if Spec = Libadalang.Analysis.No_Base_Subp_Spec then
-         return;
-      end if;
-
-      for Param of Spec.P_Params loop
-         for Id of Param.F_Ids loop
-            declare
-               P : constant LSP.Messages.ParameterInformation :=
-                 (label         =>
-                    (Is_String => True,
-                     String    => LSP.Lal_Utils.To_Virtual_String (Id.Text)),
-                  documentation =>
-                    (Is_Set => False)
-                 );
-            begin
-               Parameters.Append (P);
-            end;
-         end loop;
-      end loop;
-   end Get_Parameters;
-
-   --------------------------
-   -- Get_Active_Parameter --
-   --------------------------
-
-   function Get_Active_Parameter
-     (Node             : Libadalang.Analysis.Basic_Decl;
-      Designator       : Libadalang.Analysis.Ada_Node;
-      Prev_Designators : Laltools.Common.Node_Vectors.Vector;
-      Position         : LSP.Types.LSP_Number)
-      return LSP.Types.LSP_Number
-   is
-      Spec : constant Libadalang.Analysis.Base_Subp_Spec :=
-        Node.P_Subp_Spec_Or_Null;
-      Res  : LSP.Types.LSP_Number := -1;
-
-      function Find_Designator
-        (D      : Libadalang.Analysis.Ada_Node;
-         Params : Libadalang.Analysis.Param_Spec_Array)
-         return LSP.Types.LSP_Number;
-
-      function Count_Parameters
-        (Params : Libadalang.Analysis.Param_Spec_Array)
-         return LSP.Types.LSP_Number;
-
-      ---------------------
-      -- Find_Designator --
-      ---------------------
-
-      function Find_Designator
-        (D      : Libadalang.Analysis.Ada_Node;
-         Params : Libadalang.Analysis.Param_Spec_Array)
-         return LSP.Types.LSP_Number
-      is
-         Index : LSP.Types.LSP_Number := 0;
-      begin
-         for Param of Params loop
-            for Id of Param.F_Ids loop
-               if Id.Text = D.Text then
-                  return Index;
-               end if;
-               Index := Index + 1;
-            end loop;
-         end loop;
-
-         return -1;
-      end Find_Designator;
-
-      ----------------------
-      -- Count_Parameters --
-      ----------------------
-
-      function Count_Parameters
-        (Params : Libadalang.Analysis.Param_Spec_Array)
-         return LSP.Types.LSP_Number
-      is
-         Index : LSP.Types.LSP_Number := 0;
-      begin
-         for Param of Params loop
-            for Id of Param.F_Ids loop
-               Index := Index + 1;
-            end loop;
-         end loop;
-
-         return Index;
-      end Count_Parameters;
-
-   begin
-      if Spec = Libadalang.Analysis.No_Base_Subp_Spec then
-         return -1;
-      end if;
-
-      declare
-         Params : constant Libadalang.Analysis.Param_Spec_Array :=
-           Spec.P_Params;
-      begin
-         if Designator = Libadalang.Analysis.No_Ada_Node then
-            --  Check if the given position is a valid index for Node
-
-            if Position >= Count_Parameters (Params) then
-               return -1;
-            else
-               Res := Position;
-            end if;
-
-         else
-            --  If we have a designator then try to find the position of a
-            --  parameter with the same name
-            Res := Find_Designator (Designator, Params);
-
-         end if;
-
-         --  Invalidate the result if it doesn't match the previous designators
-         if not Match_Designators (Params, Prev_Designators) then
-            return -1;
-         end if;
-      end;
-
-      return Res;
-   end Get_Active_Parameter;
-
-   -----------------------
-   -- Match_Designators --
-   -----------------------
-
-   function Match_Designators
-     (Params      : Libadalang.Analysis.Param_Spec_Array;
-      Designators : Laltools.Common.Node_Vectors.Vector)
-      return Boolean
-   is
-      function Find_Designator
-        (D : Libadalang.Analysis.Ada_Node)
-         return Boolean;
-
-      ---------------------
-      -- Find_Designator --
-      ---------------------
-
-      function Find_Designator
-        (D : Libadalang.Analysis.Ada_Node)
-         return Boolean is
-      begin
-         for Param of Params loop
-            for Id of Param.F_Ids loop
-               if Id.Text = D.Text then
-                  return True;
-               end if;
-            end loop;
-         end loop;
-
-         return False;
-      end Find_Designator;
-   begin
-      for D of Designators loop
-         if not Find_Designator (D) then
-            return False;
-         end if;
-      end loop;
-
-      return True;
-   end Match_Designators;
 
    ------------------
    -- Get_Location --
@@ -1131,17 +835,15 @@ package body LSP.Lal_Utils is
       end if;
    end Canonicalize;
 
-   --------------------
-   -- Compute_Detail --
-   --------------------
+   -------------------
+   -- Get_Decl_Text --
+   -------------------
 
-   function Compute_Completion_Detail
+   function Get_Decl_Text
      (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
    is
       Result : VSS.Strings.Virtual_String;
-
    begin
-
       --  If the basic declaration is an enum literal, display the whole
       --  enumeration type declaration instead.
       if BD.Kind in Ada_Enum_Literal_Decl then
@@ -1152,39 +854,71 @@ package body LSP.Lal_Utils is
       end if;
 
       return Result;
-   end Compute_Completion_Detail;
+   end Get_Decl_Text;
 
-   ----------------------------
-   -- Compute_Completion_Doc --
-   ----------------------------
+   ----------------------
+   -- Get_Tooltip_Text --
+   ----------------------
 
-   function Compute_Completion_Doc
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
+   procedure Get_Tooltip_Text
+     (BD        : Libadalang.Analysis.Basic_Decl;
+      Trace     : GNATCOLL.Traces.Trace_Handle;
+      Style     : GNATdoc.Comments.Options.Documentation_Style;
+      Loc_Text  : out VSS.Strings.Virtual_String;
+      Doc_Text  : out VSS.Strings.Virtual_String;
+      Decl_Text : out VSS.Strings.Virtual_String)
    is
-      Doc_Text : VSS.Strings.Virtual_String;
-      Loc_Text : VSS.Strings.Virtual_String;
+      Options : constant
+        GNATdoc.Comments.Options.Extractor_Options :=
+          (Style    => Style,
+           Pattern  => <>,
+           Fallback => True);
+      Decl_Lines         : VSS.String_Vectors.Virtual_String_Vector;
+      Doc_Lines     : VSS.String_Vectors.Virtual_String_Vector;
    begin
-      Doc_Text :=
-        VSS.Strings.To_Virtual_String
-          (Libadalang.Doc_Utils.Get_Documentation
-             (BD).Doc.To_String);
+      --  Extract documentation with GNATdoc when supported.
 
-      --  Append the declaration's location.
-      --  In addition, append the project's name if we are dealing with
-      --  an aggregate project.
+      GNATdoc.Comments.Helpers.Get_Plain_Text_Documentation
+        (Name          => BD.P_Defining_Name,
+         Options       => Options,
+         Code_Snippet  => Decl_Lines,
+         Documentation => Doc_Lines);
 
-      Loc_Text.Append (LSP.Lal_Utils.Node_Location_Image (BD));
+      Decl_Text := Decl_Lines.Join_Lines (VSS.Strings.LF, False);
+      Doc_Text := Doc_Lines.Join_Lines (VSS.Strings.LF, False);
 
-      if not Doc_Text.Is_Empty then
-         Loc_Text.Append
-           (VSS.Strings.To_Virtual_String
-              ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
-
-         Loc_Text.Append (Doc_Text);
+      --  If GNATdoc failed to compute the declaration text, use the old engine
+      if Decl_Text.Is_Empty
+        or else not BD.P_Subp_Spec_Or_Null.Is_Null
+      then
+         --  For subprograms additional information is added, use old code to
+         --  obtain it yet.
+         Decl_Text := Get_Decl_Text (BD);
       end if;
 
-      return Loc_Text;
-   end Compute_Completion_Doc;
+      --  Obtain documentation via the old engine when GNATdoc fails to extract
+      --  the comments.
+      if Doc_Text.Is_Empty then
+
+         --  Property_Errors can occur when calling
+         --  Libadalang.Doc_Utils.Get_Documentation on unsupported
+         --  docstrings, so add an exception handler to catch them and recover.
+         begin
+            Doc_Text :=
+              VSS.Strings.To_Virtual_String
+                (Libadalang.Doc_Utils.Get_Documentation
+                   (BD).Doc.To_String);
+         exception
+            when Libadalang.Common.Property_Error =>
+               Trace.Trace
+                 ("Failed to compute documentation with LAL"
+                  & "(unsupported docstring) for: " & BD.Image);
+               Doc_Text := VSS.Strings.Empty_Virtual_String;
+         end;
+      end if;
+
+      Loc_Text := LSP.Lal_Utils.Node_Location_Image (BD);
+   end Get_Tooltip_Text;
 
    -----------------------
    -- Containing_Entity --

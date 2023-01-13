@@ -14,7 +14,7 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---  A completion provider for parameters inside a call
+--  A completion provider for parameters after '(' or ','
 
 with LSP.Ada_Handlers;
 with LSP.Ada_Documents;
@@ -36,7 +36,13 @@ package LSP.Ada_Completions.Parameters is
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
       Result : in out LSP.Messages.CompletionList);
-   --  Using the context, check if we are inside a function call and get its
-   --  unset parameters while filtering them with the prefix.
+   --  Using the context, return the list of parameters after '(' or ','
 
+   procedure Propose_Signatures
+     (Context         : not null LSP.Ada_Handlers.Context_Access;
+      Node            : Libadalang.Analysis.Ada_Node;
+      Cursor          : Langkit_Support.Slocs.Source_Location;
+      Prev_Signatures : LSP.Messages.Optional_SignatureHelpContext;
+      Res             : in out LSP.Messages.SignatureHelp);
+   --  Using the context, return the possible signatures
 end LSP.Ada_Completions.Parameters;
