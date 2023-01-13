@@ -92,7 +92,6 @@ with Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
-with Libadalang.Doc_Utils;
 with Libadalang.Helpers;
 with Libadalang.Preprocessing;
 
