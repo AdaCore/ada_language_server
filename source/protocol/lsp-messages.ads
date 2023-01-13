@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -4934,15 +4934,15 @@ package LSP.Messages is
    --}
    --```
    type InitializeParams is new WorkDoneProgressParams with record
-      processId        : Optional_Number;
-      clientInfo       : Optional_ProgramInfo;
-      locale           : Optional_Virtual_String;
-      rootPath         : Optional_Nullable_String;
-      rootUri          : Nullable_String;
-      --  initializationOptions?: any;
-      capabilities     : ClientCapabilities;
-      trace            : Optional_TraceValue;
-      workspaceFolders : Optional_WorkspaceFolder_Vector;
+      processId             : Optional_Number;
+      clientInfo            : Optional_ProgramInfo;
+      locale                : Optional_Virtual_String;
+      rootPath              : Optional_Nullable_String;
+      rootUri               : Nullable_String;
+      initializationOptions : LSP.Types.Optional_LSP_Any;
+      capabilities          : ClientCapabilities;
+      trace                 : Optional_TraceValue;
+      workspaceFolders      : Optional_WorkspaceFolder_Vector;
    end record;
 
    procedure Read_InitializeParams

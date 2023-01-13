@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2022, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -320,6 +320,11 @@ package body LSP.Ada_Handlers is
       Root_Dir            : VSS.Strings.Virtual_String);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
+
+   procedure Change_Configuration
+     (Self  : access Message_Handler;
+      Ada   : LSP.Types.LSP_Any);
+   --  Change server configuration with settings from Ada JSON object.
 
    procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler);
    --  Mark all sources in all projects for indexing. This factorizes code
@@ -1226,6 +1231,10 @@ package body LSP.Ada_Handlers is
       --  Experimental Client Capabilities
       Self.Experimental_Client_Capabilities :=
         Parse (Experimental_Client_Capabilities);
+
+      if Value.initializationOptions.Is_Set then
+         Self.Change_Configuration (Value.initializationOptions.Value);
+      end if;
 
       return Response;
    end On_Initialize_Request;
@@ -4127,13 +4136,13 @@ package body LSP.Ada_Handlers is
          end return;
    end On_Rename_Request;
 
-   --------------------------------------------
-   -- On_DidChangeConfiguration_Notification --
-   --------------------------------------------
+   --------------------------
+   -- Change_Configuration --
+   --------------------------
 
-   overriding procedure On_DidChangeConfiguration_Notification
+   procedure Change_Configuration
      (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeConfigurationParams)
+      Ada   : LSP.Types.LSP_Any)
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
@@ -4170,7 +4179,6 @@ package body LSP.Ada_Handlers is
       logThreshold                      : constant String :=
         "logThreshold";
 
-      Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
       Variables : Scenario_Variable_List;
 
       function Property (Name : String) return VSS.Strings.Virtual_String is
@@ -4395,6 +4403,21 @@ package body LSP.Ada_Handlers is
             Self.Server.On_RegisterCapability_Request (Request);
          end;
       end if;
+   end Change_Configuration;
+
+   --------------------------------------------
+   -- On_DidChangeConfiguration_Notification --
+   --------------------------------------------
+
+   overriding procedure On_DidChangeConfiguration_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeConfigurationParams)
+   is
+
+      Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
+
+   begin
+      Self.Change_Configuration (Ada);
    end On_DidChangeConfiguration_Notification;
 
    -------------------------------------------
