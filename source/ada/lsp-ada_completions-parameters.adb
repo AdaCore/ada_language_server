@@ -17,21 +17,25 @@
 
 with GNATCOLL.Utils;
 
-with Laltools.Common;
-
 with Libadalang.Analysis;        use Libadalang.Analysis;
 with Libadalang.Common;          use Libadalang.Common;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Ada_Completions.Generic_Assoc;
 with LSP.Ada_Completions.Generic_Assoc_Utils;
+use LSP.Ada_Completions.Generic_Assoc_Utils;
 
 with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
+with Langkit_Support.Slocs;
 
 package body LSP.Ada_Completions.Parameters is
 
+   function Get_Parameters
+     (C        : Libadalang.Analysis.Call_Expr;
+      Prefixed : out Boolean)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
    function Get_Spec_Call_Expr_Designators
      (C             : Libadalang.Analysis.Call_Expr;
       Context       : not null LSP.Ada_Handlers.Context_Access;
@@ -52,19 +56,17 @@ package body LSP.Ada_Completions.Parameters is
         Pretty_Print_Rule    => Libadalang.Common.Param_Assoc_Rule,
         Get_Prefix_Node      => Get_Prefix_Node,
         Search_Element       => LSP.Lal_Utils.Get_Call_Expr,
-        Get_Designators      => LSP.Lal_Utils.Get_Call_Designators,
+        Get_Parameters       => Get_Parameters,
         Get_Spec_Designators => Get_Spec_Call_Expr_Designators,
         To_Node              => To_Node);
 
    function Get_Aggregate
      (N : Libadalang.Analysis.Ada_Node'Class)
       return Libadalang.Analysis.Aggregate;
-   function Get_Designators
-     (A              : Libadalang.Analysis.Aggregate;
-      Sloc           : Langkit_Support.Slocs.Source_Location;
-      Prefixed       : out Boolean;
-      Unnamed_Params : out Natural)
-      return Laltools.Common.Node_Vectors.Vector;
+   function Get_Parameters
+     (A        : Libadalang.Analysis.Aggregate;
+      Prefixed : out Boolean)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
    function Get_Spec_Aggregate_Designators
      (A             : Libadalang.Analysis.Aggregate;
       Context       : not null LSP.Ada_Handlers.Context_Access;
@@ -85,19 +87,17 @@ package body LSP.Ada_Completions.Parameters is
         Pretty_Print_Rule    => Libadalang.Common.Param_Assoc_Rule,
         Get_Prefix_Node      => Get_Prefix_Node,
         Search_Element       => Get_Aggregate,
-        Get_Designators      => Get_Designators,
+        Get_Parameters       => Get_Parameters,
         Get_Spec_Designators => Get_Spec_Aggregate_Designators,
         To_Node              => To_Node);
 
    function Get_Generic_Package
      (N : Libadalang.Analysis.Ada_Node'Class)
       return Libadalang.Analysis.Generic_Package_Instantiation;
-   function Get_Designators
-     (G              : Libadalang.Analysis.Generic_Package_Instantiation;
-      Sloc           : Langkit_Support.Slocs.Source_Location;
-      Prefixed       : out Boolean;
-      Unnamed_Params : out Natural)
-      return Laltools.Common.Node_Vectors.Vector;
+   function Get_Parameters
+     (G        : Libadalang.Analysis.Generic_Package_Instantiation;
+      Prefixed : out Boolean)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
    function Get_Decl_Designators
      (G             : Libadalang.Analysis.Generic_Package_Instantiation;
       Context       : not null LSP.Ada_Handlers.Context_Access;
@@ -124,9 +124,65 @@ package body LSP.Ada_Completions.Parameters is
         Pretty_Print_Rule    => Libadalang.Common.Param_Assoc_Rule,
         Get_Prefix_Node      => Get_Prefix_Node,
         Search_Element       => Get_Generic_Package,
-        Get_Designators      => Get_Designators,
+        Get_Parameters       => Get_Parameters,
         Get_Spec_Designators => Get_Decl_Designators,
         To_Node              => To_Node);
+
+   --------------------
+   -- Get_Parameters --
+   --------------------
+
+   function Get_Parameters
+     (C        : Libadalang.Analysis.Call_Expr;
+      Prefixed : out Boolean)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector
+   is
+      Designator : Libadalang.Analysis.Ada_Node;
+      Res : LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
+   begin
+      Prefixed := False;
+
+      if C = No_Call_Expr then
+         return Res;
+      end if;
+
+      declare
+         Suffix_Node : constant Libadalang.Analysis.Ada_Node'Class :=
+           C.F_Suffix;
+         Name_Node   : constant Libadalang.Analysis.Name := C.F_Name;
+      begin
+         if Name_Node.Kind in Ada_Dotted_Name_Range then
+            declare
+               Dot_Name : constant Dotted_Name := Name_Node.As_Dotted_Name;
+            begin
+               --  Check if the prefix is a parameter
+               if Dot_Name.P_Is_Dot_Call (Imprecise_Fallback => True) then
+                  Prefixed := True;
+               end if;
+            end;
+         end if;
+
+         if Suffix_Node /= Libadalang.Analysis.No_Ada_Node
+           and then Suffix_Node.Kind in Ada_Assoc_List_Range
+         then
+            for Assoc of Suffix_Node.As_Assoc_List loop
+               Designator := Assoc.As_Param_Assoc.F_Designator;
+               if Designator /= No_Ada_Node then
+                  Res.Append
+                    (LSP.Ada_Completions.Generic_Assoc_Utils.Param'
+                       (Is_Named => True,
+                        Node     => Designator));
+               else
+                  Res.Append
+                    (LSP.Ada_Completions.Generic_Assoc_Utils.Param'
+                       (Is_Named => False,
+                        Loc      => Assoc.Sloc_Range));
+               end if;
+            end loop;
+         end if;
+      end;
+      return Res;
+   end Get_Parameters;
 
    ------------------------------------
    -- Get_Spec_Call_Expr_Designators --
@@ -213,21 +269,17 @@ package body LSP.Ada_Completions.Parameters is
       return No_Aggregate;
    end Get_Aggregate;
 
-   ---------------------
-   -- Get_Designators --
-   ---------------------
+   --------------------
+   -- Get_Parameters --
+   --------------------
 
-   function Get_Designators
-     (A              : Libadalang.Analysis.Aggregate;
-      Sloc           : Langkit_Support.Slocs.Source_Location;
-      Prefixed       : out Boolean;
-      Unnamed_Params : out Natural)
-      return Laltools.Common.Node_Vectors.Vector
+   function Get_Parameters
+     (A        : Libadalang.Analysis.Aggregate;
+      Prefixed : out Boolean)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector
    is
-      pragma Unreferenced (Sloc);
-      Res : Laltools.Common.Node_Vectors.Vector;
+      Res : LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
    begin
-      Unnamed_Params := 0;
       Prefixed := False;
 
       for Assoc of A.F_Assocs loop
@@ -240,24 +292,26 @@ package body LSP.Ada_Completions.Parameters is
                for Alt of Alt_List loop
                   if Alt.Kind in Ada_Identifier_Range then
                      --  Named Param
-                     Res.Append (Alt.As_Ada_Node);
+                     Res.Append
+                       (LSP.Ada_Completions.Generic_Assoc_Utils.Param'
+                          (Is_Named => True,
+                           Node     => Alt.As_Ada_Node));
                      Added := True;
                   end if;
                end loop;
 
-               if Res.Is_Empty then
-                  --  Unnamed Param before the first named param
-                  Unnamed_Params := Unnamed_Params + 1;
-               elsif not Added then
-                  --  Param after a named param => no name yet
-                  Res.Append (No_Ada_Node);
+               if not Added then
+                  Res.Append
+                    (LSP.Ada_Completions.Generic_Assoc_Utils.Param'
+                       (Is_Named => False,
+                        Loc      => Alt_List.Sloc_Range));
                end if;
             end;
          end if;
       end loop;
 
       return Res;
-   end Get_Designators;
+   end Get_Parameters;
 
    ------------------------------------
    -- Get_Spec_Aggregate_Designators --
@@ -553,43 +607,38 @@ package body LSP.Ada_Completions.Parameters is
       return No_Generic_Package_Instantiation;
    end Get_Generic_Package;
 
-   ---------------------
-   -- Get_Designators --
-   ---------------------
+   --------------------
+   -- Get_Parameters --
+   --------------------
 
-   function Get_Designators
-     (G              : Libadalang.Analysis.Generic_Package_Instantiation;
-      Sloc           : Langkit_Support.Slocs.Source_Location;
-      Prefixed       : out Boolean;
-      Unnamed_Params : out Natural)
-      return Laltools.Common.Node_Vectors.Vector
+   function Get_Parameters
+     (G        : Libadalang.Analysis.Generic_Package_Instantiation;
+      Prefixed : out Boolean)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector
    is
       use Langkit_Support.Slocs;
       Designator : Libadalang.Analysis.Ada_Node;
-      Res        : Laltools.Common.Node_Vectors.Vector;
+      Res : LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
    begin
-      Unnamed_Params := 0;
       Prefixed := False;
 
       for Assoc of G.F_Params loop
          Designator := Assoc.As_Param_Assoc.F_Designator;
          if Designator /= No_Ada_Node then
-            Res.Append (Designator);
+            Res.Append
+              (LSP.Ada_Completions.Generic_Assoc_Utils.Param'
+                 (Is_Named => True,
+                  Node     => Designator));
          else
-            if Start_Sloc (Assoc.Sloc_Range) < Sloc then
-            --  Prevent adding false parameter because of LAL recovery
-               if Res.Is_Empty then
-                  --  Count only the unnamed params at the start
-                  Unnamed_Params := Unnamed_Params + 1;
-               else
-                  Res.Append (No_Ada_Node);
-               end if;
-            end if;
+            Res.Append
+              (LSP.Ada_Completions.Generic_Assoc_Utils.Param'
+                 (Is_Named => False,
+                  Loc      => Assoc.Sloc_Range));
          end if;
       end loop;
 
       return Res;
-   end Get_Designators;
+   end Get_Parameters;
 
    --------------------------
    -- Get_Decl_Designators --
