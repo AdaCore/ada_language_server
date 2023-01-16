@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Laltools.Common;
 with Langkit_Support.Slocs;
 with Libadalang.Analysis;
 with LSP.Ada_Completions.Filters;
@@ -36,24 +35,12 @@ generic
    --  error recovery.
    --  Return Null_Element if there is no such Element.
 
-   with function Get_Designators
-     (E              : Element;
-      Sloc           : Langkit_Support.Slocs.Source_Location;
-      Prefixed       : out Boolean;
-      Unnamed_Params : out Natural)
-      return Laltools.Common.Node_Vectors.Vector;
-   --  Compute the list of parameters in E, they are separated in 4 categories:
-   --  - Prefixed indicates if we are prefixed by a parameter
-   --  - Unnamed_Params corresponds to all the params without designators
-   --  at the start of the function
-   --  - The Result starts with the list of all the designators
-   --  - The Result finishes with X No_Ada_Node, one for each params without
-   --  designator after the first named param.
-   --
-   --  Example: Obj.Foo (1, 2, 3, X => 4, Y => 5, 7, 8
-   --  Prefixed       = Is_Param (Obj)
-   --  Unnamed_Params = 3
-   --  Result         = [X, Y, No_Ada_Node, No_Ada_Node]
+   with function Get_Parameters
+     (E        : Element;
+      Prefixed : out Boolean)
+      return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
+   --  Compute the list of parameters in E.
+   --  Prefixed indicates if we are prefixed by a parameter.
 
    with function Get_Spec_Designators
      (E             : Element;

@@ -17,11 +17,29 @@
 
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Vectors;
 with Laltools.Common;
-with Libadalang.Analysis; use Libadalang.Analysis;
-with VSS.Strings;         use VSS.Strings;
+with Langkit_Support.Slocs; use Langkit_Support.Slocs;
+with Libadalang.Analysis;   use Libadalang.Analysis;
+with VSS.Strings;           use VSS.Strings;
 
 package LSP.Ada_Completions.Generic_Assoc_Utils is
+
+   type Param (Is_Named : Boolean) is record
+      case Is_Named is
+         when True =>
+            --  Node containing the name of the param
+            Node : Ada_Node;
+         when False =>
+            --  Sloc range of the unnamed param
+            Loc  : Langkit_Support.Slocs.Source_Location_Range;
+      end case;
+   end record;
+
+   package Param_Vectors is new Ada.Containers.Indefinite_Vectors
+     (Index_Type   => Natural,
+      Element_Type => Param,
+      "="          => "=");
 
    function Hash
      (Node : Libadalang.Analysis.Ada_Node'Class)
