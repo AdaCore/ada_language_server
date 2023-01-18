@@ -212,16 +212,6 @@ package LSP.Lal_Utils is
    --  From Node try to find a Call_Expr node, it will handle basic error
    --  recovery.
 
-   function Get_Call_Designators
-     (Node           : Libadalang.Analysis.Call_Expr;
-      Sloc           : Langkit_Support.Slocs.Source_Location;
-      Prefixed       : out Boolean;
-      Unnamed_Params : out Natural)
-      return Laltools.Common.Node_Vectors.Vector;
-   --  Return the list of designator in the current call_expr
-   --  Unnamed_Params correspond to the number of parameters without
-   --  designators before Sloc.
-
    function To_Call_Hierarchy_Item
      (Name : Libadalang.Analysis.Defining_Name)
       return LSP.Messages.CallHierarchyItem;
