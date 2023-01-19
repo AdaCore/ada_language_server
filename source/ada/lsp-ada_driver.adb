@@ -21,6 +21,7 @@ with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 with Ada.Exceptions;          use Ada.Exceptions;
 with GNAT.Command_Line;       use GNAT.Command_Line;
+with GNAT.Exception_Actions;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with GNAT.OS_Lib;
 with GNAT.Strings;
@@ -60,6 +61,8 @@ with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
 with LSP.Servers;
 with LSP.Stdio_Streams;
+
+with Dump_Stack;
 
 --------------------
 -- LSP.Ada_Driver --
@@ -197,6 +200,10 @@ procedure LSP.Ada_Driver is
 
    Memory_Monitor_Enabled : Boolean;
 begin
+   GNAT.Exception_Actions.Register_Id_Action
+     (GNAT.Exception_Actions.Name_To_Id ("_ABORT_SIGNAL"),
+      Dump_Stack'Unrestricted_Access);
+
    --  Handle the command line
    Set_Usage
      (Cmdline,

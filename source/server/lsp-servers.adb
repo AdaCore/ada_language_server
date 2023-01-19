@@ -21,7 +21,9 @@ with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
 with Ada.Tags;
 with Ada.Task_Identification;
+with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
+with GNAT.OS_Lib;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
 
 with LSP.Errors;
@@ -1288,7 +1290,18 @@ package body LSP.Servers is
                end select;
 
                if Request /= null then
-                  Process_Message (Request);
+                  select
+                     delay 1.0;
+                     Ada.Text_IO.Put_Line
+                       (Ada.Text_IO.Standard_Error, "KILL Input_Task");
+                     abort Server.Input_Task;
+                     Ada.Text_IO.Put_Line
+                       (Ada.Text_IO.Standard_Error, "KILL Output_Task");
+                     abort Server.Output_Task;
+                     GNAT.OS_Lib.OS_Exit (1);
+                  then abort
+                     Process_Message (Request);
+                  end select;
                end if;
             end loop;
          end;

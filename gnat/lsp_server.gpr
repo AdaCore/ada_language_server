@@ -74,7 +74,7 @@ project LSP_Server is
    end Linker;
 
    package Binder is
-      for Switches ("ada") use ("-E");
+      for Switches ("ada") use ("-Es");
    end Binder;
 
    package Builder is
