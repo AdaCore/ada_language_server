@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix: # Build debug and/or production
         debug: ['']      # '' if production, 'debug' for debug
-        os: [macos-11, ubuntu-20.04, windows-latest]
+        os: [ubuntu-20.04]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python 3.8
@@ -97,12 +97,15 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
         if: ${{ runner.os != 'Windows' }}
         run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
+        continue-on-error: true
       - name: Archive ALS binary
-        if: ${{ github.event_name == 'push' }}
         uses: actions/upload-artifact@v2
         with:
           name: als-${{ runner.os }}-${{ matrix.debug }}
-          path: integration/vscode/ada/[ldw]*/*
+          path: |
+            integration/vscode/ada/[ldw]*/*
+            ./core-dump/*
+
   package:
     if: ${{ github.event_name == 'push' }}
     needs: build

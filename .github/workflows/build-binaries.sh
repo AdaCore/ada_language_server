@@ -10,6 +10,10 @@ if [ $RUNNER_OS = Windows ]; then
     mount `cygpath -w $RUNNER_TEMP|cut -d: -f1`:/opt /opt
 fi
 
+ulimit -c unlimited
+mkdir -p core-dump
+echo "$PWD/core-dump/corefile-%e-%p-%t" | sudo tee /proc/sys/kernel/core_pattern
+
 export GPR_PROJECT_PATH=$prefix/share/gpr:\
 $PWD/subprojects/VSS/gnat:\
 $PWD/subprojects/gnatdoc/gnat:\
@@ -61,7 +65,9 @@ make -C subprojects/templates-parser setup prefix=$prefix \
  ENABLE_SHARED=no \
  ${DEBUG:+BUILD=debug} build-static install-static
 
+while [ -z `ls core-dump` ] ; do
 make LIBRARY_TYPE=static all check
+done
 
 function fix_rpath ()
 {

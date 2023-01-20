@@ -66,7 +66,7 @@ project LSP_Server is
                when "osx" | "unix" =>
                   --  On UNIX, we want to link libc dynamically: needed to find
                   --  a recent version of iconv_open (and a recommended practice)
-                  for Switches ("Ada") use ("-static-libstdc++", "-static-libgcc");
+                  for Switches ("Ada") use ("-static-libstdc++", "-static-libgcc", "-static");
              end case;
          when "relocatable" =>
             null;
@@ -74,7 +74,7 @@ project LSP_Server is
    end Linker;
 
    package Binder is
-      for Switches ("ada") use ("-Es");
+      for Switches ("ada") use ("-E", "-static");
    end Binder;
 
    package Builder is

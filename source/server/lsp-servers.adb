@@ -15,16 +15,18 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Calendar;
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
 with Ada.Tags;
 with Ada.Task_Identification;
-with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
-with GNAT.OS_Lib;
+with GNAT.Exception_Actions;
 with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
+pragma Warnings (Off, "is an internal GNAT unit");
+with System.Tasking.Debug;
 
 with LSP.Errors;
 with LSP.JSON_Streams;
@@ -130,6 +132,11 @@ package body LSP.Servers is
       Message : LSP.Messages.Message'Class) is null;
 
    Null_Server : aliased Null_Server_Backend;
+
+   use type Ada.Calendar.Time;
+
+   Nil : constant Ada.Calendar.Time :=
+     Ada.Calendar.Time_Of (1999, 1, 1);
 
    ------------
    -- Append --
@@ -1085,10 +1092,18 @@ package body LSP.Servers is
          end if;
       end Write_JSON_RPC;
 
+      Active : Ada.Calendar.Time := Nil;
    begin
       accept Start;
 
       loop
+         if Active /= Nil
+           and then Ada.Calendar.Clock - Active > 2.5
+         then
+            System.Tasking.Debug.List_Tasks;
+            GNAT.Exception_Actions.Core_Dump (Ada.Exceptions.Null_Occurrence);
+         end if;
+
          select
             --  Process all available outputs before acceptiong Stop
             Output_Queue.Dequeue (Message);
@@ -1109,6 +1124,7 @@ package body LSP.Servers is
 
                --  Send the output to the stream
                Write_JSON_RPC (Stream, Output.Buffer);
+               Active := Ada.Calendar.Clock;
 
             exception
                when E : others =>
@@ -1290,18 +1306,7 @@ package body LSP.Servers is
                end select;
 
                if Request /= null then
-                  select
-                     delay 1.0;
-                     Ada.Text_IO.Put_Line
-                       (Ada.Text_IO.Standard_Error, "KILL Input_Task");
-                     abort Server.Input_Task;
-                     Ada.Text_IO.Put_Line
-                       (Ada.Text_IO.Standard_Error, "KILL Output_Task");
-                     abort Server.Output_Task;
-                     GNAT.OS_Lib.OS_Exit (1);
-                  then abort
-                     Process_Message (Request);
-                  end select;
+                  Process_Message (Request);
                end if;
             end loop;
          end;
