@@ -725,7 +725,7 @@ package body LSP.Ada_Contexts is
            (View             => Root,
             Action           => Insert_Source'Access,
             Language         => GPR2.Ada_Language,
-            Externally_Built => False);
+            Externally_Built => True);
 
          Self.Source_Dirs.Clear;
 
