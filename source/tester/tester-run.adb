@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,35 +21,61 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNATCOLL.JSON;
 
-with Tester.Macros;
-with Tester.Tests;
+with VSS.Command_Line;
+with VSS.Strings;
+with VSS.Strings.Conversions;
+with VSS.String_Vectors;
 
 with Spawn.Environments;
 
+with Tester.Macros;
+with Tester.Tests;
+
 procedure Tester.Run is
+
+   package Options is
+      --  Command line options and arguments
+
+      Debug : constant VSS.Command_Line.Binary_Option :=
+        (Short_Name  => "d",
+         Long_Name   => "debug",
+         Description => "disable timeouts then pause after server start");
+
+      File  : constant VSS.Command_Line.Positional_Option :=
+        (Name  => "test.json",
+         Description => "JSON test script");
+   end Options;
+
    Env  : constant Spawn.Environments.Process_Environment :=
      Spawn.Environments.System_Environment;
 
    JSON : GNATCOLL.JSON.JSON_Value;
 begin
-   if not (Ada.Command_Line.Argument_Count = 1
-     or else (Ada.Command_Line.Argument_Count = 2
-              and then Ada.Command_Line.Argument (1) = "--debug"))
-   then
-      Ada.Text_IO.Put_Line ("Usage:");
-      Ada.Text_IO.Put_Line
-        ("   " & Ada.Command_Line.Command_Name & " [options] test.json");
-      Ada.Text_IO.New_Line;
-      Ada.Text_IO.Put_Line ("Options are:");
-      Ada.Text_IO.Put_Line
-        ("  --debug  disable timeouts and pause after server start");
-      Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
-      return;
+   VSS.Command_Line.Add_Option (Options.Debug);
+   VSS.Command_Line.Add_Option (Options.File);
+   VSS.Command_Line.Process;  --  This terminates process on option's error
+
+   if not Options.File.Is_Specified then
+      declare
+         use type VSS.Strings.Virtual_String;
+         Usage : VSS.String_Vectors.Virtual_String_Vector;
+      begin
+         Usage.Append ("Usage:");
+         Usage.Append
+           ("   tester-run [options] " & Options.File.Name);
+         Usage.Append ("");
+         Usage.Append ("Options are:");
+         Usage.Append
+           ("  --" & Options.Debug.Long_Name
+            & " (-" & Options.Debug.Short_Name & ")"
+            & "  " & Options.Debug.Description);
+         VSS.Command_Line.Report_Error (Usage.Join_Lines (VSS.Strings.LF));
+      end;
    end if;
 
    declare
-      File  : constant String := Ada.Command_Line.Argument
-        (Ada.Command_Line.Argument_Count);
+      File  : constant String := VSS.Strings.Conversions.To_UTF_8_String
+        (Options.File.Value);
       Input : Ada.Text_IO.File_Type;
       Text  : Ada.Strings.Unbounded.Unbounded_String;
    begin
@@ -73,7 +99,7 @@ begin
       declare
          Test : Tester.Tests.Test;
       begin
-         Test.Run (JSON.Get, Debug => Ada.Command_Line.Argument_Count = 2);
+         Test.Run (JSON.Get, Debug => Options.Debug.Is_Specified);
       end;
    end;
 end Tester.Run;
