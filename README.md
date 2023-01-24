@@ -15,7 +15,7 @@ Current features:
 * [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html) support.
 * Code completion for names, keywords, aggregates, etc.
 * Code navigation, such as Go to Definition/Declaration, Find All References, Call Hierarchies, etc.
-* Code refactoring like insert named associations, auto-add `with`-clauses.
+* [Code refactoring](#refactoring-tools) like insert named associations, auto-add `with`-clauses, etc.
 * Document/Workspace symbol search.
 * Code folding and formatting.
 
@@ -97,7 +97,8 @@ You can turn some debugging and experimental features trought
 [the traces file](doc/traces.md).
 
 The server also gets configuration via `workspace/didChangeConfiguration`
-notification. See more [details here](doc/settings.md). Each LSP
+notification and `initializationOptions` of `initialize` request.
+See more [details here](doc/settings.md). Each LSP
 client provides its-own way to set such settings.
 
 ## Supported LSP Server Requests

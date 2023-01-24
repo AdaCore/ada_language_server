@@ -41,6 +41,12 @@ procedure Tester.Run is
          Long_Name   => "debug",
          Description => "disable timeouts then pause after server start");
 
+      On_Hang : constant VSS.Command_Line.Value_Option :=
+        (Short_Name  => "",
+         Long_Name   => "on-hang-script",
+         Value_Name  => "command_and_args",
+         Description => "the command to launch if the test hangs");
+
       File  : constant VSS.Command_Line.Positional_Option :=
         (Name  => "test.json",
          Description => "JSON test script");
@@ -52,6 +58,7 @@ procedure Tester.Run is
    JSON : GNATCOLL.JSON.JSON_Value;
 begin
    VSS.Command_Line.Add_Option (Options.Debug);
+   VSS.Command_Line.Add_Option (Options.On_Hang);
    VSS.Command_Line.Add_Option (Options.File);
    VSS.Command_Line.Process;  --  This terminates process on option's error
 
@@ -69,6 +76,10 @@ begin
            ("  --" & Options.Debug.Long_Name
             & " (-" & Options.Debug.Short_Name & ")"
             & "  " & Options.Debug.Description);
+         Usage.Append
+           ("  --" & Options.On_Hang.Long_Name
+            & "=" & Options.On_Hang.Value_Name
+            & "  " & Options.On_Hang.Description);
          VSS.Command_Line.Report_Error (Usage.Join_Lines (VSS.Strings.LF));
       end;
    end if;
@@ -99,7 +110,10 @@ begin
       declare
          Test : Tester.Tests.Test;
       begin
-         Test.Run (JSON.Get, Debug => Options.Debug.Is_Specified);
+         Test.Run
+           (JSON.Get,
+            On_Hang => Options.On_Hang.Value,
+            Debug   => Options.Debug.Is_Specified);
       end;
    end;
 end Tester.Run;

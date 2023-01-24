@@ -133,6 +133,15 @@ package body LSP.Raw_Clients is
       end if;
    end Send_Message;
 
+   ----------------
+   -- Server_PID --
+   ----------------
+
+   function Server_PID (Self : Raw_Client'Class) return String is
+   begin
+      return Self.Server.Identifier;
+   end Server_PID;
+
    -------------------
    -- Set_Arguments --
    -------------------
