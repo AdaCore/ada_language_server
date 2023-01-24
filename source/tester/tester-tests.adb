@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -478,7 +478,8 @@ package body Tester.Tests is
             Ignore : Integer;
          begin
             Ada.Text_IO.Put_Line
-             ("Language server is running. You can attach it with GDB.");
+             ("Language server is running. You can attach it with GDB:");
+            Ada.Text_IO.Put_Line ("gdb -p " & Self.Server_PID);
             Ada.Text_IO.Put_Line ("Press ENTER to continue.");
 
             --  Wait for ENTER:
