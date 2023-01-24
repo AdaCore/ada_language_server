@@ -18,18 +18,20 @@
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Streams;
+with Ada.Streams.Stream_IO.C_Streams;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Interfaces.C_Streams;
 with GNAT.OS_Lib;           use GNAT.OS_Lib;
 
 with GNATCOLL.Utils; use GNATCOLL.Utils;
 with GNATCOLL.JSON;  use GNATCOLL.JSON;
 
-with VSS.Stream_Element_Vectors;
+with VSS.String_Vectors;
 with VSS.Strings.Conversions;
-with VSS.Strings.Converters.Decoders;
 
 with Spawn.Processes.Monitor_Loop;
+with Spawn.Process_Listeners;
 
 package body Tester.Tests is
 
@@ -54,6 +56,8 @@ package body Tester.Tests is
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
 
+   procedure Do_Test_Hanged (Self : Test'Class);
+
    function Wait_Factor (Command : GNATCOLL.JSON.JSON_Value) return Integer;
    --  Return the factor to multiply the delays with - useful for valgrind runs
    --  or commands that take longer time.
@@ -67,6 +71,35 @@ package body Tester.Tests is
      (List : GNATCOLL.JSON.JSON_Array)
       return Boolean;
    --  Check if List in form of ["<DOES_NOT_HAVE>", item1, item2, ...]
+
+   type Process_Listener is limited new
+     Spawn.Process_Listeners.Process_Listener with
+   record
+      Command : VSS.Strings.Virtual_String;
+      Process : Spawn.Processes.Process;
+      Stdout  : Ada.Streams.Stream_IO.File_Type;
+      Stderr  : Ada.Streams.Stream_IO.File_Type;
+   end record;
+
+   procedure Initialize
+     (Self : in out Process_Listener'Class;
+      Cmd  : String;
+      Args : Spawn.String_Vectors.UTF_8_String_Vector);
+
+   overriding procedure Standard_Output_Available
+    (Self : in out Process_Listener);
+
+   overriding procedure Standard_Error_Available
+    (Self : in out Process_Listener);
+
+   overriding procedure Error_Occurred
+    (Self          : in out Process_Listener;
+     Process_Error : Integer);
+
+   overriding procedure Finished
+     (Self        : in out Process_Listener;
+      Exit_Status : Spawn.Processes.Process_Exit_Status;
+      Exit_Code   : Spawn.Processes.Process_Exit_Code);
 
    Is_Windows : constant Boolean := Directory_Separator = '\';
 
@@ -210,6 +243,7 @@ package body Tester.Tests is
          if Ada.Calendar.Clock - Self.Started > Timeout
             and then not Self.In_Debug
          then
+            Self.Do_Test_Hanged;
             declare
                Text : Spawn.String_Vectors.UTF_8_String_Vector;
             begin
@@ -237,183 +271,25 @@ package body Tester.Tests is
       Command : GNATCOLL.JSON.JSON_Value)
    is
       pragma Unreferenced (Self);
-
-      function To_Program (Name : String) return String;
-      --  Take base name of the command and find it on PATH
-
-      procedure Print (V : VSS.Stream_Element_Vectors.Stream_Element_Vector);
-      --  Print V as string.
-
-      ----------------
-      -- To_Program --
-      ----------------
-
-      function To_Program (Name : String) return String is
-         Found : GNAT.OS_Lib.String_Access :=
-           GNAT.OS_Lib.Locate_Exec_On_Path (Name);
-      begin
-         return Result : constant String := Found.all do
-            Free (Found);
-         end return;
-      end To_Program;
+      use type Spawn.Process_Status;
 
       List  : constant GNATCOLL.JSON.JSON_Array := Command.Get;
-      Cmd   : constant String := To_Program (GNATCOLL.JSON.Get (List, 1).Get);
+      Cmd   : constant String := GNATCOLL.JSON.Get (List, 1).Get;
       Args  : Spawn.String_Vectors.UTF_8_String_Vector;
 
-      type Shell_Listener is limited new Spawn.Processes.Process_Listener with
-      record
-         Process : Spawn.Processes.Process;
-         Done    : Boolean := False;
-         Stdout  : VSS.Stream_Element_Vectors.Stream_Element_Vector;
-         Stderr  : VSS.Stream_Element_Vectors.Stream_Element_Vector;
-      end record;
-
-      overriding procedure Standard_Output_Available
-        (Self : in out Shell_Listener);
-
-      overriding procedure Standard_Error_Available
-        (Self : in out Shell_Listener);
-
-      overriding procedure Finished
-        (Self        : in out Shell_Listener;
-         Exit_Status : Spawn.Processes.Process_Exit_Status;
-         Exit_Code   : Spawn.Processes.Process_Exit_Code);
-
-      overriding procedure Error_Occurred
-        (Self          : in out Shell_Listener;
-         Process_Error : Integer);
-
-      --------------------
-      -- Error_Occurred --
-      --------------------
-
-      overriding procedure Error_Occurred
-        (Self          : in out Shell_Listener;
-         Process_Error : Integer) is
-      begin
-         Ada.Text_IO.Put ("Fail to run '");
-         Ada.Text_IO.Put (Cmd);
-
-         for X of Args loop
-            Ada.Text_IO.Put (" ");
-            Ada.Text_IO.Put (X);
-         end loop;
-
-         Ada.Text_IO.Put ("' error ");
-         Ada.Text_IO.Put_Line (Process_Error'Image);
-         Self.Done := True;
-      end Error_Occurred;
-
-      --------------
-      -- Finished --
-      --------------
-
-      overriding procedure Finished
-        (Self        : in out Shell_Listener;
-         Exit_Status : Spawn.Processes.Process_Exit_Status;
-         Exit_Code   : Spawn.Processes.Process_Exit_Code)
-      is
-         use type Spawn.Processes.Process_Exit_Code;
-
-      begin
-         if Exit_Code /= 0 then
-            Ada.Text_IO.Put ("Process '");
-            Ada.Text_IO.Put (Cmd);
-
-            for X of Args loop
-               Ada.Text_IO.Put (" ");
-               Ada.Text_IO.Put (X);
-            end loop;
-
-            Ada.Text_IO.Put ("' finished with code ");
-            Ada.Text_IO.Put_Line (Exit_Code'Image);
-         end if;
-
-         Self.Done := True;
-      end Finished;
-
-      -----------
-      -- Print --
-      -----------
-
-      procedure Print (V : VSS.Stream_Element_Vectors.Stream_Element_Vector) is
-         use type Ada.Streams.Stream_Element_Count;
-         Decoder : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
-         Text    : VSS.Strings.Virtual_String;
-      begin
-         if V.Length > 0 then
-            Decoder.Initialize (VSS.Strings.To_Virtual_String ("utf-8"));
-            Text := Decoder.Decode (V);
-            Ada.Text_IO.Put_Line
-              (VSS.Strings.Conversions.To_UTF_8_String (Text));
-         end if;
-      end Print;
-
-      ------------------------------
-      -- Standard_Error_Available --
-      ------------------------------
-
-      overriding procedure Standard_Error_Available
-        (Self : in out Shell_Listener)
-      is
-         use type Ada.Streams.Stream_Element_Count;
-         Data : Ada.Streams.Stream_Element_Array (1 .. 512);
-         Last : Ada.Streams.Stream_Element_Count;
-      begin
-         loop
-            Self.Process.Read_Standard_Error (Data, Last);
-
-            exit when Last < 1;
-
-            for X of Data (1 .. Last) loop
-               Self.Stderr.Append (X);
-            end loop;
-         end loop;
-      end Standard_Error_Available;
-
-      -------------------------------
-      -- Standard_Output_Available --
-      -------------------------------
-
-      overriding procedure Standard_Output_Available
-        (Self : in out Shell_Listener)
-      is
-         use type Ada.Streams.Stream_Element_Count;
-         Data : Ada.Streams.Stream_Element_Array (1 .. 512);
-         Last : Ada.Streams.Stream_Element_Count;
-      begin
-         loop
-            Self.Process.Read_Standard_Output (Data, Last);
-
-            exit when Last < 1;
-
-            for X of Data (1 .. Last) loop
-               Self.Stdout.Append (X);
-            end loop;
-         end loop;
-      end Standard_Output_Available;
-
-      Listener : aliased Shell_Listener;
+      Listener : aliased Process_Listener;
    begin
       for J in 2 .. GNATCOLL.JSON.Length (List) loop
          Args.Append (GNATCOLL.JSON.Get (List, J).Get);
       end loop;
 
-      Listener.Process.Set_Listener (Listener'Unchecked_Access);
-      Listener.Process.Set_Program (Cmd);
-      Listener.Process.Set_Arguments (Args);
+      Listener.Initialize (Cmd, Args);
       Listener.Process.Start;
-      Listener.Process.Close_Standard_Output;
-      Listener.Process.Close_Standard_Error;
 
       loop
          Spawn.Processes.Monitor_Loop (Timeout => 0.01);
-         exit when Listener.Done;
+         exit when Listener.Process.Status = Spawn.Not_Running;
       end loop;
-
-      Print (Listener.Stdout);
-      Print (Listener.Stderr);
    end Do_Shell;
 
    --------------
@@ -525,6 +401,44 @@ package body Tester.Tests is
          end;
       end if;
    end Do_Stop;
+
+   --------------------
+   -- Do_Test_Hanged --
+   --------------------
+
+   procedure Do_Test_Hanged (Self : Test'Class) is
+      use type Spawn.Process_Status;
+      use type VSS.Strings.Virtual_String;
+
+      Listener : aliased Process_Listener;
+      Args     : Spawn.String_Vectors.UTF_8_String_Vector;
+      List     : constant VSS.String_Vectors.Virtual_String_Vector :=
+        Self.On_Hang.Split (' ');
+
+   begin
+      if Self.On_Hang.Is_Empty then
+         return;
+      end if;
+
+      for J in 2 .. List.Length loop
+         if List (J) = "<ALS_PID>" then
+            Args.Append (Self.Server_PID);
+         else
+            Args.Append (VSS.Strings.Conversions.To_UTF_8_String (List (J)));
+         end if;
+      end loop;
+
+      Listener.Initialize
+        (VSS.Strings.Conversions.To_UTF_8_String (List (1)),
+         Args);
+
+      Listener.Process.Start;
+
+      loop
+         Spawn.Processes.Monitor_Loop (Timeout => 0.01);
+         exit when Listener.Process.Status = Spawn.Not_Running;
+      end loop;
+   end Do_Test_Hanged;
 
    --------------
    -- On_Error --
@@ -931,6 +845,20 @@ package body Tester.Tests is
       Sweep_Waits (JSON);
    end On_Raw_Message;
 
+   --------------------
+   -- Error_Occurred --
+   --------------------
+
+   overriding procedure Error_Occurred
+    (Self          : in out Process_Listener;
+     Process_Error : Integer) is
+   begin
+      Ada.Text_IO.Put ("Fail to run '");
+      Ada.Text_IO.Put (VSS.Strings.Conversions.To_UTF_8_String (Self.Command));
+      Ada.Text_IO.Put ("' error ");
+      Ada.Text_IO.Put_Line (Process_Error'Image);
+   end Error_Occurred;
+
    ---------------------
    -- Execute_Command --
    ---------------------
@@ -978,6 +906,77 @@ package body Tester.Tests is
       end if;
    end Execute_Command;
 
+   --------------
+   -- Finished --
+   --------------
+
+   overriding procedure Finished
+     (Self        : in out Process_Listener;
+      Exit_Status : Spawn.Processes.Process_Exit_Status;
+      Exit_Code   : Spawn.Processes.Process_Exit_Code)
+   is
+      use type Spawn.Processes.Process_Exit_Code;
+
+   begin
+      if Exit_Code /= 0 then
+         Ada.Text_IO.Put ("Process '");
+         Ada.Text_IO.Put
+           (VSS.Strings.Conversions.To_UTF_8_String (Self.Command));
+         Ada.Text_IO.Put ("' finished with code ");
+         Ada.Text_IO.Put_Line (Exit_Code'Image);
+      end if;
+   end Finished;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Self : in out Process_Listener'Class;
+      Cmd  : String;
+      Args : Spawn.String_Vectors.UTF_8_String_Vector)
+   is
+      function To_Program (Name : String) return String;
+      --  Take base name of the command and find it on the PATH
+
+      ----------------
+      -- To_Program --
+      ----------------
+
+      function To_Program (Name : String) return String is
+         Found : GNAT.OS_Lib.String_Access :=
+           GNAT.OS_Lib.Locate_Exec_On_Path (Name);
+      begin
+         return Result : constant String := Found.all do
+            Free (Found);
+         end return;
+      end To_Program;
+
+      Process : Spawn.Processes.Process renames Self.Process;
+   begin
+      Self.Command := VSS.Strings.Conversions.To_Virtual_String (Cmd);
+
+      for Item of Args loop
+         Self.Command.Append (' ');
+         Self.Command.Append
+           (VSS.Strings.Conversions.To_Virtual_String (Item));
+      end loop;
+
+      Process.Set_Arguments (Args);
+      Process.Set_Listener (Self'Unchecked_Access);
+      Process.Set_Program (To_Program (Cmd));
+
+      Ada.Streams.Stream_IO.C_Streams.Open
+        (Self.Stdout,
+         Ada.Streams.Stream_IO.Out_File,
+         Interfaces.C_Streams.stdout);
+
+      Ada.Streams.Stream_IO.C_Streams.Open
+        (Self.Stderr,
+         Ada.Streams.Stream_IO.Out_File,
+         Interfaces.C_Streams.stderr);
+   end Initialize;
+
    ---------
    -- Run --
    ---------
@@ -985,9 +984,11 @@ package body Tester.Tests is
    procedure Run
      (Self     : in out Test;
       Commands : GNATCOLL.JSON.JSON_Array;
+      On_Hang  : VSS.Strings.Virtual_String;
       Debug    : Boolean) is
    begin
       Self.In_Debug := Debug;
+      Self.On_Hang := On_Hang;
 
       while Self.Index <= GNATCOLL.JSON.Length (Commands) loop
          declare
@@ -998,6 +999,42 @@ package body Tester.Tests is
          end;
       end loop;
    end Run;
+
+   -------------------------------
+   -- Standard_Error_Available --
+   -------------------------------
+
+   overriding procedure Standard_Error_Available
+     (Self : in out Process_Listener)
+   is
+      Data : Ada.Streams.Stream_Element_Array (1 .. 128);
+      Last : Ada.Streams.Stream_Element_Count;
+      use type Ada.Streams.Stream_Element_Count;
+   begin
+      loop
+         Self.Process.Read_Standard_Error (Data, Last);
+         exit when Last = 0;
+         Ada.Streams.Stream_IO.Write (Self.Stderr, Data (1 .. Last));
+      end loop;
+   end Standard_Error_Available;
+
+   -------------------------------
+   -- Standard_Output_Available --
+   -------------------------------
+
+   overriding procedure Standard_Output_Available
+     (Self : in out Process_Listener)
+   is
+      Data : Ada.Streams.Stream_Element_Array (1 .. 128);
+      Last : Ada.Streams.Stream_Element_Count;
+      use type Ada.Streams.Stream_Element_Count;
+   begin
+      loop
+         Self.Process.Read_Standard_Output (Data, Last);
+         exit when Last = 0;
+         Ada.Streams.Stream_IO.Write (Self.Stdout, Data (1 .. Last));
+      end loop;
+   end Standard_Output_Available;
 
    -----------------
    -- Wait_Factor --
