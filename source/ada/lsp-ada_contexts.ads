@@ -20,13 +20,11 @@
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
 
+with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with GNATdoc.Comments.Options;
-
-with GPR2.Project.Tree;
-with GPR2.Project.View;
 
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
 with Laltools.Common;
@@ -66,10 +64,10 @@ package LSP.Ada_Contexts is
    --  in particular.
 
    procedure Load_Project
-     (Self    : in out Context;
-      Tree    : GPR2.Project.Tree.Object;
-      Root    : GPR2.Project.View.Object;
-      Charset : String);
+     (Self     : in out Context;
+      Tree     : not null GNATCOLL.Projects.Project_Tree_Access;
+      Root     : GNATCOLL.Projects.Project_Type;
+      Charset  : String);
    --  Use the given project tree, and root project within this project
    --  tree, as project for this context. Root must be a non-aggregate
    --  project tree representing the root of a hierarchy inside Tree.
@@ -311,7 +309,7 @@ package LSP.Ada_Contexts is
 
    function Project_Attribute_Value
      (Self         : Context;
-      Attribute    : GPR2.Q_Attribute_Id;
+      Attribute    : GNATCOLL.Projects.Attribute_Pkg_String;
       Index        : String := "";
       Default      : String := "";
       Use_Extended : Boolean := False) return String;
@@ -340,7 +338,7 @@ private
       --  Indicate that this is a "fallback" context, ie the context
       --  holding any file, in the case no valid project was loaded.
 
-      Tree           : access GPR2.Project.Tree.Object;
+      Tree                : GNATCOLL.Projects.Project_Tree_Access;
       --  The loaded project tree: we need to keep a reference to this
       --  in order to figure out which files are Ada and which are not.
       --  Do not deallocate: this is owned by the Message_Handler.
