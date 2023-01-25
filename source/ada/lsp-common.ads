@@ -19,6 +19,7 @@
 
 with Ada.Exceptions;
 with GNAT.OS_Lib;
+with GNATCOLL.Projects;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;          use GNATCOLL.VFS;
 
@@ -26,15 +27,10 @@ with VSS.Characters;
 with VSS.Strings;
 with VSS.String_Vectors;
 
-with GPR2.Project.Attribute_Index;
-with GPR2.Project.Tree;
-
 with LSP.Messages;
 with Libadalang.Analysis;   use Libadalang.Analysis;
 
 package LSP.Common is
-
-   use GPR2;
 
    LSP_New_Line_Function_Set : constant VSS.Strings.Line_Terminator_Set :=
      (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
@@ -52,19 +48,6 @@ package LSP.Common is
      (Is_Server_Side => True,
       As_Flags => (LSP.Messages.Child => True, others => False));
    --  Convenient constants
-
-   Pretty_Printer_Id : constant GPR2.Package_Id := +"pretty_printer";
-
-   package Pretty_Printer is
-      Default_Switches : constant Q_Attribute_Id :=
-        (Pretty_Printer_Id, +"default_switches");
-      Switches         : constant Q_Attribute_Id :=
-        (Pretty_Printer_Id, +"switches");
-   end Pretty_Printer;
-
-   Ada_Index : constant GPR2.Project.Attribute_Index.Object :=
-                  GPR2.Project.Attribute_Index.Create
-                     (GPR2.Ada_Language);
 
    procedure Log
      (Trace   : GNATCOLL.Traces.Trace_Handle;
@@ -92,7 +75,7 @@ package LSP.Common is
    --  defined by Ada 2012 Reference Manual.
 
    function Is_Ada_File
-     (Tree : GPR2.Project.Tree.Object;
+     (Tree : GNATCOLL.Projects.Project_Tree_Access;
       File : GNATCOLL.VFS.Virtual_File) return Boolean;
    --  Return whether the file is an Ada file according to the project's
    --  naming scheme.

@@ -83,12 +83,3 @@
    fun:libadalang__implementation__c___elabb
    fun:adalanginit
 }
-
-{
-   Suppress Ada.Environment_Variables.Set known memory leak report
-   Memcheck:Leak
-   match-leak-kinds: definite
-   fun:malloc
-   fun:__gnat_setenv
-   fun:ada__environment_variables__set
-}
