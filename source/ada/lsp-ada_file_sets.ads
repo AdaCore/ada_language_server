@@ -28,9 +28,17 @@ with Libadalang.Analysis;
 with Langkit_Support.Slocs;
 
 with VSS.Strings;
+with VSS.Strings.Hash;
 with LSP.Search;
 
 package LSP.Ada_File_Sets is
+
+   package Extension_Sets is
+     new Ada.Containers.Hashed_Sets
+       (Element_Type        => VSS.Strings.Virtual_String,
+        Hash                => VSS.Strings.Hash,
+        Equivalent_Elements => VSS.Strings."=",
+        "="                 => VSS.Strings."=");
 
    package File_Sets is new Ada.Containers.Ordered_Sets
      (Element_Type        => GNATCOLL.VFS.Virtual_File,

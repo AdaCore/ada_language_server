@@ -27,7 +27,6 @@ with VSS.Strings;
 with VSS.String_Vectors;
 
 with GPR2.Project.Attribute_Index;
-with GPR2.Project.Tree;
 
 with LSP.Messages;
 with Libadalang.Analysis;   use Libadalang.Analysis;
@@ -90,11 +89,5 @@ package LSP.Common is
      (Item : VSS.Characters.Virtual_Character) return Boolean;
    --  Return True when given character belongs to 'separator' category,
    --  defined by Ada 2012 Reference Manual.
-
-   function Is_Ada_File
-     (Tree : GPR2.Project.Tree.Object;
-      File : GNATCOLL.VFS.Virtual_File) return Boolean;
-   --  Return whether the file is an Ada file according to the project's
-   --  naming scheme.
 
 end LSP.Common;

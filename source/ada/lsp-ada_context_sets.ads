@@ -65,7 +65,7 @@ package LSP.Ada_Context_Sets is
    --  Return the list of all source directories for writable projects in the
    --  context, including externally built projects' source directories when
    --  Include_Externally_Built is set to True.
-   --  Each dirctory is present only once in the resulting array.
+   --  Each directory is present only once in the resulting array.
 
    procedure Cleanup (Self : in out Context_Set'Class);
    --  Free memory referenced by Self

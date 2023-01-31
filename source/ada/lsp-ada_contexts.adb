@@ -265,10 +265,6 @@ package body LSP.Ada_Contexts is
       File    : GNATCOLL.VFS.Virtual_File;
       Reparse : Boolean := False) return Libadalang.Analysis.Analysis_Unit is
    begin
-      if not Is_Ada_File (Self.Tree.all, File) then
-         return Libadalang.Analysis.No_Analysis_Unit;
-      end if;
-
       return Self.LAL_Context.Get_From_File
         (File.Display_Full_Name,
          Charset => Self.Get_Charset,
@@ -309,6 +305,16 @@ package body LSP.Ada_Contexts is
          return Self.Source_Dirs;
       end if;
    end List_Source_Directories;
+
+   ----------------------------
+   -- List_Source_Externsion --
+   ----------------------------
+
+   function List_Source_Extensions
+     (Self : Context) return LSP.Ada_File_Sets.Extension_Sets.Set is
+   begin
+      return Self.Extension_Set;
+   end List_Source_Extensions;
 
    -------------------------
    -- Find_All_References --
@@ -743,6 +749,32 @@ package body LSP.Ada_Contexts is
             Externally_Built => True)
          loop
             Self.External_Source_Dirs.Include (Dir.Virtual_File);
+         end loop;
+
+         Self.Extension_Set.Clear;
+
+         for C in Tree.Iterate
+           (Kind => (GPR2.Project.I_Runtime       => True,
+                     GPR2.Project.I_Configuration => False,
+                     others                       => True))
+         loop
+            declare
+               View                : constant GPR2.Project.View.Object :=
+                 GPR2.Project.Tree.Element (C);
+               Spec_Suffix         : constant String :=
+                 View.Spec_Suffix (GPR2.Ada_Language).Value.Text;
+               Body_Suffix         : constant String :=
+                 View.Body_Suffix (GPR2.Ada_Language).Value.Text;
+               Separate_Suffix     : constant String :=
+                 View.Separate_Suffix.Value.Text;
+            begin
+               Self.Extension_Set.Include
+                 (VSS.Strings.Conversions.To_Virtual_String (Spec_Suffix));
+               Self.Extension_Set.Include
+                 (VSS.Strings.Conversions.To_Virtual_String (Body_Suffix));
+               Self.Extension_Set.Include
+                 (VSS.Strings.Conversions.To_Virtual_String (Separate_Suffix));
+            end;
          end loop;
       end Update_Source_Files;
 

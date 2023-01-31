@@ -234,6 +234,10 @@ package LSP.Ada_Contexts is
    --  List the source directories, including externally built projects' source
    --  directories when Include_Externally_Built is set to True.
 
+   function List_Source_Extensions
+     (Self : Context) return LSP.Ada_File_Sets.Extension_Sets.Set;
+   --  List all extensions for the current project.
+
    function Get_AU
      (Self    : Context;
       File    : GNATCOLL.VFS.Virtual_File;
@@ -354,6 +358,9 @@ private
 
       External_Source_Dirs : LSP.Ada_File_Sets.File_Sets.Set;
       --  All the source dirs coming from externally built projects
+
+      Extension_Set : LSP.Ada_File_Sets.Extension_Sets.Set;
+      --  All the ada extensions valid for the current project
 
       PP_Options : Utils.Command_Lines.Command_Line
                     (Pp.Command_Lines.Descriptor'Access);

@@ -213,16 +213,6 @@ package body LSP.Ada_Handlers is
       Document : not null LSP.Ada_Documents.Document_Access);
    --  Publish diagnostic messages for given document if needed
 
-   function Is_Ada_Source
-     (Self : access Message_Handler;
-      File : GNATCOLL.VFS.Virtual_File)
-            return Boolean
-   is (Is_Ada_File (Self.Project_Tree, File));
-   --  Checks if File is an Ada source of Self's project. This is needed
-   --  to filter non Ada sources on notifications like
-   --  DidCreate/Rename/DeleteFiles and DidChangeWatchedFiles since it's not
-   --  possible to filter them in the FileOperationRegistrationOptions.
-
    function Compute_File_Operations_Server_Capabilities
      (Self : access Message_Handler)
       return LSP.Messages.Optional_FileOperationsServerCapabilities;
@@ -234,10 +224,8 @@ package body LSP.Ada_Handlers is
      (Self : access Message_Handler)
       return LSP.Messages.FileOperationRegistrationOptions;
    --  Computes FileOperationRegistrationOptions based on the project held by
-   --  Self. These registration options will include any file that is in a
-   --  source folder of Self's project. We can't filter non Ada sources here,
-   --  only on the DidCreate/Rename/DeleteFiles and DidChangeWatchedFiles
-   --  notifications.
+   --  Self. These registration options will include Ada file that is in a
+   --  source folder of Self's project.
 
    function Format
      (Self     : in out LSP.Ada_Contexts.Context;
@@ -848,6 +836,7 @@ package body LSP.Ada_Handlers is
         LSP.Messages.Optional_FileOperationsClientCapabilities
           renames Self.Client.capabilities.workspace.fileOperations;
    begin
+
       if Client_Capabilities.Is_Set
         and then not Self.Contexts.Each_Context.Is_Empty
       then
@@ -894,27 +883,53 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.FileOperationRegistrationOptions
    is
       use LSP.Messages;
+      use LSP.Ada_File_Sets.Extension_Sets;
+      use VSS.Strings;
 
       File_Operation_Filters : LSP.Messages.FileOperationFilter_Vector;
 
    begin
-      for Context of Self.Contexts.Each_Context loop
-         for Source_Dir of Context.List_Source_Directories loop
-            declare
-               Dir_Full_Name : constant GNATCOLL.VFS.Filesystem_String :=
-                 GNATCOLL.VFS."/" (Source_Dir, "*").Full_Name;
-               Scheme        : constant VSS.Strings.Virtual_String := "file";
-               Sources_Glob  : constant VSS.Strings.Virtual_String :=
-                 VSS.Strings.Conversions.To_Virtual_String (+Dir_Full_Name);
 
-               File_Operation_Filter :
-                 constant LSP.Messages.FileOperationFilter :=
-                   (scheme => (Is_Set => True, Value => Scheme),
-                    pattern => (glob => Sources_Glob, others => <>));
-            begin
-               File_Operation_Filters.Append (File_Operation_Filter);
-            end;
-         end loop;
+      for Context of Self.Contexts.Each_Context loop
+         declare
+            Extensions_Set    : constant LSP.Ada_File_Sets.Extension_Sets.Set
+              := Context.List_Source_Extensions;
+            --  Need to lock the Set in a local variable for the cursor to stay
+            --  valid.
+            Extension_Pattern : VSS.Strings.Virtual_String := "{";
+            Extension_Cursor  : LSP.Ada_File_Sets.Extension_Sets.Cursor :=
+              First (Extensions_Set);
+         begin
+            while Has_Element (Extension_Cursor) loop
+               Extension_Pattern.Append (Element (Extension_Cursor));
+               Next (Extension_Cursor);
+               if Has_Element (Extension_Cursor) then
+                  Extension_Pattern.Append (",");
+               else
+                  Extension_Pattern.Append ("}");
+               end if;
+            end loop;
+
+            for Source_Dir of Context.List_Source_Directories loop
+               declare
+                  Dir_Full_Name : constant GNATCOLL.VFS.Filesystem_String :=
+                    GNATCOLL.VFS."/" (Source_Dir, "*").Full_Name;
+                  Scheme        : constant VSS.Strings.Virtual_String :=
+                    "file";
+                  Sources_Glob  : constant VSS.Strings.Virtual_String :=
+                    VSS.Strings.Conversions.To_Virtual_String (+Dir_Full_Name);
+
+                  File_Operation_Filter :
+                  constant LSP.Messages.FileOperationFilter :=
+                    (scheme  => (Is_Set => True,
+                                 Value  => Scheme),
+                     pattern => (glob   => Sources_Glob & Extension_Pattern,
+                                 others => <>));
+               begin
+                  File_Operation_Filters.Append (File_Operation_Filter);
+               end;
+            end loop;
+         end;
       end loop;
 
       return
@@ -4787,16 +4802,14 @@ package body LSP.Ada_Handlers is
       for Change of Value.changes loop
          URI := Change.uri;
          File := Self.To_File (URI);
-         if Self.Is_Ada_Source (File) then
-            case Change.a_type is
-               when LSP.Messages.Created =>
-                  Process_Created_File;
-               when LSP.Messages.Deleted =>
-                  Process_Deleted_File;
-               when LSP.Messages.Changed =>
-                  Process_Changed_File;
-            end case;
-         end if;
+         case Change.a_type is
+            when LSP.Messages.Created =>
+               Process_Created_File;
+            when LSP.Messages.Deleted =>
+               Process_Deleted_File;
+            when LSP.Messages.Changed =>
+               Process_Changed_File;
+         end case;
       end loop;
    end On_DidChangeWatchedFiles_Notification;
 
@@ -5442,18 +5455,16 @@ package body LSP.Ada_Handlers is
             --  Context.
 
          begin
-            if Self.Is_Ada_Source (Created_File) then
-               for Context of Self.Contexts.Each_Context
-                 (Has_Dir'Unrestricted_Access)
-               loop
-                  Context.Include_File (Created_File);
-                  Context.Index_File (Created_File);
+            for Context of Self.Contexts.Each_Context
+              (Has_Dir'Unrestricted_Access)
+            loop
+               Context.Include_File (Created_File);
+               Context.Index_File (Created_File);
 
-                  Self.Trace.Trace
-                    ("Included " & Created_File.Display_Base_Name
-                     & " in context " & To_UTF_8_String (Context.Id));
-               end loop;
-            end if;
+               Self.Trace.Trace
+                 ("Included " & Created_File.Display_Base_Name
+                  & " in context " & To_UTF_8_String (Context.Id));
+            end loop;
          end;
       end loop;
 
@@ -5531,22 +5542,20 @@ package body LSP.Ada_Handlers is
             URI_Contexts : Context_Lists.List;
 
          begin
-            if Self.Is_Ada_Source (Old_File) then
-               for Context of Self.Contexts.Each_Context
-                 (Has_File'Unrestricted_Access)
-               loop
-                  URI_Contexts.Append (Context);
-                  Context.Exclude_File (Old_File);
-                  Context.Index_File (Old_File);
+            for Context of Self.Contexts.Each_Context
+              (Has_File'Unrestricted_Access)
+            loop
+               URI_Contexts.Append (Context);
+               Context.Exclude_File (Old_File);
+               Context.Index_File (Old_File);
 
-                  Self.Trace.Trace
-                    ("Excluded " & Old_File.Display_Full_Name
-                     & " from context " & To_UTF_8_String (Context.Id));
-               end loop;
+               Self.Trace.Trace
+                 ("Excluded " & Old_File.Display_Full_Name
+                  & " from context " & To_UTF_8_String (Context.Id));
+            end loop;
 
-               URIs_Contexts.Insert
-                 (To_LSP_URI (File_Rename.oldUri), URI_Contexts);
-            end if;
+            URIs_Contexts.Insert
+              (To_LSP_URI (File_Rename.oldUri), URI_Contexts);
          end;
       end loop;
 
@@ -5569,22 +5578,20 @@ package body LSP.Ada_Handlers is
             Is_Document_Open : constant Boolean := Document /= null;
 
          begin
-            if Self.Is_Ada_Source (New_File) then
-               for Context of
-                 URIs_Contexts.Constant_Reference
-                   (To_LSP_URI (File_Rename.oldUri))
-               loop
-                  Context.Include_File (New_File);
-                  if Is_Document_Open then
-                     Context.Index_Document (Document.all);
-                  else
-                     Context.Index_File (New_File);
-                  end if;
-                  Self.Trace.Trace
-                    ("Included " & New_File.Display_Base_Name & " in context "
-                     & To_UTF_8_String (Context.Id));
-               end loop;
-            end if;
+            for Context of
+              URIs_Contexts.Constant_Reference
+                (To_LSP_URI (File_Rename.oldUri))
+            loop
+               Context.Include_File (New_File);
+               if Is_Document_Open then
+                  Context.Index_Document (Document.all);
+               else
+                  Context.Index_File (New_File);
+               end if;
+               Self.Trace.Trace
+                 ("Included " & New_File.Display_Base_Name & " in context "
+                  & To_UTF_8_String (Context.Id));
+            end loop;
          end;
       end loop;
 
@@ -5643,19 +5650,17 @@ package body LSP.Ada_Handlers is
             --  Context.
 
          begin
-            if Self.Is_Ada_Source (Deleted_File) then
-               for Context of Self.Contexts.Each_Context
-                 (Has_File'Unrestricted_Access)
-               loop
-                  Context.Exclude_File (Deleted_File);
-                  Context.Index_File (Deleted_File);
+            for Context of Self.Contexts.Each_Context
+              (Has_File'Unrestricted_Access)
+            loop
+               Context.Exclude_File (Deleted_File);
+               Context.Index_File (Deleted_File);
 
-                  Self.Trace.Trace
-                    ("Excluded " & Deleted_File.Display_Base_Name
-                     & " from context "
-                     & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
-               end loop;
-            end if;
+               Self.Trace.Trace
+                 ("Excluded " & Deleted_File.Display_Base_Name
+                  & " from context "
+                  & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
+            end loop;
          end;
       end loop;
 
