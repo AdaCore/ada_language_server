@@ -165,6 +165,7 @@ private
    type Load_Project_Status is
      (Valid_Project_Configured,
       Single_Project_Found,
+      Alire_Project,
       No_Project_Found,
       Multiple_Projects_Found,
       Invalid_Project_Configured);
@@ -175,6 +176,9 @@ private
    --
    --  @value Single_Project_Found no project in didChangeConfiguration, but
    --  just one project in Root dir
+   --
+   --  @value Alire_Project no project in didChangeConfiguration, but Alire
+   --  knows what project to use
    --
    --  @value No_Project_Found no project in didChangeConfiguration and no
    --  project in Root dir
@@ -262,6 +266,12 @@ private
 
       Charset : VSS.Strings.Virtual_String;
       --  A character set for Libadalang
+
+      Project_File : VSS.Strings.Virtual_String;
+      --  The project file, if provided by the user on Configuration/Init
+
+      Scenario_Variables : Scenario_Variable_List;
+      --  Scenario variables, if provided by the user on Configuration/Init
 
       Diagnostics_Enabled : Boolean := True;
       --  Whether to publish diagnostics
@@ -361,12 +371,6 @@ private
       -- Project handling --
       ----------------------
 
-      Project_File : VSS.Strings.Virtual_String;
-      --  The currently loaded project tree
-
-      Scenario_Variables : Scenario_Variable_List;
-      --  Scenario variables used to load a current project
-
       Project_Tree : GPR2.Project.Tree.Object;
       --  The currently loaded project tree
 
@@ -381,7 +385,7 @@ private
       --  Value of `relocateBuildTree`. See `--relocate-build-tree[=dir]`
       --  of `gprbuild`.
 
-      Root_Dir : VSS.Strings.Virtual_String;
+      Relocate_Root_Dir : VSS.Strings.Virtual_String;
       --  Value of `rootDir`. See `--root-dir=dir` of `gprbuild`.
 
       Project_Status : Load_Project_Status := No_Project_Found;

@@ -53,6 +53,7 @@ with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Completions.Use_Clauses;
+with LSP.Ada_Handlers.Alire;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
@@ -272,20 +273,26 @@ package body LSP.Ada_Handlers is
    --  The heuristics that is used for loading a project is the following:
    --
    --     * if a project (and optionally a scenario) was specified by
-   --       the user via the workspace/didChangeConfiguration request,
-   --       attempt to use this. If this fails to load, report an error
-   --       but do not attempt to load another project.
+   --       the user via the workspace/didChangeConfiguration notification or
+   --       Initialize request, attempt to use this.
+   --       If there is `alire.toml` in the root, then run `alr` to find
+   --       search path and extra scenario variables.
+   --       If this fails to load, then report an error, but do not attempt to
+   --       load another project.
    --     => This case is handled by a call to Load_Project in
-   --        On_DidChangeConfiguration_Notification.
+   --        Change_Configuration.
    --
-   --     * if no project was specified by the user, then look in the Root
-   --       directory, mimicking the behavior of gprbuild:
-   --           * if there are zero .gpr files in this directory, load the
-   --             implicit project
-   --           * if there is exactly one .gpr file in this directory, load
-   --             it, returning an error if this failed
-   --           * if there are more than one .gpr files in this directory,
-   --             display an error
+   --     * if no project was specified by the user, then run `alr` in the
+   --       root directory to get project file name from alire.toml (take the
+   --       vefy first project if many or crate name if none).
+   --       Otherwise look in the root directory, mimicking the behavior of
+   --       gprbuild :
+   --          * if there are zero .gpr files in this directory, load the
+   --            implicit project
+   --          * if there is exactly one .gpr file in this directory, load
+   --            it, returning an error if this failed
+   --          * if there are more than one .gpr files in this directory,
+   --            display an error
    --      => These cases are handled by Ensure_Project_Loaded
    --
    --  At any point where requests are made, Self.Contexts should
@@ -300,6 +307,9 @@ package body LSP.Ada_Handlers is
    --  open or a request on non-openned file.
 
    procedure Ensure_Project_Loaded (Self : access Message_Handler);
+   --  This function makes sure that the contexts in Self are properly
+   --  initialized and a project is loaded. If they are not initialized,
+   --  initialize them.
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
@@ -316,13 +326,26 @@ package body LSP.Ada_Handlers is
    procedure Load_Project
      (Self                : access Message_Handler;
       Project_File        : VSS.Strings.Virtual_String;
+      Search_Path         : VSS.String_Vectors.Virtual_String_Vector;
       Scenario            : Scenario_Variable_List;
       Charset             : VSS.Strings.Virtual_String;
-      Status              : Load_Project_Status;
-      Relocate_Build_Tree : VSS.Strings.Virtual_String;
-      Root_Dir            : VSS.Strings.Virtual_String);
+      Status              : Load_Project_Status);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
+
+   procedure Load_Project_With_Alire
+     (Self                : access Message_Handler;
+      Project_File        : VSS.Strings.Virtual_String;
+      Scenario_Variables  : Scenario_Variable_List;
+      Charset             : VSS.Strings.Virtual_String;
+      Status              : Load_Project_Status);
+   --  Load a project with a help of alire. If there is `alire.toml` in the
+   --  root directory and `alr` in the `PATH`, then
+   --  * use Alire to setup project search path, extra scenario variables (and
+   --    a project file name if Project_File is empty).
+   --  * load project
+   --  If Project_File is not empty then load it even if there is no alire.toml
+   --  or `alr`.
 
    procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler);
    --  Mark all sources in all projects for indexing. This factorizes code
@@ -401,7 +424,7 @@ package body LSP.Ada_Handlers is
    is
       File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
    begin
-      Self.Ensure_Project_Loaded;
+      Self.Ensure_Project_Loaded (URI);
 
       if Self.Open_Documents.Contains (File) then
          return LSP.Ada_Documents.Document_Access
@@ -644,13 +667,16 @@ package body LSP.Ada_Handlers is
 
    procedure Reload_Project (Self : access Message_Handler) is
    begin
-      Self.Load_Project
-        (Self.Project_File,
-         Self.Scenario_Variables,
-         Self.Charset,
-         Self.Project_Status,
-         Self.Relocate_Build_Tree,
-         Self.Root_Dir);
+      if Self.Project_File.Is_Empty then
+         Self.Release_Contexts_And_Project_Info;
+         Self.Ensure_Project_Loaded;
+      else
+         Self.Load_Project_With_Alire
+           (Self.Project_File,
+            Self.Scenario_Variables,
+            Self.Charset,
+            Self.Project_Status);
+      end if;
    end Reload_Project;
 
    ---------------------------
@@ -740,9 +766,21 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
-      Self.Trace.Trace ("Project loading ...");
+      Self.Trace.Trace ("Looking for a project...");
       Self.Trace.Trace ("Root : " & Self.Root.Display_Full_Name);
 
+      Self.Load_Project_With_Alire
+        (Project_File        => VSS.Strings.Empty_Virtual_String,
+         Scenario_Variables  => Self.Scenario_Variables,
+         Charset             => Self.Charset,
+         Status              => Alire_Project);
+
+      if not Self.Contexts.Is_Empty then
+         --  Some project was found by alire and loaded. We are done!
+         return;
+      end if;
+
+      --  We don't have alire/crate.
       --  We're going to look for a project in Root: list all the files
       --  in this directory, looking for .gpr files.
 
@@ -772,11 +810,10 @@ package body LSP.Ada_Handlers is
 
          Self.Load_Project
            (Project_File,
+            VSS.String_Vectors.Empty_Virtual_String_Vector,
             No_Scenario_Variable,
             "iso-8859-1",
-            Single_Project_Found,
-            Relocate_Build_Tree => "",
-            Root_Dir => "");
+            Single_Project_Found);
       else
          --  We have found more than one project: warn the user!
 
@@ -2220,7 +2257,7 @@ package body LSP.Ada_Handlers is
          end loop;
 
          case Self.Project_Status is
-            when Valid_Project_Configured =>
+            when Valid_Project_Configured | Alire_Project =>
                null;
             when Single_Project_Found | Multiple_Projects_Found =>
                declare
@@ -4223,6 +4260,7 @@ package body LSP.Ada_Handlers is
       Options : GNATCOLL.JSON.JSON_Value'Class)
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
+      use type VSS.Strings.Virtual_String;
 
       procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
 
@@ -4259,11 +4297,14 @@ package body LSP.Ada_Handlers is
 
       Variables : Scenario_Variable_List;
 
-      function Property (Name : String) return VSS.Strings.Virtual_String is
-        (if Options.Has_Field (Name)
-         then VSS.Strings.Conversions.To_Virtual_String
-           (String'(Options.Get (Name)))
-         else VSS.Strings.Empty_Virtual_String);
+      function Property
+        (Name    : String;
+         Default : VSS.Strings.Virtual_String)
+           return VSS.Strings.Virtual_String is
+             (if Options.Has_Field (Name)
+              then VSS.Strings.Conversions.To_Virtual_String
+                     (String'(Options.Get (Name)))
+              else Default);
 
       ------------------
       -- Add_Variable --
@@ -4282,10 +4323,12 @@ package body LSP.Ada_Handlers is
          end if;
       end Add_Variable;
 
-      File      : VSS.Strings.Virtual_String;
-      Charset   : VSS.Strings.Virtual_String;
-      Relocate  : VSS.Strings.Virtual_String;
-      Root      : VSS.Strings.Virtual_String;
+      File                : VSS.Strings.Virtual_String;
+      Charset             : VSS.Strings.Virtual_String;
+      Relocate_Build_Tree : VSS.Strings.Virtual_String;
+      Relocate_Root       : VSS.Strings.Virtual_String;
+
+      Has_Variables : Boolean := False;  --  settings has scenarioVariables
 
       --  Is client capable of dynamically registering file operations?
       Dynamically_Register_File_Operations : constant Boolean :=
@@ -4295,10 +4338,14 @@ package body LSP.Ada_Handlers is
 
    begin
       if Options.Kind = GNATCOLL.JSON.JSON_Object_Type then
-         Relocate := Property (relocateBuildTree);
-         Root := Property (rootDir);
-         Charset := Property (defaultCharset);
-         File := Property (projectFile);
+         Variables.Names.Clear;
+         Variables.Values.Clear;
+         Relocate_Build_Tree :=
+           Property (relocateBuildTree, Self.Relocate_Build_Tree);
+
+         Relocate_Root := Property (rootDir, Self.Relocate_Root_Dir);
+         Charset := Property (defaultCharset, Self.Charset);
+         File := Property (projectFile, Self.Project_File);
 
          --  Drop uri scheme if present
          if File.Starts_With ("file:") then
@@ -4311,6 +4358,7 @@ package body LSP.Ada_Handlers is
          then
             Options.Get
               (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
+            Has_Variables := True;
          end if;
 
          --  It looks like the protocol does not allow clients to say whether
@@ -4388,17 +4436,28 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
 
-      if not File.Is_Empty then
-         Self.Load_Project
-           (Project_File        => File,
-            Scenario            => Variables,
-            Charset             => Charset,
-            Status              => Valid_Project_Configured,
-            Relocate_Build_Tree => Relocate,
-            Root_Dir            => Root);
-      end if;
+      if Self.Project_File = File
+        and then Self.Charset = Charset
+        and then Self.Relocate_Build_Tree = Relocate_Build_Tree
+        and then Self.Relocate_Root_Dir = Relocate_Root
+        and then not Self.Contexts.Is_Empty
+        and then (Self.Scenario_Variables = Variables
+                   or else not Has_Variables)
+      then
 
-      Self.Ensure_Project_Loaded;
+         --  Project and Scenario, etc are unchanged, project has been loaded.
+         --  No needs to reload the project.
+         null;
+      else
+
+         Self.Project_File := File;
+         Self.Scenario_Variables := Variables;
+         Self.Charset := Charset;
+         Self.Relocate_Build_Tree := Relocate_Build_Tree;
+         Self.Relocate_Root_Dir := Relocate_Root;
+         Self.Project_Status := Valid_Project_Configured;
+         Self.Reload_Project;
+      end if;
 
       --  Register rangeFormatting provider is the client supports
       --  dynamic registration for it (and we haven't done it before).
@@ -4667,11 +4726,10 @@ package body LSP.Ada_Handlers is
    procedure Load_Project
      (Self                : access Message_Handler;
       Project_File        : VSS.Strings.Virtual_String;
+      Search_Path         : VSS.String_Vectors.Virtual_String_Vector;
       Scenario            : Scenario_Variable_List;
       Charset             : VSS.Strings.Virtual_String;
-      Status              : Load_Project_Status;
-      Relocate_Build_Tree : VSS.Strings.Virtual_String;
-      Root_Dir            : VSS.Strings.Virtual_String)
+      Status              : Load_Project_Status)
    is
       Errors     : LSP.Messages.ShowMessageParams;
       Error_Text : VSS.String_Vectors.Virtual_String_Vector;
@@ -4698,7 +4756,8 @@ package body LSP.Ada_Handlers is
             Error       => True,
             Lint        => False,
             Read        => True,
-            Unread      => True) loop
+            Unread      => True)
+         loop
             Error_Text.Append
               (VSS.Strings.Conversions.To_Virtual_String
                  (GPR2.Log.Element (C).Format));
@@ -4767,12 +4826,14 @@ package body LSP.Ada_Handlers is
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
-      GPR                    : Virtual_File := To_Virtual_File (Project_File);
-      Relocate_Build_Tree_VF : constant Virtual_File :=
-                                  To_Virtual_File (Relocate_Build_Tree);
-      Root_Dir_VF            : constant Virtual_File :=
-                                  To_Virtual_File (Root_Dir);
-      Default_Environment    : Environment;
+      GPR                 : Virtual_File := To_Virtual_File (Project_File);
+      Default_Environment : Environment;
+
+      Relocate_Build_Tree : constant Virtual_File :=
+        To_Virtual_File (Self.Relocate_Build_Tree);
+
+      Root_Dir            : constant Virtual_File :=
+        To_Virtual_File (Self.Relocate_Root_Dir);
 
    begin
       --  The projectFile may be either an absolute path or a
@@ -4785,13 +4846,6 @@ package body LSP.Ada_Handlers is
       --  Unload the project tree and the project environment
       Self.Release_Contexts_And_Project_Info;
 
-      Self.Project_File := Project_File;
-      Self.Scenario_Variables := Scenario;
-      Self.Relocate_Build_Tree := Relocate_Build_Tree;
-      Self.Root_Dir := Root_Dir;
-      Self.Charset := Charset;
-
-      --  We're loading an actual project
       Self.Project_Status := Status;
 
       --  Now load the new project
@@ -4799,27 +4853,39 @@ package body LSP.Ada_Handlers is
 
       Self.Project_Environment := Default_Environment;
 
-      if Relocate_Build_Tree_VF /= No_File then
+      if Relocate_Build_Tree /= No_File then
          Self.Project_Environment.Build_Path :=
-           GPR2.Path_Name.Create (Relocate_Build_Tree_VF);
-         if Root_Dir_VF /= No_File and then GPR /= No_File
-         then
-            if not Root_Dir_VF.Is_Absolute_Path then
+           GPR2.Path_Name.Create (Relocate_Build_Tree);
+         if Root_Dir /= No_File and then GPR /= No_File then
+            if not Root_Dir.Is_Absolute_Path then
                Self.Project_Environment.Build_Path :=
                  GPR2.Path_Name.Create_Directory
                    (GPR2.Path_Name.Create (GPR).Relative_Path
-                    (GPR2.Path_Name.Create (Root_Dir_VF)).Name,
-                    GPR2.Filename_Type
-                      (Self.Project_Environment.Build_Path.Value));
+                     (GPR2.Path_Name.Create (Root_Dir)).Name,
+                      GPR2.Filename_Type
+                       (Self.Project_Environment.Build_Path.Value));
             end if;
          end if;
       end if;
 
+      --  Update scenario variables
       for J in 1 .. Scenario.Names.Length loop
          Self.Project_Environment.Context.Insert
            (GPR2.Optional_Name_Type
               (VSS.Strings.Conversions.To_UTF_8_String (Scenario.Names (J))),
             VSS.Strings.Conversions.To_UTF_8_String (Scenario.Values (J)));
+      end loop;
+
+      --  Update project search path
+      for Item of Search_Path loop
+         declare
+            Value : constant GPR2.Path_Name.Object :=
+              GPR2.Path_Name.Create_Directory
+                (GPR2.Filename_Type
+                   (VSS.Strings.Conversions.To_UTF_8_String (Item)));
+         begin
+            Self.Project_Tree.Register_Project_Search_Path (Value);
+         end;
       end loop;
 
       begin
@@ -4845,8 +4911,6 @@ package body LSP.Ada_Handlers is
          when E : GPR2.Project_Error | GPR2.Processing_Error
                   | GPR2.Attribute_Error =>
             Append_Errors;
-
-            Self.Release_Contexts_And_Project_Info;
 
             Self.Trace.Trace (E);
             Errors.a_type := LSP.Messages.Error;
@@ -4892,6 +4956,119 @@ package body LSP.Ada_Handlers is
       --  Reindex the files from disk in the background after a project reload
       Self.Mark_Source_Files_For_Indexing;
    end Load_Project;
+
+   -----------------------------
+   -- Load_Project_With_Alire --
+   -----------------------------
+
+   procedure Load_Project_With_Alire
+     (Self                : access Message_Handler;
+      Project_File        : VSS.Strings.Virtual_String;
+      Scenario_Variables  : Scenario_Variable_List;
+      Charset             : VSS.Strings.Virtual_String;
+      Status              : Load_Project_Status)
+   is
+
+      Has_Alire   : Boolean;
+      Errors      : VSS.Strings.Virtual_String;
+      Project     : VSS.Strings.Virtual_String := Project_File;
+      Search_Path : VSS.String_Vectors.Virtual_String_Vector;
+      Scenario    : Scenario_Variable_List := Scenario_Variables;
+      UTF_8       : constant VSS.Strings.Virtual_String := "utf-8";
+
+      Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
+        Self.Root.Create_From_Dir ("alire.toml");
+   begin
+      if Alire_TOML.Is_Regular_File then
+
+         Self.Trace.Trace ("Check alire:");
+
+         if Project.Is_Empty then
+
+            LSP.Ada_Handlers.Alire.Run_Alire
+              (Root        => Self.Root.Display_Full_Name,
+               Has_Alire   => Has_Alire,
+               Error       => Errors,
+               Project     => Project,
+               Search_Path => Search_Path,
+               Scenario    => Scenario);
+         else
+
+            LSP.Ada_Handlers.Alire.Run_Alire
+              (Root        => Self.Root.Display_Full_Name,
+               Has_Alire   => Has_Alire,
+               Error       => Errors,
+               Search_Path => Search_Path,
+               Scenario    => Scenario);
+         end if;
+
+         if Has_Alire and then not Errors.Is_Empty then
+
+            --  Something wrong with alire. Report error. Don't load the
+            --  project. Fallback to implicit project.
+
+            declare
+               Error : LSP.Messages.ShowMessageParams;
+            begin
+               Error.a_type := LSP.Messages.Error;
+               Error.message := Errors;
+               Self.Server.On_Show_Message (Error);
+               Self.Trace.Trace
+                 (VSS.Strings.Conversions.To_UTF_8_String (Errors));
+
+               Self.Load_Implicit_Project (Invalid_Project_Configured);
+
+               return;
+            end;
+         elsif Has_Alire then
+
+            --  No errors means the project has been found
+            pragma Assert (not Project.Is_Empty);
+
+            Self.Trace.Trace
+              ("Project:" & VSS.Strings.Conversions.To_UTF_8_String (Project));
+
+            Self.Trace.Trace ("Search Path:");
+            for Item of Search_Path loop
+               Self.Trace.Trace
+                 (VSS.Strings.Conversions.To_UTF_8_String (Item));
+            end loop;
+
+            Self.Trace.Trace ("Scenario:");
+            for J in 1 .. Scenario.Names.Length loop
+               Self.Trace.Trace
+                 (VSS.Strings.Conversions.To_UTF_8_String
+                    (Scenario.Names (J))
+                  & "="
+                  & VSS.Strings.Conversions.To_UTF_8_String
+                      (Scenario.Values (J)));
+            end loop;
+
+            Self.Load_Project
+              (Project,
+               Search_Path,
+               Scenario,
+               (if Charset.Is_Empty then UTF_8 else Charset),
+               Status);
+            --  Alire projects tend to use utf-8
+
+            return;
+         else
+            Self.Trace.Trace ("No alr in the PATH.");
+         end if;
+      end if;
+
+      --  There is no alire.toml or no alr, but we know the project, load it
+      if not Project.Is_Empty then
+
+         Self.Load_Project
+           (Project,
+            VSS.String_Vectors.Empty_Virtual_String_Vector,
+            Scenario_Variables,
+            Charset,
+            Status);
+      end if;
+   end Load_Project_With_Alire;
 
    -------------------------------
    -- Get_Unique_Progress_Token --
