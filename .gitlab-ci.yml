@@ -9,18 +9,34 @@ stages:
 # Build and test with ANOD
 # TODO: add a build and test based on Alire in parallel to this.
 build_and_test:
+  rules:
+    # Let's do the job only for merge request events: that's
+    # when we know whether the target branch is 'edge'.
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   services:
      - image:sandbox
      - cpu:8
      - mem:16
   stage: build_and_test
+  interruptible: true
   script:
     - . ~/.aws_container_credentials
     - export PATH=/it/e3/bin:$PATH
 
+    # Check whether we're in an MR targeting 'edge' and setup some
+    # variables if so.
+    - TARGET_BRANCH="master"
+    - if [ "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" = "edge" ]; then
+          echo "Targeting the edge branch." ;
+          REPO_SUFFIX="-edge" ;
+          BUILD_SPACE_SUFFIX="_edge" ;
+          QUALIFIER="edge" ;
+          TARGET_BRANCH="edge" ;
+      fi
+
     # Setup the 'anod vcs' for this repo
     - cd /it/wave
-    - anod vcs --add-repo ada_language_server $CI_PROJECT_DIR
+    - anod vcs --add-repo ada_language_server${REPO_SUFFIX} $CI_PROJECT_DIR
 
     # Figure out if we're on a sync branch
     - BRANCH=master
@@ -32,29 +48,32 @@ build_and_test:
 
     # Setup the 'anod vcs' for the other repos, if we're on
     # a "sync" branch.
-    - if [ $BRANCH != master ]; then
-      for subproject in vss spawn gnatdoc ; do
+    - for subproject in vss spawn gnatdoc ; do
+         echo "for subproject $subproject ..." ;
          cd /tmp ;
          git clone $GIT_CLONE_BASE/eng/ide/$subproject ;
          cd $subproject ;
          if `git show-ref $BRANCH > /dev/null` ; then
+             echo "... checking out $BRANCH"
              git checkout $BRANCH ;
              cd /it/wave ;
              anod vcs --add-repo $subproject /tmp/$subproject ;
+         else
+             echo "... checking out $TARGET_BRANCH"
+             git checkout $TARGET_BRANCH ;
          fi ;
       done ;
-      fi
 
     # Build & test using anod
     - cd /it/wave
-    - anod build als --minimal
-    - anod test als --minimal
+    - anod build als --qualifier=$QUALIFIER --minimal
+    - anod test als  --qualifier=$QUALIFIER --minimal
 
     # Process the report
     - e3-testsuite-report
        --failure-exit-code 1
        --xunit-output $CI_PROJECT_DIR/xunit_output.xml
-       x86_64-linux/als-test/results/new/ || FAILED=true
+       x86_64-linux/als${BUILD_SPACE_SUFFIX}-test/results/new/ || FAILED=true
 
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 
