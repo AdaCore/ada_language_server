@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                    Copyright (C) 2021-2022, AdaCore                      --
+--                    Copyright (C) 2021-2023, AdaCore                      --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,10 @@ import {
     alsChangeParametersDefaultValueCommandExecutor,
     ChangeParametersDefaultValueCommandArgs,
 } from './refactoring/alsChangeParametersDefaultValueCommand';
+import {
+    alsReplaceTypeCommandExecutor,
+    ReplaceTypeCommandArgs,
+} from './refactoring/alsReplaceTypeCommand';
 
 /**
  * Type alias for a function that intercepts a command and executes it by return a promise that
@@ -78,6 +82,12 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
             const proceedWithExecution = await alsChangeParametersDefaultValueCommandExecutor(
                 client,
                 args[0] as ChangeParametersDefaultValueCommandArgs
+            );
+            if (!proceedWithExecution) return Promise.resolve(undefined);
+        } else if (command === 'als-refactor-replace-type') {
+            const proceedWithExecution = await alsReplaceTypeCommandExecutor(
+                client,
+                args[0] as ReplaceTypeCommandArgs
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
         }

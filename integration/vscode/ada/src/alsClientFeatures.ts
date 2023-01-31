@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021-2022, AdaCore                     --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -47,22 +47,20 @@ export class ALSClientFeatures implements StaticFeature {
      * that this client can provide user inputs
      */
     fillClientCapabilities(capabilities: ClientCapabilities): void {
+        const advanced_refactorings = [
+            'add_parameter',
+            'change_parameters_type',
+            'change_parameters_default_value',
+            'replace_type',
+        ];
         if (capabilities.experimental === undefined) {
             capabilities.experimental = {
-                advanced_refactorings: [
-                    'add_parameter',
-                    'change_parameters_type',
-                    'change_parameters_default_value',
-                ],
+                advanced_refactorings: advanced_refactorings,
             };
         } else {
             (
                 capabilities.experimental as { advanced_refactorings: string[] }
-            ).advanced_refactorings = [
-                'add_parameter',
-                'change_parameters_type',
-                'change_parameters_default_value',
-            ];
+            ).advanced_refactorings = advanced_refactorings;
         }
     }
 

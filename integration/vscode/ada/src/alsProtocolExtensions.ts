@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021-2022, AdaCore                     --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,6 +32,7 @@ import { LanguageClient } from 'vscode-languageclient/node';
 export enum AdaGrammarRule {
     Defining_Id_Rule = 'Defining_Id_Rule',
     Defining_Id_List_Rule = 'Defining_Id_List_Rule',
+    Defining_Name_Rule = 'Defining_Name_Rule',
     Param_Spec_Rule = 'Param_Spec_Rule',
     Anonymous_Type_Rule = 'Anonymous_Type_Rule',
     Subtype_Indication_Rule = 'Subtype_Indication_Rule',
