@@ -1,7 +1,7 @@
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,7 +22,6 @@ import {
     LanguageClientOptions,
     Middleware,
     ServerOptions,
-    ExecutableOptions
 } from 'vscode-languageclient/node';
 import { platform } from 'os';
 import * as process from 'process';
@@ -32,7 +31,6 @@ import gnatproveTaskProvider from './gnatproveTaskProvider';
 import { getSubprogramSymbol } from './gnatproveTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
-import { string } from 'fp-ts';
 
 let alsTaskProvider: vscode.Disposable[] = [
     vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
@@ -47,7 +45,7 @@ let alsTaskProvider: vscode.Disposable[] = [
 /**
  * Add a subprogram box above the subprogram enclosing the cursor's position, if any.
  *
- * @example:
+ * @example
  *
  *  -------
  *  - Foo -
@@ -55,37 +53,47 @@ let alsTaskProvider: vscode.Disposable[] = [
  *
  *  procedure Foo is
  */
-function addSupbrogramBox() {
+async function addSupbrogramBox() {
     const activeEditor = vscode.window.activeTextEditor;
 
-    getSubprogramSymbol(activeEditor)
-        .then(symbol => {
-            if (symbol !== null) {
-                const name: string = symbol.name ?? ""
-                const insertPos = new vscode.Position(symbol.range.start.line, 0);
-                const indentationRange = new vscode.Range(insertPos, symbol.range.start)
-                const indentation: string = activeEditor?.document.getText(indentationRange) ?? ""
-                const eol: string = activeEditor?.document.eol == vscode.EndOfLine.CRLF ? "\r\n" : "\n";
+    await getSubprogramSymbol(activeEditor).then(async (symbol) => {
+        if (symbol !== null) {
+            const name: string = symbol.name ?? '';
+            const insertPos = new vscode.Position(symbol.range.start.line, 0);
+            const indentationRange = new vscode.Range(insertPos, symbol.range.start);
+            const indentation: string = activeEditor?.document.getText(indentationRange) ?? '';
+            const eol: string = activeEditor?.document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n';
 
-                // Generate the subprogram box after retrieving the indentation of the line of
-                // the subprogram's body declaration.
-                let text: string = indentation + "---" + '-'.repeat(name.length) + "---" + eol
-                    + indentation + "-- " + name + " --" + eol
-                    + indentation + "---" + '-'.repeat(name.length) + "---" + eol
-                    + eol;
+            // Generate the subprogram box after retrieving the indentation of the line of
+            // the subprogram's body declaration.
+            const text: string =
+                indentation +
+                '---' +
+                '-'.repeat(name.length) +
+                '---' +
+                eol +
+                indentation +
+                '-- ' +
+                name +
+                ' --' +
+                eol +
+                indentation +
+                '---' +
+                '-'.repeat(name.length) +
+                '---' +
+                eol +
+                eol;
 
-                activeEditor?.document.eol.toString
-                if (activeEditor) {
-
-                    activeEditor.edit(editBuilder => {
-                        editBuilder.insert(insertPos, text);
-                    });
-                }
+            if (activeEditor) {
+                await activeEditor.edit((editBuilder) => {
+                    editBuilder.insert(insertPos, text);
+                });
             }
-        })
+        }
+    });
 }
 
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
     function createClient(id: string, name: string, extra: string[], pattern: string) {
         let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
         if (process.env.ALS) serverModule = process.env.ALS;
@@ -97,28 +105,32 @@ export function activate(context: vscode.ExtensionContext): void {
         // Retrieve the user's custom environment variables if specified in their
         // settings/workspace: we'll then launch any child process with this custom
         // environment
-        var user_platform = platform();
-        var env_config_name: string = "terminal.integrated.env.linux";
+        const user_platform = platform();
+        let env_config_name = 'terminal.integrated.env.linux';
 
         switch (user_platform) {
-            case 'darwin': env_config_name = "terminal.integrated.env.osx"
+            case 'darwin':
+                env_config_name = 'terminal.integrated.env.osx';
                 break;
-            case 'win32': env_config_name = "terminal.integrated.env.windows";
+            case 'win32':
+                env_config_name = 'terminal.integrated.env.windows';
                 break;
-            default: env_config_name = "terminal.integrated.env.linux";
+            default:
+                env_config_name = 'terminal.integrated.env.linux';
         }
 
-        const custom_env = vscode.workspace.getConfiguration().get(
-            env_config_name) ?? Object.create(null)
+        const custom_env = vscode.workspace.getConfiguration().get<[string]>(env_config_name);
 
-        for (let var_name in custom_env) {
-            process.env[var_name] = custom_env[var_name];
+        if (custom_env) {
+            for (const var_name in custom_env) {
+                process.env[var_name] = custom_env[var_name];
+            }
         }
 
         // Options to control the server
         const serverOptions: ServerOptions = {
             run: { command: serverModule, args: extra },
-            debug: { command: serverModule, args: extra }
+            debug: { command: serverModule, args: extra },
         };
 
         // Options to control the language client
@@ -193,63 +205,82 @@ export function activate(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(configChanged));
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
-    context.subscriptions.push(vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBox));
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBox)
+    );
 
-    //  Check if we need to add some source directories to the workspace (e.g: when imported projects'
-    //  source directories are not placed under the root project's directory).
+    type ALSSourceDirDescription = {
+        name: string;
+        uri: string;
+    };
+
+    //  Check if we need to add some source directories to the workspace (e.g: when imported
+    //  projects' source directories are not placed under the root project's directory).
     //  Do nothing is the user did not setup any workspace file.
     if (vscode.workspace.workspaceFile !== undefined) {
-        client.onReady().then(() => {
-            client.sendRequest("workspace/alsSourceDirs").then(
-                data => {
-                    const source_dirs = JSON.parse(JSON.stringify(data));
-                    const workspace_folders = vscode.workspace.workspaceFolders ?? []
-                    let workspace_dirs_to_add: { uri: vscode.Uri, name?: string | undefined }[] = []
+        await client.onReady().then(async () => {
+            await client
+                .sendRequest<[ALSSourceDirDescription]>('workspace/alsSourceDirs')
+                .then(async (source_dirs) => {
+                    const workspace_folders = vscode.workspace.workspaceFolders ?? [];
+                    const workspace_dirs_to_add: { uri: vscode.Uri; name?: string | undefined }[] =
+                        [];
 
-                    for (var source_dir of source_dirs) {
-                        const source_dir_uri = vscode.Uri.parse(source_dir.uri)
-                        let source_dir_path = source_dir_uri.path
-                        let workspace_folder_path = workspace_folders[0].uri.path
+                    for (const source_dir of source_dirs) {
+                        const source_dir_uri = vscode.Uri.parse(source_dir.uri);
+                        const source_dir_path = source_dir_uri.path;
 
-                        function is_subdirectory(dir: string, parent: string) {
-                            //  Use lower-case on Windows since drives can be specified in VS Code either
-                            //  with lower or upper case characters.
-                            if (process.platform == "win32") {
+                        const is_subdirectory = (dir: string, parent: string) => {
+                            //  Use lower-case on Windows since drives can be specified in VS Code
+                            //  either with lower or upper case characters.
+                            if (process.platform == 'win32') {
                                 dir = dir.toLowerCase();
                                 parent = parent.toLowerCase();
                             }
 
                             return dir.startsWith(parent + '/');
+                        };
 
-                        }
-
-                        //  If the source directory is not under one of the workspace folders, push this
-                        //  source directory to the workspace folders to add later.
-                        if (!workspace_folders.some(workspace_folder =>
-                            is_subdirectory(source_dir_path, workspace_folder.uri.path))) {
-                            workspace_dirs_to_add.push({ name: source_dir.name, uri: source_dir_uri });
+                        //  If the source directory is not under one of the workspace folders, push
+                        //  this source directory to the workspace folders to add later.
+                        if (
+                            !workspace_folders.some((workspace_folder) =>
+                                is_subdirectory(source_dir_path, workspace_folder.uri.path)
+                            )
+                        ) {
+                            workspace_dirs_to_add.push({
+                                name: source_dir.name,
+                                uri: source_dir_uri,
+                            });
                         }
                     }
 
                     //  If there are some source directories missing in the workspace, ask the user
                     //  to add them in his workspace.
                     if (workspace_dirs_to_add.length > 0) {
-                        vscode.window
-                            .showInformationMessage("Some project source directories are not "
-                                + "listed in your workspace: do you want to add them?", "Yes", "No")
-                            .then(answer => {
-                                if (answer === "Yes") {
-                                    for (var workspace_dir of workspace_dirs_to_add) {
+                        await vscode.window
+                            .showInformationMessage(
+                                'Some project source directories are not ' +
+                                    'listed in your workspace: do you want to add them?',
+                                'Yes',
+                                'No'
+                            )
+                            .then((answer) => {
+                                if (answer === 'Yes') {
+                                    for (const workspace_dir of workspace_dirs_to_add) {
                                         vscode.workspace.updateWorkspaceFolders(
-                                            vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0, null,
-                                            workspace_dir);
+                                            vscode.workspace.workspaceFolders
+                                                ? vscode.workspace.workspaceFolders.length
+                                                : 0,
+                                            null,
+                                            workspace_dir
+                                        );
                                     }
                                 }
-                            })
+                            });
                     }
-                }
-            )
-        })
+                });
+        });
     }
 }
 
