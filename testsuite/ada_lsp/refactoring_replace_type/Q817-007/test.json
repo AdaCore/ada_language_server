@@ -1,0 +1,359 @@
+[
+   {
+      "comment": [
+         "Checks that Replace Type refactoring code action is correctly provided and executed."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 59002,
+               "locale": "en-gb",
+               "rootPath": "$URI{.}",
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "create",
+                           "rename",
+                           "delete"
+                        ]
+                     },
+                     "executeCommand": {
+                        "dynamicRegistration": true
+                     }
+                  },
+                  "textDocument": {
+                     "codeAction": {
+                        "dynamicRegistration": true,
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": [
+                                 "<HAS>",
+                                 "refactor",
+                                 "refactor.extract",
+                                 "refactor.inline",
+                                 "refactor.rewrite"
+                              ]
+                           }
+                        }
+                     }
+                  },
+                  "experimental": {
+                     "advanced_refactorings": [
+                        "replace_type"
+                     ]
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "codeActionProvider": {
+                        "codeActionKinds": [
+                           "<HAS>",
+                           "refactor.rewrite"
+                        ]
+                     },
+                     "executeCommandProvider": {
+                        "commands": [
+                           "<HAS>",
+                           "als-refactor-replace-type"
+                        ]
+                     },
+                     "alsCheckSyntaxProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "trace": {
+                        "server": "off"
+                     },
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1",
+                     "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                     "enableDiagnostics": true,
+                     "useCompletionSnippets": false,
+                     "renameInComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Test;\n\nprocedure Main is\n   F : constant Test.Foo := 1;\n   B : constant Test.Bar := 1;\nbegin\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Test is\n\n   type Foo;\n\n   type Foo is new Integer;\n\n   type Baz is new Integer;\n\n   type Bar is new Foo;\n\n   F : constant Foo := 1;\n\n   B : constant Bar := 1;\n\nend Test;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{test.ads}"
+               },
+               "range": {
+                  "start": {
+                     "line": 4,
+                     "character": 9
+                  },
+                  "end": {
+                     "line": 4,
+                     "character": 9
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": [
+                  {
+                     "title": "Replace Type",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-replace-type",
+                        "arguments": [
+                           {
+                              "context_id": "Default",
+                              "where": {
+                                 "uri": "$URI{test.ads}",
+                                 "range": {
+                                    "start": {
+                                       "line": 4,
+                                       "character": 9
+                                    },
+                                    "end": {
+                                       "line": 4,
+                                       "character": 9
+                                    }
+                                 }
+                              },
+                              "newType": ""
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "$/alsCheckSyntax",
+            "params": {
+               "input": "Fox",
+               "rules": [
+                  "Defining_Name_Rule"
+               ]
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {}
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-refactor-replace-type",
+               "arguments": [
+                  {
+                     "context_id": "Default",
+                     "where": {
+                        "uri": "$URI{test.ads}",
+                        "range": {
+                           "start": {
+                              "line": 4,
+                              "character": 9
+                           },
+                           "end": {
+                              "line": 4,
+                              "character": 9
+                           }
+                        }
+                     },
+                     "newType": "Fox"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "label": "als-refactor-replace-type",
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "uri": "$URI{main.adb}",
+                              "version": 1
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 3,
+                                       "character": 16
+                                    },
+                                    "end": {
+                                       "line": 3,
+                                       "character": 24
+                                    }
+                                 },
+                                 "newText": "Fox"
+                              }
+                           ]
+                        },
+                        {
+                           "textDocument": {
+                              "uri": "$URI{test.ads}",
+                              "version": 1
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 8,
+                                       "character": 19
+                                    },
+                                    "end": {
+                                       "line": 8,
+                                       "character": 22
+                                    }
+                                 },
+                                 "newText": "Fox"
+                              },
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 10,
+                                       "character": 16
+                                    },
+                                    "end": {
+                                       "line": 10,
+                                       "character": 19
+                                    }
+                                 },
+                                 "newText": "Fox"
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

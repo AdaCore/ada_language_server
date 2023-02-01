@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2022, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -52,6 +52,7 @@ with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
 with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor_Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor_Replace_Type;
 with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
@@ -147,6 +148,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Refactor_Introduce_Parameter.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Pull_Up_Declaration.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Replace_Type.Command'Tag);
 
       --  Refactoring - Change Subprogram Signature Commands
       LSP.Commands.Register
