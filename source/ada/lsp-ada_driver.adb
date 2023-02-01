@@ -53,6 +53,7 @@ with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor_Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
 with LSP.Ada_Handlers.Refactor_Replace_Type;
+with LSP.Ada_Handlers.Refactor_Sort_Dependencies;
 with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
@@ -150,6 +151,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Refactor_Pull_Up_Declaration.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor_Replace_Type.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor_Sort_Dependencies.Command'Tag);
 
       --  Refactoring - Change Subprogram Signature Commands
       LSP.Commands.Register
