@@ -275,16 +275,16 @@ package body LSP.Ada_Handlers is
    --     * if a project (and optionally a scenario) was specified by
    --       the user via the workspace/didChangeConfiguration notification or
    --       Initialize request, attempt to use this.
-   --       If there is `alire.toml` in the root, then run `alr` to find
-   --       search path and extra scenario variables.
+   --       If there is an `alire.toml` file in the root directory, then run
+   --       `alr` to find search path and extra scenario variables.
    --       If this fails to load, then report an error, but do not attempt to
    --       load another project.
-   --     => This case is handled by a call to Load_Project in
+   --     => This case is handled by a call to Reload_Project in
    --        Change_Configuration.
    --
    --     * if no project was specified by the user, then run `alr` in the
    --       root directory to get project file name from alire.toml (take the
-   --       vefy first project if many or crate name if none).
+   --       very first project if many or crate name if none).
    --       Otherwise look in the root directory, mimicking the behavior of
    --       gprbuild :
    --          * if there are zero .gpr files in this directory, load the
@@ -331,21 +331,29 @@ package body LSP.Ada_Handlers is
       Charset             : VSS.Strings.Virtual_String;
       Status              : Load_Project_Status);
    --  Attempt to load the given project file, with the scenario provided.
-   --  This unloads all currently loaded project contexts.
+   --  This unloads all currently loaded project contexts. This factorizes code
+   --  between Load_Project_With_Alire and Ensure_Project_Loaded.
 
    procedure Load_Project_With_Alire
      (Self                : access Message_Handler;
-      Project_File        : VSS.Strings.Virtual_String;
+      Project_File        : VSS.Strings.Virtual_String := "";
       Scenario_Variables  : Scenario_Variable_List;
-      Charset             : VSS.Strings.Virtual_String;
-      Status              : Load_Project_Status);
+      Charset             : VSS.Strings.Virtual_String);
+   --  Core procedure to find project, search path, scenario and load the
+   --  project.
+   --
+   --  @param Self                 The message handler itself
+   --  @param Project_File         GPR, if set by the user in settings
+   --  @param Scenario_Variables   Scenario as set by the user in settings
+   --  @param Charset              Charset, if set by the user in settings
+   --
    --  Load a project with a help of alire. If there is `alire.toml` in the
-   --  root directory and `alr` in the `PATH`, then
-   --  * use Alire to setup project search path, extra scenario variables (and
-   --    a project file name if Project_File is empty).
-   --  * load project
-   --  If Project_File is not empty then load it even if there is no alire.toml
-   --  or `alr`.
+   --  root directory and `alr` in the `PATH`, then use Alire to setup project
+   --  search path, extra scenario variables (and a project file name if
+   --  Project_File is empty). If Alire reports error then show it to the
+   --  user and fallback to an implicit project.
+   --
+   --  If Alire succeed or no alire/crate then load project if provided.
 
    procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler);
    --  Mark all sources in all projects for indexing. This factorizes code
@@ -674,8 +682,7 @@ package body LSP.Ada_Handlers is
          Self.Load_Project_With_Alire
            (Self.Project_File,
             Self.Scenario_Variables,
-            Self.Charset,
-            Self.Project_Status);
+            Self.Charset);
       end if;
    end Reload_Project;
 
@@ -772,8 +779,7 @@ package body LSP.Ada_Handlers is
       Self.Load_Project_With_Alire
         (Project_File        => VSS.Strings.Empty_Virtual_String,
          Scenario_Variables  => Self.Scenario_Variables,
-         Charset             => Self.Charset,
-         Status              => Alire_Project);
+         Charset             => Self.Charset);
 
       if not Self.Contexts.Is_Empty then
          --  Some project was found by alire and loaded. We are done!
@@ -4963,13 +4969,13 @@ package body LSP.Ada_Handlers is
 
    procedure Load_Project_With_Alire
      (Self                : access Message_Handler;
-      Project_File        : VSS.Strings.Virtual_String;
+      Project_File        : VSS.Strings.Virtual_String := "";
       Scenario_Variables  : Scenario_Variable_List;
-      Charset             : VSS.Strings.Virtual_String;
-      Status              : Load_Project_Status)
+      Charset             : VSS.Strings.Virtual_String)
    is
 
       Has_Alire   : Boolean;
+      Status      : Load_Project_Status;
       Errors      : VSS.Strings.Virtual_String;
       Project     : VSS.Strings.Virtual_String := Project_File;
       Search_Path : VSS.String_Vectors.Virtual_String_Vector;
@@ -4992,6 +4998,8 @@ package body LSP.Ada_Handlers is
                Project     => Project,
                Search_Path => Search_Path,
                Scenario    => Scenario);
+
+            Status := Alire_Project;
          else
 
             LSP.Ada_Handlers.Alire.Run_Alire
@@ -5000,6 +5008,8 @@ package body LSP.Ada_Handlers is
                Error       => Errors,
                Search_Path => Search_Path,
                Scenario    => Scenario);
+
+            Status := Valid_Project_Configured;
          end if;
 
          if Has_Alire and then not Errors.Is_Empty then
@@ -5026,18 +5036,19 @@ package body LSP.Ada_Handlers is
             pragma Assert (not Project.Is_Empty);
 
             Self.Trace.Trace
-              ("Project:" & VSS.Strings.Conversions.To_UTF_8_String (Project));
+              (Message => "Project:"
+                 & VSS.Strings.Conversions.To_UTF_8_String (Project));
 
-            Self.Trace.Trace ("Search Path:");
+            Self.Trace.Trace (Message => "Search Path:");
             for Item of Search_Path loop
                Self.Trace.Trace
-                 (VSS.Strings.Conversions.To_UTF_8_String (Item));
+                 (Message => VSS.Strings.Conversions.To_UTF_8_String (Item));
             end loop;
 
             Self.Trace.Trace ("Scenario:");
             for J in 1 .. Scenario.Names.Length loop
                Self.Trace.Trace
-                 (VSS.Strings.Conversions.To_UTF_8_String
+                 (Message => VSS.Strings.Conversions.To_UTF_8_String
                     (Scenario.Names (J))
                   & "="
                   & VSS.Strings.Conversions.To_UTF_8_String
@@ -5045,16 +5056,16 @@ package body LSP.Ada_Handlers is
             end loop;
 
             Self.Load_Project
-              (Project,
-               Search_Path,
-               Scenario,
-               (if Charset.Is_Empty then UTF_8 else Charset),
-               Status);
+              (Project_File => Project,
+               Search_Path  => Search_Path,
+               Scenario     => Scenario,
+               Charset      => (if Charset.Is_Empty then UTF_8 else Charset),
+               Status       => Status);
             --  Alire projects tend to use utf-8
 
             return;
          else
-            Self.Trace.Trace ("No alr in the PATH.");
+            Self.Trace.Trace (Message => "No alr in the PATH.");
          end if;
       end if;
 
@@ -5062,11 +5073,11 @@ package body LSP.Ada_Handlers is
       if not Project.Is_Empty then
 
          Self.Load_Project
-           (Project,
-            VSS.String_Vectors.Empty_Virtual_String_Vector,
-            Scenario_Variables,
-            Charset,
-            Status);
+           (Project_File => Project,
+            Search_Path  => VSS.String_Vectors.Empty_Virtual_String_Vector,
+            Scenario     => Scenario_Variables,
+            Charset      => Charset,
+            Status       => Valid_Project_Configured);
       end if;
    end Load_Project_With_Alire;
 

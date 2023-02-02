@@ -39,6 +39,6 @@ package LSP.Ada_Handlers.Alire is
       Error       : out VSS.Strings.Virtual_String;
       Search_Path : out VSS.String_Vectors.Virtual_String_Vector;
       Scenario    : in out Scenario_Variable_List);
-   --  THe same, but when without fetching the project file.
+   --  The same as above, but without fetching the project file
 
 end LSP.Ada_Handlers.Alire;

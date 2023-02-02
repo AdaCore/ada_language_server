@@ -138,19 +138,14 @@ package body LSP.Ada_Handlers.Alire is
       end if;
 
       Start_Alire (List (1), ALR.all, "--non-interactive", "show", Root);
-      loop
-         Spawn.Processes.Monitor_Loop (0.1);
-
-         exit when List (1).Process.Status = Spawn.Not_Running;
-      end loop;
-
       Start_Alire (List (2), ALR.all, "--non-interactive", "printenv", Root);
+
       loop
          Spawn.Processes.Monitor_Loop (0.1);
 
-         exit when List (2).Process.Status = Spawn.Not_Running;
+         exit when
+           (for all Item of List => Item.Process.Status = Spawn.Not_Running);
       end loop;
-      --  TODO: Fix spawn and wait both process with a single loop
 
       Decoder.Initialize ("utf-8");
       GNAT.OS_Lib.Free (ALR);
