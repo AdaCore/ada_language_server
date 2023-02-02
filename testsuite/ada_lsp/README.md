@@ -37,6 +37,15 @@ gdb --pid=<PID> .obj/server/ada_language_server
 
 Press `ENTER` to signal the tester to continue.
 
+Another tester option is `--on-hang-script=command_and_args`.
+If the test hangs then this option makes tester launch
+the given command (with arguments separated by space character).
+The special argument `<ALS_PID>` is substituted by the pid
+(process id) of the ada_language_server.
+
+```
+$ tester-run --on-hang-script="ps --ppid <ALS_PID>" test.json
+```
 
 JSON file format
 ----------------
