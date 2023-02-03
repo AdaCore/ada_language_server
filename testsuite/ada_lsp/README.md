@@ -5,6 +5,19 @@ Tester
 
 Tester accepts a test scenario described in JSON file.
 
+Table of Contents
+
+* [Test running](#test-running)
+* [JSON file format](#json-file-format)
+   * [Command `start`](#command-start)
+   * [Command `stop`](#command-stop)
+   * [Command `send`](#command-send)
+   * [Command `shell`](#command-shell)
+   * [Command `append_to_env`](#command-append_to_env)
+   * [Command `comment`](#command-comment)
+* [Execution timeouts](#execution-timeouts)
+* [JSON file preprocessing](#json-file-preprocessing)
+
 Test running
 ------------
 
@@ -116,6 +129,16 @@ Tester launches an OS process taking command and arguments from the array.
 The primary purpose is to launch a Python like this:
 
     "shell": ["${PYTHON}", "${DIR}/makelink.py" ]
+
+### Command `append_to_env`
+
+Property value - an object, where keys are environment variable
+to change and a string value to be appended.
+
+This command modifies environment for child processes.
+The primary purpose is to change `PATH` like this:
+
+    "append_to_env": { "PATH": "${DIR}" }
 
 ### Command `comment`
 
