@@ -114,6 +114,9 @@ package LSP.Raw_Clients is
    --  Return True when server's process is running and send queue is empty,
    --  thus send operation can start immidiately.
 
+   function Server_PID (Self : Raw_Client'Class) return String;
+   --  Return server process id (pid) if the server has been started.
+
 private
    type Listener (Client : access Raw_Client'Class) is limited
      new Spawn.Processes.Process_Listener with null record;

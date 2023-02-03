@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -132,6 +132,15 @@ package body LSP.Raw_Clients is
          Self.Listener.Standard_Input_Available;
       end if;
    end Send_Message;
+
+   ----------------
+   -- Server_PID --
+   ----------------
+
+   function Server_PID (Self : Raw_Client'Class) return String is
+   begin
+      return Self.Server.Identifier;
+   end Server_PID;
 
    -------------------
    -- Set_Arguments --

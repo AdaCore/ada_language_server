@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,7 +19,7 @@ with Ada.Calendar;
 with Ada.Containers.Hashed_Sets;
 with Ada.Strings.Unbounded;
 
-private with VSS.Strings;
+with VSS.Strings;
 private with VSS.Strings.Hash;
 
 with GNATCOLL.JSON;
@@ -35,7 +35,12 @@ package Tester.Tests is
    procedure Run
      (Self     : in out Test;
       Commands : GNATCOLL.JSON.JSON_Array;
+      On_Hang  : VSS.Strings.Virtual_String;
       Debug    : Boolean);
+   --  Execute the test (provided as JSON array). If the test hangs then
+   --  spawn On_Hang command. If Debug=True then execute the test in a debug
+   --  mode: suppress timeouts and pause test execution after the server
+   --  starting.
 
 private
 
@@ -62,6 +67,8 @@ private
       --  Array of JSON object to wait
       In_Debug     : Boolean;
       --  In debug mode (disable timeout, pause after start)
+      On_Hang     : VSS.Strings.Virtual_String;
+      --  A command to execute if the test hangs
       Watch_Dog    : Watch_Dog_Task;
       --  Task to restrict a command execution time
       Started      : Ada.Calendar.Time;
