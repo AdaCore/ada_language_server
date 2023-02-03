@@ -1,0 +1,7 @@
+export ALIRE="True"
+export GNAT_NATIVE_ALIRE_PREFIX="/home/max/.config/alire/cache/dependencies/gnat_native_12.2.1_11f3b811"
+export GPRBUILD_ALIRE_PREFIX="/home/max/.config/alire/cache/dependencies/gprbuild_22.0.1_24dfc1b5"
+export GPR_PROJECT_PATH="${DIR}:${DIR}/alire/cache/dependencies/libhello_1.0.1_3c15bc7f"
+export HELLO_ALIRE_PREFIX="${DIR}"
+export LIBHELLO_ALIRE_PREFIX="${DIR}/alire/cache/dependencies/libhello_1.0.1_3c15bc7f"
+export PATH="/usr/sbin:/usr/bin:/sbin:/bin"
