@@ -11,7 +11,8 @@ export ALS=$(ROOTDIR)/.obj/server/ada_language_server
 TESTER=$(ROOTDIR)/.obj/tester/tester-run
 CODEC_TEST=.obj/codec_test/codec_test
 
-GPRBUILD=gprbuild -j0 -XSUPERPROJECT=
+GPRBUILD_FLAGS=-j0
+GPRBUILD=gprbuild $(GPRBUILD_FLAGS) -XSUPERPROJECT=
 GPRCLEAN=gprclean -XSUPERPROJECT=
 
 # Installation directory
