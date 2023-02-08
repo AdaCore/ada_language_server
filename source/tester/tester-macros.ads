@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,15 +19,17 @@ with GNATCOLL.JSON;
 
 with Spawn.Environments;
 
+with VSS.Strings;
+
 package Tester.Macros is
 
    procedure Expand
      (Test : in out GNATCOLL.JSON.JSON_Value;
       Env  : Spawn.Environments.Process_Environment;
-      Path : String);
+      Path : VSS.Strings.Virtual_String);
    --  Expand macros in given JSON test. The Path is test's path.
    --
-   --  Currently only one macro is supported:
+   --  Currently next macros are supported:
    --  * ${NAME} - expands with environment variable NAME from Env
    --
    --  * $URI{x} - rewrite as "file:///path", treat x as relative to test

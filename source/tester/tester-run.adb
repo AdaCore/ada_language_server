@@ -26,9 +26,6 @@ with VSS.Strings;
 with VSS.Strings.Conversions;
 with VSS.String_Vectors;
 
-with Spawn.Environments;
-
-with Tester.Macros;
 with Tester.Tests;
 
 procedure Tester.Run is
@@ -51,9 +48,6 @@ procedure Tester.Run is
         (Name  => "test.json",
          Description => "JSON test script");
    end Options;
-
-   Env  : constant Spawn.Environments.Process_Environment :=
-     Spawn.Environments.System_Environment;
 
    JSON : GNATCOLL.JSON.JSON_Value;
 begin
@@ -105,15 +99,15 @@ begin
 
       Ada.Text_IO.Close (Input);
       JSON := GNATCOLL.JSON.Read (Text, File);
-      Tester.Macros.Expand (JSON, Env, File);
 
       declare
          Test : Tester.Tests.Test;
       begin
          Test.Run
-           (JSON.Get,
-            On_Hang => Options.On_Hang.Value,
-            Debug   => Options.Debug.Is_Specified);
+           (Commands => JSON.Get,
+            File     => Options.File.Value,
+            On_Hang  => Options.On_Hang.Value,
+            Debug    => Options.Debug.Is_Specified);
       end;
    end;
 end Tester.Run;

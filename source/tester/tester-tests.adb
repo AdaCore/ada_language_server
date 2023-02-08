@@ -21,7 +21,7 @@ with Ada.Streams;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces.C_Streams;
-with GNAT.OS_Lib;           use GNAT.OS_Lib;
+with GNAT.OS_Lib;
 
 with GNATCOLL.Utils; use GNATCOLL.Utils;
 with GNATCOLL.JSON;  use GNATCOLL.JSON;
@@ -32,32 +32,46 @@ with VSS.Strings.Conversions;
 with Spawn.Processes.Monitor_Loop;
 with Spawn.Process_Listeners;
 
+with Tester.Macros;
+
 package body Tester.Tests is
 
    Max_Wait : constant := 4.0;
    --  Max number of seconds to wait on a given snippet
 
-   type Command_Kind is (Start, Stop, Send, Shell, Comment);
+   type Command_Kind is (Start, Stop, Send, Shell, Append_To_Env, Comment);
+
+   procedure Do_Append_To_Env
+     (Self    : in out Test'Class;
+      Command : GNATCOLL.JSON.JSON_Value);
+   --  Implementation of `append_to_env` command
 
    procedure Do_Start
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
+   --  Implementation of `start` command
 
    procedure Do_Stop
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
+   --  Implementation of `stop` command
 
    procedure Do_Send
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
+   --  Implementation of `send` command
 
    procedure Do_Shell
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
+   --  Implementation of `shell` command
 
    procedure Do_Test_Hanged (Self : Test'Class);
+   --  Launch `On_Hang` script if configured.
 
-   function Wait_Factor (Command : GNATCOLL.JSON.JSON_Value) return Integer;
+   function Wait_Factor
+     (Self    : Test'Class;
+      Command : GNATCOLL.JSON.JSON_Value) return Integer;
    --  Return the factor to multiply the delays with - useful for valgrind runs
    --  or commands that take longer time.
    --  This is an integer read from either the "waitFactor" field of Command
@@ -81,7 +95,8 @@ package body Tester.Tests is
    procedure Initialize
      (Self : in out Process_Listener'Class;
       Cmd  : String;
-      Args : Spawn.String_Vectors.UTF_8_String_Vector);
+      Args : Spawn.String_Vectors.UTF_8_String_Vector;
+      Env  : Spawn.Environments.Process_Environment);
 
    overriding procedure Standard_Output_Available
     (Self : in out Process_Listener);
@@ -98,7 +113,7 @@ package body Tester.Tests is
       Exit_Status : Spawn.Processes.Process_Exit_Status;
       Exit_Code   : Spawn.Processes.Process_Exit_Code);
 
-   Is_Windows : constant Boolean := Directory_Separator = '\';
+   Is_Windows : constant Boolean := GNAT.OS_Lib.Directory_Separator = '\';
 
    --------------------
    -- Is_Has_Pattern --
@@ -149,8 +164,38 @@ package body Tester.Tests is
 
    procedure Do_Abort (Self : Test) is
    begin
-      OS_Exit (1);
+      GNAT.OS_Lib.OS_Exit (1);
    end Do_Abort;
+
+   ----------------------
+   -- Do_Append_To_Env --
+   ----------------------
+
+   procedure Do_Append_To_Env
+     (Self    : in out Test'Class;
+      Command : GNATCOLL.JSON.JSON_Value)
+   is
+      procedure On_Key (Name : String; Value : GNATCOLL.JSON.JSON_Value);
+
+      ------------
+      -- On_Key --
+      ------------
+
+      procedure On_Key (Name : String; Value : GNATCOLL.JSON.JSON_Value) is
+      begin
+         if Self.Environment.Contains (Name) then
+            Self.Environment.Insert
+              (Name,
+               Self.Environment.Value (Name)
+               & GNAT.OS_Lib.Path_Separator &
+               Value.Get);
+         else
+            Self.Environment.Insert (Name, Value.Get);
+         end if;
+      end On_Key;
+   begin
+      Command.Map_JSON_Object (On_Key'Access);
+   end Do_Append_To_Env;
 
    -------------
    -- Do_Fail --
@@ -222,7 +267,7 @@ package body Tester.Tests is
       Text    : constant Ada.Strings.Unbounded.Unbounded_String :=
         Request.Write;
 
-      Timeout : constant Duration := Max_Wait * Wait_Factor (Command);
+      Timeout : constant Duration := Max_Wait * Self.Wait_Factor (Command);
    begin
       if Request.Has_Field ("id") and Request.Has_Field ("method") then
          Check_Unique_Id (Request.Get ("id"));
@@ -267,7 +312,6 @@ package body Tester.Tests is
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value)
    is
-      pragma Unreferenced (Self);
       use type Spawn.Process_Status;
 
       List  : constant GNATCOLL.JSON.JSON_Array := Command.Get;
@@ -280,7 +324,7 @@ package body Tester.Tests is
          Args.Append (GNATCOLL.JSON.Get (List, J).Get);
       end loop;
 
-      Listener.Initialize (Cmd, Args);
+      Listener.Initialize (Cmd, Args, Self.Environment);
       Listener.Process.Start;
 
       loop
@@ -316,9 +360,7 @@ package body Tester.Tests is
       end Program_Name;
 
       Command_Line : constant JSON_Array := Get (Command.Get ("cmd"));
-      ALS_Var      : constant GNAT.OS_Lib.String_Access := Getenv ("ALS");
-      ALS_Exe      : constant String :=
-        (if ALS_Var /= null then ALS_Var.all else "");
+      ALS_Exe      : constant String := Self.Environment.Value ("ALS");
       Args         : Spawn.String_Vectors.UTF_8_String_Vector;
    begin
       if ALS_Exe = "" then
@@ -339,6 +381,7 @@ package body Tester.Tests is
       end loop;
 
       Self.Set_Arguments (Args);
+      Self.Set_Environment (Self.Environment);
       Self.Start;
 
       loop
@@ -427,7 +470,8 @@ package body Tester.Tests is
 
       Listener.Initialize
         (VSS.Strings.Conversions.To_UTF_8_String (List (1)),
-         Args);
+         Args,
+         Self.Environment);
 
       Listener.Process.Start;
 
@@ -826,7 +870,7 @@ package body Tester.Tests is
         GNATCOLL.JSON.Read (Data);
 
    begin
-      if not Self.In_Debug then
+      if not Self.In_Debug and Self.On_Hang.Is_Empty then
          --  Reset watchdog and timer on each message
          Self.Watch_Dog.Restart;
       end if;
@@ -882,6 +926,8 @@ package body Tester.Tests is
                Self.Do_Stop (Value);
             when Send =>
                Self.Do_Send (Value);
+            when Append_To_Env =>
+               Self.Do_Append_To_Env (Value);
             when Shell =>
                Self.Do_Shell (Value);
             when Comment =>
@@ -889,15 +935,19 @@ package body Tester.Tests is
          end case;
       end Execute;
 
+      Copy : GNATCOLL.JSON.JSON_Value := Command;
+      --  Make a copy of the command to exand macros in its properties
    begin
-      if Self.In_Debug then
-         Command.Map_JSON_Object (Execute'Access);
+      Tester.Macros.Expand (Copy, Self.Environment, Self.File);
+
+      if Self.In_Debug or not Self.On_Hang.Is_Empty then
+         Copy.Map_JSON_Object (Execute'Access);
       else
          Self.Watch_Dog.Start
-           (Timeout => (Max_Wait + 1.0) * Wait_Factor (Command),
-            Command => Command.Write);
+           (Timeout => (Max_Wait + 1.0) * Self.Wait_Factor (Copy),
+            Command => Copy.Write);
 
-         Command.Map_JSON_Object (Execute'Access);
+         Copy.Map_JSON_Object (Execute'Access);
 
          Self.Watch_Dog.Cancel;
       end if;
@@ -931,23 +981,17 @@ package body Tester.Tests is
    procedure Initialize
      (Self : in out Process_Listener'Class;
       Cmd  : String;
-      Args : Spawn.String_Vectors.UTF_8_String_Vector)
+      Args : Spawn.String_Vectors.UTF_8_String_Vector;
+      Env  : Spawn.Environments.Process_Environment)
    is
-      function To_Program (Name : String) return String;
-      --  Take base name of the command and find it on the PATH
-
-      ----------------
-      -- To_Program --
-      ----------------
-
       function To_Program (Name : String) return String is
-         Found : GNAT.OS_Lib.String_Access :=
-           GNAT.OS_Lib.Locate_Exec_On_Path (Name);
-      begin
-         return Result : constant String := Found.all do
-            Free (Found);
-         end return;
-      end To_Program;
+        (if Ada.Directories.Simple_Name (Name) = Name
+         then Env.Search_Path (Name)
+         else Ada.Directories.Full_Name (Name));
+      --  Return full path of the command with given Name.
+      --  If Name is a full path, then return Name as is.
+      --  If Name is a relative path, then cast it into a full path.
+      --  If Name is a base name, then find it on the PATH.
 
       Process : Spawn.Processes.Process renames Self.Process;
    begin
@@ -960,6 +1004,7 @@ package body Tester.Tests is
       end loop;
 
       Process.Set_Arguments (Args);
+      Process.Set_Environment (Env);
       Process.Set_Listener (Self'Unchecked_Access);
       Process.Set_Program (To_Program (Cmd));
    end Initialize;
@@ -970,10 +1015,12 @@ package body Tester.Tests is
 
    procedure Run
      (Self     : in out Test;
+      File     : VSS.Strings.Virtual_String;
       Commands : GNATCOLL.JSON.JSON_Array;
       On_Hang  : VSS.Strings.Virtual_String;
       Debug    : Boolean) is
    begin
+      Self.File := File;
       Self.In_Debug := Debug;
       Self.On_Hang := On_Hang;
 
@@ -1040,27 +1087,23 @@ package body Tester.Tests is
    -- Wait_Factor --
    -----------------
 
-   function Wait_Factor (Command : GNATCOLL.JSON.JSON_Value) return Integer is
+   function Wait_Factor
+     (Self    : Test'Class;
+      Command : GNATCOLL.JSON.JSON_Value) return Integer
+   is
       Command_Factor : constant String :=
-        (if Command.Has_Field ("waitFactor") then
-              Command.Get ("waitFactor")
-         else
-            "");
-      Env_Factor     : constant GNAT.OS_Lib.String_Access
-        := Getenv ("ALS_WAIT_FACTOR");
+        (if Command.Has_Field ("waitFactor")
+         then Command.Get ("waitFactor")
+         else "");
+
+      Env_Factor     : constant String :=
+        Self.Environment.Value ("ALS_WAIT_FACTOR", "1");
+
       Factor         : constant String :=
-        (if Command_Factor /= "" then
-            Command_Factor
-         elsif Env_Factor /= null then
-            Env_Factor.all
-         else
-            "");
+        (if Command_Factor /= "" then Command_Factor else Env_Factor);
+
    begin
-      if Factor = "" then
-         return 1;
-      else
-         return Integer'Value (Factor);
-      end if;
+      return Integer'Value (Factor);
    end Wait_Factor;
 
    --------------------
@@ -1096,7 +1139,7 @@ package body Tester.Tests is
 
                Ada.Text_IO.Put_Line ("Timeout on command:");
                Ada.Text_IO.Put_Line (Ada.Strings.Unbounded.To_String (Cmd));
-               OS_Exit (1);
+               GNAT.OS_Lib.OS_Exit (1);
             end select;
          end loop Watch_Command_Execution;
       end loop;

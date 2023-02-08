@@ -27,6 +27,7 @@ with GNATCOLL.JSON;
 with LSP.Raw_Clients;
 
 with Spawn.String_Vectors;
+with Spawn.Environments;
 
 package Tester.Tests is
 
@@ -34,6 +35,7 @@ package Tester.Tests is
 
    procedure Run
      (Self     : in out Test;
+      File     : VSS.Strings.Virtual_String;
       Commands : GNATCOLL.JSON.JSON_Array;
       On_Hang  : VSS.Strings.Virtual_String;
       Debug    : Boolean);
@@ -61,6 +63,7 @@ private
       VSS.Strings."=");
 
    type Test is new LSP.Raw_Clients.Raw_Client with record
+      File         : VSS.Strings.Virtual_String;
       Index        : Positive := 1;
       Sort_Reply   : GNATCOLL.JSON.JSON_Value;
       Waits        : GNATCOLL.JSON.JSON_Array;
@@ -78,6 +81,10 @@ private
 
       Full_Server_Output : GNATCOLL.JSON.JSON_Array;
       --  Complete output received from the server
+
+      Environment  : Spawn.Environments.Process_Environment :=
+        Spawn.Environments.System_Environment;
+      --  Environment to launch child process (ALS, Shell);
 
    end record;
 

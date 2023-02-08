@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,6 +22,9 @@ with Ada.Strings.Maps;
 
 with GNAT.Regpat;
 with GNAT.OS_Lib;
+
+with VSS.Strings.Conversions;
+
 with URIs;
 
 package body Tester.Macros is
@@ -171,11 +174,16 @@ package body Tester.Macros is
    procedure Expand
      (Test : in out GNATCOLL.JSON.JSON_Value;
       Env  : Spawn.Environments.Process_Environment;
-      Path : String)
+      Path : VSS.Strings.Virtual_String)
    is
-      Full_Name : constant String := Ada.Directories.Full_Name (Path);
+      File      : constant String :=
+        VSS.Strings.Conversions.To_UTF_8_String (Path);
+
+      Full_Name : constant String := Ada.Directories.Full_Name (File);
+
       Directory : constant String :=
         Ada.Directories.Containing_Directory (Full_Name);
+
       Env_With_Dir : Spawn.Environments.Process_Environment := Env;
    begin
       Env_With_Dir.Insert ("DIR", Directory);
