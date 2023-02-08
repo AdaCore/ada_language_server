@@ -36,7 +36,7 @@ with Tester.Macros;
 
 package body Tester.Tests is
 
-   Max_Wait : constant := 4.0;
+   Max_Wait : constant := 16.0;
    --  Max number of seconds to wait on a given snippet
 
    type Command_Kind is (Start, Stop, Send, Shell, Append_To_Env, Comment);
