@@ -21,6 +21,7 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
 
+with GNATCOLL.JSON;
 with GNATCOLL.VFS;    use GNATCOLL.VFS;
 with GNATCOLL.Projects;
 with GNATCOLL.Traces;
@@ -62,6 +63,11 @@ package LSP.Ada_Handlers is
    overriding procedure Handle_Error (Self : access Message_Handler);
    --  This procedure will be called when an unexpected error is raised in the
    --  request processing loop.
+
+   procedure Change_Configuration
+     (Self    : access Message_Handler;
+      Options : GNATCOLL.JSON.JSON_Value'Class);
+   --  Change server configuration with settings from Ada JSON object.
 
    procedure Stop_File_Monitoring (Self : access Message_Handler);
 
