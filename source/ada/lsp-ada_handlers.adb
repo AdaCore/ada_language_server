@@ -27,7 +27,6 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-with GNATCOLL.JSON;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
 with GPR2.Containers;
@@ -324,11 +323,6 @@ package body LSP.Ada_Handlers is
       Root_Dir            : VSS.Strings.Virtual_String);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts.
-
-   procedure Change_Configuration
-     (Self  : access Message_Handler;
-      Ada   : LSP.Types.LSP_Any);
-   --  Change server configuration with settings from Ada JSON object.
 
    procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler);
    --  Mark all sources in all projects for indexing. This factorizes code
@@ -4225,8 +4219,8 @@ package body LSP.Ada_Handlers is
    --------------------------
 
    procedure Change_Configuration
-     (Self  : access Message_Handler;
-      Ada   : LSP.Types.LSP_Any)
+     (Self    : access Message_Handler;
+      Options : GNATCOLL.JSON.JSON_Value'Class)
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
 
@@ -4266,9 +4260,9 @@ package body LSP.Ada_Handlers is
       Variables : Scenario_Variable_List;
 
       function Property (Name : String) return VSS.Strings.Virtual_String is
-        (if Ada.Has_Field (Name)
+        (if Options.Has_Field (Name)
          then VSS.Strings.Conversions.To_Virtual_String
-           (String'(Get (Get (Ada, Name))))
+           (String'(Options.Get (Name)))
          else VSS.Strings.Empty_Virtual_String);
 
       ------------------
@@ -4300,7 +4294,7 @@ package body LSP.Ada_Handlers is
                    Value.dynamicRegistration.Is_Set = True;
 
    begin
-      if Ada.Kind = GNATCOLL.JSON.JSON_Object_Type then
+      if Options.Kind = GNATCOLL.JSON.JSON_Object_Type then
          Relocate := Property (relocateBuildTree);
          Root := Property (rootDir);
          Charset := Property (defaultCharset);
@@ -4311,76 +4305,80 @@ package body LSP.Ada_Handlers is
             File := Self.URI_To_File (File);
          end if;
 
-         if Ada.Has_Field (scenarioVariables) and then
-           Ada.Get (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
+         if Options.Has_Field (scenarioVariables) and then
+           Options.Get
+             (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
          then
-            Ada.Get (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
+            Options.Get
+              (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
          end if;
 
          --  It looks like the protocol does not allow clients to say whether
          --  or not they want diagnostics as part of
          --  InitializeParams.capabilities.textDocument. So we support
          --  deactivating of diagnostics via a setting here.
-         if Ada.Has_Field (enableDiagnostics) then
-            Self.Diagnostics_Enabled := Ada.Get (enableDiagnostics);
+         if Options.Has_Field (enableDiagnostics) then
+            Self.Diagnostics_Enabled := Options.Get (enableDiagnostics);
          end if;
 
          --  Similarly to diagnostics, we support selectively activating
          --  indexing in the parameters to this request.
-         if Ada.Has_Field (enableIndexing) then
-            Self.Indexing_Enabled := Ada.Get (enableIndexing);
+         if Options.Has_Field (enableIndexing) then
+            Self.Indexing_Enabled := Options.Get (enableIndexing);
          end if;
 
          --  Retrieve the different textDocument/rename options if specified
 
-         if Ada.Has_Field (renameInComments) then
+         if Options.Has_Field (renameInComments) then
             Self.Options.Refactoring.Renaming.In_Comments :=
-              Ada.Get (renameInComments);
+              Options.Get (renameInComments);
          end if;
 
-         if Ada.Has_Field (foldComments) then
-            Self.Options.Folding.Comments := Ada.Get (foldComments);
+         if Options.Has_Field (foldComments) then
+            Self.Options.Folding.Comments := Options.Get (foldComments);
          end if;
 
          --  Retrieve the number of parameters / components at which point
          --  named notation is used for subprogram/aggregate completion
          --  snippets.
 
-         if Ada.Has_Field (namedNotationThreshold) then
-            Self.Named_Notation_Threshold := Ada.Get (namedNotationThreshold);
+         if Options.Has_Field (namedNotationThreshold) then
+            Self.Named_Notation_Threshold :=
+              Options.Get (namedNotationThreshold);
          end if;
 
-         if Ada.Has_Field (logThreshold) then
-            Self.Log_Threshold := Ada.Get (logThreshold);
+         if Options.Has_Field (logThreshold) then
+            Self.Log_Threshold := Options.Get (logThreshold);
          end if;
 
          --  Check the 'useCompletionSnippets' flag to see if we should use
          --  snippets in completion (if the client supports it).
          if not Self.Completion_Snippets_Enabled then
             Self.Use_Completion_Snippets := False;
-         elsif Ada.Has_Field (useCompletionSnippets) then
-            Self.Use_Completion_Snippets := Ada.Get (useCompletionSnippets);
+         elsif Options.Has_Field (useCompletionSnippets) then
+            Self.Use_Completion_Snippets :=
+              Options.Get (useCompletionSnippets);
          end if;
 
          --  Retrieve the policy for displaying type hierarchy on navigation
          --  requests.
-         if Ada.Has_Field (displayMethodAncestryOnNavigation) then
+         if Options.Has_Field (displayMethodAncestryOnNavigation) then
             Self.Display_Method_Ancestry_Policy :=
               LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy'Value
-                (Ada.Get (displayMethodAncestryOnNavigation));
+                (Options.Get (displayMethodAncestryOnNavigation));
          end if;
 
          --  Retrieve the follow symlinks policy.
 
-         if Ada.Has_Field (followSymlinks) then
-            Self.Follow_Symlinks := Ada.Get (followSymlinks);
+         if Options.Has_Field (followSymlinks) then
+            Self.Follow_Symlinks := Options.Get (followSymlinks);
          end if;
 
-         if Ada.Has_Field (documentationStyle) then
+         if Options.Has_Field (documentationStyle) then
             begin
                Self.Options.Documentation.Style :=
                  GNATdoc.Comments.Options.Documentation_Style'Value
-                   (Ada.Get (documentationStyle));
+                   (Options.Get (documentationStyle));
 
             exception
                when Constraint_Error =>
@@ -4392,12 +4390,12 @@ package body LSP.Ada_Handlers is
 
       if not File.Is_Empty then
          Self.Load_Project
-           (File,
-            Variables,
-            Charset,
-            Valid_Project_Configured,
-            Relocate,
-            Root);
+           (Project_File        => File,
+            Scenario            => Variables,
+            Charset             => Charset,
+            Status              => Valid_Project_Configured,
+            Relocate_Build_Tree => Relocate,
+            Root_Dir            => Root);
       end if;
 
       Self.Ensure_Project_Loaded;
