@@ -91,6 +91,7 @@ The `ada_language_server` doesn't require any command line options,
 but it understands these options:
 
 * `--tracefile=<FILE>` - Full path to a file containing traces configuration
+* `--config=<FILE>` - Full path to a JSON file containing the server's configuration
 * `--help` - Display supported command like options and exit.
 
 You can turn some debugging and experimental features trought
@@ -99,7 +100,9 @@ You can turn some debugging and experimental features trought
 The server also gets configuration via `workspace/didChangeConfiguration`
 notification and `initializationOptions` of `initialize` request.
 See more [details here](doc/settings.md). Each LSP
-client provides its-own way to set such settings.
+client provides its-own way to set such settings. You can use the `--config`
+option if you want to provide the configuration directly via a JSON file
+instead of specifying it via the requests listed just above.
 
 ## Supported LSP Server Requests
 

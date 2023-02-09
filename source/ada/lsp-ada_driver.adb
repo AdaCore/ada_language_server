@@ -20,6 +20,7 @@
 with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 with Ada.Exceptions;          use Ada.Exceptions;
+with Ada.Strings.Unbounded;
 with GNAT.Command_Line;       use GNAT.Command_Line;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with GNAT.OS_Lib;
@@ -33,9 +34,11 @@ with VSS.Application;
 with VSS.Standard_Paths;
 with VSS.Strings.Conversions;
 
+with GNATCOLL.JSON;
 with GNATCOLL.Memory;         use GNATCOLL.Memory;
 with GNATCOLL.Traces;         use GNATCOLL.Traces;
 with GNATCOLL.VFS;            use GNATCOLL.VFS;
+with GNATCOLL.Utils;
 
 with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
@@ -195,7 +198,9 @@ procedure LSP.Ada_Driver is
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
 
-   Tracefile_Name         : aliased String_Access;
+   Traces_File_Path       : aliased String_Access;
+   Config_File_Path       : aliased String_Access;
+   Traces_File            : Virtual_File;
    Config_File            : Virtual_File;
    Help_Arg               : aliased Boolean := False;
    Version_Arg            : aliased Boolean := False;
@@ -210,9 +215,17 @@ begin
 
    Define_Switch
      (Cmdline,
-      Output      => Tracefile_Name'Access,
+      Output      => Traces_File_Path'Access,
       Long_Switch => "--tracefile=",
       Help        => "Full path to a file containing traces configuration");
+
+   Define_Switch
+     (Cmdline,
+      Output      => Config_File_Path'Access,
+      Long_Switch => "--config=",
+      Help        => "Full path to a JSON file containing initialization "
+      & "options for the server (i.e: all the settings that can be specified "
+      & "through LSP 'initialize' request's initializattionOptions)");
 
    Define_Switch
      (Cmdline,
@@ -251,15 +264,15 @@ begin
    --     - passed on the command line via --tracefile,
    --     - in a .gnatdebug file locally
    --     - in "traces.cfg" in the ALS home directory
-   if Tracefile_Name /= null
-     and then Tracefile_Name.all /= ""
+   if Traces_File_Path /= null
+     and then Traces_File_Path.all /= ""
    then
-      Config_File := Create (+Tracefile_Name.all);
-      if not Config_File.Is_Regular_File then
+      Traces_File := Create (+Traces_File_Path.all);
+      if not Traces_File.Is_Regular_File then
          Ada.Text_IO.Put_Line ("Could not find the specified traces file");
          GNAT.OS_Lib.OS_Exit (1);
       end if;
-      Parse_Config_File (Config_File);
+      Parse_Config_File (Traces_File);
 
    elsif GNATdebug.Is_Regular_File then
       Parse_Config_File (GNATdebug);
@@ -276,8 +289,46 @@ begin
            ".$T.$$.log:buffer_size=0");
    end if;
 
-   if Tracefile_Name /= null then
-      Free (Tracefile_Name);
+   if Traces_File_Path /= null then
+      Free (Traces_File_Path);
+   end if;
+
+   --  Look for a config file, that contains the configuration for the server
+   --  (i.e: the configuration that can be specified through the 'initialize'
+   --  request initializationOptions).
+
+   if Config_File_Path /= null
+     and then Config_File_Path.all /= ""
+   then
+      Config_File := Create (+Config_File_Path.all);
+
+      if not Config_File.Is_Regular_File then
+         Ada.Text_IO.Put_Line ("Could not find the specified config file");
+         GNAT.OS_Lib.OS_Exit (1);
+      end if;
+
+      declare
+         JSON_Contents : GNAT.Strings.String_Access := Config_File.Read_File;
+         Parse_Result  : GNATCOLL.JSON.Read_Result;
+      begin
+         Parse_Result := GNATCOLL.JSON.Read (JSON_Contents.all);
+         GNAT.Strings.Free (JSON_Contents);
+
+         if not Parse_Result.Success then
+            Ada.Text_IO.Put_Line
+              ("Error when parsing config file at "
+               & GNATCOLL.Utils.Image (Parse_Result.Error.Line, 1)
+               & ":"
+               & GNATCOLL.Utils.Image (Parse_Result.Error.Column, 1));
+            Ada.Text_IO.Put_Line
+              (Ada.Strings.Unbounded.To_String (Parse_Result.Error.Message));
+            GNAT.OS_Lib.OS_Exit (1);
+         end if;
+
+         Ada_Handler.Change_Configuration (Parse_Result.Value);
+      end;
+
+      Free (Config_File_Path);
    end if;
 
    Server_Trace.Trace ("ALS version: " & $VERSION);
