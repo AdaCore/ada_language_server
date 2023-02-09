@@ -148,3 +148,32 @@
 
 ![introduce parameter](https://user-images.githubusercontent.com/22893717/181477996-564a1365-33df-4227-bb82-e9ed802b4ed0.gif)
 
+## Replace Type
+
+* Replaces a type in the intire project by another type provided by the user.
+
+[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-replace_type.ads)
+
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/replace_type)
+
+![replace type](https://user-images.githubusercontent.com/22893717/217803466-ae5500fe-a071-4fe9-a669-24cd9c82917a.gif)
+
+## Auto Import
+
+* For an unresolved name, suggests all packages that can be imported and prefix to be added so that that the name gets resolved.
+
+[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor_imports.ads)
+
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/auto_import)
+
+![auto import](https://user-images.githubusercontent.com/22893717/217804710-e686ef22-227b-4e81-8bb1-1f218e5709df.gif)
+
+## Sort Dependencies
+
+* Sorts all with and use clauses and their associated pragmas.
+
+[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-sort_dependencies.ads)
+
+[Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/sort_dependencies)
+
+![replace type](https://user-images.githubusercontent.com/22893717/217805066-ee69e6d6-4c9e-4075-8eb6-1fca7793c428.gif)
