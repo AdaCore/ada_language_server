@@ -15,6 +15,9 @@
 * [Pull Up Declaration](#pull-up-declaration)
 * [Suppress Separate](#suppress-separate)
 * [Introduce Parameter](#introduce-parameter)
+* [Replace Type](#replace-type)
+* [Auto Import](#auto-import)
+* [Sort Dependencies](#sort-dependencies)
 
 ## Named Parameters
 
