@@ -78,6 +78,7 @@ build_and_test:
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 
   artifacts:
+     when: always  #  Upload on errors too
      paths:
         - xunit_output.xml
      reports:

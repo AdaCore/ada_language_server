@@ -41,24 +41,12 @@ class JsonTestDriver(ALSTestDriver):
 
             if process.status:
                 # Nonzero status?
-                if process.status == 100:
-                    # This one is an xfail
-                    status = TestStatus.XFAIL
-                    break
-                else:
-                    # Unknown status!
-                    status = TestStatus.ERROR
-                    break
-            else:
-                # Status is 0...
-                if output:
-                    # ... and there is an output: that's a FAIL
-                    status = TestStatus.FAIL
-                    break
+                status = TestStatus.FAIL
+                break
 
         self.result.set_status(status)
         if output:
-            # If there's an output, capture it
-            self.result.out = output
+            # If there's an output, capture it as log
+            self.result.log = output
 
         self.push_result()
