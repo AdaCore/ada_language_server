@@ -3,25 +3,21 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "(gdb) Build & debug",
 			"preLaunchTask": "build",
-			"type": "gdb",
+			"name": "Ada - Build & Debug (unix)",
+			"type": "cppdbg",
 			"request": "launch",
-			"cwd": "${workspaceFolder}",
-			"valuesFormatting": "parseText",
-            "windows": {
-				"target": "${workspaceRoot}/obj/hello.exe",
-                "MIMode": "gdb",
-                "miDebuggerPath": "C:/GNAT/bin/gdb.exe" // Path to gdb on windows
-            },
-            "linux": {
-				"target": "${workspaceRoot}/obj/hello",
-                "MIMode": "gdb"
-            },
-            "osx": {
-				"target": "${workspaceRoot}/obj/hello",
-                "MIMode": "lldb"
-            }
+			"program": "${workspaceFolder}/obj/hello",
+			"cwd": "${workspaceFolder}"
 		},
+		{
+			"preLaunchTask": "build",
+			"name": "Ada - Build & Debug (Windows)",
+			"type": "cppvsdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/obj/hello.exe",
+			"externalConsole": true,
+			"cwd": "${workspaceFolder}"
+		}
 	]
 }
