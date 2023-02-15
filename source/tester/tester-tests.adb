@@ -39,12 +39,12 @@ package body Tester.Tests is
    Max_Wait : constant := 16.0;
    --  Max number of seconds to wait on a given snippet
 
-   type Command_Kind is (Start, Stop, Send, Shell, Append_To_Env, Comment);
+   type Command_Kind is (Start, Stop, Send, Shell, Prepend_To_Env, Comment);
 
-   procedure Do_Append_To_Env
+   procedure Do_Prepend_To_Env
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value);
-   --  Implementation of `append_to_env` command
+   --  Implementation of `prepend_to_env` command
 
    procedure Do_Start
      (Self    : in out Test'Class;
@@ -167,11 +167,11 @@ package body Tester.Tests is
       GNAT.OS_Lib.OS_Exit (1);
    end Do_Abort;
 
-   ----------------------
-   -- Do_Append_To_Env --
-   ----------------------
+   -----------------------
+   -- Do_Prepend_To_Env --
+   -----------------------
 
-   procedure Do_Append_To_Env
+   procedure Do_Prepend_To_Env
      (Self    : in out Test'Class;
       Command : GNATCOLL.JSON.JSON_Value)
    is
@@ -186,16 +186,16 @@ package body Tester.Tests is
          if Self.Environment.Contains (Name) then
             Self.Environment.Insert
               (Name,
-               Self.Environment.Value (Name)
+               Value.Get
                & GNAT.OS_Lib.Path_Separator &
-               Value.Get);
+               Self.Environment.Value (Name));
          else
             Self.Environment.Insert (Name, Value.Get);
          end if;
       end On_Key;
    begin
       Command.Map_JSON_Object (On_Key'Access);
-   end Do_Append_To_Env;
+   end Do_Prepend_To_Env;
 
    -------------
    -- Do_Fail --
@@ -926,8 +926,8 @@ package body Tester.Tests is
                Self.Do_Stop (Value);
             when Send =>
                Self.Do_Send (Value);
-            when Append_To_Env =>
-               Self.Do_Append_To_Env (Value);
+            when Prepend_To_Env =>
+               Self.Do_Prepend_To_Env (Value);
             when Shell =>
                Self.Do_Shell (Value);
             when Comment =>
