@@ -5,7 +5,7 @@
             "using alr and alire.toml."
         ]
     },  {
-        "append_to_env": {
+        "prepend_to_env": {
             "PATH": "${DIR}"
         }
     },  {
