@@ -13,7 +13,7 @@ Table of Contents
    * [Command `stop`](#command-stop)
    * [Command `send`](#command-send)
    * [Command `shell`](#command-shell)
-   * [Command `append_to_env`](#command-append_to_env)
+   * [Command `prepend_to_env`](#command-prepend_to_env)
    * [Command `comment`](#command-comment)
 * [Execution timeouts](#execution-timeouts)
 * [JSON file preprocessing](#json-file-preprocessing)
@@ -130,15 +130,15 @@ The primary purpose is to launch a Python like this:
 
     "shell": ["${PYTHON}", "${DIR}/makelink.py" ]
 
-### Command `append_to_env`
+### Command `prepend_to_env`
 
 Property value - an object, where keys are environment variable
-to change and a string value to be appended.
+to change and a string value to be prepended.
 
 This command modifies environment for child processes.
 The primary purpose is to change `PATH` like this:
 
-    "append_to_env": { "PATH": "${DIR}" }
+    "prepend_to_env": { "PATH": "${DIR}" }
 
 ### Command `comment`
 
