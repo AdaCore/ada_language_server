@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python 3.8
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
       - name: Initialize TAG and git autocrlf
@@ -42,42 +42,42 @@ jobs:
             mingw64/mingw-w64-x86_64-libiconv
             mingw64/mingw-w64-x86_64-gmp
       - name: Get als
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Get VSS
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: AdaCore/VSS
           path: subprojects/VSS
       - name: Get Spawn
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: AdaCore/spawn
           path: subprojects/spawn
       - name: Get LAL_Tools
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: AdaCore/libadalang-tools
           path: subprojects/libadalang-tools
       - name: Get Templates Parser
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: AdaCore/templates-parser
           path: subprojects/templates-parser
       - name: Get GNATdoc
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: AdaCore/gnatdoc
           path: subprojects/gnatdoc
           ref: edge
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ./cached_gnat
           key: ${{ runner.os }}-alire-2022
           restore-keys: ${{ runner.os }}-alire-2022
       - name: Get GNAT toolchain with alire
-        uses: alire-project/setup-alire@v1
+        uses: alire-project/setup-alire@v2
         with:
           toolchain: gnat_native^12 gprbuild^22
           toolchain_dir: ./cached_gnat
@@ -99,7 +99,7 @@ jobs:
         run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
       - name: Archive ALS binary
         if: ${{ github.event_name == 'push' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: als-${{ runner.os }}-${{ matrix.debug }}
           path: integration/vscode/ada/[ldw]*/*
@@ -109,11 +109,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get als
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
       - name: Pack vscode extension
         run: |
           if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]]; then
@@ -127,7 +127,7 @@ jobs:
           .github/workflows/pack-binaries.sh ""      "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
           # .github/workflows/pack-binaries.sh "debug" "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
       - name: Archive ALS vsix
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: als-vsix-${{ matrix.debug }}${{ env.TAG }}
           path: '*.vsix'
