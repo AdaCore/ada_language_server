@@ -179,19 +179,19 @@
                "result": [
                   {
                      "uri": "$URI{common/common_pack.ads}",
-                     "projectUri": "$URI{}${DIR_SEP}"
+                     "projectUri": "$URI{/}"
                   },
                   {
                      "uri": "$URI{common/common_pack.ads}",
-                     "projectUri": "$URI{}${DIR_SEP}"
+                     "projectUri": "$URI{/}"
                   },
                   {
                      "uri": "$URI{p/main.adb}",
-                     "projectUri": "$URI{}${DIR_SEP}"
+                     "projectUri": "$URI{/}"
                   },
                   {
                      "uri": "$URI{q/main.adb}",
-                     "projectUri": "$URI{}${DIR_SEP}"
+                     "projectUri": "$URI{/}"
                   }
                ]
             }
