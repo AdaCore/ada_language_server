@@ -2,5 +2,5 @@
 set -e
 # A dummy Alire replacement for testing purposes
 while [ $# -gt 1 ] ; do shift ; done
-DIR=`dirname $(realpath $0)`
+DIR=`cd $(dirname $0); pwd`
 sed -e "s#\${DIR}#${DIR}#g" .alr_$1
