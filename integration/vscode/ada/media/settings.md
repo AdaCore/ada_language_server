@@ -1,9 +1,12 @@
 # Configure the extension
 
-☝ Make sure to configure active project file `*.gpr`.
-Otherwise the extension will use a project file in the root project filder.
+☝ Make sure to configure the active `*.gpr` project file, otherwise
+the extension will use the first project file found in the root project
+folder.
 
-⚙ You can change settings per project or per user.
+⚙ You can change settings per workspace or per user: generally we recommend to
+change the project file setting in the desired workspace, since project files
+are usually workspace-specific.
 
 📋 [List of Ada settings](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md)
 
