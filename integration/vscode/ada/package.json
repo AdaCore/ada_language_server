@@ -465,7 +465,7 @@
                     {
                         "id": "als-get-stated-welcome",
                         "title": "Welcome to Ada extension!",
-                        "description": "This short walkthrough introduces Ada extension.",
+                        "description": "This short walkthrough introduces the Ada extension.",
                         "media": {
                             "markdown": "media/welcome.md"
                         }
@@ -473,25 +473,28 @@
                     {
                         "id": "als-get-stated-setting",
                         "title": "Set a project file",
-                        "description": "Set active project file in the `ada.projectFile` setting.\n [Open Settings](command:workbench.action.openSettings)",
+                        "description": "Set the active project file in the `ada.projectFile` setting.\n [Open Settings](command:workbench.action.openSettings)",
                         "media": {
                             "markdown": "media/settings.md"
-                        }
+                        },
+                        "completionEvents": [
+                            "onSettingChanged:ada.projectFile"
+                        ]
                     },
                     {
                         "id": "als-get-stated-debug",
                         "title": "Launch and debug",
-                        "description": "Install **Native Debug** extension to run debugger.\n [Install extension](command:workbench.extensions.search)",
+                        "description": "Use the pre-installed **C/C++** extension to debug Ada code.",
                         "media": {
                             "markdown": "media/launch-debug.md"
                         },
                         "completionEvents": [
-                            "extensionInstalled:webfreak.debug"
+                            "onCommand:workbench.action.debug.start"
                         ]
                     },
                     {
                         "id": "als-get-stated-github",
-                        "title": "Report issues or contribute",
+                        "title": "Report issues or contribute to the extension",
                         "description": "This extension is an open source software. Feel free to [open an issue](https://github.com/AdaCore/ada_language_server/issues) or [contribute on GitHub](https://github.com/AdaCore/ada_language_server/pulls)!",
                         "media": {
                             "image": "media/github.jpg",
