@@ -65,6 +65,9 @@
                      "foldingRange": {
                         "lineFoldingOnly": true
                      },
+                     "publishDiagnostics": {
+                        "relatedInformation": true
+                     },
                      "selectionRange": {},
                      "callHierarchy": {}
                   }
@@ -162,12 +165,55 @@
          },
          "wait": [
             {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                 "uri": "$URI{main.adb}",
+                 "diagnostics": [
+                   {
+                     "range": {
+                       "start": {
+                         "line": 1,
+                         "character": 3
+                       },
+                       "end": {
+                         "line": 1,
+                         "character": 4
+                       }
+                     },
+                     "severity": 1,
+                     "source": "Ada",
+                     "message": "Can't rename identifier 'A'",
+                     "relatedInformation": [
+                       {
+                         "location": {
+                           "uri": "$URI{main.adb}",
+                           "range": {
+                             "start": {
+                               "line": 2,
+                               "character": 3
+                             },
+                             "end": {
+                               "line": 2,
+                               "character": 4
+                             }
+                           }
+                         },
+                         "message": "Renaming A to B creates a name collision with <Id \"B\" main.adb:3:4-3:5>"
+                       }
+                     ]
+                   }
+                 ]
+               }
+             },
+             {
+               "jsonrpc": "2.0",
                "id": "ada-4",
                "error": {
-                  "code": -32600,
-                  "message": "Renaming A to B creates a name collision with <Id \"B\" main.adb:3:4-3:5>\n"
+                 "code": -32803,
+                 "message": ""
                }
-            }
+             }           
          ]
       }
    },

@@ -83,6 +83,13 @@ package LSP.Ada_Documents is
       return LSP.Messages.Span;
    --  Convert LAL's Source_Location_Range to LSP's Range
 
+   function To_LSP_Location
+     (Self    : Document;
+      Segment : Langkit_Support.Slocs.Source_Location_Range;
+      Kind    : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+      return LSP.Messages.Location;
+   --  Convert LAL's Source_Location_Range and document's uri to a LSP location
+
    procedure Apply_Changes
      (Self    : aliased in out Document;
       Version : LSP.Types.LSP_Number;
@@ -99,7 +106,7 @@ package LSP.Ada_Documents is
    --  These requests are meaningful within a document/context pair
 
    procedure Get_Errors
-     (Self    : Document;
+     (Self    : in out Document;
       Context : LSP.Ada_Contexts.Context;
       Changed : out Boolean;
       Errors  : out LSP.Messages.Diagnostic_Vector);

@@ -35,7 +35,9 @@ package LSP.Errors is
       ServerNotInitialized,
       UnknownErrorCode,
       RequestCancelled,
-      ContentModified);
+      ContentModified,
+      ServerCancelled,
+      RequestFailed);
 
    type ResponseError is record
       code    : ErrorCodes;
