@@ -21,7 +21,6 @@ with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 with Ada.Exceptions;          use Ada.Exceptions;
 with Ada.Strings.Unbounded;
-with GNAT.Command_Line;       use GNAT.Command_Line;
 with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with GNAT.OS_Lib;
 with GNAT.Strings;
@@ -31,8 +30,10 @@ with System.Soft_Links;
 with System.Secondary_Stack;
 
 with VSS.Application;
+with VSS.Command_Line;
 with VSS.Standard_Paths;
 with VSS.Strings.Conversions;
+with VSS.Text_Streams.Standadrs;
 
 with GNATCOLL.JSON;
 with GNATCOLL.Memory;         use GNATCOLL.Memory;
@@ -82,6 +83,9 @@ procedure LSP.Ada_Driver is
    --  Quit the process when an uncaught exception reaches this. Used for
    --  fuzzing.
 
+   procedure Print_Help (Option : VSS.Command_Line.Named_Option'Class);
+   --  Put option description to stdout
+
    Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
    --  Main trace for the LSP.
 
@@ -130,6 +134,31 @@ procedure LSP.Ada_Driver is
       GNAT.OS_Lib.OS_Exit (42);
    end Die_On_Uncaught;
 
+   ----------------
+   -- Print_Help --
+   ----------------
+
+   procedure Print_Help (Option : VSS.Command_Line.Named_Option'Class) is
+      use type VSS.Strings.Character_Count;
+      Ok     : Boolean := True;
+      Output : VSS.Text_Streams.Output_Text_Stream'Class :=
+        VSS.Text_Streams.Standadrs.Standard_Output;
+      Last   : VSS.Strings.Character_Count :=
+        3 + Option.Long_Name.Character_Length;
+   begin
+      Output.Put (" --", Ok);
+      Output.Put (Option.Long_Name, Ok);
+      if Option in VSS.Command_Line.Value_Option'Class then
+         Output.Put ("=ARG", Ok);
+         Last := Last + 4;
+      end if;
+
+      for J in Last + 1 .. 17 loop
+         Output.Put (' ', Ok);
+      end loop;
+      Output.Put_Line (Option.Description, Ok);
+   end Print_Help;
+
    -----------------------
    -- Register_Commands --
    -----------------------
@@ -173,9 +202,7 @@ procedure LSP.Ada_Driver is
            Command'Tag);
    end Register_Commands;
 
-   use GNAT.Strings;
-
-   Cmdline                : Command_Line_Configuration;
+   use type VSS.Strings.Virtual_String;
 
    Fuzzing_Activated      : constant Boolean :=
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
@@ -198,64 +225,68 @@ procedure LSP.Ada_Driver is
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
 
-   Traces_File_Path       : aliased String_Access;
-   Config_File_Path       : aliased String_Access;
-   Traces_File            : Virtual_File;
+   Trace_File_Option      : constant VSS.Command_Line.Value_Option :=
+     (Short_Name  => "",
+      Long_Name   => "tracefile",
+      Description => "Full path to a file containing traces configuration",
+      Value_Name  => "ARG");
+
+   Config_Description     : constant VSS.Strings.Virtual_String :=
+     "Full path to a JSON file containing initialization "
+     & "options for the server (i.e: all the settings that can be specified "
+     & "through LSP 'initialize' request's initializattionOptions)";
+
+   Config_File_Option     : constant VSS.Command_Line.Value_Option :=
+     (Short_Name  => "",
+      Long_Name   => "config",
+      Description => Config_Description,
+      Value_Name  => "ARG");
+
+   Language_GPR_Option    : constant VSS.Command_Line.Binary_Option :=
+     (Short_Name  => "",
+      Long_Name   => "language-gpr",
+      Description => "Handle GPR language instead of Ada");
+
+   Version_Option         : constant VSS.Command_Line.Binary_Option :=
+     (Short_Name  => "",
+      Long_Name   => "version",
+      Description => "Display the program version");
+
+   Help_Option            : constant VSS.Command_Line.Binary_Option :=
+     (Short_Name  => "",
+      Long_Name   => "help",
+      Description => "Display this help");
+
    Config_File            : Virtual_File;
-   Help_Arg               : aliased Boolean := False;
-   Version_Arg            : aliased Boolean := False;
-   Language_GPR_Arg       : aliased Boolean := False;
 
    Memory_Monitor_Enabled : Boolean;
 begin
    --  Handle the command line
-   Set_Usage
-     (Cmdline,
-      Help => "Command line interface for the Ada Language Server");
+      --  Help => "Command line interface for the Ada Language Server");
 
-   Define_Switch
-     (Cmdline,
-      Output      => Traces_File_Path'Access,
-      Long_Switch => "--tracefile=",
-      Help        => "Full path to a file containing traces configuration");
+   VSS.Command_Line.Add_Option (Trace_File_Option);
+   VSS.Command_Line.Add_Option (Config_File_Option);
+   VSS.Command_Line.Add_Option (Language_GPR_Option);
+   VSS.Command_Line.Add_Option (Version_Option);
+   VSS.Command_Line.Add_Option (Help_Option);
+   VSS.Command_Line.Process;  --  Will exit if errors
 
-   Define_Switch
-     (Cmdline,
-      Output      => Config_File_Path'Access,
-      Long_Switch => "--config=",
-      Help        => "Full path to a JSON file containing initialization "
-      & "options for the server (i.e: all the settings that can be specified "
-      & "through LSP 'initialize' request's initializattionOptions)");
+   if VSS.Command_Line.Is_Specified (Help_Option) then
+      Ada.Text_IO.Put_Line
+        ("Language Server Ada and SPARK.");
+      --  TBD: Print list of options using VSS
+      Ada.Text_IO.Put_Line
+        ("Usage: ada_language_server [switches] [arguments]");
+      Ada.Text_IO.New_Line;
 
-   Define_Switch
-     (Cmdline,
-      Output      => Language_GPR_Arg'Access,
-      Long_Switch => "--language-gpr",
-      Help        => "Handle GPR language instead of Ada");
+      Print_Help (Trace_File_Option);
+      Print_Help (Config_File_Option);
+      Print_Help (Language_GPR_Option);
+      Print_Help (Version_Option);
+      Print_Help (Help_Option);
 
-   Define_Switch
-     (Cmdline,
-      Output      => Version_Arg'Access,
-      Long_Switch => "--version",
-      Help        => "Display the program version");
-
-   Define_Switch
-     (Cmdline,
-      Output      => Help_Arg'Access,
-      Long_Switch => "--help",
-      Help        => "Display this help");
-
-   begin
-      Getopt (Cmdline);
-   exception
-      when GNAT.Command_Line.Exit_From_Command_Line =>
-         Free (Cmdline);
-         GNAT.OS_Lib.OS_Exit (0);
-   end;
-
-   Free (Cmdline);
-
-   if Version_Arg then
+      GNAT.OS_Lib.OS_Exit (0);
+   elsif VSS.Command_Line.Is_Specified (Version_Option) then
       Ada.Text_IO.Put_Line ("ALS version: " & $VERSION);
       GNAT.OS_Lib.OS_Exit (0);
    end if;
@@ -264,16 +295,19 @@ begin
    --     - passed on the command line via --tracefile,
    --     - in a .gnatdebug file locally
    --     - in "traces.cfg" in the ALS home directory
-   if Traces_File_Path /= null
-     and then Traces_File_Path.all /= ""
-   then
-      Traces_File := Create (+Traces_File_Path.all);
-      if not Traces_File.Is_Regular_File then
-         Ada.Text_IO.Put_Line ("Could not find the specified traces file");
-         GNAT.OS_Lib.OS_Exit (1);
-      end if;
-      Parse_Config_File (Traces_File);
+   if VSS.Command_Line.Is_Specified (Trace_File_Option) then
+      declare
+         Traces_File : constant Virtual_File := Create_From_UTF8
+           (VSS.Strings.Conversions.To_UTF_8_String
+              (VSS.Command_Line.Value (Trace_File_Option)));
+      begin
+         if not Traces_File.Is_Regular_File then
+            Ada.Text_IO.Put_Line ("Could not find the specified traces file");
+            GNAT.OS_Lib.OS_Exit (1);
+         end if;
 
+         Parse_Config_File (Traces_File);
+      end;
    elsif GNATdebug.Is_Regular_File then
       Parse_Config_File (GNATdebug);
 
@@ -289,19 +323,14 @@ begin
            ".$T.$$.log:buffer_size=0");
    end if;
 
-   if Traces_File_Path /= null then
-      Free (Traces_File_Path);
-   end if;
-
    --  Look for a config file, that contains the configuration for the server
    --  (i.e: the configuration that can be specified through the 'initialize'
    --  request initializationOptions).
 
-   if Config_File_Path /= null
-     and then Config_File_Path.all /= ""
-   then
-      Config_File := Create (+Config_File_Path.all);
-
+   if VSS.Command_Line.Is_Specified (Config_File_Option) then
+      Config_File := Create_From_UTF8
+        (VSS.Strings.Conversions.To_UTF_8_String
+           (VSS.Command_Line.Value (Config_File_Option)));
       if not Config_File.Is_Regular_File then
          Ada.Text_IO.Put_Line ("Could not find the specified config file");
          GNAT.OS_Lib.OS_Exit (1);
@@ -327,8 +356,6 @@ begin
 
          Ada_Handler.Change_Configuration (Parse_Result.Value);
       end;
-
-      Free (Config_File_Path);
    end if;
 
    Server_Trace.Trace ("ALS version: " & $VERSION);
@@ -347,7 +374,7 @@ begin
       GNATCOLL.Memory.Configure (Activate_Monitor => True);
    end if;
 
-   if not Language_GPR_Arg then
+   if not VSS.Command_Line.Is_Specified (Language_GPR_Option) then
       --  Load predefined completion items
       LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
       Register_Commands;
@@ -356,7 +383,7 @@ begin
    Server.Initialize (Stream'Unchecked_Access);
 
    begin
-      if Language_GPR_Arg then
+      if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
          Server.Run
            (GPR_Handler'Unchecked_Access,
             GPR_Handler'Unchecked_Access,

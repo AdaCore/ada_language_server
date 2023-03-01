@@ -746,7 +746,7 @@ package body LSP.Ada_Highlighters is
                   Name : constant Libadalang.Analysis.Defining_Name :=
                     Node.As_Basic_Decl.P_Defining_Name;
                begin
-                  return (not Name.Is_Null) and then Name.P_Is_Ghost_Code;
+                  return not Name.Is_Null and then Name.P_Is_Ghost_Code;
                end;
             when Libadalang.Common.Ada_Aspect_Spec =>
                --  Mark all aspects as a ghost code, because most of aspects
