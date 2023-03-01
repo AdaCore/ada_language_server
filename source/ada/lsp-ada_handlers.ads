@@ -24,7 +24,7 @@ with Ada.Strings.Unbounded;
 with VSS.String_Vectors;
 
 with GNATCOLL.JSON;
-with GNATCOLL.VFS;    use GNATCOLL.VFS;
+with GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
 with VSS.Strings;
@@ -77,19 +77,29 @@ package LSP.Ada_Handlers is
       Options : GNATCOLL.JSON.JSON_Value'Class);
    --  Change server configuration with settings from Ada JSON object.
 
+   procedure Change_Configuration_Before_Init
+     (Self    : access Message_Handler;
+      Options : GNATCOLL.JSON.JSON_Value'Class;
+      Root    : GNATCOLL.VFS.Virtual_File);
+   --  Change server configuration with settings from Ada JSON object, taking
+   --  Root to resolve all relative references. This is expected to work
+   --  before the server get initialize request and find root folder.
+
    procedure Stop_File_Monitoring (Self : access Message_Handler);
 
    procedure Cleanup (Self : access Message_Handler);
    --  Free memory referenced by Self
 
-   procedure Clean_Logs (Self : access Message_Handler; Dir : Virtual_File);
+   procedure Clean_Logs
+     (Self : access Message_Handler;
+      Dir  : GNATCOLL.VFS.Virtual_File);
    --  Remove the oldest logs in Dir
 
    subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
 
    function From_File
      (Self : Message_Handler'Class;
-      File : Virtual_File) return LSP.Messages.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File) return LSP.Messages.DocumentUri;
    --  Turn Virtual_File to URI
 
    function To_File
@@ -260,7 +270,7 @@ private
       Client : LSP.Messages.InitializeParams;
       --  Client settings got during initialization request
 
-      Root : Virtual_File;
+      Root : GNATCOLL.VFS.Virtual_File;
       --  The directory passed under rootURI/rootPath during the initialize
       --  request.
 

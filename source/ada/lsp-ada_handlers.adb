@@ -108,6 +108,7 @@ with Libadalang.Preprocessing;
 with URIs;
 
 package body LSP.Ada_Handlers is
+   use GNATCOLL.VFS;
 
    type Cancel_Countdown is mod 128;
    --  Counter to restrict frequency of Request.Canceled checks
@@ -4307,10 +4308,15 @@ package body LSP.Ada_Handlers is
         (Name    : String;
          Default : VSS.Strings.Virtual_String)
            return VSS.Strings.Virtual_String is
-             (if Options.Has_Field (Name)
+             (if Options.Kind = GNATCOLL.JSON.JSON_Object_Type
+                and then Options.Has_Field (Name)
               then VSS.Strings.Conversions.To_Virtual_String
                      (String'(Options.Get (Name)))
               else Default);
+
+      function Has_Field (Name : String) return Boolean is
+         (Options.Kind = GNATCOLL.JSON.JSON_Object_Type
+          and then Options.Has_Field (Name));
 
       ------------------
       -- Add_Variable --
@@ -4336,110 +4342,100 @@ package body LSP.Ada_Handlers is
 
       Has_Variables : Boolean := False;  --  settings has scenarioVariables
 
-      --  Is client capable of dynamically registering file operations?
-      Dynamically_Register_File_Operations : constant Boolean :=
-        Self.Client.capabilities.workspace.fileOperations.Is_Set
-        and then Self.Client.capabilities.workspace.fileOperations.
-                   Value.dynamicRegistration.Is_Set = True;
-
    begin
-      if Options.Kind = GNATCOLL.JSON.JSON_Object_Type then
-         Variables.Names.Clear;
-         Variables.Values.Clear;
-         Relocate_Build_Tree :=
-           Property (relocateBuildTree, Self.Relocate_Build_Tree);
+      Relocate_Build_Tree :=
+        Property (relocateBuildTree, Self.Relocate_Build_Tree);
 
-         Relocate_Root := Property (rootDir, Self.Relocate_Root_Dir);
-         Charset := Property (defaultCharset, Self.Charset);
-         File := Property (projectFile, Self.Project_File);
+      Relocate_Root := Property (rootDir, Self.Relocate_Root_Dir);
+      Charset := Property (defaultCharset, Self.Charset);
+      File := Property (projectFile, Self.Project_File);
 
-         --  Drop uri scheme if present
-         if File.Starts_With ("file:") then
-            File := Self.URI_To_File (File);
-         end if;
+      --  Drop uri scheme if present
+      if File.Starts_With ("file:") then
+         File := Self.URI_To_File (File);
+      end if;
 
-         if Options.Has_Field (scenarioVariables) and then
-           Options.Get
-             (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
-         then
-            Options.Get
-              (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
-            Has_Variables := True;
-         end if;
+      if Has_Field (scenarioVariables) and then
+        Options.Get
+          (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
+      then
+         Options.Get
+           (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
+         Has_Variables := True;
+      end if;
 
-         --  It looks like the protocol does not allow clients to say whether
-         --  or not they want diagnostics as part of
-         --  InitializeParams.capabilities.textDocument. So we support
-         --  deactivating of diagnostics via a setting here.
-         if Options.Has_Field (enableDiagnostics) then
-            Self.Diagnostics_Enabled := Options.Get (enableDiagnostics);
-         end if;
+      --  It looks like the protocol does not allow clients to say whether
+      --  or not they want diagnostics as part of
+      --  InitializeParams.capabilities.textDocument. So we support
+      --  deactivating of diagnostics via a setting here.
+      if Has_Field (enableDiagnostics) then
+         Self.Diagnostics_Enabled := Options.Get (enableDiagnostics);
+      end if;
 
-         --  Similarly to diagnostics, we support selectively activating
-         --  indexing in the parameters to this request.
-         if Options.Has_Field (enableIndexing) then
-            Self.Indexing_Enabled := Options.Get (enableIndexing);
-         end if;
+      --  Similarly to diagnostics, we support selectively activating
+      --  indexing in the parameters to this request.
+      if Has_Field (enableIndexing) then
+         Self.Indexing_Enabled := Options.Get (enableIndexing);
+      end if;
 
-         --  Retrieve the different textDocument/rename options if specified
+      --  Retrieve the different textDocument/rename options if specified
 
-         if Options.Has_Field (renameInComments) then
-            Self.Options.Refactoring.Renaming.In_Comments :=
-              Options.Get (renameInComments);
-         end if;
+      if Has_Field (renameInComments) then
+         Self.Options.Refactoring.Renaming.In_Comments :=
+           Options.Get (renameInComments);
+      end if;
 
-         if Options.Has_Field (foldComments) then
-            Self.Options.Folding.Comments := Options.Get (foldComments);
-         end if;
+      if Has_Field (foldComments) then
+         Self.Options.Folding.Comments := Options.Get (foldComments);
+      end if;
 
-         --  Retrieve the number of parameters / components at which point
-         --  named notation is used for subprogram/aggregate completion
-         --  snippets.
+      --  Retrieve the number of parameters / components at which point
+      --  named notation is used for subprogram/aggregate completion
+      --  snippets.
 
-         if Options.Has_Field (namedNotationThreshold) then
-            Self.Named_Notation_Threshold :=
-              Options.Get (namedNotationThreshold);
-         end if;
+      if Has_Field (namedNotationThreshold) then
+         Self.Named_Notation_Threshold :=
+           Options.Get (namedNotationThreshold);
+      end if;
 
-         if Options.Has_Field (logThreshold) then
-            Self.Log_Threshold := Options.Get (logThreshold);
-         end if;
+      if Has_Field (logThreshold) then
+         Self.Log_Threshold := Options.Get (logThreshold);
+      end if;
 
-         --  Check the 'useCompletionSnippets' flag to see if we should use
-         --  snippets in completion (if the client supports it).
-         if not Self.Completion_Snippets_Enabled then
-            Self.Use_Completion_Snippets := False;
-         elsif Options.Has_Field (useCompletionSnippets) then
-            Self.Use_Completion_Snippets :=
-              Options.Get (useCompletionSnippets);
-         end if;
+      --  Check the 'useCompletionSnippets' flag to see if we should use
+      --  snippets in completion (if the client supports it).
+      if not Self.Completion_Snippets_Enabled then
+         Self.Use_Completion_Snippets := False;
+      elsif Has_Field (useCompletionSnippets) then
+         Self.Use_Completion_Snippets :=
+           Options.Get (useCompletionSnippets);
+      end if;
 
-         --  Retrieve the policy for displaying type hierarchy on navigation
-         --  requests.
-         if Options.Has_Field (displayMethodAncestryOnNavigation) then
-            Self.Display_Method_Ancestry_Policy :=
-              LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy'Value
-                (Options.Get (displayMethodAncestryOnNavigation));
-         end if;
+      --  Retrieve the policy for displaying type hierarchy on navigation
+      --  requests.
+      if Has_Field (displayMethodAncestryOnNavigation) then
+         Self.Display_Method_Ancestry_Policy :=
+           LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy'Value
+             (Options.Get (displayMethodAncestryOnNavigation));
+      end if;
 
-         --  Retrieve the follow symlinks policy.
+      --  Retrieve the follow symlinks policy.
 
-         if Options.Has_Field (followSymlinks) then
-            Self.Follow_Symlinks := Options.Get (followSymlinks);
-         end if;
+      if Has_Field (followSymlinks) then
+         Self.Follow_Symlinks := Options.Get (followSymlinks);
+      end if;
 
-         if Options.Has_Field (documentationStyle) then
-            begin
+      if Has_Field (documentationStyle) then
+         begin
+            Self.Options.Documentation.Style :=
+              GNATdoc.Comments.Options.Documentation_Style'Value
+                (Options.Get (documentationStyle));
+
+         exception
+            when Constraint_Error =>
                Self.Options.Documentation.Style :=
-                 GNATdoc.Comments.Options.Documentation_Style'Value
-                   (Options.Get (documentationStyle));
-
-            exception
-               when Constraint_Error =>
-                  Self.Options.Documentation.Style :=
-                    GNATdoc.Comments.Options.GNAT;
-            end;
-         end if;
+                 GNATdoc.Comments.Options.GNAT;
+         end;
       end if;
 
       if Self.Project_File = File
@@ -4464,6 +4460,43 @@ package body LSP.Ada_Handlers is
          Self.Project_Status := Valid_Project_Configured;
          Self.Reload_Project;
       end if;
+   end Change_Configuration;
+
+   --------------------------------------
+   -- Change_Configuration_Before_Init --
+   --------------------------------------
+
+   procedure Change_Configuration_Before_Init
+     (Self    : access Message_Handler;
+      Options : GNATCOLL.JSON.JSON_Value'Class;
+      Root    : GNATCOLL.VFS.Virtual_File)
+   is
+      Saved_Root : constant GNATCOLL.VFS.Virtual_File := Self.Root;
+   begin
+      Self.Root := Root;
+      Self.Change_Configuration (Options);
+      Self.Root := Saved_Root;
+   end Change_Configuration_Before_Init;
+
+   --------------------------------------------
+   -- On_DidChangeConfiguration_Notification --
+   --------------------------------------------
+
+   overriding procedure On_DidChangeConfiguration_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeConfigurationParams)
+   is
+
+      Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
+
+      --  Is client capable of dynamically registering file operations?
+      Dynamically_Register_File_Operations : constant Boolean :=
+        Self.Client.capabilities.workspace.fileOperations.Is_Set
+        and then Self.Client.capabilities.workspace.fileOperations.
+                   Value.dynamicRegistration.Is_Set = True;
+
+   begin
+      Self.Change_Configuration (Ada);
 
       --  Register rangeFormatting provider is the client supports
       --  dynamic registration for it (and we haven't done it before).
@@ -4550,21 +4583,6 @@ package body LSP.Ada_Handlers is
             Self.Server.On_RegisterCapability_Request (Request);
          end;
       end if;
-   end Change_Configuration;
-
-   --------------------------------------------
-   -- On_DidChangeConfiguration_Notification --
-   --------------------------------------------
-
-   overriding procedure On_DidChangeConfiguration_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeConfigurationParams)
-   is
-
-      Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
-
-   begin
-      Self.Change_Configuration (Ada);
    end On_DidChangeConfiguration_Notification;
 
    -------------------------------------------

@@ -1,0 +1,1 @@
+{ "projectFile": "prj/right_project.gpr" }
