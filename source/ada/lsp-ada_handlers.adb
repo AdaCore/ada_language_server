@@ -26,7 +26,7 @@ with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with GNAT.OS_Lib;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
 with GPR2.Containers;
@@ -36,6 +36,8 @@ with GPR2.Project.Registry.Attribute;
 with GPR2.Project.Source.Set;
 with GPR2.Project.Tree.View_Builder;
 with GPR2.Project.View;
+
+with Spawn.Environments;
 
 with VSS.Characters.Latin;
 with VSS.Strings.Conversions;
@@ -5003,7 +5005,9 @@ package body LSP.Ada_Handlers is
       Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
         Self.Root.Create_From_Dir ("alire.toml");
    begin
-      if Alire_TOML.Is_Regular_File then
+      if Alire_TOML.Is_Regular_File
+        and Spawn.Environments.System_Environment.Value ("ALIRE") /= "True"
+      then
 
          Self.Trace.Trace ("Check alire:");
 
@@ -5107,6 +5111,7 @@ package body LSP.Ada_Handlers is
      (Self      : access Message_Handler;
       Operation : String := "") return LSP_Number_Or_String
    is
+      use GNAT.OS_Lib;
 
       Pid : constant String :=
         GNATCOLL.Utils.Image (Pid_To_Integer (Current_Process_Id), 1);
