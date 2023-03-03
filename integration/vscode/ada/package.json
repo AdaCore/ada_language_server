@@ -379,6 +379,10 @@
                     "taskKind": {
                         "type": "string",
                         "description": "Tool and action kind"
+                    },
+                    "args": {
+                        "type": "array",
+                        "description": "Extra command arguments"
                     }
                 }
             }

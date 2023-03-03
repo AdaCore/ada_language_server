@@ -190,11 +190,14 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
         // Check if the task in our known task
         if (definition.taskKind in knownTaskKinds) {
             const item: TaskProperties = knownTaskKinds[String(definition.taskKind)];
+            const extraArgs: string[] = Array.isArray(definition.args)
+                ? definition.args.map((x) => String(x))
+                : [];
             if (item.extra) {
                 // We have a callback, evaluate it to get an extra argument and
                 // wrap all args with getGnatArgs
                 return item.extra().then((extra) => {
-                    const args = getGnatArgs(item.args.concat(extra ? [extra] : []));
+                    const args = getGnatArgs(item.args.concat(extraArgs, extra ? [extra] : []));
                     const shell = new vscode.ShellExecution(item.tool, args);
                     return new vscode.Task(
                         definition,
@@ -206,7 +209,7 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
                     );
                 });
             } else {
-                const shell = new vscode.ShellExecution(item.tool, item.args);
+                const shell = new vscode.ShellExecution(item.tool, item.args.concat(extraArgs));
                 return new vscode.Task(
                     definition,
                     vscode.TaskScope.Workspace, // scope
