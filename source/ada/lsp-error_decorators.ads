@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,10 +14,11 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
+
 --  This package provides requests handler as a wrapper around another requests
 --  handler. The purpose of the wrapper is to handle in one place all leaks of
 --  Property_Error exception from Libadalang.
+
 with GNATCOLL.Traces;
 
 with LSP.Messages.Server_Requests;
