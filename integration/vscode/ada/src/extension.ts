@@ -25,21 +25,13 @@ import {
 } from 'vscode-languageclient/node';
 import { platform } from 'os';
 import * as process from 'process';
-import GPRTaskProvider from './gprTaskProvider';
-import cleanTaskProvider from './cleanTaskProvider';
-import gnatproveTaskProvider from './gnatproveTaskProvider';
-import { getSubprogramSymbol } from './gnatproveTaskProvider';
+import GnatTaskProvider from './gnatTaskProvider';
+import { getSubprogramSymbol } from './gnatTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
 
 let alsTaskProvider: vscode.Disposable[] = [
-    vscode.tasks.registerTaskProvider(GPRTaskProvider.gprBuildType, new GPRTaskProvider()),
-    vscode.tasks.registerTaskProvider(cleanTaskProvider.cleanTaskType, new cleanTaskProvider()),
-
-    vscode.tasks.registerTaskProvider(
-        gnatproveTaskProvider.gnatproveType,
-        new gnatproveTaskProvider()
-    ),
+    vscode.tasks.registerTaskProvider(GnatTaskProvider.gnatType, new GnatTaskProvider()),
 ];
 
 /**
@@ -182,22 +174,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     //  React to changes in configuration to recompute predefined tasks if the user
     //  changes scenario variables' values.
     function configChanged(e: vscode.ConfigurationChangeEvent) {
-        if (e.affectsConfiguration('ada.scenarioVariables')) {
+        if (
+            e.affectsConfiguration('ada.scenarioVariables') ||
+            e.affectsConfiguration('ada.projectFile')
+        ) {
             for (const item of alsTaskProvider) {
                 item.dispose();
             }
             alsTaskProvider = [
                 vscode.tasks.registerTaskProvider(
-                    GPRTaskProvider.gprBuildType,
-                    new GPRTaskProvider()
-                ),
-                vscode.tasks.registerTaskProvider(
-                    cleanTaskProvider.cleanTaskType,
-                    new cleanTaskProvider()
-                ),
-                vscode.tasks.registerTaskProvider(
-                    gnatproveTaskProvider.gnatproveType,
-                    new gnatproveTaskProvider()
+                    GnatTaskProvider.gnatType,
+                    new GnatTaskProvider()
                 ),
             ];
         }
