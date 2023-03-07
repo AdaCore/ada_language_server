@@ -41,6 +41,7 @@ package body LSP.Ada_Handlers.Alire is
       Process : Spawn.Processes.Process;
       Stdout  : VSS.Stream_Element_Vectors.Stream_Element_Vector;
       Stderr  : VSS.Stream_Element_Vectors.Stream_Element_Vector;
+      Error   : Integer := 0;  --  Error_Occurred argument
       Text    : VSS.Strings.Virtual_String;  --  Stdout as a text
      end record;
 
@@ -50,12 +51,27 @@ package body LSP.Ada_Handlers.Alire is
    overriding procedure Standard_Error_Available
      (Self : in out Process_Listener);
 
+   overriding procedure Error_Occurred
+     (Self  : in out Process_Listener;
+      Error : Integer);
+
    procedure Start_Alire
      (Listener : in out Process_Listener'Class;
       ALR      : String;
       Option_1 : String;
       Option_2 : String;
       Root     : String);
+
+   --------------------
+   -- Error_Occurred --
+   --------------------
+
+   overriding procedure Error_Occurred
+     (Self  : in out Process_Listener;
+      Error : Integer) is
+   begin
+      Self.Error := Error;
+   end Error_Occurred;
 
    ---------------
    -- Run_Alire --
@@ -158,14 +174,16 @@ package body LSP.Ada_Handlers.Alire is
          if Item.Process.Exit_Status /= Spawn.Normal
            or else Item.Process.Exit_Code /= 0
            or else Decoder.Has_Error
+           or else Item.Error /= 0
          then
-            Error := "alr";
+            Error := "'alr";
 
             for Arg of Item.Process.Arguments loop
                Error.Append (" ");
                Error.Append (VSS.Strings.Conversions.To_Virtual_String (Arg));
             end loop;
 
+            Error.Append ("' failed:");
             Error.Append (VSS.Characters.Latin.Line_Feed);
 
             if Decoder.Has_Error then
@@ -182,6 +200,12 @@ package body LSP.Ada_Handlers.Alire is
                Error.Append (Decoder.Error_Message);
             else
                Error.Append (Text);
+            end if;
+
+            if Item.Error /= 0 then
+               Error.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                   (GNAT.OS_Lib.Errno_Message (Item.Error)));
             end if;
 
             return;
