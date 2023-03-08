@@ -145,19 +145,19 @@ const knownTaskKinds: { [id: string]: TaskProperties } = {
         tool: 'gprbuild',
         args: getGnatArgs([]),
         extra: undefined,
-        title: 'Build project',
+        title: 'Build current project',
     },
     checkFile: {
         tool: 'gprbuild',
         args: getGnatArgs(['-q', '-f', '-c', '-u', '-gnatc', '${fileBasename}']),
         extra: undefined,
-        title: 'Check file',
+        title: 'Check current file',
     },
     cleanProject: {
         tool: 'gprclean',
         args: commonArgs([]), // No -cargs -gnatef is accepted by gprclean
         extra: undefined,
-        title: 'Clean project',
+        title: 'Clean current project',
     },
 };
 
