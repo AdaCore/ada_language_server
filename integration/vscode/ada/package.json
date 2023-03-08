@@ -16,10 +16,7 @@
         "ms-vscode.cpptools"
     ],
     "activationEvents": [
-        "onLanguage:ada",
-        "onLanguage:gpr",
-        "onCommand:workbench.action.tasks.runTask",
-        "onCommand:ada.otherFile"
+        "onCommand:workbench.action.tasks.runTask"
     ],
     "main": "./out/extension",
     "icon": "icons/ada.png",
@@ -374,46 +371,18 @@
         ],
         "taskDefinitions": [
             {
-                "type": "gprbuild",
+                "type": "gnat",
                 "required": [
-                    "projectFile"
+                    "taskKind"
                 ],
                 "properties": {
-                    "projectFile": {
-                        "type": "string",
-                        "description": "The project file"
-                    },
-                    "checkFile": {
-                        "type": "boolean",
-                        "description": "Just check the current file only"
-                    }
-                }
-            },
-            {
-                "type": "gprclean",
-                "required": [
-                    "projectFile"
-                ],
-                "properties": {
-                    "projectFile": {
-                        "type": "string",
-                        "description": "The project file"
-                    }
-                }
-            },
-            {
-                "type": "gnatprove",
-                "required": [
-                    "projectFile"
-                ],
-                "properties": {
-                    "projectFile": {
-                        "type": "string",
-                        "description": "The project file"
-                    },
                     "taskKind": {
-                        "type": "integer",
-                        "description": "Check the current file only or whole project"
+                        "type": "string",
+                        "description": "Tool and action kind"
+                    },
+                    "args": {
+                        "type": "array",
+                        "description": "Extra command arguments"
                     }
                 }
             }

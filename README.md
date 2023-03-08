@@ -177,6 +177,28 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
 
 [A demo for auto-detected tasks](https://github.com/AdaCore/ada_language_server/wiki/auto_detected_tasks.mp4)
 
+#### Task customization
+You can [customize autodetected tasks](https://code.visualstudio.com/docs/editor/tasks#_customizing-autodetected-tasks)
+by providing extra tool command line options via `args` property in the `tasks.json`:
+
+```json
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "gnat",
+			"taskKind": "buildProject",
+			"problemMatcher": [
+				"$ada"
+			],
+			"group": "build",
+			"label": "ada: Build project",
+			"args": ["-gargs", "-vh"]
+		}
+	]
+}
+```
+
 ### Commands and shortcuts
 
 The extension contributes a few commands and corresponding key bindings.
