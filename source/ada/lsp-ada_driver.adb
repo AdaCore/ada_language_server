@@ -33,7 +33,7 @@ with VSS.Application;
 with VSS.Command_Line;
 with VSS.Standard_Paths;
 with VSS.Strings.Conversions;
-with VSS.Text_Streams.Standadrs;
+with VSS.Text_Streams.Standards;
 
 with GNATCOLL.JSON;
 with GNATCOLL.Memory;         use GNATCOLL.Memory;
@@ -142,7 +142,7 @@ procedure LSP.Ada_Driver is
       use type VSS.Strings.Character_Count;
       Ok     : Boolean := True;
       Output : VSS.Text_Streams.Output_Text_Stream'Class :=
-        VSS.Text_Streams.Standadrs.Standard_Output;
+        VSS.Text_Streams.Standards.Standard_Output;
       Last   : VSS.Strings.Character_Count :=
         3 + Option.Long_Name.Character_Length;
    begin
