@@ -34,7 +34,9 @@ package body LSP.Errors is
       ServerNotInitialized => -32002,
       UnknownErrorCode     => -32001,
       RequestCancelled     => -32800,
-      ContentModified      => -32801);
+      ContentModified      => -32801,
+      ServerCancelled      => -32802,
+      RequestFailed        => -32803);
 
    ------------------------
    -- Read_ResponseError --
