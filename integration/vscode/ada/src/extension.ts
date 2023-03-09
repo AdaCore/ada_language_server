@@ -171,6 +171,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         });
     }
 
+    // Choose a .gpr project, put that in configuration and reload ALS
+    function chooseProject() {
+        const options: vscode.OpenDialogOptions = {
+            canSelectMany: false,
+            canSelectFiles: true,
+            canSelectFolders: false,
+            defaultUri: vscode.workspace.workspaceFolders?.[0]?.uri,
+            openLabel: 'Select GPR project',
+            filters: {
+                'GPR Projects': ['gpr']
+            }
+        };
+
+        vscode.window.showOpenDialog(options).then(fileUri => {
+            if (fileUri && fileUri[0]) {
+                const selected_project = fileUri[0].fsPath
+                vscode.window.showInformationMessage('Selected project: ' + selected_project);
+                // Set projectFile is any
+                const config = vscode.workspace.getConfiguration('ada')
+                config.update('projectFile', selected_project)
+                vscode.executeCommand('als-reload-project')
+            }
+        });
+    }
+
     //  React to changes in configuration to recompute predefined tasks if the user
     //  changes scenario variables' values.
     function configChanged(e: vscode.ConfigurationChangeEvent) {
@@ -192,6 +217,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(configChanged));
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
+    context.subscriptions.push(vscode.commands.registerCommand('ada.chooseProject', chooseProject));
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBox)
     );

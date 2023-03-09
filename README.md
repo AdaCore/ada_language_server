@@ -126,9 +126,11 @@ formatting might no succeed on incomplete/illegal code.
 
 * **Toooling support**: we currently provide minimal support for *SPARK* (see *Prove/Examine* tasks in the [Auto-detected tasks](#auto-detected-tasks) section), but there is no support for tools such as *CodePeer*, *GNATcheck*, *GNATtest* or *GNATcoverage*.
 
-* **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/refactoring_tools.md)). You can execute the *Developper: Reload Window* command to reload your project after saving the new scenario values (use the *Ctrl+P* shortcut to invoke the **Command Palette**, allowing you to execute commands).
+* **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/refactoring_tools.md)). You can execute the *Developer: Reload Window* command to reload your project after saving the new scenario values (use the *Ctrl+P* shortcut to invoke the **Command Palette**, allowing you to execute commands).
 
   Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.
+
+If there is a single .gpr file in the root of the project, it will be selected automatically. To choose the active project file, use the `ada.chooseProject` command and select a project file in the file dialog.
 
 * **Debugging**: some manual work is needed in order to debug Ada code. In particular, you will need a `launch.json` file that describes your debugging configuration. All the steps needed for debugging are described [here](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started#debug-hello_worldadb).
 

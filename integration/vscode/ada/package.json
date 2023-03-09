@@ -393,6 +393,10 @@
                 "title": "Ada: Go to other file"
             },
             {
+                "command": "ada.chooseProject",
+                "title": "Ada: Choose GPR project file"
+            },
+            {
                 "command": "als-reload-project",
                 "title": "Ada: Reload project"
             },
@@ -442,7 +446,7 @@
                     {
                         "id": "als-get-stated-setting",
                         "title": "Set a project file",
-                        "description": "Set the active project file in the `ada.projectFile` setting.\n [Open Settings](command:workbench.action.openSettings)",
+                        "description": "Set the active project file using command `ada.selectProject`.\n [Select project](command:ada.selectProject)",
                         "media": {
                             "markdown": "media/settings.md"
                         },
