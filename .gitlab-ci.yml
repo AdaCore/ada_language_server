@@ -75,11 +75,24 @@ build_and_test:
        --xunit-output $CI_PROJECT_DIR/xunit_output.xml
        x86_64-linux/als${BUILD_SPACE_SUFFIX}-test/results/new/ || FAILED=true
 
+    - anod install lsif-ada
+    - ( eval `anod printenv lsif-ada`;
+        eval `anod printenv stable-gnat`;
+        eval `anod printenv ada_libfswatch`;
+        eval `anod printenv stable-templates_parser`;
+        eval `anod printenv stable-langkit_support`;
+        eval `anod printenv stable-libgpr2 --qualifier=bare`;
+        eval `anod printenv stable-libadalang`;
+        eval `anod printenv stable-libadalang-tools`;
+        export GPR_PROJECT_PATH=/it/wave/x86_64-linux/als/src/subprojects/gnatdoc/gnat:$GPR_PROJECT_PATH;
+        export GPR_PROJECT_PATH=/it/wave/x86_64-linux/als/src/subprojects/VSS/gnat:$GPR_PROJECT_PATH;
+        cd /it/wave/x86_64-linux/als/src;
+        lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif )
+
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 
   artifacts:
      when: always  #  Upload on errors too
-     paths:
-        - xunit_output.xml
      reports:
        junit: xunit_output.xml
+       lsif: dump.lsif
