@@ -1184,6 +1184,17 @@ package body LSP.Ada_Handlers is
          Self.Line_Folding_Only := True;
       end if;
 
+      if Value.capabilities.textDocument.publishDiagnostics.Is_Set
+        and then Value.capabilities.textDocument.publishDiagnostics.Value.
+          relatedInformation.Is_Set
+      then
+         --  Client capability to support relatedInformation field in
+         --  diagnostics.
+         Self.Supports_Related_Diagnostics :=
+           Value.capabilities.textDocument.publishDiagnostics.Value.
+             relatedInformation.Value;
+      end if;
+
       if Value.capabilities.textDocument.completion.completionItem.Is_Set
         and then Value.capabilities.textDocument.completion.
           completionItem.Value.snippetSupport = True
@@ -3924,15 +3935,29 @@ package body LSP.Ada_Handlers is
       --  possible to encounter the same Text_Edit more than once, so this
       --  stores all the unique edits
 
-      procedure Process_Context (C : Context_Access);
+      Definition_Node : Defining_Name;
+      --  Used to retrieve the definition node found for a given context
+
+      procedure Process_Context
+        (C               : Context_Access;
+         Definition_Node : out Defining_Name);
       --  Process the rename request for the given context, and add the
       --  edits to `All_Edits`.
+
+      function To_LSP_Diagnostic
+        (Problem         : Laltools.Refactor.Refactoring_Diagnotic'Class;
+         Definition_Node : Defining_Name)
+         return LSP.Messages.Diagnostic;
+      --  Convert a laltool refactoring diagnostic into a LSP one.
 
       ---------------------
       -- Process_Context --
       ---------------------
 
-      procedure Process_Context (C : Context_Access) is
+      procedure Process_Context
+        (C               : Context_Access;
+         Definition_Node : out Defining_Name)
+      is
          use Laltools.Refactor.Safe_Rename;
 
          Node       : constant Ada_Node := C.Get_Node_At (Document, Position);
@@ -4182,6 +4207,8 @@ package body LSP.Ada_Handlers is
          end Process_References;
 
       begin
+         Definition_Node := Definition;
+
          if Definition.Is_Null then
             return;
          end if;
@@ -4206,31 +4233,94 @@ package body LSP.Ada_Handlers is
          Process_File_Renames;
       end Process_Context;
 
+      -----------------------
+      -- To_LSP_Diagnostic --
+      -----------------------
+
+      function To_LSP_Diagnostic
+        (Problem         : Laltools.Refactor.Refactoring_Diagnotic'Class;
+         Definition_Node : Defining_Name)
+         return LSP.Messages.Diagnostic
+      is
+         Diagnostic : LSP.Messages.Diagnostic;
+      begin
+         Diagnostic := LSP.Messages.Diagnostic'
+           (span               =>
+              To_Span (Definition_Node.Sloc_Range),
+            severity           => (True, LSP.Messages.Error),
+            code               => <>,
+            codeDescription    => <>,
+            source             =>
+              (True, To_Virtual_String ("Ada")),
+            message            =>
+              (if Self.Supports_Related_Diagnostics then
+                    VSS.Strings.Conversions.To_Virtual_String
+                 ("Can't rename identifier '"
+                  & Langkit_Support.Text.To_UTF8
+                    (Definition_Node.Text)
+                  & "'")
+               else VSS.Strings.Conversions.To_Virtual_String
+              (Problem.Info)),
+            tags               => <>,
+            relatedInformation => <>);
+
+         if Self.Supports_Related_Diagnostics then
+            Diagnostic.relatedInformation.Append
+              (LSP.Messages.DiagnosticRelatedInformation'(
+               location => LSP.Messages.Location'
+                 (uri     => File_To_URI (Problem.Filename),
+                  span    => To_Span (Problem.Location),
+                  alsKind => <>),
+               message  => VSS.Strings.Conversions.To_Virtual_String
+                 (Problem.Info)));
+         end if;
+
+         return Diagnostic;
+      end To_LSP_Diagnostic;
+
    begin
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
-         Process_Context (C);
+         Process_Context (C, Definition_Node);
 
-         --  If problems were found, send an error message and do not proceed
-         --  with the renames.
+         --  If problems were found, send an error reponse and a diagnostic for
+         --  each issue. Do not proceed with the renames.
 
          if not Context_Edits.Diagnostics.Is_Empty then
             return Response : LSP.Messages.Server_Responses.Rename_Response
               (Is_Error => True)
             do
                declare
-                  Error_Message : VSS.String_Vectors.Virtual_String_Vector;
-
+                  Diag_Params : LSP.Messages.PublishDiagnosticsParams;
+                  Diagnostic  : LSP.Messages.Diagnostic;
                begin
+                  --  For each problem detected in a given file by laltools,
+                  --  convert it to a LSP diagnostic and publish them when
+                  --  switching to another file.
+
                   for Problem of Context_Edits.Diagnostics loop
-                     Error_Message.Append
-                       (VSS.Strings.Conversions.To_Virtual_String
-                          (Problem.Info));
+                     Diagnostic := To_LSP_Diagnostic
+                       (Problem, Definition_Node);
+
+                     if To_UTF_8_String (Diag_Params.uri) = "" or else
+                       To_UTF_8_String (Diag_Params.uri) = Problem.Filename
+                     then
+                        Diag_Params.diagnostics.Append (Diagnostic);
+                        Diag_Params.uri := Value.textDocument.uri;
+                     else
+                        Self.Server.On_Publish_Diagnostics (Diag_Params);
+                        Diag_Params.uri := File_To_URI ("");
+                        Diag_Params.diagnostics.Clear;
+                     end if;
                   end loop;
+
+                  if not Diag_Params.diagnostics.Is_Empty then
+                     Self.Server.On_Publish_Diagnostics (Diag_Params);
+                  end if;
 
                   Response.error :=
                     (True,
-                     (code    => LSP.Errors.InvalidRequest,
-                      message => Error_Message.Join_Lines (VSS.Strings.LF),
+                     (code    => LSP.Errors.RequestFailed,
+                      message => <>,
                       data    => Empty));
                end;
             end return;
@@ -6389,16 +6479,16 @@ package body LSP.Ada_Handlers is
      (Self     : access Message_Handler'Class;
       Document : not null LSP.Ada_Documents.Document_Access)
    is
-      Ok   : Boolean;
-      Diag : LSP.Messages.PublishDiagnosticsParams;
+      Changed : Boolean;
+      Diag    : LSP.Messages.PublishDiagnosticsParams;
    begin
       if Self.Diagnostics_Enabled then
          Document.Get_Errors
-           (Self.Contexts.Get_Best_Context (Document.URI).all,
-            Ok,
-            Diag.diagnostics);
+           (Context => Self.Contexts.Get_Best_Context (Document.URI).all,
+            Changed => Changed,
+            Errors  => Diag.diagnostics);
 
-         if Ok then
+         if Changed then
             Diag.uri := Document.URI;
             Self.Server.On_Publish_Diagnostics (Diag);
          end if;
