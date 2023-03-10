@@ -1323,7 +1323,7 @@ package body LSP.Ada_Documents is
    ----------------
 
    procedure Get_Errors
-     (Self    : Document;
+     (Self    : in out Document;
       Context : LSP.Ada_Contexts.Context;
       Changed : out Boolean;
       Errors  : out LSP.Messages.Diagnostic_Vector) is
@@ -2962,6 +2962,22 @@ package body LSP.Ada_Documents is
            (line      => End_Line,
             character => End_Iterator.Last_UTF16_Offset));
    end To_LSP_Range;
+
+   ---------------------
+   -- To_LSP_Location --
+   ---------------------
+
+   function To_LSP_Location
+     (Self    : Document;
+      Segment : Langkit_Support.Slocs.Source_Location_Range;
+      Kind    : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
+      return LSP.Messages.Location is
+   begin
+      return LSP.Messages.Location'
+        (uri  => Self.URI,
+         span => To_LSP_Range (Self, Segment),
+         alsKind => <>);
+   end To_LSP_Location;
 
    ----------
    -- Unit --
