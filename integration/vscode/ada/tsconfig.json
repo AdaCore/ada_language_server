@@ -1,25 +1,26 @@
 {
-	"compilerOptions": {
-		"module": "commonjs",
-		"target": "ES2020",
-		"outDir": "out",
-		"lib": [
-			"ES2020"
-		],
-		"sourceMap": true,
-		"rootDir": "src",
-		"declaration": true,
-		"declarationMap": true,
-		"strict": true,
-		"removeComments": true,
-		"moduleResolution": "node",
-		"forceConsistentCasingInFileNames": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUnusedParameters": true
-	},
-	"exclude": [
-		"node_modules",
-		"out"
-	]
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "ES2020",
+        "outDir": "out",
+        "lib": [
+            "ES2020"
+        ],
+        "sourceMap": true,
+        "rootDir": "src",
+        "declaration": true,
+        "declarationMap": true,
+        "strict": true,
+        "removeComments": true,
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUnusedParameters": true
+    },
+    "exclude": [
+        "node_modules",
+        "out"
+    ]
 }

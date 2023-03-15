@@ -139,21 +139,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // Create the language client
         return new LanguageClient(id, name, serverOptions, clientOptions);
     }
+
     // Create the GPR language client and start it.
     const gprClient = createClient('gpr', 'GPR Language Server', ['--language-gpr'], '**/.{gpr}');
     context.subscriptions.push(gprClient.start());
-    // Create the Ada language client and start it.
-    const client = createClient('ada', 'Ada Language Server', [], '**/.{adb,ads,adc,ada}');
-    const alsMiddleware: Middleware = {
-        executeCommand: alsCommandExecutor(client),
-    };
-    client.clientOptions.middleware = alsMiddleware;
-    client.registerFeature(new ALSClientFeatures());
 
-    const disposable = client.start();
-    // Push the disposable to the context's subscriptions so that the
-    // client can be deactivated on extension deactivation
-    context.subscriptions.push(disposable);
+    // Create the Ada language client and start it.
+    const alsClient = createClient('ada', 'Ada Language Server', [], '**/.{adb,ads,adc,ada}');
+    const alsMiddleware: Middleware = {
+        executeCommand: alsCommandExecutor(alsClient),
+    };
+    alsClient.clientOptions.middleware = alsMiddleware;
+    alsClient.registerFeature(new ALSClientFeatures());
+    context.subscriptions.push(gprClient.start());
 
     //  Take active editor URI and call execute 'als-other-file' command in LSP
     function otherFileHandler() {
@@ -161,7 +159,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         if (!activeEditor) {
             return;
         }
-        void client.sendRequest(ExecuteCommandRequest.type, {
+        void alsClient.sendRequest(ExecuteCommandRequest.type, {
             command: 'als-other-file',
             arguments: [
                 {
@@ -205,69 +203,66 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     //  projects' source directories are not placed under the root project's directory).
     //  Do nothing is the user did not setup any workspace file.
     if (vscode.workspace.workspaceFile !== undefined) {
-        await client.onReady().then(async () => {
-            await client
-                .sendRequest<[ALSSourceDirDescription]>('workspace/alsSourceDirs')
-                .then(async (source_dirs) => {
-                    const workspace_folders = vscode.workspace.workspaceFolders ?? [];
-                    const workspace_dirs_to_add: { uri: vscode.Uri; name?: string | undefined }[] =
-                        [];
+        await alsClient
+            .sendRequest<[ALSSourceDirDescription]>('workspace/alsSourceDirs')
+            .then(async (source_dirs) => {
+                const workspace_folders = vscode.workspace.workspaceFolders ?? [];
+                const workspace_dirs_to_add: { uri: vscode.Uri; name?: string | undefined }[] = [];
 
-                    for (const source_dir of source_dirs) {
-                        const source_dir_uri = vscode.Uri.parse(source_dir.uri);
-                        const source_dir_path = source_dir_uri.path;
+                for (const source_dir of source_dirs) {
+                    const source_dir_uri = vscode.Uri.parse(source_dir.uri);
+                    const source_dir_path = source_dir_uri.path;
 
-                        const is_subdirectory = (dir: string, parent: string) => {
-                            //  Use lower-case on Windows since drives can be specified in VS Code
-                            //  either with lower or upper case characters.
-                            if (process.platform == 'win32') {
-                                dir = dir.toLowerCase();
-                                parent = parent.toLowerCase();
-                            }
-
-                            return dir.startsWith(parent + '/');
-                        };
-
-                        //  If the source directory is not under one of the workspace folders, push
-                        //  this source directory to the workspace folders to add later.
-                        if (
-                            !workspace_folders.some((workspace_folder) =>
-                                is_subdirectory(source_dir_path, workspace_folder.uri.path)
-                            )
-                        ) {
-                            workspace_dirs_to_add.push({
-                                name: source_dir.name,
-                                uri: source_dir_uri,
-                            });
+                    const is_subdirectory = (dir: string, parent: string) => {
+                        //  Use lower-case on Windows since drives can be specified in VS Code
+                        //  either with lower or upper case characters.
+                        if (process.platform == 'win32') {
+                            dir = dir.toLowerCase();
+                            parent = parent.toLowerCase();
                         }
-                    }
 
-                    //  If there are some source directories missing in the workspace, ask the user
-                    //  to add them in his workspace.
-                    if (workspace_dirs_to_add.length > 0) {
-                        await vscode.window
-                            .showInformationMessage(
-                                'Some project source directories are not ' +
-                                    'listed in your workspace: do you want to add them?',
-                                'Yes',
-                                'No'
-                            )
-                            .then((answer) => {
-                                if (answer === 'Yes') {
-                                    for (const workspace_dir of workspace_dirs_to_add) {
-                                        vscode.workspace.updateWorkspaceFolders(
-                                            vscode.workspace.workspaceFolders
-                                                ? vscode.workspace.workspaceFolders.length
-                                                : 0,
-                                            null,
-                                            workspace_dir
-                                        );
-                                    }
-                                }
-                            });
+                        return dir.startsWith(parent + '/');
+                    };
+
+                    //  If the source directory is not under one of the workspace folders, push
+                    //  this source directory to the workspace folders to add later.
+                    if (
+                        !workspace_folders.some((workspace_folder) =>
+                            is_subdirectory(source_dir_path, workspace_folder.uri.path)
+                        )
+                    ) {
+                        workspace_dirs_to_add.push({
+                            name: source_dir.name,
+                            uri: source_dir_uri,
+                        });
                     }
-                });
-        });
+                }
+
+                //  If there are some source directories missing in the workspace, ask the user
+                //  to add them in his workspace.
+                if (workspace_dirs_to_add.length > 0) {
+                    await vscode.window
+                        .showInformationMessage(
+                            'Some project source directories are not ' +
+                                'listed in your workspace: do you want to add them?',
+                            'Yes',
+                            'No'
+                        )
+                        .then((answer) => {
+                            if (answer === 'Yes') {
+                                for (const workspace_dir of workspace_dirs_to_add) {
+                                    vscode.workspace.updateWorkspaceFolders(
+                                        vscode.workspace.workspaceFolders
+                                            ? vscode.workspace.workspaceFolders.length
+                                            : 0,
+                                        null,
+                                        workspace_dir
+                                    );
+                                }
+                            }
+                        });
+                }
+            });
     }
 }
 

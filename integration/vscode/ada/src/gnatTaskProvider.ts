@@ -16,7 +16,7 @@
 ----------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import commandExists = require('command-exists');
+import commandExists from 'command-exists';
 import { SymbolKind } from 'vscode';
 
 /**
