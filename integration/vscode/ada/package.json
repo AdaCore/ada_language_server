@@ -502,8 +502,10 @@
         "test": "node ./out/test/runTest.js"
     },
     "dependencies": {
-        "process": "0.11.10",
+        "@types/command-exists": "^1.2.0",
+        "command-exists": "^1.2.9",
         "fp-ts": "2.12.0",
+        "process": "0.11.10",
         "vscode-languageclient": "7.0.0",
         "ws": "8.5.0"
     }
