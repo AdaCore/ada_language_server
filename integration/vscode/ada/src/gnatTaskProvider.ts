@@ -16,6 +16,7 @@
 ----------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import commandExists from 'command-exists';
 import { SymbolKind } from 'vscode';
 
 /**
@@ -27,8 +28,8 @@ type ExtraArgCallback = () => Promise<string>;
  * Tool description
  */
 interface TaskProperties {
-    tool: string; //  Executable like gprbuild, gprclean, gnatprove, etc.
-    args: string[]; //  Static list of arguments
+    command: string[]; //  Executable like gprbuild, gprclean, gnatprove,
+    // etc. and static list of arguments
     extra: ExtraArgCallback | undefined; //  Dynamic argument callback if any
     // Args and extra argument will be wrapped with getGnatArgs if this is set.
     title: string; // Title like 'Examine project'
@@ -94,72 +95,78 @@ const getGnatArgs = (args: string[]): string[] => {
  */
 const knownTaskKinds: { [id: string]: TaskProperties } = {
     examineProject: {
-        tool: 'gnatprove',
-        args: getGnatArgs(['--mode=flow']),
+        command: getGnatArgs(['gnatprove', '--mode=flow']),
         extra: undefined,
         title: 'Examine project',
     },
     examineFile: {
-        tool: 'gnatprove',
-        args: getGnatArgs(['--mode=flow', '-u', '${fileBasename}']),
+        command: getGnatArgs(['gnatprove', '--mode=flow', '-u', '${fileBasename}']),
         extra: undefined,
         title: 'Examine file',
     },
     examineSubprogram: {
-        tool: 'gnatprove',
-        args: ['--mode=flow'],
+        command: ['gnatprove', '--mode=flow'],
         extra: limitSubp,
         title: 'Examine subprogram',
     },
     proveProject: {
-        tool: 'gnatprove',
-        args: getGnatArgs([]),
+        command: getGnatArgs(['gnatprove']),
         extra: undefined,
         title: 'Prove project',
     },
     proveFile: {
-        tool: 'gnatprove',
-        args: getGnatArgs(['-u', '${fileBasename}']),
+        command: getGnatArgs(['gnatprove', '-u', '${fileBasename}']),
         extra: undefined,
         title: 'Prove file',
     },
     proveSubprogram: {
-        tool: 'gnatprove',
-        args: [],
+        command: ['gnatprove'],
         extra: limitSubp,
         title: 'Prove subprogram',
     },
     proveRegion: {
-        tool: 'gnatprove',
-        args: ['-u', '${fileBasename}'],
+        command: ['gnatprove', '-u', '${fileBasename}'],
         extra: limitRegion,
         title: 'Prove selected region',
     },
     proveLine: {
-        tool: 'gnatprove',
-        args: getGnatArgs(['-u', '${fileBasename}', '--limit-line=${fileBasename}:${lineNumber}']),
+        command: getGnatArgs([
+            'gnatprove',
+            '-u',
+            '${fileBasename}',
+            '--limit-line=${fileBasename}:${lineNumber}',
+        ]),
         extra: undefined,
         title: 'Prove line',
     },
     buildProject: {
-        tool: 'gprbuild',
-        args: getGnatArgs([]),
+        command: getGnatArgs(['gprbuild']),
         extra: undefined,
-        title: 'Build project',
+        title: 'Build current project',
     },
     checkFile: {
-        tool: 'gprbuild',
-        args: getGnatArgs(['-q', '-f', '-c', '-u', '-gnatc', '${fileBasename}']),
+        command: getGnatArgs(['gprbuild', '-q', '-f', '-c', '-u', '-gnatc', '${fileBasename}']),
         extra: undefined,
-        title: 'Check file',
+        title: 'Check current file',
     },
     cleanProject: {
-        tool: 'gprclean',
-        args: commonArgs([]), // No -cargs -gnatef is accepted by gprclean
+        command: commonArgs(['gprbuild']), // No -cargs -gnatef is accepted by gprclean
         extra: undefined,
-        title: 'Clean project',
+        title: 'Clean current project',
     },
 };
+
+//  Alire `exec` command if we have `alr` installed and `alire.toml`
+async function alire(): Promise<string[]> {
+    return vscode.workspace.findFiles('alire.toml').then((found) =>
+        found.length == 0
+            ? [] // not alire.toml found, return no command
+            : // if alire.toml found, search for `alr`
+              commandExists('alr')
+                  .then(() => ['alr', 'exec', '--'])
+                  .catch(() => [])
+    );
+}
 
 /**
  * Task provider itself
@@ -173,9 +180,12 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    provideTasks(_token: vscode.CancellationToken): vscode.Task[] {
+    provideTasks(_token: vscode.CancellationToken): vscode.ProviderResult<vscode.Task[]> {
         if (!this.gnatTasks) {
-            this.gnatTasks = getTasks();
+            return getTasks().then((list) => {
+                this.gnatTasks = list;
+                return list;
+            });
         }
         return this.gnatTasks;
     }
@@ -197,8 +207,25 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
                 // We have a callback, evaluate it to get an extra argument and
                 // wrap all args with getGnatArgs
                 return item.extra().then((extra) => {
-                    const args = getGnatArgs(item.args.concat(extraArgs, extra ? [extra] : []));
-                    const shell = new vscode.ShellExecution(item.tool, args);
+                    return alire().then((alr) => {
+                        const cmd = getGnatArgs(
+                            alr.concat(item.command, extraArgs, extra ? [extra] : [])
+                        );
+                        const shell = new vscode.ShellExecution(cmd[0], cmd.slice(1));
+                        return new vscode.Task(
+                            definition,
+                            vscode.TaskScope.Workspace, // scope
+                            task.name,
+                            'ada', // source
+                            shell,
+                            '$ada' // problemMatchers
+                        );
+                    });
+                });
+            } else {
+                return alire().then((alr) => {
+                    const cmd = alr.concat(item.command, extraArgs);
+                    const shell = new vscode.ShellExecution(cmd[0], cmd.slice(1));
                     return new vscode.Task(
                         definition,
                         vscode.TaskScope.Workspace, // scope
@@ -208,16 +235,6 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
                         '$ada' // problemMatchers
                     );
                 });
-            } else {
-                const shell = new vscode.ShellExecution(item.tool, item.args.concat(extraArgs));
-                return new vscode.Task(
-                    definition,
-                    vscode.TaskScope.Workspace, // scope
-                    task.name,
-                    'ada', // source
-                    shell,
-                    '$ada' // problemMatchers
-                );
             }
         } else {
             return task;
@@ -228,25 +245,35 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
 /**
  * Return all known tasks
  */
-const getTasks = (): vscode.Task[] => {
-    const result: vscode.Task[] = [];
+async function getTasks(): Promise<vscode.Task[]> {
+    return alire().then((alr) => {
+        const result: vscode.Task[] = [];
 
-    for (const taskKind in knownTaskKinds) {
-        const item: TaskProperties = knownTaskKinds[taskKind];
-        const title: string = item.title;
-        const kind = {
-            type: GnatTaskProvider.gnatType,
-            projectFile: '${config:ada.projectFile}',
-            taskKind: taskKind,
-        };
-        const shell = new vscode.ShellExecution(item.tool, item.args);
-        const task = new vscode.Task(kind, vscode.TaskScope.Workspace, title, 'ada', shell, '$ada');
-        task.group = vscode.TaskGroup.Build;
-        result.push(task);
-    }
+        for (const taskKind in knownTaskKinds) {
+            const item: TaskProperties = knownTaskKinds[taskKind];
+            const title: string = item.title;
+            const kind = {
+                type: GnatTaskProvider.gnatType,
+                projectFile: '${config:ada.projectFile}',
+                taskKind: taskKind,
+            };
+            const cmd = alr.concat(item.command);
+            const shell = new vscode.ShellExecution(cmd[0], cmd.slice(1));
+            const task = new vscode.Task(
+                kind,
+                vscode.TaskScope.Workspace,
+                title,
+                'ada',
+                shell,
+                '$ada'
+            );
+            task.group = vscode.TaskGroup.Build;
+            result.push(task);
+        }
 
-    return result;
-};
+        return result;
+    });
+}
 
 /**
  * Return the DocumentSymbol associated to the subprogram enclosing the
