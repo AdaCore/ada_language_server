@@ -151,7 +151,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     };
     alsClient.clientOptions.middleware = alsMiddleware;
     alsClient.registerFeature(new ALSClientFeatures());
-    context.subscriptions.push(gprClient.start());
+    context.subscriptions.push(alsClient.start());
 
     //  Take active editor URI and call execute 'als-other-file' command in LSP
     function otherFileHandler() {
