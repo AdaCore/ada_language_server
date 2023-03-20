@@ -47,6 +47,10 @@ package LSP.Server_Notification_Receivers is
      (Self  : access Server_Notification_Receiver;
       Value : LSP.Messages.CancelParams) is abstract;
 
+   procedure On_SetTrace_Notification
+     (Self  : access Server_Notification_Receiver;
+      Value : LSP.Messages.SetTraceParams) is abstract;
+
    procedure On_DidOpenTextDocument_Notification
      (Self  : access Server_Notification_Receiver;
       Value : LSP.Messages.DidOpenTextDocumentParams) is abstract;

@@ -134,6 +134,19 @@ package LSP.Messages.Server_Notifications is
      (Self    : Cancel_Notification;
       Handler : access Server_Notification_Receiver'Class);
 
+   package SetTrace_Notifications is
+     new LSP.Generic_Notifications
+       (Server_Notification,
+        SetTraceParams,
+        Server_Notification_Receiver'Class);
+
+   type SetTrace_Notification is
+     new SetTrace_Notifications.Notification with null record;
+
+   overriding procedure Visit
+     (Self    : SetTrace_Notification;
+      Handler : access Server_Notification_Receiver'Class);
+
    package DidOpenTextDocument_Notifications is
      new LSP.Generic_Notifications
        (Server_Notification,

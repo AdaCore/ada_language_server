@@ -1161,6 +1161,20 @@ package body LSP.Clients is
       Self.Send_Notification ("$/cancelRequest", Message);
    end On_Cancel_Notification;
 
+   ------------------------------
+   -- On_SetTrace_Notification --
+   ------------------------------
+
+   overriding procedure On_SetTrace_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.SetTraceParams)
+   is
+      Message : SetTrace_Notification :=
+        (params => Value, others => <>);
+   begin
+      Self.Send_Notification ("$/setTrace", Message);
+   end On_SetTrace_Notification;
+
    ------------------------------------
    -- On_DidCreateFiles_Notification --
    ------------------------------------
