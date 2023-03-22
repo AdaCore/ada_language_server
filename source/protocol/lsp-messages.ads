@@ -4824,7 +4824,7 @@ package LSP.Messages is
      new Optional_ProgramInfo_Package.Optional_Type;
 
    --```typescript
-   --export type TraceValue = 'off' | 'message' | 'verbose'
+   --export type TraceValue = 'off' | 'messages' | 'verbose'
    --```
    type TraceValue is (off, messages_trace, verbose);
 

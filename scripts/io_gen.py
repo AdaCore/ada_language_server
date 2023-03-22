@@ -518,7 +518,7 @@ reserver_named = \
     "refactorrewrite": "refactor.rewrite",
     "source": "source",
     "sourceorganizeimports": "source.organizeImports",
-    "messages_trace": "message",  # for TraceValue
+    "messages_trace": "messages",  # for TraceValue
     "diff": "delta", # for SemanticTokens
     "an_abstract": "abstract", # for SemanticTokenTypes
     "an_interface": "interface",

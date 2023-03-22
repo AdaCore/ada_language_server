@@ -98,6 +98,13 @@ package body LSP.Messages.Server_Notifications is
    end Visit;
 
    overriding procedure Visit
+     (Self    : SetTrace_Notification;
+      Handler : access Server_Notification_Receiver'Class) is
+   begin
+      Handler.On_SetTrace_Notification (Self.params);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : DidOpenTextDocument_Notification;
       Handler : access Server_Notification_Receiver'Class) is
    begin
@@ -162,6 +169,10 @@ begin
    Map.Insert
      ("$/cancelRequest",
       Cancel_Notification'Tag);
+
+   Map.Insert
+     ("$/setTrace",
+      SetTrace_Notification'Tag);
 
    Map.Insert
      ("textDocument/didOpen",

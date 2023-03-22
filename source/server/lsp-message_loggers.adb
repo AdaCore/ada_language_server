@@ -574,6 +574,19 @@ package body LSP.Message_Loggers is
            (LSP.Types.To_Virtual_String (Value.id)));
    end On_Cancel_Notification;
 
+   ------------------------------
+   -- On_SetTrace_Notification --
+   ------------------------------
+
+   overriding procedure On_SetTrace_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.SetTraceParams) is
+   begin
+      Self.Trace.Trace
+        ("On_SetTrace_Notification: "
+         & LSP.Messages.TraceValue'Image (Value.value));
+   end On_SetTrace_Notification;
+
    ----------------------------
    -- On_Client_Notification --
    ----------------------------

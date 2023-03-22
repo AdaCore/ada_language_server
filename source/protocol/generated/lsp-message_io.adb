@@ -4440,7 +4440,7 @@ package body LSP.Message_IO is
       JS.R.Read_Next;
       if Text = "off" then
          V := off;
-      elsif Text = "message" then
+      elsif Text = "messages" then
          V := messages_trace;
       elsif Text = "verbose" then
          V := verbose;
@@ -4468,7 +4468,7 @@ package body LSP.Message_IO is
             when off =>
                return "off";
             when messages_trace =>
-               return "message";
+               return "messages";
             when verbose =>
                return "verbose";
          end case;
