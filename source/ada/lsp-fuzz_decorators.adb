@@ -109,6 +109,17 @@ package body LSP.Fuzz_Decorators is
       Self.Handler.On_Cancel_Notification (Value);
    end On_Cancel_Notification;
 
+   ------------------------------
+   -- On_SetTrace_Notification --
+   ------------------------------
+
+   overriding procedure On_SetTrace_Notification
+     (Self  : access Fuzz_Notification_Decorator;
+      Value : LSP.Messages.SetTraceParams) is
+   begin
+      Self.Handler.On_SetTrace_Notification (Value);
+   end On_SetTrace_Notification;
+
    ------------------------------------
    -- On_DidCreateFiles_Notification --
    ------------------------------------

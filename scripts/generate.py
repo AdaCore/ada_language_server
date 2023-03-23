@@ -350,6 +350,7 @@ NOTIFICATIONS = [
      'DeleteFilesParams'),
 
     ('$/cancelRequest', 'Cancel', 'CancelParams'),
+    ('$/setTrace', 'SetTrace', 'SetTraceParams'),
 
     # TODO: rename these to TextDocumentDidOpen/DidChange/DidSave/DidClose?
     ('textDocument/didOpen', 'DidOpenTextDocument',

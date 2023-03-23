@@ -677,6 +677,14 @@ private
    --  This is intentionally null procedure, because cancel is implemented by
    --  LSP server itself.
 
+   overriding procedure On_SetTrace_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.SetTraceParams) is null;
+   --  This is intentionally set to null since VS Code already handle traces
+   --  by itself correctly, outputting the LSP requests being sent
+   --  and the returned results with more or less verbosity depending on the
+   --  settings.
+
    overriding function Get_Open_Document
      (Self  : access Message_Handler;
       URI   : LSP.Messages.DocumentUri;

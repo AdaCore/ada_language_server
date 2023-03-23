@@ -281,6 +281,10 @@ private
    --  This is intentionally null procedure, because cancel is implemented by
    --  LSP server itself.
 
+   overriding procedure On_SetTrace_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.SetTraceParams) is null;
+
    overriding function On_ALS_Check_Syntax_Request
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)

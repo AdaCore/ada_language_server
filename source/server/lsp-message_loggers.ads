@@ -127,6 +127,10 @@ private
      (Self  : access Message_Logger;
       Value : LSP.Messages.CancelParams);
 
+   overriding procedure On_SetTrace_Notification
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.SetTraceParams);
+
    overriding procedure On_Initialize_Request
      (Self   : access Message_Logger;
       Value  : LSP.Messages.Server_Requests.Initialize_Request);

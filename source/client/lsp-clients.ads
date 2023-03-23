@@ -78,6 +78,10 @@ package LSP.Clients is
      (Self  : access Client;
       Value : LSP.Messages.CancelParams);
 
+   overriding procedure On_SetTrace_Notification
+     (Self  : access Client;
+      Value : LSP.Messages.SetTraceParams);
+
    overriding procedure On_DidCreateFiles_Notification
      (Self  : access Client;
       Value : LSP.Messages.CreateFilesParams);
