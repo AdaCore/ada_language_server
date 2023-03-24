@@ -16,6 +16,8 @@
         "ms-vscode.cpptools"
     ],
     "activationEvents": [
+        "onLanguage:ada",
+        "onLanguage:gpr",
         "onCommand:workbench.action.tasks.runTask"
     ],
     "main": "./out/extension",
