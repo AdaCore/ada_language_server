@@ -124,7 +124,7 @@
                      {
                         "label": "A",
                         "kind": 5,
-                        "sortText": "100&1A",
+                        "sortText": "000&1A",
                         "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{bar.ads}",
@@ -143,7 +143,7 @@
                      {
                         "label": "Do_Nothing",
                         "kind": 3,
-                        "sortText": "100&2Do_Nothing",
+                        "sortText": "025&2Do_Nothing",
                         "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
@@ -225,7 +225,7 @@
                      {
                         "label": "A",
                         "kind": 5,
-                        "sortText": "100&1A",
+                        "sortText": "000&1A",
                         "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{bar.ads}",
@@ -244,7 +244,7 @@
                      {
                         "label": "Do_Nothing",
                         "kind": 3,
-                        "sortText": "100&2Do_Nothing",
+                        "sortText": "025&2Do_Nothing",
                         "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
                         "additionalTextEdits": [],
