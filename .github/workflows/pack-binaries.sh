@@ -9,7 +9,7 @@ function make_change_log()
 {
     echo "# Release notes"
     echo ""
-    for TAG_ID in `git tag --list '2*' | tac` ; do
+    for TAG_ID in `git tag --list --sort=-v:refname '2*'` ; do
         DATE=`git show --no-patch --format=Date:%ad --date=short $TAG_ID |\
           grep Date: | sed -e s/Date://`
         echo "## $TAG_ID ($DATE)"
