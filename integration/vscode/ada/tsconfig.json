@@ -7,7 +7,7 @@
             "ES2020"
         ],
         "sourceMap": true,
-        "rootDir": "src",
+        "rootDir": ".",
         "declaration": true,
         "declarationMap": true,
         "strict": true,
@@ -22,5 +22,9 @@
     "exclude": [
         "node_modules",
         "out"
-    ]
+    ],
+    "include": [
+        "test",
+        "src"
+    ],
 }

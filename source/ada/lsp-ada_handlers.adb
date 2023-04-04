@@ -6672,6 +6672,64 @@ package body LSP.Ada_Handlers is
          end return;
    end On_ALS_Check_Syntax_Request;
 
+   ----------------------
+   -- GLS_Mains_Request --
+   ----------------------
+
+   overriding function On_GLS_Mains_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Mains_Request)
+      return LSP.Messages.Server_Responses.GLS_Mains_Response
+   is
+      use LSP.Messages.Server_Responses;
+      use VSS.String_Vectors;
+      Result : Virtual_String_Vector;
+      Element : GPR2.Project.View.Object;
+   begin
+      if Self.Project_Tree.Is_Defined
+      then
+         Element := Self.Project_Tree.Root_Project;
+         if Element.Has_Mains then
+            for main of Element.Mains loop
+               Result.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (main.Source.Value));
+            end loop;
+         end if;
+      end if;
+      return Response : GLS_Mains_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => Result);
+      end return;
+   end On_GLS_Mains_Request;
+
+   ----------------------
+   -- GLS_Executables_Request --
+   ----------------------
+
+   overriding function On_GLS_Executables_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
+      return LSP.Messages.Server_Responses.GLS_Executables_Response
+   is
+      use LSP.Messages.Server_Responses;
+      use VSS.String_Vectors;
+      Result : Virtual_String_Vector;
+      Element : GPR2.Project.View.Object;
+   begin
+      if Self.Project_Tree.Is_Defined
+      then
+         Element := Self.Project_Tree.Root_Project;
+         for exec of Element.Executables loop
+            Result.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                (exec.Value));
+         end loop;
+      end if;
+      return Response : GLS_Executables_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => Result);
+      end return;
+   end On_GLS_Executables_Request;
+
    -----------
    -- Parse --
    -----------
