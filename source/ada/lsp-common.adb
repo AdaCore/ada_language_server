@@ -16,20 +16,16 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Characters.Handling;     use Ada.Characters.Handling;
+with Ada.Characters.Handling;  use Ada.Characters.Handling;
 
 with Ada.Exceptions;           use Ada.Exceptions;
-with Ada.Strings.Fixed;
 
 with GNAT.Expect.TTY;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;           use GNATCOLL.Utils;
 
-with GPR2.Path_Name;
 with GPR2.Project.Registry.Attribute;
 with GPR2.Project.Registry.Pack;
-with GPR2.Project.Source;
-with GPR2.Project.View;
 
 with VSS.Strings.Character_Iterators;
 
@@ -60,13 +56,6 @@ package body LSP.Common is
       Item  : VSS.Strings.Virtual_String);
    --  Append given Item to the last line of the vector. Append new line when
    --  vector is empty.
-
-   function Is_Ada_Source
-     (Tree : GPR2.Project.Tree.Object;
-      File : GPR2.Path_Name.Object) return Boolean;
-   --  This function checks that 'File' is within a source directory, with a
-   --  valid ada extension (as defined in naming package) of the Tree's
-   --  projects.
 
    -------------------------
    -- Append_To_Last_Line --
@@ -631,110 +620,6 @@ package body LSP.Common is
           | VSS.Characters.Line_Separator
           | VSS.Characters.Paragraph_Separator;
    end Is_Ada_Separator;
-
-   -----------------
-   -- Is_Ada_File --
-   -----------------
-
-   function Is_Ada_File
-     (Tree : GPR2.Project.Tree.Object;
-      File : GNATCOLL.VFS.Virtual_File) return Boolean
-   is
-      Source : GPR2.Project.Source.Object;
-
-   begin
-      --  Defensive programming; this shouldn't happen
-      if not Tree.Is_Defined then
-         return False;
-      end if;
-
-      for C in Tree.Iterate
-        (Kind => (GPR2.Project.I_Runtime       => True,
-                  GPR2.Project.I_Configuration => False,
-                  others                       => True))
-      loop
-         declare
-            View : constant GPR2.Project.View.Object :=
-              GPR2.Project.Tree.Element (C);
-         begin
-            Source := View.Source (GPR2.Simple_Name (File.Base_Name));
-            if Source.Is_Defined
-              and then Source.Language = GPR2.Ada_Language
-            then
-               return True;
-            end if;
-         end;
-      end loop;
-
-      return Is_Ada_Source (Tree, GPR2.Path_Name.Create (File));
-   end Is_Ada_File;
-
-   -------------------
-   -- Is_Ada_Source --
-   -------------------
-
-   function Is_Ada_Source
-     (Tree : GPR2.Project.Tree.Object;
-      File : GPR2.Path_Name.Object) return Boolean is
-      File_Dir : constant GPR2.Path_Name.Object := File.Containing_Directory;
-      File_Name : String := String (File.Simple_Name);
-
-   begin
-      if GPR2.File_Names_Case_Sensitive then
-         File_Name := Ada.Characters.Handling.To_Lower (File_Name);
-      end if;
-      for C in Tree.Iterate (Kind => (GPR2.Project.I_Runtime       => True,
-                                      GPR2.Project.I_Configuration => False,
-                                      others                       => True))
-      loop
-         declare
-            View : constant GPR2.Project.View.Object :=
-              GPR2.Project.Tree.Element (C);
-            Spec_Suffix : String :=
-              View.Spec_Suffix (GPR2.Ada_Language).Value.Text;
-            Body_Suffix : String :=
-              View.Body_Suffix (GPR2.Ada_Language).Value.Text;
-            Separate_Suffix : String := View.Separate_Suffix.Value.Text;
-            Has_Separate_Suffix : Boolean := Body_Suffix = Separate_Suffix;
-
-            function Ends_With (Source, Pattern : String) return Boolean;
-
-            ---------------
-            -- Ends_With --
-            ---------------
-
-            function Ends_With (Source, Pattern : String) return Boolean is
-            begin
-               return Source'Length >= Pattern'Length and then
-                 Ada.Strings.Fixed.Tail (Source, Pattern'Length) = Pattern;
-            end Ends_With;
-
-            use GPR2.Path_Name;
-         begin
-            if GPR2.File_Names_Case_Sensitive then
-               Spec_Suffix := Ada.Characters.Handling.To_Lower (Spec_Suffix);
-               Body_Suffix := Ada.Characters.Handling.To_Lower (Body_Suffix);
-               Separate_Suffix :=
-                 Ada.Characters.Handling.To_Lower (Separate_Suffix);
-               Has_Separate_Suffix := Body_Suffix = Separate_Suffix;
-            end if;
-            for Dir of View.Source_Directories loop
-               if Dir = File_Dir
-                 and then
-                   (Ends_With (File_Name, Spec_Suffix)
-                    or else Ends_With (File_Name, Body_Suffix)
-                    or else
-                      (Has_Separate_Suffix
-                       and then Ends_With (File_Name, Separate_Suffix)))
-               then
-                  return True;
-               end if;
-            end loop;
-         end;
-      end loop;
-      return False;
-   end Is_Ada_Source;
-
 begin
 
    GPR2.Project.Registry.Pack.Add

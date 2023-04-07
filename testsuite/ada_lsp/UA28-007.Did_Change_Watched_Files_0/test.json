@@ -454,7 +454,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*"
+                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
                                  }
                               }
                            ]
@@ -468,7 +468,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*"
+                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
                                  }
                               }
                            ]
@@ -482,7 +482,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*"
+                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
                                  }
                               }
                            ]
@@ -496,7 +496,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*"
+                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
                                  }
                               }
                            ]
@@ -510,7 +510,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*"
+                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
                                  }
                               }
                            ]
@@ -524,7 +524,7 @@
                               {
                                  "scheme": "file",
                                  "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*"
+                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
                                  }
                               }
                            ]
