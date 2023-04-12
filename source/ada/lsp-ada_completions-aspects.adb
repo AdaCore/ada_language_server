@@ -18,6 +18,7 @@
 with VSS.Strings;
 
 with LSP.Predefined_Completion;
+with LSP.Ada_Completions.Filters;
 
 package body LSP.Ada_Completions.Aspects is
 
@@ -34,28 +35,29 @@ package body LSP.Ada_Completions.Aspects is
       Names  : in out Ada_Completions.Completion_Maps.Map;
       Result : in out LSP.Messages.CompletionList)
    is
-      pragma Unreferenced (Filter);
       pragma Unreferenced (Names);
 
       Parent : constant Libadalang.Analysis.Ada_Node :=
         (if Node.Is_Null then Node else Node.Parent);
    begin
-      if not Parent.Is_Null and then
-        Parent.Kind in Libadalang.Common.Ada_Aspect_Assoc_Range
-      then
-         declare
-            Prefix : constant VSS.Strings.Virtual_String :=
-              VSS.Strings.To_Virtual_String (Node.Text);
+      if Filter.Is_Aspect then
+         if not Parent.Is_Null and then
+           Parent.Kind in Libadalang.Common.Ada_Aspect_Assoc_Range
+         then
+            declare
+               Prefix : constant VSS.Strings.Virtual_String :=
+                 VSS.Strings.To_Virtual_String (Node.Text);
 
-         begin
+            begin
+               LSP.Predefined_Completion.Get_Aspects
+                 (Prefix => Prefix,
+                  Result => Result.items);
+            end;
+         elsif Node.Kind in Libadalang.Common.Ada_Aspect_Spec_Range then
             LSP.Predefined_Completion.Get_Aspects
-              (Prefix => Prefix,
+              (Prefix => VSS.Strings.Empty_Virtual_String,
                Result => Result.items);
-         end;
-      elsif Node.Kind in Libadalang.Common.Ada_Aspect_Spec_Range then
-         LSP.Predefined_Completion.Get_Aspects
-           (Prefix => VSS.Strings.Empty_Virtual_String,
-            Result => Result.items);
+         end if;
       end if;
    end Propose_Completion;
 

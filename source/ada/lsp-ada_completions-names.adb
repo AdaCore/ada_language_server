@@ -112,9 +112,10 @@ package body LSP.Ada_Completions.Names is
          return;
       end if;
 
-      --  Don't complete numeric literals, attributes nor end labels
+      --  Don't complete numeric literals, attributes nor end labels or aspects
       if Filter.Is_Numeric_Literal
         or else Filter.Is_Attribute_Ref
+        or else Filter.Is_Aspect
         or else Filter.Is_End_Label
       then
          return;
