@@ -129,6 +129,51 @@ package body LSP.Ada_Completions.Filters is
       return Self.Is_Attribute.Value;
    end Is_Attribute_Ref;
 
+   ---------------
+   -- Is_Aspect --
+   ---------------
+
+   function Is_Aspect (Self : in out Filter'Class) return Boolean is
+   begin
+      if not Self.Is_Aspect.Is_Set then
+         declare
+            use Libadalang.Common;
+
+            Token_Kind : constant Libadalang.Common.Token_Kind :=
+              Kind (Libadalang.Common.Previous
+                    (Self.Token, Exclude_Trivia => True));
+            Parent : Libadalang.Analysis.Ada_Node :=
+              (if Self.Node.Is_Null then Self.Node else Self.Node.Parent);
+         begin
+            --  Get the outermost dotted name of which node is a prefix, so
+            --  that when completing in a situation such as the following:
+            --
+            --      end Ada.Tex|
+            --                 ^ Cursor here
+            --
+            --  we get the DottedName node rather than just the "Tex" BaseId.
+            --  We want the DottedName rather than the Id so as to get the
+            --  proper completions (all elements in the "Ada" namespace).
+
+            while not Parent.Is_Null
+              and then Parent.Kind = Ada_Dotted_Name
+            loop
+               Parent := Parent.Parent;
+            end loop;
+
+            Self.Is_Aspect :=
+              (True,
+               Token_Kind = Ada_With and then
+                 (Self.Node.Kind in Ada_Aspect_Spec_Range
+                  or else
+                    (not Parent.Is_Null
+                     and then Parent.Kind in Ada_Aspect_Assoc_Range)));
+         end;
+      end if;
+
+      return Self.Is_Aspect.Value;
+   end Is_Aspect;
+
    ------------------
    -- Is_Semicolon --
    ------------------

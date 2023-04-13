@@ -39,6 +39,9 @@ package LSP.Ada_Completions.Filters is
    function Is_Attribute_Ref (Self : in out Filter'Class) return Boolean;
    --  Check if we complete "'<attribute>" text
 
+   function Is_Aspect (Self : in out Filter'Class) return Boolean;
+   --  Check if we complete an Ada aspect (e.g: "with")
+
    function Is_Semicolon (Self : in out Filter'Class) return Boolean;
    --  Check if we complete right after ";"
 
@@ -53,6 +56,7 @@ private
       Is_End_Label       : LSP.Types.Optional_Boolean;
       Is_Numeric_Literal : LSP.Types.Optional_Boolean;
       Is_Attribute       : LSP.Types.Optional_Boolean;
+      Is_Aspect          : LSP.Types.Optional_Boolean;
       Is_Semicolon       : LSP.Types.Optional_Boolean;
       Is_Comma           : LSP.Types.Optional_Boolean;
    end record;
