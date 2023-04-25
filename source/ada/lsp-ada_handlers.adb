@@ -4915,17 +4915,20 @@ package body LSP.Ada_Handlers is
          else
             Create_Context_For_Non_Aggregate (Self.Project_Tree.Root_Project);
          end if;
+
       exception
-         when E : Invalid_Project =>
+         when E : others =>
             Self.Release_Contexts_And_Project_Info;
 
             Self.Trace.Trace (E);
             Errors.a_type := LSP.Messages.Error;
 
-            Errors.message.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                 ("Unable to load project file: " &
-                    String (GPR.Full_Name.all) & Ada.Characters.Latin_1.LF));
+            On_Error
+              ("Unable to load project file: " &
+                 String (GPR.Full_Name.all) & Ada.Characters.Latin_1.LF);
+            On_Error
+              (Ada.Exceptions.Exception_Message (E) &
+                 Ada.Characters.Latin_1.LF);
 
             --  The project was invalid: fallback on loading the implicit
             --  project.
