@@ -150,7 +150,7 @@ const knownTaskKinds: { [id: string]: TaskProperties } = {
         title: 'Check current file',
     },
     cleanProject: {
-        command: commonArgs(['gprbuild']), // No -cargs -gnatef is accepted by gprclean
+        command: commonArgs(['gprclean']), // No -cargs -gnatef is accepted by gprclean
         extra: undefined,
         title: 'Clean current project',
     },
