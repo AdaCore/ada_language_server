@@ -358,11 +358,13 @@ package body LSP.Ada_Handlers.Alire is
    is
       use type Ada.Streams.Stream_Element_Count;
 
-      Data : Ada.Streams.Stream_Element_Array (1 .. 256);
-      Last : Ada.Streams.Stream_Element_Count := 1;
+      Data    : Ada.Streams.Stream_Element_Array (1 .. 256);
+      Last    : Ada.Streams.Stream_Element_Count := 1;
+      Success : Boolean := True;
+
    begin
       while Last > 0 loop
-         Self.Process.Read_Standard_Error (Data, Last);
+         Self.Process.Read_Standard_Error (Data, Last, Success);
 
          for Item of Data (1 .. Last) loop
             Self.Stderr.Append (Item);
@@ -379,11 +381,13 @@ package body LSP.Ada_Handlers.Alire is
    is
       use type Ada.Streams.Stream_Element_Count;
 
-      Data : Ada.Streams.Stream_Element_Array (1 .. 256);
-      Last : Ada.Streams.Stream_Element_Count := 1;
+      Data    : Ada.Streams.Stream_Element_Array (1 .. 256);
+      Last    : Ada.Streams.Stream_Element_Count := 1;
+      Success : Boolean := True;
+
    begin
       while Last > 0 loop
-         Self.Process.Read_Standard_Output (Data, Last);
+         Self.Process.Read_Standard_Output (Data, Last, Success);
 
          for Item of Data (1 .. Last) loop
             Self.Stdout.Append (Item);
