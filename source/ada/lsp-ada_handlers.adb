@@ -17,10 +17,10 @@
 
 with Ada.Calendar; use Ada.Calendar;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
-with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
+with Ada.Characters.Latin_1;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;

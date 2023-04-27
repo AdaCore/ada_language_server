@@ -194,12 +194,16 @@ package body LSP.Raw_Clients is
    begin
       loop
          declare
-            Raw  : Ada.Streams.Stream_Element_Array (1 .. 1024);
-            Last : Ada.Streams.Stream_Element_Count;
-            Text : String (1 .. 1024) with Import, Address => Raw'Address;
+            Raw     : Ada.Streams.Stream_Element_Array (1 .. 1024);
+            Last    : Ada.Streams.Stream_Element_Count;
+            Text    : String (1 .. 1024) with Import, Address => Raw'Address;
+            Success : Boolean := True;
+
          begin
-            Self.Client.Server.Read_Standard_Error (Raw, Last);
-            exit when Last in 0;
+            Self.Client.Server.Read_Standard_Error (Raw, Last, Success);
+
+            exit when Last < Raw'First or not Success;
+
             Self.Client.On_Standard_Error_Message (Text (1 .. Natural (Last)));
          end;
       end loop;
@@ -220,18 +224,21 @@ package body LSP.Raw_Clients is
    begin
       while Rest_Length > 0 loop
          declare
-            Size  : constant Positive := Positive'Min (Rest_Length, 1024);
+            Size    : constant Positive := Positive'Min (Rest_Length, 1024);
             --  Restrict output to reasonable size to avoid stack overflow
-            Slice : constant String := Ada.Strings.Unbounded.Slice
+            Slice   : constant String := Ada.Strings.Unbounded.Slice
               (Client.To_Write, Client.Written + 1, Client.Written + Size);
-            Raw   : constant Ada.Streams.Stream_Element_Array
+            Raw     : constant Ada.Streams.Stream_Element_Array
               (1 .. Ada.Streams.Stream_Element_Count (Size))
                 with Import, Address => Slice'Address;
-            Last  : Natural;
+            Last    : Natural;
+            Success : Boolean := True;
 
          begin
             Client.Server.Write_Standard_Input
-              (Raw, Ada.Streams.Stream_Element_Count (Last));
+              (Raw, Ada.Streams.Stream_Element_Count (Last), Success);
+
+            --  ??? IO failure is not handled, should it?
 
             Client.Written := Client.Written + Last;
             Rest_Length := Rest_Length - Last;
@@ -319,15 +326,17 @@ package body LSP.Raw_Clients is
    begin
       loop
          declare
-            Raw  : Ada.Streams.Stream_Element_Array (1 .. 1024);
-            Last : Ada.Streams.Stream_Element_Count;
-            Text : String (1 .. Raw'Length)
+            Raw     : Ada.Streams.Stream_Element_Array (1 .. 1024);
+            Last    : Ada.Streams.Stream_Element_Count;
+            Text    : String (1 .. Raw'Length)
               with Import, Address => Raw'Address;
-            Start : Natural;
-         begin
-            Client.Server.Read_Standard_Output (Raw, Last);
+            Success : Boolean := True;
+            Start   : Natural;
 
-            exit when Last in 0;
+         begin
+            Client.Server.Read_Standard_Output (Raw, Last, Success);
+
+            exit when Last < Raw'First or not Success;
 
             Append (Client.Buffer, Text (1 .. Positive (Last)));
 
