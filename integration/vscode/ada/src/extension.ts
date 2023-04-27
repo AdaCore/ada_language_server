@@ -29,6 +29,7 @@ import GnatTaskProvider from './gnatTaskProvider';
 import { getSubprogramSymbol } from './gnatTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
+import { substituteVariables } from './helpers';
 
 let alsTaskProvider: vscode.Disposable[] = [
     vscode.tasks.registerTaskProvider(GnatTaskProvider.gnatType, new GnatTaskProvider()),
@@ -115,7 +116,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
         if (custom_env) {
             for (const var_name in custom_env) {
-                process.env[var_name] = custom_env[var_name];
+                let var_value : string = custom_env[var_name];
+
+                // Substitute VS Code variable references that might be present
+                // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
+                var_value = var_value.replace(/(\$\{.*\})/, substituteVariables)
+                process.env[var_name] = var_value;
             }
         }
 

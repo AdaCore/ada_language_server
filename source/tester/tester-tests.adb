@@ -1042,13 +1042,16 @@ package body Tester.Tests is
      (Self : in out Process_Listener)
    is
       use type Ada.Streams.Stream_Element_Count;
-      Data   : Ada.Streams.Stream_Element_Array (1 .. 128);
-      Last   : Ada.Streams.Stream_Element_Count;
-      Ignore : Interfaces.C_Streams.size_t;
+      Data    : Ada.Streams.Stream_Element_Array (1 .. 128);
+      Last    : Ada.Streams.Stream_Element_Count;
+      Success : Boolean := True;
+      Ignore  : Interfaces.C_Streams.size_t;
+
    begin
       loop
-         Self.Process.Read_Standard_Error (Data, Last);
-         exit when Last = 0;
+         Self.Process.Read_Standard_Error (Data, Last, Success);
+
+         exit when Last = 0 or not Success;
 
          Ignore := Interfaces.C_Streams.fwrite
            (Data'Address,
@@ -1066,14 +1069,16 @@ package body Tester.Tests is
      (Self : in out Process_Listener)
    is
       use type Ada.Streams.Stream_Element_Count;
-      Data   : Ada.Streams.Stream_Element_Array (1 .. 128);
-      Last   : Ada.Streams.Stream_Element_Count;
-      Ignore : Interfaces.C_Streams.size_t;
+      Data    : Ada.Streams.Stream_Element_Array (1 .. 128);
+      Last    : Ada.Streams.Stream_Element_Count;
+      Success : Boolean := True;
+      Ignore  : Interfaces.C_Streams.size_t;
+
    begin
       loop
-         Self.Process.Read_Standard_Output (Data, Last);
+         Self.Process.Read_Standard_Output (Data, Last, Success);
 
-         exit when Last = 0;
+         exit when Last = 0 or not Success;
 
          Ignore := Interfaces.C_Streams.fwrite
            (Data'Address,

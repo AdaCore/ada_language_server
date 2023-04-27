@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,7 +31,6 @@ with VSS.Unicode;
 with Langkit_Support;
 with Langkit_Support.Symbols; use Langkit_Support.Symbols;
 with Libadalang.Common;       use Libadalang.Common;
-with Libadalang.Doc_Utils;
 with Libadalang.Sources;
 
 with Laltools.Call_Hierarchy;
@@ -805,6 +804,8 @@ package body LSP.Lal_Utils is
       Doc_Text  : out VSS.Strings.Virtual_String;
       Decl_Text : out VSS.Strings.Virtual_String)
    is
+      pragma Unreferenced (Trace);
+
       Options : constant
         GNATdoc.Comments.Options.Extractor_Options :=
           (Style    => Style,
@@ -831,27 +832,6 @@ package body LSP.Lal_Utils is
          --  For subprograms additional information is added, use old code to
          --  obtain it yet.
          Decl_Text := Get_Decl_Text (BD);
-      end if;
-
-      --  Obtain documentation via the old engine when GNATdoc fails to extract
-      --  the comments.
-      if Doc_Text.Is_Empty then
-
-         --  Property_Errors can occur when calling
-         --  Libadalang.Doc_Utils.Get_Documentation on unsupported
-         --  docstrings, so add an exception handler to catch them and recover.
-         begin
-            Doc_Text :=
-              VSS.Strings.To_Virtual_String
-                (Libadalang.Doc_Utils.Get_Documentation
-                   (BD).Doc.To_String);
-         exception
-            when Libadalang.Common.Property_Error =>
-               Trace.Trace
-                 ("Failed to compute documentation with LAL"
-                  & "(unsupported docstring) for: " & BD.Image);
-               Doc_Text := VSS.Strings.Empty_Virtual_String;
-         end;
       end if;
 
       Loc_Text := LSP.Lal_Utils.Node_Location_Image (BD);

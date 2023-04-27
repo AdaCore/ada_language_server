@@ -116,6 +116,8 @@ procedure LSP.Ada_Driver is
       Trace (Server_Trace,
              "EXCEPTION: " & Exception_Name (E) &
                Ada.Characters.Latin_1.LF &
+               "INFORMATION: " & Exception_Information (E) &
+               Ada.Characters.Latin_1.LF &
                Symbolic_Traceback (E));
       Ada_Handler.Handle_Error;
    end On_Uncaught_Exception;
@@ -128,6 +130,8 @@ procedure LSP.Ada_Driver is
    begin
       Trace (Server_Trace,
              "EXCEPTION: " & Exception_Name (E) &
+               Ada.Characters.Latin_1.LF &
+               "INFORMATION: " & Exception_Information (E) &
                Ada.Characters.Latin_1.LF &
                Symbolic_Traceback (E));
       --  An exception occurred while fuzzing: make it fatal.
