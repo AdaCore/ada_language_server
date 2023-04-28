@@ -1,0 +1,3 @@
+with "doesnotexist";
+project prj is
+end prj;

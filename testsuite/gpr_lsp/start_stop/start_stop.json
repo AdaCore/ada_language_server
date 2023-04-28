@@ -1,0 +1,12 @@
+[
+    {
+        "start": {
+            "cmd": ["${ALS}", "--language-gpr"]
+        }
+    },
+    {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]
