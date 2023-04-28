@@ -30,6 +30,7 @@ with GNAT.OS_Lib;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
 with GPR2.Containers;
+with GPR2.Environment;
 with GPR2.Log;
 with GPR2.Message;
 with GPR2.Project.Registry.Attribute;
@@ -315,12 +316,12 @@ package body LSP.Ada_Handlers is
    --  Load the implicit project
 
    procedure Load_Project
-     (Self                : access Message_Handler;
-      Project_File        : VSS.Strings.Virtual_String;
-      Search_Path         : VSS.String_Vectors.Virtual_String_Vector;
-      Scenario            : Scenario_Variable_List;
-      Charset             : VSS.Strings.Virtual_String;
-      Status              : Load_Project_Status);
+     (Self         : access Message_Handler;
+      Project_File : VSS.Strings.Virtual_String;
+      Scenario     : Scenario_Variable_List;
+      Environment  : GPR2.Environment.Object;
+      Charset      : VSS.Strings.Virtual_String;
+      Status       : Load_Project_Status);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts. This factorizes code
    --  between Load_Project_With_Alire and Ensure_Project_Loaded.
@@ -807,8 +808,8 @@ package body LSP.Ada_Handlers is
 
          Self.Load_Project
            (Project_File,
-            VSS.String_Vectors.Empty_Virtual_String_Vector,
-            No_Scenario_Variable,
+            Self.Scenario_Variables,
+            GPR2.Environment.Process_Environment,
             "iso-8859-1",
             Single_Project_Found);
       else
@@ -4853,12 +4854,12 @@ package body LSP.Ada_Handlers is
    ------------------
 
    procedure Load_Project
-     (Self                : access Message_Handler;
-      Project_File        : VSS.Strings.Virtual_String;
-      Search_Path         : VSS.String_Vectors.Virtual_String_Vector;
-      Scenario            : Scenario_Variable_List;
-      Charset             : VSS.Strings.Virtual_String;
-      Status              : Load_Project_Status)
+     (Self         : access Message_Handler;
+      Project_File : VSS.Strings.Virtual_String;
+      Scenario     : Scenario_Variable_List;
+      Environment  : GPR2.Environment.Object;
+      Charset      : VSS.Strings.Virtual_String;
+      Status       : Load_Project_Status)
    is
       Errors     : LSP.Messages.ShowMessageParams;
       Error_Text : VSS.String_Vectors.Virtual_String_Vector;
@@ -4956,7 +4957,7 @@ package body LSP.Ada_Handlers is
       end Create_Context_For_Non_Aggregate;
 
       GPR                 : Virtual_File := To_Virtual_File (Project_File);
-      Default_Environment : Environment;
+      Default_Environment : LSP.Ada_Handlers.Environment;
 
       Relocate_Build_Tree : constant Virtual_File :=
         To_Virtual_File (Self.Relocate_Build_Tree);
@@ -4997,7 +4998,7 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
 
-      --  Update scenario variables
+      --  Update scenario variables with user provided values
       for J in 1 .. Scenario.Names.Length loop
          Self.Project_Environment.Context.Insert
            (GPR2.Optional_Name_Type
@@ -5005,23 +5006,12 @@ package body LSP.Ada_Handlers is
             VSS.Strings.Conversions.To_UTF_8_String (Scenario.Values (J)));
       end loop;
 
-      --  Update project search path
-      for Item of Search_Path loop
-         declare
-            Value : constant GPR2.Path_Name.Object :=
-              GPR2.Path_Name.Create_Directory
-                (GPR2.Filename_Type
-                   (VSS.Strings.Conversions.To_UTF_8_String (Item)));
-         begin
-            Self.Project_Tree.Register_Project_Search_Path (Value);
-         end;
-      end loop;
-
       begin
          Self.Project_Tree.Load_Autoconf
-           (Filename   => GPR2.Path_Name.Create (GPR),
-            Context    => Self.Project_Environment.Context,
-            Build_Path => Self.Project_Environment.Build_Path);
+           (Filename    => GPR2.Path_Name.Create (GPR),
+            Context     => Self.Project_Environment.Context,
+            Build_Path  => Self.Project_Environment.Build_Path,
+            Environment => Environment);
 
          Self.Project_Tree.Update_Sources (With_Runtime => True);
 
@@ -5101,9 +5091,10 @@ package body LSP.Ada_Handlers is
       Status      : Load_Project_Status;
       Errors      : VSS.Strings.Virtual_String;
       Project     : VSS.Strings.Virtual_String := Project_File;
-      Search_Path : VSS.String_Vectors.Virtual_String_Vector;
-      Scenario    : Scenario_Variable_List := Scenario_Variables;
       UTF_8       : constant VSS.Strings.Virtual_String := "utf-8";
+
+      Environment : GPR2.Environment.Object :=
+        GPR2.Environment.Process_Environment;
 
       Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
         Self.Root.Create_From_Dir ("alire.toml");
@@ -5121,8 +5112,7 @@ package body LSP.Ada_Handlers is
                Has_Alire   => Has_Alire,
                Error       => Errors,
                Project     => Project,
-               Search_Path => Search_Path,
-               Scenario    => Scenario);
+               Environment => Environment);
 
             Status := Alire_Project;
          else
@@ -5131,8 +5121,7 @@ package body LSP.Ada_Handlers is
               (Root        => Self.Root.Display_Full_Name,
                Has_Alire   => Has_Alire,
                Error       => Errors,
-               Search_Path => Search_Path,
-               Scenario    => Scenario);
+               Environment => Environment);
 
             Status := Valid_Project_Configured;
          end if;
@@ -5164,26 +5153,10 @@ package body LSP.Ada_Handlers is
               (Message => "Project:"
                  & VSS.Strings.Conversions.To_UTF_8_String (Project));
 
-            Self.Trace.Trace (Message => "Search Path:");
-            for Item of Search_Path loop
-               Self.Trace.Trace
-                 (Message => VSS.Strings.Conversions.To_UTF_8_String (Item));
-            end loop;
-
-            Self.Trace.Trace ("Scenario:");
-            for J in 1 .. Scenario.Names.Length loop
-               Self.Trace.Trace
-                 (Message => VSS.Strings.Conversions.To_UTF_8_String
-                    (Scenario.Names (J))
-                  & "="
-                  & VSS.Strings.Conversions.To_UTF_8_String
-                      (Scenario.Values (J)));
-            end loop;
-
             Self.Load_Project
               (Project_File => Project,
-               Search_Path  => Search_Path,
-               Scenario     => Scenario,
+               Scenario     => Scenario_Variables,
+               Environment  => Environment,
                Charset      => (if Charset.Is_Empty then UTF_8 else Charset),
                Status       => Status);
             --  Alire projects tend to use utf-8
@@ -5199,8 +5172,8 @@ package body LSP.Ada_Handlers is
 
          Self.Load_Project
            (Project_File => Project,
-            Search_Path  => VSS.String_Vectors.Empty_Virtual_String_Vector,
             Scenario     => Scenario_Variables,
+            Environment  => Environment,
             Charset      => Charset,
             Status       => Valid_Project_Configured);
       end if;
