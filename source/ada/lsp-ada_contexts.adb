@@ -185,9 +185,6 @@ package body LSP.Ada_Contexts is
          return;  --  Name resolution fails, nothing to do.
       end if;
 
-      First_Part := Laltools.Common.Find_Canonical_Part
-        (Definition, Self.Trace);
-
       --  Display the method ancestry in three cases:
       --
       --   . When the preference is set to Always
@@ -204,6 +201,9 @@ package body LSP.Ada_Contexts is
         or else (Display_Method_Ancestry_Policy = Definition_Only
                         and then On_Defining_Name)
       then
+         First_Part := Laltools.Common.Find_Canonical_Part
+           (Definition, Self.Trace);
+
          if First_Part = Libadalang.Analysis.No_Defining_Name then
             Decl_For_Find_Overrides := Definition.P_Basic_Decl;
          else
@@ -227,28 +227,30 @@ package body LSP.Ada_Contexts is
          LSP.Lal_Utils.Append_Location (Result, Definition);
       end if;
 
-      declare
-         Imprecise_Over       : Boolean;
-         Imprecise_Base       : Boolean;
-         Overriding_Subps     : constant Basic_Decl_Array :=
-                                  Self.Find_All_Overrides
-                                    (Decl_For_Find_Overrides,
-                                     Imprecise_Results => Imprecise_Over);
-         Base_Subps           : constant Basic_Decl_Array :=
-                                  Self.Find_All_Base_Declarations
-                                    (Decl_For_Find_Overrides,
-                                     Imprecise_Results => Imprecise_Base);
-      begin
-         for Subp of Base_Subps loop
-            Append_Location
-              (Result, Subp.P_Defining_Name, LSP.Common.Is_Parent);
-         end loop;
-         for Subp of Overriding_Subps loop
-            Append_Location
-              (Result, Subp.P_Defining_Name, LSP.Common.Is_Child);
-         end loop;
-         Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
-      end;
+      if not Decl_For_Find_Overrides.Is_Null then
+         declare
+            Imprecise_Over       : Boolean;
+            Imprecise_Base       : Boolean;
+            Overriding_Subps     : constant Basic_Decl_Array :=
+              Self.Find_All_Overrides
+                (Decl_For_Find_Overrides,
+                 Imprecise_Results => Imprecise_Over);
+            Base_Subps           : constant Basic_Decl_Array :=
+              Self.Find_All_Base_Declarations
+                (Decl_For_Find_Overrides,
+                 Imprecise_Results => Imprecise_Base);
+         begin
+            for Subp of Base_Subps loop
+               Append_Location
+                 (Result, Subp.P_Defining_Name, LSP.Common.Is_Parent);
+            end loop;
+            for Subp of Overriding_Subps loop
+               Append_Location
+                 (Result, Subp.P_Defining_Name, LSP.Common.Is_Child);
+            end loop;
+            Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
+         end;
+      end if;
    end Append_Declarations;
 
    ------------
