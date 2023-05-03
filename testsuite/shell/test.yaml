@@ -1,0 +1,5 @@
+driver: shell
+title: 'settings_docs'
+# Test only on Linux, since it depends on `bash`, `jq` and `diff`
+skip:
+    - ['SKIP', 'env.build.os.name != "linux"']
