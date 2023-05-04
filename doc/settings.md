@@ -210,3 +210,8 @@ For more information about documentation styles see GNATdoc User's Manual.
 ```javascript
     'documentationStyle': 'gnat'
 ```
+
+## trace.server
+
+This option controls the tracing of the communication between VSCode and the Ada language server.
+The separate setting `gpr.trace.server` controls tracing for GPR language server.
