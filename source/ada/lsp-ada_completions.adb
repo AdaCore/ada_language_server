@@ -397,15 +397,14 @@ package body LSP.Ada_Completions is
                     Filename => "",
                     Buffer   => Full,
                     Rule     => Rule);
-               Pp.Actions.Set_Partial_GNATPP_Offset (Offset);
                Pp.Actions.Format_Vector
-                 (Cmd            => Cmd,
-                  Input          => Input,
-                  Node           => Root (Tmp_Unit),
-                  Output         => Output,
-                  Messages       => PP_Messages,
-                  Partial_GNATPP => True);
-               Pp.Actions.Set_Partial_GNATPP_Offset (0);
+                 (Cmd                 => Cmd,
+                  Input               => Input,
+                  Node                => Root (Tmp_Unit),
+                  Output              => Output,
+                  Messages            => PP_Messages,
+                  Initial_Indentation => Offset,
+                  Partial_GNATPP      => True);
             exception
                when E : others =>
                   --  Failed to pretty print the snippet, keep the previous
