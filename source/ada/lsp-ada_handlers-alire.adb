@@ -16,11 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with Ada.Containers.Hashed_Sets;
 with GNAT.OS_Lib;
-
-with GPR2.Path_Name;
-with GPR2.Project;
 
 with VSS.Stream_Element_Vectors;
 with VSS.Strings.Conversions;
@@ -28,7 +24,6 @@ with VSS.Strings.Converters.Decoders;
 with VSS.Characters.Latin;
 with VSS.Regular_Expressions;
 
-with Spawn.Environments;
 with Spawn.Processes;
 with Spawn.Processes.Monitor_Loop;
 with Spawn.Process_Listeners;
@@ -82,45 +77,13 @@ package body LSP.Ada_Handlers.Alire is
       Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
       Project     : out VSS.Strings.Virtual_String;
-      Search_Path : out VSS.String_Vectors.Virtual_String_Vector;
-      Scenario    : in out Scenario_Variable_List)
+      Environment : in out GPR2.Environment.Object)
    is
       use type GNAT.OS_Lib.String_Access;
       use type Spawn.Process_Exit_Code;
       use type Spawn.Process_Exit_Status;
       use type Spawn.Process_Status;
       use all type VSS.Regular_Expressions.Match_Option;
-
-      package Path_Sets is new Ada.Containers.Hashed_Sets
-        (GPR2.Path_Name.Object,
-         GPR2.Path_Name.Hash,
-         GPR2.Path_Name."=",
-         GPR2.Path_Name."=");
-
-      function To_Directory
-        (Value : VSS.Strings.Virtual_String) return GPR2.Path_Name.Object;
-
-      ------------------
-      -- To_Directory --
-      ------------------
-
-      function To_Directory
-        (Value : VSS.Strings.Virtual_String) return GPR2.Path_Name.Object is
-      begin
-         if Value.Is_Empty then
-            return GPR2.Path_Name.Create_Directory (GPR2.Filename_Type (Root));
-         else
-            return GPR2.Path_Name.Create_Directory
-              (GPR2.Filename_Type
-                 (VSS.Strings.Conversions.To_UTF_8_String (Value)),
-               GPR2.Filename_Type (Root));
-         end if;
-      end To_Directory;
-
-      Known_Search_Path : Path_Sets.Set;
-
-      Env : constant Spawn.Environments.Process_Environment :=
-        Spawn.Environments.System_Environment;
 
       ALR : GNAT.OS_Lib.String_Access :=
         GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
@@ -145,7 +108,6 @@ package body LSP.Ada_Handlers.Alire is
       Decoder  : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
    begin
       Project.Clear;
-      Search_Path.Clear;
       Has_Alire := ALR /= null;
 
       if ALR = null then
@@ -239,67 +201,20 @@ package body LSP.Ada_Handlers.Alire is
          end;
       end loop;
 
-      --  Populate known search path
-      declare
-         List : constant GPR2.Path_Name.Set.Object :=
-           GPR2.Project.Default_Search_Paths (Current_Directory => True);
-      begin
-         for Item of List loop
-            Known_Search_Path.Include (Item);
-         end loop;
-      end;
-
       --  Find variables in `alr printenv` output
       Lines := List (2).Text.Split_Lines;
 
       for Line of Lines loop
          declare
-            use type VSS.Strings.Virtual_String;
-
-            Name  : VSS.Strings.Virtual_String;
-            Value : VSS.Strings.Virtual_String;
             Match : constant VSS.Regular_Expressions.Regular_Expression_Match
               := Export_Pattern.Match (Line, Anchored);
          begin
             if Match.Has_Match then
-               Name := Match.Captured (1);
-               Value := Match.Captured (2);
-
-               if Name = "PATH"
-                 or else Name = "ALIRE"
-                 or else Name = "LD_LIBRARY_PATH"
-                 or else Name = "DYLD_LIBRARY_PATH"
-                 or else Name.Ends_With ("_PREFIX")
-               then
-
-                  null;  --- Skip useless variables
-               elsif Name = "GPR_PROJECT_PATH"
-                 or else Name = "ADA_PROJECT_PATH"
-               then
-
-                  declare
-                     List : constant VSS.String_Vectors.Virtual_String_Vector
-                       := Value.Split (':');
-                  begin
-                     for Item of List loop
-                        declare
-                           Path : constant GPR2.Path_Name.Object :=
-                             To_Directory (Item);
-                        begin
-                           if not Known_Search_Path.Contains (Path) then
-                              Search_Path.Append (Item);
-                           end if;
-                        end;
-                     end loop;
-                  end;
-               elsif not Env.Contains
-                 (VSS.Strings.Conversions.To_UTF_8_String (Name))
-               then
-
-                  --  Don't override already set variables
-                  Scenario.Names.Append (Name);
-                  Scenario.Values.Append (Value);
-               end if;
+               Environment.Insert
+                 (Key   => VSS.Strings.Conversions.To_UTF_8_String
+                             (Match.Captured (1)),
+                  Value => VSS.Strings.Conversions.To_UTF_8_String
+                             (Match.Captured (2)));
             end if;
          end;
       end loop;
@@ -317,13 +232,12 @@ package body LSP.Ada_Handlers.Alire is
      (Root        : String;
       Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
-      Search_Path : out VSS.String_Vectors.Virtual_String_Vector;
-      Scenario    : in out Scenario_Variable_List)
+      Environment : in out GPR2.Environment.Object)
    is
       Ignore : VSS.Strings.Virtual_String;
    begin
       --  TODO: optimization: don't run second alire process
-      Run_Alire (Root, Has_Alire, Error, Ignore, Search_Path, Scenario);
+      Run_Alire (Root, Has_Alire, Error, Ignore, Environment);
    end Run_Alire;
 
    -------------------

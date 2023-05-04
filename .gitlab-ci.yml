@@ -19,10 +19,12 @@ build_and_test:
     - . ~/.aws_container_credentials
     - export PATH=/it/e3/bin:$PATH
 
-    # Check whether we're in an MR targeting 'edge' and setup some
-    # variables if so.
+    # Check whether we're in an MR targeting 'edge' or commiting to
+    # `something/edge` branch then setup some variables.
     - TARGET_BRANCH="master"
-    - if [ "x$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" = "xedge" ]; then
+    - if [[ "x$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" = "xedge" ||
+            "$CI_COMMIT_BRANCH" =~ .*/edge ]];
+      then
           echo "Targeting the edge branch." ;
           REPO_SUFFIX="-edge" ;
           BUILD_SPACE_SUFFIX="_edge" ;
@@ -83,7 +85,8 @@ build_and_test:
         export GPR_PROJECT_PATH=/it/wave/x86_64-linux/als/src/subprojects/gnatdoc/gnat:$GPR_PROJECT_PATH;
         export GPR_PROJECT_PATH=/it/wave/x86_64-linux/als/src/subprojects/VSS/gnat:$GPR_PROJECT_PATH;
         cd /it/wave/x86_64-linux/als/src;
-        lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif )
+        lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif ||
+        touch $CI_PROJECT_DIR/dump.lsif )
 
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 

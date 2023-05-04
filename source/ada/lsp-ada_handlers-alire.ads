@@ -17,8 +17,9 @@
 
 --  Alire integration routines
 
+with GPR2.Environment;
+
 with VSS.Strings;
-with VSS.String_Vectors;
 
 private
 package LSP.Ada_Handlers.Alire is
@@ -28,8 +29,7 @@ package LSP.Ada_Handlers.Alire is
       Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
       Project     : out VSS.Strings.Virtual_String;
-      Search_Path : out VSS.String_Vectors.Virtual_String_Vector;
-      Scenario    : in out Scenario_Variable_List);
+      Environment : in out GPR2.Environment.Object);
    --  if Root directory contains `alire.toml` file, then run
    --  `alr printenv` and fetch the first project from `alire.toml`.
 
@@ -37,8 +37,7 @@ package LSP.Ada_Handlers.Alire is
      (Root        : String;
       Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
-      Search_Path : out VSS.String_Vectors.Virtual_String_Vector;
-      Scenario    : in out Scenario_Variable_List);
+      Environment : in out GPR2.Environment.Object);
    --  The same as above, but without fetching the project file
 
 end LSP.Ada_Handlers.Alire;
