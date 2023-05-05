@@ -6,9 +6,11 @@ import os
 
 from distutils.spawn import find_executable
 from e3.testsuite import Testsuite
+from e3.testsuite.driver.diff import DiffTestDriver
 
 from drivers.basic import JsonTestDriver
 from drivers.codecs import CodecsTestDriver
+from drivers.shell import ShellTestDriver
 from drivers.gnatcov import GNATcov
 
 VALGRIND_OPTIONS = [
@@ -99,7 +101,8 @@ class ALSTestsuite(Testsuite):
     @property
     def test_driver_map(self):
         return {'ada_lsp': JsonTestDriver,
-                'codecs': CodecsTestDriver}
+                'codecs': CodecsTestDriver,
+                'shell': ShellTestDriver}
 
     @property
     def default_driver(self):
