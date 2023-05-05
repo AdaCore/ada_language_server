@@ -1,6 +1,4 @@
 project Default is
    for Main use ("foo.adb");
-   --  Magical line to not parse the runtime:
-   --  it prevents the test for being timeout
-   for Runtime ("Ada") use "hello";
+   for Runtime ("Ada") use "./rts-empty";
 end Default;
