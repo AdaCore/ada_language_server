@@ -176,6 +176,7 @@ private
      (Valid_Project_Configured,
       Single_Project_Found,
       Alire_Project,
+      No_Runtime_Found,
       No_Project_Found,
       Multiple_Projects_Found,
       Invalid_Project_Configured);
@@ -189,6 +190,9 @@ private
    --
    --  @value Alire_Project no project in didChangeConfiguration, but Alire
    --  knows what project to use
+   --
+   --  @value No_Runtime_Found project loaded, but no Ada runtime library was
+   --  found
    --
    --  @value No_Project_Found no project in didChangeConfiguration and no
    --  project in Root dir

@@ -20,7 +20,6 @@ with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
-with Ada.Characters.Latin_1;
 with Ada.Strings.Wide_Wide_Unbounded;
 with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -31,7 +30,6 @@ with GNATCOLL.Utils;             use GNATCOLL.Utils;
 
 with GPR2.Containers;
 with GPR2.Environment;
-with GPR2.Log;
 with GPR2.Message;
 with GPR2.Project.Registry.Attribute;
 with GPR2.Project.Source.Set;
@@ -2294,6 +2292,9 @@ package body LSP.Ada_Handlers is
 
          case Self.Project_Status is
             when Valid_Project_Configured | Alire_Project =>
+               null;
+            when No_Runtime_Found =>
+               --  TODO: Provide help with the compiler installation
                null;
             when Single_Project_Found | Multiple_Projects_Found =>
                declare
@@ -4861,8 +4862,9 @@ package body LSP.Ada_Handlers is
       Charset      : VSS.Strings.Virtual_String;
       Status       : Load_Project_Status)
    is
-      Errors     : LSP.Messages.ShowMessageParams;
-      Error_Text : VSS.String_Vectors.Virtual_String_Vector;
+      Message  : LSP.Messages.ShowMessageParams;
+      Errors   : VSS.String_Vectors.Virtual_String_Vector;
+      Warnings : VSS.String_Vectors.Virtual_String_Vector;
 
       procedure Create_Context_For_Non_Aggregate
         (View : GPR2.Project.View.Object);
@@ -4880,17 +4882,19 @@ package body LSP.Ada_Handlers is
 
       procedure Append_Errors is
       begin
-         for C in Self.Project_Tree.Log_Messages.Iterate
-           (Information => False,
-            Warning     => False,
-            Error       => True,
-            Lint        => False,
-            Read        => True,
-            Unread      => True)
-         loop
-            Error_Text.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                 (GPR2.Log.Element (C).Format));
+         for Message of Self.Project_Tree.Log_Messages.all loop
+            case Message.Level is
+               when GPR2.Message.Error =>
+                  Errors.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (Message.Format));
+               when GPR2.Message.Warning =>
+                  Warnings.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (Message.Format));
+               when others =>
+                  null;
+            end case;
          end loop;
       end Append_Errors;
 
@@ -4976,11 +4980,8 @@ package body LSP.Ada_Handlers is
       --  Unload the project tree and the project environment
       Self.Release_Contexts_And_Project_Info;
 
-      Self.Project_Status := Status;
-
       --  Now load the new project
-      Errors.a_type := LSP.Messages.Warning;
-
+      Self.Project_Status := Status;
       Self.Project_Environment := Default_Environment;
 
       if Relocate_Build_Tree /= No_File then
@@ -5013,10 +5014,36 @@ package body LSP.Ada_Handlers is
             Build_Path  => Self.Project_Environment.Build_Path,
             Environment => Environment);
 
+      exception
+         when E : GPR2.Project_Error
+                | GPR2.Processing_Error
+                | GPR2.Attribute_Error =>
+
+            Self.Trace.Trace (E);
+
+            Self.Project_Status := Invalid_Project_Configured;
+      end;
+
+      --  Keep errors and warnings
+      Append_Errors;
+
+      if Self.Project_Status /= Status
+        or else not Self.Project_Tree.Is_Defined
+      then
+         --  The project was invalid: fallback on loading the implicit project.
+         Errors.Prepend
+           (VSS.Strings.Conversions.To_Virtual_String
+              ("Unable to load project file: " & GPR.Display_Full_Name));
+
+         Self.Load_Implicit_Project (Invalid_Project_Configured);
+
+      else
+         --  No exception during Load_Autoconf, check if we have runtime
+         if not Self.Project_Tree.Has_Runtime_Project then
+            Self.Project_Status := No_Runtime_Found;
+         end if;
+
          Self.Project_Tree.Update_Sources (With_Runtime => True);
-
-         Append_Errors;
-
          Update_Project_Predefined_Sources (Self);
 
          if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
@@ -5024,32 +5051,23 @@ package body LSP.Ada_Handlers is
                Create_Context_For_Non_Aggregate (View);
             end loop;
          else
-            Create_Context_For_Non_Aggregate (Self.Project_Tree.Root_Project);
+            Create_Context_For_Non_Aggregate
+              (Self.Project_Tree.Root_Project);
          end if;
-      exception
-         when E : GPR2.Project_Error | GPR2.Processing_Error
-                  | GPR2.Attribute_Error =>
-            Append_Errors;
+      end if;
 
-            Self.Trace.Trace (E);
-            Errors.a_type := LSP.Messages.Error;
-
-            Errors.message.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                 ("Unable to load project file: " &
-                    String (GPR.Full_Name.all) & Ada.Characters.Latin_1.LF));
-
-            --  The project was invalid: fallback on loading the implicit
-            --  project.
-            Self.Load_Implicit_Project (Invalid_Project_Configured);
-      end;
+      --  Report the warnings, if any
+      if not Warnings.Is_Empty then
+         Message.message := Warnings.Join_Lines (VSS.Strings.LF);
+         Message.a_type := LSP.Messages.Warning;
+         Self.Server.On_Show_Message (Message);
+      end if;
 
       --  Report the errors, if any
-      if not Error_Text.Is_Empty then
-         for Line of Error_Text loop
-            Errors.message.Append (Line);
-         end loop;
-         Self.Server.On_Show_Message (Errors);
+      if not Errors.Is_Empty then
+         Message.message := Errors.Join_Lines (VSS.Strings.LF);
+         Message.a_type := LSP.Messages.Error;
+         Self.Server.On_Show_Message (Message);
       end if;
 
       --  Reindex all open documents immediately after project reload, so

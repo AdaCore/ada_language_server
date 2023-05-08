@@ -24,6 +24,11 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
        ("Unique project in root directory was found and " &
          "loaded, but it wasn't explicitly configured.");
 
+   No_Runtime_Found_Message : constant VSS.Strings.Virtual_String :=
+     VSS.Strings.To_Virtual_String
+       ("The project was loaded, but no Ada runtime found. " &
+        "Please check the installation of the Ada compiler.");
+
    No_Project_Found_Message : constant VSS.Strings.Virtual_String :=
      VSS.Strings.To_Virtual_String
        ("No project found in root directory. " &
@@ -58,6 +63,9 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
       case Self.Last_Status is
          when Valid_Project_Configured | Alire_Project =>
             null;
+         when No_Runtime_Found =>
+            Item.message := No_Runtime_Found_Message;
+            Errors.Append (Item);
          when Single_Project_Found =>
             Item.message := Single_Project_Found_Message;
             Item.severity := (True, LSP.Messages.Hint);
