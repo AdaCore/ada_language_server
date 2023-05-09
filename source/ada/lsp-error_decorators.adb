@@ -708,4 +708,28 @@ package body LSP.Error_Decorators is
       return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response
         renames ALS_Check_Syntax_Request;
 
+   function GLS_Mains_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.GLS_Mains_Request,
+      Response   => LSP.Messages.Server_Responses.GLS_Mains_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_GLS_Mains_Request);
+
+   overriding function On_GLS_Mains_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.GLS_Mains_Request)
+      return LSP.Messages.Server_Responses.GLS_Mains_Response
+        renames GLS_Mains_Request;
+
+   function GLS_Executables_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.GLS_Executables_Request,
+      Response   => LSP.Messages.Server_Responses.GLS_Executables_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_GLS_Executables_Request);
+
+   overriding function On_GLS_Executables_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
+      return LSP.Messages.Server_Responses.GLS_Executables_Response
+        renames GLS_Executables_Request;
+
 end LSP.Error_Decorators;

@@ -18,9 +18,14 @@
     "activationEvents": [
         "onLanguage:ada",
         "onLanguage:gpr",
+        "workspaceContains:*.gpr",
+        "workspaceContains:*/*.gpr",
+        "workspaceContains:*.ad[bs]",
+        "workspaceContains:*/*.ad[bs]",
+        "workspaceContains:alire.toml",
         "onCommand:workbench.action.tasks.runTask"
     ],
-    "main": "./out/extension",
+    "main": "./out/src/extension",
     "icon": "icons/ada.png",
     "bugs": "https://github.com/AdaCore/ada_language_server/issues",
     "repository": {
@@ -435,6 +440,23 @@
                     "args": {
                         "type": "array",
                         "description": "Extra command arguments"
+                    }
+                }
+            },
+            {
+                "type": "GPR Tasks",
+                "required": [
+                    "projectFile",
+                    "mainFile"
+                ],
+                "properties": {
+                    "projectFile": {
+                        "type": "string",
+                        "description": "The project file"
+                    },
+                    "executable": {
+                        "type": "string",
+                        "description": "The main file"
                     }
                 }
             }

@@ -20,6 +20,30 @@ with LSP.Types;
 
 package body LSP.GPR_Handlers is
 
+   --------------------------------
+   -- On_GLS_Executables_Request --
+   --------------------------------
+
+   overriding function On_GLS_Executables_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
+      return LSP.Messages.Server_Responses.GLS_Executables_Response is
+   begin
+      return raise Program_Error with "Unimplemented request";
+   end On_GLS_Executables_Request;
+
+   --------------------------
+   -- On_GLS_Mains_Request --
+   --------------------------
+
+   overriding function On_GLS_Mains_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Mains_Request)
+      return LSP.Messages.Server_Responses.GLS_Mains_Response is
+   begin
+      return raise Program_Error with "Unimplemented request";
+   end On_GLS_Mains_Request;
+
    ---------------------------------
    -- On_ALS_Check_Syntax_Request --
    ---------------------------------

@@ -465,6 +465,30 @@ begin
          end;
       end if;
 
+      if Request in GLS_Mains_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_GLS_Mains_Request
+                  (GLS_Mains_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in GLS_Executables_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_GLS_Executables_Request
+                  (GLS_Executables_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
    return LSP.Messages.ResponseMessage'
      (Is_Error => True,
       jsonrpc  => <>,

@@ -17,6 +17,7 @@
 
 import * as vscode from 'vscode';
 import {
+    Disposable,
     ExecuteCommandRequest,
     LanguageClient,
     LanguageClientOptions,
@@ -26,14 +27,189 @@ import {
 import { platform } from 'os';
 import * as process from 'process';
 import GnatTaskProvider from './gnatTaskProvider';
+import GprTaskProvider from './gprTaskProvider';
 import { getSubprogramSymbol } from './gnatTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { substituteVariables } from './helpers';
 
-let alsTaskProvider: vscode.Disposable[] = [
-    vscode.tasks.registerTaskProvider(GnatTaskProvider.gnatType, new GnatTaskProvider()),
-];
+export let contextClients: ContextClients;
+
+export class ContextClients {
+    public readonly gprClient: LanguageClient;
+    public readonly adaClient: LanguageClient;
+
+    private clientsDisposables: Disposable[];
+    private registeredTaskProviders: Disposable[];
+
+    constructor(ada: LanguageClient, gpr: LanguageClient) {
+        this.gprClient = gpr;
+        this.adaClient = ada;
+        this.clientsDisposables = [];
+        this.registeredTaskProviders = [];
+    }
+
+    public start = () => {
+        this.clientsDisposables = [this.gprClient.start(), this.adaClient.start()];
+        this.registerTaskProviders();
+    };
+
+    public dispose = () => {
+        this.unregisterTaskProviders();
+        this.clientsDisposables.forEach((clientDisposable: Disposable) =>
+            clientDisposable.dispose()
+        );
+    };
+
+    public registerTaskProviders = (): void => {
+        this.registeredTaskProviders = [
+            vscode.tasks.registerTaskProvider(GnatTaskProvider.gnatType, new GnatTaskProvider()),
+            vscode.tasks.registerTaskProvider(
+                GprTaskProvider.gprTaskType,
+                new GprTaskProvider(this.adaClient)
+            ),
+        ];
+    };
+
+    public unregisterTaskProviders = (): void => {
+        for (const item of this.registeredTaskProviders) {
+            item.dispose();
+        }
+        this.registeredTaskProviders = [];
+    };
+
+    //  React to changes in configuration to recompute predefined tasks if the user
+    //  changes scenario variables' values.
+    public configChanged = (e: vscode.ConfigurationChangeEvent) => {
+        if (
+            e.affectsConfiguration('ada.scenarioVariables') ||
+            e.affectsConfiguration('ada.projectFile')
+        ) {
+            this.unregisterTaskProviders();
+            this.registerTaskProviders();
+        }
+    };
+
+    //  Take active editor URI and call execute 'als-other-file' command in LSP
+    public otherFileHandler = () => {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (!activeEditor) {
+            return;
+        }
+        void this.adaClient.sendRequest(ExecuteCommandRequest.type, {
+            command: 'als-other-file',
+            arguments: [
+                {
+                    uri: activeEditor.document.uri.toString(),
+                },
+            ],
+        });
+    };
+}
+
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    // Create the GPR language client and start it.
+    const gprClient = createClient(
+        context,
+        'gpr',
+        'GPR Language Server',
+        ['--language-gpr'],
+        '**/.{gpr}'
+    );
+    // Create the Ada language client and start it.
+    const alsClient = createClient(
+        context,
+        'ada',
+        'Ada Language Server',
+        [],
+        '**/.{adb,ads,adc,ada}'
+    );
+    const alsMiddleware: Middleware = {
+        executeCommand: alsCommandExecutor(alsClient),
+    };
+    alsClient.clientOptions.middleware = alsMiddleware;
+    alsClient.registerFeature(new ALSClientFeatures());
+
+    contextClients = new ContextClients(alsClient, gprClient);
+    contextClients.start();
+    context.subscriptions.push(contextClients);
+
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(contextClients.configChanged)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.otherFile', contextClients.otherFileHandler)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBox)
+    );
+    await checkSrcDirectories(alsClient);
+}
+
+function createClient(
+    context: vscode.ExtensionContext,
+    id: string,
+    name: string,
+    extra: string[],
+    pattern: string
+) {
+    let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
+    if (process.env.ALS) serverModule = process.env.ALS;
+    // The debug options for the server
+    // let debugOptions = { execArgv: [] };
+    // If the extension is launched in debug mode then the debug server options are used
+    // Otherwise the run options are used
+
+    // Retrieve the user's custom environment variables if specified in their
+    // settings/workspace: we'll then launch any child process with this custom
+    // environment
+    const user_platform = platform();
+    let env_config_name = 'terminal.integrated.env.linux';
+
+    switch (user_platform) {
+        case 'darwin':
+            env_config_name = 'terminal.integrated.env.osx';
+            break;
+        case 'win32':
+            env_config_name = 'terminal.integrated.env.windows';
+            break;
+        default:
+            env_config_name = 'terminal.integrated.env.linux';
+    }
+
+    const custom_env = vscode.workspace.getConfiguration().get<[string]>(env_config_name);
+
+    if (custom_env) {
+        for (const var_name in custom_env) {
+            let var_value: string = custom_env[var_name];
+
+            // Substitute VS Code variable references that might be present
+            // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
+            var_value = var_value.replace(/(\$\{.*\})/, substituteVariables);
+            process.env[var_name] = var_value;
+        }
+    }
+
+    // Options to control the server
+    const serverOptions: ServerOptions = {
+        run: { command: serverModule, args: extra },
+        debug: { command: serverModule, args: extra },
+    };
+
+    // Options to control the language client
+    const clientOptions: LanguageClientOptions = {
+        // Register the server for ada sources documents
+        documentSelector: [{ scheme: 'file', language: id }],
+        synchronize: {
+            // Synchronize the setting section 'ada' to the server
+            configurationSection: 'ada',
+            // Notify the server about file changes to Ada files contain in the workspace
+            fileEvents: vscode.workspace.createFileSystemWatcher(pattern),
+        },
+    };
+    // Create the language client
+    return new LanguageClient(id, name, serverOptions, clientOptions);
+}
 
 /**
  * Add a subprogram box above the subprogram enclosing the cursor's position, if any.
@@ -86,128 +262,19 @@ async function addSupbrogramBox() {
     });
 }
 
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
-    function createClient(id: string, name: string, extra: string[], pattern: string) {
-        let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
-        if (process.env.ALS) serverModule = process.env.ALS;
-        // The debug options for the server
-        // let debugOptions = { execArgv: [] };
-        // If the extension is launched in debug mode then the debug server options are used
-        // Otherwise the run options are used
+type ALSSourceDirDescription = {
+    name: string;
+    uri: string;
+};
 
-        // Retrieve the user's custom environment variables if specified in their
-        // settings/workspace: we'll then launch any child process with this custom
-        // environment
-        const user_platform = platform();
-        let env_config_name = 'terminal.integrated.env.linux';
-
-        switch (user_platform) {
-            case 'darwin':
-                env_config_name = 'terminal.integrated.env.osx';
-                break;
-            case 'win32':
-                env_config_name = 'terminal.integrated.env.windows';
-                break;
-            default:
-                env_config_name = 'terminal.integrated.env.linux';
-        }
-
-        const custom_env = vscode.workspace.getConfiguration().get<[string]>(env_config_name);
-
-        if (custom_env) {
-            for (const var_name in custom_env) {
-                let var_value : string = custom_env[var_name];
-
-                // Substitute VS Code variable references that might be present
-                // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
-                var_value = var_value.replace(/(\$\{.*\})/, substituteVariables)
-                process.env[var_name] = var_value;
-            }
-        }
-
-        // Options to control the server
-        const serverOptions: ServerOptions = {
-            run: { command: serverModule, args: extra },
-            debug: { command: serverModule, args: extra },
-        };
-
-        // Options to control the language client
-        const clientOptions: LanguageClientOptions = {
-            // Register the server for ada sources documents
-            documentSelector: [{ scheme: 'file', language: id }],
-            synchronize: {
-                // Synchronize the setting section 'ada' to the server
-                configurationSection: 'ada',
-                // Notify the server about file changes to Ada files contain in the workspace
-                fileEvents: vscode.workspace.createFileSystemWatcher(pattern),
-            },
-        };
-        // Create the language client
-        return new LanguageClient(id, name, serverOptions, clientOptions);
-    }
-
-    // Create the GPR language client and start it.
-    const gprClient = createClient('gpr', 'GPR Language Server', ['--language-gpr'], '**/.{gpr}');
-    context.subscriptions.push(gprClient.start());
-
-    // Create the Ada language client and start it.
-    const alsClient = createClient('ada', 'Ada Language Server', [], '**/.{adb,ads,adc,ada}');
-    const alsMiddleware: Middleware = {
-        executeCommand: alsCommandExecutor(alsClient),
-    };
-    alsClient.clientOptions.middleware = alsMiddleware;
-    alsClient.registerFeature(new ALSClientFeatures());
-    context.subscriptions.push(alsClient.start());
-
-    //  Take active editor URI and call execute 'als-other-file' command in LSP
-    function otherFileHandler() {
-        const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
-            return;
-        }
-        void alsClient.sendRequest(ExecuteCommandRequest.type, {
-            command: 'als-other-file',
-            arguments: [
-                {
-                    uri: activeEditor.document.uri.toString(),
-                },
-            ],
-        });
-    }
-
-    //  React to changes in configuration to recompute predefined tasks if the user
-    //  changes scenario variables' values.
-    function configChanged(e: vscode.ConfigurationChangeEvent) {
-        if (
-            e.affectsConfiguration('ada.scenarioVariables') ||
-            e.affectsConfiguration('ada.projectFile')
-        ) {
-            for (const item of alsTaskProvider) {
-                item.dispose();
-            }
-            alsTaskProvider = [
-                vscode.tasks.registerTaskProvider(
-                    GnatTaskProvider.gnatType,
-                    new GnatTaskProvider()
-                ),
-            ];
-        }
-    }
-
-    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(configChanged));
-    context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
-    context.subscriptions.push(
-        vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBox)
-    );
-
-    type ALSSourceDirDescription = {
-        name: string;
-        uri: string;
-    };
-
-    //  Check if we need to add some source directories to the workspace (e.g: when imported
-    //  projects' source directories are not placed under the root project's directory).
-    //  Do nothing is the user did not setup any workspace file.
+/**
+ *
+ * Check if we need to add some source directories to the workspace (e.g: when imported
+ * projects' source directories are not placed under the root project's directory).
+ * Do nothing is the user did not setup any workspace file.
+ *
+ */
+async function checkSrcDirectories(alsClient: LanguageClient) {
     if (vscode.workspace.workspaceFile !== undefined) {
         await alsClient
             .sendRequest<[ALSSourceDirDescription]>('workspace/alsSourceDirs')
@@ -249,8 +316,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 if (workspace_dirs_to_add.length > 0) {
                     await vscode.window
                         .showInformationMessage(
-                            'Some project source directories are not ' +
-                                'listed in your workspace: do you want to add them?',
+                            'Some project source directories are not ',
+                            'listed in your workspace: do you want to add them?',
                             'Yes',
                             'No'
                         )
@@ -270,11 +337,4 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 }
             });
     }
-}
-
-export function deactivate(): void {
-    for (const item of alsTaskProvider) {
-        item.dispose();
-    }
-    alsTaskProvider = [];
 }

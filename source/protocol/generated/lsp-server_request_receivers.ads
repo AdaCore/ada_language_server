@@ -203,4 +203,14 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
         is abstract;
 
+   procedure On_GLS_Mains_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.GLS_Mains_Request)
+        is abstract;
+
+   procedure On_GLS_Executables_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.GLS_Executables_Request)
+        is abstract;
+
 end LSP.Server_Request_Receivers;

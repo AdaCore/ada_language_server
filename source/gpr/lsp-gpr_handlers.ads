@@ -290,4 +290,13 @@ private
       Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
       return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response;
 
+   overriding function On_GLS_Mains_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Mains_Request)
+      return LSP.Messages.Server_Responses.GLS_Mains_Response;
+
+   overriding function On_GLS_Executables_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
+      return LSP.Messages.Server_Responses.GLS_Executables_Response;
 end LSP.GPR_Handlers;

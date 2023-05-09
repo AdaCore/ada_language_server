@@ -173,6 +173,16 @@ package LSP.Server_Response_Senders is
    procedure On_ALS_Check_Syntax_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.ALS_Check_Syntax_Response)
-       is abstract;
+   is abstract;
+
+   procedure On_GLS_Mains_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.GLS_Mains_Response)
+   is abstract;
+
+   procedure On_GLS_Executables_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.GLS_Executables_Response)
+   is abstract;
 
 end LSP.Server_Response_Senders;
