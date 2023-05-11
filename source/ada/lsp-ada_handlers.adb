@@ -35,6 +35,7 @@ with GPR2.Project.Registry.Attribute;
 with GPR2.Project.Source.Set;
 with GPR2.Project.Tree.View_Builder;
 with GPR2.Project.View;
+with GPR2.Source_Info;
 
 with Spawn.Environments;
 
@@ -651,7 +652,9 @@ package body LSP.Ada_Handlers is
          Context           => Self.Project_Environment.Context,
          Build_Path        => Self.Project_Environment.Build_Path);
 
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Update_Sources
+        (With_Runtime => True,
+         Backends     => GPR2.Source_Info.No_Backends);
 
    exception
       when E : others =>
@@ -5045,7 +5048,10 @@ package body LSP.Ada_Handlers is
             Self.Project_Status := No_Runtime_Found;
          end if;
 
-         Self.Project_Tree.Update_Sources (With_Runtime => True);
+         Self.Project_Tree.Update_Sources
+           (With_Runtime => True,
+            Backends     => GPR2.Source_Info.No_Backends);
+
          Update_Project_Predefined_Sources (Self);
 
          if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
@@ -5425,7 +5431,9 @@ package body LSP.Ada_Handlers is
 
       --  New sources were created on this project, so recompute its view
 
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Update_Sources
+        (With_Runtime => True,
+         Backends     => GPR2.Source_Info.No_Backends);
 
       --  For each created file of Value.files:
       --  - find the contexts that contains its directory
@@ -5511,7 +5519,9 @@ package body LSP.Ada_Handlers is
 
       --  Some project sources were renamed, so recompute its view
 
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Update_Sources
+        (With_Runtime => True,
+         Backends     => GPR2.Source_Info.No_Backends);
 
       --  For each oldUri of Value.files:
       --  - map it to a list of context that contains it
@@ -5623,7 +5633,9 @@ package body LSP.Ada_Handlers is
 
       --  Some project sources were deleted, so recompute its view
 
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Update_Sources
+        (With_Runtime => True,
+         Backends     => GPR2.Source_Info.No_Backends);
 
       --  For each delete file of Value.files:
       --  - find the contexts that contains it
