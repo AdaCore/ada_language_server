@@ -3305,8 +3305,10 @@ package body LSP.Ada_Handlers is
       Location_Text := LSP.Lal_Utils.Node_Location_Image (Decl);
 
       if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
-         Location_Text.Append (" in project ");
+         Location_Text.Append (VSS.Characters.Latin.Line_Feed);
+         Location_Text.Append ("As defined in project ");
          Location_Text.Append (C.Id);
+         Location_Text.Append (" (other projects skipped).");
       end if;
 
       Response.result.Value.contents.Vector.Append
