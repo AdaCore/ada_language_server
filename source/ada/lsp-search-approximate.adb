@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021-2022, AdaCore                     --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -38,8 +38,8 @@ package body LSP.Search.Approximate is
       --  errors.
 
       Mask   : Character_Masks;
-      Min    : Virtual_Character := Virtual_Character'Last;
-      Max    : Virtual_Character := Virtual_Character'First;
+      Min    : Virtual_Character := Virtual_Character'Last_Valid;
+      Max    : Virtual_Character := Virtual_Character'First_Valid;
       C      : Virtual_Character;
    begin
       declare

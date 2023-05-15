@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021, AdaCore                          --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,7 +32,8 @@ private
    subtype Mask is Interfaces.Unsigned_64;
    --  We only consider the 1..Pattern'Length
 
-   type Character_Mask_Array is array (Virtual_Character range <>) of Mask;
+   type Character_Mask_Array is
+     array (Virtual_Character'Base range <>) of Mask;
    type Character_Masks is access all Character_Mask_Array;
 
    Approximate_Max_Errors        : constant := 2;
