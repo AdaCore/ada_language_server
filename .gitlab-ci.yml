@@ -6,52 +6,68 @@ stages:
   - build_and_test
 
 .detect-branches:
-  #  Detects source and target branches.
-  #    ADACORE_CI_SOURCE_BRANCH is set to source branch (merge request, pull)
-  #    ADACORE_CI_TARGET_BRANCH is set to target branch of merge request, or 'master'/'edge' for pull
-  #    ADACORE_CI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX is set to '-edge' when target repository is 'edge'
-  #    ADACORE_CI_ANOD_EDGE_QUALIFIER is set to '--qualifier=edge' when target repository is 'edge'
-  #    ADACORE_CI_SUBPROJECTS_ROOT is set to '/tmp' and may be overritten by script
+  #  Version 1.
+  #  Detects source and target branches. Checkout necessary branch for
+  #  repository when run downstream pipeline is detected.
+  #    ACI_SOURCE_BRANCH is set to source branch (merge request, pull)
+  #    ACI_TARGET_BRANCH is set to target branch of merge request, or 'master'/'edge' for pull
+  #    ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX is set to '-edge' when target repository is 'edge'
+  #    ACI_ANOD_QUALIFIER is set to 'edge' when target repository is 'edge'
+  #    ACI_SUBPROJECTS_ROOT is set to '/tmp' and may be overritten by script
   - |
-      if [[ -n "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" ]]; then
-        ADACORE_CI_TARGET_BRANCH="$CI_MERGE_REQUEST_TARGET_BRANCH_NAME";
+      if [[ -n "$ACI_UPSTREAM_SOURCE_BRANCH" ]]; then
+        ACI_SOURCE_BRANCH="$ACI_UPSTREAM_SOURCE_BRANCH";
+      elif [[ -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ]]; then
+        ACI_SOURCE_BRANCH="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME";
+      else
+        ACI_SOURCE_BRANCH="$CI_COMMIT_BRANCH";
+      fi;
+      if [[ -n "$ACI_UPSTREAM_TARGET_BRANCH" ]]; then
+        ACI_TARGET_BRANCH=$ACI_UPSTREAM_TARGET_BRANCH;
+      elif [[ -n "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" ]]; then
+        ACI_TARGET_BRANCH="$CI_MERGE_REQUEST_TARGET_BRANCH_NAME";
       elif [[ "x$CI_COMMIT_BRANCH" == "xedge" ]]; then
-        ADACORE_CI_TARGET_BRANCH="edge";
+        ACI_TARGET_BRANCH="edge";
       else
-        ADACORE_CI_TARGET_BRANCH="master";
+        ACI_TARGET_BRANCH="master";
       fi;
-      if [[ -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ]]; then
-        ADACORE_CI_SOURCE_BRANCH="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME";
+      if [[ "$ACI_TARGET_BRANCH" == "edge" ]]; then
+        ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX="-edge";
+        ACI_ANOD_QUALIFIER="edge"
       else
-        ADACORE_CI_SOURCE_BRANCH="$CI_COMMIT_BRANCH";
-      fi;
-      if [[ "$ADACORE_CI_TARGET_BRANCH" == "edge" ]]; then
-        ADACORE_CI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX="-edge";
-        ADACORE_CI_ANOD_EDGE_QUALIFIER="--qualifier=edge"
-      else
-        ADACORE_CI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX="";
-        ADACORE_CI_ANOD_EDGE_QUALIFIER=""
+        ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX="";
+        ACI_ANOD_QUALIFIER=""
       fi
-      ADACORE_CI_SUBPROJECTS_ROOT=/tmp
-      echo "Source branch: $ADACORE_CI_SOURCE_BRANCH"
-      echo "Target branch: $ADACORE_CI_TARGET_BRANCH"
-      echo "Name suffix:   $ADACORE_CI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX"
-      echo "Qualifier:     $ADACORE_CI_ANOD_EDGE_QUALIFIER"
-      echo "Subprojects:   $ADACORE_CI_SUBPROJECTS_ROOT"
+      ACI_SUBPROJECTS_ROOT=/tmp
+      echo "Source branch: $ACI_SOURCE_BRANCH"
+      echo "Target branch: $ACI_TARGET_BRANCH"
+      echo "Name suffix:   $ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX"
+      echo "Qualifier:     $ACI_ANOD_QUALIFIER"
+      echo "Subprojects:   $ACI_SUBPROJECTS_ROOT"
 
-.checkout:
-  #  Variables:
-  #    ADACODE_CI_SUBPROJECTS_ROOT  - root directory to checkout repositories.
-  #    ADACORE_CI_SUBPROJECT_REPOSITORY_URL_PATH - path component of the repository's URL.
-  #    ADACORE_CI_SUBPROJECT_NAME - name of the directory for subproject.
-  - |
-    git -C $ADACORE_CI_SUBPROJECTS_ROOT clone $GIT_CLONE_BASE/$ADACORE_CI_SUBPROJECT_REPOSITORY_URL_PATH $ADACORE_CI_SUBPROJECT_NAME
-    if `git -C $ADACORE_CI_SUBPROJECTS_ROOT -C $ADACORE_CI_SUBPROJECT_NAME show-ref $ADACORE_CI_SOURCE_BRANCH > /dev/null`; then
-      git -C $ADACORE_CI_SUBPROJECTS_ROOT -C $ADACORE_CI_SUBPROJECT_NAME checkout $ADACORE_CI_SOURCE_BRANCH;
-    elif `git -C $ADACORE_CI_SUBPROJECTS_ROOT -C $ADACORE_CI_SUBPROJECT_NAME show-ref $ADACORE_CI_TARGET_BRANCH > /dev/null`; then
-      git -C $ADACORE_CI_SUBPROJECTS_ROOT -C $ADACORE_CI_SUBPROJECT_NAME checkout $ADACORE_CI_TARGET_BRANCH;
+  #  On downstream pipeline checkout the necessary branch
+  - if [[ "$CI_PIPELINE_SOURCE" == 'pipeline' ]]; then
+       if `git -C $CI_PROJECT_DIR show-ref $ACI_SOURCE_BRANCH > /dev/null`; then
+        git -C $CI_PROJECT_DIR checkout $ACI_SOURCE_BRANCH;
+      elif `git -C $CI_PROJECT_DIR show-ref $ACI_TARGET_BRANCH > /dev/null`; then
+        git -C $CI_PROJECT_DIR checkout $ACI_TARGET_BRANCH;
+      fi
     fi
-    anod vcs --sandbox-dir /it/wave --add-repo $ADACORE_CI_SUBPROJECT_NAME $ADACORE_CI_SUBPROJECTS_ROOT/$ADACORE_CI_SUBPROJECT_NAME
+
+.checkout-subproject:
+  #  Version 1.
+  #  Input variables:
+  #    ACI_SUBPROJECTS_ROOT  - root directory to checkout repositories.
+  #    ACI_SUBPROJECT_REPOSITORY_URL_PATH - path component of the repository's URL.
+  #    ACI_SUBPROJECT_NAME - name of the directory for subproject.
+  - |
+    git -C $ACI_SUBPROJECTS_ROOT clone $GIT_CLONE_BASE/$ACI_SUBPROJECT_REPOSITORY_URL_PATH $ACI_SUBPROJECT_NAME
+    if `git -C $ACI_SUBPROJECTS_ROOT -C $ACI_SUBPROJECT_NAME show-ref $ACI_SOURCE_BRANCH > /dev/null`; then
+      git -C $ACI_SUBPROJECTS_ROOT -C $ACI_SUBPROJECT_NAME checkout $ACI_SOURCE_BRANCH;
+    elif `git -C $ACI_SUBPROJECTS_ROOT -C $ACI_SUBPROJECT_NAME show-ref $ACI_TARGET_BRANCH > /dev/null`; then
+      git -C $ACI_SUBPROJECTS_ROOT -C $ACI_SUBPROJECT_NAME checkout $ACI_TARGET_BRANCH;
+    fi
+    anod vcs --sandbox-dir /it/wave --add-repo $ACI_SUBPROJECT_NAME $ACI_SUBPROJECTS_ROOT/$ACI_SUBPROJECT_NAME
 
 # Build and test with ANOD
 # TODO: add a build and test based on Alire in parallel to this.
@@ -72,43 +88,43 @@ build_and_test:
     - !reference [.detect-branches]
 
     - |
-      ADACORE_CI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/spawn
-      ADACORE_CI_SUBPROJECT_NAME=spawn
-    - !reference [.checkout]
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/spawn
+      ACI_SUBPROJECT_NAME=spawn
+    - !reference [.checkout-subproject]
 
     - |
-      ADACORE_CI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/vss
-      ADACORE_CI_SUBPROJECT_NAME=vss
-    - !reference [.checkout]
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/vss
+      ACI_SUBPROJECT_NAME=vss
+    - !reference [.checkout-subproject]
 
     - |
-      ADACORE_CI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/markdown
-      ADACORE_CI_SUBPROJECT_NAME=markdown
-    - !reference [.checkout]
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/markdown
+      ACI_SUBPROJECT_NAME=markdown
+    - !reference [.checkout-subproject]
 
     - |
-      ADACORE_CI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatdoc
-      ADACORE_CI_SUBPROJECT_NAME=gnatdoc$ADACORE_CI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX
-    - !reference [.checkout]
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatdoc
+      ACI_SUBPROJECT_NAME=gnatdoc$ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX
+    - !reference [.checkout-subproject]
 
     - |
-      ADACORE_CI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatstudio-internal
-      ADACORE_CI_SUBPROJECT_NAME=gnatstudio-internal$ADACORE_CI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX
-    - !reference [.checkout]
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatstudio-internal
+      ACI_SUBPROJECT_NAME=gnatstudio-internal$ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX
+    - !reference [.checkout-subproject]
 
-    - if [[ "$ADACORE_CI_TARGET_BRANCH" == "edge" ]]; then
+    - if [[ "$ACI_TARGET_BRANCH" == "edge" ]]; then
         BUILD_SPACE_SUFFIX="_edge";
       fi
 
     - |
       # Setup the 'anod vcs' for this repo
       cd /it/wave
-      anod vcs --add-repo ada_language_server$ADACORE_CI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX $CI_PROJECT_DIR
+      anod vcs --add-repo ada_language_server$ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX $CI_PROJECT_DIR
 
       # Build & test using anod
       cd /it/wave
-    - anod build als $ADACORE_CI_ANOD_EDGE_QUALIFIER --minimal
-    - anod test als $ADACORE_CI_ANOD_EDGE_QUALIFIER --minimal
+    - anod build als --qualifier=$ACI_ANOD_QUALIFIER --minimal
+    - anod test als --qualifier=$ACI_ANOD_QUALIFIER --minimal
 
       # Process the report
     - e3-testsuite-report
