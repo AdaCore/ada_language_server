@@ -80,34 +80,30 @@ build_and_test:
   interruptible: true
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'pipeline'
     - if: $CI_COMMIT_BRANCH == 'master' && $CI_COMMIT_TITLE =~ /Merge branch.*/
     - if: $CI_COMMIT_BRANCH == 'edge' && $CI_COMMIT_TITLE =~ /Merge branch.*/
   script:
     - !reference [.detect-branches]
 
     - |
-      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/spawn
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/spawn.git
       ACI_SUBPROJECT_NAME=spawn
     - !reference [.checkout-subproject]
 
     - |
-      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/vss
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/vss.git
       ACI_SUBPROJECT_NAME=vss
     - !reference [.checkout-subproject]
 
     - |
-      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/markdown
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/markdown.git
       ACI_SUBPROJECT_NAME=markdown
     - !reference [.checkout-subproject]
 
     - |
-      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatdoc
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatdoc.git
       ACI_SUBPROJECT_NAME=gnatdoc$ACI_REPOSITORY_NAME_EDGE_SUFFIX
-    - !reference [.checkout-subproject]
-
-    - |
-      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatstudio-internal
-      ACI_SUBPROJECT_NAME=gnatstudio-internal$ACI_REPOSITORY_NAME_EDGE_SUFFIX
     - !reference [.checkout-subproject]
 
     - if [[ "$ACI_TARGET_BRANCH" == "edge" ]]; then
