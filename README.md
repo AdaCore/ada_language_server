@@ -158,6 +158,7 @@ The extension includes a task provider. It provides the following "auto-detected
 * "ada: Prove subprogram" - launch `gnatprove` on the current subprogram in the current editor
 * "ada: Prove selected region" - launch `gnatprove` on the selected region in the current editor
 * "ada: Prove line" - launch `gnatprove` on the cursor line in the current editor
+* "ada: Clean project for proof" - launch `gnatprove` on the current GPR project to clean proof artefacts
 
 You can bind keyboard shortcuts to them by adding to the `keybindings.json` file:
 
