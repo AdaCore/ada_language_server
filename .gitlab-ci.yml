@@ -11,7 +11,7 @@ stages:
   #  repository when run downstream pipeline is detected.
   #    ACI_SOURCE_BRANCH is set to source branch (merge request, pull)
   #    ACI_TARGET_BRANCH is set to target branch of merge request, or 'master'/'edge' for pull
-  #    ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX is set to '-edge' when target repository is 'edge'
+  #    ACI_REPOSITORY_NAME_EDGE_SUFFIX is set to '-edge' when target repository is 'edge'
   #    ACI_ANOD_QUALIFIER is set to 'edge' when target repository is 'edge'
   #    ACI_SUBPROJECTS_ROOT is set to '/tmp' and may be overritten by script
   - |
@@ -32,16 +32,16 @@ stages:
         ACI_TARGET_BRANCH="master";
       fi;
       if [[ "$ACI_TARGET_BRANCH" == "edge" ]]; then
-        ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX="-edge";
+        ACI_REPOSITORY_NAME_EDGE_SUFFIX="-edge";
         ACI_ANOD_QUALIFIER="edge"
       else
-        ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX="";
+        ACI_REPOSITORY_NAME_EDGE_SUFFIX="";
         ACI_ANOD_QUALIFIER=""
       fi
       ACI_SUBPROJECTS_ROOT=/tmp
       echo "Source branch: $ACI_SOURCE_BRANCH"
       echo "Target branch: $ACI_TARGET_BRANCH"
-      echo "Name suffix:   $ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX"
+      echo "Name suffix:   $ACI_REPOSITORY_NAME_EDGE_SUFFIX"
       echo "Qualifier:     $ACI_ANOD_QUALIFIER"
       echo "Subprojects:   $ACI_SUBPROJECTS_ROOT"
 
@@ -104,12 +104,12 @@ build_and_test:
 
     - |
       ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatdoc
-      ACI_SUBPROJECT_NAME=gnatdoc$ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX
+      ACI_SUBPROJECT_NAME=gnatdoc$ACI_REPOSITORY_NAME_EDGE_SUFFIX
     - !reference [.checkout-subproject]
 
     - |
       ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatstudio-internal
-      ACI_SUBPROJECT_NAME=gnatstudio-internal$ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX
+      ACI_SUBPROJECT_NAME=gnatstudio-internal$ACI_REPOSITORY_NAME_EDGE_SUFFIX
     - !reference [.checkout-subproject]
 
     - if [[ "$ACI_TARGET_BRANCH" == "edge" ]]; then
@@ -119,7 +119,7 @@ build_and_test:
     - |
       # Setup the 'anod vcs' for this repo
       cd /it/wave
-      anod vcs --add-repo ada_language_server$ACI_SUBPROJECT_REPOSITORY_NAME_EDGE_SUFFIX $CI_PROJECT_DIR
+      anod vcs --add-repo ada_language_server$ACI_REPOSITORY_NAME_EDGE_SUFFIX $CI_PROJECT_DIR
 
       # Build & test using anod
       cd /it/wave
