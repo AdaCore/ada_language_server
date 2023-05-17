@@ -15,6 +15,10 @@ build_and_test:
      - mem:16
   stage: build_and_test
   interruptible: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'master' && $CI_COMMIT_TITLE =~ /Merge branch.*/
+    - if: $CI_COMMIT_BRANCH == 'edge' && $CI_COMMIT_TITLE =~ /Merge branch.*/
   script:
     - . ~/.aws_container_credentials
     - export PATH=/it/e3/bin:$PATH
