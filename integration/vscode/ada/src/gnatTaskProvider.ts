@@ -94,44 +94,50 @@ const getGnatArgs = (args: string[]): string[] => {
  * Map of known tasks/tools indexed by a string/taskKind
  */
 const knownTaskKinds: { [id: string]: TaskProperties } = {
+    cleanProjectForProof: {
+        command: getGnatArgs(['gnatprove', '--clean']),
+        extra: undefined,
+        title: 'Clean project for proof',
+    },
     examineProject: {
-        command: getGnatArgs(['gnatprove', '--mode=flow']),
+        command: getGnatArgs(['gnatprove', '-j0', '--mode=flow']),
         extra: undefined,
         title: 'Examine project',
     },
     examineFile: {
-        command: getGnatArgs(['gnatprove', '--mode=flow', '-u', '${fileBasename}']),
+        command: getGnatArgs(['gnatprove', '-j0', '--mode=flow', '-u', '${fileBasename}']),
         extra: undefined,
         title: 'Examine file',
     },
     examineSubprogram: {
-        command: ['gnatprove', '--mode=flow'],
+        command: ['gnatprove', '-j0', '--mode=flow'],
         extra: limitSubp,
         title: 'Examine subprogram',
     },
     proveProject: {
-        command: getGnatArgs(['gnatprove']),
+        command: getGnatArgs(['gnatprove', '-j0']),
         extra: undefined,
         title: 'Prove project',
     },
     proveFile: {
-        command: getGnatArgs(['gnatprove', '-u', '${fileBasename}']),
+        command: getGnatArgs(['gnatprove', '-j0', '-u', '${fileBasename}']),
         extra: undefined,
         title: 'Prove file',
     },
     proveSubprogram: {
-        command: ['gnatprove'],
+        command: ['gnatprove', '-j0'],
         extra: limitSubp,
         title: 'Prove subprogram',
     },
     proveRegion: {
-        command: ['gnatprove', '-u', '${fileBasename}'],
+        command: ['gnatprove', '-j0', '-u', '${fileBasename}'],
         extra: limitRegion,
         title: 'Prove selected region',
     },
     proveLine: {
         command: getGnatArgs([
             'gnatprove',
+            '-j0',
             '-u',
             '${fileBasename}',
             '--limit-line=${fileBasename}:${lineNumber}',

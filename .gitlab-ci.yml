@@ -5,6 +5,69 @@ variables:
 stages:
   - build_and_test
 
+.detect-branches:
+  #  Version 1.
+  #  Detects source and target branches. Checkout necessary branch for
+  #  repository when run downstream pipeline is detected.
+  #    ACI_SOURCE_BRANCH is set to source branch (merge request, pull)
+  #    ACI_TARGET_BRANCH is set to target branch of merge request, or 'master'/'edge' for pull
+  #    ACI_REPOSITORY_NAME_EDGE_SUFFIX is set to '-edge' when target repository is 'edge'
+  #    ACI_ANOD_QUALIFIER is set to 'edge' when target repository is 'edge'
+  #    ACI_SUBPROJECTS_ROOT is set to '/tmp' and may be overritten by script
+  - |
+      if [[ -n "$ACI_UPSTREAM_SOURCE_BRANCH" ]]; then
+        ACI_SOURCE_BRANCH="$ACI_UPSTREAM_SOURCE_BRANCH";
+      elif [[ -n "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" ]]; then
+        ACI_SOURCE_BRANCH="$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME";
+      else
+        ACI_SOURCE_BRANCH="$CI_COMMIT_BRANCH";
+      fi;
+      if [[ -n "$ACI_UPSTREAM_TARGET_BRANCH" ]]; then
+        ACI_TARGET_BRANCH=$ACI_UPSTREAM_TARGET_BRANCH;
+      elif [[ -n "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" ]]; then
+        ACI_TARGET_BRANCH="$CI_MERGE_REQUEST_TARGET_BRANCH_NAME";
+      elif [[ "x$CI_COMMIT_BRANCH" == "xedge" ]]; then
+        ACI_TARGET_BRANCH="edge";
+      else
+        ACI_TARGET_BRANCH="master";
+      fi;
+      if [[ "$ACI_TARGET_BRANCH" == "edge" ]]; then
+        ACI_REPOSITORY_NAME_EDGE_SUFFIX="-edge";
+        ACI_ANOD_QUALIFIER="edge"
+      else
+        ACI_REPOSITORY_NAME_EDGE_SUFFIX="";
+        ACI_ANOD_QUALIFIER=""
+      fi
+      ACI_SUBPROJECTS_ROOT=/tmp
+      echo "Source branch: $ACI_SOURCE_BRANCH"
+      echo "Target branch: $ACI_TARGET_BRANCH"
+      echo "Name suffix:   $ACI_REPOSITORY_NAME_EDGE_SUFFIX"
+      echo "Qualifier:     $ACI_ANOD_QUALIFIER"
+      echo "Subprojects:   $ACI_SUBPROJECTS_ROOT"
+
+  #  On downstream pipeline checkout the necessary branch
+  - if [[ "$CI_PIPELINE_SOURCE" == 'pipeline' ]]; then
+       if `git -C $CI_PROJECT_DIR show-ref $ACI_SOURCE_BRANCH > /dev/null`; then
+        git -C $CI_PROJECT_DIR checkout $ACI_SOURCE_BRANCH;
+      elif `git -C $CI_PROJECT_DIR show-ref $ACI_TARGET_BRANCH > /dev/null`; then
+        git -C $CI_PROJECT_DIR checkout $ACI_TARGET_BRANCH;
+      fi
+    fi
+
+.checkout-subproject:
+  #  Version 1.
+  #  Input variables:
+  #    ACI_SUBPROJECTS_ROOT  - root directory to checkout repositories.
+  #    ACI_SUBPROJECT_REPOSITORY_URL_PATH - path component of the repository's URL.
+  #    ACI_SUBPROJECT_NAME - name of the directory for subproject.
+  - |
+    git -C $ACI_SUBPROJECTS_ROOT clone $GIT_CLONE_BASE/$ACI_SUBPROJECT_REPOSITORY_URL_PATH $ACI_SUBPROJECT_NAME
+    if `git -C $ACI_SUBPROJECTS_ROOT -C $ACI_SUBPROJECT_NAME show-ref $ACI_SOURCE_BRANCH > /dev/null`; then
+      git -C $ACI_SUBPROJECTS_ROOT -C $ACI_SUBPROJECT_NAME checkout $ACI_SOURCE_BRANCH;
+    elif `git -C $ACI_SUBPROJECTS_ROOT -C $ACI_SUBPROJECT_NAME show-ref $ACI_TARGET_BRANCH > /dev/null`; then
+      git -C $ACI_SUBPROJECTS_ROOT -C $ACI_SUBPROJECT_NAME checkout $ACI_TARGET_BRANCH;
+    fi
+    anod vcs --sandbox-dir /it/wave --add-repo $ACI_SUBPROJECT_NAME $ACI_SUBPROJECTS_ROOT/$ACI_SUBPROJECT_NAME
 
 # Build and test with ANOD
 # TODO: add a build and test based on Alire in parallel to this.
@@ -15,59 +78,49 @@ build_and_test:
      - mem:16
   stage: build_and_test
   interruptible: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'pipeline'
+    - if: $CI_COMMIT_BRANCH == 'master' && $CI_COMMIT_TITLE =~ /Merge branch.*/
+    - if: $CI_COMMIT_BRANCH == 'edge' && $CI_COMMIT_TITLE =~ /Merge branch.*/
   script:
-    - . ~/.aws_container_credentials
-    - export PATH=/it/e3/bin:$PATH
+    - !reference [.detect-branches]
 
-    # Check whether we're in an MR targeting 'edge' or commiting to
-    # `something/edge` branch then setup some variables.
-    - TARGET_BRANCH="master"
-    - if [[ "x$CI_MERGE_REQUEST_TARGET_BRANCH_NAME" = "xedge" ||
-            "$CI_COMMIT_BRANCH" =~ .*/edge ]];
-      then
-          echo "Targeting the edge branch." ;
-          REPO_SUFFIX="-edge" ;
-          BUILD_SPACE_SUFFIX="_edge" ;
-          QUALIFIER="edge" ;
-          TARGET_BRANCH="edge" ;
+    - |
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/spawn.git
+      ACI_SUBPROJECT_NAME=spawn
+    - !reference [.checkout-subproject]
+
+    - |
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/vss.git
+      ACI_SUBPROJECT_NAME=vss
+    - !reference [.checkout-subproject]
+
+    - |
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/markdown.git
+      ACI_SUBPROJECT_NAME=markdown
+    - !reference [.checkout-subproject]
+
+    - |
+      ACI_SUBPROJECT_REPOSITORY_URL_PATH=/eng/ide/gnatdoc.git
+      ACI_SUBPROJECT_NAME=gnatdoc$ACI_REPOSITORY_NAME_EDGE_SUFFIX
+    - !reference [.checkout-subproject]
+
+    - if [[ "$ACI_TARGET_BRANCH" == "edge" ]]; then
+        BUILD_SPACE_SUFFIX="_edge";
       fi
 
-    # Setup the 'anod vcs' for this repo
-    - cd /it/wave
-    - anod vcs --add-repo ada_language_server${REPO_SUFFIX} $CI_PROJECT_DIR
+    - |
+      # Setup the 'anod vcs' for this repo
+      cd /it/wave
+      anod vcs --add-repo ada_language_server$ACI_REPOSITORY_NAME_EDGE_SUFFIX $CI_PROJECT_DIR
 
-    # Figure out if we're on a sync branch
-    - BRANCH=master
-    - if [[ $CI_COMMIT_BRANCH =~ ^sync/ ]]; then
-         BRANCH=$CI_COMMIT_BRANCH;
-      elif [[ $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ ^sync/ ]]; then
-         BRANCH=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME;
-      fi
+      # Build & test using anod
+      cd /it/wave
+    - anod build als --qualifier=$ACI_ANOD_QUALIFIER --minimal
+    - anod test als --qualifier=$ACI_ANOD_QUALIFIER --minimal
 
-    # Setup the 'anod vcs' for the other repos, if we're on
-    # a "sync" branch.
-    - for subproject in vss spawn gnatdoc ; do
-         echo "for subproject $subproject ..." ;
-         cd /tmp ;
-         git clone $GIT_CLONE_BASE/eng/ide/$subproject ;
-         cd $subproject ;
-         if `git show-ref $BRANCH > /dev/null` ; then
-             echo "... checking out $BRANCH"
-             git checkout $BRANCH ;
-             cd /it/wave ;
-             anod vcs --add-repo $subproject /tmp/$subproject ;
-         else
-             echo "... checking out $TARGET_BRANCH"
-             git checkout $TARGET_BRANCH ;
-         fi ;
-      done ;
-
-    # Build & test using anod
-    - cd /it/wave
-    - anod build als --qualifier=$QUALIFIER --minimal
-    - anod test als  --qualifier=$QUALIFIER --minimal
-
-    # Process the report
+      # Process the report
     - e3-testsuite-report
        --failure-exit-code 1
        --xunit-output $CI_PROJECT_DIR/xunit_output.xml
@@ -85,7 +138,7 @@ build_and_test:
         export GPR_PROJECT_PATH=/it/wave/x86_64-linux/als/src/subprojects/gnatdoc/gnat:$GPR_PROJECT_PATH;
         export GPR_PROJECT_PATH=/it/wave/x86_64-linux/als/src/subprojects/VSS/gnat:$GPR_PROJECT_PATH;
         cd /it/wave/x86_64-linux/als/src;
-        lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif ||
+        lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif 2>/dev/null ||
         touch $CI_PROJECT_DIR/dump.lsif )
 
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
