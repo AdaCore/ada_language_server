@@ -23,8 +23,10 @@ pushd integration/vscode/ada
 sed -i -e "/version/s/[0-9][0-9.]*/$TAG/" package.json
 [ -z "$DEBUG" ] || sed -i -e '/^    "name"/s/ada/ada-debug/' \
                           -e '/displayName/s/Ada/Ada (with debug info)/' package.json
+
+npm -v; node -v; which node
 npm install
-sudo npm install -g vsce --unsafe-perm
+sudo npm install -g @vscode/vsce --unsafe-perm
 sudo npm install -g esbuild --unsafe-perm
 make_change_log > CHANGELOG.md
 if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]] ; then
