@@ -19,6 +19,7 @@ function make_change_log()
 
 chmod -R -v +x als-*-$DEBUG
 for X in Linux macOS Windows ; do mv -v -f als-$X-$DEBUG/* integration/vscode/ada/; done
+rm -f -v integration/vscode/ada/{linux,darwin,win32}/*.debug
 pushd integration/vscode/ada
 sed -i -e "/version/s/[0-9][0-9.]*/$TAG/" package.json
 [ -z "$DEBUG" ] || sed -i -e '/^    "name"/s/ada/ada-debug/' \

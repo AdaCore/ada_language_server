@@ -20,6 +20,7 @@ export CPATH=/usr/local/include:/mingw64/include
 export LIBRARY_PATH=/usr/local/lib:/mingw64/lib
 export DYLD_LIBRARY_PATH=/usr/local/lib
 export PATH=`ls -d $PWD/cached_gnat/*/bin |tr '\n' ':'`$PATH
+export ADAFLAGS=-g1
 echo PATH=$PATH
 
 BRANCH=master
@@ -78,5 +79,16 @@ if [ $RUNNER_OS = macOS ]; then
 fi
 
 if [ "$DEBUG" != "debug" ]; then
-    strip -v integration/vscode/ada/*/ada_language_server*
+    if [ $RUNNER_OS = macOS ]; then
+        # Install binutils to have objcopy on Mac OS X
+        brew install binutils
+        export PATH="/usr/local/opt/binutils/bin:$PATH"
+    fi
+    ALS=`ls integration/vscode/ada/*/ada_language_server*`
+    objcopy --only-keep-debug ${ALS} ${ALS}.debug
+    objcopy --strip-all ${ALS}
+    cd `dirname $ALS`
+    ALS=`basename ${ALS}`
+    objcopy --add-gnu-debuglink=${ALS}.debug ${ALS}
+    cd -
 fi
