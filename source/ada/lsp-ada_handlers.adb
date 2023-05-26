@@ -5016,6 +5016,8 @@ package body LSP.Ada_Handlers is
             Build_Path  => Self.Project_Environment.Build_Path,
             Environment => Environment);
 
+         Self.Project_Tree.Update_Sources (With_Runtime => True);
+
       exception
          when E : GPR2.Project_Error
                 | GPR2.Processing_Error
@@ -5045,7 +5047,6 @@ package body LSP.Ada_Handlers is
             Self.Project_Status := No_Runtime_Found;
          end if;
 
-         Self.Project_Tree.Update_Sources (With_Runtime => True);
          Update_Project_Predefined_Sources (Self);
 
          if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
