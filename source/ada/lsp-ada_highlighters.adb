@@ -626,9 +626,9 @@ package body LSP.Ada_Highlighters is
                end;
 
                begin
-                  if Def.P_Has_Aspect (Self.Obsolescent)
-                    or else not Def.P_Get_Pragma (Self.Obsolescent).Is_Null
-                  then
+                  --  P_Has_Aspect checks the existence of either an aspect or a
+                  --  pragma.
+                  if Def.P_Has_Aspect (Self.Obsolescent) then
                      Highlight_Token (Node.Token_Start, deprecated);
                   end if;
                exception
