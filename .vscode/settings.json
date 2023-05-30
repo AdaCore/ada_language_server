@@ -1,3 +1,6 @@
 {
-    "ada.projectFile": "gnat/lsp_server.gpr"
+    "ada.projectFile": "gnat/lsp_server.gpr",
+    "python.analysis.extraPaths": [
+        "testsuite"
+    ]
 }
