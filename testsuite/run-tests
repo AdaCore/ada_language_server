@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import testsuite
 import os
-import yaml
 import sys
 
 if __name__ == '__main__':
@@ -16,7 +15,9 @@ if __name__ == '__main__':
         if status not in ('PASS', 'XFAIL'):
             all_ok = False
             print("--- {} : {} ---".format(k, status))
-            print(entry.load().out)
+            test_result = entry.load()
+            print(f"Output:\n{test_result.out}")
+            print(f"Log:\n{test_result.log}")
 
     if all_ok:
         print("SUCCESS")
