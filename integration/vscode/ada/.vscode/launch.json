@@ -7,9 +7,11 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}"
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "${workspaceFolder}/test",
+                "${workspaceFolder}/testsuite_grammar"
             ],
-            "preLaunchTask": "npm: compile",
+            "preLaunchTask": "npm: compile"
         },
         {
             "name": "Extension Tests",
