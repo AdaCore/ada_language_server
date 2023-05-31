@@ -1,6 +1,5 @@
-import os.path
-
 from e3.testsuite.result import TestStatus
+from e3.testsuite.process import check_call
 
 from drivers import ALSTestDriver
 
@@ -16,10 +15,13 @@ class ShellTestDriver(ALSTestDriver):
         if self.should_skip():
             return False
 
-        index = os.path.abspath(os.path.join(self.test_env["test_dir"], "index.txt"))
-        test_sh = os.path.join(self.env.repo_base, 'testsuite', 'shell', 'test.sh')
-        p = self.run_and_log([test_sh, self.env.repo_base], cwd=self.env.working_dir)
-        self.result.out += p.out
+        # This takes care of failing the test in case the return code is
+        # non-zero
+        check_call(
+            self,
+            [self.working_dir("test.sh"), self.env.repo_base],
+            parse_shebang=True
+        )
 
-        self.result.set_status(TestStatus.PASS if p.status == 0 else TestStatus.FAIL)
+        self.result.set_status(TestStatus.PASS)
         self.push_result()
