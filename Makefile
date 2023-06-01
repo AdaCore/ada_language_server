@@ -147,3 +147,13 @@ check: all
 
 deploy: check
 	integration/$(USER)/deploy.sh $(PLATFORM)
+
+lsp_client_glib-build:
+	$(GPRBUILD) -P gnat/lsp_client_glib.gpr -p $(COVERAGE_BUILD_FLAGS) \
+		-XVERSION=$(TRAVIS_TAG)
+
+lsp_client_glib-install:
+	gprinstall -f -P gnat/lsp_client_glib.gpr -p -r	\
+		--mode=dev				\
+		--prefix=$(DESTDIR)			\
+		$(LIBRARY_FLAGS)
