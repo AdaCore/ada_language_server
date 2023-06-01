@@ -1,0 +1,411 @@
+[
+   {
+      "comment": [
+         "Test formatting of a simple aggregate with and without QualExpr"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+             "${ALS}",
+             "--tracefile=./traces.cfg"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail"
+                              ]
+                           }
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n   type My_Record is tagged record\n      I, J : Integer;\n      F    : Float;\n   end record;\n\n   Bar : My_Record := My_Record'\nbegin\n   null;\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/foo.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 32
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 32
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 33
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Aggregate for My_Record",
+                        "kind": 15,
+                        "sortText": "+0",
+                        "filterText": "My_Record'(",
+                        "insertText": "I => ${1:Integer}, J => ${2:Integer}, F => ${3:Float})$0",
+                        "insertTextFormat": 2,
+                        "insertTextMode": 1,
+                        "textEdit": {
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 22
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 33
+                              }
+                           },
+                           "newText": "My_Record'\n                        (I => ${1:Integer},\n                         J => ${2:Integer},\n                         F => ${3:Float})$0"
+                        },
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{src/foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 14
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "I",
+                        "kind": 5,
+                        "documentation": "I => ",
+                        "sortText": "+1",
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "J",
+                        "kind": 5,
+                        "documentation": "J => ",
+                        "sortText": "+2",
+                        "insertText": "J => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "F",
+                        "kind": 5,
+                        "documentation": "F => ",
+                        "sortText": "+3",
+                        "insertText": "F => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/foo.adb}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 22
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 33
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/foo.adb}",
+                  "version": 6
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 22
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 22
+                        }
+                     },
+                     "text": "("
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/foo.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 23
+               },
+               "context": {
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 16,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Aggregate for My_Record",
+                        "kind": 15,
+                        "sortText": "+0",
+                        "filterText": "(",
+                        "insertText": "I => ${1:Integer}, J => ${2:Integer}, F => ${3:Float})$0",
+                        "insertTextFormat": 2,
+                        "insertTextMode": 1,
+                        "textEdit": {
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 22
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 23
+                              }
+                           },
+                           "newText": "(I => ${1:Integer},\n                       J => ${2:Integer},\n                       F => ${3:Float})$0"
+                        },
+                        "additionalTextEdits": [],
+                        "data": {
+                           "uri": "$URI{src/foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 14
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "I",
+                        "kind": 5,
+                        "documentation": "I => ",
+                        "sortText": "+1",
+                        "insertText": "I => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "J",
+                        "kind": 5,
+                        "documentation": "J => ",
+                        "sortText": "+2",
+                        "insertText": "J => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     },
+                     {
+                        "label": "F",
+                        "kind": 5,
+                        "documentation": "F => ",
+                        "sortText": "+3",
+                        "insertText": "F => ",
+                        "insertTextFormat": 1,
+                        "additionalTextEdits": []
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/foo.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 26,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 26,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

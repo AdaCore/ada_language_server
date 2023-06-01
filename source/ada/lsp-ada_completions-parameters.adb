@@ -713,8 +713,15 @@ package body LSP.Ada_Completions.Parameters is
       Column : out Langkit_Support.Slocs.Column_Number)
       return Libadalang.Analysis.Ada_Node'Class is
    begin
-      Column := A.Parent.Sloc_Range.Start_Column;
-      return A.Parent;
+      if A.Parent.Kind in Ada_Qual_Expr_Range then
+         --  we have: My_Type'(
+         Column := A.Parent.Sloc_Range.Start_Column;
+         return A.Parent;
+      else
+         --  not prefixed by a type
+         Column := A.Sloc_Range.Start_Column;
+         return A;
+      end if;
    end Get_Prefix_Node;
 
    ----------------
