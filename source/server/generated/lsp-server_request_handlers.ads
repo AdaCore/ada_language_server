@@ -262,6 +262,18 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.GLS_Executables_Response
         is abstract;
 
+   function On_GLS_Object_Dir_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Object_Dir_Request)
+      return LSP.Messages.Server_Responses.GLS_Object_Dir_Response
+        is abstract;
+
+   function On_GLS_Project_File_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Project_File_Request)
+      return LSP.Messages.Server_Responses.GLS_Project_File_Response
+        is abstract;
+
    procedure Handle_Error
      (Self  : access Server_Request_Handler) is null;
    --  This procedure will be called when an unexpected error is raised in the

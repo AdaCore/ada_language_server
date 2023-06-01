@@ -22,8 +22,7 @@
         "workspaceContains:*/*.gpr",
         "workspaceContains:*.ad[bs]",
         "workspaceContains:*/*.ad[bs]",
-        "workspaceContains:alire.toml",
-        "onCommand:workbench.action.tasks.runTask"
+        "workspaceContains:alire.toml"
     ],
     "main": "./out/src/extension",
     "icon": "icons/ada.png",
@@ -411,6 +410,17 @@
                         "description": "Controls if the `textDocument/onTypeFormatting` request only indents a new line, or if it additionally tries to format the previous node."
                     }
                 }
+            },
+            {
+                "title": "Shortcut Menu Bar configuration",
+                "properties": {
+                    "gpr.buildProject-icon": {
+                        "title": "Build the Ada Project",
+                        "type": "boolean",
+                        "default": true,
+                        "description": "show icon for 'Build' "
+                    }
+                }
             }
         ],
         "problemMatchers": [
@@ -451,7 +461,7 @@
                 }
             },
             {
-                "type": "GPR Tasks",
+                "type": "gpr",
                 "required": [
                     "projectFile",
                     "mainFile"
@@ -483,15 +493,18 @@
             },
             {
                 "command": "ada.showExtensionOutput",
-                "title": "Ada: Show Output"
+                "title": "Ada: Show Output",
+                "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.showAdaLSOutput",
-                "title": "Ada: Show Ada Language Server Output"
+                "title": "Ada: Show Ada Language Server Output",
+                "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.showGprLSOutput",
-                "title": "Ada: Show GPR Language Server Output"
+                "title": "Ada: Show GPR Language Server Output",
+                "when": "ADA_PROJECT_CONTEXT"
             }
         ],
         "keybindings": [
@@ -514,7 +527,7 @@
                 },
                 {
                     "command": "ada.subprogramBox",
-                    "when": "editorLangId == ada"
+                    "when": "ADA_PROJECT_CONTEXT"
                 }
             ]
         },
@@ -604,6 +617,7 @@
         "fp-ts": "2.12.0",
         "process": "0.11.10",
         "vscode-languageclient": "7.0.0",
-        "ws": "8.13.0"
+        "ws": "8.13.0",
+        "fast-xml-parser": "4.2.5"
     }
 }

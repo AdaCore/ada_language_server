@@ -533,6 +533,22 @@ private
 
    overriding procedure On_GLS_Executables_Response
      (Self     : in out Message_Logger;
-    Response : LSP.Messages.Server_Responses.GLS_Executables_Response);
+      Response : LSP.Messages.Server_Responses.GLS_Executables_Response);
+
+   overriding procedure On_GLS_Object_Dir_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.GLS_Object_Dir_Request);
+
+   overriding procedure On_GLS_Object_Dir_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.GLS_Object_Dir_Response);
+
+   overriding procedure On_GLS_Project_File_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.GLS_Project_File_Request);
+
+   overriding procedure On_GLS_Project_File_Response
+     (Self     : in out Message_Logger;
+    Response : LSP.Messages.Server_Responses.GLS_Project_File_Response);
 
 end LSP.Message_Loggers;

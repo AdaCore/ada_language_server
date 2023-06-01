@@ -10998,18 +10998,7 @@ package LSP.Messages is
       V : ALS_Check_Syntax_Result);
    for ALS_Check_Syntax_Result'Write use Write_ALS_Check_Syntax_Result;
 
-   type GLS_Mains_Params is null record;
    type GLS_Mains_Result is new Optional_Virtual_String_Vector;
-
-   procedure Read_GLS_Mains_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out GLS_Mains_Params);
-   for GLS_Mains_Params'Read use Read_GLS_Mains_Params;
-
-   procedure Write_GLS_Mains_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : GLS_Mains_Params);
-   for GLS_Mains_Params'Write use Write_GLS_Mains_Params;
 
    procedure Read_GLS_Mains_Result
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -11021,18 +11010,7 @@ package LSP.Messages is
       V : GLS_Mains_Result);
    for GLS_Mains_Result'Write use Write_GLS_Mains_Result;
 
-   type GLS_Executables_Params is null record;
    type GLS_Executables_Result is new Optional_Virtual_String_Vector;
-
-   procedure Read_GLS_Executables_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out GLS_Executables_Params);
-   for GLS_Executables_Params'Read use Read_GLS_Executables_Params;
-
-   procedure Write_GLS_Executables_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : GLS_Executables_Params);
-   for GLS_Executables_Params'Write use Write_GLS_Executables_Params;
 
    procedure Read_GLS_Executables_Result
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -11043,6 +11021,30 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : GLS_Executables_Result);
    for GLS_Executables_Result'Write use Write_GLS_Executables_Result;
+
+   type GLS_Object_Dir_Result is new Optional_Virtual_String;
+
+   procedure Read_GLS_Object_Dir_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GLS_Object_Dir_Result);
+   for GLS_Object_Dir_Result'Read use Read_GLS_Object_Dir_Result;
+
+   procedure Write_GLS_Object_Dir_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GLS_Object_Dir_Result);
+   for GLS_Object_Dir_Result'Write use Write_GLS_Object_Dir_Result;
+
+   type GLS_Project_File_Result is new Optional_Virtual_String;
+
+   procedure Read_GLS_Project_File_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GLS_Project_File_Result);
+   for GLS_Project_File_Result'Read use Read_GLS_Project_File_Result;
+
+   procedure Write_GLS_Project_File_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GLS_Project_File_Result);
+   for GLS_Project_File_Result'Write use Write_GLS_Project_File_Result;
 
 private
 

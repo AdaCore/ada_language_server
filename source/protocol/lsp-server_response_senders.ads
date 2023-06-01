@@ -190,4 +190,14 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.GLS_Executables_Response)
    is abstract;
 
+   procedure On_GLS_Object_Dir_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.GLS_Object_Dir_Response)
+   is abstract;
+
+   procedure On_GLS_Project_File_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.GLS_Project_File_Response)
+   is abstract;
+
 end LSP.Server_Response_Senders;

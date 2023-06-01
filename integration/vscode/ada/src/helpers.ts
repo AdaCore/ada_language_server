@@ -17,6 +17,7 @@
 import { platform } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { LanguageClient } from 'vscode-languageclient/node';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -105,6 +106,10 @@ export function substituteVariables(str: string, recursive = false): string {
     return str;
 }
 
+/*
+    Environment setting helper functions
+*/
+
 export function getCustomEnv() {
     const user_platform = platform();
     let env_config_name = 'terminal.integrated.env';
@@ -141,4 +146,60 @@ export function getEvaluatedCustomEnv() {
     }
 
     return custom_env;
+}
+
+export function assertSupportedEnvironments(mainChannel: vscode.OutputChannel) {
+    type Env = {
+        arch: 'arm' | 'arm64' | 'x64';
+        platform: 'win32' | 'linux' | 'darwin';
+    };
+    const supportedEnvs: Env[] = [
+        { arch: 'x64', platform: 'linux' },
+        { arch: 'x64', platform: 'win32' },
+        { arch: 'x64', platform: 'darwin' },
+        { arch: 'arm64', platform: 'darwin' },
+    ];
+
+    if (
+        !supportedEnvs.some((val) => {
+            return val.arch == process.arch && val.platform == process.platform;
+        })
+    ) {
+        const msg =
+            `The Ada extension is not supported on ` +
+            `architecture '${process.arch}' and platform '${process.platform}'`;
+        logErrorAndThrow(msg, mainChannel);
+    }
+}
+
+export function logErrorAndThrow(msg: string, channel: vscode.OutputChannel) {
+    void vscode.window.showErrorMessage(msg);
+    channel.appendLine('[Error] ' + msg);
+    throw new Error(msg);
+}
+
+/*
+    GPR extensions helper functions
+*/
+type ProjectFileResponse = {
+    projectFile: string;
+};
+
+type ObjDirResponse = {
+    objectDir: string;
+};
+
+export async function getProjectFile(client: LanguageClient): Promise<string> {
+    const config: string | undefined = vscode.workspace.getConfiguration('ada').get('projectFile');
+    if (config != undefined && config != '') {
+        return config;
+    } else {
+        const result: ProjectFileResponse = await client.sendRequest('$/glsProjectFile');
+        return result.projectFile;
+    }
+}
+
+export async function getObjectDir(client: LanguageClient): Promise<string> {
+    const result: ObjDirResponse = await client.sendRequest('$/glsObjectDir');
+    return result.objectDir;
 }

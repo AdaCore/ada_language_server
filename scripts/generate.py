@@ -330,8 +330,10 @@ REQUESTS = [
     ('$/alsDebug', 'ALS_Debug', 'ALSDebugParams', 'ALS_Debug_Response'),
     ('$/alsCheckSyntax', 'ALS_Check_Syntax', 'ALS_Check_Syntax_Params',
      'ALS_Check_Syntax_Response'),
-    ('$/glsMains', 'GLS_Mains', 'GLS_Mains_Params', 'GLS_Mains_Response'),
-    ('$/glsExecutables', 'GLS_Executables', 'GLS_Executables_Params', 'GLS_Executables_Response'),
+    ('$/glsMains', 'GLS_Mains', None, 'GLS_Mains_Response'),
+    ('$/glsExecutables', 'GLS_Executables', None, 'GLS_Executables_Response'),
+    ('$/glsObjectDir', 'GLS_Object_Dir', None, 'GLS_Object_Dir_Response'),
+    ('$/glsProjectFile', 'GLS_Project_File', None, 'GLS_Project_File_Response'),
 ]
 # Names of requests in the form (protocol name, Ada name, parameter name,
 #   response name)

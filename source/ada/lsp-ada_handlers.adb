@@ -7056,6 +7056,56 @@ package body LSP.Ada_Handlers is
       end return;
    end On_GLS_Executables_Request;
 
+   --------------------------------
+   -- On_GLS_ObjectDir_Request --
+   --------------------------------
+
+   overriding function On_GLS_Object_Dir_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Object_Dir_Request)
+      return LSP.Messages.Server_Responses.GLS_Object_Dir_Response
+   is
+      use LSP.Messages.Server_Responses;
+      use VSS.Strings;
+      Result : Virtual_String;
+      Element : GPR2.Project.View.Object;
+   begin
+      if Self.Project_Tree.Is_Defined
+      then
+         Element := Self.Project_Tree.Root_Project;
+         Result := VSS.Strings.Conversions.To_Virtual_String
+                (Element.Object_Directory.Value);
+      end if;
+      return Response : GLS_Object_Dir_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => Result);
+      end return;
+   end On_GLS_Object_Dir_Request;
+
+   --------------------------------
+   -- On_GLS_Project_File_Request --
+   --------------------------------
+
+   overriding function On_GLS_Project_File_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Project_File_Request)
+      return LSP.Messages.Server_Responses.GLS_Project_File_Response
+   is
+      use LSP.Messages.Server_Responses;
+      use VSS.Strings;
+      Result : Virtual_String;
+      Element : GPR2.Project.View.Object;
+   begin
+      if Self.Project_Tree.Is_Defined
+      then
+         Element := Self.Project_Tree.Root_Project;
+         Result := VSS.Strings.Conversions.To_Virtual_String
+           (Element.Path_Name.Value);
+      end if;
+      return Response : GLS_Project_File_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => Result);
+      end return;
+   end On_GLS_Project_File_Request;
+
    -----------
    -- Parse --
    -----------

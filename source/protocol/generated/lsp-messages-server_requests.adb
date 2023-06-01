@@ -303,6 +303,15 @@ package body LSP.Messages.Server_Requests is
       Handler.On_ALS_Check_Syntax_Request (Self);
    end Visit;
 
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return GLS_Mains_Request is
+   begin
+      return V : GLS_Mains_Request do
+         RequestMessage'Read (JS, RequestMessage (V));
+      end return;
+   end Decode;
+
    overriding procedure Visit
      (Self    : GLS_Mains_Request;
       Handler : access Server_Request_Receiver'Class) is
@@ -310,11 +319,52 @@ package body LSP.Messages.Server_Requests is
       Handler.On_GLS_Mains_Request (Self);
    end Visit;
 
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return GLS_Executables_Request is
+   begin
+      return V : GLS_Executables_Request do
+         RequestMessage'Read (JS, RequestMessage (V));
+      end return;
+   end Decode;
+
    overriding procedure Visit
      (Self    : GLS_Executables_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
       Handler.On_GLS_Executables_Request (Self);
+   end Visit;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return GLS_Object_Dir_Request is
+   begin
+      return V : GLS_Object_Dir_Request do
+         RequestMessage'Read (JS, RequestMessage (V));
+      end return;
+   end Decode;
+
+   overriding procedure Visit
+     (Self    : GLS_Object_Dir_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_GLS_Object_Dir_Request (Self);
+   end Visit;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return GLS_Project_File_Request is
+   begin
+      return V : GLS_Project_File_Request do
+         RequestMessage'Read (JS, RequestMessage (V));
+      end return;
+   end Decode;
+
+   overriding procedure Visit
+     (Self    : GLS_Project_File_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_GLS_Project_File_Request (Self);
    end Visit;
 
 begin
@@ -482,4 +532,12 @@ begin
    Map.Insert
      ("$/glsExecutables",
       GLS_Executables_Request'Tag);
+
+   Map.Insert
+     ("$/glsObjectDir",
+      GLS_Object_Dir_Request'Tag);
+
+   Map.Insert
+     ("$/glsProjectFile",
+      GLS_Project_File_Request'Tag);
 end LSP.Messages.Server_Requests;

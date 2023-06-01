@@ -525,30 +525,44 @@ package LSP.Messages.Server_Requests is
      (Self    : ALS_Check_Syntax_Request;
       Handler : access Server_Request_Receiver'Class);
 
-   package GLS_Mains_Requests is
-     new LSP.Generic_Requests
-       (Server_Request,
-        GLS_Mains_Params,
-        Server_Request_Receiver'Class);
+   type GLS_Mains_Request is new Server_Request with null record;
 
-   type GLS_Mains_Request is
-     new GLS_Mains_Requests.Request with null record;
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return GLS_Mains_Request;
 
    overriding procedure Visit
      (Self    : GLS_Mains_Request;
       Handler : access Server_Request_Receiver'Class);
 
-   package GLS_Executables_Requests is
-     new LSP.Generic_Requests
-       (Server_Request,
-        GLS_Executables_Params,
-        Server_Request_Receiver'Class);
+   type GLS_Executables_Request is new Server_Request with null record;
 
-   type GLS_Executables_Request is
-     new GLS_Executables_Requests.Request with null record;
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return GLS_Executables_Request;
 
    overriding procedure Visit
      (Self    : GLS_Executables_Request;
+      Handler : access Server_Request_Receiver'Class);
+
+   type GLS_Object_Dir_Request is new Server_Request with null record;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return GLS_Object_Dir_Request;
+
+   overriding procedure Visit
+     (Self    : GLS_Object_Dir_Request;
+      Handler : access Server_Request_Receiver'Class);
+
+   type GLS_Project_File_Request is new Server_Request with null record;
+
+   overriding function Decode
+     (JS : not null access LSP.JSON_Streams.JSON_Stream)
+      return GLS_Project_File_Request;
+
+   overriding procedure Visit
+     (Self    : GLS_Project_File_Request;
       Handler : access Server_Request_Receiver'Class);
 
 end LSP.Messages.Server_Requests;

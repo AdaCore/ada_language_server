@@ -77,6 +77,7 @@ To build the language server you need:
 * The [gpr](https://github.com/AdaCore/gpr) library
 * The process [spawn](https://github.com/AdaCore/spawn) library
 * The [lal-refactor](https://github.com/AdaCore/lal-refactor) library
+* The [templates-parser](https://github.com/AdaCore/templates-parser) library
 
 Project files of the libraries must be available via the `GPR_PROJECT_PATH`
 environment variable.
