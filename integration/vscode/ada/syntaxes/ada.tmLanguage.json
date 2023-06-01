@@ -3,11 +3,7 @@
     "name": "Ada",
     "comment": "Ada grammar file",
     "scopeName": "source.ada",
-    "fileTypes": [
-        "adb",
-        "adc",
-        "ads"
-    ],
+    "fileTypes": ["adb", "adc", "ads"],
     "patterns": [
         {
             "name": "comment.line.ada",
