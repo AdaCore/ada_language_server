@@ -70,6 +70,10 @@ package body LSP.Message_Loggers is
      (Value : LSP.Messages.GLS_Mains_Result) return String;
    function Image
      (Value : LSP.Messages.GLS_Executables_Result) return String;
+   function Image
+     (Value : LSP.Messages.GLS_Object_Dir_Result) return String;
+   function Image
+     (Value : LSP.Messages.GLS_Project_File_Result) return String;
    -----------
    -- Image --
    -----------
@@ -470,6 +474,44 @@ package body LSP.Message_Loggers is
          end loop;
       end if;
       return To_UTF_8_String (R);
+   end Image;
+
+   ------------
+   -- Image ---
+   ------------
+
+   function Image
+     (Value : LSP.Messages.GLS_Object_Dir_Result) return String
+   is
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
+      R : VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+   begin
+      Append (R, "ObjectDir : ");
+      if Value.Is_Set then
+         Append (R, Value.Value);
+      end if;
+      return To_UTF_8_String (R);
+   end Image;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (Value : LSP.Messages.GLS_Project_File_Result) return String
+   is
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
+      R : VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+   begin
+      R := "Project File: ";
+      if Value.Is_Set then
+         Append (R, Value.Value);
+         return To_UTF_8_String (R);
+      else
+         return "";
+      end if;
    end Image;
 
    ----------------
@@ -2528,5 +2570,81 @@ package body LSP.Message_Loggers is
          end if;
       end if;
    end On_GLS_Executables_Response;
+
+   --------------------------------
+   -- On_GLS_Object_Dir_Request --
+   --------------------------------
+
+   overriding procedure On_GLS_Object_Dir_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.GLS_Object_Dir_Request) is
+   begin
+      Self.Trace.Trace
+        ("GLS_Object_Dir_Request: "
+         & Image (Value));
+   end On_GLS_Object_Dir_Request;
+
+   ---------------------------------
+   -- On_GLS_Object_Dir_Response --
+   ---------------------------------
+
+   overriding procedure On_GLS_Object_Dir_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.GLS_Object_Dir_Response) is
+   begin
+      if Response.Is_Error then
+         Self.Trace.Trace
+           ("GLS_ObjectDir_Response: " & Image (Response) & " Error");
+      else
+         if Response.result.Is_Set then
+            Self.Trace.Trace
+              ("GLS_ObjectDir_Response: "
+               & Image (Response)
+               & " "
+               & Image (Response.result));
+         else
+            Self.Trace.Trace
+              ("GLS_ObjectDir_Response: " & Image (Response));
+         end if;
+      end if;
+   end On_GLS_Object_Dir_Response;
+
+   --------------------------------
+   -- On_GLS_Project_File_Request --
+   --------------------------------
+
+   overriding procedure On_GLS_Project_File_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.GLS_Project_File_Request) is
+   begin
+      Self.Trace.Trace
+        ("GLS_Project_File_Request: "
+         & Image (Value));
+   end On_GLS_Project_File_Request;
+
+   ----------------------------------
+   -- On_GLS_Project_File_Response --
+   ----------------------------------
+
+   overriding procedure On_GLS_Project_File_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.GLS_Project_File_Response) is
+   begin
+      if Response.Is_Error then
+         Self.Trace.Trace
+           ("GLS_Project_File_Response: " & Image (Response) & " Error");
+      else
+         if Response.result.Is_Set then
+            Self.Trace.Trace
+              ("GLS_Project_File_Response: "
+               & Image (Response)
+               & " "
+               & Image (Response.result));
+         else
+            Self.Trace.Trace
+              ("GLS_Project_File_Response: " & Image (Response));
+         end if;
+      end if;
+   end On_GLS_Project_File_Response;
 
 end LSP.Message_Loggers;

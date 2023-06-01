@@ -1,8 +1,7 @@
 import * as assert from 'assert';
-import { before } from 'mocha';
 import { contextClients } from '../../src/extension';
 import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../../src/alsProtocolExtensions';
-
+import { before, suite, test } from 'mocha';
 import * as vscode from 'vscode';
 
 suite('Syntax Check Test Suite', () => {
@@ -10,71 +9,52 @@ suite('Syntax Check Test Suite', () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         vscode.window.showInformationMessage('Start all tests.');
     });
-
-    test('Grammer Rules Tests', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ext: vscode.Extension<any> | undefined =
-            vscode.extensions.getExtension('AdaCore.ada');
-        if (ext !== undefined) {
-            if (!ext.isActive) {
-                await ext.activate();
+    suite('Grammer Rules Tests', () => {
+        // Checking the extension is activated before running the tests.
+        before(async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const ext: vscode.Extension<any> | undefined =
+                vscode.extensions.getExtension('AdaCore.ada');
+            if (ext !== undefined) {
+                if (!ext.isActive) {
+                    await ext.activate();
+                }
             }
+        });
+        // the test function
+        async function testRule(
+            rule: AdaGrammarRule,
+            false_statement: string,
+            true_statement: string
+        ) {
+            await contextClients.adaClient.onReady();
+            const syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [rule]);
+            let result = await syntaxProvider.sendCheckSyntaxRequest(true_statement);
+            assert.deepStrictEqual(result, undefined);
+            result = await syntaxProvider.sendCheckSyntaxRequest(false_statement);
+            assert.deepStrictEqual(result, 'Invalid Syntax');
         }
-        await contextClients.adaClient.onReady();
-        let syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [
-            AdaGrammarRule.Defining_Id_Rule,
-        ]);
-        let result = await syntaxProvider.sendCheckSyntaxRequest('Foo');
-        assert.deepStrictEqual(result, undefined);
-        result = await syntaxProvider.sendCheckSyntaxRequest('package Foo');
-        assert.deepStrictEqual(result, 'Invalid Syntax');
-
-        syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [
-            AdaGrammarRule.Defining_Id_List_Rule,
-        ]);
-        result = await syntaxProvider.sendCheckSyntaxRequest('Foo, Bar');
-        assert.deepStrictEqual(result, undefined);
-        result = await syntaxProvider.sendCheckSyntaxRequest('package Foo, Bar');
-        assert.deepStrictEqual(result, 'Invalid Syntax');
-
-        syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [
-            AdaGrammarRule.Defining_Name_Rule,
-        ]);
-        result = await syntaxProvider.sendCheckSyntaxRequest('Foo');
-        assert.deepStrictEqual(result, undefined);
-        result = await syntaxProvider.sendCheckSyntaxRequest('access Foo');
-        assert.deepStrictEqual(result, 'Invalid Syntax');
-
-        syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [
-            AdaGrammarRule.Expr_Rule,
-        ]);
-        result = await syntaxProvider.sendCheckSyntaxRequest('a + b');
-        assert.deepStrictEqual(result, undefined);
-        result = await syntaxProvider.sendCheckSyntaxRequest('package a + b');
-        assert.deepStrictEqual(result, 'Invalid Syntax');
-
-        syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [
-            AdaGrammarRule.Param_Spec_Rule,
-        ]);
-        result = await syntaxProvider.sendCheckSyntaxRequest('Foo : Bar');
-        assert.deepStrictEqual(result, undefined);
-        result = await syntaxProvider.sendCheckSyntaxRequest('package Foo : Bar');
-        assert.deepStrictEqual(result, 'Invalid Syntax');
-
-        syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [
-            AdaGrammarRule.Anonymous_Type_Rule,
-        ]);
-        result = await syntaxProvider.sendCheckSyntaxRequest('access Foo');
-        assert.deepStrictEqual(result, undefined);
-        result = await syntaxProvider.sendCheckSyntaxRequest('type access Foo');
-        assert.deepStrictEqual(result, 'Invalid Syntax');
-
-        syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [
-            AdaGrammarRule.Subtype_Indication_Rule,
-        ]);
-        result = await syntaxProvider.sendCheckSyntaxRequest('Foo.Bar');
-        assert.deepStrictEqual(result, undefined);
-        result = await syntaxProvider.sendCheckSyntaxRequest('type Foo.Bar');
-        assert.deepStrictEqual(result, 'Invalid Syntax');
+        // the test cases
+        test('Id Rule', async () => {
+            await testRule(AdaGrammarRule.Defining_Id_Rule, 'package Foo', 'Foo');
+        });
+        test('Id List Rule', async () => {
+            await testRule(AdaGrammarRule.Defining_Id_List_Rule, 'package Foo, Bar', 'Foo, Bar');
+        });
+        test('Def Name Rule', async () => {
+            await testRule(AdaGrammarRule.Defining_Name_Rule, 'access Foo', 'Foo');
+        });
+        test('Param Spec Rule', async () => {
+            await testRule(AdaGrammarRule.Param_Spec_Rule, 'package Foo : Bar', 'Foo : Bar');
+        });
+        test('Expr Rule', async () => {
+            await testRule(AdaGrammarRule.Expr_Rule, 'package a + b', 'a + b');
+        });
+        test('Anonymous Type Rule', async () => {
+            await testRule(AdaGrammarRule.Anonymous_Type_Rule, 'type access Foo', 'access Foo');
+        });
+        test('Subtype Id Rule', async () => {
+            await testRule(AdaGrammarRule.Subtype_Indication_Rule, 'type Foo.Bar', 'Foo.Bar');
+        });
     });
 });

@@ -5,7 +5,7 @@ import { env } from 'process';
 
 export function run(): Promise<void> {
     const mochaOptions: MochaOptions = {
-        ui: 'tdd',
+        ui: 'bdd',
         color: true,
     };
 
@@ -14,12 +14,6 @@ export function run(): Promise<void> {
         // environment could set this to 'mocha-junit-reporter' to produce JUnit
         // results.
         mochaOptions.reporter = process.env.MOCHA_REPORTER;
-    }
-
-    if (!mochaOptions.reporterOptions) {
-        mochaOptions.reporterOptions = {
-            maxDiffSize: 0,
-        };
     }
 
     // Create the mocha test
@@ -39,10 +33,6 @@ export function run(): Promise<void> {
             // timeouts.
             if (env['MOCHA_TIMEOUT']) {
                 mocha.timeout(env['MOCHA_TIMEOUT']);
-            }
-
-            if (env['MOCHA_GREP']) {
-                mocha.grep(env['MOCHA_GREP']);
             }
 
             // Run the mocha test

@@ -390,4 +390,27 @@ package LSP.Messages.Server_Responses is
    overriding procedure Visit
      (Self    : GLS_Executables_Response;
       Handler : access Server_Response_Sender'Class);
+
+   package GLS_Object_Dir_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => GLS_Object_Dir_Result);
+
+   type GLS_Object_Dir_Response is
+     new GLS_Object_Dir_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : GLS_Object_Dir_Response;
+      Handler : access Server_Response_Sender'Class);
+
+   package GLS_Project_File_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => GLS_Project_File_Result);
+
+   type GLS_Project_File_Response is
+     new GLS_Project_File_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : GLS_Project_File_Response;
+      Handler : access Server_Response_Sender'Class);
+
 end LSP.Messages.Server_Responses;
