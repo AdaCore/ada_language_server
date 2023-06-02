@@ -113,11 +113,11 @@ ifneq ($(COVERAGE),)
 endif
 
 clean:
-	$(GPRCLEAN) -P gnat/lsp.gpr $(LIBRARY_FLAGS)
-	$(GPRCLEAN) -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
-	$(GPRCLEAN) -P gnat/tester.gpr $(LIBRARY_FLAGS)
-	$(GPRCLEAN) -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
-	rm -rf integration/vscode/ada/$(PLATFORM)
+	-$(GPRCLEAN) -P gnat/lsp.gpr $(LIBRARY_FLAGS)
+	-$(GPRCLEAN) -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
+	-$(GPRCLEAN) -P gnat/tester.gpr $(LIBRARY_FLAGS)
+	-$(GPRCLEAN) -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
+	-rm -rf integration/vscode/ada/$(PLATFORM)
 
 vscode:
 	cd integration/vscode/ada; LD_LIBRARY_PATH= npm install --no-audit && npm run compile
