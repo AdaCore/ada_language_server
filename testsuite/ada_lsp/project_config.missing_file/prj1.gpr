@@ -1,0 +1,4 @@
+project Prj1 is
+   for Source_Files use ("missing.ads", "main.adb");
+end Prj1;
+

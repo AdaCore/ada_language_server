@@ -358,4 +358,25 @@ package LSP.Messages.Server_Responses is
      (Self    : ALS_Check_Syntax_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package GLS_Mains_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => GLS_Mains_Result);
+
+   type GLS_Mains_Response is
+     new GLS_Mains_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : GLS_Mains_Response;
+      Handler : access Server_Response_Sender'Class);
+
+   package GLS_Executables_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => GLS_Executables_Result);
+
+   type GLS_Executables_Response is
+     new GLS_Executables_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : GLS_Executables_Response;
+      Handler : access Server_Response_Sender'Class);
 end LSP.Messages.Server_Responses;

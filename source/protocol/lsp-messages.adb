@@ -4478,6 +4478,7 @@ package body LSP.Messages is
    begin
       pragma Assert (JS.R.Is_Start_Object);
       JS.R.Read_Next;
+      V := (Is_Set => False);
 
       while not JS.R.Is_End_Object loop
          pragma Assert (JS.R.Is_Key_Name);
@@ -4515,4 +4516,173 @@ package body LSP.Messages is
       JS.End_Object;
    end Write_ALS_Check_Syntax_Result;
 
+   ---------------------------------
+   --- GLS_Mains_Params ------------
+   ---------------------------------
+
+   procedure Read_GLS_Mains_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GLS_Mains_Params)
+   is
+      pragma Unreferenced (S);
+
+   begin
+      V := (null record);
+   end Read_GLS_Mains_Params;
+
+   -----------------------------------
+   -- Write_GLS_Mains_Params --
+   -----------------------------------
+
+   procedure Write_GLS_Mains_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GLS_Mains_Params)
+   is
+      pragma Unreferenced (V);
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+
+      JS.Start_Object;
+      JS.End_Object;
+
+   end Write_GLS_Mains_Params;
+
+   ----------------------------------
+   -- Read_GLS_Mains_Result --
+   ----------------------------------
+
+   procedure Read_GLS_Mains_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GLS_Mains_Result)
+   is
+      use type VSS.Strings.Virtual_String;
+      use type VSS.String_Vectors.Virtual_String_Vector;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+      V := (Is_Set => False);
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "mains" then
+               V := (Is_Set => True, Value => <>);
+               Read_String_Vector (S, V.Value);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_GLS_Mains_Result;
+
+   -----------------------------------
+   -- Write_GLS_Mains_Result --
+   -----------------------------------
+
+   procedure Write_GLS_Mains_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GLS_Mains_Result)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      if V.Is_Set then
+         JS.Key ("mains");
+         Write_String_Vector (S, V.Value);
+      end if;
+      JS.End_Object;
+   end Write_GLS_Mains_Result;
+
+   ---------------------------------
+   --- GLS_Executables_Params ------------
+   ---------------------------------
+
+   procedure Read_GLS_Executables_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GLS_Executables_Params)
+   is
+      pragma Unreferenced (S);
+   begin
+      V := (null record);
+   end Read_GLS_Executables_Params;
+
+   -----------------------------------
+   -- Write_GLS_Executables_Params --
+   -----------------------------------
+
+   procedure Write_GLS_Executables_Params
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GLS_Executables_Params)
+   is
+      pragma Unreferenced (V);
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+
+   begin
+      JS.Start_Object;
+      JS.End_Object;
+   end Write_GLS_Executables_Params;
+
+   ----------------------------------
+   -- Read_GLS_Executables_Result --
+   ----------------------------------
+
+   procedure Read_GLS_Executables_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GLS_Executables_Result)
+   is
+      use type VSS.Strings.Virtual_String;
+      use type VSS.String_Vectors.Virtual_String_Vector;
+
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      pragma Assert (JS.R.Is_Start_Object);
+      JS.R.Read_Next;
+      V := (Is_Set => False);
+
+      while not JS.R.Is_End_Object loop
+         pragma Assert (JS.R.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
+         begin
+            JS.R.Read_Next;
+            if Key = "executables" then
+               V := (Is_Set => True, Value => <>);
+               Read_String_Vector (S, V.Value);
+            else
+               JS.Skip_Value;
+            end if;
+         end;
+      end loop;
+      JS.R.Read_Next;
+   end Read_GLS_Executables_Result;
+
+   -----------------------------------
+   -- Write_GLS_Executables_Result --
+   -----------------------------------
+
+   procedure Write_GLS_Executables_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GLS_Executables_Result)
+   is
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+   begin
+      JS.Start_Object;
+      if V.Is_Set then
+         JS.Key ("executables");
+         Write_String_Vector (S, V.Value);
+      end if;
+      JS.End_Object;
+   end Write_GLS_Executables_Result;
 end LSP.Messages;

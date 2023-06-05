@@ -296,6 +296,20 @@ package body LSP.Messages.Server_Requests is
       Handler.On_ALS_Check_Syntax_Request (Self);
    end Visit;
 
+   overriding procedure Visit
+     (Self    : GLS_Mains_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_GLS_Mains_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
+     (Self    : GLS_Executables_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_GLS_Executables_Request (Self);
+   end Visit;
+
 begin
 
    Map.Insert
@@ -449,4 +463,12 @@ begin
    Map.Insert
      ("$/alsCheckSyntax",
       ALS_Check_Syntax_Request'Tag);
+
+   Map.Insert
+     ("$/glsMains",
+      GLS_Mains_Request'Tag);
+
+   Map.Insert
+     ("$/glsExecutables",
+      GLS_Executables_Request'Tag);
 end LSP.Messages.Server_Requests;

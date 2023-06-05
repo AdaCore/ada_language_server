@@ -45,3 +45,4 @@ related resources.
  * [Reference kinds](reference_kinds.md)
  * [Show Dependencies](show_dependencies.md)
  * [Check Syntax](check_syntax.md)
+ * [Executables](executables.md)

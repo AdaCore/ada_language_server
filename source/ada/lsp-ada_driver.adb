@@ -358,7 +358,9 @@ begin
             GNAT.OS_Lib.OS_Exit (1);
          end if;
 
-         Ada_Handler.Change_Configuration (Parse_Result.Value);
+         Ada_Handler.Change_Configuration_Before_Init
+           (Options => Parse_Result.Value,
+            Root    => Config_File.Dir);
       end;
    end if;
 

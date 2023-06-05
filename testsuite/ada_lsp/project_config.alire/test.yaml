@@ -1,0 +1,4 @@
+title: 'project_config.alire'
+skip:
+    - ['SKIP', 'env.build.os.name == "windows"']
+

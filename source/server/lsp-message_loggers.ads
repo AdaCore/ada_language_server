@@ -511,4 +511,20 @@ private
      (Self     : in out Message_Logger;
       Response : LSP.Messages.Server_Responses.ALS_Check_Syntax_Response);
 
+   overriding procedure On_GLS_Mains_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.GLS_Mains_Request);
+
+   overriding procedure On_GLS_Mains_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.GLS_Mains_Response);
+
+   overriding procedure On_GLS_Executables_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.GLS_Executables_Request);
+
+   overriding procedure On_GLS_Executables_Response
+     (Self     : in out Message_Logger;
+    Response : LSP.Messages.Server_Responses.GLS_Executables_Response);
+
 end LSP.Message_Loggers;

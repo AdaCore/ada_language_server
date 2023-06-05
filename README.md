@@ -13,6 +13,7 @@ for Ada/SPARK.
 Current features:
 
 * [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html) support.
+* Basic [Alire](https://alire.ada.dev/) support.
 * Code completion for names, keywords, aggregates, etc.
 * Code navigation, such as Go to Definition/Declaration, Find All References, Call Hierarchies, etc.
 * [Code refactoring](#refactoring-tools) like insert named associations, auto-add `with`-clauses, etc.
@@ -32,10 +33,6 @@ extension at
     - [Dependencies](#dependencies)
   - [Usage](#usage)
   - [Supported LSP Server Requests](#supported-lsp-server-requests)
-    - [General Requests](#general-requests)
-    - [Workspace Requests](#workspace-requests)
-    - [Synchronization Requests](#synchronization-requests)
-    - [Text Document Requests](#text-document-requests)
     - [Protocol extensions](#protocol-extensions)
   - [How to use the VScode extension](#how-to-use-the-vscode-extension)
     - [Getting started](#getting-started)
@@ -44,12 +41,13 @@ extension at
     - [Commands and shortcuts](#commands-and-shortcuts)
     - [Launch the extension to debug it](#launch-the-extension-to-debug-it)
     - [Configuration](#configuration)
-  - [Integration with Coc.NVim](#integration-with-cocnvim)
-  - [Integration with vim-lsp](#integration-with-vim-lsp)
-  - [Integration with LanguageClient-Neovim](#integration-with-languageclient-neovim)
-  - [Integration with Neovim's built-in LSP client](#integration-with-neovims-built-in-lsp-client)
+  - [Integration with other editors and IDEs](#integration-with-other-editors-and-ides)
+    - [Integration with Coc.NVim](#integration-with-cocnvim)
+    - [Integration with vim-lsp](#integration-with-vim-lsp)
+    - [Integration with LanguageClient-Neovim](#integration-with-languageclient-neovim)
+    - [Integration with Neovim's built-in LSP client](#integration-with-neovims-built-in-lsp-client)
     - [Integration with emacs lsp-mode](#integration-with-emacs-lsp-mode)
-  - [Integration with QtCreator](#integration-with-qtcreator)
+    - [Integration with QtCreator](#integration-with-qtcreator)
   - [Refactoring Tools](#refactoring-tools)
   - [Authors & Contributors](#authors--contributors)
   - [Contribute](#contribute)
@@ -78,7 +76,6 @@ To build the language server you need:
 * The [gnatdoc](https://github.com/AdaCore/gnatdoc) library
 * The [gpr](https://github.com/AdaCore/gpr) library
 * The process [spawn](https://github.com/AdaCore/spawn) library
-* The [templates-parser](https://github.com/AdaCore/templates-parser) library
 
 Project files of the libraries must be available via the `GPR_PROJECT_PATH`
 environment variable.
@@ -127,7 +124,12 @@ formatting might no succeed on incomplete/illegal code.
 
 * **Toooling support**: we currently provide minimal support for *SPARK* (see *Prove/Examine* tasks in the [Auto-detected tasks](#auto-detected-tasks) section), but there is no support for tools such as *CodePeer*, *GNATcheck*, *GNATtest* or *GNATcoverage*.
 
-* **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/refactoring_tools.md)). You can execute the *Developper: Reload Window* command to reload your project after saving the new scenario values (use the *Ctrl+P* shortcut to invoke the **Command Palette**, allowing you to execute commands).
+* **Alire support**: if the root folder contains an `alire.toml` file and
+  there is `alr` executable in the `PATH`, then the language server fetches
+  the project's search path, environment variables and the project's file
+  name from the crate description.
+
+* **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/refactoring_tools.md)). You can execute the *Ada: Reload project* command to reload your project after saving the new scenario values (use the *Ctrl+P* shortcut to invoke the **Command Palette**, allowing you to execute commands).
 
   Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.
 
@@ -248,7 +250,9 @@ Here is an example config file from the gnatcov project:
 }
 ```
 
-## Integration with Coc.NVim
+## Integration with other editors and IDEs
+
+### Integration with Coc.NVim
 
 If you want to use the Ada Language Server with Vim/Neovim, you can use the
 [Coc.NVim](https://github.com/neoclide/coc.nvim). You'll have to
@@ -276,7 +280,7 @@ configure the Ada Language Server with `:CocConfig`:
 }
 ```
 
-## Integration with vim-lsp
+### Integration with vim-lsp
 
 If you want to integrate the Ada Language Server into vim, you can use the
 [vim-lsp](https://github.com/prabirshrestha/vim-lsp).
@@ -297,7 +301,7 @@ if executable('ada_language_server')
 endif
 ```
 
-## Integration with LanguageClient-Neovim
+### Integration with LanguageClient-Neovim
 
 If you want to integrate the Ada Language Server into Neovim, you can use the
 [LanguageClient-neovim](https://github.com/autozimu/LanguageClient-neovim).
@@ -341,7 +345,7 @@ the language server *even for files which might have nothing to do with that
 specific project*, so this needs to be taken into account. Ultimately what this
 means is that the configuration is determined by where you open vim.
 
-## Integration with Neovim's built-in LSP client
+### Integration with Neovim's built-in LSP client
 
 Neovim 0.5.0 and later have a built-in LSP client which can be used with the
 Ada Language Server. In order to use it with minimal effort, follow these steps:
@@ -415,7 +419,7 @@ for the `ada_language_server` and defines default customizable configuration
 values in the `lsp-ada` group that can be edited similarly to
 `lsp-ada-project-file` in the example above.
 
-## Integration with QtCreator
+### Integration with QtCreator
 
 Starting with version `4.9`, QtCreator supports a LSP plugin. Follow
 [the official documentation](https://doc.qt.io/qtcreator/creator-language-servers.html)

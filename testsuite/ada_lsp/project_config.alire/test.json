@@ -1,0 +1,115 @@
+[
+    {
+        "comment":[
+            "This test check language server is able to find a project file",
+            "using alr and alire.toml."
+        ]
+    },  {
+        "prepend_to_env": {
+            "PATH": "${DIR}"
+        }
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
+                "processId":1,
+                "rootUri":"$URI{.}",
+                "capabilities":{}}
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync": 2,
+                        "definitionProvider":true
+                    }
+                }
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"workspace/didChangeConfiguration",
+                "params":{
+                    "settings":{
+                        "ada":{
+                        }
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "method":"textDocument/didOpen",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{src/hello.adb}",
+                        "languageId": "ada",
+                        "version": 1,
+                        "text": "with Libhello;\n\nprocedure Hello is\n\nbegin\n   Libhello.Hello_World;\nend Hello;\n"
+                    }
+                }
+            },
+            "wait":[]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id":"defname-1",
+                "method":"textDocument/definition",
+                "params":{
+                    "textDocument": {
+                        "uri": "$URI{src/hello.adb}"
+                    },
+                    "position": {
+                        "line": 5,
+                        "character": 15
+                    }
+                }
+            },
+            "wait":[{
+                "id": "defname-1",
+                "result":[{
+                    "uri": "$URI{alire/cache/dependencies/libhello_1.0.1_3c15bc7f/src/libhello.ads}",
+                    "range": {
+                        "start": {
+                            "line": 2,
+                            "character": 13
+                        },
+                        "end": {
+                            "line": 2,
+                            "character": 24
+                        }
+                    }
+                }]
+            }]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": "shutdown",
+                "method":"shutdown",
+                "params":null
+            },
+            "wait":[{ "id": "shutdown", "result": null }]
+        }
+    },  {
+        "send": {
+            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "wait":[]
+        }
+    }, {
+        "stop": {
+            "exit_code": 0
+        }
+    }
+]

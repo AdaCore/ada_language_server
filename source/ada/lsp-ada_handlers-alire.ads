@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2020, AdaCore                       --
+--                        Copyright (C) 2023, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,28 +14,30 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---  Project environment class which attempts to use "codepeer-gnatls" when
---  "<target->gnatls" is not available.
 
-private with GNAT.Expect;
-private with GNAT.OS_Lib;
+--  Alire integration routines
 
-with GNATCOLL.Projects;
+with GPR2.Environment;
 
-package LSP.Ada_Project_Environments is
-
-   type LSP_Project_Environment is
-     new GNATCOLL.Projects.Project_Environment with private;
+with VSS.Strings;
 
 private
+package LSP.Ada_Handlers.Alire is
 
-   type LSP_Project_Environment is
-     new GNATCOLL.Projects.Project_Environment with null record;
+   procedure Run_Alire
+     (Root        : String;
+      Has_Alire   : out Boolean;
+      Error       : out VSS.Strings.Virtual_String;
+      Project     : out VSS.Strings.Virtual_String;
+      Environment : in out GPR2.Environment.Object);
+   --  if Root directory contains `alire.toml` file, then run
+   --  `alr printenv` and fetch the first project from `alire.toml`.
 
-   overriding procedure Spawn_Gnatls
-     (Self         : LSP_Project_Environment;
-      Fd           : out GNAT.Expect.Process_Descriptor_Access;
-      Gnatls_Args  : GNAT.OS_Lib.Argument_List_Access;
-      Errors       : GNATCOLL.Projects.Error_Report);
+   procedure Run_Alire
+     (Root        : String;
+      Has_Alire   : out Boolean;
+      Error       : out VSS.Strings.Virtual_String;
+      Environment : in out GPR2.Environment.Object);
+   --  The same as above, but without fetching the project file
 
-end LSP.Ada_Project_Environments;
+end LSP.Ada_Handlers.Alire;
