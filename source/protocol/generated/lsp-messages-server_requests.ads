@@ -512,4 +512,30 @@ package LSP.Messages.Server_Requests is
      (Self    : ALS_Check_Syntax_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package GLS_Mains_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        GLS_Mains_Params,
+        Server_Request_Receiver'Class);
+
+   type GLS_Mains_Request is
+     new GLS_Mains_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : GLS_Mains_Request;
+      Handler : access Server_Request_Receiver'Class);
+
+   package GLS_Executables_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        GLS_Executables_Params,
+        Server_Request_Receiver'Class);
+
+   type GLS_Executables_Request is
+     new GLS_Executables_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : GLS_Executables_Request;
+      Handler : access Server_Request_Receiver'Class);
+
 end LSP.Messages.Server_Requests;

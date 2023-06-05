@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -23,6 +23,11 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
      VSS.Strings.To_Virtual_String
        ("Unique project in root directory was found and " &
          "loaded, but it wasn't explicitly configured.");
+
+   No_Runtime_Found_Message : constant VSS.Strings.Virtual_String :=
+     VSS.Strings.To_Virtual_String
+       ("The project was loaded, but no Ada runtime found. " &
+        "Please check the installation of the Ada compiler.");
 
    No_Project_Found_Message : constant VSS.Strings.Virtual_String :=
      VSS.Strings.To_Virtual_String
@@ -56,8 +61,11 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
       Item.severity := (True, LSP.Messages.Error);
 
       case Self.Last_Status is
-         when Valid_Project_Configured =>
+         when Valid_Project_Configured | Alire_Project =>
             null;
+         when No_Runtime_Found =>
+            Item.message := No_Runtime_Found_Message;
+            Errors.Append (Item);
          when Single_Project_Found =>
             Item.message := Single_Project_Found_Message;
             Item.severity := (True, LSP.Messages.Hint);

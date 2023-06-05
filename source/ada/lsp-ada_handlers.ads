@@ -20,16 +20,24 @@
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
+with Ada.Strings.Unbounded;
+with VSS.String_Vectors;
 
 with GNATCOLL.JSON;
-with GNATCOLL.VFS;    use GNATCOLL.VFS;
-with GNATCOLL.Projects;
+with GNATCOLL.VFS;
 with GNATCOLL.Traces;
 
 with VSS.Strings;
-with VSS.String_Vectors;
 
 private with GNATdoc.Comments.Options;
+
+with GPR2;
+with GPR2.Context;
+with GPR2.File_Readers;
+with GPR2.Path_Name;
+with GPR2.Path_Name.Set;
+with GPR2.Project.Configuration;
+with GPR2.Project.Tree;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
@@ -69,19 +77,29 @@ package LSP.Ada_Handlers is
       Options : GNATCOLL.JSON.JSON_Value'Class);
    --  Change server configuration with settings from Ada JSON object.
 
+   procedure Change_Configuration_Before_Init
+     (Self    : access Message_Handler;
+      Options : GNATCOLL.JSON.JSON_Value'Class;
+      Root    : GNATCOLL.VFS.Virtual_File);
+   --  Change server configuration with settings from Ada JSON object, taking
+   --  Root to resolve all relative references. This is expected to work
+   --  before the server get initialize request and find root folder.
+
    procedure Stop_File_Monitoring (Self : access Message_Handler);
 
    procedure Cleanup (Self : access Message_Handler);
    --  Free memory referenced by Self
 
-   procedure Clean_Logs (Self : access Message_Handler; Dir : Virtual_File);
+   procedure Clean_Logs
+     (Self : access Message_Handler;
+      Dir  : GNATCOLL.VFS.Virtual_File);
    --  Remove the oldest logs in Dir
 
    subtype Context_Access is LSP.Ada_Context_Sets.Context_Access;
 
    function From_File
      (Self : Message_Handler'Class;
-      File : Virtual_File) return LSP.Messages.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File) return LSP.Messages.DocumentUri;
    --  Turn Virtual_File to URI
 
    function To_File
@@ -157,6 +175,8 @@ private
    type Load_Project_Status is
      (Valid_Project_Configured,
       Single_Project_Found,
+      Alire_Project,
+      No_Runtime_Found,
       No_Project_Found,
       Multiple_Projects_Found,
       Invalid_Project_Configured);
@@ -167,6 +187,12 @@ private
    --
    --  @value Single_Project_Found no project in didChangeConfiguration, but
    --  just one project in Root dir
+   --
+   --  @value Alire_Project no project in didChangeConfiguration, but Alire
+   --  knows what project to use
+   --
+   --  @value No_Runtime_Found project loaded, but no Ada runtime library was
+   --  found
    --
    --  @value No_Project_Found no project in didChangeConfiguration and no
    --  project in Root dir
@@ -211,6 +237,26 @@ private
      (Names  => VSS.String_Vectors.Empty_Virtual_String_Vector,
       Values => VSS.String_Vectors.Empty_Virtual_String_Vector);
 
+   type Environment is record
+      Filename         : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
+      Context          : GPR2.Context.Object := GPR2.Context.Empty;
+      Config           : GPR2.Project.Configuration.Object :=
+                           GPR2.Project.Configuration.Undefined;
+      Project_Dir      : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
+      Build_Path       : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
+      Subdirs          : Ada.Strings.Unbounded.Unbounded_String;
+      Src_Subdirs      : Ada.Strings.Unbounded.Unbounded_String;
+      Check_Shared_Lib : Boolean := True;
+      Absent_Dir_Error : Boolean := False;
+      Implicit_With    : GPR2.Path_Name.Set.Object :=
+                           GPR2.Path_Name.Set.Empty_Set;
+      Pre_Conf_Mode    : Boolean := False;
+      File_Reader      : GPR2.File_Readers.File_Reader_Reference :=
+                           GPR2.File_Readers.No_File_Reader_Reference;
+   end record;
+
+   Empty_Environment : constant Environment := (others => <>);
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -228,12 +274,18 @@ private
       Client : LSP.Messages.InitializeParams;
       --  Client settings got during initialization request
 
-      Root : Virtual_File;
+      Root : GNATCOLL.VFS.Virtual_File;
       --  The directory passed under rootURI/rootPath during the initialize
       --  request.
 
       Charset : VSS.Strings.Virtual_String;
       --  A character set for Libadalang
+
+      Project_File : VSS.Strings.Virtual_String;
+      --  The project file, if provided by the user on Configuration/Init
+
+      Scenario_Variables : Scenario_Variable_List;
+      --  Scenario variables, if provided by the user on Configuration/Init
 
       Diagnostics_Enabled : Boolean := True;
       --  Whether to publish diagnostics
@@ -336,16 +388,10 @@ private
       -- Project handling --
       ----------------------
 
-      Project_File : VSS.Strings.Virtual_String;
+      Project_Tree : GPR2.Project.Tree.Object;
       --  The currently loaded project tree
 
-      Scenario_Variables : Scenario_Variable_List;
-      --  Scenario variables used to load a current project
-
-      Project_Tree : GNATCOLL.Projects.Project_Tree_Access;
-      --  The currently loaded project tree
-
-      Project_Environment : GNATCOLL.Projects.Project_Environment_Access;
+      Project_Environment : Environment;
       --  The project environment for the currently loaded project
 
       Project_Predefined_Sources : LSP.Ada_File_Sets.Indexed_File_Set;
@@ -356,7 +402,7 @@ private
       --  Value of `relocateBuildTree`. See `--relocate-build-tree[=dir]`
       --  of `gprbuild`.
 
-      Root_Dir : VSS.Strings.Virtual_String;
+      Relocate_Root_Dir : VSS.Strings.Virtual_String;
       --  Value of `rootDir`. See `--root-dir=dir` of `gprbuild`.
 
       Project_Status : Load_Project_Status := No_Project_Found;
@@ -665,6 +711,16 @@ private
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
       return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response;
+
+   overriding function On_GLS_Mains_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Mains_Request)
+      return LSP.Messages.Server_Responses.GLS_Mains_Response;
+
+   overriding function On_GLS_Executables_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
+      return LSP.Messages.Server_Responses.GLS_Executables_Response;
 
    procedure Reload_Project (Self : access Message_Handler);
    --  Reload current project

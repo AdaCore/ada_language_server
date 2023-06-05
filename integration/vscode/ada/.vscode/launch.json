@@ -18,10 +18,8 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
-            ],
-            "outFiles": [
-                "${workspaceFolder}/out/test/**/*.js"
+                "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
+                "${workspaceFolder}/test/SampleProject"
             ],
             "preLaunchTask": "npm: pretest"
         }

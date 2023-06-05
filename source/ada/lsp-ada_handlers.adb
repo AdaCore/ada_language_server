@@ -17,7 +17,6 @@
 
 with Ada.Calendar; use Ada.Calendar;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
-with Ada.Characters.Latin_1;
 with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
@@ -26,9 +25,18 @@ with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
-with GNAT.Strings;
+with GNAT.OS_Lib;
 with GNATCOLL.Utils;             use GNATCOLL.Utils;
+
+with GPR2.Containers;
+with GPR2.Environment;
+with GPR2.Message;
+with GPR2.Project.Registry.Attribute;
+with GPR2.Project.Source.Set;
+with GPR2.Project.Tree.View_Builder;
+with GPR2.Project.View;
+
+with Spawn.Environments;
 
 with VSS.Characters.Latin;
 with VSS.Strings.Conversions;
@@ -46,6 +54,7 @@ with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Completions.Use_Clauses;
+with LSP.Ada_Handlers.Alire;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
@@ -62,7 +71,6 @@ with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
 with LSP.Ada_Handlers.Refactor_Replace_Type;
 with LSP.Ada_Handlers.Refactor_Sort_Dependencies;
 with LSP.Ada_Handlers.Project_Diagnostics;
-with LSP.Ada_Project_Environments;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
 with LSP.Common;       use LSP.Common;
@@ -101,6 +109,7 @@ with Libadalang.Preprocessing;
 with URIs;
 
 package body LSP.Ada_Handlers is
+   use GNATCOLL.VFS;
 
    type Cancel_Countdown is mod 128;
    --  Counter to restrict frequency of Request.Canceled checks
@@ -203,16 +212,6 @@ package body LSP.Ada_Handlers is
       Document : not null LSP.Ada_Documents.Document_Access);
    --  Publish diagnostic messages for given document if needed
 
-   function Is_Ada_Source
-     (Self : access Message_Handler;
-      File : GNATCOLL.VFS.Virtual_File)
-            return Boolean
-   is (Is_Ada_File (Self.Project_Tree, File));
-   --  Checks if File is an Ada source of Self's project. This is needed
-   --  to filter non Ada sources on notifications like
-   --  DidCreate/Rename/DeleteFiles and DidChangeWatchedFiles since it's not
-   --  possible to filter them in the FileOperationRegistrationOptions.
-
    function Compute_File_Operations_Server_Capabilities
      (Self : access Message_Handler)
       return LSP.Messages.Optional_FileOperationsServerCapabilities;
@@ -224,10 +223,8 @@ package body LSP.Ada_Handlers is
      (Self : access Message_Handler)
       return LSP.Messages.FileOperationRegistrationOptions;
    --  Computes FileOperationRegistrationOptions based on the project held by
-   --  Self. These registration options will include any file that is in a
-   --  source folder of Self's project. We can't filter non Ada sources here,
-   --  only on the DidCreate/Rename/DeleteFiles and DidChangeWatchedFiles
-   --  notifications.
+   --  Self. These registration options will include Ada file that is in a
+   --  source folder of Self's project.
 
    function Format
      (Self     : in out LSP.Ada_Contexts.Context;
@@ -266,20 +263,26 @@ package body LSP.Ada_Handlers is
    --  The heuristics that is used for loading a project is the following:
    --
    --     * if a project (and optionally a scenario) was specified by
-   --       the user via the workspace/didChangeConfiguration request,
-   --       attempt to use this. If this fails to load, report an error
-   --       but do not attempt to load another project.
-   --     => This case is handled by a call to Load_Project in
-   --        On_DidChangeConfiguration_Notification.
+   --       the user via the workspace/didChangeConfiguration notification or
+   --       Initialize request, attempt to use this.
+   --       If there is an `alire.toml` file in the root directory, then run
+   --       `alr` to find search path and extra scenario variables.
+   --       If this fails to load, then report an error, but do not attempt to
+   --       load another project.
+   --     => This case is handled by a call to Reload_Project in
+   --        Change_Configuration.
    --
-   --     * if no project was specified by the user, then look in the Root
-   --       directory, mimicking the behavior of gprbuild:
-   --           * if there are zero .gpr files in this directory, load the
-   --             implicit project
-   --           * if there is exactly one .gpr file in this directory, load
-   --             it, returning an error if this failed
-   --           * if there are more than one .gpr files in this directory,
-   --             display an error
+   --     * if no project was specified by the user, then run `alr` in the
+   --       root directory to get project file name from alire.toml (take the
+   --       very first project if many or crate name if none).
+   --       Otherwise look in the root directory, mimicking the behavior of
+   --       gprbuild :
+   --          * if there are zero .gpr files in this directory, load the
+   --            implicit project
+   --          * if there is exactly one .gpr file in this directory, load
+   --            it, returning an error if this failed
+   --          * if there are more than one .gpr files in this directory,
+   --            display an error
    --      => These cases are handled by Ensure_Project_Loaded
    --
    --  At any point where requests are made, Self.Contexts should
@@ -294,6 +297,9 @@ package body LSP.Ada_Handlers is
    --  open or a request on non-openned file.
 
    procedure Ensure_Project_Loaded (Self : access Message_Handler);
+   --  This function makes sure that the contexts in Self are properly
+   --  initialized and a project is loaded. If they are not initialized,
+   --  initialize them.
 
    procedure Ensure_Project_Loaded
      (Self : access Message_Handler;
@@ -308,15 +314,36 @@ package body LSP.Ada_Handlers is
    --  Load the implicit project
 
    procedure Load_Project
-     (Self                : access Message_Handler;
-      Project_File        : VSS.Strings.Virtual_String;
-      Scenario            : Scenario_Variable_List;
-      Charset             : VSS.Strings.Virtual_String;
-      Status              : Load_Project_Status;
-      Relocate_Build_Tree : VSS.Strings.Virtual_String;
-      Root_Dir            : VSS.Strings.Virtual_String);
+     (Self         : access Message_Handler;
+      Project_File : VSS.Strings.Virtual_String;
+      Scenario     : Scenario_Variable_List;
+      Environment  : GPR2.Environment.Object;
+      Charset      : VSS.Strings.Virtual_String;
+      Status       : Load_Project_Status);
    --  Attempt to load the given project file, with the scenario provided.
-   --  This unloads all currently loaded project contexts.
+   --  This unloads all currently loaded project contexts. This factorizes code
+   --  between Load_Project_With_Alire and Ensure_Project_Loaded.
+
+   procedure Load_Project_With_Alire
+     (Self                : access Message_Handler;
+      Project_File        : VSS.Strings.Virtual_String := "";
+      Scenario_Variables  : Scenario_Variable_List;
+      Charset             : VSS.Strings.Virtual_String);
+   --  Core procedure to find project, search path, scenario and load the
+   --  project.
+   --
+   --  @param Self                 The message handler itself
+   --  @param Project_File         GPR, if set by the user in settings
+   --  @param Scenario_Variables   Scenario as set by the user in settings
+   --  @param Charset              Charset, if set by the user in settings
+   --
+   --  Load a project with a help of alire. If there is `alire.toml` in the
+   --  root directory and `alr` in the `PATH`, then use Alire to setup project
+   --  search path, extra scenario variables (and a project file name if
+   --  Project_File is empty). If Alire reports error then show it to the
+   --  user and fallback to an implicit project.
+   --
+   --  If Alire succeed or no alire/crate then load project if provided.
 
    procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler);
    --  Mark all sources in all projects for indexing. This factorizes code
@@ -332,15 +359,13 @@ package body LSP.Ada_Handlers is
        (Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Value)));
    --  Cast Virtual_String to Virtual_File
 
-   function To_FS
-     (Value : VSS.Strings.Virtual_String) return Filesystem_String is
-       (To_Virtual_File (Value).Full_Name);
-   --  Cast Virtual_String to Filesystem_String
-
    function To_Virtual_String
      (Value : Virtual_File) return VSS.Strings.Virtual_String is
        (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
    --  Cast Virtual_File to Virtual_String
+
+   procedure Update_Project_Predefined_Sources (Self : access Message_Handler);
+   --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
 
    -----------------------
    -- Contexts_For_File --
@@ -397,7 +422,7 @@ package body LSP.Ada_Handlers is
    is
       File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
    begin
-      Self.Ensure_Project_Loaded;
+      Self.Ensure_Project_Loaded (URI);
 
       if Self.Open_Documents.Contains (File) then
          return LSP.Ada_Documents.Document_Access
@@ -520,17 +545,11 @@ package body LSP.Ada_Handlers is
    procedure Release_Contexts_And_Project_Info
      (Self : access Message_Handler)
    is
-      use GNATCOLL.Projects;
    begin
       Self.Contexts.Cleanup;
 
-      if Self.Project_Tree /= null then
-         Self.Project_Tree.Unload;
-         Free (Self.Project_Tree);
-      end if;
-      if Self.Project_Environment /= null then
-         Free (Self.Project_Environment);
-      end if;
+      Self.Project_Tree.Unload;
+      Self.Project_Environment := Empty_Environment;
       Self.Project_Predefined_Sources.Clear;
       Self.Project_Dirs_Loaded.Clear;
 
@@ -609,25 +628,35 @@ package body LSP.Ada_Handlers is
    ----------------------------------
 
    procedure Reload_Implicit_Project_Dirs (Self : access Message_Handler) is
-      Attr  : GNAT.Strings.String_List
-        (1 .. Natural (Self.Project_Dirs_Loaded.Length));
-      Index : Natural := 1;
-      use GNATCOLL.Projects;
+      Project : GPR2.Project.Tree.View_Builder.Object :=
+                   GPR2.Project.Tree.View_Builder.Create
+                     (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
+                      Name        => "default");
+      Values  : GPR2.Containers.Value_List;
    begin
       for Dir of Self.Project_Dirs_Loaded loop
-         Attr (Index) := new String'(Dir.Display_Full_Name);
-         Index := Index + 1;
+         Values.Append (Dir.Display_Full_Name);
       end loop;
 
-      Set_Attribute
-        (Self.Project_Tree.Root_Project,
-         Source_Dirs_Attribute,
-         Attr);
-      Self.Project_Tree.Recompute_View;
+      Project.Set_Attribute
+        (GPR2.Project.Registry.Attribute.Source_Dirs, Values);
 
-      for J in Attr'Range loop
-         GNAT.Strings.Free (Attr (J));
-      end loop;
+      --  Load_Autoconf is assuming loading unloaded tree.
+
+      Self.Project_Tree.Unload;
+
+      GPR2.Project.Tree.View_Builder.Load_Autoconf
+        (Self              => Self.Project_Tree,
+         Project           => Project,
+         Context           => Self.Project_Environment.Context,
+         Build_Path        => Self.Project_Environment.Build_Path);
+
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+   exception
+      when E : others =>
+         Self.Trace.Trace ("Exception loading implicit");
+         Self.Trace.Trace (E);
    end Reload_Implicit_Project_Dirs;
 
    --------------------
@@ -636,13 +665,15 @@ package body LSP.Ada_Handlers is
 
    procedure Reload_Project (Self : access Message_Handler) is
    begin
-      Self.Load_Project
-        (Self.Project_File,
-         Self.Scenario_Variables,
-         Self.Charset,
-         Self.Project_Status,
-         Self.Relocate_Build_Tree,
-         Self.Root_Dir);
+      if Self.Project_File.Is_Empty then
+         Self.Release_Contexts_And_Project_Info;
+         Self.Ensure_Project_Loaded;
+      else
+         Self.Load_Project_With_Alire
+           (Self.Project_File,
+            Self.Scenario_Variables,
+            Self.Charset);
+      end if;
    end Reload_Project;
 
    ---------------------------
@@ -654,20 +685,12 @@ package body LSP.Ada_Handlers is
       Status : Implicit_Project_Loaded)
    is
       C    : constant Context_Access := new Context (Self.Trace);
-      Attr : GNAT.Strings.String_List (1 .. 1);
-      use GNATCOLL.Projects;
-
       Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
    begin
       Self.Trace.Trace ("Loading the implicit project");
 
       Self.Project_Status := Status;
       Self.Release_Contexts_And_Project_Info;
-      Self.Project_Environment :=
-        new LSP.Ada_Project_Environments.LSP_Project_Environment;
-      Initialize (Self.Project_Environment);
-      Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
-      Self.Project_Tree := new Project_Tree;
 
       C.Initialize
         (File_Reader         => Reader,
@@ -686,13 +709,6 @@ package body LSP.Ada_Handlers is
       --  Instead, use Load_Empty_Project and set the source dir and
       --  language manually: this does not have these inconvenients.
 
-      Load_Empty_Project
-        (Self.Project_Tree.all, Self.Project_Environment);
-      Attr := [1 => new String'("Ada")];
-      Set_Attribute
-        (Self.Project_Tree.Root_Project, Languages_Attribute, Attr);
-      GNAT.Strings.Free (Attr (1));
-
       --  When there is no .gpr, create a project which loads the
       --  root directory in the workspace.
 
@@ -702,9 +718,7 @@ package body LSP.Ada_Handlers is
                       Self.Project_Tree.Root_Project,
                       "iso-8859-1");
 
-      for File of Self.Project_Environment.Predefined_Source_Files loop
-         Self.Project_Predefined_Sources.Include (File);
-      end loop;
+      Update_Project_Predefined_Sources (Self);
 
       Self.Contexts.Prepend (C);
 
@@ -749,9 +763,20 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
-      Self.Trace.Trace ("Project loading ...");
+      Self.Trace.Trace ("Looking for a project...");
       Self.Trace.Trace ("Root : " & Self.Root.Display_Full_Name);
 
+      Self.Load_Project_With_Alire
+        (Project_File        => VSS.Strings.Empty_Virtual_String,
+         Scenario_Variables  => Self.Scenario_Variables,
+         Charset             => Self.Charset);
+
+      if not Self.Contexts.Is_Empty then
+         --  Some project was found by alire and loaded. We are done!
+         return;
+      end if;
+
+      --  We don't have alire/crate.
       --  We're going to look for a project in Root: list all the files
       --  in this directory, looking for .gpr files.
 
@@ -781,11 +806,10 @@ package body LSP.Ada_Handlers is
 
          Self.Load_Project
            (Project_File,
-            No_Scenario_Variable,
+            Self.Scenario_Variables,
+            GPR2.Environment.Process_Environment,
             "iso-8859-1",
-            Single_Project_Found,
-            Relocate_Build_Tree => "",
-            Root_Dir => "");
+            Single_Project_Found);
       else
          --  We have found more than one project: warn the user!
 
@@ -811,6 +835,7 @@ package body LSP.Ada_Handlers is
         LSP.Messages.Optional_FileOperationsClientCapabilities
           renames Self.Client.capabilities.workspace.fileOperations;
    begin
+
       if Client_Capabilities.Is_Set
         and then not Self.Contexts.Each_Context.Is_Empty
       then
@@ -857,27 +882,53 @@ package body LSP.Ada_Handlers is
       return LSP.Messages.FileOperationRegistrationOptions
    is
       use LSP.Messages;
+      use LSP.Ada_File_Sets.Extension_Sets;
+      use VSS.Strings;
 
       File_Operation_Filters : LSP.Messages.FileOperationFilter_Vector;
 
    begin
-      for Context of Self.Contexts.Each_Context loop
-         for Source_Dir of Context.List_Source_Directories loop
-            declare
-               Dir_Full_Name : constant GNATCOLL.VFS.Filesystem_String :=
-                 GNATCOLL.VFS."/" (Source_Dir, "*").Full_Name;
-               Scheme        : constant VSS.Strings.Virtual_String := "file";
-               Sources_Glob  : constant VSS.Strings.Virtual_String :=
-                 VSS.Strings.Conversions.To_Virtual_String (+Dir_Full_Name);
 
-               File_Operation_Filter :
-                 constant LSP.Messages.FileOperationFilter :=
-                   (scheme => (Is_Set => True, Value => Scheme),
-                    pattern => (glob => Sources_Glob, others => <>));
-            begin
-               File_Operation_Filters.Append (File_Operation_Filter);
-            end;
-         end loop;
+      for Context of Self.Contexts.Each_Context loop
+         declare
+            Extensions_Set    : constant LSP.Ada_File_Sets.Extension_Sets.Set
+              := Context.List_Source_Extensions;
+            --  Need to lock the Set in a local variable for the cursor to stay
+            --  valid.
+            Extension_Pattern : VSS.Strings.Virtual_String := "{";
+            Extension_Cursor  : LSP.Ada_File_Sets.Extension_Sets.Cursor :=
+              First (Extensions_Set);
+         begin
+            while Has_Element (Extension_Cursor) loop
+               Extension_Pattern.Append (Element (Extension_Cursor));
+               Next (Extension_Cursor);
+               if Has_Element (Extension_Cursor) then
+                  Extension_Pattern.Append (",");
+               else
+                  Extension_Pattern.Append ("}");
+               end if;
+            end loop;
+
+            for Source_Dir of Context.List_Source_Directories loop
+               declare
+                  Dir_Full_Name : constant GNATCOLL.VFS.Filesystem_String :=
+                    GNATCOLL.VFS."/" (Source_Dir, "*").Full_Name;
+                  Scheme        : constant VSS.Strings.Virtual_String :=
+                    "file";
+                  Sources_Glob  : constant VSS.Strings.Virtual_String :=
+                    VSS.Strings.Conversions.To_Virtual_String (+Dir_Full_Name);
+
+                  File_Operation_Filter :
+                  constant LSP.Messages.FileOperationFilter :=
+                    (scheme  => (Is_Set => True,
+                                 Value  => Scheme),
+                     pattern => (glob   => Sources_Glob & Extension_Pattern,
+                                 others => <>));
+               begin
+                  File_Operation_Filters.Append (File_Operation_Filter);
+               end;
+            end loop;
+         end;
       end loop;
 
       return
@@ -2240,7 +2291,10 @@ package body LSP.Ada_Handlers is
          end loop;
 
          case Self.Project_Status is
-            when Valid_Project_Configured =>
+            when Valid_Project_Configured | Alire_Project =>
+               null;
+            when No_Runtime_Found =>
+               --  TODO: Provide help with the compiler installation
                null;
             when Single_Project_Found | Multiple_Projects_Found =>
                declare
@@ -3250,7 +3304,7 @@ package body LSP.Ada_Handlers is
 
       Location_Text := LSP.Lal_Utils.Node_Location_Image (Decl);
 
-      if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
+      if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
          Location_Text.Append (VSS.Characters.Latin.Line_Feed);
          Location_Text.Append ("As defined in project ");
          Location_Text.Append (C.Id);
@@ -3923,7 +3977,6 @@ package body LSP.Ada_Handlers is
         (C               : Context_Access;
          Definition_Node : out Defining_Name)
       is
-         use GNATCOLL.Projects;
          use Laltools.Refactor.Safe_Rename;
 
          Node       : constant Ada_Node := C.Get_Node_At (Document, Position);
@@ -3933,7 +3986,7 @@ package body LSP.Ada_Handlers is
            Laltools.Common.Resolve_Name_Precisely (Name_Node);
 
          function Attribute_Value_Provider_Callback
-           (Attribute : GNATCOLL.Projects.Attribute_Pkg_String;
+           (Attribute : GPR2.Q_Attribute_Id;
             Index : String := "";
             Default : String := "";
             Use_Extended : Boolean := False)
@@ -3941,8 +3994,9 @@ package body LSP.Ada_Handlers is
           is (C.Project_Attribute_Value
                 (Attribute, Index, Default, Use_Extended));
 
-         Attribute_Value_Provider : constant Attribute_Value_Provider_Access :=
-           Attribute_Value_Provider_Callback'Unrestricted_Access;
+         Attribute_Value_Provider : constant
+           GPR2_Attribute_Value_Provider_Access :=
+             Attribute_Value_Provider_Callback'Unrestricted_Access;
 
          function Analysis_Units return Analysis_Unit_Array is
            (C.Analysis_Units);
@@ -4324,6 +4378,7 @@ package body LSP.Ada_Handlers is
       Options : GNATCOLL.JSON.JSON_Value'Class)
    is
       use type GNATCOLL.JSON.JSON_Value_Type;
+      use type VSS.Strings.Virtual_String;
 
       procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
 
@@ -4360,11 +4415,19 @@ package body LSP.Ada_Handlers is
 
       Variables : Scenario_Variable_List;
 
-      function Property (Name : String) return VSS.Strings.Virtual_String is
-        (if Options.Has_Field (Name)
-         then VSS.Strings.Conversions.To_Virtual_String
-           (String'(Options.Get (Name)))
-         else VSS.Strings.Empty_Virtual_String);
+      function Property
+        (Name    : String;
+         Default : VSS.Strings.Virtual_String)
+           return VSS.Strings.Virtual_String is
+             (if Options.Kind = GNATCOLL.JSON.JSON_Object_Type
+                and then Options.Has_Field (Name)
+              then VSS.Strings.Conversions.To_Virtual_String
+                     (String'(Options.Get (Name)))
+              else Default);
+
+      function Has_Field (Name : String) return Boolean is
+         (Options.Kind = GNATCOLL.JSON.JSON_Object_Type
+          and then Options.Has_Field (Name));
 
       ------------------
       -- Add_Variable --
@@ -4383,10 +4446,159 @@ package body LSP.Ada_Handlers is
          end if;
       end Add_Variable;
 
-      File      : VSS.Strings.Virtual_String;
-      Charset   : VSS.Strings.Virtual_String;
-      Relocate  : VSS.Strings.Virtual_String;
-      Root      : VSS.Strings.Virtual_String;
+      File                : VSS.Strings.Virtual_String;
+      Charset             : VSS.Strings.Virtual_String;
+      Relocate_Build_Tree : VSS.Strings.Virtual_String;
+      Relocate_Root       : VSS.Strings.Virtual_String;
+
+      Has_Variables : Boolean := False;  --  settings has scenarioVariables
+
+   begin
+      Relocate_Build_Tree :=
+        Property (relocateBuildTree, Self.Relocate_Build_Tree);
+
+      Relocate_Root := Property (rootDir, Self.Relocate_Root_Dir);
+      Charset := Property (defaultCharset, Self.Charset);
+      File := Property (projectFile, Self.Project_File);
+
+      --  Drop uri scheme if present
+      if File.Starts_With ("file:") then
+         File := Self.URI_To_File (File);
+      end if;
+
+      if Has_Field (scenarioVariables) and then
+        Options.Get
+          (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
+      then
+         Options.Get
+           (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
+         Has_Variables := True;
+      end if;
+
+      --  It looks like the protocol does not allow clients to say whether
+      --  or not they want diagnostics as part of
+      --  InitializeParams.capabilities.textDocument. So we support
+      --  deactivating of diagnostics via a setting here.
+      if Has_Field (enableDiagnostics) then
+         Self.Diagnostics_Enabled := Options.Get (enableDiagnostics);
+      end if;
+
+      --  Similarly to diagnostics, we support selectively activating
+      --  indexing in the parameters to this request.
+      if Has_Field (enableIndexing) then
+         Self.Indexing_Enabled := Options.Get (enableIndexing);
+      end if;
+
+      --  Retrieve the different textDocument/rename options if specified
+
+      if Has_Field (renameInComments) then
+         Self.Options.Refactoring.Renaming.In_Comments :=
+           Options.Get (renameInComments);
+      end if;
+
+      if Has_Field (foldComments) then
+         Self.Options.Folding.Comments := Options.Get (foldComments);
+      end if;
+
+      --  Retrieve the number of parameters / components at which point
+      --  named notation is used for subprogram/aggregate completion
+      --  snippets.
+
+      if Has_Field (namedNotationThreshold) then
+         Self.Named_Notation_Threshold :=
+           Options.Get (namedNotationThreshold);
+      end if;
+
+      if Has_Field (logThreshold) then
+         Self.Log_Threshold := Options.Get (logThreshold);
+      end if;
+
+      --  Check the 'useCompletionSnippets' flag to see if we should use
+      --  snippets in completion (if the client supports it).
+      if not Self.Completion_Snippets_Enabled then
+         Self.Use_Completion_Snippets := False;
+      elsif Has_Field (useCompletionSnippets) then
+         Self.Use_Completion_Snippets :=
+           Options.Get (useCompletionSnippets);
+      end if;
+
+      --  Retrieve the policy for displaying type hierarchy on navigation
+      --  requests.
+      if Has_Field (displayMethodAncestryOnNavigation) then
+         Self.Display_Method_Ancestry_Policy :=
+           LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy'Value
+             (Options.Get (displayMethodAncestryOnNavigation));
+      end if;
+
+      --  Retrieve the follow symlinks policy.
+
+      if Has_Field (followSymlinks) then
+         Self.Follow_Symlinks := Options.Get (followSymlinks);
+      end if;
+
+      if Has_Field (documentationStyle) then
+         begin
+            Self.Options.Documentation.Style :=
+              GNATdoc.Comments.Options.Documentation_Style'Value
+                (Options.Get (documentationStyle));
+
+         exception
+            when Constraint_Error =>
+               Self.Options.Documentation.Style :=
+                 GNATdoc.Comments.Options.GNAT;
+         end;
+      end if;
+
+      if Self.Project_File = File
+        and then Self.Charset = Charset
+        and then Self.Relocate_Build_Tree = Relocate_Build_Tree
+        and then Self.Relocate_Root_Dir = Relocate_Root
+        and then not Self.Contexts.Is_Empty
+        and then (Self.Scenario_Variables = Variables
+                   or else not Has_Variables)
+      then
+
+         --  Project and Scenario, etc are unchanged, project has been loaded.
+         --  No needs to reload the project.
+         null;
+      else
+
+         Self.Project_File := File;
+         Self.Scenario_Variables := Variables;
+         Self.Charset := Charset;
+         Self.Relocate_Build_Tree := Relocate_Build_Tree;
+         Self.Relocate_Root_Dir := Relocate_Root;
+         Self.Project_Status := Valid_Project_Configured;
+         Self.Reload_Project;
+      end if;
+   end Change_Configuration;
+
+   --------------------------------------
+   -- Change_Configuration_Before_Init --
+   --------------------------------------
+
+   procedure Change_Configuration_Before_Init
+     (Self    : access Message_Handler;
+      Options : GNATCOLL.JSON.JSON_Value'Class;
+      Root    : GNATCOLL.VFS.Virtual_File)
+   is
+      Saved_Root : constant GNATCOLL.VFS.Virtual_File := Self.Root;
+   begin
+      Self.Root := Root;
+      Self.Change_Configuration (Options);
+      Self.Root := Saved_Root;
+   end Change_Configuration_Before_Init;
+
+   --------------------------------------------
+   -- On_DidChangeConfiguration_Notification --
+   --------------------------------------------
+
+   overriding procedure On_DidChangeConfiguration_Notification
+     (Self  : access Message_Handler;
+      Value : LSP.Messages.DidChangeConfigurationParams)
+   is
+
+      Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
 
       --  Is client capable of dynamically registering file operations?
       Dynamically_Register_File_Operations : constant Boolean :=
@@ -4395,111 +4607,7 @@ package body LSP.Ada_Handlers is
                    Value.dynamicRegistration.Is_Set = True;
 
    begin
-      if Options.Kind = GNATCOLL.JSON.JSON_Object_Type then
-         Relocate := Property (relocateBuildTree);
-         Root := Property (rootDir);
-         Charset := Property (defaultCharset);
-         File := Property (projectFile);
-
-         --  Drop uri scheme if present
-         if File.Starts_With ("file:") then
-            File := Self.URI_To_File (File);
-         end if;
-
-         if Options.Has_Field (scenarioVariables) and then
-           Options.Get
-             (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
-         then
-            Options.Get
-              (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
-         end if;
-
-         --  It looks like the protocol does not allow clients to say whether
-         --  or not they want diagnostics as part of
-         --  InitializeParams.capabilities.textDocument. So we support
-         --  deactivating of diagnostics via a setting here.
-         if Options.Has_Field (enableDiagnostics) then
-            Self.Diagnostics_Enabled := Options.Get (enableDiagnostics);
-         end if;
-
-         --  Similarly to diagnostics, we support selectively activating
-         --  indexing in the parameters to this request.
-         if Options.Has_Field (enableIndexing) then
-            Self.Indexing_Enabled := Options.Get (enableIndexing);
-         end if;
-
-         --  Retrieve the different textDocument/rename options if specified
-
-         if Options.Has_Field (renameInComments) then
-            Self.Options.Refactoring.Renaming.In_Comments :=
-              Options.Get (renameInComments);
-         end if;
-
-         if Options.Has_Field (foldComments) then
-            Self.Options.Folding.Comments := Options.Get (foldComments);
-         end if;
-
-         --  Retrieve the number of parameters / components at which point
-         --  named notation is used for subprogram/aggregate completion
-         --  snippets.
-
-         if Options.Has_Field (namedNotationThreshold) then
-            Self.Named_Notation_Threshold :=
-              Options.Get (namedNotationThreshold);
-         end if;
-
-         if Options.Has_Field (logThreshold) then
-            Self.Log_Threshold := Options.Get (logThreshold);
-         end if;
-
-         --  Check the 'useCompletionSnippets' flag to see if we should use
-         --  snippets in completion (if the client supports it).
-         if not Self.Completion_Snippets_Enabled then
-            Self.Use_Completion_Snippets := False;
-         elsif Options.Has_Field (useCompletionSnippets) then
-            Self.Use_Completion_Snippets :=
-              Options.Get (useCompletionSnippets);
-         end if;
-
-         --  Retrieve the policy for displaying type hierarchy on navigation
-         --  requests.
-         if Options.Has_Field (displayMethodAncestryOnNavigation) then
-            Self.Display_Method_Ancestry_Policy :=
-              LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy'Value
-                (Options.Get (displayMethodAncestryOnNavigation));
-         end if;
-
-         --  Retrieve the follow symlinks policy.
-
-         if Options.Has_Field (followSymlinks) then
-            Self.Follow_Symlinks := Options.Get (followSymlinks);
-         end if;
-
-         if Options.Has_Field (documentationStyle) then
-            begin
-               Self.Options.Documentation.Style :=
-                 GNATdoc.Comments.Options.Documentation_Style'Value
-                   (Options.Get (documentationStyle));
-
-            exception
-               when Constraint_Error =>
-                  Self.Options.Documentation.Style :=
-                    GNATdoc.Comments.Options.GNAT;
-            end;
-         end if;
-      end if;
-
-      if not File.Is_Empty then
-         Self.Load_Project
-           (Project_File        => File,
-            Scenario            => Variables,
-            Charset             => Charset,
-            Status              => Valid_Project_Configured,
-            Relocate_Build_Tree => Relocate,
-            Root_Dir            => Root);
-      end if;
-
-      Self.Ensure_Project_Loaded;
+      Self.Change_Configuration (Ada);
 
       --  Register rangeFormatting provider is the client supports
       --  dynamic registration for it (and we haven't done it before).
@@ -4586,21 +4694,6 @@ package body LSP.Ada_Handlers is
             Self.Server.On_RegisterCapability_Request (Request);
          end;
       end if;
-   end Change_Configuration;
-
-   --------------------------------------------
-   -- On_DidChangeConfiguration_Notification --
-   --------------------------------------------
-
-   overriding procedure On_DidChangeConfiguration_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeConfigurationParams)
-   is
-
-      Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
-
-   begin
-      Self.Change_Configuration (Ada);
    end On_DidChangeConfiguration_Notification;
 
    -------------------------------------------
@@ -4713,16 +4806,14 @@ package body LSP.Ada_Handlers is
       for Change of Value.changes loop
          URI := Change.uri;
          File := Self.To_File (URI);
-         if Self.Is_Ada_Source (File) then
-            case Change.a_type is
-               when LSP.Messages.Created =>
-                  Process_Created_File;
-               when LSP.Messages.Deleted =>
-                  Process_Deleted_File;
-               when LSP.Messages.Changed =>
-                  Process_Changed_File;
-            end case;
-         end if;
+         case Change.a_type is
+            when LSP.Messages.Created =>
+               Process_Created_File;
+            when LSP.Messages.Deleted =>
+               Process_Deleted_File;
+            when LSP.Messages.Changed =>
+               Process_Changed_File;
+         end case;
       end loop;
    end On_DidChangeWatchedFiles_Notification;
 
@@ -4766,35 +4857,55 @@ package body LSP.Ada_Handlers is
    ------------------
 
    procedure Load_Project
-     (Self                : access Message_Handler;
-      Project_File        : VSS.Strings.Virtual_String;
-      Scenario            : Scenario_Variable_List;
-      Charset             : VSS.Strings.Virtual_String;
-      Status              : Load_Project_Status;
-      Relocate_Build_Tree : VSS.Strings.Virtual_String;
-      Root_Dir            : VSS.Strings.Virtual_String)
+     (Self         : access Message_Handler;
+      Project_File : VSS.Strings.Virtual_String;
+      Scenario     : Scenario_Variable_List;
+      Environment  : GPR2.Environment.Object;
+      Charset      : VSS.Strings.Virtual_String;
+      Status       : Load_Project_Status)
    is
-      use GNATCOLL.Projects;
-      Errors     : LSP.Messages.ShowMessageParams;
-      Error_Text : VSS.String_Vectors.Virtual_String_Vector;
+      Message  : LSP.Messages.ShowMessageParams;
+      Errors   : VSS.String_Vectors.Virtual_String_Vector;
+      Warnings : VSS.String_Vectors.Virtual_String_Vector;
 
-      procedure Create_Context_For_Non_Aggregate (P : Project_Type);
-      procedure On_Error (Text : String);
+      procedure Create_Context_For_Non_Aggregate
+        (View : GPR2.Project.View.Object);
 
-      --------------
-      -- On_Error --
-      --------------
+      procedure Append_Errors;
 
-      procedure On_Error (Text : String) is
+      function To_Virtual_File
+        (Value : VSS.Strings.Virtual_String) return Virtual_File is
+        (Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Value)));
+      --  Cast Virtual_String to Virtual_File
+
+      -------------------
+      -- Append_Errors --
+      -------------------
+
+      procedure Append_Errors is
       begin
-         Error_Text.Append (VSS.Strings.Conversions.To_Virtual_String (Text));
-      end On_Error;
+         for Message of Self.Project_Tree.Log_Messages.all loop
+            case Message.Level is
+               when GPR2.Message.Error =>
+                  Errors.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (Message.Format));
+               when GPR2.Message.Warning =>
+                  Warnings.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (Message.Format));
+               when others =>
+                  null;
+            end case;
+         end loop;
+      end Append_Errors;
 
       --------------------------------------
       -- Create_Context_For_Non_Aggregate --
       --------------------------------------
 
-      procedure Create_Context_For_Non_Aggregate (P : Project_Type) is
+      procedure Create_Context_For_Non_Aggregate
+        (View : GPR2.Project.View.Object) is
          C : constant Context_Access := new Context (Self.Trace);
          Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
 
@@ -4825,8 +4936,8 @@ package body LSP.Ada_Handlers is
          --  accordingly.
 
          Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
-           (Tree           => Self.Project_Tree.all,
-            Project        => P,
+           (Tree           => Self.Project_Tree,
+            Project        => View,
             Default_Config => Default_Config,
             File_Configs   => File_Configs);
 
@@ -4846,13 +4957,19 @@ package body LSP.Ada_Handlers is
 
          C.Load_Project
            (Tree    => Self.Project_Tree,
-            Root    => P,
+            Root    => View,
             Charset => VSS.Strings.Conversions.To_UTF_8_String (Charset));
-
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
-      GPR : Virtual_File := To_Virtual_File (Project_File);
+      GPR                 : Virtual_File := To_Virtual_File (Project_File);
+      Default_Environment : LSP.Ada_Handlers.Environment;
+
+      Relocate_Build_Tree : constant Virtual_File :=
+        To_Virtual_File (Self.Relocate_Build_Tree);
+
+      Root_Dir            : constant Virtual_File :=
+        To_Virtual_File (Self.Relocate_Root_Dir);
 
    begin
       --  The projectFile may be either an absolute path or a
@@ -4865,84 +4982,95 @@ package body LSP.Ada_Handlers is
       --  Unload the project tree and the project environment
       Self.Release_Contexts_And_Project_Info;
 
-      Self.Project_File := Project_File;
-      Self.Scenario_Variables := Scenario;
-      Self.Relocate_Build_Tree := Relocate_Build_Tree;
-      Self.Root_Dir := Root_Dir;
-      Self.Charset := Charset;
-
-      --  We're loading an actual project
-      Self.Project_Status := Status;
-
       --  Now load the new project
-      Errors.a_type := LSP.Messages.Warning;
-      Self.Project_Environment :=
-        new LSP.Ada_Project_Environments.LSP_Project_Environment;
-      Initialize (Self.Project_Environment);
-      Self.Project_Environment.Set_Trusted_Mode (not Self.Follow_Symlinks);
+      Self.Project_Status := Status;
+      Self.Project_Environment := Default_Environment;
 
-      Self.Project_Environment.Set_Build_Tree_Dir
-        (To_FS (Relocate_Build_Tree));
+      if Relocate_Build_Tree /= No_File then
+         Self.Project_Environment.Build_Path :=
+           GPR2.Path_Name.Create (Relocate_Build_Tree);
+         if Root_Dir /= No_File and then GPR /= No_File then
+            if not Root_Dir.Is_Absolute_Path then
+               Self.Project_Environment.Build_Path :=
+                 GPR2.Path_Name.Create_Directory
+                   (GPR2.Path_Name.Create (GPR).Relative_Path
+                     (GPR2.Path_Name.Create (Root_Dir)).Name,
+                      GPR2.Filename_Type
+                       (Self.Project_Environment.Build_Path.Value));
+            end if;
+         end if;
+      end if;
 
-      Self.Project_Environment.Set_Root_Dir (To_FS (Root_Dir));
-
+      --  Update scenario variables with user provided values
       for J in 1 .. Scenario.Names.Length loop
-         Self.Project_Environment.Change_Environment
-           (VSS.Strings.Conversions.To_UTF_8_String (Scenario.Names (J)),
+         Self.Project_Environment.Context.Insert
+           (GPR2.Optional_Name_Type
+              (VSS.Strings.Conversions.To_UTF_8_String (Scenario.Names (J))),
             VSS.Strings.Conversions.To_UTF_8_String (Scenario.Values (J)));
       end loop;
 
       begin
-         Self.Project_Tree := new Project_Tree;
-         Self.Project_Tree.Load
-           (GPR,
-            Self.Project_Environment,
-            Report_Missing_Dirs => False,
-            Errors              => On_Error'Unrestricted_Access);
-         for File of Self.Project_Environment.Predefined_Source_Files loop
-            if Self.Is_Ada_Source (File) then
-               Self.Project_Predefined_Sources.Include (File);
-            end if;
-         end loop;
-         if Self.Project_Tree.Root_Project.Is_Aggregate_Project then
-            declare
-               Aggregated : Project_Array_Access :=
-                 Self.Project_Tree.Root_Project.Aggregated_Projects;
-            begin
-               for X of Aggregated.all loop
-                  Create_Context_For_Non_Aggregate (X);
-               end loop;
-               Unchecked_Free (Aggregated);
-            end;
-         else
-            Create_Context_For_Non_Aggregate (Self.Project_Tree.Root_Project);
-         end if;
+         Self.Project_Tree.Load_Autoconf
+           (Filename    => GPR2.Path_Name.Create (GPR),
+            Context     => Self.Project_Environment.Context,
+            Build_Path  => Self.Project_Environment.Build_Path,
+            Environment => Environment);
+
+         Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       exception
-         when E : others =>
-            Self.Release_Contexts_And_Project_Info;
+         when E : GPR2.Project_Error
+                | GPR2.Processing_Error
+                | GPR2.Attribute_Error =>
 
             Self.Trace.Trace (E);
-            Errors.a_type := LSP.Messages.Error;
 
-            On_Error
-              ("Unable to load project file: " &
-                 String (GPR.Full_Name.all) & Ada.Characters.Latin_1.LF);
-            On_Error
-              (Ada.Exceptions.Exception_Message (E) &
-                 Ada.Characters.Latin_1.LF);
-
-            --  The project was invalid: fallback on loading the implicit
-            --  project.
-            Self.Load_Implicit_Project (Invalid_Project_Configured);
+            Self.Project_Status := Invalid_Project_Configured;
       end;
 
+      --  Keep errors and warnings
+      Append_Errors;
+
+      if Self.Project_Status /= Status
+        or else not Self.Project_Tree.Is_Defined
+      then
+         --  The project was invalid: fallback on loading the implicit project.
+         Errors.Prepend
+           (VSS.Strings.Conversions.To_Virtual_String
+              ("Unable to load project file: " & GPR.Display_Full_Name));
+
+         Self.Load_Implicit_Project (Invalid_Project_Configured);
+
+      else
+         --  No exception during Load_Autoconf, check if we have runtime
+         if not Self.Project_Tree.Has_Runtime_Project then
+            Self.Project_Status := No_Runtime_Found;
+         end if;
+
+         Update_Project_Predefined_Sources (Self);
+
+         if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
+            for View of Self.Project_Tree.Root_Project.Aggregated loop
+               Create_Context_For_Non_Aggregate (View);
+            end loop;
+         else
+            Create_Context_For_Non_Aggregate
+              (Self.Project_Tree.Root_Project);
+         end if;
+      end if;
+
+      --  Report the warnings, if any
+      if not Warnings.Is_Empty then
+         Message.message := Warnings.Join_Lines (VSS.Strings.LF);
+         Message.a_type := LSP.Messages.Warning;
+         Self.Server.On_Show_Message (Message);
+      end if;
+
       --  Report the errors, if any
-      if not Error_Text.Is_Empty then
-         for Line of Error_Text loop
-            Errors.message.Append (Line);
-         end loop;
-         Self.Server.On_Show_Message (Errors);
+      if not Errors.Is_Empty then
+         Message.message := Errors.Join_Lines (VSS.Strings.LF);
+         Message.a_type := LSP.Messages.Error;
+         Self.Server.On_Show_Message (Message);
       end if;
 
       --  Reindex all open documents immediately after project reload, so
@@ -4969,6 +5097,109 @@ package body LSP.Ada_Handlers is
       Self.Mark_Source_Files_For_Indexing;
    end Load_Project;
 
+   -----------------------------
+   -- Load_Project_With_Alire --
+   -----------------------------
+
+   procedure Load_Project_With_Alire
+     (Self                : access Message_Handler;
+      Project_File        : VSS.Strings.Virtual_String := "";
+      Scenario_Variables  : Scenario_Variable_List;
+      Charset             : VSS.Strings.Virtual_String)
+   is
+
+      Has_Alire   : Boolean;
+      Status      : Load_Project_Status;
+      Errors      : VSS.Strings.Virtual_String;
+      Project     : VSS.Strings.Virtual_String := Project_File;
+      UTF_8       : constant VSS.Strings.Virtual_String := "utf-8";
+
+      Environment : GPR2.Environment.Object :=
+        GPR2.Environment.Process_Environment;
+
+      Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
+        Self.Root.Create_From_Dir ("alire.toml");
+   begin
+      if Alire_TOML.Is_Regular_File
+        and Spawn.Environments.System_Environment.Value ("ALIRE") /= "True"
+      then
+
+         Self.Trace.Trace ("Check alire:");
+
+         if Project.Is_Empty then
+
+            LSP.Ada_Handlers.Alire.Run_Alire
+              (Root        => Self.Root.Display_Full_Name,
+               Has_Alire   => Has_Alire,
+               Error       => Errors,
+               Project     => Project,
+               Environment => Environment);
+
+            Status := Alire_Project;
+         else
+
+            LSP.Ada_Handlers.Alire.Run_Alire
+              (Root        => Self.Root.Display_Full_Name,
+               Has_Alire   => Has_Alire,
+               Error       => Errors,
+               Environment => Environment);
+
+            Status := Valid_Project_Configured;
+         end if;
+
+         if Has_Alire and then not Errors.Is_Empty then
+
+            --  Something wrong with alire. Report error. Don't load the
+            --  project. Fallback to implicit project.
+
+            declare
+               Error : LSP.Messages.ShowMessageParams;
+            begin
+               Error.a_type := LSP.Messages.Error;
+               Error.message := Errors;
+               Self.Server.On_Show_Message (Error);
+               Self.Trace.Trace
+                 (VSS.Strings.Conversions.To_UTF_8_String (Errors));
+
+               Self.Load_Implicit_Project (Invalid_Project_Configured);
+
+               return;
+            end;
+         elsif Has_Alire then
+
+            --  No errors means the project has been found
+            pragma Assert (not Project.Is_Empty);
+
+            Self.Trace.Trace
+              (Message => "Project:"
+                 & VSS.Strings.Conversions.To_UTF_8_String (Project));
+
+            Self.Load_Project
+              (Project_File => Project,
+               Scenario     => Scenario_Variables,
+               Environment  => Environment,
+               Charset      => (if Charset.Is_Empty then UTF_8 else Charset),
+               Status       => Status);
+            --  Alire projects tend to use utf-8
+
+            return;
+         else
+            Self.Trace.Trace (Message => "No alr in the PATH.");
+         end if;
+      end if;
+
+      --  There is no alire.toml or no alr, but we know the project, load it
+      if not Project.Is_Empty then
+
+         Self.Load_Project
+           (Project_File => Project,
+            Scenario     => Scenario_Variables,
+            Environment  => Environment,
+            Charset      => Charset,
+            Status       => Valid_Project_Configured);
+      end if;
+   end Load_Project_With_Alire;
+
    -------------------------------
    -- Get_Unique_Progress_Token --
    -------------------------------
@@ -4977,6 +5208,7 @@ package body LSP.Ada_Handlers is
      (Self      : access Message_Handler;
       Operation : String := "") return LSP_Number_Or_String
    is
+      use GNAT.OS_Lib;
 
       Pid : constant String :=
         GNATCOLL.Utils.Image (Pid_To_Integer (Current_Process_Id), 1);
@@ -5194,7 +5426,7 @@ package body LSP.Ada_Handlers is
 
       --  New sources were created on this project, so recompute its view
 
-      Self.Project_Tree.Recompute_View;
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each created file of Value.files:
       --  - find the contexts that contains its directory
@@ -5217,18 +5449,16 @@ package body LSP.Ada_Handlers is
             --  Context.
 
          begin
-            if Self.Is_Ada_Source (Created_File) then
-               for Context of Self.Contexts.Each_Context
-                 (Has_Dir'Unrestricted_Access)
-               loop
-                  Context.Include_File (Created_File);
-                  Context.Index_File (Created_File);
+            for Context of Self.Contexts.Each_Context
+              (Has_Dir'Unrestricted_Access)
+            loop
+               Context.Include_File (Created_File);
+               Context.Index_File (Created_File);
 
-                  Self.Trace.Trace
-                    ("Included " & Created_File.Display_Base_Name
-                     & " in context " & To_UTF_8_String (Context.Id));
-               end loop;
-            end if;
+               Self.Trace.Trace
+                 ("Included " & Created_File.Display_Base_Name
+                  & " in context " & To_UTF_8_String (Context.Id));
+            end loop;
          end;
       end loop;
 
@@ -5282,7 +5512,7 @@ package body LSP.Ada_Handlers is
 
       --  Some project sources were renamed, so recompute its view
 
-      Self.Project_Tree.Recompute_View;
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each oldUri of Value.files:
       --  - map it to a list of context that contains it
@@ -5306,22 +5536,20 @@ package body LSP.Ada_Handlers is
             URI_Contexts : Context_Lists.List;
 
          begin
-            if Self.Is_Ada_Source (Old_File) then
-               for Context of Self.Contexts.Each_Context
-                 (Has_File'Unrestricted_Access)
-               loop
-                  URI_Contexts.Append (Context);
-                  Context.Exclude_File (Old_File);
-                  Context.Index_File (Old_File);
+            for Context of Self.Contexts.Each_Context
+              (Has_File'Unrestricted_Access)
+            loop
+               URI_Contexts.Append (Context);
+               Context.Exclude_File (Old_File);
+               Context.Index_File (Old_File);
 
-                  Self.Trace.Trace
-                    ("Excluded " & Old_File.Display_Full_Name
-                     & " from context " & To_UTF_8_String (Context.Id));
-               end loop;
+               Self.Trace.Trace
+                 ("Excluded " & Old_File.Display_Full_Name
+                  & " from context " & To_UTF_8_String (Context.Id));
+            end loop;
 
-               URIs_Contexts.Insert
-                 (To_LSP_URI (File_Rename.oldUri), URI_Contexts);
-            end if;
+            URIs_Contexts.Insert
+              (To_LSP_URI (File_Rename.oldUri), URI_Contexts);
          end;
       end loop;
 
@@ -5344,22 +5572,20 @@ package body LSP.Ada_Handlers is
             Is_Document_Open : constant Boolean := Document /= null;
 
          begin
-            if Self.Is_Ada_Source (New_File) then
-               for Context of
-                 URIs_Contexts.Constant_Reference
-                   (To_LSP_URI (File_Rename.oldUri))
-               loop
-                  Context.Include_File (New_File);
-                  if Is_Document_Open then
-                     Context.Index_Document (Document.all);
-                  else
-                     Context.Index_File (New_File);
-                  end if;
-                  Self.Trace.Trace
-                    ("Included " & New_File.Display_Base_Name & " in context "
-                     & To_UTF_8_String (Context.Id));
-               end loop;
-            end if;
+            for Context of
+              URIs_Contexts.Constant_Reference
+                (To_LSP_URI (File_Rename.oldUri))
+            loop
+               Context.Include_File (New_File);
+               if Is_Document_Open then
+                  Context.Index_Document (Document.all);
+               else
+                  Context.Index_File (New_File);
+               end if;
+               Self.Trace.Trace
+                 ("Included " & New_File.Display_Base_Name & " in context "
+                  & To_UTF_8_String (Context.Id));
+            end loop;
          end;
       end loop;
 
@@ -5398,7 +5624,7 @@ package body LSP.Ada_Handlers is
 
       --  Some project sources were deleted, so recompute its view
 
-      Self.Project_Tree.Recompute_View;
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each delete file of Value.files:
       --  - find the contexts that contains it
@@ -5418,19 +5644,17 @@ package body LSP.Ada_Handlers is
             --  Context.
 
          begin
-            if Self.Is_Ada_Source (Deleted_File) then
-               for Context of Self.Contexts.Each_Context
-                 (Has_File'Unrestricted_Access)
-               loop
-                  Context.Exclude_File (Deleted_File);
-                  Context.Index_File (Deleted_File);
+            for Context of Self.Contexts.Each_Context
+              (Has_File'Unrestricted_Access)
+            loop
+               Context.Exclude_File (Deleted_File);
+               Context.Index_File (Deleted_File);
 
-                  Self.Trace.Trace
-                    ("Excluded " & Deleted_File.Display_Base_Name
-                     & " from context "
-                     & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
-               end loop;
-            end if;
+               Self.Trace.Trace
+                 ("Excluded " & Deleted_File.Display_Base_Name
+                  & " from context "
+                  & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
+            end loop;
          end;
       end loop;
 
@@ -6451,6 +6675,64 @@ package body LSP.Ada_Handlers is
          end return;
    end On_ALS_Check_Syntax_Request;
 
+   ----------------------
+   -- GLS_Mains_Request --
+   ----------------------
+
+   overriding function On_GLS_Mains_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Mains_Request)
+      return LSP.Messages.Server_Responses.GLS_Mains_Response
+   is
+      use LSP.Messages.Server_Responses;
+      use VSS.String_Vectors;
+      Result : Virtual_String_Vector;
+      Element : GPR2.Project.View.Object;
+   begin
+      if Self.Project_Tree.Is_Defined
+      then
+         Element := Self.Project_Tree.Root_Project;
+         if Element.Has_Mains then
+            for main of Element.Mains loop
+               Result.Append
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (main.Source.Value));
+            end loop;
+         end if;
+      end if;
+      return Response : GLS_Mains_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => Result);
+      end return;
+   end On_GLS_Mains_Request;
+
+   ----------------------
+   -- GLS_Executables_Request --
+   ----------------------
+
+   overriding function On_GLS_Executables_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
+      return LSP.Messages.Server_Responses.GLS_Executables_Response
+   is
+      use LSP.Messages.Server_Responses;
+      use VSS.String_Vectors;
+      Result : Virtual_String_Vector;
+      Element : GPR2.Project.View.Object;
+   begin
+      if Self.Project_Tree.Is_Defined
+      then
+         Element := Self.Project_Tree.Root_Project;
+         for exec of Element.Executables loop
+            Result.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                (exec.Value));
+         end loop;
+      end if;
+      return Response : GLS_Executables_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => Result);
+      end return;
+   end On_GLS_Executables_Request;
+
    -----------
    -- Parse --
    -----------
@@ -6492,5 +6774,28 @@ package body LSP.Ada_Handlers is
          end if;
       end return;
    end Parse;
+
+   ---------------------------------------
+   -- Update_Project_Predefined_Sources --
+   ---------------------------------------
+
+   procedure Update_Project_Predefined_Sources (Self : access Message_Handler)
+   is
+      use GPR2;
+      use GPR2.Project.Source.Set;
+   begin
+      Self.Project_Predefined_Sources.Clear;
+
+      if Self.Project_Tree.Is_Defined
+        and then Self.Project_Tree.Has_Runtime_Project
+      then
+         for Source of Self.Project_Tree.Runtime_Project.Sources loop
+            if Source.Language = GPR2.Ada_Language then
+               Self.Project_Predefined_Sources.Include
+                 (Source.Path_Name.Virtual_File);
+            end if;
+         end loop;
+      end if;
+   end Update_Project_Predefined_Sources;
 
 end LSP.Ada_Handlers;

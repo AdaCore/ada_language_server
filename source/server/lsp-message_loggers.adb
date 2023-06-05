@@ -66,7 +66,10 @@ package body LSP.Message_Loggers is
      (Value : LSP.Messages.ALS_Check_Syntax_Params) return String;
    function Image
      (Value : LSP.Messages.ALS_Check_Syntax_Result) return String;
-
+   function Image
+     (Value : LSP.Messages.GLS_Mains_Result) return String;
+   function Image
+     (Value : LSP.Messages.GLS_Executables_Result) return String;
    -----------
    -- Image --
    -----------
@@ -425,6 +428,48 @@ package body LSP.Message_Loggers is
       else
          return "";
       end if;
+   end Image;
+
+   ------------
+   -- Image ---
+   ------------
+
+   function Image
+     (Value : LSP.Messages.GLS_Mains_Result) return String
+   is
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
+      R : VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+   begin
+      Append (R, "Main Files: ");
+      if Value.Is_Set then
+         for e of Value.Value loop
+            Append (R, e);
+            Append (R, ", ");
+         end loop;
+      end if;
+      return To_UTF_8_String (R);
+   end Image;
+
+   ------------
+   -- Image ---
+   ------------
+
+   function Image
+     (Value : LSP.Messages.GLS_Executables_Result) return String
+   is
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
+      R : VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+   begin
+      Append (R, "Executables : ");
+      if Value.Is_Set then
+         for e of Value.Value loop
+            Append (R, e);
+            Append (R, ", ");
+         end loop;
+      end if;
+      return To_UTF_8_String (R);
    end Image;
 
    ----------------
@@ -2374,5 +2419,81 @@ package body LSP.Message_Loggers is
          end if;
       end if;
    end On_ALS_Check_Syntax_Response;
+
+   ---------------------------------
+   -- On_GLS_Mains_Request --
+   ---------------------------------
+
+   overriding procedure On_GLS_Mains_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.GLS_Mains_Request) is
+   begin
+      Self.Trace.Trace
+        ("GLS_Mains_Request: "
+         & Image (Value));
+   end On_GLS_Mains_Request;
+
+   ----------------------------------
+   -- On_GLS_Mains_Response --
+   ----------------------------------
+
+   overriding procedure On_GLS_Mains_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.GLS_Mains_Response) is
+   begin
+      if Response.Is_Error then
+         Self.Trace.Trace
+           ("GLS_Mains_Response: " & Image (Response) & " Error");
+      else
+         if Response.result.Is_Set then
+            Self.Trace.Trace
+              ("GLS_Mains_Response: "
+               & Image (Response)
+               & " "
+               & Image (Response.result));
+         else
+            Self.Trace.Trace
+              ("GLS_Mains_Response: " & Image (Response));
+         end if;
+      end if;
+   end On_GLS_Mains_Response;
+
+   --------------------------------
+   -- On_GLS_Executables_Request --
+   --------------------------------
+
+   overriding procedure On_GLS_Executables_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.GLS_Executables_Request) is
+   begin
+      Self.Trace.Trace
+        ("GLS_Executables_Request: "
+         & Image (Value));
+   end On_GLS_Executables_Request;
+
+   ---------------------------------
+   -- On_GLS_Executables_Response --
+   ---------------------------------
+
+   overriding procedure On_GLS_Executables_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.GLS_Executables_Response) is
+   begin
+      if Response.Is_Error then
+         Self.Trace.Trace
+           ("GLS_Executables_Response: " & Image (Response) & " Error");
+      else
+         if Response.result.Is_Set then
+            Self.Trace.Trace
+              ("GLS_Executables_Response: "
+               & Image (Response)
+               & " "
+               & Image (Response.result));
+         else
+            Self.Trace.Trace
+              ("GLS_Executables_Response: " & Image (Response));
+         end if;
+      end if;
+   end On_GLS_Executables_Response;
 
 end LSP.Message_Loggers;

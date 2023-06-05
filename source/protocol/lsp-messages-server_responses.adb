@@ -385,4 +385,19 @@ package body LSP.Messages.Server_Responses is
       Handler.On_ALS_Check_Syntax_Response (Self);
    end Visit;
 
+   overriding procedure Visit
+     (Self    : GLS_Mains_Response;
+      Handler : access Server_Response_Sender'Class)
+   is
+   begin
+      Handler.On_GLS_Mains_Response (Self);
+   end Visit;
+
+   overriding procedure Visit
+     (Self    : GLS_Executables_Response;
+      Handler : access Server_Response_Sender'Class)
+   is
+   begin
+      Handler.On_GLS_Executables_Response (Self);
+   end Visit;
 end LSP.Messages.Server_Responses;

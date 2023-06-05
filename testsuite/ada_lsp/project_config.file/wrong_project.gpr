@@ -1,0 +1,5 @@
+project Wrong_Project is
+   package Naming is
+      for Spec ("To_Be_Called") use "third.ads";
+   end Naming;
+end Wrong_Project;

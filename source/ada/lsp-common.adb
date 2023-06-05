@@ -16,12 +16,16 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Characters.Handling;     use Ada.Characters.Handling;
+with Ada.Characters.Handling;  use Ada.Characters.Handling;
 
 with Ada.Exceptions;           use Ada.Exceptions;
+
 with GNAT.Expect.TTY;
 with GNAT.Traceback.Symbolic;  use GNAT.Traceback.Symbolic;
 with GNATCOLL.Utils;           use GNATCOLL.Utils;
+
+with GPR2.Project.Registry.Attribute;
+with GPR2.Project.Registry.Pack;
 
 with VSS.Strings.Character_Iterators;
 
@@ -29,6 +33,7 @@ with Langkit_Support.Text;
 with Libadalang.Common;        use Libadalang.Common;
 
 with LSP.Lal_Utils;
+with GPR2.Project;
 
 package body LSP.Common is
 
@@ -615,38 +620,22 @@ package body LSP.Common is
           | VSS.Characters.Line_Separator
           | VSS.Characters.Paragraph_Separator;
    end Is_Ada_Separator;
+begin
 
-   -----------------
-   -- Is_Ada_File --
-   -----------------
+   GPR2.Project.Registry.Pack.Add
+     (Name     => Pretty_Printer_Id,
+      Projects => GPR2.Project.Registry.Pack.Everywhere);
 
-   function Is_Ada_File
-     (Tree : GNATCOLL.Projects.Project_Tree_Access;
-      File : GNATCOLL.VFS.Virtual_File) return Boolean
-   is
-      use GNATCOLL.Projects;
-      Set : File_Info_Set;
-   begin
-      --  Defensive programming; this shouldn't happen
-      if Tree = null then
-         return False;
-      end if;
+   GPR2.Project.Registry.Attribute.Add
+     (Name                 => Pretty_Printer.Switches,
+      Index_Type           => GPR2.Project.Registry.Attribute.
+                                 FileGlob_Or_Language_Index,
+      Index_Optional       => True,
+      Value                => GPR2.Project.Registry.Attribute.List,
+      Value_Case_Sensitive => True,
+      Is_Allowed_In        => GPR2.Project.Registry.Attribute.Everywhere);
 
-      Set := Tree.Info_Set (File);
-      if not Set.Is_Empty then
-         --  The file can be listed in several projects with different
-         --  Info_Sets, in the case of aggregate projects. However,
-         --  assume that the language is the same in all projects,
-         --  so look only at the first entry in the set.
-         declare
-            Info : constant File_Info'Class :=
-                     File_Info'Class (Set.First_Element);
-         begin
-            return To_Lower (Info.Language) = "ada";
-         end;
-      end if;
-
-      return False;
-   end Is_Ada_File;
+   GPR2.Project.Registry.Attribute.Add_Alias
+     (Pretty_Printer.Default_Switches, Pretty_Printer.Switches);
 
 end LSP.Common;

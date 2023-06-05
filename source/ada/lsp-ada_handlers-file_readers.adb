@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
 with GNAT.Strings;                 use GNAT.Strings;
 
 with GNATCOLL.Traces;              use GNATCOLL.Traces;
