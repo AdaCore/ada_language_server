@@ -70,7 +70,7 @@
             "match": "=>|\\.\\.|\\*\\*|/=|>=|<=|<>|&|\\*|\\+|,|\\-|\\.|/|<|=|>|\\|"
         },
         {
-            "name": "entity.name.tag.ada",
+            "name": "entity.name.label.ada",
             "match": "[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}](\\p{Pc}?[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}\\p{Mn}\\p{Mc}\\p{Nd}])*"
         }
     ],
