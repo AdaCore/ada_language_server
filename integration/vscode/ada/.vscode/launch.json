@@ -8,8 +8,7 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "${workspaceFolder}/test",
-                "${workspaceFolder}/testsuite_grammar"
+                "${workspaceFolder}/debug.code-workspace"
             ],
             "preLaunchTask": "npm: compile"
         },
