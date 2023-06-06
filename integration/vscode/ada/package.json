@@ -473,6 +473,18 @@
             {
                 "command": "ada.subprogramBox",
                 "title": "Ada: Add subprogram box"
+            },
+            {
+                "command": "ada.showExtensionOutput",
+                "title": "Ada: Show Output"
+            },
+            {
+                "command": "ada.showAdaLSOutput",
+                "title": "Ada: Show Ada Language Server Output"
+            },
+            {
+                "command": "ada.showGprLSOutput",
+                "title": "Ada: Show GPR Language Server Output"
             }
         ],
         "keybindings": [
