@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# -x causes commands to be logged before invocation
+# -e causes the execution to terminate as soon as any command fails
 set -x -e
 DEBUG=$1  # Value is '' or 'debug'
 RUNNER_OS=$2  #  ${{ runner.os }} is Linux, Windiws, maxOS
@@ -44,19 +47,33 @@ cd -
 # Get libadalang binaries
 mkdir -p $prefix
 FILE=libadalang-$RUNNER_OS-$BRANCH${DEBUG:+-dbg}-static.tar.gz
-aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/$FILE . --sse=AES256
-tar xzf $FILE -C $prefix
-rm -f -v $FILE
+# If the script is run locally for debugging, it is not always possible
+# to download libadalang from AWS S3. Instead, allow for the file to
+# be obtained otherwise and placed in the current directory for the script
+# to use. Thus, if the file is already there, we don't download it again
+# and we don't delete it after use.
+if [ ! -f "$FILE" ]; then
+   aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/$FILE . --sse=AES256
+   tar xzf $FILE -C $prefix
+   rm -f -v $FILE
+else
+   # Untar the existing file and don't delete it
+   tar xzf $FILE -C $prefix
+fi
 
-which python
-pip install --user e3-testsuite
-python -c "import sys;print('e3' in sys.modules)"
+which python3
+which pip3
+pip3 install --user e3-testsuite
+python3 -c "import sys;print('e3' in sys.modules)"
 
 if [ "$DEBUG" = "debug" ]; then
     export BUILD_MODE=dev
 else
     export BUILD_MODE=prod
 fi
+
+# Log info about the compiler and library paths
+gnatls -v
 
 make -C subprojects/templates-parser setup prefix=$prefix \
  ENABLE_SHARED=no \
@@ -74,21 +91,27 @@ function fix_rpath ()
 }
 
 if [ $RUNNER_OS = macOS ]; then
-    cp -v /usr/local/opt/gmp/lib/libgmp.10.dylib integration/vscode/ada/darwin/
+    cp -v -f /usr/local/opt/gmp/lib/libgmp.10.dylib integration/vscode/ada/darwin/
     fix_rpath integration/vscode/ada/darwin/ada_language_server
 fi
 
 if [ "$DEBUG" != "debug" ]; then
-    if [ $RUNNER_OS = macOS ]; then
-        # Install binutils to have objcopy on Mac OS X
-        brew install binutils
-        export PATH="/usr/local/opt/binutils/bin:$PATH"
-    fi
     ALS=`ls integration/vscode/ada/*/ada_language_server*`
-    objcopy --only-keep-debug ${ALS} ${ALS}.debug
-    objcopy --strip-all ${ALS}
     cd `dirname $ALS`
     ALS=`basename ${ALS}`
-    objcopy --add-gnu-debuglink=${ALS}.debug ${ALS}
+    if [ $RUNNER_OS = macOS ]; then
+        # On macOS using objcopy from binutils to strip debug symbols to a
+        # separate file doesn't work. Namely, the last step `objcopy
+        # --add-gnu-debuglink` yields an executable that crashes at startup.
+        #
+        # Instead we use dsymutil and strip which are commands provided by the
+        # system (or by XCode).
+        dsymutil "$ALS"
+        strip "$ALS"
+    else
+        objcopy --only-keep-debug ${ALS} ${ALS}.debug
+        objcopy --strip-all ${ALS}
+        objcopy --add-gnu-debuglink=${ALS}.debug ${ALS}
+    fi
     cd -
 fi
