@@ -79,7 +79,7 @@ make -C subprojects/templates-parser setup prefix=$prefix \
  ENABLE_SHARED=no \
  ${DEBUG:+BUILD=debug} build-static install-static
 
-make LIBRARY_TYPE=static all check
+make LIBRARY_TYPE=static VERSION=$TAG all check
 
 function fix_rpath ()
 {
