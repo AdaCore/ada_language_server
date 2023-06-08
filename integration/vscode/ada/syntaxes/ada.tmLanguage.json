@@ -32,7 +32,7 @@
         },
         {
             "name": "variable.other.constant.ada",
-            "match": "\\b(?i:(null))\\b"
+            "match": "\\b(?i:(null|True|False))\\b"
         },
         {
             "name": "keyword.other.ada",
