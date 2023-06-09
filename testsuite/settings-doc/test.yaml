@@ -1,0 +1,7 @@
+# This test checks that all settings declared in the extension's package.json
+# have a corresponding entry in the settings documentation.
+driver: shell
+title: 'settings_docs'
+# Test only on Linux, since it depends on `bash` and `diff`
+skip:
+    - ['SKIP', 'env.build.os.name != "linux"']
