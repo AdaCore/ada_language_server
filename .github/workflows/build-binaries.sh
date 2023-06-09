@@ -6,6 +6,8 @@ set -x -e
 DEBUG=$1  # Value is '' or 'debug'
 RUNNER_OS=$2  #  ${{ runner.os }} is Linux, Windiws, maxOS
 TAG=$3 # For master it's 23.0.999, while for tag it's the tag itself
+NO_REBASE=$4 # Specify this to skip the rebase over the edge branch. Used for local debugging.
+
 prefix=/tmp/ADALIB_DIR
 
 if [ $RUNNER_OS = Windows ]; then
@@ -29,7 +31,7 @@ echo PATH=$PATH
 BRANCH=master
 
 # Rebase PR on edge branch
-if [[ ${GITHUB_REF##*/} != 2*.[0-9]*.[0-9]* ]]; then
+if [[ -z "$NO_REBASE" && ${GITHUB_REF##*/} != 2*.[0-9]*.[0-9]* ]]; then
     git config user.email "`git log -1 --pretty=format:'%ae'`"
     git config user.name  "`git log -1 --pretty=format:'%an'`"
     git config core.autocrlf
@@ -96,7 +98,14 @@ if [ $RUNNER_OS = macOS ]; then
 fi
 
 if [ "$DEBUG" != "debug" ]; then
-    ALS=`ls integration/vscode/ada/*/ada_language_server*`
+    # Here it's better to match an exact extension rather than mathing
+    # ada_language_server* because when running locally, the latter could match
+    # ada_language_server.dSYM from a previous run if it exists.
+    if [ $RUNNER_OS = Windows ]; then
+        ALS=`ls integration/vscode/ada/*/ada_language_server.exe`
+    else
+        ALS=`ls integration/vscode/ada/*/ada_language_server`
+    fi
     cd `dirname $ALS`
     ALS=`basename ${ALS}`
     if [ $RUNNER_OS = macOS ]; then

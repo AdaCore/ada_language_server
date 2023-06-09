@@ -80,7 +80,12 @@ To build the language server you need:
 Project files of the libraries must be available via the `GPR_PROJECT_PATH`
 environment variable.
 
-To run the language server you need `gnatls` (parts of GNAT installation)
+If you intend to use VS Code on this workspace, it is recommended to check out
+these dependencies under `subprojects/` or install them under
+`subprojects/prefix`. That will make them automatically visible to the VS Code
+Ada extension in this workspace.
+
+To run the language server you need `gnatls` (part of GNAT installation)
 somewhere in the path.
 
 ## Usage

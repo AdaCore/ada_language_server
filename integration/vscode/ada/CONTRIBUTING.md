@@ -2,6 +2,46 @@
 
 This document will describe the necessary information required to contribute to the [VS Code](https://code.visualstudio.com/) extension.
 
+## Developer Setup
+
+It is recommended to use the VS Code workspace defined at the root of this Git
+repository for development of the VS Code Ada extension. Run this initially to install all dependencies:
+
+```
+cd integration/vscode/ada; npm install
+```
+
+And then use the task `npm: compile` for compilation and the launch
+configuration `Launch Extension` for local testing and debugging.
+
+### macOS on Apple M1/M2 processors
+
+On macOS with Apple M1/M2 processors, using a native arm64 `node`/`npm` will
+result in an error as the VS Code Ada extension is not yet ready to support the
+arm64 architecture on all platforms. To work around this, install and use an
+x86_64 version of Node.js. You can download it from the
+[Node.js](https://nodejs.org/en/download) website or using an x86_64
+installation of [Homebrew](https://brew.sh/).
+
+Homebrew x86_64 can be installed by prefixing the Homebrew installation command
+with `arch -x86_64 ...`. By default the x86_64 Homebrew uses the `/usr/local`
+prefix while the arm64 Homebrew uses the `/opt/homebrew` prefix so both
+installations can co-exist. To use the x86_64 Homebrew, e.g. to install the
+x86_64 Node.js, invoke it as follows:
+
+```
+arch -x86_64 /usr/local/bin/brew install node npm
+```
+
+And then update the `PATH` environment variable to make sure the x86_64 `node` executable gets used:
+
+```
+cd integration/vscode/ada; PATH=/usr/local/bin:$PATH npm install
+```
+
+Once the initial `npm install` step is done in x86_64 mode, VS Code will be able
+to use the installed x86_64 dependencies seemlessly.
+
 ## Terminology
 
 ### Syntax Highlighter
