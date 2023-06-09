@@ -1,50 +1,56 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "build",
-            "type": "shell",
-            "command": "gprbuild",
-            "args": [
-                "-p",
-                "-P",
-                "${config:ada.projectFile}",
-                "-cargs",
-                "-gnatef"
-            ],
-            "problemMatcher": [
-                "$ada"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Run tests",
-            "type": "shell",
-            "command": "make check",
-            "problemMatcher": [
-                "$ada"
-            ],
-            "group": "test"
-        },
-        {
-            "type": "npm",
-            "script": "compile",
-            "path": "integration/vscode/ada",
-            "group": "build",
-            "problemMatcher": [],
-            "label": "npm: compile",
-            "detail": "node ./node_modules/typescript/bin/tsc",
-            "presentation": {
-               "echo": true,
-               "reveal": "silent",
-               "focus": false,
-               "panel": "shared",
-               "showReuseMessage": true,
-               "clear": false
-            }
-        }
-    ]
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "label": "build",
+         "type": "shell",
+         "command": "gprbuild",
+         "args": ["-p", "-P", "${config:ada.projectFile}", "-cargs", "-gnatef"],
+         "problemMatcher": ["$ada"],
+         "group": {
+            "kind": "build",
+            "isDefault": true
+         }
+      },
+      {
+         "label": "Run tests",
+         "type": "shell",
+         "command": "make check",
+         "problemMatcher": ["$ada"],
+         "group": "test"
+      },
+      {
+         "type": "npm",
+         "script": "compile",
+         "path": "integration/vscode/ada",
+         "group": "build",
+         "problemMatcher": [],
+         "label": "npm: compile",
+         "detail": "node ./node_modules/typescript/bin/tsc",
+         "presentation": {
+            "echo": true,
+            "reveal": "silent",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+         }
+      },
+      {
+         "type": "npm",
+         "script": "pretest",
+         "path": "integration/vscode/ada",
+         "problemMatcher": [],
+         "label": "npm: pretest",
+         "detail": "npm run compile",
+         "presentation": {
+            "echo": true,
+            "reveal": "silent",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+         }
+      }
+   ]
 }

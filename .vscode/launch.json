@@ -43,6 +43,12 @@
             "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
             "${workspaceFolder}/integration/vscode/ada/test/SampleProject"
          ],
+         "env": {
+            // This is custom env var that we use in
+            // integration/vscode/ada/test/suite/index.ts to prevent timeouts in
+            // tests when debugging
+            "MOCHA_TIMEOUT": "0"
+         },
          "preLaunchTask": "npm: pretest"
       },
       {
