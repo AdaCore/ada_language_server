@@ -33,7 +33,6 @@ with VSS.Application;
 with VSS.Command_Line;
 with VSS.Standard_Paths;
 with VSS.Strings.Conversions;
-with VSS.Text_Streams.Standards;
 
 with GNATCOLL.JSON;
 with GNATCOLL.Memory;         use GNATCOLL.Memory;
@@ -82,9 +81,6 @@ procedure LSP.Ada_Driver is
    procedure Die_On_Uncaught (E : Exception_Occurrence);
    --  Quit the process when an uncaught exception reaches this. Used for
    --  fuzzing.
-
-   procedure Print_Help (Option : VSS.Command_Line.Named_Option'Class);
-   --  Put option description to stdout
 
    Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
    --  Main trace for the LSP.
@@ -137,31 +133,6 @@ procedure LSP.Ada_Driver is
       --  An exception occurred while fuzzing: make it fatal.
       GNAT.OS_Lib.OS_Exit (42);
    end Die_On_Uncaught;
-
-   ----------------
-   -- Print_Help --
-   ----------------
-
-   procedure Print_Help (Option : VSS.Command_Line.Named_Option'Class) is
-      use type VSS.Strings.Character_Count;
-      Ok     : Boolean := True;
-      Output : VSS.Text_Streams.Output_Text_Stream'Class :=
-        VSS.Text_Streams.Standards.Standard_Output;
-      Last   : VSS.Strings.Character_Count :=
-        3 + Option.Long_Name.Character_Length;
-   begin
-      Output.Put (" --", Ok);
-      Output.Put (Option.Long_Name, Ok);
-      if Option in VSS.Command_Line.Value_Option'Class then
-         Output.Put ("=ARG", Ok);
-         Last := Last + 4;
-      end if;
-
-      for J in Last + 1 .. 17 loop
-         Output.Put (' ', Ok);
-      end loop;
-      Output.Put_Line (Option.Description, Ok);
-   end Print_Help;
 
    -----------------------
    -- Register_Commands --
@@ -256,41 +227,21 @@ procedure LSP.Ada_Driver is
       Long_Name   => "version",
       Description => "Display the program version");
 
-   Help_Option            : constant VSS.Command_Line.Binary_Option :=
-     (Short_Name  => "",
-      Long_Name   => "help",
-      Description => "Display this help");
-
    Config_File            : Virtual_File;
 
    Memory_Monitor_Enabled : Boolean;
 begin
    --  Handle the command line
-      --  Help => "Command line interface for the Ada Language Server");
 
    VSS.Command_Line.Add_Option (Trace_File_Option);
    VSS.Command_Line.Add_Option (Config_File_Option);
    VSS.Command_Line.Add_Option (Language_GPR_Option);
    VSS.Command_Line.Add_Option (Version_Option);
-   VSS.Command_Line.Add_Option (Help_Option);
-   VSS.Command_Line.Process;  --  Will exit if errors
+   VSS.Command_Line.Add_Help_Option;
 
-   if VSS.Command_Line.Is_Specified (Help_Option) then
-      Ada.Text_IO.Put_Line
-        ("Language Server Ada and SPARK.");
-      --  TBD: Print list of options using VSS
-      Ada.Text_IO.Put_Line
-        ("Usage: ada_language_server [switches] [arguments]");
-      Ada.Text_IO.New_Line;
+   VSS.Command_Line.Process;  --  Will exit if errors or help requested.
 
-      Print_Help (Trace_File_Option);
-      Print_Help (Config_File_Option);
-      Print_Help (Language_GPR_Option);
-      Print_Help (Version_Option);
-      Print_Help (Help_Option);
-
-      GNAT.OS_Lib.OS_Exit (0);
-   elsif VSS.Command_Line.Is_Specified (Version_Option) then
+   if VSS.Command_Line.Is_Specified (Version_Option) then
       Ada.Text_IO.Put_Line ("ALS version: " & $VERSION);
       GNAT.OS_Lib.OS_Exit (0);
    end if;
