@@ -1,6 +1,44 @@
 {
-    "ada.projectFile": "gnat/lsp_server.gpr",
-    "python.analysis.extraPaths": [
-        "testsuite"
-    ]
+   "ada.projectFile": "gnat/lsp_server.gpr",
+   "python.analysis.extraPaths": ["testsuite"],
+   "terminal.integrated.env.osx": {
+      // Dependencies can be provided under the subprojects/ directory. They
+      // would automatically be included in GPR_PROJECT_PATH by the following
+      // setting.
+      //
+      // Alternatively, dependencies can be obtained from different locations
+      // and GPR_PROJECT_PATH can be set prior to invoking VS Code, making them
+      // also visible if not overwritten in the subprojects/ directory.
+      "GPR_PROJECT_PATH": "${workspaceFolder}/subprojects/VSS/gnat:${workspaceFolder}/subprojects/gnatdoc/gnat:${workspaceFolder}/subprojects/libadalang-tools/src:${workspaceFolder}/subprojects/spawn/gnat:${workspaceFolder}/subprojects/stubs:${workspaceFolder}/subprojects/prefix/share/gpr:${env:GPR_PROJECT_PATH}"
+   },
+   // To develop the VS Code extension, it is recommended to open the workspace
+   // defined at integration/vscode/ada. Nonetheless, this configuration allows
+   // ESLint to operate on the TypeScript sources of the extension from this
+   // workspace.
+   "eslint.workingDirectories": [
+      {
+         "directory": "integration/vscode/ada"
+      }
+   ],
+   // Please keep the following options in sync with integration/vscode/ada/.vscode/settings.json
+   "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.codeActionsOnSave": {
+         "source.fixAll.eslint": true
+      }
+   },
+   "[json]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.detectIndentation": false,
+      "files.trimFinalNewlines": true,
+      "files.trimTrailingWhitespace": true
+   },
+   "[jsonc]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.detectIndentation": false,
+      "files.trimFinalNewlines": true,
+      "files.trimTrailingWhitespace": true
+   }
 }

@@ -1,15 +1,57 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  "version": "0.2.0",
-  "configurations": [
-     {
-        "type": "gdb",
-        "request": "launch",
-        "name": "Launch Program",
-        "target": ".obj/server/ada_language_server",
-        "cwd": "${workspaceRoot}",
-        "valuesFormatting": "parseText"
-     }
-  ]
+   // Use IntelliSense to learn about possible attributes.
+   // Hover to view descriptions of existing attributes.
+   "version": "0.2.0",
+   "configurations": [
+      {
+         "name": "Launch Extension",
+         "type": "extensionHost",
+         "request": "launch",
+         "runtimeExecutable": "${execPath}",
+         "outFiles": [
+            "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
+            "!**/node_modules/**"
+         ],
+         "args": [
+            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
+
+            // It is useful to have workspace available for local debugging. The
+            // following one is provided within the repository with test folders
+            // included.
+            // "${workspaceFolder}/integration/vscode/ada/debug.code-workspace"
+
+            // An alternative is to use the ALS workspace itself as a runtime
+            // workspace for debugging. However it is not possible to start the
+            // debug instance on the same workspace as the development instance.
+            // So you can checkout a second copy of the ALS repository under
+            // ../als-rt and use it with the following line.
+            "${workspaceFolder}/../als-rt"
+         ],
+         "preLaunchTask": "npm: compile"
+      },
+      {
+         "name": "Extension Tests",
+         "type": "extensionHost",
+         "request": "launch",
+         "runtimeExecutable": "${execPath}",
+         "outFiles": [
+            "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
+            "!**/node_modules/**"
+         ],
+         "args": [
+            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
+            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
+            "${workspaceFolder}/integration/vscode/ada/test/SampleProject"
+         ],
+         "preLaunchTask": "npm: pretest"
+      },
+      {
+         "type": "gdb",
+         "request": "launch",
+         "name": "Launch Program",
+         "target": ".obj/server/ada_language_server",
+         "cwd": "${workspaceRoot}",
+         "valuesFormatting": "parseText"
+      }
+   ]
 }

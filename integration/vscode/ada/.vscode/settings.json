@@ -3,6 +3,7 @@
         "**/node_modules": true,
         "**/out": true
     },
+    // Please keep the following options in sync with ../../../../.vscode/settings.json
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.codeActionsOnSave": {
@@ -11,16 +12,16 @@
     },
     "[json]": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.detectIndentation": false,
         "files.trimFinalNewlines": true,
-        "files.trimTrailingWhitespace": true,
+        "files.trimTrailingWhitespace": true
     },
     "[jsonc]": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.detectIndentation": false,
         "files.trimFinalNewlines": true,
-        "files.trimTrailingWhitespace": true,
+        "files.trimTrailingWhitespace": true
     }
 }

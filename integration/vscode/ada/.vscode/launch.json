@@ -7,9 +7,10 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}"
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "${workspaceFolder}/debug.code-workspace"
             ],
-            "preLaunchTask": "npm: compile",
+            "preLaunchTask": "npm: compile"
         },
         {
             "name": "Extension Tests",

@@ -36,6 +36,22 @@ about memory usage, allowing to track down which parts of the program consumes
 the most memory.
 This is very useful to resolve unexpected memory consumption issues.
 
+## Getting symbolic backtrace
+
+To get a symbolic backtrace you need the debug information files. For the
+release you can download them from
+[GitHub Release](https://github.com/AdaCore/ada_language_server/releases) 
+Assets. Assets contain an archive per platform with the ALS
+executable and debug information files (`.debug` file on Linux/Windows and
+`.dSYM` directory for Mac OS X). Extract the debug information to the directory
+containing ALS (usually this is
+`$HOME/.vscode/extensions/adacore.ada-*/{darwin,linux,win32}`)
+and run
+
+    addr2line ada_language_server <hex backtrace>
+
+On Mac OX X use [atos](https://www.unix.com/man-page/osx/1/atos/) instead.
+
 ### Writing tests
 
 To write a functional test for Ada Language Server:
@@ -116,7 +132,9 @@ Release notes
 ```
 
 Then push it to GitHub with `git push 22.0.3` or `git push --tags`.
-The travis CI will publish the extension on the marketplace.
+The GitHub CI will publish the extension on the marketplace and the
+[Open VSX Registry](https://open-vsx.org). It also makes GitHub Release and
+put archives with ALS executables and debug information files.
 
 ## Source directories
 
@@ -124,8 +142,6 @@ The repository contains the following folders:
 
 * `doc/` - documentation of the project and LSP extensions
 * `gnat/` - GNAT project files
-* `integration/appveyor/` - Appveyor CI (Windows) integration scripts
-* `integration/travis/` - Travis CI (Linux and Mac OS) integration scripts
 * `integration/vscode/ada/` - VS Code extension sources
 * `scripts/` - some support scripts
 * `ada_language_server/source/ada/` - LSP implementation for Ada language
