@@ -155,6 +155,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBox)
     );
+    await Promise.all([alsClient.onReady(), gprClient.onReady()]);
     await checkSrcDirectories(alsClient);
 }
 
