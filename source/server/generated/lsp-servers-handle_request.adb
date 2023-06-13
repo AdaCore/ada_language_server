@@ -8,7 +8,6 @@ function LSP.Servers.Handle_Request
    Request : LSP.Messages.RequestMessage'Class)
       return LSP.Messages.ResponseMessage'Class is
 begin
-
       if Request in Initialize_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=
@@ -278,6 +277,18 @@ begin
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_Range_Formatting_Request
                   (Range_Formatting_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in On_Type_Formatting_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_On_Type_Formatting_Request
+                  (On_Type_Formatting_Request (Request));
          begin
             R.jsonrpc := "2.0";
             R.id := Request.id;

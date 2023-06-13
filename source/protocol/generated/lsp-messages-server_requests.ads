@@ -320,6 +320,19 @@ package LSP.Messages.Server_Requests is
      (Self    : Range_Formatting_Request;
       Handler : access Server_Request_Receiver'Class);
 
+   package On_Type_Formatting_Requests is
+     new LSP.Generic_Requests
+       (Server_Request,
+        DocumentOnTypeFormattingParams,
+        Server_Request_Receiver'Class);
+
+   type On_Type_Formatting_Request is
+     new On_Type_Formatting_Requests.Request with null record;
+
+   overriding procedure Visit
+     (Self    : On_Type_Formatting_Request;
+      Handler : access Server_Request_Receiver'Class);
+
    package Selection_Range_Requests is
      new LSP.Generic_Requests
        (Server_Request,

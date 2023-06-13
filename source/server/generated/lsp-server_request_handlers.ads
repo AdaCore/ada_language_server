@@ -154,6 +154,12 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.Range_Formatting_Response
         is abstract;
 
+   function On_On_Type_Formatting_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+      return LSP.Messages.Server_Responses.On_Type_Formatting_Response
+        is abstract;
+
    function On_Selection_Range_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Selection_Range_Request)

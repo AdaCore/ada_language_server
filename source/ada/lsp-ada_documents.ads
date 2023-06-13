@@ -26,6 +26,7 @@ private with VSS.Strings.Markers;
 with Libadalang.Analysis;
 with Libadalang.Common;
 with Langkit_Support.Slocs;
+with Laltools.Partial_GNATPP;
 
 with GNATCOLL.Traces;
 
@@ -134,10 +135,17 @@ package LSP.Ada_Documents is
       Result   : out LSP.Messages.Symbol_Vector);
    --  Populate Result with a symbol hierarchy from the document.
 
+   function Get_Indentation
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Line    : LSP.Types.Line_Number)
+      return Natural;
+   --  Estimates the indention a line should have
+
    function Get_Node_At
-     (Self      : Document;
-      Context   : LSP.Ada_Contexts.Context;
-      Position  : LSP.Messages.Position)
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position)
       return Libadalang.Analysis.Ada_Node;
    --  Get Libadalang Node for given position in the document.
 
@@ -189,6 +197,14 @@ package LSP.Ada_Documents is
       Result     : out LSP.Messages.FoldingRange_Vector);
    --  Populate Result with code folding blocks in the document. If Lines_Only
    --  is True does not return characters positions in lines.
+
+   function Get_Formatting_Region
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position)
+      return Laltools.Partial_GNATPP.Formatting_Region_Type;
+   --  Given Position, get the region that would be formatted if
+   --  Range_Formatting was called.
 
    function Formatting
      (Self     : Document;

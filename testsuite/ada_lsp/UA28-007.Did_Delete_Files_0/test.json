@@ -294,9 +294,6 @@
                      "rangeFormatting": {
                         "dynamicRegistration": true
                      },
-                     "onTypeFormatting": {
-                        "dynamicRegistration": true
-                     },
                      "rename": {
                         "dynamicRegistration": true,
                         "prepareSupport": true,
@@ -526,24 +523,6 @@
             {
                "jsonrpc": "2.0",
                "id": 3,
-               "method": "client/registerCapability",
-               "params": {
-                  "registrations": [
-                     {
-                        "id": "rf",
-                        "method": "textDocument/rangeFormatting",
-                        "registerOptions": {
-                           "documentSelector": [
-                              "ada"
-                           ]
-                        }
-                     }
-                  ]
-               }
-            },
-            {
-               "jsonrpc": "2.0",
-               "id": 4,
                "method": "client/registerCapability",
                "params": {
                   "registrations": [

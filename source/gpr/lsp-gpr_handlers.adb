@@ -794,6 +794,18 @@ package body LSP.GPR_Handlers is
       return raise Program_Error with "Unimplemented request";
    end On_Range_Formatting_Request;
 
+   -----------------------------------
+   -- On_On_Type_Formatting_Request --
+   -----------------------------------
+
+   overriding function On_On_Type_Formatting_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+      return LSP.Messages.Server_Responses.On_Type_Formatting_Response is
+   begin
+      return raise Program_Error with "Unimplemented request";
+   end On_On_Type_Formatting_Request;
+
    ---------------------------
    -- On_References_Request --
    ---------------------------

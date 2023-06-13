@@ -5416,7 +5416,7 @@ package LSP.Messages is
    --	moreTriggerCharacter?: string[];
    --}
    --```
-   type DocumentOnTypeFormattingOptions is new WorkDoneProgressOptions with record
+   type DocumentOnTypeFormattingOptions is record
       firstTriggerCharacter : VSS.Strings.Virtual_String;
       moreTriggerCharacter  : Optional_Virtual_String_Vector;
    end record;
@@ -8777,21 +8777,39 @@ package LSP.Messages is
      Write_DocumentRangeFormattingParams;
 
    --```typescript
-   --interface DocumentOnTypeFormattingParams extends TextDocumentPositionParams {
-   --	/**
-   --	 * The character that has been typed.
-   --	 */
-   --	ch: string;
+   --interface DocumentOnTypeFormattingParams {
    --
-   --	/**
-   --	 * The format options.
-   --	 */
-   --	options: FormattingOptions;
+   --  	/**
+   -- 	 * The document to format.
+   -- 	 */
+   -- 	textDocument: TextDocumentIdentifier;
+   --
+   -- 	/**
+   -- 	 * The position around which the on type formatting should happen.
+   -- 	 * This is not necessarily the exact position where the character denoted
+   -- 	 * by the property `ch` got typed.
+   -- 	 */
+   -- 	position: Position;
+   --
+   -- 	/**
+   -- 	 * The character that has been typed that triggered the formatting
+   -- 	 * on type request. That is not necessarily the last character that
+   -- 	 * got inserted into the document since the client could auto insert
+   -- 	 * characters as well (e.g. like automatic brace completion).
+   -- 	 */
+   -- 	ch: string;
+   --
+   -- 	/**
+   -- 	 * The formatting options.
+   -- 	 */
+   --  	options: FormattingOptions;
    --}
    --```
-   type DocumentOnTypeFormattingParams is new TextDocumentPositionParams with record
-      ch      : VSS.Strings.Virtual_String;
-      options : FormattingOptions;
+   type DocumentOnTypeFormattingParams is record
+      textDocument : TextDocumentIdentifier;
+      position     : LSP.Messages.Position;
+      ch           : VSS.Strings.Virtual_String;
+      options      : FormattingOptions;
    end record;
    procedure Read_DocumentOnTypeFormattingParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
