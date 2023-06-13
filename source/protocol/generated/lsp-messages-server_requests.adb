@@ -183,6 +183,13 @@ package body LSP.Messages.Server_Requests is
    end Visit;
 
    overriding procedure Visit
+     (Self    : On_Type_Formatting_Request;
+      Handler : access Server_Request_Receiver'Class) is
+   begin
+      Handler.On_On_Type_Formatting_Request (Self);
+   end Visit;
+
+   overriding procedure Visit
      (Self    : Selection_Range_Request;
       Handler : access Server_Request_Receiver'Class) is
    begin
@@ -403,6 +410,10 @@ begin
    Map.Insert
      ("textDocument/rangeFormatting",
       Range_Formatting_Request'Tag);
+
+   Map.Insert
+     ("textDocument/onTypeFormatting",
+      On_Type_Formatting_Request'Tag);
 
    Map.Insert
      ("textDocument/selectionRange",

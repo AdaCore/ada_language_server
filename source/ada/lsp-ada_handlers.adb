@@ -17,7 +17,6 @@
 
 with Ada.Calendar; use Ada.Calendar;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
-with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
 with Ada.Strings.Wide_Wide_Unbounded;
@@ -89,6 +88,8 @@ with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Laltools.Common;
+with Laltools.Partial_GNATPP;
+
 with LAL_Refactor.Refactor_Imports;
 with LAL_Refactor.Subprogram_Signature;
 with LAL_Refactor.Safe_Rename;
@@ -129,11 +130,19 @@ package body LSP.Ada_Handlers is
                              GNATCOLL.Traces.On);
    --  Trace to enable/disable runtime indexing. Useful for the testsuite.
 
-   Partial_GNATpp : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.PARTIAL_GNATPP",
-                             GNATCOLL.Traces.On);
-   --  Use partial formatting mode of gnatpp if On. Otherwise, use diff
-   --  algorithm.
+   Partial_Gnatpp_Trace   : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create
+       (Unit_Name => "ALS.PARTIAL_GNATPP",
+        Default   => GNATCOLL.Traces.On);
+   --  Trace to enable/disable using partial Gnatpp in the rangeFormatting
+   --  request.
+
+   On_Type_Formatting_Trace : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create
+       (Unit_Name => "ALS.ON_TYPE_FORMATTING",
+        Default   => GNATCOLL.Traces.On);
+   --  Trace to enable/disable ALS from providing the
+   --  documentOnTypeFormattingProvider capability.
 
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
@@ -237,10 +246,10 @@ package body LSP.Ada_Handlers is
    --  Format the text of the given document in the given range (span).
 
    function Range_Format
-     (Self     : in out LSP.Ada_Contexts.Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions)
+     (Self        : in out LSP.Ada_Contexts.Context;
+      Document    : LSP.Ada_Documents.Document_Access;
+      Span        : LSP.Messages.Span;
+      Options     : LSP.Messages.FormattingOptions)
       return LSP.Messages.Server_Responses.Formatting_Response;
    --  Format the text of the given document in the given range (span).
 
@@ -1094,11 +1103,19 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.documentFormattingProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => LSP.Types.None));
-      if Partial_GNATpp.Is_Active then
-         Response.result.capabilities.documentRangeFormattingProvider :=
+      Response.result.capabilities.documentRangeFormattingProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => LSP.Types.None));
+      Response.result.capabilities.documentOnTypeFormattingProvider :=
+        (if On_Type_Formatting_Trace.Is_Active then
            (Is_Set => True,
-            Value  => (workDoneProgress => LSP.Types.None));
-      end if;
+            Value  =>
+              (firstTriggerCharacter =>
+                 Self.On_Type_Formatting_Settings.First_Trigger_Character,
+               moreTriggerCharacter  =>
+                 Self.On_Type_Formatting_Settings.More_Trigger_Characters))
+         else
+           (Is_Set => False));
       Response.result.capabilities.callHierarchyProvider :=
         (Is_Set => True,
          Value  => (Is_Boolean => False, Options => <>));
@@ -4436,6 +4453,8 @@ package body LSP.Ada_Handlers is
         "useCompletionSnippets";
       logThreshold                      : constant String :=
         "logThreshold";
+      onTypeFormattingIndentOnly        : constant String :=
+        "onTypeFormatting.indentOnly";
 
       Variables : Scenario_Variable_List;
 
@@ -4573,6 +4592,17 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
+      if Has_Field (onTypeFormattingIndentOnly) then
+         begin
+            Self.Options.On_Type_Formatting.Indent_Only :=
+              Options.Get (onTypeFormattingIndentOnly);
+
+         exception
+            when Constraint_Error =>
+               Self.Options.On_Type_Formatting.Indent_Only := True;
+         end;
+      end if;
+
       if Self.Project_File = File
         and then Self.Charset = Charset
         and then Self.Relocate_Build_Tree = Relocate_Build_Tree
@@ -4632,33 +4662,6 @@ package body LSP.Ada_Handlers is
 
    begin
       Self.Change_Configuration (Ada);
-
-      --  Register rangeFormatting provider is the client supports
-      --  dynamic registration for it (and we haven't done it before).
-      if not Self.Range_Formatting_Enabled
-        and then Self.Client.capabilities.textDocument.rangeFormatting.Is_Set
-        and then Self.Client.capabilities.textDocument.rangeFormatting.Value
-          .dynamicRegistration = True
-      then
-         declare
-            Request : LSP.Messages.Client_Requests.RegisterCapability_Request;
-            Registration : LSP.Messages.Registration;
-            Selector     : LSP.Messages.DocumentSelector;
-            Filter       : constant LSP.Messages.DocumentFilter :=
-              (language => (True, "ada"),
-               others   => <>);
-         begin
-            Selector.Append (Filter);
-            Registration.method := "textDocument/rangeFormatting";
-            Registration.registerOptions :=
-              (LSP.Types.Text_Document_Registration_Option,
-               (documentSelector => Selector));
-            Registration.id := "rf";
-            Request.params.registrations.Append (Registration);
-            Self.Server.On_RegisterCapability_Request (Request);
-            Self.Range_Formatting_Enabled := True;
-         end;
-      end if;
 
       --  Dynamically register file operations if supported by the client
       if Dynamically_Register_File_Operations
@@ -6446,22 +6449,23 @@ package body LSP.Ada_Handlers is
       declare
          use LSP.Messages;
 
-         Result   : constant Server_Responses.Formatting_Response :=
-           (if Partial_GNATpp.Is_Active then
-              Range_Format
+         Result : constant Server_Responses.Formatting_Response :=
+           (if Partial_Gnatpp_Trace.Is_Active then
+               Range_Format
                 (Self     => Context.all,
                  Document => Document,
                  Span     => Request.params.span,
                  Options  => Request.params.options)
             else
-              Format
-                (Self     => Context.all,
-                 Document => Document,
-                 Span     => Request.params.span,
-                 Options  => Request.params.options,
-                 Handler  => Self));
+               Format
+                 (Self     => Context.all,
+                  Document => Document,
+                  Span     => Request.params.span,
+                  Options  => Request.params.options,
+                  Handler  => Self));
          Response : Server_Responses.Range_Formatting_Response
-           (Is_Error => Result.Is_Error);
+                      (Is_Error => Result.Is_Error);
+
       begin
          if not Result.Is_Error then
             Response.result := Result.result;
@@ -6472,6 +6476,287 @@ package body LSP.Ada_Handlers is
          return Response;
       end;
    end On_Range_Formatting_Request;
+
+   -----------------------------------
+   -- On_On_Type_Formatting_Request --
+   -----------------------------------
+
+   overriding function On_On_Type_Formatting_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+      return LSP.Messages.Server_Responses.On_Type_Formatting_Response
+   is
+      use type VSS.Strings.Virtual_String;
+
+      Context        : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
+      Document       : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Request.params.textDocument.uri);
+      Has_Dianostics : constant Boolean :=
+        Document.all.Has_Diagnostics (Context.all);
+
+      Indentation : constant Natural :=
+        (declare
+           Indentation_First_Guess : constant Natural :=
+             Document.all.Get_Indentation
+               (Context.all, Request.params.position.line);
+         begin
+           (if Indentation_First_Guess >=
+                 Natural (Request.params.position.character)
+            then Indentation_First_Guess -
+                   Natural (Request.params.position.character)
+            else 0));
+      --  Do not add any indentation if the current cursor position is greater
+      --  than the calculated one.
+
+      Response :
+        LSP.Messages.Server_Responses.On_Type_Formatting_Response
+          (Is_Error => False);
+
+      procedure Handle_Document_With_Diagnostics;
+      --  Simply adds indentation to the new line
+
+      procedure Handle_Document_Without_Diagnostics;
+      --  Adds indentation to the new line and formats the previous node
+      --  if configured to do so and taking into account where the cursor
+      --  is.
+
+      --------------------------------------
+      -- Handle_Document_With_Diagnostics --
+      --------------------------------------
+
+      procedure Handle_Document_With_Diagnostics is
+         use VSS.Strings.Conversions;
+
+         Result :
+           LSP.Messages.Server_Responses.Formatting_Response
+             (Is_Error => False);
+
+      begin
+         Result.result.Append
+           (LSP.Messages.TextEdit'
+              (span    =>
+                 LSP.Messages.Span'
+                   (first => Request.params.position,
+                    last  => Request.params.position),
+                 newText => To_Virtual_String (Indentation * " ")));
+
+         Response.result := Result.result;
+      end Handle_Document_With_Diagnostics;
+
+      -----------------------------------------
+      -- Handle_Document_Without_Diagnostics --
+      -----------------------------------------
+
+      procedure Handle_Document_Without_Diagnostics is
+         use Laltools.Partial_GNATPP;
+         use VSS.Strings.Conversions;
+
+         use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+         function Is_Between
+           (Position : LSP.Messages.Position;
+            Span     : LSP.Messages.Span)
+            return Boolean;
+         --  Checks if Position is between Span
+
+         ----------------
+         -- Is_Between --
+         ----------------
+
+         function Is_Between
+           (Position : LSP.Messages.Position;
+            Span     : LSP.Messages.Span)
+            return Boolean
+         is ((Position.line = Span.first.line
+              and then Position.character >= Span.first.character)
+             or else (Position.line = Span.last.line
+                      and then Position.character <= Span.last.character)
+             or else (Position.line > Span.first.line
+                      and then Position.line < Span.last.line));
+
+         Token                    : constant Token_Reference :=
+           Document.all.Get_Token_At (Context.all, Request.params.position);
+         Previous_NWNC_Token      :
+           constant Libadalang.Common.Token_Reference :=
+             Previous_Non_Whitespace_Non_Comment_Token (Token);
+         Previous_NWNC_Token_Span : constant LSP.Messages.Span :=
+           Document.all.To_LSP_Range (Sloc_Range (Data (Previous_NWNC_Token)));
+
+         Formatting_Region : constant Formatting_Region_Type :=
+           Document.all.Get_Formatting_Region
+             (Context.all, Previous_NWNC_Token_Span.first);
+         Formatting_Span   : constant LSP.Messages.Span :=
+           Document.all.To_LSP_Range
+             (Langkit_Support.Slocs.Make_Range
+                (Langkit_Support.Slocs.Start_Sloc
+                   (Sloc_Range (Data (Formatting_Region.Start_Token))),
+                 Langkit_Support.Slocs.Start_Sloc
+                   (Sloc_Range (Data (Formatting_Region.End_Token)))));
+         --  This is the span that would be formatted based on the cursor
+         --  position.
+
+      begin
+         if Self.Options.On_Type_Formatting.Indent_Only then
+            Self.Trace.Trace
+              ("'onTypeFormatting' request configured to indent only");
+            declare
+               Result :
+                 LSP.Messages.Server_Responses.Formatting_Response
+                   (Is_Error => False);
+
+            begin
+               Result.result.Append
+                 (LSP.Messages.TextEdit'
+                    (span    =>
+                       LSP.Messages.Span'
+                         (first => Request.params.position,
+                          last  => Request.params.position),
+                     newText => To_Virtual_String (Indentation * " ")));
+
+               Response.result := Result.result;
+            end;
+
+         else
+            --  onTypeFormatting is configured to also format the previous
+            --  node, however, we can only do this if the cursor is not
+            --  between the Formatting_Span.
+
+            if Is_Between (Request.params.position, Formatting_Span) then
+               Self.Trace.Trace
+                 ("Current position is within the Formatting_Span");
+               Self.Trace.Trace ("Adding indentation only");
+
+               declare
+                  Result :
+                  LSP.Messages.Server_Responses.Formatting_Response
+                    (Is_Error => False);
+               begin
+                  Result.result.Append
+                    (LSP.Messages.TextEdit'
+                       (span    =>
+                            LSP.Messages.Span'
+                          (first => Request.params.position,
+                           last  => Request.params.position),
+                        newText => To_Virtual_String (Indentation * " ")));
+
+                  Response.result := Result.result;
+               end;
+
+            else
+               Self.Trace.Trace
+                 ("Formatting previous node and adding indentation");
+
+               declare
+                  Result              :
+                  LSP.Messages.Server_Responses.Formatting_Response
+                    (Is_Error => False) :=
+                    Range_Format
+                      (Self        => Context.all,
+                       Document    => Document,
+                       Span        => Previous_NWNC_Token_Span,
+                       Options     => Request.params.options);
+               begin
+                  Result :=
+                    Range_Format
+                      (Self        => Context.all,
+                       Document    => Document,
+                       Span        => Previous_NWNC_Token_Span,
+                       Options     => Request.params.options);
+
+                  if not Result.Is_Error then
+                     declare
+                        Result :
+                          LSP.Messages.Server_Responses.Formatting_Response
+                            (Is_Error => False);
+                     begin
+                        Result.result.Append
+                          (LSP.Messages.TextEdit'
+                             (span    =>
+                                LSP.Messages.Span'
+                                  (first => Request.params.position,
+                                   last  => Request.params.position),
+                              newText =>
+                                To_Virtual_String (Indentation * " ")));
+
+                        Response.result := Result.result;
+                     end;
+
+                     Self.Trace.Trace
+                       ("The 'onTypeFormatting' has failed because of a "
+                        & "Range_Format error");
+
+                  else
+                     --  Result contains the Range_Format result.
+                     --  Add indentation to the next line.
+                     Result.result.Append
+                       (LSP.Messages.TextEdit'
+                          (span    =>
+                             LSP.Messages.Span'
+                               (first => Request.params.position,
+                                last  => Request.params.position),
+                           newText => To_Virtual_String (Indentation * " ")));
+
+                     Response.result := Result.result;
+                  end if;
+               end;
+            end if;
+         end if;
+      end Handle_Document_Without_Diagnostics;
+
+   begin
+      Self.Trace.Trace ("On 'onTypeFormatting' Request");
+
+      Self.Trace.Trace
+        ("uri       : "
+         & LSP.Types.To_UTF_8_String (Request.params.textDocument.uri));
+      Self.Trace.Trace
+        ("ch        : "
+         & VSS.Strings.Conversions.To_UTF_8_String (Request.params.ch));
+      Self.Trace.Trace
+        ("line      : " & Request.params.position.line'Image);
+      Self.Trace.Trace
+        ("character : " & Request.params.position.character'Image);
+
+      if not On_Type_Formatting_Trace.Is_Active then
+         Self.Trace.Trace
+           ("'onTypeFormatting' is not active, yet, ALS received a request - "
+            & "exiting earlier");
+
+         return Response;
+      end if;
+
+      if Request.params.ch /=
+        Self.On_Type_Formatting_Settings.First_Trigger_Character
+      then
+         Self.Trace.Trace
+           ("Trigger character ch is not a new line - exiting earlier");
+
+         return Response;
+      end if;
+
+      if Has_Dianostics then
+         --  This is the unhappy path: when this Document has diagnostics.
+         --  Get the previous node (based on the previous non whitespace
+         --  token), compute the indentation and format it (if configured to
+         --  to so).
+
+         Self.Trace.Trace ("Document has diagnostics");
+         Handle_Document_With_Diagnostics;
+
+      else
+         --  This is the happy path: when this Document does not have any
+         --  diagnostics.
+         --  Get the previous node (based on the previous non whitespace
+         --  token) and compute the indentation.
+
+         Self.Trace.Trace ("Document does not have any diagnostics");
+         Handle_Document_Without_Diagnostics;
+      end if;
+
+      Self.Trace.Trace ("Exiting 'onTypeFormatting' Request");
+      return Response;
+   end On_On_Type_Formatting_Request;
 
    ------------------
    -- Handle_Error --

@@ -142,7 +142,7 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 4,
+               "id": 3,
                "method": "window/workDoneProgress/create",
                "params": {
                   "token": "<ANY>"
@@ -253,7 +253,7 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 5,
+               "id": 4,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {

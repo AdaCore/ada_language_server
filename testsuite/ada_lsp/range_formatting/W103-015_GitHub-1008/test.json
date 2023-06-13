@@ -12,27 +12,34 @@
       }
    },
    {
-        "send": {
-            "request": {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-                "params": {
-                    "rootUri": "$URI{.}"
-                }
-            },
-            "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "result": {
-                        "capabilities": {
-                            "documentFormattingProvider": true
-                        }
-                    }
-                }
-            ]
-        }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "textDocument": {
+                     "rangeFormatting": {
+                        "dynamicRegistration": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "documentFormattingProvider": true
+                  }
+               }
+            }
+         ]
+      }
    },
    {
       "send": {

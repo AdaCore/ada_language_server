@@ -491,6 +491,10 @@ private
      (Self  : access Message_Logger;
       Value : LSP.Messages.Server_Requests.Range_Formatting_Request);
 
+   overriding procedure On_On_Type_Formatting_Request
+     (Self  : access Message_Logger;
+      Value : LSP.Messages.Server_Requests.On_Type_Formatting_Request);
+
    overriding procedure On_SemanticTokens_Response
      (Self  : in out Message_Logger;
       Value : LSP.Messages.Server_Responses.SemanticTokens_Response);
@@ -502,6 +506,10 @@ private
    overriding procedure On_Range_Formatting_Response
      (Self     : in out Message_Logger;
       Response : LSP.Messages.Server_Responses.Range_Formatting_Response);
+
+   overriding procedure On_On_Type_Formatting_Response
+     (Self     : in out Message_Logger;
+      Response : LSP.Messages.Server_Responses.On_Type_Formatting_Response);
 
    overriding procedure On_ALS_Check_Syntax_Request
      (Self  : access Message_Logger;

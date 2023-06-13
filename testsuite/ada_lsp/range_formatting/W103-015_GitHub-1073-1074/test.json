@@ -18,7 +18,14 @@
                 "id": 1,
                 "method": "initialize",
                 "params": {
-                    "rootUri": "$URI{.}"
+                    "rootUri": "$URI{.}",
+                    "capabilities": {
+                        "textDocument": {
+                            "rangeFormatting": {
+                                "dynamicRegistration": true
+                            }
+                        }
+                    }
                 }
             },
             "wait": [

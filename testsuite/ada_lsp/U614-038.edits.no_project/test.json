@@ -315,27 +315,12 @@
                }
             }
          },
-         "wait": [            {
-            "id": 2,
-            "method": "client/registerCapability",
-            "params": {
-               "registrations": [
-                  {
-                     "id": "rf",
-                     "method": "textDocument/rangeFormatting",
-                     "registerOptions": {
-                        "documentSelector": [
-                           "ada"
-                        ]
-                     }
-                  }
-               ]
-            }
-         }
-         ]
+         "wait": []
       }
    },
-   { "comment": "------------------ send text for the file -------------------------------"},
+   {
+      "comment": "------------------ send text for the file -------------------------------"
+   },
    {
       "send": {
          "request": {
@@ -350,11 +335,12 @@
                }
             }
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
-   { "comment": "------------------ insert two blank lines -------------------------------"},
+   {
+      "comment": "------------------ insert two blank lines -------------------------------"
+   },
    {
       "send": {
          "request": {
@@ -417,7 +403,9 @@
          "wait": []
       }
    },
-   { "comment": "------------------ use a hover to verify that changes have been applied -------------------------------"},
+   {
+      "comment": "------------------ use a hover to verify that changes have been applied -------------------------------"
+   },
    {
       "send": {
          "request": {

@@ -401,7 +401,13 @@
                         "scope": "resource",
                         "type": "boolean",
                         "default": false,
-                        "description": "Enable editing Ada comments while executing `textDocument/rename` reques."
+                        "description": "Enable editing Ada comments while executing `textDocument/rename` request."
+                    },
+                    "ada.onTypeFormatting.indentOnly": {
+                        "scope": "resource",
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Controls if the `textDocument/onTypeFormatting` request only indents a new line, or if it additionally tries to format the previous node."
                     }
                 }
             }

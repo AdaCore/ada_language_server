@@ -336,6 +336,17 @@ package LSP.Messages.Server_Responses is
      (Self    : Range_Formatting_Response;
       Handler : access Server_Response_Sender'Class);
 
+   package On_Type_Formatting_Responses is new LSP.Generic_Responses
+     (ResponseMessage => Server_Response,
+      T               => TextEdit_Vector);
+
+   type On_Type_Formatting_Response is
+     new On_Type_Formatting_Responses.Response with null record;
+
+   overriding procedure Visit
+     (Self    : On_Type_Formatting_Response;
+      Handler : access Server_Response_Sender'Class);
+
    package SemanticTokens_Responses is new LSP.Generic_Responses
      (ResponseMessage => Server_Response,
       T               => SemanticTokens);

@@ -47,6 +47,7 @@ Ada Language Server understands these settings:
  * [foldComments](#foldComments)
  * [followSymlinks](#followSymlinks)
  * [documentationStyle](#documentationStyle)
+ * [onTypeFormatting.indentOnly](#onTypeFormatting.indentOnly)
 
 ----
 
@@ -215,3 +216,9 @@ For more information about documentation styles see GNATdoc User's Manual.
 
 This option controls the tracing of the communication between VSCode and the Ada language server.
 The separate setting `gpr.trace.server` controls tracing for GPR language server.
+
+## onTypeFormatting.indentOnly
+
+This option controls if the `textDocument/onTypeFormatting` request only indents a new line, or if
+it additionally tries to format the previous node. By default, this option is enabled, that is,
+`textDocument/onTypeFormatting` only indents new lines.

@@ -1,0 +1,9 @@
+{
+   "ada.projectFile": "test.gpr",
+   "ada.onTypeFormatting.indentOnly": true,
+   "[ada]": {
+      "editor.autoIndent": "none",
+      "editor.formatOnType": true,
+      "editor.tabSize": 3
+   }
+}
