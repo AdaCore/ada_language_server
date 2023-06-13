@@ -1,27 +1,28 @@
 import assert from 'assert';
-import { resolve } from 'path';
 import * as vscode from 'vscode';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
 import { contextClients } from '../../src/extension';
+import { assertEqualToFileContent } from './utils';
 
-suite('Semantic Highlighting', () => {
-    test('test1', async () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+suite('Semantic Highlighting', function () {
+    this.beforeAll(async function () {
         await activate();
+    });
 
+    this.afterEach(async function () {
+        await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    });
+
+    test('test1', async function () {
         const relFilePath = 'src/gnatpp.adb';
-        const expected = `
-line   1: column  6 -  8: namespace                                      : Bar
-line   3: column  6 -  8: namespace                                      : Foo
-line  10: column 11 - 14: function      [declaration]                    : Main
-line  16: column  5 -  8: function                                       : Main`;
-
-        await testFile(relFilePath, expected);
+        await testFile(relFilePath);
     });
 });
 
-async function testFile(relFilePath: string, expected: string) {
+async function testFile(relFilePath: string) {
     const docUri = getDocUri(relFilePath);
+    const expFilePath = `${relFilePath}.sem.tokens`;
+    const expectedUri = getDocUri(expFilePath);
 
     //   const doc = await vscode.workspace.openTextDocument(docUri);
     //   await vscode.window.showTextDocument(doc);
@@ -32,7 +33,6 @@ async function testFile(relFilePath: string, expected: string) {
 
     // console.debug('Legend: ' + JSON.stringify(legend, null, 4));
     const doc = await vscode.workspace.openTextDocument(docUri);
-    await vscode.window.showTextDocument(doc);
 
     const request: SemanticTokensParams = {
         textDocument: { uri: docUri.toString() },
@@ -43,7 +43,6 @@ async function testFile(relFilePath: string, expected: string) {
     );
     // console.debug('Semantic Tokens: ' + JSON.stringify(semanticTokens, null, 4));
     const data = semanticTokens?.data || [];
-    const tokenCount = data.length / 5;
     type TokenInfo = {
         line: integer;
         column: integer;
@@ -114,11 +113,11 @@ async function testFile(relFilePath: string, expected: string) {
         )
         .join('\n');
 
-    assert.strictEqual(actual.trim(), expected.trim());
+    assertEqualToFileContent(actual, expectedUri);
 }
 
 async function activate(): Promise<void> {
-    const ext: vscode.Extension<any> | undefined = vscode.extensions.getExtension('AdaCore.ada');
+    const ext = vscode.extensions.getExtension('AdaCore.ada');
     if (ext !== undefined) {
         if (!ext.isActive) {
             await ext.activate();
@@ -127,5 +126,6 @@ async function activate(): Promise<void> {
 }
 
 function getDocUri(path: string): vscode.Uri {
-    return vscode.Uri.file(resolve(__dirname, '..', '..', '..', 'test', 'SampleProject', path));
+    assert(vscode.workspace.workspaceFolders !== undefined);
+    return vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, path);
 }
