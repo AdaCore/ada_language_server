@@ -41,7 +41,7 @@
          "args": [
             "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
             "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
-            "${workspaceFolder}/integration/vscode/ada/test/SampleProject"
+            "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
          ],
          "env": {
             // This is custom env var that we use in
