@@ -122,7 +122,7 @@ clean:
 	-rm -rf integration/vscode/ada/$(PLATFORM)
 
 vscode:
-	cd integration/vscode/ada; LD_LIBRARY_PATH= npm install --no-audit && npm run compile
+	cd integration/vscode/ada; LD_LIBRARY_PATH= npm install --no-audit && npm run check-licenses && npm run compile
 	@echo Now run:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
