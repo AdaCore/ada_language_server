@@ -1,14 +1,20 @@
-import { resolve } from 'path';
 import { Glob, GlobOptionsWithFileTypesUnset } from 'glob';
-import Mocha from 'mocha';
+import Mocha, { MochaOptions } from 'mocha';
+import { resolve } from 'path';
 import { env } from 'process';
 
 export function run(): Promise<void> {
-    // Create the mocha test
-    const mocha = new Mocha({
+    const mochaOptions: MochaOptions = {
         ui: 'tdd',
         color: true,
-    });
+    };
+
+    if (process.env.MOCHA_REPORTER) {
+        mochaOptions.reporter = process.env.MOCHA_REPORTER;
+    }
+
+    // Create the mocha test
+    const mocha = new Mocha(mochaOptions);
 
     const testsRoot = resolve(__dirname, '..');
 
