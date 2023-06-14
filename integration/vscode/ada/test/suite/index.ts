@@ -1,6 +1,6 @@
 import { Glob, GlobOptionsWithFileTypesUnset } from 'glob';
 import Mocha, { MochaOptions } from 'mocha';
-import path, { resolve } from 'path';
+import { resolve } from 'path';
 import { env } from 'process';
 
 export function run(): Promise<void> {
@@ -10,6 +10,9 @@ export function run(): Promise<void> {
     };
 
     if (process.env.MOCHA_REPORTER) {
+        // If a reporter was specified externally, use it. For example, the CI
+        // environment could set this to 'mocha-junit-reporter' to produce JUnit
+        // results.
         mochaOptions.reporter = process.env.MOCHA_REPORTER;
     }
 
