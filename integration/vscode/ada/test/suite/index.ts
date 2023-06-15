@@ -1,9 +1,14 @@
 import { Glob, GlobOptionsWithFileTypesUnset } from 'glob';
 import Mocha, { MochaOptions } from 'mocha';
-import { resolve } from 'path';
+import path, { resolve } from 'path';
 import { env } from 'process';
 
 export function run(): Promise<void> {
+    // Make package executables visible
+    const extensionRootPath = path.resolve(__dirname, '../../../');
+    const nodeModulesBin = path.join(extensionRootPath, 'node_modules', '.bin');
+    process.env.PATH = `${nodeModulesBin}${path.delimiter}${process.env.PATH as string}`;
+
     const mochaOptions: MochaOptions = {
         ui: 'tdd',
         color: true,

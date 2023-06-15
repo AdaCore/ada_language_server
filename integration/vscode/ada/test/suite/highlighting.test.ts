@@ -1,8 +1,11 @@
 import assert from 'assert';
+import { spawnSync } from 'child_process';
+import { existsSync, renameSync } from 'fs';
+import path from 'path';
 import * as vscode from 'vscode';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
 import { contextClients } from '../../src/extension';
-import { assertEqualToFileContent } from './utils';
+import { assertEqualToFileContent, update } from './utils';
 
 suite('Semantic Highlighting', function () {
     this.beforeAll(async function () {
@@ -13,19 +16,28 @@ suite('Semantic Highlighting', function () {
         await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     });
 
-    test('test1', async function () {
+    suite('test1', function () {
         const relFilePath = 'src/gnatpp.adb';
-        await testFile(relFilePath);
+
+        test('syntax.main', function () {
+            testSyntaxHighlighting(relFilePath, 'syntaxes');
+        });
+
+        test('syntax.advanced', function () {
+            testSyntaxHighlighting(relFilePath, 'advanced');
+        });
+
+        test('semantic', async function () {
+            await testSemanticHighlighting(relFilePath);
+        });
     });
 });
 
-async function testFile(relFilePath: string) {
+async function testSemanticHighlighting(relFilePath: string) {
     const docUri = getDocUri(relFilePath);
     const expFilePath = `${relFilePath}.sem.tokens`;
     const expectedUri = getDocUri(expFilePath);
 
-    //   const doc = await vscode.workspace.openTextDocument(docUri);
-    //   await vscode.window.showTextDocument(doc);
     const initResult = contextClients.adaClient.initializeResult;
     const legend = initResult?.capabilities.semanticTokensProvider?.legend;
 
@@ -128,4 +140,72 @@ async function activate(): Promise<void> {
 function getDocUri(path: string): vscode.Uri {
     assert(vscode.workspace.workspaceFolders !== undefined);
     return vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, path);
+}
+
+const extensionRootPath = path.resolve(__dirname, '../../../');
+
+type Syntaxes = 'syntaxes' | 'advanced';
+
+function testSyntaxHighlighting(relFilePath: string, syntax: Syntaxes) {
+    const syntaxPath = path.join(extensionRootPath, syntax, 'ada.tmLanguage.json');
+
+    const basename = path.basename(relFilePath);
+    const adaFilePath = getDocUri(relFilePath).fsPath;
+    const workDirPath = path.dirname(adaFilePath);
+
+    /*
+     * vscode-tmgrammar-snap works with .snap files, but since we're testing two
+     * grammars, the snapshots are stored as .snap.<syntax-name> files. Before
+     * calling vscode-tmgrammar-snap, the test will rename the
+     * .snap.<syntax-name> file to .snap and rename it back after.
+     */
+    const workSnapPath = path.join(workDirPath, `${basename}.snap`);
+    const refSnapPath = `${workSnapPath}.${syntax}`;
+
+    try {
+        if (existsSync(refSnapPath)) {
+            // Rename .snap.<syntax> --> .snap
+            renameSync(refSnapPath, workSnapPath);
+        } else if (!update()) {
+            // Complain if the reference snapshot doesn't exist, except if we're
+            // running in update mode, in which case the test will create the
+            // snapshot.
+            throw Error(
+                `Could not find reference snapshot: ${refSnapPath}\n` +
+                    'Re-run testsuite in update mode to create a snapshot.'
+            );
+        }
+
+        const cmd = ['vscode-tmgrammar-snap', '-g', syntaxPath, '-s', 'source.ada', adaFilePath];
+
+        if (update()) {
+            cmd.push('--updateSnapshot');
+        }
+
+        const proc = spawnSync(cmd[0], cmd.slice(1));
+
+        if (proc.error) {
+            // proc.error is set if we fail to spawn the child process
+            throw proc.error;
+        }
+
+        if (proc.status === null) {
+            const msg =
+                `Null return code for command: ${cmd.join(' ')}\n` +
+                String(proc.stdout) +
+                String(proc.stderr);
+            assert.fail(msg);
+        } else if (proc.status != 0) {
+            const msg =
+                `Return code ${proc.status.toString()} for command: ${cmd.join(' ')}\n` +
+                String(proc.stdout) +
+                String(proc.stderr);
+            assert.fail(msg);
+        }
+    } finally {
+        if (existsSync(workSnapPath)) {
+            // Rename .snap --> .snap.<syntax>
+            renameSync(workSnapPath, refSnapPath);
+        }
+    }
 }

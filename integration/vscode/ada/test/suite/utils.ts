@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
  * @param expectedUri - path to the file containing the expected output
  */
 export function assertEqualToFileContent(actual: string, expectedUri: vscode.Uri) {
-    if (process.env.MOCHA_ALS_UPDATE) {
+    if (update()) {
         writeFileSync(expectedUri.fsPath, actual);
     } else {
         if (!existsSync(expectedUri.fsPath)) {
@@ -23,4 +23,13 @@ export function assertEqualToFileContent(actual: string, expectedUri: vscode.Uri
         const expected: string = readFileSync(expectedUri.fsPath, 'utf-8');
         assert.strictEqual(actual, expected);
     }
+}
+
+/**
+ *
+ * @returns true if the testsuite is running in update mode, i.e. the
+ * environment variable MOCHA_ALS_UPDATE is set
+ */
+export function update(): boolean {
+    return process.env.MOCHA_ALS_UPDATE ? true : false;
 }
