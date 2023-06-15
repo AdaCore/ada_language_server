@@ -1,13 +1,13 @@
 import assert from 'assert';
 import { spawnSync } from 'child_process';
-import { existsSync, renameSync } from 'fs';
+import { existsSync, opendirSync, renameSync } from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
 import { contextClients } from '../../src/extension';
 import { assertEqualToFileContent, update } from './utils';
 
-suite('Semantic Highlighting', function () {
+suite('Highlighting', function () {
     this.beforeAll(async function () {
         await activate();
     });
@@ -16,34 +16,75 @@ suite('Semantic Highlighting', function () {
         await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     });
 
-    suite('test1', function () {
-        const relFilePath = 'src/gnatpp.adb';
+    const highlightingTestRoot = getDocUri('highlighing').fsPath;
+    const adaFilePaths: string[] = [];
 
-        test('syntax.main', function () {
-            testSyntaxHighlighting(relFilePath, 'syntaxes');
-        });
+    function walk(dir: string) {
+        const openDir = opendirSync(dir);
+        try {
+            let child;
+            while ((child = openDir.readSync()) != null) {
+                const childPath = path.join(dir, child.name);
+                if (child.isDirectory()) {
+                    walk(childPath);
+                } else if (child.isFile()) {
+                    if (child.name.match(/\.ad[bs]$/)) {
+                        adaFilePaths.push(childPath);
+                    }
+                }
+            }
+        } finally {
+            openDir.closeSync();
+        }
+    }
 
-        test('syntax.advanced', function () {
-            testSyntaxHighlighting(relFilePath, 'advanced');
-        });
+    walk(highlightingTestRoot);
 
-        test('semantic', async function () {
-            await testSemanticHighlighting(relFilePath);
+    for (const absPath of adaFilePaths) {
+        const relFilePath = path.relative(highlightingTestRoot, absPath);
+        const testName = relFilePath;
+        const absFileUri = vscode.Uri.file(absPath);
+
+        suite(testName, function () {
+            test('syntax.main', function () {
+                testSyntaxHighlighting(absPath, 'syntaxes');
+            });
+
+            test('syntax.advanced', function () {
+                testSyntaxHighlighting(absPath, 'advanced');
+            });
+
+            test('semantic', async function () {
+                await testSemanticHighlighting(absFileUri);
+            });
         });
-    });
+    }
 });
 
-async function testSemanticHighlighting(relFilePath: string) {
-    const docUri = getDocUri(relFilePath);
-    const expFilePath = `${relFilePath}.sem.tokens`;
-    const expectedUri = getDocUri(expFilePath);
+/**
+ * This function runs a semantic highlighting test on the given Ada source file
+ * Uri.  The test works as follows:
+ *
+ * 1. A SemanticTokensRequest is sent to the ALS for the given input Uri
+ *
+ * 2. The tokens received from the ALS are converted to a string representation
+ * that helps assess the result in comparison with the source file
+ *
+ * 3. The string representation is compared to a test reference stored as a file
+ * next to the original source file. The convention is to append '.sem.tokens'
+ * to the original file name.
+ *
+ * @param docUri - a Uri to an Ada source file to apply semantic highlighting
+ * testing to
+ */
+async function testSemanticHighlighting(docUri: vscode.Uri) {
+    const expectedUri = docUri.with({ path: docUri.path + '.sem.tokens' });
 
     const initResult = contextClients.adaClient.initializeResult;
     const legend = initResult?.capabilities.semanticTokensProvider?.legend;
 
     assert(legend);
 
-    // console.debug('Legend: ' + JSON.stringify(legend, null, 4));
     const doc = await vscode.workspace.openTextDocument(docUri);
 
     const request: SemanticTokensParams = {
@@ -53,7 +94,6 @@ async function testSemanticHighlighting(relFilePath: string) {
         SemanticTokensRequest.type,
         request
     );
-    // console.debug('Semantic Tokens: ' + JSON.stringify(semanticTokens, null, 4));
     const data = semanticTokens?.data || [];
     type TokenInfo = {
         line: integer;
@@ -146,12 +186,20 @@ const extensionRootPath = path.resolve(__dirname, '../../../');
 
 type Syntaxes = 'syntaxes' | 'advanced';
 
-function testSyntaxHighlighting(relFilePath: string, syntax: Syntaxes) {
+/**
+ * This function runs a syntax highlighting test on the given Ada source file
+ * using the chose TextMate grammar. The test relies on the
+ * vscode-tmgrammar-snap tool which operates on a preexisting test reference
+ * file (aka a snapshot) and reports differences wrt that reference.
+ *
+ * @param absFilePath - an Ada source file to apply syntax highlighting to
+ * @param syntax - the selected TextMate grammar to use for the test
+ */
+function testSyntaxHighlighting(absFilePath: string, syntax: Syntaxes) {
     const syntaxPath = path.join(extensionRootPath, syntax, 'ada.tmLanguage.json');
 
-    const basename = path.basename(relFilePath);
-    const adaFilePath = getDocUri(relFilePath).fsPath;
-    const workDirPath = path.dirname(adaFilePath);
+    const basename = path.basename(absFilePath);
+    const workDirPath = path.dirname(absFilePath);
 
     /*
      * vscode-tmgrammar-snap works with .snap files, but since we're testing two
@@ -176,7 +224,22 @@ function testSyntaxHighlighting(relFilePath: string, syntax: Syntaxes) {
             );
         }
 
-        const cmd = ['vscode-tmgrammar-snap', '-g', syntaxPath, '-s', 'source.ada', adaFilePath];
+        const cmd = [
+            'vscode-tmgrammar-snap',
+            // We pass a non-existing language configuration, otherwise the tool
+            // picks up the package.json file and always loads the grammar in
+            // use.
+            '--config',
+            'none',
+            // Show diffs on separate lines because color coding isn't visible
+            // in the VS Code debug console.
+            '--expandDiff',
+            '-g',
+            syntaxPath,
+            '-s',
+            'source.ada',
+            absFilePath,
+        ];
 
         if (update()) {
             cmd.push('--updateSnapshot');
