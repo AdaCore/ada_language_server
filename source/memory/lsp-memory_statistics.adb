@@ -66,12 +66,11 @@ package body LSP.Memory_Statistics is
             declare
                Traceback_Str : constant String :=
                                  S (Matched (1).First .. Matched (1).Last);
-               Traceback_Long : constant Long_Integer :=
-                                  Long_Integer'Value
+               Traceback_Long : constant Integer_Address :=
+                                  Integer_Address'Value
                                     ("16#" & Traceback_Str & "#");
                Traceback_Addr : constant System.Address :=
-                                  To_Address
-                                    (Integer_Address (Traceback_Long));
+                                  To_Address (Traceback_Long);
                New_S          : constant String :=
                                   Symbolic_Traceback_No_Hex
                                     ((1 => Traceback_Addr));
