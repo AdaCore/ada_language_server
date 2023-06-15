@@ -30,9 +30,11 @@ run_test(){
             [ -f $src.snap.$syntax ] && mv $src.snap.$syntax $src.snap
          done
 
-         # Run the test
+         # Run the test. Use a non-existing language config, otherwise the tool
+         # automatically loads the grammar configured in the package.json
          echo -n "[Ada $syntax]\t"
          ./node_modules/.bin/vscode-tmgrammar-snap -g $syntax/ada.tmLanguage.json \
+           --config "none" \
            -s source.ada \
            $update \
            "$dir/*.ad?" || _err=1
@@ -60,8 +62,8 @@ error=0
 if [ "$testpath" != "" ]; then
     run_test $testpath || error=1
 else
-    for dir in `ls testsuite_grammar`; do
-        run_test testsuite_grammar/$dir || error=1
+    for dir in `find test/TestWorkspace/highlighing -type d -depth 1`; do
+        run_test $dir || error=1
     done
 fi
 
