@@ -49,6 +49,24 @@
             // tests when debugging
             "MOCHA_TIMEOUT": "0"
          },
+         // Below we make the executables of node modules visible to the tests.
+         // In particular, vscode-tmgrammar-snap is used for syntax highlighting
+         // tests.
+         "windows": {
+            "env": {
+               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin;${env:PATH}"
+            }
+         },
+         "osx": {
+            "env": {
+               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin:${env:PATH}"
+            }
+         },
+         "linux": {
+            "env": {
+               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin:${env:PATH}"
+            }
+         },
          "preLaunchTask": "npm: pretest"
       },
       {
@@ -75,6 +93,24 @@
             // assertEqualToFileContent in
             // integration/vscode/ada/test/suite/highlighting.test.ts
             "MOCHA_ALS_UPDATE": "1"
+         },
+         // Below we make the executables of node modules visible to the tests.
+         // In particular, vscode-tmgrammar-snap is used for syntax highlighting
+         // tests.
+         "windows": {
+            "env": {
+               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin;${env:PATH}"
+            }
+         },
+         "osx": {
+            "env": {
+               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin:${env:PATH}"
+            }
+         },
+         "linux": {
+            "env": {
+               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin:${env:PATH}"
+            }
          },
          "preLaunchTask": "npm: pretest"
       },

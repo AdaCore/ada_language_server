@@ -109,7 +109,11 @@ export class ContextClients {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    // Create an output channel for the extension. There are dedicated channels
+    // for the Ada and Gpr language servers, and this one is a general channel
+    // for non-LSP features of the extension.
     mainLogChannel = vscode.window.createOutputChannel('Ada Extension');
+
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.showExtensionOutput', () => mainLogChannel.show())
     );

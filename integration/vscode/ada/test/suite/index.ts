@@ -4,11 +4,6 @@ import path, { resolve } from 'path';
 import { env } from 'process';
 
 export function run(): Promise<void> {
-    // Make package executables visible
-    const extensionRootPath = path.resolve(__dirname, '../../../');
-    const nodeModulesBin = path.join(extensionRootPath, 'node_modules', '.bin');
-    process.env.PATH = `${nodeModulesBin}${path.delimiter}${process.env.PATH as string}`;
-
     const mochaOptions: MochaOptions = {
         ui: 'tdd',
         color: true,
@@ -30,6 +25,9 @@ export function run(): Promise<void> {
             mocha.addFile(resolve(testsRoot, file));
         }
         try {
+            // This variable is set in the launch configuration (launch.json) of
+            // the VS Code workspace to allow debugging without triggering test
+            // timeouts.
             if (env['MOCHA_TIMEOUT']) {
                 mocha.timeout(env['MOCHA_TIMEOUT']);
             }

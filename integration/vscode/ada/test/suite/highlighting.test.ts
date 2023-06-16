@@ -168,6 +168,10 @@ async function testSemanticHighlighting(docUri: vscode.Uri) {
     assertEqualToFileContent(actual, expectedUri);
 }
 
+/**
+ * This function queries the VS Code API for the Ada extension and waits until
+ * it is activated.
+ */
 async function activate(): Promise<void> {
     const ext = vscode.extensions.getExtension('AdaCore.ada');
     if (ext !== undefined) {
@@ -177,6 +181,13 @@ async function activate(): Promise<void> {
     }
 }
 
+/**
+ *
+ * @param path - path of a file or directory relative to the TestWorkspace
+ * workspace.
+ * @returns a Uri representing the full path to the given relative workspace
+ * path
+ */
 function getDocUri(path: string): vscode.Uri {
     assert(vscode.workspace.workspaceFolders !== undefined);
     return vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, path);
@@ -184,6 +195,12 @@ function getDocUri(path: string): vscode.Uri {
 
 const extensionRootPath = path.resolve(__dirname, '../../../');
 
+/**
+ * A type representing the two TextMate grammars available in the repository.
+ * The values match directory names in the extension source directory. The
+ * 'syntaxes' grammar is the one currently in use in the package.json, while the
+ * 'advanced' one is an experimental alternative that is not used in production.
+ */
 type Syntaxes = 'syntaxes' | 'advanced';
 
 /**

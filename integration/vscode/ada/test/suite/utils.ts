@@ -28,7 +28,9 @@ export function assertEqualToFileContent(actual: string, expectedUri: vscode.Uri
 /**
  *
  * @returns true if the testsuite is running in update mode, i.e. the
- * environment variable MOCHA_ALS_UPDATE is set
+ * environment variable MOCHA_ALS_UPDATE is set. For example, the VS Code
+ * workspace of this repository provides a launch configuration with that
+ * environment variable set to allow quickly updating test references.
  */
 export function update(): boolean {
     return process.env.MOCHA_ALS_UPDATE ? true : false;
