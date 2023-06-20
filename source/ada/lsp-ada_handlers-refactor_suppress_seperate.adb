@@ -20,8 +20,8 @@ with Ada.Strings.UTF_Encoding;
 with Libadalang.Analysis; use Libadalang.Analysis;
 
 with Laltools.Common; use Laltools.Common;
-with Laltools.Refactor.Suppress_Separate;
-use Laltools.Refactor.Suppress_Separate;
+with LAL_Refactor.Suppress_Separate;
+use LAL_Refactor.Suppress_Separate;
 
 with LSP.Common;
 with LSP.Messages;
@@ -130,7 +130,7 @@ package body LSP.Ada_Handlers.Refactor_Suppress_Seperate is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;

@@ -27,7 +27,7 @@ with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 
 with Libadalang.Analysis; use  Libadalang.Analysis;
 
-with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -161,8 +161,8 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
         Client_Message_Receiver'Class;
       Error   : in out LSP.Errors.Optional_ResponseError)
    is
-      use Laltools.Refactor;
-      use Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
+      use LAL_Refactor;
+      use LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -197,7 +197,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
              Parameters_SLOC_Range,
            New_Parameters_Type              =>
              To_Unbounded_UTF_8_String (Self.New_Parameters_Type));
-      Edits   : constant Laltools.Refactor.Refactoring_Edits :=
+      Edits   : constant LAL_Refactor.Refactoring_Edits :=
         Changer.Refactor (Analysis_Units'Access);
 
    begin

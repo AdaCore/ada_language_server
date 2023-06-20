@@ -21,7 +21,7 @@ with Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
 
-with Laltools.Refactor.Sort_Dependencies;
+with LAL_Refactor.Sort_Dependencies;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -130,8 +130,8 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
    is
       use Langkit_Support.Slocs;
       use Libadalang.Analysis;
-      use Laltools.Refactor;
-      use Laltools.Refactor.Sort_Dependencies;
+      use LAL_Refactor;
+      use LAL_Refactor.Sort_Dependencies;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;

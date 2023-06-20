@@ -28,8 +28,8 @@ with LSP.JSON_Streams;
 
 with Libadalang.Analysis;
 
-with Laltools.Refactor.Subprogram_Signature;
-use Laltools.Refactor.Subprogram_Signature;
+with LAL_Refactor.Subprogram_Signature;
+use LAL_Refactor.Subprogram_Signature;
 
 package LSP.Ada_Handlers.Refactor_Remove_Parameter is
 

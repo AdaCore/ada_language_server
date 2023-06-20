@@ -20,8 +20,8 @@ with Ada.Strings.UTF_Encoding;
 with Libadalang.Analysis; use Libadalang.Analysis;
 
 with Laltools.Common; use Laltools.Common;
-with Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
-use Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
+with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
+use LAL_Refactor.Subprogram_Signature.Remove_Parameter;
 
 with LSP.Common;
 with LSP.Messages;
@@ -182,7 +182,7 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -232,7 +232,7 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
 
       Edits := Remover.Refactor (Analysis_Units'Access);
 
-      if Edits = Laltools.Refactor.No_Refactoring_Edits then
+      if Edits = LAL_Refactor.No_Refactoring_Edits then
          Error :=
            (Is_Set => True,
             Value  =>
