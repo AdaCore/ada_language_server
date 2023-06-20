@@ -21,8 +21,8 @@ with Langkit_Support.Slocs;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
-with Laltools.Refactor.Introduce_Parameter;
-use Laltools.Refactor.Introduce_Parameter;
+with LAL_Refactor.Introduce_Parameter;
+use LAL_Refactor.Introduce_Parameter;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -125,7 +125,7 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
       Error : in out LSP.Errors.Optional_ResponseError)
    is
       use Langkit_Support.Slocs;
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use LSP.Errors;
       use LSP.Messages;
       use LSP.Types;

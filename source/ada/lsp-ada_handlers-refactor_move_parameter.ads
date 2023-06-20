@@ -27,8 +27,8 @@ with LSP.Commands;
 with LSP.Errors;
 with LSP.JSON_Streams;
 
-with Laltools.Refactor.Subprogram_Signature;
-use Laltools.Refactor.Subprogram_Signature;
+with LAL_Refactor.Subprogram_Signature;
+use LAL_Refactor.Subprogram_Signature;
 
 with Libadalang.Analysis;
 

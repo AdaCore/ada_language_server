@@ -23,7 +23,7 @@ with LSP.Ada_Contexts;
 with LSP.Messages;
 
 with Laltools.Common;
-with Laltools.Refactor;
+with LAL_Refactor;
 
 with Libadalang.Analysis;  use Libadalang.Analysis;
 with Libadalang.Common;
@@ -130,12 +130,12 @@ package LSP.Lal_Utils is
    --  Return a slice of the Text in Span range
 
    function To_TextEdit
-     (E : Laltools.Refactor.Text_Edit)
+     (E : LAL_Refactor.Text_Edit)
       return LSP.Messages.TextEdit;
    --  Converts an Edit into a TextEdit
 
    function To_Workspace_Edit
-     (EM                  : Laltools.Refactor.Text_Edit_Map;
+     (EM                  : LAL_Refactor.Text_Edit_Map;
       Versioned_Documents : Boolean := False;
       Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class
       := null)
@@ -144,7 +144,7 @@ package LSP.Lal_Utils is
    --  Converts an Edit_Map into a WorkspaceEdit
 
    function To_Workspace_Edit
-     (Edits               : Laltools.Refactor.Refactoring_Edits;
+     (Edits               : LAL_Refactor.Refactoring_Edits;
       Resource_Operations : LSP.Messages.Optional_ResourceOperationKindSet :=
         LSP.Messages.Optional_ResourceOperationKindSet'(Is_Set => False);
       Versioned_Documents : Boolean := False;

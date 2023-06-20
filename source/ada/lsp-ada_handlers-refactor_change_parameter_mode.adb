@@ -247,7 +247,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -274,7 +274,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
          Last  => Positive (Self.Last_Param_Index));
 
       Changer : Mode_Changer;
-      Edits   : Laltools.Refactor.Refactoring_Edits;
+      Edits   : LAL_Refactor.Refactoring_Edits;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);

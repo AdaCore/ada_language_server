@@ -89,18 +89,18 @@ with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Laltools.Common;
-with Laltools.Refactor_Imports;
-with Laltools.Refactor.Subprogram_Signature;
-with Laltools.Refactor.Safe_Rename;
-with Laltools.Refactor.Suppress_Separate;
-with Laltools.Refactor.Extract_Subprogram;
-with Laltools.Refactor.Introduce_Parameter;
-with Laltools.Refactor.Pull_Up_Declaration;
-with Laltools.Refactor.Sort_Dependencies;
-with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
-with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
-with Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
-with Laltools.Refactor.Replace_Type;
+with LAL_Refactor.Refactor_Imports;
+with LAL_Refactor.Subprogram_Signature;
+with LAL_Refactor.Safe_Rename;
+with LAL_Refactor.Suppress_Separate;
+with LAL_Refactor.Extract_Subprogram;
+with LAL_Refactor.Introduce_Parameter;
+with LAL_Refactor.Pull_Up_Declaration;
+with LAL_Refactor.Sort_Dependencies;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
+with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
+with LAL_Refactor.Replace_Type;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -1546,7 +1546,7 @@ package body LSP.Ada_Handlers is
 
          procedure Change_Parameters_Type_Code_Action is
             use Langkit_Support.Slocs;
-            use Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
+            use LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
             use LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
 
             Span : constant Source_Location_Range :=
@@ -1584,7 +1584,7 @@ package body LSP.Ada_Handlers is
 
          procedure Change_Parameters_Default_Value_Code_Action is
             use Langkit_Support.Slocs;
-            use Laltools.Refactor.Subprogram_Signature.
+            use LAL_Refactor.Subprogram_Signature.
                   Change_Parameters_Default_Value;
             use LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
 
@@ -1620,7 +1620,7 @@ package body LSP.Ada_Handlers is
          procedure Extract_Subprogram_Code_Action is
             use LSP.Ada_Handlers.Refactor_Extract_Subprogram;
             use Langkit_Support.Slocs;
-            use Laltools.Refactor.Extract_Subprogram;
+            use LAL_Refactor.Extract_Subprogram;
             use type LSP.Messages.Position;
 
             Single_Location : constant Boolean :=
@@ -1678,7 +1678,7 @@ package body LSP.Ada_Handlers is
 
          procedure Introduce_Parameter_Code_Action is
             use Langkit_Support.Slocs;
-            use Laltools.Refactor.Introduce_Parameter;
+            use LAL_Refactor.Introduce_Parameter;
             use LSP.Ada_Handlers.Refactor_Introduce_Parameter;
 
             Span : constant Source_Location_Range :=
@@ -1712,7 +1712,7 @@ package body LSP.Ada_Handlers is
 
          procedure Import_Package_Code_Action is
             use Libadalang.Analysis;
-            use Laltools.Refactor_Imports;
+            use LAL_Refactor.Refactor_Imports;
             use LSP.Messages;
 
             Single_Location : constant Boolean :=
@@ -1959,7 +1959,7 @@ package body LSP.Ada_Handlers is
          procedure Pull_Up_Declaration_Code_Action is
             use Langkit_Support.Slocs;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Pull_Up_Declaration;
+            use LAL_Refactor.Pull_Up_Declaration;
             use LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
             use LSP.Messages;
 
@@ -1997,7 +1997,7 @@ package body LSP.Ada_Handlers is
 
          procedure Replace_Type_Code_Action is
             use LSP.Ada_Handlers.Refactor_Replace_Type;
-            use Laltools.Refactor.Replace_Type;
+            use LAL_Refactor.Replace_Type;
 
             use Langkit_Support.Slocs;
 
@@ -2029,7 +2029,7 @@ package body LSP.Ada_Handlers is
          procedure Sort_Dependencies_Code_Action is
             use Langkit_Support.Slocs;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Sort_Dependencies;
+            use LAL_Refactor.Sort_Dependencies;
             use LSP.Ada_Handlers.Refactor_Sort_Dependencies;
             use LSP.Messages;
 
@@ -2082,7 +2082,7 @@ package body LSP.Ada_Handlers is
             declare
                use LSP.Ada_Handlers.Refactor_Add_Parameter;
                use Libadalang.Analysis;
-               use Laltools.Refactor.Subprogram_Signature;
+               use LAL_Refactor.Subprogram_Signature;
                use Langkit_Support.Slocs;
                use type LSP.Messages.Position;
 
@@ -2143,8 +2143,8 @@ package body LSP.Ada_Handlers is
          declare
             use LSP.Ada_Handlers.Refactor_Remove_Parameter;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Subprogram_Signature;
-            use Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
+            use LAL_Refactor.Subprogram_Signature;
+            use LAL_Refactor.Subprogram_Signature.Remove_Parameter;
 
             Target_Subp              : Basic_Decl := No_Basic_Decl;
             Parameter_Indices_Range  : Parameter_Indices_Range_Type;
@@ -2168,7 +2168,7 @@ package body LSP.Ada_Handlers is
          declare
             use LSP.Ada_Handlers.Refactor_Move_Parameter;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Subprogram_Signature;
+            use LAL_Refactor.Subprogram_Signature;
 
             Target_Subp            : Basic_Decl := No_Basic_Decl;
             Parameter_Index        : Positive;
@@ -2198,7 +2198,7 @@ package body LSP.Ada_Handlers is
          declare
             use LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Subprogram_Signature;
+            use LAL_Refactor.Subprogram_Signature;
 
             Target_Subp                   : Basic_Decl := No_Basic_Decl;
             Target_Parameters_Indices     : Parameter_Indices_Range_Type;
@@ -2229,7 +2229,7 @@ package body LSP.Ada_Handlers is
          declare
             use LSP.Ada_Handlers.Refactor_Suppress_Seperate;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Suppress_Separate;
+            use LAL_Refactor.Suppress_Separate;
 
             Target_Separate           : Basic_Decl := No_Basic_Decl;
             Suppress_Separate_Command : Command;
@@ -3966,14 +3966,14 @@ package body LSP.Ada_Handlers is
       Document  : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
 
-      Safe_Renamer : Laltools.Refactor.Safe_Rename.Safe_Renamer;
-      Algorithm    : constant Laltools.Refactor.Safe_Rename.
+      Safe_Renamer : LAL_Refactor.Safe_Rename.Safe_Renamer;
+      Algorithm    : constant LAL_Refactor.Safe_Rename.
         Problem_Finder_Algorithm_Kind :=
-          Laltools.Refactor.Safe_Rename.Analyse_AST;
+          LAL_Refactor.Safe_Rename.Analyse_AST;
 
-      Context_Edits : Laltools.Refactor.Refactoring_Edits;
+      Context_Edits : LAL_Refactor.Refactoring_Edits;
       --  Edits found for a particular context
-      All_Edits     : Laltools.Refactor.Refactoring_Edits;
+      All_Edits     : LAL_Refactor.Refactoring_Edits;
       --  When iterating over all contexts (and therefore all projects), it's
       --  possible to encounter the same Text_Edit more than once, so this
       --  stores all the unique edits
@@ -3988,7 +3988,7 @@ package body LSP.Ada_Handlers is
       --  edits to `All_Edits`.
 
       function To_LSP_Diagnostic
-        (Problem         : Laltools.Refactor.Refactoring_Diagnotic'Class;
+        (Problem         : LAL_Refactor.Refactoring_Diagnotic'Class;
          Definition_Node : Defining_Name)
          return LSP.Messages.Diagnostic;
       --  Convert a laltool refactoring diagnostic into a LSP one.
@@ -4001,7 +4001,7 @@ package body LSP.Ada_Handlers is
         (C               : Context_Access;
          Definition_Node : out Defining_Name)
       is
-         use Laltools.Refactor.Safe_Rename;
+         use LAL_Refactor.Safe_Rename;
 
          Node       : constant Ada_Node := C.Get_Node_At (Document, Position);
          Name_Node  : constant Libadalang.Analysis.Name :=
@@ -4045,7 +4045,7 @@ package body LSP.Ada_Handlers is
 
          procedure Process_Comments (Node : Ada_Node)
          is
-            use Laltools.Refactor;
+            use LAL_Refactor;
 
             File_Name : constant File_Name_Type :=
               Node.Unit.Get_Filename;
@@ -4053,7 +4053,7 @@ package body LSP.Ada_Handlers is
             Name      : constant Wide_Wide_String :=
               Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
                 (Laltools.Common.Get_Last_Name (Name_Node));
-            Text_Edit : Laltools.Refactor.Text_Edit;
+            Text_Edit : LAL_Refactor.Text_Edit;
             Span      : Langkit_Support.Slocs.Source_Location_Range;
             Current   : Token_Reference;
             Diff      : Integer;
@@ -4098,10 +4098,10 @@ package body LSP.Ada_Handlers is
                            begin
                               Sloc.Start_Column := Sloc.End_Column;
 
-                              Laltools.Refactor.Safe_Insert
+                              LAL_Refactor.Safe_Insert
                                 (All_Edits.Text_Edits,
                                  File_Name,
-                                 Laltools.Refactor.Text_Edit'
+                                 LAL_Refactor.Text_Edit'
                                    (Sloc,
                                     Ada.Strings.Unbounded."*" (Diff, '-')));
                            end;
@@ -4116,10 +4116,10 @@ package body LSP.Ada_Handlers is
                               Sloc.Start_Column :=
                                 Sloc.End_Column - Column_Number (abs Diff);
 
-                              Laltools.Refactor.Safe_Insert
+                              LAL_Refactor.Safe_Insert
                                 (All_Edits.Text_Edits,
                                  File_Name,
-                                 Laltools.Refactor.Text_Edit'
+                                 LAL_Refactor.Text_Edit'
                                    (Sloc, Null_Unbounded_String));
                            end;
                         end if;
@@ -4161,7 +4161,7 @@ package body LSP.Ada_Handlers is
                         end loop;
 
                         --  Include corrected comment itself
-                        Laltools.Refactor.Safe_Insert
+                        LAL_Refactor.Safe_Insert
                           (All_Edits.Text_Edits,
                            Node.Unit.Get_Filename,
                            Text_Edit);
@@ -4173,7 +4173,7 @@ package body LSP.Ada_Handlers is
                            Current := Next (Current);
                         end loop;
                      else
-                        Laltools.Refactor.Safe_Insert
+                        LAL_Refactor.Safe_Insert
                           (All_Edits.Text_Edits,
                            Node.Unit.Get_Filename,
                            Text_Edit);
@@ -4200,7 +4200,7 @@ package body LSP.Ada_Handlers is
 
          procedure Process_References
          is
-            use Laltools.Refactor;
+            use LAL_Refactor;
 
             Text_Edits_Cursor : Text_Edit_Ordered_Maps.Cursor :=
               Context_Edits.Text_Edits.First;
@@ -4256,7 +4256,7 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         Safe_Renamer := Laltools.Refactor.Safe_Rename.Create_Safe_Renamer
+         Safe_Renamer := LAL_Refactor.Safe_Rename.Create_Safe_Renamer
            (Definition               => Definition,
             New_Name                 =>
               Libadalang.Text.To_Unbounded_Text
@@ -4281,7 +4281,7 @@ package body LSP.Ada_Handlers is
       -----------------------
 
       function To_LSP_Diagnostic
-        (Problem         : Laltools.Refactor.Refactoring_Diagnotic'Class;
+        (Problem         : LAL_Refactor.Refactoring_Diagnotic'Class;
          Definition_Node : Defining_Name)
          return LSP.Messages.Diagnostic
       is

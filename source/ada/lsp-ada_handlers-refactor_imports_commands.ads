@@ -21,8 +21,8 @@ with Ada.Streams;
 
 with VSS.Strings;
 
-with Laltools.Refactor;
-with Laltools.Refactor_Imports;
+with LAL_Refactor;
+with LAL_Refactor.Refactor_Imports;
 
 with LSP.Client_Message_Receivers;
 with LSP.Commands;
@@ -46,7 +46,7 @@ package LSP.Ada_Handlers.Refactor_Imports_Commands is
       Context           : Context_Access;
       Where             : LSP.Messages.Location;
       Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
-      Suggestion        : Laltools.Refactor_Imports.Import_Suggestion);
+      Suggestion        : LAL_Refactor.Refactor_Imports.Import_Suggestion);
    --  Initializes Command based on Suggestion and appends it to
    --  Commands_Vector.
 
@@ -80,8 +80,8 @@ private
      (Self     : Command;
       Context  : LSP.Ada_Contexts.Context;
       Document : LSP.Ada_Documents.Document_Access)
-      return Laltools.Refactor.Refactoring_Edits;
-   --  Converts Self into Laltools.Refactor.Refactoring_Edits that can be
+      return LAL_Refactor.Refactoring_Edits;
+   --  Converts Self into LAL_Refactor.Refactoring_Edits that can be
    --  converted in a WorkspaceEdit.
 
    for Command'Write use Write_Command;
