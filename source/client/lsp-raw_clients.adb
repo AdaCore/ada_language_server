@@ -29,9 +29,6 @@ with Spawn.Processes; use Spawn.Processes;
 
 package body LSP.Raw_Clients is
 
-   Parse_Exception : exception;
-   --   Local exception raised when parsing invalid data
-
    New_Line : constant String :=
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
 
@@ -267,8 +264,11 @@ package body LSP.Raw_Clients is
       use Ada.Strings.Fixed;
 
       procedure Parse_Headers
-        (Buffer : String; Content_Length : out Positive);
-      --  Parse headers in Buffer and return Content-Length
+        (Buffer         : String;
+         Content_Length : out Positive;
+         Success        : out Boolean);
+      --  Parse headers in Buffer and return Content-Length.
+      --  Return Success = False if encounter an unexpected header.
 
       Client : Raw_Clients.Raw_Client'Class renames Self.Client.all;
 
@@ -278,7 +278,8 @@ package body LSP.Raw_Clients is
 
       procedure Parse_Headers
         (Buffer         : String;
-         Content_Length : out Positive)
+         Content_Length : out Positive;
+         Success        : out Boolean)
       is
          function Skip (Pattern : String) return Boolean;
          --  Find Pattern in current position of Buffer and skip it
@@ -303,7 +304,9 @@ package body LSP.Raw_Clients is
          end Skip;
 
       begin
-         while Next < Buffer'Last loop
+         Success := True;
+
+         while Success and Next < Buffer'Last loop
             if Skip ("Content-Type: ") then
                Next := Index (Buffer, New_Line);
                pragma Assert (Next /= 0);
@@ -316,7 +319,8 @@ package body LSP.Raw_Clients is
                   Content_Length := Positive'Value (Buffer (From .. Next - 1));
                end;
             else
-               raise Parse_Exception with "Unexpected header:" & Buffer;
+               Next := Index (Buffer, New_Line);
+               Success := False;
             end if;
 
             Next := Next + New_Line'Length;
@@ -346,24 +350,21 @@ package body LSP.Raw_Clients is
                   Start := Index (Client.Buffer, New_Line & New_Line);
 
                   if Start /= 0 then
-                     begin
-                        Parse_Headers
-                          (Slice (Client.Buffer, 1, Start + 1),
-                           Client.To_Read);
-                        Delete
-                          (Client.Buffer, 1, Start + 2 * New_Line'Length - 1);
-                     exception
-                        when E : Parse_Exception =>
-                           Client.On_Exception (E);
-                           --  Delete the first line
-                           Start :=
-                             Index (Client.Buffer,
-                                    "" & Ada.Characters.Latin_1.LF);
-                           Delete
-                             (Client.Buffer, 1, Start);
-                           --  Reset start to 0 => we didn't find a header
-                           Start := 0;
-                     end;
+                     Parse_Headers
+                       (Slice (Client.Buffer, 1, Start + 1),
+                        Client.To_Read,
+                        Success);
+
+                     if not Success then
+                        Client.On_Error
+                          ("Unable to parse:" &
+                             Slice (Client.Buffer, 1, Start + 1));
+                        --  Notify upstream and try to recover by dropping the
+                        --  headers block.
+                     end if;
+
+                     Delete
+                       (Client.Buffer, 1, Start + 2 * New_Line'Length - 1);
                   end if;
                end if;
 
