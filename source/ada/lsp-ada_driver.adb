@@ -337,6 +337,9 @@ begin
       Register_Commands;
    end if;
 
+   Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Error);
+   --  Protect stdout from pollution by accidental Put_Line calls
+
    Server.Initialize (Stream'Unchecked_Access);
 
    begin
