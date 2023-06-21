@@ -1,6 +1,21 @@
 {
    "ada.projectFile": "gnat/lsp_server.gpr",
+   "ada.scenarioVariables": {
+      // Use static linking in local development to enable running the
+      // ada_language_server executable after relaction into the VS Code
+      // extension.
+      "LIBRARY_TYPE": "static"
+   },
    "python.analysis.extraPaths": ["testsuite"],
+   "python.linting.enabled": true,
+   "python.linting.mypyEnabled": true,
+   "python.linting.flake8Enabled": true,
+   "flake8.args": ["--max-line-length", "88"],
+   "python.formatting.provider": "black",
+   "[python]": {
+      // Use the same line length as black and flake8
+      "vim.textwidth": 88
+   },
    "terminal.integrated.env.osx": {
       // Dependencies can be provided under the subprojects/ directory. They
       // would automatically be included in GPR_PROJECT_PATH by the following

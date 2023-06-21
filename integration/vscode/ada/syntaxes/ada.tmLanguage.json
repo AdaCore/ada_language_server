@@ -3,11 +3,7 @@
     "name": "Ada",
     "comment": "Ada grammar file",
     "scopeName": "source.ada",
-    "fileTypes": [
-        "adb",
-        "adc",
-        "ads"
-    ],
+    "fileTypes": ["adb", "adc", "ads"],
     "patterns": [
         {
             "name": "comment.line.ada",
@@ -36,7 +32,7 @@
         },
         {
             "name": "variable.other.constant.ada",
-            "match": "\\b(?i:(null))\\b"
+            "match": "\\b(?i:(null|True|False))\\b"
         },
         {
             "name": "keyword.other.ada",
@@ -74,7 +70,7 @@
             "match": "=>|\\.\\.|\\*\\*|/=|>=|<=|<>|&|\\*|\\+|,|\\-|\\.|/|<|=|>|\\|"
         },
         {
-            "name": "entity.name.tag.ada",
+            "name": "entity.name.label.ada",
             "match": "[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}](\\p{Pc}?[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}\\p{Mn}\\p{Mc}\\p{Nd}])*"
         }
     ],
@@ -93,12 +89,12 @@
             "match": "\\d[0-9_]*#[0-9a-fA-F][0-9a-fA-F_]*(\\.[0-9a-fA-F][0-9a-fA-F_]*)?#([eE][-+]?\\d[0-9_]*)?"
         },
         "gnatdoc_tag": {
-            "name": "comment.gnatdoc.tag.ada",
-            "match": "@(description|format|group|noformat|private|return|summary)|@(enum|exception|field|formal|image|param)[\\t ]+([^\\t ]*)",
+            "match": "\\s*(@)(?:(description|format|group|noformat|private|return|summary)|(enum|exception|field|formal|image|param|value)\\s+(\\S*))",
             "captures": {
-                "3": {
-                    "name": "comment.gnatdoc.id.ada"
-                }
+                "1": { "name": "punctuation.definition.tag.ada" },
+                "2": { "name": "entity.name.tag.ada" },
+                "3": { "name": "entity.name.tag.ada" },
+                "4": { "name": "entity.name.variable.ada" }
             }
         }
     }
