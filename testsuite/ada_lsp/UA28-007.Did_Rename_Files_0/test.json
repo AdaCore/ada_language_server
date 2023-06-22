@@ -1318,7 +1318,7 @@
                   "contents": [
                      {
                         "language": "ada",
-                        "value": "package Qux "
+                        "value": "package Qux"
                      },
                      "at qux.ads (1:1)"
                   ]
@@ -1468,7 +1468,7 @@
                   "contents": [
                      {
                         "language": "ada",
-                        "value": "package Qux "
+                        "value": "package Qux"
                      },
                      "at qux.ads (1:1)"
                   ]

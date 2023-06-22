@@ -278,7 +278,7 @@
                "result": {
                   "label": "Params of Foo_Bar",
                   "kind": 15,
-                  "detail": "generic\n      A      : Integer;\n      BBBBBB : Float;\n      CCCC   : String;\n      with procedure Bar (X : Integer);\n   package Foo_Bar is\n      procedure Do_Nothing;\n\n      procedure Do_Nothing is\n      begin\n         null;\n      end Do_Nothing;\n   end Foo_Bar;",
+                  "detail": "generic\n   A      : Integer;\n   BBBBBB : Float;\n   CCCC   : String;\n   with procedure Bar (X : Integer);\npackage Foo_Bar",
                   "documentation": "at foo.adb (3:4)",
                   "sortText": "+0",
                   "insertText": "A => ${1:A      : Integer;}, BBBBBB => ${2:BBBBBB : Float;}, CCCC => ${3:CCCC   : String;}, Bar => ${4:with procedure Bar (X : Integer);})$0",
