@@ -34,6 +34,7 @@ import { ALSClientFeatures } from './alsClientFeatures';
 import { substituteVariables } from './helpers';
 
 export let contextClients: ContextClients;
+export let mainLogChannel: vscode.OutputChannel;
 
 export class ContextClients {
     public readonly gprClient: LanguageClient;
@@ -108,6 +109,15 @@ export class ContextClients {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    // Create an output channel for the extension. There are dedicated channels
+    // for the Ada and Gpr language servers, and this one is a general channel
+    // for non-LSP features of the extension.
+    mainLogChannel = vscode.window.createOutputChannel('Ada Extension');
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.showExtensionOutput', () => mainLogChannel.show())
+    );
+
     // Create the GPR language client and start it.
     const gprClient = createClient(
         context,
@@ -116,6 +126,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         ['--language-gpr'],
         '**/.{gpr}'
     );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.showGprLSOutput', () => gprClient.outputChannel.show())
+    );
     // Create the Ada language client and start it.
     const alsClient = createClient(
         context,
@@ -123,6 +136,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         'Ada Language Server',
         [],
         '**/.{adb,ads,adc,ada}'
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.showAdaLSOutput', () => alsClient.outputChannel.show())
     );
     const alsMiddleware: Middleware = {
         executeCommand: alsCommandExecutor(alsClient),
@@ -143,6 +159,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBox)
     );
+    await Promise.all([alsClient.onReady(), gprClient.onReady()]);
     await checkSrcDirectories(alsClient);
 }
 

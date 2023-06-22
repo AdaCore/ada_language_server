@@ -3,3 +3,8 @@ node_modules
 out
 .vscode-test
 **/obj
+
+# Paths of ALS executables
+/linux/
+/windows/
+/darwin/

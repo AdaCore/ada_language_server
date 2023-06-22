@@ -1,0 +1,646 @@
+line  21: column  6 -  8: namespace     [defaultLibrary]                 : Ada
+line  21: column 10 - 19: namespace     [defaultLibrary]                 : Containers
+line  21: column 21 - 31: namespace     [defaultLibrary]                 : Hashed_Maps
+line  22: column  6 -  8: namespace     [defaultLibrary]                 : Ada
+line  22: column 10 - 19: namespace     [defaultLibrary]                 : Containers
+line  22: column 21 - 31: namespace     [defaultLibrary]                 : Hashed_Sets
+line  23: column  6 -  8: namespace     [defaultLibrary]                 : Ada
+line  23: column 10 - 16: namespace     [defaultLibrary]                 : Strings
+line  23: column 18 - 26: namespace     [defaultLibrary]                 : Unbounded
+line  24: column  6 -  8: modifier                                       : VSS
+line  24: column 10 - 23: modifier                                       : String_Vectors
+line  26: column  6 - 13: modifier                                       : GNATCOLL
+line  26: column 15 - 18: modifier                                       : JSON
+line  27: column  6 - 13: modifier                                       : GNATCOLL
+line  27: column 15 - 17: modifier                                       : VFS
+line  28: column  6 - 13: modifier                                       : GNATCOLL
+line  28: column 15 - 20: modifier                                       : Traces
+line  30: column  6 -  8: modifier                                       : VSS
+line  30: column 10 - 16: modifier                                       : Strings
+line  32: column 14 - 20: modifier                                       : GNATdoc
+line  32: column 22 - 29: modifier                                       : Comments
+line  32: column 31 - 37: modifier                                       : Options
+line  34: column  6 -  9: modifier                                       : GPR2
+line  35: column  6 -  9: modifier                                       : GPR2
+line  35: column 11 - 17: modifier                                       : Context
+line  36: column  6 -  9: modifier                                       : GPR2
+line  36: column 11 - 22: modifier                                       : File_Readers
+line  37: column  6 -  9: modifier                                       : GPR2
+line  37: column 11 - 19: modifier                                       : Path_Name
+line  38: column  6 -  9: modifier                                       : GPR2
+line  38: column 11 - 19: modifier                                       : Path_Name
+line  38: column 21 - 23: modifier                                       : Set
+line  39: column  6 -  9: modifier                                       : GPR2
+line  39: column 11 - 17: modifier                                       : Project
+line  39: column 19 - 31: modifier                                       : Configuration
+line  40: column  6 -  9: modifier                                       : GPR2
+line  40: column 11 - 17: modifier                                       : Project
+line  40: column 19 - 22: modifier                                       : Tree
+line  42: column  6 -  8: modifier                                       : LSP
+line  42: column 10 - 21: modifier                                       : Ada_Contexts
+line  43: column  6 -  8: modifier                                       : LSP
+line  43: column 10 - 25: modifier                                       : Ada_Context_Sets
+line  44: column  6 -  8: modifier                                       : LSP
+line  44: column 10 - 22: modifier                                       : Ada_Documents
+line  45: column  6 -  8: modifier                                       : LSP
+line  45: column 10 - 22: modifier                                       : Ada_File_Sets
+line  46: column  6 -  8: modifier                                       : LSP
+line  46: column 10 - 25: modifier                                       : Ada_Highlighters
+line  48: column  6 -  8: modifier                                       : LSP
+line  48: column 10 - 22: modifier                                       : File_Monitors
+line  49: column  6 -  8: modifier                                       : LSP
+line  49: column 10 - 17: modifier                                       : Messages
+line  49: column 19 - 33: modifier                                       : Server_Requests
+line  50: column  6 -  8: modifier                                       : LSP
+line  50: column 10 - 17: modifier                                       : Messages
+line  50: column 19 - 34: modifier                                       : Server_Responses
+line  51: column  6 -  8: modifier                                       : LSP
+line  51: column 10 - 15: modifier                                       : Search
+line  52: column  6 -  8: modifier                                       : LSP
+line  52: column 10 - 24: modifier                                       : Server_Backends
+line  53: column  6 -  8: modifier                                       : LSP
+line  53: column 10 - 32: modifier                                       : Server_Request_Handlers
+line  54: column  6 -  8: modifier                                       : LSP
+line  54: column 10 - 38: modifier                                       : Server_Notification_Receivers
+line  55: column  6 -  8: modifier                                       : LSP
+line  55: column 10 - 16: modifier                                       : Servers
+line  56: column  6 -  8: modifier                                       : LSP
+line  56: column 10 - 14: modifier                                       : Types
+line  57: column  6 -  8: modifier                                       : LSP
+line  57: column 10 - 17: modifier                                       : Messages
+line  59: column 13 - 24: namespace     [declaration]                    : Ada_Handlers
+line  62: column  7 - 12: typeParameter [declaration, readonly]          : Server
+line  62: column 28 - 34: modifier                                       : Servers
+line  63: column  7 - 11: typeParameter [declaration, readonly]          : Trace
+line  63: column 26 - 31: modifier                                       : Traces
+line  64: column 20 - 42: modifier                                       : Server_Request_Handlers
+line  65: column 14 - 42: modifier                                       : Server_Notification_Receivers
+line  66: column 14 - 28: modifier                                       : Server_Backends
+line  67: column 14 - 26: modifier                                       : Ada_Documents
+line  71: column 25 - 36: function      [declaration]                    : Handle_Error
+line  71: column 39 - 42: parameter     [declaration, readonly]          : Self
+line  75: column 14 - 33: function      [declaration]                    : Change_Configuration
+line  76: column  7 - 10: parameter     [declaration, readonly]          : Self
+line  77: column  7 - 13: parameter     [declaration, readonly]          : Options
+line  77: column 26 - 29: modifier                                       : JSON
+line  80: column 14 - 45: function      [declaration]                    : Change_Configuration_Before_Init
+line  81: column  7 - 10: parameter     [declaration, readonly]          : Self
+line  82: column  7 - 13: parameter     [declaration, readonly]          : Options
+line  82: column 26 - 29: modifier                                       : JSON
+line  83: column  7 - 10: parameter     [declaration, readonly]          : Root
+line  83: column 26 - 28: modifier                                       : VFS
+line  88: column 14 - 33: function      [declaration]                    : Stop_File_Monitoring
+line  88: column 36 - 39: parameter     [declaration, readonly]          : Self
+line  90: column 14 - 20: function      [declaration]                    : Cleanup
+line  90: column 23 - 26: parameter     [declaration, readonly]          : Self
+line  93: column 14 - 23: function      [declaration]                    : Clean_Logs
+line  94: column  7 - 10: parameter     [declaration, readonly]          : Self
+line  95: column  7 -  9: parameter     [declaration, readonly]          : Dir
+line  95: column 23 - 25: modifier                                       : VFS
+line 100: column 13 - 21: function      [declaration]                    : From_File
+line 101: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 101: column 30 - 34: modifier                                       : Class
+line 102: column  7 - 10: parameter     [declaration, readonly]          : File
+line 102: column 23 - 25: modifier                                       : VFS
+line 102: column 52 - 59: modifier                                       : Messages
+line 105: column 13 - 19: function      [declaration]                    : To_File
+line 106: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 106: column 30 - 34: modifier                                       : Class
+line 107: column  7 -  9: parameter     [declaration, readonly]          : URI
+line 107: column 18 - 22: modifier                                       : Types
+line 107: column 49 - 51: modifier                                       : VFS
+line 113: column  9 - 24: struct        [declaration]                    : Renaming_Options
+line 114: column  7 - 17: property      [declaration]                    : In_Comments
+line 118: column  9 - 27: struct        [declaration]                    : Refactoring_Options
+line 119: column  7 - 14: property      [declaration]                    : Renaming
+line 119: column 18 - 33: struct                                         : Renaming_Options
+line 123: column  9 - 23: struct        [declaration]                    : Folding_Options
+line 124: column  7 - 14: property      [declaration]                    : Comments
+line 128: column  9 - 29: struct        [declaration]                    : Documentation_Options
+line 129: column  7 - 11: property      [declaration]                    : Style
+line 129: column 23 - 30: modifier                                       : Comments
+line 129: column 32 - 38: modifier                                       : Options
+line 130: column 17 - 24: modifier                                       : Comments
+line 130: column 26 - 32: modifier                                       : Options
+line 134: column  9 - 22: struct        [declaration]                    : Options_Holder
+line 135: column  7 - 17: property      [declaration]                    : Refactoring
+line 135: column 23 - 41: struct                                         : Refactoring_Options
+line 138: column  7 - 13: property      [declaration]                    : Folding
+line 138: column 23 - 37: struct                                         : Folding_Options
+line 141: column  7 - 19: property      [declaration]                    : Documentation
+line 141: column 23 - 43: struct                                         : Documentation_Options
+line 145: column  9 - 32: type          [declaration]                    : Internal_Document_Access
+line 145: column 52 - 64: modifier                                       : Ada_Documents
+line 147: column 14 - 17: function      [declaration]                    : Free
+line 147: column 20 - 23: parameter     [declaration]                    : Self
+line 147: column 34 - 57: type                                           : Internal_Document_Access
+line 151: column 12 - 24: namespace     [declaration]                    : Document_Maps
+line 151: column 37 - 46: modifier                                       : Containers
+line 152: column 35 - 37: modifier                                       : VFS
+line 154: column 35 - 37: modifier                                       : VFS
+line 155: column 35 - 37: modifier                                       : VFS
+line 158: column 12 - 20: namespace     [declaration]                    : File_Sets
+line 158: column 33 - 42: modifier                                       : Containers
+line 159: column 39 - 41: modifier                                       : VFS
+line 160: column 39 - 41: modifier                                       : VFS
+line 161: column 39 - 41: modifier                                       : VFS
+line 162: column 39 - 41: modifier                                       : VFS
+line 164: column  9 - 25: type          [declaration]                    : Get_Symbol_Access
+line 165: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 165: column 22 - 34: modifier                                       : Ada_Documents
+line 166: column  7 - 13: parameter     [declaration, readonly]          : Context
+line 166: column 22 - 33: modifier                                       : Ada_Contexts
+line 167: column  7 - 13: parameter     [declaration, readonly]          : Pattern
+line 167: column 22 - 27: modifier                                       : Search
+line 168: column  7 - 14: parameter     [declaration, readonly]          : Canceled
+line 168: column 41 - 47: modifier                                       : Boolean
+line 169: column  7 - 12: parameter     [declaration]                    : Result
+line 169: column 26 - 33: modifier                                       : Messages
+line 172: column  4 - 14: variable      [declaration]                    : Empty_Token
+line 175: column  9 - 27: enum          [declaration, static]            : Load_Project_Status
+line 176: column  7 - 30: enumMember    [declaration, static]            : Valid_Project_Configured
+line 177: column  7 - 26: enumMember    [declaration, static]            : Single_Project_Found
+line 178: column  7 - 19: enumMember    [declaration, static]            : Alire_Project
+line 179: column  7 - 22: enumMember    [declaration, static]            : No_Runtime_Found
+line 180: column  7 - 22: enumMember    [declaration, static]            : No_Project_Found
+line 181: column  7 - 29: enumMember    [declaration, static]            : Multiple_Projects_Found
+line 182: column  7 - 32: enumMember    [declaration, static]            : Invalid_Project_Configured
+line 206: column 12 - 34: enum          [declaration]                    : Implicit_Project_Loaded
+line 210: column  9 - 29: enum          [declaration, static]            : Advanced_Refactorings
+line 211: column  7 - 19: enumMember    [declaration, static]            : Add_Parameter
+line 211: column 22 - 43: enumMember    [declaration, static]            : Change_Parameters_Type
+line 211: column 46 - 76: enumMember    [declaration, static]            : Change_Parameters_Default_Value
+line 212: column  7 - 18: enumMember    [declaration, static]            : Replace_Type
+line 215: column  9 - 42: type          [declaration, static]            : Advanced_Refactorings_Capabilities
+line 216: column 13 - 33: enum          [static]                         : Advanced_Refactorings
+line 216: column 39 - 45: modifier                                       : Boolean
+line 219: column  9 - 40: struct        [declaration]                    : Experimental_Client_Capabilities
+line 220: column  7 - 27: property      [declaration]                    : Advanced_Refactorings
+line 220: column 31 - 64: type          [static]                         : Advanced_Refactorings_Capabilities
+line 225: column 13 - 17: function      [declaration]                    : Parse
+line 226: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 226: column 19 - 23: modifier                                       : Types
+line 227: column 14 - 45: struct                                         : Experimental_Client_Capabilities
+line 231: column  9 - 30: struct        [declaration]                    : Scenario_Variable_List
+line 232: column  7 - 11: property      [declaration]                    : Names
+line 232: column 20 - 33: modifier                                       : String_Vectors
+line 233: column  7 - 12: property      [declaration]                    : Values
+line 233: column 20 - 33: modifier                                       : String_Vectors
+line 236: column  4 - 23: variable      [declaration, readonly]          : No_Scenario_Variable
+line 236: column 36 - 57: struct                                         : Scenario_Variable_List
+line 240: column  9 - 19: struct        [declaration]                    : Environment
+line 241: column  7 - 14: property      [declaration]                    : Filename
+line 241: column 31 - 39: modifier                                       : Path_Name
+line 241: column 56 - 64: modifier                                       : Path_Name
+line 242: column  7 - 13: property      [declaration]                    : Context
+line 242: column 31 - 37: modifier                                       : Context
+line 242: column 54 - 60: modifier                                       : Context
+line 243: column  7 - 12: property      [declaration]                    : Config
+line 243: column 31 - 37: modifier                                       : Project
+line 243: column 39 - 51: modifier                                       : Configuration
+line 244: column 33 - 39: modifier                                       : Project
+line 244: column 41 - 53: modifier                                       : Configuration
+line 245: column  7 - 17: property      [declaration]                    : Project_Dir
+line 245: column 31 - 39: modifier                                       : Path_Name
+line 245: column 56 - 64: modifier                                       : Path_Name
+line 246: column  7 - 16: property      [declaration]                    : Build_Path
+line 246: column 31 - 39: modifier                                       : Path_Name
+line 246: column 56 - 64: modifier                                       : Path_Name
+line 247: column  7 - 13: property      [declaration]                    : Subdirs
+line 247: column 30 - 36: modifier                                       : Strings
+line 247: column 38 - 46: modifier                                       : Unbounded
+line 248: column  7 - 17: property      [declaration]                    : Src_Subdirs
+line 248: column 30 - 36: modifier                                       : Strings
+line 248: column 38 - 46: modifier                                       : Unbounded
+line 249: column  7 - 22: property      [declaration]                    : Check_Shared_Lib
+line 250: column  7 - 22: property      [declaration]                    : Absent_Dir_Error
+line 251: column  7 - 19: property      [declaration]                    : Implicit_With
+line 251: column 31 - 39: modifier                                       : Path_Name
+line 251: column 41 - 43: modifier                                       : Set
+line 252: column 33 - 41: modifier                                       : Path_Name
+line 252: column 43 - 45: modifier                                       : Set
+line 253: column  7 - 19: property      [declaration]                    : Pre_Conf_Mode
+line 254: column  7 - 17: property      [declaration]                    : File_Reader
+line 254: column 31 - 42: modifier                                       : File_Readers
+line 255: column 33 - 44: modifier                                       : File_Readers
+line 258: column  4 - 20: variable      [declaration, readonly]          : Empty_Environment
+line 258: column 33 - 43: struct                                         : Environment
+line 261: column  7 - 12: typeParameter [definition, readonly]           : Server
+line 261: column 28 - 34: modifier                                       : Servers
+line 262: column  7 - 11: typeParameter [definition, readonly]           : Trace
+line 262: column 26 - 31: modifier                                       : Traces
+line 263: column 23 - 45: modifier                                       : Server_Request_Handlers
+line 264: column 14 - 42: modifier                                       : Server_Notification_Receivers
+line 265: column 14 - 28: modifier                                       : Server_Backends
+line 266: column 14 - 26: modifier                                       : Ada_Documents
+line 268: column  7 - 14: property      [declaration]                    : Contexts
+line 268: column 22 - 37: modifier                                       : Ada_Context_Sets
+line 274: column  7 - 12: property      [declaration]                    : Client
+line 274: column 20 - 27: modifier                                       : Messages
+line 277: column  7 - 10: property      [declaration]                    : Root
+line 277: column 23 - 25: modifier                                       : VFS
+line 281: column  7 - 13: property      [declaration]                    : Charset
+line 281: column 21 - 27: modifier                                       : Strings
+line 284: column  7 - 18: property      [declaration]                    : Project_File
+line 284: column 26 - 32: modifier                                       : Strings
+line 287: column  7 - 24: property      [declaration]                    : Scenario_Variables
+line 287: column 28 - 49: struct                                         : Scenario_Variable_List
+line 290: column  7 - 25: property      [declaration]                    : Diagnostics_Enabled
+line 293: column  7 - 14: property      [declaration]                    : Token_Id
+line 296: column  7 - 22: property      [declaration]                    : Indexing_Enabled
+line 300: column  7 - 20: property      [declaration]                    : Indexing_Token
+line 300: column 29 - 33: modifier                                       : Types
+line 303: column  7 - 20: property      [declaration]                    : Files_To_Index
+line 323: column  7 - 25: property      [declaration]                    : Total_Files_Indexed
+line 324: column  7 - 26: property      [declaration]                    : Total_Files_To_Index
+line 329: column  7 - 13: property      [declaration]                    : Options
+line 329: column 17 - 30: struct                                         : Options_Holder
+line 331: column  7 - 20: property      [declaration]                    : Open_Documents
+line 334: column  7 - 17: property      [declaration]                    : Get_Symbols
+line 334: column 21 - 37: type                                           : Get_Symbol_Access
+line 338: column  7 - 25: property      [declaration]                    : Resource_Operations
+line 338: column 33 - 40: modifier                                       : Messages
+line 342: column  7 - 25: property      [declaration]                    : Versioned_Documents
+line 346: column  7 - 23: property      [declaration]                    : Line_Folding_Only
+line 349: column  7 - 34: property      [declaration]                    : Supports_Related_Diagnostics
+line 352: column  7 - 33: property      [declaration]                    : Completion_Snippets_Enabled
+line 355: column  7 - 29: property      [declaration]                    : Use_Completion_Snippets
+line 359: column  7 - 35: property      [declaration]                    : Completion_Resolve_Properties
+line 359: column 43 - 56: modifier                                       : String_Vectors
+line 364: column  7 - 30: property      [declaration]                    : Range_Formatting_Enabled
+line 367: column  7 - 30: property      [declaration]                    : Named_Notation_Threshold
+line 371: column  7 - 36: property      [declaration]                    : Display_Method_Ancestry_Policy
+line 372: column 14 - 21: modifier                                       : Messages
+line 373: column 16 - 23: modifier                                       : Messages
+line 379: column  7 - 21: property      [declaration]                    : Follow_Symlinks
+line 384: column  7 - 17: property      [declaration]                    : Highlighter
+line 384: column 28 - 43: modifier                                       : Ada_Highlighters
+line 391: column  7 - 18: property      [declaration]                    : Project_Tree
+line 391: column 27 - 33: modifier                                       : Project
+line 391: column 35 - 38: modifier                                       : Tree
+line 394: column  7 - 25: property      [declaration]                    : Project_Environment
+line 394: column 29 - 39: struct                                         : Environment
+line 397: column  7 - 32: property      [declaration]                    : Project_Predefined_Sources
+line 397: column 40 - 52: modifier                                       : Ada_File_Sets
+line 401: column  7 - 25: property      [declaration]                    : Relocate_Build_Tree
+line 401: column 33 - 39: modifier                                       : Strings
+line 405: column  7 - 23: property      [declaration]                    : Relocate_Root_Dir
+line 405: column 31 - 37: modifier                                       : Strings
+line 408: column  7 - 20: property      [declaration]                    : Project_Status
+line 417: column  7 - 25: property      [declaration]                    : Project_Dirs_Loaded
+line 420: column  7 - 18: property      [declaration]                    : File_Monitor
+line 420: column 29 - 41: modifier                                       : File_Monitors
+line 423: column  7 - 19: property      [declaration]                    : Log_Threshold
+line 431: column  7 - 38: property      [declaration]                    : Experimental_Client_Capabilities
+line 432: column 13 - 24: modifier                                       : Ada_Handlers
+line 436: column 25 - 35: function      [declaration]                    : Before_Work
+line 437: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 438: column  7 - 13: parameter     [declaration, readonly]          : Message
+line 438: column 21 - 28: modifier                                       : Messages
+line 440: column 25 - 34: function      [declaration]                    : After_Work
+line 441: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 442: column  7 - 13: parameter     [declaration, readonly]          : Message
+line 442: column 21 - 28: modifier                                       : Messages
+line 444: column 24 - 44: function      [declaration]                    : On_Initialize_Request
+line 445: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 446: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 446: column 21 - 28: modifier                                       : Messages
+line 446: column 30 - 44: modifier                                       : Server_Requests
+line 447: column 18 - 25: modifier                                       : Messages
+line 447: column 27 - 42: modifier                                       : Server_Responses
+line 449: column 24 - 42: function      [declaration]                    : On_Shutdown_Request
+line 450: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 451: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 451: column 21 - 28: modifier                                       : Messages
+line 451: column 30 - 44: modifier                                       : Server_Requests
+line 452: column 18 - 25: modifier                                       : Messages
+line 452: column 27 - 42: modifier                                       : Server_Responses
+line 454: column 24 - 44: function      [declaration]                    : On_CodeAction_Request
+line 455: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 456: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 456: column 21 - 28: modifier                                       : Messages
+line 456: column 30 - 44: modifier                                       : Server_Requests
+line 457: column 18 - 25: modifier                                       : Messages
+line 457: column 27 - 42: modifier                                       : Server_Responses
+line 459: column 24 - 44: function      [declaration]                    : On_Completion_Request
+line 460: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 461: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 461: column 21 - 28: modifier                                       : Messages
+line 461: column 30 - 44: modifier                                       : Server_Requests
+line 462: column 18 - 25: modifier                                       : Messages
+line 462: column 27 - 42: modifier                                       : Server_Responses
+line 464: column 24 - 55: function      [declaration]                    : On_CompletionItemResolve_Request
+line 465: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 466: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 466: column 21 - 28: modifier                                       : Messages
+line 466: column 30 - 44: modifier                                       : Server_Requests
+line 467: column 18 - 25: modifier                                       : Messages
+line 467: column 27 - 42: modifier                                       : Server_Responses
+line 469: column 24 - 44: function      [declaration]                    : On_Definition_Request
+line 470: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 471: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 471: column 21 - 28: modifier                                       : Messages
+line 471: column 30 - 44: modifier                                       : Server_Requests
+line 472: column 18 - 25: modifier                                       : Messages
+line 472: column 27 - 42: modifier                                       : Server_Responses
+line 474: column 24 - 45: function      [declaration]                    : On_Declaration_Request
+line 475: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 476: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 476: column 21 - 28: modifier                                       : Messages
+line 476: column 30 - 44: modifier                                       : Server_Requests
+line 477: column 18 - 25: modifier                                       : Messages
+line 477: column 27 - 42: modifier                                       : Server_Responses
+line 479: column 24 - 48: function      [declaration]                    : On_Implementation_Request
+line 480: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 481: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 481: column 21 - 28: modifier                                       : Messages
+line 481: column 30 - 44: modifier                                       : Server_Requests
+line 482: column 18 - 25: modifier                                       : Messages
+line 482: column 27 - 42: modifier                                       : Server_Responses
+line 484: column 24 - 49: function      [declaration]                    : On_Type_Definition_Request
+line 485: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 486: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 486: column 21 - 28: modifier                                       : Messages
+line 486: column 30 - 44: modifier                                       : Server_Requests
+line 487: column 18 - 25: modifier                                       : Messages
+line 487: column 27 - 42: modifier                                       : Server_Responses
+line 489: column 24 - 43: function      [declaration]                    : On_Highlight_Request
+line 490: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 491: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 491: column 21 - 28: modifier                                       : Messages
+line 491: column 30 - 44: modifier                                       : Server_Requests
+line 492: column 18 - 25: modifier                                       : Messages
+line 492: column 27 - 42: modifier                                       : Server_Responses
+line 494: column 24 - 39: function      [declaration]                    : On_Hover_Request
+line 495: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 496: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 496: column 21 - 28: modifier                                       : Messages
+line 496: column 30 - 44: modifier                                       : Server_Requests
+line 497: column 18 - 25: modifier                                       : Messages
+line 497: column 27 - 42: modifier                                       : Server_Responses
+line 499: column 24 - 44: function      [declaration]                    : On_References_Request
+line 500: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 501: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 501: column 21 - 28: modifier                                       : Messages
+line 501: column 30 - 44: modifier                                       : Server_Requests
+line 502: column 18 - 25: modifier                                       : Messages
+line 502: column 27 - 42: modifier                                       : Server_Responses
+line 504: column 24 - 48: function      [declaration]                    : On_Signature_Help_Request
+line 505: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 506: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 506: column 21 - 28: modifier                                       : Messages
+line 506: column 30 - 44: modifier                                       : Server_Requests
+line 507: column 18 - 25: modifier                                       : Messages
+line 507: column 27 - 42: modifier                                       : Server_Responses
+line 509: column 24 - 48: function      [declaration]                    : On_Document_Links_Request
+line 510: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 511: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 511: column 21 - 28: modifier                                       : Messages
+line 511: column 30 - 44: modifier                                       : Server_Requests
+line 512: column 18 - 25: modifier                                       : Messages
+line 512: column 27 - 42: modifier                                       : Server_Responses
+line 514: column 24 - 54: function      [declaration]                    : On_Document_Tokens_Full_Request
+line 515: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 516: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 516: column 21 - 28: modifier                                       : Messages
+line 516: column 30 - 44: modifier                                       : Server_Requests
+line 517: column 18 - 25: modifier                                       : Messages
+line 517: column 27 - 42: modifier                                       : Server_Responses
+line 519: column 24 - 55: function      [declaration]                    : On_Document_Tokens_Range_Request
+line 520: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 521: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 521: column 21 - 28: modifier                                       : Messages
+line 521: column 30 - 44: modifier                                       : Server_Requests
+line 522: column 18 - 25: modifier                                       : Messages
+line 522: column 27 - 42: modifier                                       : Server_Responses
+line 524: column 24 - 50: function      [declaration]                    : On_Document_Symbols_Request
+line 525: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 526: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 526: column 21 - 28: modifier                                       : Messages
+line 526: column 30 - 44: modifier                                       : Server_Requests
+line 527: column 18 - 25: modifier                                       : Messages
+line 527: column 27 - 42: modifier                                       : Server_Responses
+line 529: column 24 - 47: function      [declaration]                    : On_Folding_Range_Request
+line 530: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 531: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 531: column 21 - 28: modifier                                       : Messages
+line 531: column 30 - 44: modifier                                       : Server_Requests
+line 532: column 18 - 25: modifier                                       : Messages
+line 532: column 27 - 42: modifier                                       : Server_Responses
+line 534: column 24 - 56: function      [declaration]                    : On_Prepare_Call_Hierarchy_Request
+line 535: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 536: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 536: column 21 - 28: modifier                                       : Messages
+line 536: column 30 - 44: modifier                                       : Server_Requests
+line 537: column 18 - 25: modifier                                       : Messages
+line 537: column 27 - 42: modifier                                       : Server_Responses
+line 539: column 24 - 48: function      [declaration]                    : On_Incoming_Calls_Request
+line 540: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 541: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 541: column 21 - 28: modifier                                       : Messages
+line 541: column 30 - 44: modifier                                       : Server_Requests
+line 542: column 18 - 25: modifier                                       : Messages
+line 542: column 27 - 42: modifier                                       : Server_Responses
+line 544: column 24 - 48: function      [declaration]                    : On_Outgoing_Calls_Request
+line 545: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 546: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 546: column 21 - 28: modifier                                       : Messages
+line 546: column 30 - 44: modifier                                       : Server_Requests
+line 547: column 18 - 25: modifier                                       : Messages
+line 547: column 27 - 42: modifier                                       : Server_Responses
+line 549: column 24 - 49: function      [declaration]                    : On_Selection_Range_Request
+line 550: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 551: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 551: column 21 - 28: modifier                                       : Messages
+line 551: column 30 - 44: modifier                                       : Server_Requests
+line 552: column 18 - 25: modifier                                       : Messages
+line 552: column 27 - 42: modifier                                       : Server_Responses
+line 554: column 24 - 40: function      [declaration]                    : On_Rename_Request
+line 555: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 556: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 556: column 21 - 28: modifier                                       : Messages
+line 556: column 30 - 44: modifier                                       : Server_Requests
+line 557: column 18 - 25: modifier                                       : Messages
+line 557: column 27 - 42: modifier                                       : Server_Responses
+line 559: column 24 - 48: function      [declaration]                    : On_Prepare_Rename_Request
+line 560: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 561: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 561: column 21 - 28: modifier                                       : Messages
+line 561: column 30 - 44: modifier                                       : Server_Requests
+line 562: column 18 - 25: modifier                                       : Messages
+line 562: column 27 - 42: modifier                                       : Server_Responses
+line 564: column 24 - 49: function      [declaration]                    : On_Execute_Command_Request
+line 565: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 566: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 566: column 21 - 28: modifier                                       : Messages
+line 566: column 30 - 44: modifier                                       : Server_Requests
+line 567: column 18 - 25: modifier                                       : Messages
+line 567: column 27 - 42: modifier                                       : Server_Responses
+line 569: column 24 - 51: function      [declaration]                    : On_Workspace_Symbols_Request
+line 570: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 571: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 571: column 21 - 28: modifier                                       : Messages
+line 571: column 30 - 44: modifier                                       : Server_Requests
+line 572: column 18 - 25: modifier                                       : Messages
+line 572: column 27 - 42: modifier                                       : Server_Responses
+line 574: column 24 - 59: function      [declaration]                    : On_Workspace_Execute_Command_Request
+line 575: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 576: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 576: column 21 - 28: modifier                                       : Messages
+line 576: column 30 - 44: modifier                                       : Server_Requests
+line 577: column 18 - 25: modifier                                       : Messages
+line 577: column 27 - 42: modifier                                       : Server_Responses
+line 579: column 24 - 61: function      [declaration]                    : On_Workspace_Will_Create_Files_Request
+line 580: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 581: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 581: column 21 - 28: modifier                                       : Messages
+line 581: column 30 - 44: modifier                                       : Server_Requests
+line 583: column 18 - 25: modifier                                       : Messages
+line 583: column 27 - 42: modifier                                       : Server_Responses
+line 585: column 25 - 54: function      [declaration]                    : On_DidCreateFiles_Notification
+line 586: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 587: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 587: column 19 - 26: modifier                                       : Messages
+line 589: column 24 - 61: function      [declaration]                    : On_Workspace_Will_Rename_Files_Request
+line 590: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 591: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 591: column 21 - 28: modifier                                       : Messages
+line 591: column 30 - 44: modifier                                       : Server_Requests
+line 593: column 18 - 25: modifier                                       : Messages
+line 593: column 27 - 42: modifier                                       : Server_Responses
+line 595: column 25 - 54: function      [declaration]                    : On_DidRenameFiles_Notification
+line 596: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 597: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 597: column 19 - 26: modifier                                       : Messages
+line 599: column 24 - 61: function      [declaration]                    : On_Workspace_Will_Delete_Files_Request
+line 600: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 601: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 601: column 21 - 28: modifier                                       : Messages
+line 601: column 30 - 44: modifier                                       : Server_Requests
+line 603: column 18 - 25: modifier                                       : Messages
+line 603: column 27 - 42: modifier                                       : Server_Responses
+line 605: column 25 - 54: function      [declaration]                    : On_DidDeleteFiles_Notification
+line 606: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 607: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 607: column 19 - 26: modifier                                       : Messages
+line 609: column 24 - 52: function      [declaration]                    : On_Color_Presentation_Request
+line 610: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 611: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 611: column 21 - 28: modifier                                       : Messages
+line 611: column 30 - 44: modifier                                       : Server_Requests
+line 612: column 18 - 25: modifier                                       : Messages
+line 612: column 27 - 42: modifier                                       : Server_Responses
+line 614: column 24 - 48: function      [declaration]                    : On_Document_Color_Request
+line 615: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 616: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 616: column 21 - 28: modifier                                       : Messages
+line 616: column 30 - 44: modifier                                       : Server_Requests
+line 617: column 18 - 25: modifier                                       : Messages
+line 617: column 27 - 42: modifier                                       : Server_Responses
+line 619: column 24 - 55: function      [declaration]                    : On_ALS_Show_Dependencies_Request
+line 620: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 621: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 621: column 21 - 28: modifier                                       : Messages
+line 621: column 30 - 44: modifier                                       : Server_Requests
+line 622: column 18 - 25: modifier                                       : Messages
+line 622: column 27 - 42: modifier                                       : Server_Responses
+line 624: column 24 - 49: function      [declaration]                    : On_ALS_Source_Dirs_Request
+line 625: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 626: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 626: column 21 - 28: modifier                                       : Messages
+line 626: column 30 - 44: modifier                                       : Server_Requests
+line 627: column 18 - 25: modifier                                       : Messages
+line 627: column 27 - 42: modifier                                       : Server_Responses
+line 629: column 24 - 43: function      [declaration]                    : On_ALS_Debug_Request
+line 630: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 631: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 631: column 21 - 28: modifier                                       : Messages
+line 631: column 30 - 44: modifier                                       : Server_Requests
+line 632: column 18 - 25: modifier                                       : Messages
+line 632: column 27 - 42: modifier                                       : Server_Responses
+line 634: column 24 - 44: function      [declaration]                    : On_Formatting_Request
+line 635: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 636: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 636: column 21 - 28: modifier                                       : Messages
+line 636: column 30 - 44: modifier                                       : Server_Requests
+line 637: column 18 - 25: modifier                                       : Messages
+line 637: column 27 - 42: modifier                                       : Server_Responses
+line 639: column 24 - 50: function      [declaration]                    : On_Range_Formatting_Request
+line 640: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 641: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 641: column 21 - 28: modifier                                       : Messages
+line 641: column 30 - 44: modifier                                       : Server_Requests
+line 642: column 18 - 25: modifier                                       : Messages
+line 642: column 27 - 42: modifier                                       : Server_Responses
+line 644: column 25 - 51: function      [declaration]                    : On_Initialized_Notification
+line 645: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 647: column 25 - 44: function      [declaration]                    : On_Exit_Notification
+line 648: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 650: column 25 - 61: function      [declaration]                    : On_DidChangeTextDocument_Notification
+line 651: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 652: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 652: column 19 - 26: modifier                                       : Messages
+line 654: column 25 - 60: function      [declaration]                    : On_DidCloseTextDocument_Notification
+line 655: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 656: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 656: column 19 - 26: modifier                                       : Messages
+line 658: column 25 - 59: function      [declaration]                    : On_DidOpenTextDocument_Notification
+line 659: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 660: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 660: column 19 - 26: modifier                                       : Messages
+line 662: column 25 - 59: function      [declaration]                    : On_DidSaveTextDocument_Notification
+line 663: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 664: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 666: column 25 - 62: function      [declaration]                    : On_DidChangeConfiguration_Notification
+line 667: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 668: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 668: column 19 - 26: modifier                                       : Messages
+line 670: column 25 - 65: function      [declaration]                    : On_DidChangeWorkspaceFolders_Notification
+line 671: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 672: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 674: column 25 - 61: function      [declaration]                    : On_DidChangeWatchedFiles_Notification
+line 675: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 676: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 676: column 19 - 26: modifier                                       : Messages
+line 678: column 25 - 46: function      [declaration]                    : On_Cancel_Notification
+line 679: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 680: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 684: column 25 - 48: function      [declaration]                    : On_SetTrace_Notification
+line 685: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 686: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 692: column 24 - 40: function      [declaration]                    : Get_Open_Document
+line 693: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 694: column  7 -  9: parameter     [declaration, readonly]          : URI
+line 694: column 19 - 26: modifier                                       : Messages
+line 695: column  7 - 11: parameter     [declaration, readonly]          : Force
+line 696: column 18 - 30: modifier                                       : Ada_Documents
+line 702: column 24 - 48: function      [declaration]                    : Get_Open_Document_Version
+line 703: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 704: column  7 -  9: parameter     [declaration, readonly]          : URI
+line 704: column 19 - 26: modifier                                       : Messages
+line 705: column 18 - 25: modifier                                       : Messages
+line 710: column 24 - 50: function      [declaration]                    : On_ALS_Check_Syntax_Request
+line 711: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 712: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 712: column 21 - 28: modifier                                       : Messages
+line 712: column 30 - 44: modifier                                       : Server_Requests
+line 713: column 18 - 25: modifier                                       : Messages
+line 713: column 27 - 42: modifier                                       : Server_Responses
+line 715: column 24 - 43: function      [declaration]                    : On_GLS_Mains_Request
+line 716: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 717: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 717: column 21 - 28: modifier                                       : Messages
+line 717: column 30 - 44: modifier                                       : Server_Requests
+line 718: column 18 - 25: modifier                                       : Messages
+line 718: column 27 - 42: modifier                                       : Server_Responses
+line 720: column 24 - 49: function      [declaration]                    : On_GLS_Executables_Request
+line 721: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 722: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 722: column 21 - 28: modifier                                       : Messages
+line 722: column 30 - 44: modifier                                       : Server_Requests
+line 723: column 18 - 25: modifier                                       : Messages
+line 723: column 27 - 42: modifier                                       : Server_Responses
+line 725: column 14 - 27: function      [declaration]                    : Reload_Project
+line 725: column 30 - 33: parameter     [declaration, readonly]          : Self
+line 728: column  5 -  7: modifier                                       : LSP
+line 728: column  9 - 20: namespace                                      : Ada_Handlers

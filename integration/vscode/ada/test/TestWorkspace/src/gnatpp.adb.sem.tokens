@@ -1,0 +1,4 @@
+line   1: column  6 -  8: namespace                                      : Bar
+line   3: column  6 -  8: namespace                                      : Foo
+line  10: column 11 - 14: function      [declaration]                    : Main
+line  16: column  5 -  8: function                                       : Main
