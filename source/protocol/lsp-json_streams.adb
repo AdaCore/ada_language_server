@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,6 +14,8 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+
+with VSS.JSON.Streams;
 
 package body LSP.JSON_Streams is
 
@@ -94,18 +96,19 @@ package body LSP.JSON_Streams is
 
    procedure Skip_Value (Self : in out JSON_Stream'Class) is
    begin
-      case Self.R.Event_Kind is
-         when VSS.JSON.Pull_Readers.No_Token |
-              VSS.JSON.Pull_Readers.Invalid |
-              VSS.JSON.Pull_Readers.Start_Document |
-              VSS.JSON.Pull_Readers.End_Document |
-              VSS.JSON.Pull_Readers.End_Array |
-              VSS.JSON.Pull_Readers.End_Object |
-              VSS.JSON.Pull_Readers.Key_Name =>
+      case Self.R.Element_Kind is
+         when VSS.JSON.Streams.None |
+              VSS.JSON.Streams.Invalid |
+              VSS.JSON.Streams.Start_Document |
+              VSS.JSON.Streams.End_Document |
+              VSS.JSON.Streams.Comment |
+              VSS.JSON.Streams.End_Array |
+              VSS.JSON.Streams.End_Object |
+              VSS.JSON.Streams.Key_Name =>
 
             raise Program_Error;
 
-         when VSS.JSON.Pull_Readers.Start_Array =>
+         when VSS.JSON.Streams.Start_Array =>
 
             Self.R.Read_Next;
 
@@ -115,7 +118,7 @@ package body LSP.JSON_Streams is
 
             Self.R.Read_Next;
 
-         when VSS.JSON.Pull_Readers.Start_Object =>
+         when VSS.JSON.Streams.Start_Object =>
 
             Self.R.Read_Next;
 
@@ -128,10 +131,10 @@ package body LSP.JSON_Streams is
 
             Self.R.Read_Next;
 
-         when VSS.JSON.Pull_Readers.String_Value
-            | VSS.JSON.Pull_Readers.Number_Value
-            | VSS.JSON.Pull_Readers.Boolean_Value
-            | VSS.JSON.Pull_Readers.Null_Value =>
+         when VSS.JSON.Streams.String_Value
+            | VSS.JSON.Streams.Number_Value
+            | VSS.JSON.Streams.Boolean_Value
+            | VSS.JSON.Streams.Null_Value =>
 
             Self.R.Read_Next;
 
