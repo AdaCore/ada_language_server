@@ -402,7 +402,7 @@
                         {
                            "label": "ASCII",
                            "kind": 9,
-                           "detail": "package ASCII ",
+                           "detail": "package ASCII",
                            "documentation": "<ANY>",
                            "additionalTextEdits": []
                         },
