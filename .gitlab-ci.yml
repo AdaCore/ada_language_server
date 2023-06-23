@@ -4,6 +4,7 @@ variables:
 
 stages:
   - build_and_test
+  - run_downstream_ci
 
 .detect-branches:
   #  Version 2.
@@ -156,3 +157,23 @@ build_and_test:
      reports:
        junit: xunit_output.xml
        lsif: dump.lsif
+
+.run_ci_common: &run_ci_common
+  stage: run_downstream_ci
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+  trigger:
+    strategy: depend
+  inherit:
+    variables: false
+  variables:
+    ACI_UPSTREAM_PROJECT_PATH: $CI_PROJECT_PATH
+    ACI_UPSTREAM_REF_NAME: $CI_COMMIT_REF_NAME
+    ACI_UPSTREAM_SOURCE_BRANCH: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    ACI_UPSTREAM_TARGET_BRANCH: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+
+run_gs_ci:
+  <<: *run_ci_common
+  trigger:
+    project: eng/ide/gnatstudio
