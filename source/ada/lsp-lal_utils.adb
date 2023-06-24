@@ -806,13 +806,14 @@ package body LSP.Lal_Utils is
    is
       pragma Unreferenced (Trace);
 
-      Options : constant
+      Options    : constant
         GNATdoc.Comments.Options.Extractor_Options :=
           (Style    => Style,
            Pattern  => <>,
            Fallback => True);
-      Decl_Lines         : VSS.String_Vectors.Virtual_String_Vector;
-      Doc_Lines     : VSS.String_Vectors.Virtual_String_Vector;
+      Decl_Lines : VSS.String_Vectors.Virtual_String_Vector;
+      Doc_Lines  : VSS.String_Vectors.Virtual_String_Vector;
+
    begin
       --  Extract documentation with GNATdoc when supported.
 
@@ -827,7 +828,8 @@ package body LSP.Lal_Utils is
 
       --  If GNATdoc failed to compute the declaration text, use the old engine
       if Decl_Text.Is_Empty
-        or else not BD.P_Subp_Spec_Or_Null.Is_Null
+        or else (BD.Kind not in Ada_Enum_Literal_Decl
+                   and not BD.P_Subp_Spec_Or_Null.Is_Null)
       then
          --  For subprograms additional information is added, use old code to
          --  obtain it yet.

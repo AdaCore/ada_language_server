@@ -91,6 +91,9 @@ ENV/
 # Object directory
 .obj
 
+# VS Code settings
+/.vscode/settings.json
+
 # Expected testsuite output
 testsuite/.als/inout.txt
 

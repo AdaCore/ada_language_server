@@ -155,7 +155,7 @@
                      {
                         "label": "ABC14 (invisible)",
                         "kind": 9,
-                        "detail": "generic\n      ABC13 : Integer;\npackage ABC14 ",
+                        "detail": "generic\n   ABC13 : Integer;\npackage ABC14",
                         "documentation": "at pkg.ads (19:4)",
                         "sortText": "~100&1ABC14",
                         "insertText": "ABC14",

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                    Copyright (C) 2020-2021, AdaCore                      --
+--                    Copyright (C) 2020-2023, AdaCore                      --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,10 +16,6 @@
 ------------------------------------------------------------------------------
 
 package body VSS.JSON.Pull_Readers.Look_Ahead is
-
-   function Current_Event
-     (Self : JSON_Look_Ahead_Reader'Class) return JSON_Event;
-   --  Convert state of Self.Parent to a JSON_Event object.
 
    ------------
    -- At_End --
@@ -58,46 +54,20 @@ package body VSS.JSON.Pull_Readers.Look_Ahead is
       raise Program_Error with "Unimplemented procedure Clear";
    end Clear;
 
-   -------------------
-   -- Current_Event --
-   -------------------
+   ------------------
+   -- Element_Kind --
+   ------------------
 
-   function Current_Event
-     (Self : JSON_Look_Ahead_Reader'Class) return JSON_Event
-   is
-      Event : JSON_Event;
+   overriding function Element_Kind
+     (Self : JSON_Look_Ahead_Reader)
+      return VSS.JSON.Streams.JSON_Stream_Element_Kind is
    begin
-      case Self.Parent.Event_Kind is
-         when No_Token =>
-            Event := (Event_Kind => No_Token);
-         when Invalid =>
-            Event := (Event_Kind => Invalid);
-         when Start_Document =>
-            Event := (Event_Kind => Start_Document);
-         when End_Document =>
-            Event := (Event_Kind => End_Document);
-         when Start_Array =>
-            Event := (Event_Kind => Start_Array);
-         when End_Array =>
-            Event := (Event_Kind => End_Array);
-         when Start_Object =>
-            Event := (Event_Kind => Start_Object);
-         when End_Object =>
-            Event := (Event_Kind => End_Object);
-         when Null_Value =>
-            Event := (Event_Kind => Null_Value);
-         when Key_Name =>
-            Event := (Key_Name, Self.Parent.Key_Name);
-         when String_Value =>
-            Event := (String_Value, Self.Parent.String_Value);
-         when Number_Value =>
-            Event := (Number_Value, Self.Parent.Number_Value);
-         when Boolean_Value =>
-            Event := (Boolean_Value, Self.Parent.Boolean_Value);
-      end case;
-
-      return Event;
-   end Current_Event;
+      if Self.Save_Mode or else Self.Index > Self.Data.Last_Index then
+         return Self.Parent.Element_Kind;
+      else
+         return Self.Data (Self.Index).Kind;
+      end if;
+   end Element_Kind;
 
    -----------
    -- Error --
@@ -122,21 +92,6 @@ package body VSS.JSON.Pull_Readers.Look_Ahead is
    begin
       return raise Program_Error with "Unimplemented function Error_Message";
    end Error_Message;
-
-   ----------------
-   -- Event_Kind --
-   ----------------
-
-   overriding function Event_Kind
-     (Self : JSON_Look_Ahead_Reader) return JSON_Event_Kind
-   is
-   begin
-      if Self.Save_Mode or else Self.Index > Self.Data.Last_Index then
-         return Self.Parent.Event_Kind;
-      else
-         return Self.Data (Self.Index).Event_Kind;
-      end if;
-   end Event_Kind;
 
    --------------
    -- Key_Name --
@@ -184,10 +139,11 @@ package body VSS.JSON.Pull_Readers.Look_Ahead is
    ---------------
 
    overriding function Read_Next
-     (Self : in out JSON_Look_Ahead_Reader) return JSON_Event_Kind is
+     (Self : in out JSON_Look_Ahead_Reader)
+      return VSS.JSON.Streams.JSON_Stream_Element_Kind is
    begin
       if Self.Save_Mode then
-         Self.Data.Append (Self.Current_Event);
+         Self.Data.Append (Self.Parent.Element);
 
          return Self.Parent.Read_Next;
       elsif Self.Index >= Self.Data.Last_Index then
@@ -197,7 +153,7 @@ package body VSS.JSON.Pull_Readers.Look_Ahead is
       else
          Self.Index := Self.Index + 1;
 
-         return Self.Data (Self.Index).Event_Kind;
+         return Self.Data (Self.Index).Kind;
       end if;
    end Read_Next;
 
@@ -208,7 +164,7 @@ package body VSS.JSON.Pull_Readers.Look_Ahead is
    procedure Rewind (Self : in out JSON_Look_Ahead_Reader'Class) is
    begin
       if Self.Save_Mode then
-         Self.Data.Append (Self.Current_Event);
+         Self.Data.Append (Self.Parent.Element);
          Self.Save_Mode := False;
       end if;
 

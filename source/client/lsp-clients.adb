@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with VSS.JSON.Pull_Readers.Simple;
+with VSS.JSON.Streams;
 with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Strings.Conversions;
 with VSS.Text_Streams.Memory_UTF8_Input;
@@ -632,7 +633,7 @@ package body LSP.Clients is
          Token    : out LSP.Types.LSP_Number_Or_String;
          Is_Error : in out Boolean)
       is
-         use all type VSS.JSON.Pull_Readers.JSON_Event_Kind;
+         use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
 
          R  : aliased VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
          JS : aliased LSP.JSON_Streams.JSON_Stream (False, R'Access);
@@ -653,7 +654,7 @@ package body LSP.Clients is
                R.Read_Next;
 
                if Key = "id" then
-                  case R.Event_Kind is
+                  case R.Element_Kind is
                      when String_Value =>
                         Id :=
                           (Is_Number => False,
@@ -695,7 +696,7 @@ package body LSP.Clients is
                         R.Read_Next;
 
                         if Key = "token" then
-                           case R.Event_Kind is
+                           case R.Element_Kind is
                               when String_Value =>
                                  Token :=
                                    (Is_Number => False,
