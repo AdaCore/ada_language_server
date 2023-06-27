@@ -27,7 +27,7 @@ with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 
 with Libadalang.Analysis; use  Libadalang.Analysis;
 
-with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -138,8 +138,8 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
         Client_Message_Receiver'Class;
       Error   : in out LSP.Errors.Optional_ResponseError)
    is
-      use Laltools.Refactor;
-      use Laltools.Refactor.Subprogram_Signature.
+      use LAL_Refactor;
+      use LAL_Refactor.Subprogram_Signature.
             Change_Parameters_Default_Value;
       use LSP.Messages;
       use LSP.Types;
@@ -176,7 +176,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Pull_Upper
 
-      Edits : constant Laltools.Refactor.Refactoring_Edits :=
+      Edits : constant LAL_Refactor.Refactoring_Edits :=
         Changer.Refactor (Analysis_Units'Access);
 
    begin

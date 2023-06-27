@@ -22,9 +22,9 @@ with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 with Libadalang.Analysis; use Libadalang.Analysis;
 with Libadalang.Common; use Libadalang.Common;
 
-with Laltools.Refactor; use Laltools.Refactor;
-with Laltools.Refactor.Extract_Subprogram;
-use Laltools.Refactor.Extract_Subprogram;
+with LAL_Refactor; use LAL_Refactor;
+with LAL_Refactor.Extract_Subprogram;
+use LAL_Refactor.Extract_Subprogram;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;

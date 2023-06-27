@@ -21,8 +21,8 @@ with Langkit_Support.Slocs;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
-with Laltools.Refactor.Replace_Type;
-use Laltools.Refactor.Replace_Type;
+with LAL_Refactor.Replace_Type;
+use LAL_Refactor.Replace_Type;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -126,7 +126,7 @@ package body LSP.Ada_Handlers.Refactor_Replace_Type is
       Error : in out LSP.Errors.Optional_ResponseError)
    is
       use Langkit_Support.Slocs;
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -157,7 +157,7 @@ package body LSP.Ada_Handlers.Refactor_Replace_Type is
            New_Type         =>
              VSS.Strings.Conversions.To_Unbounded_UTF_8_String
                (Self.New_Type));
-      Edits : constant Laltools.Refactor.Refactoring_Edits :=
+      Edits : constant LAL_Refactor.Refactoring_Edits :=
         Replacer.Refactor (Analysis_Units'Access);
 
    begin

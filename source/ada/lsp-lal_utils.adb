@@ -516,7 +516,7 @@ package body LSP.Lal_Utils is
    -----------------
 
    function To_TextEdit
-     (E : Laltools.Refactor.Text_Edit)
+     (E : LAL_Refactor.Text_Edit)
       return LSP.Messages.TextEdit
    is (LSP.Messages.TextEdit'
          (To_Span (E.Location),
@@ -527,7 +527,7 @@ package body LSP.Lal_Utils is
    -----------------------
 
    function To_Workspace_Edit
-     (EM                  : Laltools.Refactor.Text_Edit_Map;
+     (EM                  : LAL_Refactor.Text_Edit_Map;
       Versioned_Documents : Boolean := False;
       Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class
       := null)
@@ -537,7 +537,7 @@ package body LSP.Lal_Utils is
 
       Text_Edits : LSP.Messages.TextEdit_Vector;
 
-      use Laltools.Refactor.Text_Edit_Ordered_Maps;
+      use LAL_Refactor.Text_Edit_Ordered_Maps;
 
       Edits_Cursor : Cursor := EM.First;
 
@@ -585,7 +585,7 @@ package body LSP.Lal_Utils is
    -----------------------
 
    function To_Workspace_Edit
-     (Edits               : Laltools.Refactor.Refactoring_Edits;
+     (Edits               : LAL_Refactor.Refactoring_Edits;
       Resource_Operations : LSP.Messages.Optional_ResourceOperationKindSet :=
         LSP.Messages.Optional_ResourceOperationKindSet'(Is_Set => False);
       Versioned_Documents : Boolean := False;
@@ -600,7 +600,7 @@ package body LSP.Lal_Utils is
 
       Text_Edits : LSP.Messages.TextEdit_Vector;
 
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use LSP.Messages;
 
       Text_Edits_Cursor     : Text_Edit_Ordered_Maps.Cursor

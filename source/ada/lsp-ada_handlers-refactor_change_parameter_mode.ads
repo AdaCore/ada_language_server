@@ -29,8 +29,7 @@ with LSP.JSON_Streams;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
-with Laltools.Refactor.Subprogram_Signature;
-use Laltools.Refactor.Subprogram_Signature;
+with LAL_Refactor.Subprogram_Signature; use LAL_Refactor.Subprogram_Signature;
 
 package LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
 

@@ -18,6 +18,7 @@
 with "gpr2.gpr";
 with "libadalang";
 with "lal_tools.gpr";
+with "lal_refactor.gpr";
 with "ada_libfswatch.gpr";
 with "libgnatdoc.gpr";
 with "spawn.gpr";

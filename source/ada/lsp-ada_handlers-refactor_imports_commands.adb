@@ -98,13 +98,13 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       Context           : Context_Access;
       Where             : LSP.Messages.Location;
       Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
-      Suggestion        : Laltools.Refactor_Imports.Import_Suggestion)
+      Suggestion        : LAL_Refactor.Refactor_Imports.Import_Suggestion)
    is
       Pointer : LSP.Commands.Command_Pointer;
       Item    : LSP.Messages.CodeAction;
 
       function Create_Suggestion_Title
-        (Suggestion : Laltools.Refactor_Imports.Import_Suggestion)
+        (Suggestion : LAL_Refactor.Refactor_Imports.Import_Suggestion)
          return VSS.Strings.Virtual_String;
       --  Creates the suggestion text that will be shown by the client to
       --  to the developer. The text is costumized based on the need of
@@ -114,7 +114,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       -- Create_Suggestions_Title --
       ------------------------------
       function Create_Suggestion_Title
-        (Suggestion : Laltools.Refactor_Imports.Import_Suggestion)
+        (Suggestion : LAL_Refactor.Refactor_Imports.Import_Suggestion)
          return VSS.Strings.Virtual_String
       is
          Title : Ada.Strings.Wide_Wide_Unbounded.
@@ -188,20 +188,20 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
      (Self     : Command;
       Context  : LSP.Ada_Contexts.Context;
       Document : LSP.Ada_Documents.Document_Access)
-      return Laltools.Refactor.Refactoring_Edits
+      return LAL_Refactor.Refactoring_Edits
    is
       use Langkit_Support.Text;
       use Libadalang.Analysis;
       use Libadalang.Common;
       use Libadalang.Slocs;
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use VSS.Strings;
       use VSS.Strings.Conversions;
 
       Node : Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
 
-      Edits :  Laltools.Refactor.Refactoring_Edits;
+      Edits :  LAL_Refactor.Refactoring_Edits;
 
    begin
       --  Add prefix
@@ -317,7 +317,7 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings;

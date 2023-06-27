@@ -21,8 +21,8 @@ with Langkit_Support.Slocs;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 
-with Laltools.Refactor.Subprogram_Signature;
-use Laltools.Refactor.Subprogram_Signature;
+with LAL_Refactor.Subprogram_Signature;
+use LAL_Refactor.Subprogram_Signature;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -132,7 +132,7 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
       Error : in out LSP.Errors.Optional_ResponseError)
    is
       use Langkit_Support.Slocs;
-      use Laltools.Refactor;
+      use LAL_Refactor;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -162,7 +162,7 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
            New_Parameter =>
              VSS.Strings.Conversions.To_Unbounded_UTF_8_String
                (Self.New_Parameter));
-      Edits : constant Laltools.Refactor.Refactoring_Edits :=
+      Edits : constant LAL_Refactor.Refactoring_Edits :=
         Adder.Refactor (Analysis_Units'Access);
 
    begin

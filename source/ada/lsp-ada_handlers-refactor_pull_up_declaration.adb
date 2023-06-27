@@ -21,7 +21,7 @@ with Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
 
-with Laltools.Refactor.Pull_Up_Declaration;
+with LAL_Refactor.Pull_Up_Declaration;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -130,8 +130,8 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
    is
       use Langkit_Support.Slocs;
       use Libadalang.Analysis;
-      use Laltools.Refactor;
-      use Laltools.Refactor.Pull_Up_Declaration;
+      use LAL_Refactor;
+      use LAL_Refactor.Pull_Up_Declaration;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
