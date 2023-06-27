@@ -218,9 +218,6 @@ package body LSP.Ada_Documentation is
       procedure Get_Subp_Spec_Hover_Text;
       --  Create the hover text for subprogram declarations
 
-      procedure Get_Package_Decl_Hover_Text;
-      --  Create the hover text  for package declarations
-
       procedure Get_Loop_Var_Hover_Text;
       --  Create the hover text for loop variable declarations
 
@@ -397,41 +394,6 @@ package body LSP.Ada_Documentation is
          end if;
       end Get_Subp_Spec_Hover_Text;
 
-      ---------------------------------
-      -- Get_Package_Decl_Hover_Text --
-      ---------------------------------
-
-      procedure Get_Package_Decl_Hover_Text is
-         Text   : VSS.Strings.Virtual_String;
-         Decl   : constant Base_Package_Decl := Node.As_Base_Package_Decl;
-         Aspect : constant Aspect_Spec := Decl.F_Aspects;
-         Name   : constant Defining_Name := Decl.F_Package_Name;
-         To     : Token_Reference := --  token before `IS`
-           (if not Aspect.Is_Null then
-              Aspect.Token_End
-            elsif not Name.Is_Null then
-              Name.Token_End
-            else  --  just-in-case fallback
-              Decl.Token_End);
-      begin
-         --  Return the first line of the package declaration and its
-         --  generic parameters if any.
-         To := Next (To, Exclude_Trivia => True);   --  Jump to IS
-         To := Previous (To, Exclude_Trivia => False);  --  Jump before IS
-
-         if Node.Parent.Kind in Ada_Generic_Decl then
-            Text := LSP.Lal_Utils.To_Virtual_String
-              (Node.Parent.As_Generic_Decl.F_Formal_Part.Text);
-
-            Result.Append (Text);
-         end if;
-
-         Text := LSP.Lal_Utils.To_Virtual_String
-           (Libadalang.Common.Text (Node.Token_Start, To));
-
-         Result.Append (Text);
-      end Get_Package_Decl_Hover_Text;
-
       -----------------------------
       -- Get_Loop_Var_Hover_Text --
       -----------------------------
@@ -526,7 +488,7 @@ package body LSP.Ada_Documentation is
             null;
 
          when Ada_Base_Package_Decl =>
-            Get_Package_Decl_Hover_Text;
+            null;
 
          when Ada_For_Loop_Var_Decl =>
             Get_Loop_Var_Hover_Text;
