@@ -42,11 +42,4 @@ package LSP.Ada_Documentation is
    --  Decl_Text contains the code corresponding to the declaration, formatted
    --  by GNATdoc when possible.
 
-   function Get_Hover_Text
-     (Decl : Libadalang.Analysis.Basic_Decl'Class)
-      return VSS.Strings.Virtual_String;
-   --  Return a pretty printed version of the declaration's text to be
-   --  displayed on hover requests, removing unnecessary indentation
-   --  whitespaces if needed and attaching extra information in some cases.
-
 end LSP.Ada_Documentation;

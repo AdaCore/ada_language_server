@@ -57,6 +57,13 @@ package body LSP.Ada_Documentation is
    --  Append given Item to the last line of the vector. Append new line when
    --  vector is empty.
 
+   function Get_Hover_Text
+     (Decl : Libadalang.Analysis.Basic_Decl'Class)
+      return VSS.Strings.Virtual_String;
+   --  Return a pretty printed version of the declaration's text to be
+   --  displayed on hover requests, removing unnecessary indentation
+   --  whitespaces if needed and attaching extra information in some cases.
+
    -------------------------
    -- Append_To_Last_Line --
    -------------------------
