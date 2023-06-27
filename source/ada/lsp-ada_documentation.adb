@@ -33,11 +33,6 @@ package body LSP.Ada_Documentation is
    use Libadalang.Analysis;
    use Libadalang.Common;
 
-   function Get_Decl_Text
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
-   --  Return the code associated with the given declaration, in a formatted
-   --  way.
-
    function Get_Hover_Text_For_Node
      (Node : Libadalang.Analysis.Ada_Node'Class)
       return VSS.String_Vectors.Virtual_String_Vector;
@@ -115,27 +110,6 @@ package body LSP.Ada_Documentation is
    Document_LSP_New_Line_Function : constant VSS.Strings.Line_Terminator :=
      VSS.Strings.LF;
    --  Line terminator to be used to generate replies. It is fixed to LF now.
-
-   -------------------
-   -- Get_Decl_Text --
-   -------------------
-
-   function Get_Decl_Text
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
-   is
-      Result : VSS.Strings.Virtual_String;
-   begin
-      --  If the basic declaration is an enum literal, display the whole
-      --  enumeration type declaration instead.
-      if BD.Kind in Ada_Enum_Literal_Decl then
-         Result := Get_Hover_Text
-           (BD.As_Enum_Literal_Decl.P_Enum_Type.As_Basic_Decl);
-      else
-         Result := Get_Hover_Text (BD);
-      end if;
-
-      return Result;
-   end Get_Decl_Text;
 
    --------------------
    -- Get_Hover_Text --
@@ -547,7 +521,7 @@ package body LSP.Ada_Documentation is
       then
          --  For subprograms additional information is added, use old code to
          --  obtain it yet.
-         Decl_Text := Get_Decl_Text (BD);
+         Decl_Text := Get_Hover_Text (BD);
       end if;
 
       Loc_Text := LSP.Lal_Utils.Node_Location_Image (BD);
