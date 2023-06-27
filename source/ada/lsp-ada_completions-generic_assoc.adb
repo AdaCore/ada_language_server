@@ -18,7 +18,6 @@
 with GNATCOLL.Utils;
 with GNATCOLL.Traces;
 with Laltools.Common;
-with Libadalang.Doc_Utils;
 with LSP.Ada_Documents;
 with LSP.Ada_Documentation;
 with LSP.Lal_Utils;
@@ -497,15 +496,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
 
       procedure Add_Signature (Spec : Assoc_Data) is
          Signature : LSP.Messages.SignatureInformation :=
-           (label          => LSP.Ada_Documentation.Get_Hover_Text (Spec.Decl),
-            documentation  =>
-              (Is_Set => True,
-               Value  =>
-                 (Is_String => True,
-                  String    =>
-                    VSS.Strings.To_Virtual_String
-                      (Libadalang.Doc_Utils.Get_Documentation
-                           (Spec.Decl).Doc.To_String))),
+           (label          => <>,
             activeParameter =>
               (Is_Set => True,
                Value  =>
@@ -515,7 +506,24 @@ package body LSP.Ada_Completions.Generic_Assoc is
                     Cursor_Position  => Cursor_Position)),
             others          => <>
            );
+         Location_Text      : VSS.Strings.Virtual_String;
+         Documentation_Text : VSS.Strings.Virtual_String;
+         Declaration_Text   : VSS.Strings.Virtual_String;
+
       begin
+         LSP.Ada_Documentation.Get_Tooltip_Text
+           (Spec.Decl,
+            Me_Debug,
+            Context.Get_Documentation_Style,
+            Location_Text,
+            Documentation_Text,
+            Declaration_Text);
+
+         Signature.label := Declaration_Text;
+         Signature.documentation :=
+           (Is_Set => True,
+            Value  => (Is_String => True, String => Documentation_Text));
+
          for Param of Spec.Param_Vector loop
             declare
                P : constant LSP.Messages.ParameterInformation :=
