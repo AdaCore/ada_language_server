@@ -54,6 +54,7 @@ with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Completions.Use_Clauses;
+with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Alire;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
@@ -3277,7 +3278,7 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      LSP.Lal_Utils.Get_Tooltip_Text
+      LSP.Ada_Documentation.Get_Tooltip_Text
         (BD        => Decl,
          Trace     => Self.Trace,
          Style     => C.Get_Documentation_Style,
@@ -5964,7 +5965,7 @@ package body LSP.Ada_Handlers is
             Doc_Text  : VSS.Strings.Virtual_String;
             Decl_Text : VSS.Strings.Virtual_String;
          begin
-            LSP.Lal_Utils.Get_Tooltip_Text
+            LSP.Ada_Documentation.Get_Tooltip_Text
               (BD          => BD,
                Trace       => C.Trace,
                Style       => Self.Options.Documentation.Style,

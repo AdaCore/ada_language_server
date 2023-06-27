@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2022, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -43,6 +43,7 @@ with VSS.Unicode;
 
 with LSP.Ada_Contexts; use LSP.Ada_Contexts;
 with LSP.Ada_Completions.Filters;
+with LSP.Ada_Documentation;
 with LSP.Ada_Id_Iterators;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Common; use LSP.Common;
@@ -2505,7 +2506,7 @@ package body LSP.Ada_Documents is
             Doc_Text  : VSS.Strings.Virtual_String;
             Decl_Text : VSS.Strings.Virtual_String;
          begin
-            LSP.Lal_Utils.Get_Tooltip_Text
+            LSP.Ada_Documentation.Get_Tooltip_Text
               (BD        => BD,
                Trace     => Context.Trace,
                Style     => Context.Get_Documentation_Style,

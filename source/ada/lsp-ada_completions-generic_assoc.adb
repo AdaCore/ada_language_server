@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022, AdaCore                          --
+--                     Copyright (C) 2022-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -20,7 +20,7 @@ with GNATCOLL.Traces;
 with Laltools.Common;
 with Libadalang.Doc_Utils;
 with LSP.Ada_Documents;
-with LSP.Common;
+with LSP.Ada_Documentation;
 with LSP.Lal_Utils;
 with LSP.Types;
 with VSS.Strings.Character_Iterators;
@@ -497,7 +497,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
 
       procedure Add_Signature (Spec : Assoc_Data) is
          Signature : LSP.Messages.SignatureInformation :=
-           (label          => LSP.Common.Get_Hover_Text (Spec.Decl),
+           (label          => LSP.Ada_Documentation.Get_Hover_Text (Spec.Decl),
             documentation  =>
               (Is_Set => True,
                Value  =>
