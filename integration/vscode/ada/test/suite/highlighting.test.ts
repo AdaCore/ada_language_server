@@ -242,6 +242,7 @@ function testSyntaxHighlighting(absFilePath: string, syntax: Syntaxes) {
         }
 
         const cmd = [
+            // Use npx to avoid sensitivity to PATH env var
             'npx',
             'vscode-tmgrammar-snap',
             // We pass a non-existing language configuration, otherwise the tool
@@ -263,7 +264,7 @@ function testSyntaxHighlighting(absFilePath: string, syntax: Syntaxes) {
             cmd.push('--updateSnapshot');
         }
 
-        const proc = spawnSync(cmd[0], cmd.slice(1));
+        const proc = spawnSync(cmd[0], cmd.slice(1), { cwd: workDirPath });
 
         if (proc.error) {
             // proc.error is set if we fail to spawn the child process
@@ -278,7 +279,9 @@ function testSyntaxHighlighting(absFilePath: string, syntax: Syntaxes) {
             assert.fail(msg);
         } else if (proc.status != 0) {
             const msg =
-                `Return code ${proc.status.toString()} for command: ${cmd.join(' ')}\n` +
+                `Return code ${proc.status.toString()} for command: cd ${workDirPath}; ${cmd.join(
+                    ' '
+                )}\n` +
                 String(proc.stdout) +
                 String(proc.stderr);
             assert.fail(msg);
