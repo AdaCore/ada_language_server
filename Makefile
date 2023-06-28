@@ -122,7 +122,13 @@ clean:
 	-rm -rf integration/vscode/ada/$(PLATFORM)
 
 vscode:
-	cd integration/vscode/ada; LD_LIBRARY_PATH= npm install --no-audit && npm run check-licenses && npm run compile
+ifneq ($(npm_config_offline),true)
+# These commands may try to contact remote servers so if npm is configured to
+# run in offline mode, don't bother running them
+	cd integration/vscode/ada; LD_LIBRARY_PATH= npm install --no-audit
+	cd integration/vscode/ada; LD_LIBRARY_PATH= npm run check-licenses
+endif
+	cd integration/vscode/ada; LD_LIBRARY_PATH= npm run compile
 	@echo Now run:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
