@@ -127,6 +127,7 @@ build_and_test:
       # Build & test using anod
       cd /it/wave
     - anod build als --qualifier=$ACI_ANOD_QUALIFIER --minimal
+    - anod build vscode-extension --qualifier=$ACI_ANOD_QUALIFIER --minimal
     - anod test als --qualifier=$ACI_ANOD_QUALIFIER --minimal
 
       # Process the report
