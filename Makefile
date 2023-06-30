@@ -133,12 +133,8 @@ endif
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
 vscode-test:
-	# Run the VS Code grammar testsuite
-	cd integration/vscode/ada ; ./run_grammar_tests.sh
-
 	# Run the VS Code integration testsuite.
-	# This contains no useful test, so deactivated for now.
-	# cd integration/vscode/ada; npm run compile && node out/runTests.js
+	cd integration/vscode/ada; LD_LIBRARY_PATH= npm run test
 
 check: all
 	set -e; \

@@ -242,6 +242,7 @@ function testSyntaxHighlighting(absFilePath: string, syntax: Syntaxes) {
         }
 
         const cmd = [
+            'npx',
             'vscode-tmgrammar-snap',
             // We pass a non-existing language configuration, otherwise the tool
             // picks up the package.json file and always loads the grammar in
