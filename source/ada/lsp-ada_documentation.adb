@@ -485,15 +485,14 @@ package body LSP.Ada_Documentation is
    ----------------------
 
    procedure Get_Tooltip_Text
-     (BD        : Libadalang.Analysis.Basic_Decl;
-      Trace     : GNATCOLL.Traces.Trace_Handle;
-      Style     : GNATdoc.Comments.Options.Documentation_Style;
-      Loc_Text  : out VSS.Strings.Virtual_String;
-      Doc_Text  : out VSS.Strings.Virtual_String;
-      Decl_Text : out VSS.Strings.Virtual_String)
+     (BD                 : Libadalang.Analysis.Basic_Decl;
+      Style              : GNATdoc.Comments.Options.Documentation_Style;
+      Declaration_Text   : out VSS.Strings.Virtual_String;
+      Qualifier_Text     : out VSS.Strings.Virtual_String;
+      Location_Text      : out VSS.Strings.Virtual_String;
+      Documentation_Text : out VSS.Strings.Virtual_String;
+      Aspects_Text       : out VSS.Strings.Virtual_String)
    is
-      pragma Unreferenced (Trace);
-
       Options    : constant
         GNATdoc.Comments.Options.Extractor_Options :=
           (Style    => Style,
@@ -511,20 +510,22 @@ package body LSP.Ada_Documentation is
          Code_Snippet  => Decl_Lines,
          Documentation => Doc_Lines);
 
-      Decl_Text := Decl_Lines.Join_Lines (VSS.Strings.LF, False);
-      Doc_Text := Doc_Lines.Join_Lines (VSS.Strings.LF, False);
+      Declaration_Text := Decl_Lines.Join_Lines (VSS.Strings.LF, False);
+      Documentation_Text := Doc_Lines.Join_Lines (VSS.Strings.LF, False);
 
       --  If GNATdoc failed to compute the declaration text, use the old engine
-      if Decl_Text.Is_Empty
+      if Declaration_Text.Is_Empty
         or else (BD.Kind not in Ada_Enum_Literal_Decl
                    and not BD.P_Subp_Spec_Or_Null.Is_Null)
       then
          --  For subprograms additional information is added, use old code to
          --  obtain it yet.
-         Decl_Text := Get_Hover_Text (BD);
+         Declaration_Text := Get_Hover_Text (BD);
       end if;
 
-      Loc_Text := LSP.Lal_Utils.Node_Location_Image (BD);
+      Location_Text := LSP.Lal_Utils.Node_Location_Image (BD);
+      Qualifier_Text.Clear;
+      Aspects_Text.Clear;
    end Get_Tooltip_Text;
 
 end LSP.Ada_Documentation;

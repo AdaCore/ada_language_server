@@ -17,8 +17,6 @@
 
 --  Subprograms to obtain documentation for declarations.
 
-with GNATCOLL.Traces;
-
 with VSS.Strings;
 
 with Libadalang.Analysis;
@@ -28,18 +26,28 @@ with GNATdoc.Comments.Options;
 package LSP.Ada_Documentation is
 
    procedure Get_Tooltip_Text
-     (BD        : Libadalang.Analysis.Basic_Decl;
-      Trace     : GNATCOLL.Traces.Trace_Handle;
-      Style     : GNATdoc.Comments.Options.Documentation_Style;
-      Loc_Text  : out VSS.Strings.Virtual_String;
-      Doc_Text  : out VSS.Strings.Virtual_String;
-      Decl_Text : out VSS.Strings.Virtual_String);
+     (BD                 : Libadalang.Analysis.Basic_Decl;
+      Style              : GNATdoc.Comments.Options.Documentation_Style;
+      Declaration_Text   : out VSS.Strings.Virtual_String;
+      Qualifier_Text     : out VSS.Strings.Virtual_String;
+      Location_Text      : out VSS.Strings.Virtual_String;
+      Documentation_Text : out VSS.Strings.Virtual_String;
+      Aspects_Text       : out VSS.Strings.Virtual_String);
    --  Get all the information needed to produce tooltips (hover and completion
    --  requests) for the given declaration.
-   --  Style is used by GNATdoc for extracting the associated comments.
-   --  Loc_Text contains the declaration's location text (e.g: a.adb (11:1)).
-   --  Doc_Text contains the comments associated with the declaration.
-   --  Decl_Text contains the code corresponding to the declaration, formatted
-   --  by GNATdoc when possible.
+   --
+   --  @param BD        Declaration's node.
+   --  @param Style
+   --    Is used by GNATdoc for extracting the associated comments.
+   --  @param Qualifier_Text
+   --    Auxiliary information about properties of the delaration.
+   --  @param Location_Text
+   --    Contains the declaration's location text (e.g: a.adb (11:1)).
+   --  @param Documentation_Text
+   --    Contains the comments associated with the declaration.
+   --  @param Declaration_Text
+   --    Contains the code corresponding to the declaration.
+   --  @param Aspects_Text
+   --    Contains the code of aspects of the declaration.
 
 end LSP.Ada_Documentation;

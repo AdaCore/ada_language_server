@@ -2494,25 +2494,28 @@ package body LSP.Ada_Documents is
      (Context                 : LSP.Ada_Contexts.Context;
       BD                      : Libadalang.Analysis.Basic_Decl;
       Item                    : in out LSP.Messages.CompletionItem;
-      Compute_Doc_And_Details : Boolean)
-   is
+      Compute_Doc_And_Details : Boolean) is
    begin
       --  Compute the 'documentation' and 'detail' fields immediately if
       --  requested (i.e: when the client does not support lazy computation
       --  for these fields or if we are dealing with predefined types).
       if Compute_Doc_And_Details or else LSP.Lal_Utils.Is_Synthetic (BD) then
          declare
-            Loc_Text  : VSS.Strings.Virtual_String;
-            Doc_Text  : VSS.Strings.Virtual_String;
-            Decl_Text : VSS.Strings.Virtual_String;
+            Qual_Text    : VSS.Strings.Virtual_String;
+            Decl_Text    : VSS.Strings.Virtual_String;
+            Loc_Text     : VSS.Strings.Virtual_String;
+            Doc_Text     : VSS.Strings.Virtual_String;
+            Aspects_Text : VSS.Strings.Virtual_String;
+
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
-              (BD        => BD,
-               Trace     => Context.Trace,
-               Style     => Context.Get_Documentation_Style,
-               Loc_Text  => Loc_Text,
-               Doc_Text  => Doc_Text,
-               Decl_Text => Decl_Text);
+              (BD                 => BD,
+               Style              => Context.Get_Documentation_Style,
+               Declaration_Text   => Decl_Text,
+               Qualifier_Text     => Qual_Text,
+               Location_Text      => Loc_Text,
+               Documentation_Text => Doc_Text,
+               Aspects_Text       => Aspects_Text);
 
             Item.detail := (True, Decl_Text);
 
@@ -2530,6 +2533,7 @@ package body LSP.Ada_Documents is
                  (Is_String => True,
                   String    => Loc_Text));
          end;
+
       else
          --  Set node's location to the 'data' field of the completion item, so
          --  that we can retrieve it in the completionItem/resolve handler.

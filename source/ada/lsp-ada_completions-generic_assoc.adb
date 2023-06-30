@@ -506,18 +506,21 @@ package body LSP.Ada_Completions.Generic_Assoc is
                     Cursor_Position  => Cursor_Position)),
             others          => <>
            );
+         Declaration_Text   : VSS.Strings.Virtual_String;
+         Qualifier_Text     : VSS.Strings.Virtual_String;
          Location_Text      : VSS.Strings.Virtual_String;
          Documentation_Text : VSS.Strings.Virtual_String;
-         Declaration_Text   : VSS.Strings.Virtual_String;
+         Aspects_Text       : VSS.Strings.Virtual_String;
 
       begin
          LSP.Ada_Documentation.Get_Tooltip_Text
-           (Spec.Decl,
-            Me_Debug,
-            Context.Get_Documentation_Style,
-            Location_Text,
-            Documentation_Text,
-            Declaration_Text);
+           (BD                 => Spec.Decl,
+            Style              => Context.Get_Documentation_Style,
+            Declaration_Text   => Declaration_Text,
+            Qualifier_Text     => Qualifier_Text,
+            Location_Text      => Location_Text,
+            Documentation_Text => Documentation_Text,
+            Aspects_Text       => Aspects_Text);
 
          Signature.label := Declaration_Text;
          Signature.documentation :=
