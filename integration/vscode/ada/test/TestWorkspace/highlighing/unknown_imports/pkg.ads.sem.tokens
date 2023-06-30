@@ -1,0 +1,7 @@
+line   3: column  6 -  8: namespace     [defaultLibrary]                 : Ada
+line   3: column 10 - 16: namespace     [defaultLibrary]                 : Text_IO
+line   4: column  6 - 12: modifier                                       : Unknown
+line   4: column 14 - 16: modifier                                       : Pkg
+line   6: column  9 - 11: namespace     [declaration]                    : Pkg
+line   7: column 11 - 22: modifier                                       : Preelaborate
+line   8: column  5 -  7: namespace                                      : Pkg

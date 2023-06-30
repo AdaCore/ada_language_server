@@ -1,0 +1,33 @@
+>--  This test intends to check that unknown packages do not
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>--  get semantic tokens assigned to them
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>with Ada.Text_IO;
+#^^^^ source.ada meta.context.with.ada keyword.other.using.ada
+#    ^ source.ada meta.context.with.ada
+#     ^^^^^^^^^^^ source.ada meta.context.with.ada entity.name.package.ada
+#                ^ source.ada meta.context.with.ada punctuation.ada
+>with Unknown.Pkg;
+#^^^^ source.ada meta.context.with.ada keyword.other.using.ada
+#    ^ source.ada meta.context.with.ada
+#     ^^^^^^^^^^^ source.ada meta.context.with.ada entity.name.package.ada
+#                ^ source.ada meta.context.with.ada punctuation.ada
+>
+>package Pkg is
+#^^^^^^^ source.ada meta.declaration.package.specification.ada keyword.ada
+#       ^ source.ada meta.declaration.package.specification.ada
+#        ^^^ source.ada meta.declaration.package.specification.ada entity.name.package.ada
+#           ^ source.ada meta.declaration.package.specification.ada
+#            ^^ source.ada meta.declaration.package.specification.ada keyword.ada
+>   pragma Preelaborate;
+#^^^ source.ada meta.declaration.package.specification.ada
+#   ^^^^^^ source.ada meta.declaration.package.specification.ada meta.pragma.ada keyword.ada
+#         ^ source.ada meta.declaration.package.specification.ada meta.pragma.ada
+#          ^^^^^^^^^^^^ source.ada meta.declaration.package.specification.ada meta.pragma.ada keyword.control.directive.ada
+#                      ^ source.ada meta.declaration.package.specification.ada meta.pragma.ada punctuation.ada
+>end Pkg;
+#^^^ source.ada meta.declaration.package.specification.ada keyword.ada
+#   ^ source.ada meta.declaration.package.specification.ada
+#    ^^^ source.ada meta.declaration.package.specification.ada entity.name.package.ada
+#       ^ source.ada meta.declaration.package.specification.ada punctuation.ada
+>

@@ -1,0 +1,39 @@
+>--  This test intends to check that unknown packages do not
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>--  get semantic tokens assigned to them
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>with Ada.Text_IO;
+#^^^^ source.ada keyword.other.ada
+#    ^ source.ada
+#     ^^^ source.ada entity.name.label.ada
+#        ^ source.ada entity.name.operator.ada
+#         ^^^^^^^ source.ada entity.name.label.ada
+#                ^^ source.ada
+>with Unknown.Pkg;
+#^^^^ source.ada keyword.other.ada
+#    ^ source.ada
+#     ^^^^^^^ source.ada entity.name.label.ada
+#            ^ source.ada entity.name.operator.ada
+#             ^^^ source.ada entity.name.label.ada
+#                ^^ source.ada
+>
+>package Pkg is
+#^^^^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^ source.ada entity.name.label.ada
+#           ^ source.ada
+#            ^^ source.ada keyword.other.ada
+>   pragma Preelaborate;
+#^^^ source.ada
+#   ^^^^^^ source.ada keyword.control.ada
+#         ^ source.ada
+#          ^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                      ^^ source.ada
+>end Pkg;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^ source.ada entity.name.label.ada
+#       ^^ source.ada
+>
