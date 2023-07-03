@@ -131,7 +131,11 @@
                         "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record\n  with Alignment => (8);",
                         "language": "ada"
                      },
-                     "at foo.adb (3:4)"
+                     "at foo.adb (3:4)",
+                     {
+                       "language": "ada",
+                       "value": "  Alignment => (8)"
+                     }
                   ]
                }
             }
@@ -163,7 +167,12 @@
                         "value": "type My_New_Record is new My_Record with\n  Record\n    J : Integer := 2;\n    K : Integer := 3;\n end record with Alignment => (8);",
                         "language": "ada"
                      },
-                     "at foo.adb (8:4)"
+                     "at foo.adb (8:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Alignment => (8)"
+                     }
+
                   ]
                }
             }
@@ -227,7 +236,11 @@
                         "value": "My_Int : Integer := 42 with Atomic;",
                         "language": "ada"
                      },
-                     "at foo.adb (14:4)"
+                     "at foo.adb (14:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Atomic"
+                     }
                   ]
                }
             }
@@ -288,10 +301,14 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure Bar (V : in out My_Record)\nwith\n  Pre  => V.I > 0,\n  Post => V.I > 0",
+                        "value": "procedure Bar (V : in out My_Record)",
                         "language": "ada"
                      },
-                     "at foo.adb (17:4)"
+                     "at foo.adb (17:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Pre  => V.I > 0,\n  Post => V.I > 0"
+                     }
                   ]
                }
             }
@@ -320,10 +337,14 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure FooBar (V : in out My_New_Record)\nwith\n  Pre =>\n    V.I > 0\n    and then (V.J > V.K\n              and then V.K > V.I),\n  Post => V.I = 0",
+                        "value": "procedure FooBar (V : in out My_New_Record)",
                         "language": "ada"
                      },
-                     "at foo.adb (22:4)"
+                     "at foo.adb (22:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Pre =>\n    V.I > 0\n    and then (V.J > V.K\n              and then V.K > V.I),\n  Post => V.I = 0"
+                     }
                   ]
                }
             }
@@ -352,10 +373,14 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure Bar (V : in out My_Record)\nwith\n  Pre  => V.I > 0,\n  Post => V.I > 0",
+                        "value": "procedure Bar (V : in out My_Record)",
                         "language": "ada"
                      },
-                     "at foo.adb (17:4)"
+                     "at foo.adb (17:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Pre  => V.I > 0,\n  Post => V.I > 0"
+                     }
                   ]
                }
             }
@@ -384,10 +409,14 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure FooBar (V : in out My_New_Record)\nwith\n  Pre =>\n    V.I > 0\n    and then (V.J > V.K\n              and then V.K > V.I),\n  Post => V.I = 0",
+                        "value": "procedure FooBar (V : in out My_New_Record)",
                         "language": "ada"
                      },
-                     "at foo.adb (22:4)"
+                     "at foo.adb (22:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Pre =>\n    V.I > 0\n    and then (V.J > V.K\n              and then V.K > V.I),\n  Post => V.I = 0"
+                     }
                   ]
                }
             }
@@ -419,7 +448,11 @@
                         "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record\n  with Alignment => (8);",
                         "language": "ada"
                      },
-                     "at foo.adb (3:4)"
+                     "at foo.adb (3:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Alignment => (8)"
+                     }
                   ]
                }
             }
@@ -451,7 +484,11 @@
                         "value": "type My_New_Record is new My_Record with\n  Record\n    J : Integer := 2;\n    K : Integer := 3;\n end record with Alignment => (8);",
                         "language": "ada"
                      },
-                     "at foo.adb (8:4)"
+                     "at foo.adb (8:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Alignment => (8)"
+                     }
                   ]
                }
             }

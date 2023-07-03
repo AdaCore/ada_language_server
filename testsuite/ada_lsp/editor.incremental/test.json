@@ -1181,9 +1181,10 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure foo is null",
+                        "value": "procedure foo",
                         "language": "ada"
                      },
+                     "null",
                      "at hello.ads (2:4)",
                      {
                         "value": "documentation for foo",
@@ -1346,9 +1347,10 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure foo is null",
+                        "value": "procedure foo",
                         "language": "ada"
                      },
+                     "null",
                      "at hello.ads (3:4)",
                      {
                         "value": "documentation for foo",
