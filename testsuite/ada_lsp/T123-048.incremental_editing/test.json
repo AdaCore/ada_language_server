@@ -371,10 +371,14 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure C_Function\nwith\n  Convention => C,\n  Import     => True,\n  Link_Name  => \"c_function\"",
+                        "value": "procedure C_Function",
                         "language": "ada"
                      },
-                     "at main.adb (3:4)"
+                     "at main.adb (3:4)",
+                     {
+                        "language": "ada",
+                        "value": "  Convention => C,\n  Import     => True,\n  Link_Name  => \"c_function\""
+                     }
                   ]
                }
             }
@@ -555,10 +559,14 @@
                "result": {
                   "contents": [
                      {
-                        "value": "procedure C_Function\nwith\n  Convention => C,\n  Import     => True,\n  Link_Name  => \"c_function\"",
+                        "value": "procedure C_Function",
                         "language": "ada"
                      },
-                     "at main.adb (3:4)"
+                     "at main.adb (3:4)",
+                     {
+                        "value": "  Convention => C,\n  Import     => True,\n  Link_Name  => \"c_function\"",
+                        "language": "ada"
+                     }
                   ]
                }
             }

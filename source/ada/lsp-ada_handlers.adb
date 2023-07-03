@@ -54,6 +54,7 @@ with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Completions.Use_Clauses;
+with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Alire;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
@@ -3254,9 +3255,11 @@ package body LSP.Ada_Handlers is
 
       Defining_Name_Node : Defining_Name;
       Decl               : Basic_Decl;
+      Qualifier_Text     : VSS.Strings.Virtual_String;
       Decl_Text          : VSS.Strings.Virtual_String;
       Comments_Text      : VSS.Strings.Virtual_String;
       Location_Text      : VSS.Strings.Virtual_String;
+      Aspects_Text       : VSS.Strings.Virtual_String;
 
       C : constant Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
@@ -3277,26 +3280,37 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      LSP.Lal_Utils.Get_Tooltip_Text
-        (BD        => Decl,
-         Trace     => Self.Trace,
-         Style     => C.Get_Documentation_Style,
-         Loc_Text  => Location_Text,
-         Doc_Text  => Comments_Text,
-         Decl_Text => Decl_Text);
+      LSP.Ada_Documentation.Get_Tooltip_Text
+        (BD                 => Decl,
+         Style              => C.Get_Documentation_Style,
+         Declaration_Text   => Decl_Text,
+         Qualifier_Text     => Qualifier_Text,
+         Location_Text      => Location_Text,
+         Documentation_Text => Comments_Text,
+         Aspects_Text       => Aspects_Text);
 
       if Decl_Text.Is_Empty then
          return Response;
       end if;
 
-      --  Append the whole declaration text to the response
       Response.result := (Is_Set => True, others => <>);
+
+      --  Append the whole declaration text to the response
 
       Response.result.Value.contents.Vector.Append
         (LSP.Messages.MarkedString'
            (Is_String => False,
             value     => Decl_Text,
             language  => "ada"));
+
+      --  Append qualifier text if any
+
+      if not Qualifier_Text.Is_Empty then
+         Response.result.Value.contents.Vector.Append
+           (LSP.Messages.MarkedString'
+              (Is_String => True,
+               value     => Qualifier_Text));
+      end if;
 
       --  Append the declaration's location.
       --  In addition, append the project's name if we are dealing with an
@@ -3325,6 +3339,16 @@ package body LSP.Ada_Handlers is
               (Is_String => False,
                language  => "plaintext",
                value     => Comments_Text));
+      end if;
+
+      --  Append text of aspects
+
+      if not Aspects_Text.Is_Empty then
+         Response.result.Value.contents.Vector.Append
+           (LSP.Messages.MarkedString'
+              (Is_String => False,
+               value     => Aspects_Text,
+               language  => "ada"));
       end if;
 
       return Response;
@@ -5958,19 +5982,23 @@ package body LSP.Ada_Handlers is
       --  Compute the completion item's details
       if not Node.Is_Null then
          declare
-            BD        : constant Libadalang.Analysis.Basic_Decl :=
+            BD           : constant Libadalang.Analysis.Basic_Decl :=
               Node.As_Basic_Decl;
-            Loc_Text  : VSS.Strings.Virtual_String;
-            Doc_Text  : VSS.Strings.Virtual_String;
-            Decl_Text : VSS.Strings.Virtual_String;
+            Qual_Text    : VSS.Strings.Virtual_String;
+            Loc_Text     : VSS.Strings.Virtual_String;
+            Doc_Text     : VSS.Strings.Virtual_String;
+            Decl_Text    : VSS.Strings.Virtual_String;
+            Aspects_Text : VSS.Strings.Virtual_String;
+
          begin
-            LSP.Lal_Utils.Get_Tooltip_Text
-              (BD          => BD,
-               Trace       => C.Trace,
-               Style       => Self.Options.Documentation.Style,
-               Loc_Text    => Loc_Text,
-               Doc_Text    => Doc_Text,
-               Decl_Text => Decl_Text);
+            LSP.Ada_Documentation.Get_Tooltip_Text
+              (BD                 => BD,
+               Style              => Self.Options.Documentation.Style,
+               Qualifier_Text     => Qual_Text,
+               Location_Text      => Loc_Text,
+               Documentation_Text => Doc_Text,
+               Declaration_Text   => Decl_Text,
+               Aspects_Text       => Aspects_Text);
 
             Item.detail := (True, Decl_Text);
 

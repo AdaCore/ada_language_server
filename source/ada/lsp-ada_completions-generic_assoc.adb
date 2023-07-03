@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022, AdaCore                          --
+--                     Copyright (C) 2022-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,9 +18,8 @@
 with GNATCOLL.Utils;
 with GNATCOLL.Traces;
 with Laltools.Common;
-with Libadalang.Doc_Utils;
 with LSP.Ada_Documents;
-with LSP.Common;
+with LSP.Ada_Documentation;
 with LSP.Lal_Utils;
 with LSP.Types;
 with VSS.Strings.Character_Iterators;
@@ -497,15 +496,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
 
       procedure Add_Signature (Spec : Assoc_Data) is
          Signature : LSP.Messages.SignatureInformation :=
-           (label          => LSP.Common.Get_Hover_Text (Spec.Decl),
-            documentation  =>
-              (Is_Set => True,
-               Value  =>
-                 (Is_String => True,
-                  String    =>
-                    VSS.Strings.To_Virtual_String
-                      (Libadalang.Doc_Utils.Get_Documentation
-                           (Spec.Decl).Doc.To_String))),
+           (label          => <>,
             activeParameter =>
               (Is_Set => True,
                Value  =>
@@ -515,7 +506,27 @@ package body LSP.Ada_Completions.Generic_Assoc is
                     Cursor_Position  => Cursor_Position)),
             others          => <>
            );
+         Declaration_Text   : VSS.Strings.Virtual_String;
+         Qualifier_Text     : VSS.Strings.Virtual_String;
+         Location_Text      : VSS.Strings.Virtual_String;
+         Documentation_Text : VSS.Strings.Virtual_String;
+         Aspects_Text       : VSS.Strings.Virtual_String;
+
       begin
+         LSP.Ada_Documentation.Get_Tooltip_Text
+           (BD                 => Spec.Decl,
+            Style              => Context.Get_Documentation_Style,
+            Declaration_Text   => Declaration_Text,
+            Qualifier_Text     => Qualifier_Text,
+            Location_Text      => Location_Text,
+            Documentation_Text => Documentation_Text,
+            Aspects_Text       => Aspects_Text);
+
+         Signature.label := Declaration_Text;
+         Signature.documentation :=
+           (Is_Set => True,
+            Value  => (Is_String => True, String => Documentation_Text));
+
          for Param of Spec.Param_Vector loop
             declare
                P : constant LSP.Messages.ParameterInformation :=

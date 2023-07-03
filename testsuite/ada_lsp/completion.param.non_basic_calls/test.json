@@ -163,7 +163,7 @@
                      {
                         "label": "Params of Bar",
                         "kind": 15,
-                        "detail": "procedure Bar (A, B : Integer) is null",
+                        "detail": "procedure Bar (A, B : Integer)",
                         "documentation": "at foo.adb (4:4)",
                         "sortText": "+02",
                         "insertText": "${1:A : Integer}, ${2:B : Integer})$0",

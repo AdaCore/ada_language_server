@@ -226,7 +226,7 @@
                "result": {
                   "signatures": [
                      {
-                        "label": "procedure Bar (A : Integer; B, C : Integer) is null",
+                        "label": "procedure Bar (A : Integer; B, C : Integer)",
                         "documentation": "",
                         "parameters": [
                            {

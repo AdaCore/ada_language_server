@@ -211,7 +211,7 @@
                "result": {
                   "label": "Select_Some",
                   "kind": 3,
-                  "detail": "procedure Select_Some is null",
+                  "detail": "procedure Select_Some",
                   "documentation": "at test.ads (3:4)\n\nThis a very useful comment.",
                   "sortText": "100&1Select_Some",
                   "insertTextFormat": 1,
