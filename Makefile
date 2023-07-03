@@ -13,9 +13,14 @@ export ALS=$(ROOTDIR)/.obj/server/ada_language_server
 TESTER=$(ROOTDIR)/.obj/tester/tester-run
 CODEC_TEST=.obj/codec_test/codec_test
 
-GPRBUILD_FLAGS=-j0
+# Env variable to set for update VS Code test references
+MOCHA_ALS_UPDATE=
+
+GPRBUILD_EXTRA=
+GPRBUILD_FLAGS=-j0 $(GPRBUILD_EXTRA)
 GPRBUILD=gprbuild $(GPRBUILD_FLAGS) -XSUPERPROJECT=
-GPRCLEAN=gprclean -XSUPERPROJECT=
+GPRCLEAN_EXTRA=
+GPRCLEAN=gprclean -XSUPERPROJECT= $(GPRCLEAN_EXTRA)
 
 # Installation directory
 prefix ?= /usr/local
@@ -147,7 +152,8 @@ endif
 
 vscode-test:
 	# Run the VS Code integration testsuite.
-	cd integration/vscode/ada; LD_LIBRARY_PATH= npm run test
+	echo $(GPR_PROJECT_PATH)
+	MOCHA_ALS_UPDATE=$(MOCHA_ALS_UPDATE) cd integration/vscode/ada; LD_LIBRARY_PATH= npm run test
 
 vscode-package:
 	cd integration/vscode/ada; LD_LIBRARY_PATH= $(VSCE) package
