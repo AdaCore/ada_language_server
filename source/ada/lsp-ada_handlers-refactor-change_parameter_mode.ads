@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2022, AdaCore                       --
+--                        Copyright (C) 2021, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,34 +15,43 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring tool to introduce a parameter
+--  Implementation of the refactoring command to change parameters modes
 
 with Ada.Streams;
 
+private with VSS.Strings;
+
 with LSP.Client_Message_Receivers;
 with LSP.Commands;
-with LSP.Messages;
 with LSP.Errors;
 with LSP.JSON_Streams;
 
-with VSS.Strings;
+with Libadalang.Analysis;
+with Libadalang.Common;
 
-package LSP.Ada_Handlers.Refactor_Introduce_Parameter is
+with LAL_Refactor.Subprogram_Signature; use LAL_Refactor.Subprogram_Signature;
+
+package LSP.Ada_Handlers.Refactor.Change_Parameter_Mode is
 
    type Command is new LSP.Commands.Command with private;
 
    procedure Append_Code_Action
-     (Self            : in out Command;
-      Context         : Context_Access;
-      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Where           : LSP.Messages.Location);
-   --  Initializes Self and appends it to Commands_Vector
+     (Self               : in out Command;
+      Context            : Context_Access;
+      Commands_Vector    : in out LSP.Messages.CodeAction_Vector;
+      Target_Subp        : Libadalang.Analysis.Basic_Decl;
+      Parameters_Indices : Parameter_Indices_Range_Type;
+      New_Mode           : Libadalang.Common.Ada_Mode);
+   --  Initializes 'Self' and appends it to 'Commands_Vector'
 
 private
 
    type Command is new LSP.Commands.Command with record
-      Context_Id : VSS.Strings.Virtual_String;
-      Where      : LSP.Messages.Location;
+      Context           : VSS.Strings.Virtual_String;
+      Where             : LSP.Messages.TextDocumentPositionParams;
+      First_Param_Index : LSP.Types.LSP_Number;
+      Last_Param_Index  : LSP.Types.LSP_Number;
+      New_Mode          : VSS.Strings.Virtual_String;
    end record;
 
    overriding
@@ -58,13 +67,16 @@ private
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Error   : in out LSP.Errors.Optional_ResponseError);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.Location);
+     (Self              : in out Command'Class;
+      Context           : LSP.Ada_Contexts.Context;
+      Where             : LSP.Messages.TextDocumentPositionParams;
+      First_Param_Index : LSP.Types.LSP_Number;
+      Last_Param_Index  : LSP.Types.LSP_Number;
+      New_Mode          : VSS.Strings.Virtual_String);
    --  Initializes Self
 
    procedure Write_Command
@@ -73,6 +85,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-introduce-parameter";
+   for Command'External_Tag use "als-refactor-change-parameter-mode";
 
-end LSP.Ada_Handlers.Refactor_Introduce_Parameter;
+end LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;

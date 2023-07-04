@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2022, AdaCore                       --
+--                     Copyright (C) 2021-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,21 +17,20 @@
 
 with Ada.Strings.UTF_Encoding;
 
-with Langkit_Support.Slocs;
-
 with Libadalang.Analysis; use Libadalang.Analysis;
 
-with LAL_Refactor.Introduce_Parameter;
-use LAL_Refactor.Introduce_Parameter;
+with Laltools.Common; use Laltools.Common;
+with LAL_Refactor.Suppress_Separate;
+use LAL_Refactor.Suppress_Separate;
 
 with LSP.Common;
+with LSP.Messages;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
-with LSP.Types;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
+package body LSP.Ada_Handlers.Refactor.Suppress_Seperate is
 
    ------------------------
    -- Append_Code_Action --
@@ -41,31 +40,42 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
      (Self            : in out Command;
       Context         : Context_Access;
       Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Where           : LSP.Messages.Location)
+      Target_Separate : Basic_Decl)
    is
-      use LSP.Commands;
-      use LSP.Messages;
-
-      Pointer     : Command_Pointer;
-      Code_Action : CodeAction;
+      Pointer      : LSP.Commands.Command_Pointer;
+      Code_Action  : LSP.Messages.CodeAction;
+      Subp_Name    : constant Libadalang.Analysis.Name :=
+        Target_Separate.P_Defining_Name.F_Name;
+      Where        : constant LSP.Messages.Location :=
+        LSP.Lal_Utils.Get_Node_Location (Subp_Name);
+      Action_Title : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.To_Virtual_String
+          ("Suppress separate subprogram " & Subp_Name.Text);
 
    begin
-      Self.Initialize (Context => Context.all, Where => Where);
+      Self.Initialize
+        (Context => Context.all,
+         Where   => ((uri => Where.uri), Where.span.first));
 
-      Pointer.Set (Data => Self);
+      Pointer.Set (Self);
 
       Code_Action :=
-        (title       => "Introduce Parameter",
-         kind        => (Is_Set => True, Value  => RefactorRewrite),
+        (title       => Action_Title,
+         kind        =>
+           (Is_Set => True,
+            Value  => LSP.Messages.RefactorRewrite),
          diagnostics => (Is_Set => False),
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
          disabled    => (Is_Set => False),
          command     =>
            (Is_Set => True,
-            Value  => (Is_Unknown => False, title => <>, Custom => Pointer)));
+            Value  =>
+              (Is_Unknown => False,
+               title      => <>,
+               Custom     => Pointer)));
 
-      Commands_Vector.Append (New_Item => Code_Action);
+      Commands_Vector.Append (Code_Action);
    end Append_Code_Action;
 
    ------------
@@ -76,11 +86,6 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
      (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
       return Command
    is
-      use Ada.Strings.UTF_Encoding;
-      use VSS.Strings.Conversions;
-      use LSP.Messages;
-      use LSP.Types;
-
    begin
       return V : Command do
          pragma Assert (JS.R.Is_Start_Object);
@@ -91,16 +96,17 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
             pragma Assert (JS.R.Is_Key_Name);
 
             declare
-               Key : constant UTF_8_String := To_UTF_8_String (JS.R.Key_Name);
+               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
 
             begin
                JS.R.Read_Next;
 
-               if Key = "context_id" then
-                  Read_String (JS, V.Context_Id);
+               if Key = "context" then
+                  LSP.Types.Read_String (JS, V.Context);
 
                elsif Key = "where" then
-                  Location'Read (JS, V.Where);
+                  LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
 
                else
                   JS.Skip_Value;
@@ -124,9 +130,7 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
         Client_Message_Receiver'Class;
       Error : in out LSP.Errors.Optional_ResponseError)
    is
-      use Langkit_Support.Slocs;
       use LAL_Refactor;
-      use LSP.Errors;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -134,39 +138,52 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
-        Message_Handler.Contexts.Get (Self.Context_Id).all;
+        Message_Handler.Contexts.Get (Self.Context).all;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
 
       Apply           : Client_Requests.Workspace_Apply_Edit_Request;
       Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
       Label           : Optional_Virtual_String renames Apply.params.label;
 
-      Introducer : constant Parameter_Introducer :=
-        Create_Parameter_Introducer
-          (Unit       =>
-             Context.Get_AU (Context.URI_To_File (Self.Where.uri)),
-           SLOC_Range =>
-             (Langkit_Support.Slocs.Line_Number
-                (Self.Where.span.first.line) + 1,
-              Langkit_Support.Slocs.Line_Number
-                (Self.Where.span.last.line) + 1,
-              Column_Number (Self.Where.span.first.character) + 1,
-              Column_Number (Self.Where.span.last.character) + 1));
+      Node : constant Ada_Node :=
+        Document.Get_Node_At (Context, Self.Where.position);
+
+      Target_Separate : constant Basic_Decl :=
+        Get_Node_As_Name (Node).Parent.Parent.Parent.As_Basic_Decl;
+
+      Suppressor : Separate_Suppressor;
+      Edits      : Refactoring_Edits;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
-      --  Provides the Context Analysis_Unit_Array to the Parameter_Introducer
-
-      Edits : constant Refactoring_Edits :=
-        Introducer.Refactor (Analysis_Units'Access);
+      --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
    begin
+      if Target_Separate.Is_Null then
+         Error :=
+           (Is_Set => True,
+            Value  =>
+              (code    => LSP.Errors.InvalidRequest,
+               message => VSS.Strings.To_Virtual_String
+                 ("Failed to execute the Suppress Separate refactoring. "
+                  & "The target subprogram could not be resolved precisely."),
+               data    => <>));
+         return;
+      end if;
+
+      Suppressor := Create (Target_Separate);
+
+      Edits := Suppressor.Refactor (Analysis_Units'Access);
+
       if Edits = No_Refactoring_Edits then
          Error :=
            (Is_Set => True,
             Value  =>
               (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Introduce Parameter refactoring."),
+                 ("Failed to execute the Suppress Separate refactoring."),
                data    => <>));
 
       else
@@ -175,7 +192,8 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
              (Edits               => Edits,
               Resource_Operations => Message_Handler.Resource_Operations,
               Versioned_Documents => Message_Handler.Versioned_Documents,
-              Document_Provider   => Message_Handler'Access);
+              Document_Provider   => Message_Handler'Access,
+              Rename              => True);
          Label :=
            (Is_Set => True,
             Value  => To_Virtual_String (Command'External_Tag));
@@ -189,9 +207,9 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => UnknownErrorCode,
+              (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Introduce Parameter refactoring."),
+                 ("Failed to execute the Suppress Separate refactoring."),
                data    => <>));
    end Execute;
 
@@ -200,11 +218,11 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
    ----------------
 
    procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.Location) is
+     (Self             : in out Command'Class;
+      Context          : LSP.Ada_Contexts.Context;
+      Where            : LSP.Messages.TextDocumentPositionParams) is
    begin
-      Self.Context_Id := Context.Id;
+      Self.Context := Context.Id;
       Self.Where := Where;
    end Initialize;
 
@@ -216,17 +234,15 @@ package body LSP.Ada_Handlers.Refactor_Introduce_Parameter is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       C : Command)
    is
-      use LSP.JSON_Streams;
-
-      JS : JSON_Stream'Class renames JSON_Stream'Class (S.all);
-
+      JS : LSP.JSON_Streams.JSON_Stream'Class renames
+        LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key ("context_id");
-      LSP.Types.Write_String (S, C.Context_Id);
+      JS.Key ("context");
+      LSP.Types.Write_String (S, C.Context);
       JS.Key ("where");
-      LSP.Messages.Location'Write (S, C.Where);
+      LSP.Messages.TextDocumentPositionParams'Write (S, C.Where);
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Introduce_Parameter;
+end LSP.Ada_Handlers.Refactor.Suppress_Seperate;

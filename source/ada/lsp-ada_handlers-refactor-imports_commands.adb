@@ -33,7 +33,7 @@ with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Imports_Commands is
+package body LSP.Ada_Handlers.Refactor.Imports_Commands is
 
    ----------------
    -- Initialize --
@@ -386,4 +386,4 @@ package body LSP.Ada_Handlers.Refactor_Imports_Commands is
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Imports_Commands;
+end LSP.Ada_Handlers.Refactor.Imports_Commands;

@@ -32,7 +32,7 @@ with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Extract_Subprogram is
+package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
    ------------------------
    -- Append_Code_Action --
@@ -264,4 +264,4 @@ package body LSP.Ada_Handlers.Refactor_Extract_Subprogram is
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Extract_Subprogram;
+end LSP.Ada_Handlers.Refactor.Extract_Subprogram;

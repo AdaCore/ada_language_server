@@ -1,62 +1,35 @@
 ------------------------------------------------------------------------------
+--                         Language Server Protocol                         --
 --                                                                          --
---                             Libadalang Tools                             --
+--                        Copyright (C) 2023, AdaCore                       --
 --                                                                          --
---                    Copyright (C) 2021-2022, AdaCore                      --
---                                                                          --
--- Libadalang Tools  is free software; you can redistribute it and/or modi- --
--- fy  it  under  terms of the  GNU General Public License  as published by --
--- the Free Software Foundation;  either version 3, or (at your option) any --
--- later version. This software  is distributed in the hope that it will be --
--- useful but  WITHOUT  ANY  WARRANTY; without even the implied warranty of --
--- MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE.                  --
---                                                                          --
--- As a special  exception  under  Section 7  of  GPL  version 3,  you are  --
--- granted additional  permissions described in the  GCC  Runtime  Library  --
--- Exception, version 3.1, as published by the Free Software Foundation.    --
---                                                                          --
--- You should have received a copy of the GNU General Public License and a  --
--- copy of the GCC Runtime Library Exception along with this program;  see  --
--- the files COPYING3 and COPYING.RUNTIME respectively.  If not, see        --
--- <http://www.gnu.org/licenses/>.                                          --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License for  more details.  You should have  received  a copy of the GNU --
+-- General  Public  License  distributed  with  this  software;   see  file --
+-- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
+-- of the license.                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
 
-with Langkit_Support.Slocs; use Langkit_Support.Slocs;
+with Langkit_Support.Slocs;
 
-with Libadalang.Analysis; use  Libadalang.Analysis;
+with Libadalang.Analysis;
 
-with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+with LAL_Refactor.Sort_Dependencies;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
-with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
-
-   function To_Virtual_String_Vector
-     (Grammar_Rules : Laltools.Common.Grammar_Rule_Vector)
-      return VSS.String_Vectors.Virtual_String_Vector;
-   --  TODO
-
-   function To_Virtual_String_Vector
-     (Grammar_Rules : Laltools.Common.Grammar_Rule_Vector)
-      return VSS.String_Vectors.Virtual_String_Vector
-   is
-      Result : VSS.String_Vectors.Virtual_String_Vector;
-
-   begin
-      for Rule of Grammar_Rules loop
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String (Rule'Image));
-      end loop;
-
-      return Result;
-   end To_Virtual_String_Vector;
+package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
    ------------------------
    -- Append_Code_Action --
@@ -66,26 +39,23 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
      (Self            : in out Command;
       Context         : Context_Access;
       Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Where           : LSP.Messages.Location;
-      Syntax_Rules    : Laltools.Common.Grammar_Rule_Vector)
+      Where           : LSP.Messages.Location)
    is
       Pointer     : LSP.Commands.Command_Pointer;
       Code_Action : LSP.Messages.CodeAction;
 
    begin
       Self.Initialize
-        (Context             => Context.all,
-         Where               => Where,
-         Syntax_Rules        => Syntax_Rules,
-         New_Parameters_Type => "");
+        (Context           => Context.all,
+         Where             => Where);
 
       Pointer.Set (Self);
 
       Code_Action :=
-        (title       => "Change Parameter Type",
+        (title       => "Sort Dependencies",
          kind        =>
            (Is_Set => True,
-            Value  => LSP.Messages.RefactorRewrite),
+            Value  => LSP.Messages.Refactor),
          diagnostics => (Is_Set => False),
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
@@ -135,9 +105,6 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
                elsif Key = "where" then
                   Location'Read (JS, C.Where);
 
-               elsif Key = "newParametersType" then
-                  Read_String (JS, C.New_Parameters_Type);
-
                else
                   JS.Skip_Value;
                end if;
@@ -161,8 +128,10 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
         Client_Message_Receiver'Class;
       Error   : in out LSP.Errors.Optional_ResponseError)
    is
+      use Langkit_Support.Slocs;
+      use Libadalang.Analysis;
       use LAL_Refactor;
-      use LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+      use LAL_Refactor.Sort_Dependencies;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -176,29 +145,19 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
       Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
       Label           : Optional_Virtual_String renames Apply.params.label;
 
-      Unit : constant Analysis_Unit :=
+      Analysis_Unit    : constant Libadalang.Analysis.Analysis_Unit :=
         Context.LAL_Context.Get_From_File
           (Context.URI_To_File (Self.Where.uri));
-
-      Parameters_SLOC_Range : constant Source_Location_Range :=
+      Sloc             : constant Source_Location :=
         (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
-         Langkit_Support.Slocs.Line_Number (Self.Where.span.last.line) + 1,
-         Column_Number (Self.Where.span.first.character) + 1,
-         Column_Number (Self.Where.span.last.character) + 1);
+         Langkit_Support.Slocs.Column_Number (Self.Where.span.first.character)
+         + 1);
+      Compilation_Unit : constant Libadalang.Analysis.Compilation_Unit :=
+        Analysis_Unit.Root.Lookup (Sloc).P_Enclosing_Compilation_Unit;
 
-      function Analysis_Units return Analysis_Unit_Array is
-        (Context.Analysis_Units);
-      --  Provides the Context Analysis_Unit_Array to the Pull_Upper
-
-      Changer : constant Parameters_Type_Changer :=
-        Create_Parameters_Type_Changer
-          (Unit                             => Unit,
-           Parameters_Source_Location_Range =>
-             Parameters_SLOC_Range,
-           New_Parameters_Type              =>
-             To_Unbounded_UTF_8_String (Self.New_Parameters_Type));
-      Edits   : constant LAL_Refactor.Refactoring_Edits :=
-        Changer.Refactor (Analysis_Units'Access);
+      Sorter : constant Dependencies_Sorter :=
+        Create_Dependencies_Sorter (Compilation_Unit);
+      Edits      : constant Refactoring_Edits := Sorter.Refactor (null);
 
    begin
       if Edits = No_Refactoring_Edits then
@@ -207,7 +166,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
             Value  =>
               (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Change Parameters Type refactoring."),
+                 ("Failed to execute the Sort Dependencies refactoring"),
                data    => <>));
 
       else
@@ -230,10 +189,10 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
+              (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Change Parameters Type refactoring."),
-               data => <>));
+                 ("Failed to execute the Sort Dependencies refactoring"),
+               data    => <>));
    end Execute;
 
    ----------------
@@ -241,17 +200,12 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
    ----------------
 
    procedure Initialize
-     (Self                : in out Command'Class;
-      Context             : LSP.Ada_Contexts.Context;
-      Where               : LSP.Messages.Location;
-      Syntax_Rules        : Laltools.Common.Grammar_Rule_Vector;
-      New_Parameters_Type : VSS.Strings.Virtual_String) is
+     (Self    : in out Command'Class;
+      Context : LSP.Ada_Contexts.Context;
+      Where   : LSP.Messages.Location) is
    begin
       Self.Context := Context.Id;
-      Self.Where := Where;
-      Self.Syntax_Rules :=
-        To_Virtual_String_Vector (Syntax_Rules);
-      Self.New_Parameters_Type := New_Parameters_Type;
+      Self.Where   := Where;
    end Initialize;
 
    -------------------
@@ -274,11 +228,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Type is
       Write_String (S, C.Context);
       JS.Key ("where");
       Location'Write (S, C.Where);
-      JS.Key ("newParametersType");
-      Write_String (S, C.New_Parameters_Type);
-      JS.Key ("syntaxRules");
-      LSP.Types.Write_String_Vector (S, C.Syntax_Rules);
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
+end LSP.Ada_Handlers.Refactor.Sort_Dependencies;

@@ -28,7 +28,7 @@ with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Move_Parameter is
+package body LSP.Ada_Handlers.Refactor.Move_Parameter is
 
    use type VSS.Strings.Virtual_String;
 
@@ -311,4 +311,4 @@ package body LSP.Ada_Handlers.Refactor_Move_Parameter is
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Move_Parameter;
+end LSP.Ada_Handlers.Refactor.Move_Parameter;

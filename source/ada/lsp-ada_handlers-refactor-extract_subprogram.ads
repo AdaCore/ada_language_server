@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                        Copyright (C) 2022, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,34 +15,38 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to replace a type
+--  Implementation of the refactoring command to add parameters
 
 with Ada.Streams;
 
+with Libadalang.Common;
+
 with LSP.Client_Message_Receivers;
 with LSP.Commands;
+with LSP.Messages;
 with LSP.Errors;
 with LSP.JSON_Streams;
 
-private with VSS.Strings;
+with VSS.Strings;
 
-package LSP.Ada_Handlers.Refactor_Replace_Type is
+package LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
    type Command is new LSP.Commands.Command with private;
 
    procedure Append_Code_Action
-     (Self            : in out Command;
-      Context         : Context_Access;
-      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Where           : LSP.Messages.Location);
+     (Self                        : in out Command;
+      Context                     : Context_Access;
+      Commands_Vector             : in out LSP.Messages.CodeAction_Vector;
+      Where                       : LSP.Messages.Location;
+      Subprogram_Kind             : Libadalang.Common.Ada_Subp_Kind);
    --  Initializes Self and appends it to Commands_Vector
 
 private
 
    type Command is new LSP.Commands.Command with record
-      Context_Id : VSS.Strings.Virtual_String;
-      New_Type   : VSS.Strings.Virtual_String;
-      Where      : LSP.Messages.Location;
+      Context_Id              : VSS.Strings.Virtual_String;
+      Section_To_Extract_SLOC : LSP.Messages.Location;
+      Subprogram_Kind         : Libadalang.Common.Ada_Subp_Kind;
    end record;
 
    overriding
@@ -58,13 +62,14 @@ private
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error   : in out LSP.Errors.Optional_ResponseError);
+      Error  : in out LSP.Errors.Optional_ResponseError);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.Location);
+     (Self             : in out Command'Class;
+      Context          : LSP.Ada_Contexts.Context;
+      Where            : LSP.Messages.Location;
+      Subprogram_Kind  : Libadalang.Common.Ada_Subp_Kind);
    --  Initializes Self
 
    procedure Write_Command
@@ -73,6 +78,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-replace-type";
+   for Command'External_Tag use "als-refactor-extract-subprogram";
 
-end LSP.Ada_Handlers.Refactor_Replace_Type;
+end LSP.Ada_Handlers.Refactor.Extract_Subprogram;

@@ -15,8 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to move parameters to the left
---  and right
+--  Implementation of the refactoring command to suppress separate subprograms
 
 with Ada.Streams;
 
@@ -27,31 +26,24 @@ with LSP.Commands;
 with LSP.Errors;
 with LSP.JSON_Streams;
 
-with LAL_Refactor.Subprogram_Signature;
-use LAL_Refactor.Subprogram_Signature;
-
 with Libadalang.Analysis;
 
-package LSP.Ada_Handlers.Refactor_Move_Parameter is
+package LSP.Ada_Handlers.Refactor.Suppress_Seperate is
 
    type Command is new LSP.Commands.Command with private;
 
    procedure Append_Code_Action
-     (Self              : in out Command;
-      Context           : Context_Access;
-      Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
-      Target_Subp       : Libadalang.Analysis.Basic_Decl;
-      Parameter_Index   : Positive;
-      Move_Direction    : Move_Direction_Type);
+     (Self            : in out Command;
+      Context         : Context_Access;
+      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
+      Target_Separate : Libadalang.Analysis.Basic_Decl);
    --  Initializes 'Self' and appends it to 'Commands_Vector'
 
 private
 
    type Command is new LSP.Commands.Command with record
-      Context         : VSS.Strings.Virtual_String;
-      Where           : LSP.Messages.TextDocumentPositionParams;
-      Parameter_Index : LSP.Types.LSP_Number;
-      Direction       : VSS.Strings.Virtual_String;
+      Context : VSS.Strings.Virtual_String;
+      Where   : LSP.Messages.TextDocumentPositionParams;
    end record;
 
    overriding function Create
@@ -71,9 +63,7 @@ private
    procedure Initialize
      (Self            : in out Command'Class;
       Context         : LSP.Ada_Contexts.Context;
-      Where           : LSP.Messages.TextDocumentPositionParams;
-      Parameter_Index : LSP.Types.LSP_Number;
-      Direction       : VSS.Strings.Virtual_String);
+      Where           : LSP.Messages.TextDocumentPositionParams);
    --  Initializes Self
 
    procedure Write_Command
@@ -82,6 +72,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-move-parameter";
+   for Command'External_Tag use "als-suppress-separate";
 
-end LSP.Ada_Handlers.Refactor_Move_Parameter;
+end LSP.Ada_Handlers.Refactor.Suppress_Seperate;

@@ -29,7 +29,7 @@ with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
+package body LSP.Ada_Handlers.Refactor.Change_Parameter_Mode is
 
    ------------------------
    -- Append_Code_Action --
@@ -400,4 +400,4 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       LSP.Types.Write_String (S, C.New_Mode);
       JS.End_Object;
    end Write_Command;
-end LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+end LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
