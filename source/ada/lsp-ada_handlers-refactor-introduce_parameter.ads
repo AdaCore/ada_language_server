@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                        Copyright (C) 2022, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to add parameters
+--  Implementation of the refactoring tool to introduce a parameter
 
 with Ada.Streams;
 
@@ -27,25 +27,22 @@ with LSP.JSON_Streams;
 
 with VSS.Strings;
 
-package LSP.Ada_Handlers.Refactor_Add_Parameter is
+package LSP.Ada_Handlers.Refactor.Introduce_Parameter is
 
    type Command is new LSP.Commands.Command with private;
 
    procedure Append_Code_Action
-     (Self                        : in out Command;
-      Context                     : Context_Access;
-      Commands_Vector             : in out LSP.Messages.CodeAction_Vector;
-      Where                       : LSP.Messages.Location;
-      Requires_Full_Specification : Boolean);
+     (Self            : in out Command;
+      Context         : Context_Access;
+      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
+      Where           : LSP.Messages.Location);
    --  Initializes Self and appends it to Commands_Vector
 
 private
 
    type Command is new LSP.Commands.Command with record
-      Context_Id                  : VSS.Strings.Virtual_String;
-      Where                       : LSP.Messages.Location;
-      New_Parameter               : VSS.Strings.Virtual_String;
-      Requires_Full_Specification : Boolean;
+      Context_Id : VSS.Strings.Virtual_String;
+      Where      : LSP.Messages.Location;
    end record;
 
    overriding
@@ -65,10 +62,9 @@ private
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self                        : in out Command'Class;
-      Context                     : LSP.Ada_Contexts.Context;
-      Where                       : LSP.Messages.Location;
-      Requires_Full_Specification : Boolean);
+     (Self    : in out Command'Class;
+      Context : LSP.Ada_Contexts.Context;
+      Where   : LSP.Messages.Location);
    --  Initializes Self
 
    procedure Write_Command
@@ -77,6 +73,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-add-parameters";
+   for Command'External_Tag use "als-refactor-introduce-parameter";
 
-end LSP.Ada_Handlers.Refactor_Add_Parameter;
+end LSP.Ada_Handlers.Refactor.Introduce_Parameter;

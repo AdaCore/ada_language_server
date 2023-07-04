@@ -19,17 +19,19 @@ with Ada.Strings.UTF_Encoding;
 
 with Langkit_Support.Slocs;
 
-with Libadalang.Analysis;
+with Libadalang.Analysis; use Libadalang.Analysis;
 
-with LAL_Refactor.Pull_Up_Declaration;
+with LAL_Refactor.Introduce_Parameter;
+use LAL_Refactor.Introduce_Parameter;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
+with LSP.Types;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
+package body LSP.Ada_Handlers.Refactor.Introduce_Parameter is
 
    ------------------------
    -- Append_Code_Action --
@@ -41,51 +43,46 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
       Commands_Vector : in out LSP.Messages.CodeAction_Vector;
       Where           : LSP.Messages.Location)
    is
-      Pointer     : LSP.Commands.Command_Pointer;
-      Code_Action : LSP.Messages.CodeAction;
+      use LSP.Commands;
+      use LSP.Messages;
+
+      Pointer     : Command_Pointer;
+      Code_Action : CodeAction;
 
    begin
-      Self.Initialize
-        (Context           => Context.all,
-         Where             => Where);
+      Self.Initialize (Context => Context.all, Where => Where);
 
-      Pointer.Set (Self);
+      Pointer.Set (Data => Self);
 
       Code_Action :=
-        (title       => "Pull Up Declaration",
-         kind        =>
-           (Is_Set => True,
-            Value  => LSP.Messages.RefactorExtract),
+        (title       => "Introduce Parameter",
+         kind        => (Is_Set => True, Value  => RefactorRewrite),
          diagnostics => (Is_Set => False),
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
          disabled    => (Is_Set => False),
          command     =>
            (Is_Set => True,
-            Value  =>
-              (Is_Unknown => False,
-               title      => <>,
-               Custom     => Pointer)));
+            Value  => (Is_Unknown => False, title => <>, Custom => Pointer)));
 
-      Commands_Vector.Append (Code_Action);
+      Commands_Vector.Append (New_Item => Code_Action);
    end Append_Code_Action;
 
    ------------
    -- Create --
    ------------
 
-   overriding
-   function Create
+   overriding function Create
      (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
       return Command
    is
       use Ada.Strings.UTF_Encoding;
+      use VSS.Strings.Conversions;
       use LSP.Messages;
       use LSP.Types;
-      use VSS.Strings.Conversions;
 
    begin
-      return C : Command do
+      return V : Command do
          pragma Assert (JS.R.Is_Start_Object);
 
          JS.R.Read_Next;
@@ -99,11 +96,11 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
             begin
                JS.R.Read_Next;
 
-               if Key = "context" then
-                  Read_String (JS, C.Context);
+               if Key = "context_id" then
+                  Read_String (JS, V.Context_Id);
 
                elsif Key = "where" then
-                  Location'Read (JS, C.Where);
+                  Location'Read (JS, V.Where);
 
                else
                   JS.Skip_Value;
@@ -119,19 +116,17 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
    -- Execute --
    -------------
 
-   overriding
-   procedure Execute
+   overriding procedure Execute
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
-      Client  : not null access LSP.Client_Message_Receivers.
+      Client : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error   : in out LSP.Errors.Optional_ResponseError)
+      Error : in out LSP.Errors.Optional_ResponseError)
    is
       use Langkit_Support.Slocs;
-      use Libadalang.Analysis;
       use LAL_Refactor;
-      use LAL_Refactor.Pull_Up_Declaration;
+      use LSP.Errors;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -139,29 +134,30 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
-        Message_Handler.Contexts.Get (Self.Context).all;
+        Message_Handler.Contexts.Get (Self.Context_Id).all;
 
       Apply           : Client_Requests.Workspace_Apply_Edit_Request;
       Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
       Label           : Optional_Virtual_String renames Apply.params.label;
 
-      Unit : constant Analysis_Unit :=
-        Context.LAL_Context.Get_From_File
-          (Context.URI_To_File (Self.Where.uri));
-
-      Declaration_SLOC : constant Source_Location :=
-        (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
-         Langkit_Support.Slocs.Column_Number (Self.Where.span.first.character)
-         + 1);
+      Introducer : constant Parameter_Introducer :=
+        Create_Parameter_Introducer
+          (Unit       =>
+             Context.Get_AU (Context.URI_To_File (Self.Where.uri)),
+           SLOC_Range =>
+             (Langkit_Support.Slocs.Line_Number
+                (Self.Where.span.first.line) + 1,
+              Langkit_Support.Slocs.Line_Number
+                (Self.Where.span.last.line) + 1,
+              Column_Number (Self.Where.span.first.character) + 1,
+              Column_Number (Self.Where.span.last.character) + 1));
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
-      --  Provides the Context Analysis_Unit_Array to the Pull_Upper
+      --  Provides the Context Analysis_Unit_Array to the Parameter_Introducer
 
-      Pull_Upper : constant Declaration_Extractor :=
-        Create_Declaration_Pull_Upper (Unit, Declaration_SLOC);
-      Edits      : constant Refactoring_Edits :=
-        Pull_Upper.Refactor (Analysis_Units'Access);
+      Edits : constant Refactoring_Edits :=
+        Introducer.Refactor (Analysis_Units'Access);
 
    begin
       if Edits = No_Refactoring_Edits then
@@ -170,7 +166,7 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
             Value  =>
               (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Pull Up Declaration refactoring."),
+                 ("Failed to execute the Introduce Parameter refactoring."),
                data    => <>));
 
       else
@@ -193,9 +189,9 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
+              (code    => UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Pull Up Declaration refactoring."),
+                 ("Failed to execute the Introduce Parameter refactoring."),
                data    => <>));
    end Execute;
 
@@ -208,8 +204,8 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
       Context : LSP.Ada_Contexts.Context;
       Where   : LSP.Messages.Location) is
    begin
-      Self.Context := Context.Id;
-      Self.Where   := Where;
+      Self.Context_Id := Context.Id;
+      Self.Where := Where;
    end Initialize;
 
    -------------------
@@ -220,19 +216,17 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       C : Command)
    is
-      use LSP.Messages;
-      use LSP.Types;
+      use LSP.JSON_Streams;
 
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      JS : JSON_Stream'Class renames JSON_Stream'Class (S.all);
 
    begin
       JS.Start_Object;
-      JS.Key ("context");
-      Write_String (S, C.Context);
+      JS.Key ("context_id");
+      LSP.Types.Write_String (S, C.Context_Id);
       JS.Key ("where");
-      Location'Write (S, C.Where);
+      LSP.Messages.Location'Write (S, C.Where);
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
+end LSP.Ada_Handlers.Refactor.Introduce_Parameter;

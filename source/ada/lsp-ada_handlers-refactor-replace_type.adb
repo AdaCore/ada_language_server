@@ -19,9 +19,10 @@ with Ada.Strings.UTF_Encoding;
 
 with Langkit_Support.Slocs;
 
-with Libadalang.Analysis;
+with Libadalang.Analysis; use Libadalang.Analysis;
 
-with LAL_Refactor.Sort_Dependencies;
+with LAL_Refactor.Replace_Type;
+use LAL_Refactor.Replace_Type;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -29,33 +30,33 @@ with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
+package body LSP.Ada_Handlers.Refactor.Replace_Type is
 
    ------------------------
    -- Append_Code_Action --
    ------------------------
 
    procedure Append_Code_Action
-     (Self            : in out Command;
-      Context         : Context_Access;
-      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Where           : LSP.Messages.Location)
+     (Self                        : in out Command;
+      Context                     : Context_Access;
+      Commands_Vector             : in out LSP.Messages.CodeAction_Vector;
+      Where                       : LSP.Messages.Location)
    is
       Pointer     : LSP.Commands.Command_Pointer;
       Code_Action : LSP.Messages.CodeAction;
 
    begin
       Self.Initialize
-        (Context           => Context.all,
-         Where             => Where);
+        (Context => Context.all,
+         Where   => Where);
 
       Pointer.Set (Self);
 
       Code_Action :=
-        (title       => "Sort Dependencies",
+        (title       => "Replace Type",
          kind        =>
            (Is_Set => True,
-            Value  => LSP.Messages.Refactor),
+            Value  => LSP.Messages.RefactorRewrite),
          diagnostics => (Is_Set => False),
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
@@ -74,18 +75,11 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
    -- Create --
    ------------
 
-   overriding
-   function Create
+   overriding function Create
      (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
-      return Command
-   is
-      use Ada.Strings.UTF_Encoding;
-      use LSP.Messages;
-      use LSP.Types;
-      use VSS.Strings.Conversions;
-
+      return Command is
    begin
-      return C : Command do
+      return V : Command do
          pragma Assert (JS.R.Is_Start_Object);
 
          JS.R.Read_Next;
@@ -94,16 +88,20 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
             pragma Assert (JS.R.Is_Key_Name);
 
             declare
-               Key : constant UTF_8_String := To_UTF_8_String (JS.R.Key_Name);
+               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
 
             begin
                JS.R.Read_Next;
 
-               if Key = "context" then
-                  Read_String (JS, C.Context);
+               if Key = "context_id" then
+                  LSP.Types.Read_String (JS, V.Context_Id);
 
                elsif Key = "where" then
-                  Location'Read (JS, C.Where);
+                  LSP.Messages.Location'Read (JS, V.Where);
+
+               elsif Key = "newType" then
+                  LSP.Types.Read_String (JS, V.New_Type);
 
                else
                   JS.Skip_Value;
@@ -119,19 +117,16 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
    -- Execute --
    -------------
 
-   overriding
-   procedure Execute
+   overriding procedure Execute
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
-      Client  : not null access LSP.Client_Message_Receivers.
+      Client : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error   : in out LSP.Errors.Optional_ResponseError)
+      Error : in out LSP.Errors.Optional_ResponseError)
    is
       use Langkit_Support.Slocs;
-      use Libadalang.Analysis;
       use LAL_Refactor;
-      use LAL_Refactor.Sort_Dependencies;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -139,25 +134,31 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
-        Message_Handler.Contexts.Get (Self.Context).all;
+        Message_Handler.Contexts.Get (Self.Context_Id).all;
 
       Apply           : Client_Requests.Workspace_Apply_Edit_Request;
       Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
       Label           : Optional_Virtual_String renames Apply.params.label;
 
-      Analysis_Unit    : constant Libadalang.Analysis.Analysis_Unit :=
-        Context.LAL_Context.Get_From_File
-          (Context.URI_To_File (Self.Where.uri));
-      Sloc             : constant Source_Location :=
-        (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
-         Langkit_Support.Slocs.Column_Number (Self.Where.span.first.character)
-         + 1);
-      Compilation_Unit : constant Libadalang.Analysis.Compilation_Unit :=
-        Analysis_Unit.Root.Lookup (Sloc).P_Enclosing_Compilation_Unit;
+      function Analysis_Units return Analysis_Unit_Array is
+        (Context.Analysis_Units);
+      --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
-      Sorter : constant Dependencies_Sorter :=
-        Create_Dependencies_Sorter (Compilation_Unit);
-      Edits      : constant Refactoring_Edits := Sorter.Refactor (null);
+      Replacer : constant Type_Replacer :=
+        Create_Type_Replacer
+          (Source_Unit      =>
+             Context.Get_AU
+               (Context.URI_To_File (Self.Where.uri)),
+           Source_Type_SLOC =>
+             (Langkit_Support.Slocs.Line_Number
+                (Self.Where.span.first.line) + 1,
+              Langkit_Support.Slocs.Column_Number
+                (Self.Where.span.first.character) + 1),
+           New_Type         =>
+             VSS.Strings.Conversions.To_Unbounded_UTF_8_String
+               (Self.New_Type));
+      Edits : constant LAL_Refactor.Refactoring_Edits :=
+        Replacer.Refactor (Analysis_Units'Access);
 
    begin
       if Edits = No_Refactoring_Edits then
@@ -166,7 +167,7 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
             Value  =>
               (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Sort Dependencies refactoring"),
+                 ("Failed to execute the Add Parameter refactoring."),
                data    => <>));
 
       else
@@ -189,10 +190,10 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
+              (code => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Sort Dependencies refactoring"),
-               data    => <>));
+                 ("Failed to execute the Replace Type refactoring."),
+               data => <>));
    end Execute;
 
    ----------------
@@ -200,12 +201,13 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
    ----------------
 
    procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.Location) is
+     (Self                        : in out Command'Class;
+      Context                     : LSP.Ada_Contexts.Context;
+      Where                       : LSP.Messages.Location) is
    begin
-      Self.Context := Context.Id;
-      Self.Where   := Where;
+      Self.Context_Id := Context.Id;
+      Self.Where := Where;
+      Self.New_Type := VSS.Strings.Empty_Virtual_String;
    end Initialize;
 
    -------------------
@@ -216,19 +218,18 @@ package body LSP.Ada_Handlers.Refactor_Sort_Dependencies is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       C : Command)
    is
-      use LSP.Messages;
-      use LSP.Types;
-
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
    begin
       JS.Start_Object;
-      JS.Key ("context");
-      Write_String (S, C.Context);
+      JS.Key ("context_id");
+      LSP.Types.Write_String (S, C.Context_Id);
       JS.Key ("where");
-      Location'Write (S, C.Where);
+      LSP.Messages.Location'Write (S, C.Where);
+      JS.Key ("newType");
+      LSP.Types.Write_String (S, C.New_Type);
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+end LSP.Ada_Handlers.Refactor.Replace_Type;

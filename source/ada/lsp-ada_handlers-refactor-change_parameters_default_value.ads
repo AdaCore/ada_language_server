@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                        Copyright (C) 2022, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,7 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to sort dependencies
+--  Implementation of the refactoring command to change a subprogram
+--  parameter default value
 
 with Ada.Streams;
 
@@ -26,7 +27,7 @@ with LSP.JSON_Streams;
 
 private with VSS.Strings;
 
-package LSP.Ada_Handlers.Refactor_Sort_Dependencies is
+package LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value is
 
    type Command is new LSP.Commands.Command with private;
 
@@ -40,8 +41,9 @@ package LSP.Ada_Handlers.Refactor_Sort_Dependencies is
 private
 
    type Command is new LSP.Commands.Command with record
-      Context : VSS.Strings.Virtual_String;
-      Where   : LSP.Messages.Location;
+      Context                      : VSS.Strings.Virtual_String;
+      Where                        : LSP.Messages.Location;
+      New_Parameters_Default_Value : VSS.Strings.Virtual_String;
    end record;
 
    overriding
@@ -61,9 +63,10 @@ private
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.Location);
+     (Self                         : in out Command'Class;
+      Context                      : LSP.Ada_Contexts.Context;
+      Where                        : LSP.Messages.Location;
+      New_Parameters_Default_Value : VSS.Strings.Virtual_String);
    --  Initializes Self
 
    procedure Write_Command
@@ -72,6 +75,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-sort_dependencies";
+   for Command'External_Tag use "als-refactor-change_parameters_default_value";
 
-end LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+end LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;

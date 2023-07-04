@@ -30,7 +30,7 @@ with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Add_Parameter is
+package body LSP.Ada_Handlers.Refactor.Add_Parameter is
 
    ------------------------
    -- Append_Code_Action --
@@ -246,4 +246,4 @@ package body LSP.Ada_Handlers.Refactor_Add_Parameter is
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Add_Parameter;
+end LSP.Ada_Handlers.Refactor.Add_Parameter;

@@ -15,43 +15,47 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to suppress separate subprograms
+--  Implementation of the refactoring command to add parameters
 
 with Ada.Streams;
 
-private with VSS.Strings;
-
 with LSP.Client_Message_Receivers;
 with LSP.Commands;
+with LSP.Messages;
 with LSP.Errors;
 with LSP.JSON_Streams;
 
-with Libadalang.Analysis;
+with VSS.Strings;
 
-package LSP.Ada_Handlers.Refactor_Suppress_Seperate is
+package LSP.Ada_Handlers.Refactor.Add_Parameter is
 
    type Command is new LSP.Commands.Command with private;
 
    procedure Append_Code_Action
-     (Self            : in out Command;
-      Context         : Context_Access;
-      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Target_Separate : Libadalang.Analysis.Basic_Decl);
-   --  Initializes 'Self' and appends it to 'Commands_Vector'
+     (Self                        : in out Command;
+      Context                     : Context_Access;
+      Commands_Vector             : in out LSP.Messages.CodeAction_Vector;
+      Where                       : LSP.Messages.Location;
+      Requires_Full_Specification : Boolean);
+   --  Initializes Self and appends it to Commands_Vector
 
 private
 
    type Command is new LSP.Commands.Command with record
-      Context : VSS.Strings.Virtual_String;
-      Where   : LSP.Messages.TextDocumentPositionParams;
+      Context_Id                  : VSS.Strings.Virtual_String;
+      Where                       : LSP.Messages.Location;
+      New_Parameter               : VSS.Strings.Virtual_String;
+      Requires_Full_Specification : Boolean;
    end record;
 
-   overriding function Create
+   overriding
+   function Create
      (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
       return Command;
    --  Reads JS and creates a new Command
 
-   overriding procedure Execute
+   overriding
+   procedure Execute
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
@@ -61,9 +65,10 @@ private
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self            : in out Command'Class;
-      Context         : LSP.Ada_Contexts.Context;
-      Where           : LSP.Messages.TextDocumentPositionParams);
+     (Self                        : in out Command'Class;
+      Context                     : LSP.Ada_Contexts.Context;
+      Where                       : LSP.Messages.Location;
+      Requires_Full_Specification : Boolean);
    --  Initializes Self
 
    procedure Write_Command
@@ -72,6 +77,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-suppress-separate";
+   for Command'External_Tag use "als-refactor-add-parameters";
 
-end LSP.Ada_Handlers.Refactor_Suppress_Seperate;
+end LSP.Ada_Handlers.Refactor.Add_Parameter;

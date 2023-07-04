@@ -1,33 +1,27 @@
 ------------------------------------------------------------------------------
+--                         Language Server Protocol                         --
 --                                                                          --
---                             Libadalang Tools                             --
+--                        Copyright (C) 2022, AdaCore                       --
 --                                                                          --
---                    Copyright (C) 2021-2022, AdaCore                      --
---                                                                          --
--- Libadalang Tools  is free software; you can redistribute it and/or modi- --
--- fy  it  under  terms of the  GNU General Public License  as published by --
--- the Free Software Foundation;  either version 3, or (at your option) any --
--- later version. This software  is distributed in the hope that it will be --
--- useful but  WITHOUT  ANY  WARRANTY; without even the implied warranty of --
--- MERCHANTABILITY  or  FITNESS  FOR A PARTICULAR PURPOSE.                  --
---                                                                          --
--- As a special  exception  under  Section 7  of  GPL  version 3,  you are  --
--- granted additional  permissions described in the  GCC  Runtime  Library  --
--- Exception, version 3.1, as published by the Free Software Foundation.    --
---                                                                          --
--- You should have received a copy of the GNU General Public License and a  --
--- copy of the GCC Runtime Library Exception along with this program;  see  --
--- the files COPYING3 and COPYING.RUNTIME respectively.  If not, see        --
--- <http://www.gnu.org/licenses/>.                                          --
+-- This is free software;  you can redistribute it  and/or modify it  under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  This software is distributed in the hope  that it will be useful, --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License for  more details.  You should have  received  a copy of the GNU --
+-- General  Public  License  distributed  with  this  software;   see  file --
+-- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
+-- of the license.                                                          --
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
 
-with Langkit_Support.Slocs; use Langkit_Support.Slocs;
+with Langkit_Support.Slocs;
 
-with Libadalang.Analysis; use  Libadalang.Analysis;
+with Libadalang.Analysis;
 
-with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
+with LAL_Refactor.Pull_Up_Declaration;
 
 with LSP.Common;
 with LSP.Messages.Client_Requests;
@@ -35,7 +29,7 @@ with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
 
-package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
+package body LSP.Ada_Handlers.Refactor.Pull_Up_Declaration is
 
    ------------------------
    -- Append_Code_Action --
@@ -52,17 +46,16 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
 
    begin
       Self.Initialize
-        (Context                      => Context.all,
-         Where                        => Where,
-         New_Parameters_Default_Value => "");
+        (Context           => Context.all,
+         Where             => Where);
 
       Pointer.Set (Self);
 
       Code_Action :=
-        (title       => "Change Parameter Default Value",
+        (title       => "Pull Up Declaration",
          kind        =>
            (Is_Set => True,
-            Value  => LSP.Messages.RefactorRewrite),
+            Value  => LSP.Messages.RefactorExtract),
          diagnostics => (Is_Set => False),
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
@@ -112,9 +105,6 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
                elsif Key = "where" then
                   Location'Read (JS, C.Where);
 
-               elsif Key = "newParametersDefaultValue" then
-                  Read_String (JS, C.New_Parameters_Default_Value);
-
                else
                   JS.Skip_Value;
                end if;
@@ -138,9 +128,10 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
         Client_Message_Receiver'Class;
       Error   : in out LSP.Errors.Optional_ResponseError)
    is
+      use Langkit_Support.Slocs;
+      use Libadalang.Analysis;
       use LAL_Refactor;
-      use LAL_Refactor.Subprogram_Signature.
-            Change_Parameters_Default_Value;
+      use LAL_Refactor.Pull_Up_Declaration;
       use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
@@ -158,26 +149,19 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
         Context.LAL_Context.Get_From_File
           (Context.URI_To_File (Self.Where.uri));
 
-      Parameters_SLOC_Range : constant Source_Location_Range :=
+      Declaration_SLOC : constant Source_Location :=
         (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
-         Langkit_Support.Slocs.Line_Number (Self.Where.span.last.line) + 1,
-         Column_Number (Self.Where.span.first.character) + 1,
-         Column_Number (Self.Where.span.last.character) + 1);
-
-      Changer : constant Parameters_Default_Value_Changer :=
-        Create_Parameters_Default_Value_Changer
-          (Unit                             => Unit,
-           Parameters_Source_Location_Range =>
-             Parameters_SLOC_Range,
-           New_Parameters_Default_Value     =>
-             To_Unbounded_UTF_8_String (Self.New_Parameters_Default_Value));
+         Langkit_Support.Slocs.Column_Number (Self.Where.span.first.character)
+         + 1);
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Pull_Upper
 
-      Edits : constant LAL_Refactor.Refactoring_Edits :=
-        Changer.Refactor (Analysis_Units'Access);
+      Pull_Upper : constant Declaration_Extractor :=
+        Create_Declaration_Pull_Upper (Unit, Declaration_SLOC);
+      Edits      : constant Refactoring_Edits :=
+        Pull_Upper.Refactor (Analysis_Units'Access);
 
    begin
       if Edits = No_Refactoring_Edits then
@@ -186,8 +170,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
             Value  =>
               (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Change Parameter Default Value "
-                  & "refactoring."),
+                 ("Failed to execute the Pull Up Declaration refactoring."),
                data    => <>));
 
       else
@@ -210,11 +193,10 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
+              (code    => LSP.Errors.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Change Parameter Default Value "
-                  & "refactoring."),
-               data => <>));
+                 ("Failed to execute the Pull Up Declaration refactoring."),
+               data    => <>));
    end Execute;
 
    ----------------
@@ -222,14 +204,12 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
    ----------------
 
    procedure Initialize
-     (Self                         : in out Command'Class;
-      Context                      : LSP.Ada_Contexts.Context;
-      Where                        : LSP.Messages.Location;
-      New_Parameters_Default_Value : VSS.Strings.Virtual_String) is
+     (Self    : in out Command'Class;
+      Context : LSP.Ada_Contexts.Context;
+      Where   : LSP.Messages.Location) is
    begin
       Self.Context := Context.Id;
-      Self.Where := Where;
-      Self.New_Parameters_Default_Value := New_Parameters_Default_Value;
+      Self.Where   := Where;
    end Initialize;
 
    -------------------
@@ -252,9 +232,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
       Write_String (S, C.Context);
       JS.Key ("where");
       Location'Write (S, C.Where);
-      JS.Key ("newParametersDefaultValue");
-      Write_String (S, C.New_Parameters_Default_Value);
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
+end LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;

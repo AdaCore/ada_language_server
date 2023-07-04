@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020-2020, AdaCore                     --
+--                        Copyright (C) 2023, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,76 +15,63 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the command to refactor imports.
+--  Implementation of the refactoring command to sort dependencies
 
 with Ada.Streams;
-
-with VSS.Strings;
-
-with LAL_Refactor;
-with LAL_Refactor.Refactor_Imports;
 
 with LSP.Client_Message_Receivers;
 with LSP.Commands;
 with LSP.Errors;
 with LSP.JSON_Streams;
 
-package LSP.Ada_Handlers.Refactor_Imports_Commands is
+private with VSS.Strings;
+
+package LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
    type Command is new LSP.Commands.Command with private;
 
-   procedure Initialize
-     (Self         : in out Command'Class;
-      Context      : LSP.Ada_Contexts.Context;
-      Where        : LSP.Messages.TextDocumentPositionParams;
-      With_Clause  : VSS.Strings.Virtual_String;
-      Prefix       : VSS.Strings.Virtual_String);
-   --  Initializes Command
-
-   procedure Append_Suggestion
-     (Self              : in out Command;
-      Context           : Context_Access;
-      Where             : LSP.Messages.Location;
-      Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
-      Suggestion        : LAL_Refactor.Refactor_Imports.Import_Suggestion);
-   --  Initializes Command based on Suggestion and appends it to
-   --  Commands_Vector.
+   procedure Append_Code_Action
+     (Self            : in out Command;
+      Context         : Context_Access;
+      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
+      Where           : LSP.Messages.Location);
+   --  Initializes Self and appends it to Commands_Vector
 
 private
 
    type Command is new LSP.Commands.Command with record
-      Context      : VSS.Strings.Virtual_String;
-      Where        : LSP.Messages.TextDocumentPositionParams;
-      With_Clause  : VSS.Strings.Virtual_String;
-      Prefix       : VSS.Strings.Virtual_String;
+      Context : VSS.Strings.Virtual_String;
+      Where   : LSP.Messages.Location;
    end record;
 
-   overriding function Create
+   overriding
+   function Create
      (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
       return Command;
+   --  Reads JS and creates a new Command
 
-   overriding procedure Execute
+   overriding
+   procedure Execute
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Error   : in out LSP.Errors.Optional_ResponseError);
+   --  Executes Self by computing the necessary refactorings
+
+   procedure Initialize
+     (Self    : in out Command'Class;
+      Context : LSP.Ada_Contexts.Context;
+      Where   : LSP.Messages.Location);
+   --  Initializes Self
 
    procedure Write_Command
      (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Command);
-   --  Write the command in a JSON Stream
-
-   function Command_To_Refactoring_Edits
-     (Self     : Command;
-      Context  : LSP.Ada_Contexts.Context;
-      Document : LSP.Ada_Documents.Document_Access)
-      return LAL_Refactor.Refactoring_Edits;
-   --  Converts Self into LAL_Refactor.Refactoring_Edits that can be
-   --  converted in a WorkspaceEdit.
+      C : Command);
+   --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-imports";
+   for Command'External_Tag use "als-refactor-sort_dependencies";
 
-end LSP.Ada_Handlers.Refactor_Imports_Commands;
+end LSP.Ada_Handlers.Refactor.Sort_Dependencies;

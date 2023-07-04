@@ -15,38 +15,33 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to add parameters
+--  Implementation of the refactoring command to extract a declaration
 
 with Ada.Streams;
 
-with Libadalang.Common;
-
 with LSP.Client_Message_Receivers;
 with LSP.Commands;
-with LSP.Messages;
 with LSP.Errors;
 with LSP.JSON_Streams;
 
-with VSS.Strings;
+private with VSS.Strings;
 
-package LSP.Ada_Handlers.Refactor_Extract_Subprogram is
+package LSP.Ada_Handlers.Refactor.Pull_Up_Declaration is
 
    type Command is new LSP.Commands.Command with private;
 
    procedure Append_Code_Action
-     (Self                        : in out Command;
-      Context                     : Context_Access;
-      Commands_Vector             : in out LSP.Messages.CodeAction_Vector;
-      Where                       : LSP.Messages.Location;
-      Subprogram_Kind             : Libadalang.Common.Ada_Subp_Kind);
+     (Self            : in out Command;
+      Context         : Context_Access;
+      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
+      Where           : LSP.Messages.Location);
    --  Initializes Self and appends it to Commands_Vector
 
 private
 
    type Command is new LSP.Commands.Command with record
-      Context_Id              : VSS.Strings.Virtual_String;
-      Section_To_Extract_SLOC : LSP.Messages.Location;
-      Subprogram_Kind         : Libadalang.Common.Ada_Subp_Kind;
+      Context : VSS.Strings.Virtual_String;
+      Where   : LSP.Messages.Location;
    end record;
 
    overriding
@@ -62,14 +57,13 @@ private
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Error   : in out LSP.Errors.Optional_ResponseError);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self             : in out Command'Class;
-      Context          : LSP.Ada_Contexts.Context;
-      Where            : LSP.Messages.Location;
-      Subprogram_Kind  : Libadalang.Common.Ada_Subp_Kind);
+     (Self    : in out Command'Class;
+      Context : LSP.Ada_Contexts.Context;
+      Where   : LSP.Messages.Location);
    --  Initializes Self
 
    procedure Write_Command
@@ -78,6 +72,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-extract-subprogram";
+   for Command'External_Tag use "als-refactor-pull_up_declaration";
 
-end LSP.Ada_Handlers.Refactor_Extract_Subprogram;
+end LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
