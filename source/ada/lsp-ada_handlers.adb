@@ -4005,7 +4005,7 @@ package body LSP.Ada_Handlers is
       --  edits to `All_Edits`.
 
       function To_LSP_Diagnostic
-        (Problem         : LAL_Refactor.Refactoring_Diagnotic'Class;
+        (Problem         : LAL_Refactor.Refactoring_Diagnostic'Class;
          Definition_Node : Defining_Name)
          return LSP.Messages.Diagnostic;
       --  Convert a laltool refactoring diagnostic into a LSP one.
@@ -4298,7 +4298,7 @@ package body LSP.Ada_Handlers is
       -----------------------
 
       function To_LSP_Diagnostic
-        (Problem         : LAL_Refactor.Refactoring_Diagnotic'Class;
+        (Problem         : LAL_Refactor.Refactoring_Diagnostic'Class;
          Definition_Node : Defining_Name)
          return LSP.Messages.Diagnostic
       is
