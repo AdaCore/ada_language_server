@@ -4,7 +4,6 @@ on:
       - edge
     tags:
       - 2*.*.*
-  pull_request:
 name: Build binaries
 env:
   DEFAULT_TAG: 23.0.999
@@ -70,6 +69,12 @@ jobs:
         with:
           repository: AdaCore/gnatdoc
           path: subprojects/gnatdoc
+          ref: edge
+      - name: Get LAL Refactor
+        uses: actions/checkout@v3
+        with:
+          repository: AdaCore/lal-refactor
+          path: subprojects/lal-refactor
           ref: edge
       - uses: actions/cache@v3
         with:

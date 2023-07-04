@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2022, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,12 +24,10 @@ with GNATCOLL.VFS;          use GNATCOLL.VFS;
 
 with VSS.Characters;
 with VSS.Strings;
-with VSS.String_Vectors;
 
 with GPR2.Project.Attribute_Index;
 
 with LSP.Messages;
-with Libadalang.Analysis;   use Libadalang.Analysis;
 
 package LSP.Common is
 
@@ -39,10 +37,6 @@ package LSP.Common is
      (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
       others => False);
    --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
-
-   Document_LSP_New_Line_Function : constant VSS.Strings.Line_Terminator :=
-     VSS.Strings.LF;
-   --  Line terminator to be used to generate replies. It is fixed to LF now.
 
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
@@ -75,15 +69,6 @@ package LSP.Common is
      (Exe  : Virtual_File;
       Args : GNAT.OS_Lib.Argument_List) return String;
    --  Run the given command line and return the output.
-
-   function Get_Hover_Text
-     (Decl         : Basic_Decl'Class;
-      Code_Snippet : VSS.String_Vectors.Virtual_String_Vector :=
-        VSS.String_Vectors.Empty_Virtual_String_Vector)
-      return VSS.Strings.Virtual_String;
-   --  Return a pretty printed version of the declaration's text to be
-   --  displayed on hover requests, removing unnecessary indentation
-   --  whitespaces if needed and attaching extra information in some cases.
 
    function Is_Ada_Separator
      (Item : VSS.Characters.Virtual_Character) return Boolean;

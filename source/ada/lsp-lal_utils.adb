@@ -19,8 +19,6 @@ with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Wide_Unbounded;
 with System;
 
-with GNATdoc.Comments.Helpers;
-
 with GNATCOLL.Utils;
 
 with VSS.Strings.Character_Iterators;
@@ -75,11 +73,6 @@ package body LSP.Lal_Utils is
       Node   : Libadalang.Analysis.Ada_Node) return Boolean;
    --  Evaluate the Restricted_Kind_Predicate filter
    --  See Is_Restricted_Kind for details.
-
-   function Get_Decl_Text
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String;
-   --  Return the code associated with the given declaration, in a formatted
-   --  way.
 
    ---------------------
    -- Append_Location --
@@ -770,74 +763,6 @@ package body LSP.Lal_Utils is
          return VSS.Strings.Empty_Virtual_String;
       end if;
    end Canonicalize;
-
-   -------------------
-   -- Get_Decl_Text --
-   -------------------
-
-   function Get_Decl_Text
-     (BD : Libadalang.Analysis.Basic_Decl) return VSS.Strings.Virtual_String
-   is
-      Result : VSS.Strings.Virtual_String;
-   begin
-      --  If the basic declaration is an enum literal, display the whole
-      --  enumeration type declaration instead.
-      if BD.Kind in Ada_Enum_Literal_Decl then
-         Result := LSP.Common.Get_Hover_Text
-           (As_Enum_Literal_Decl (BD).P_Enum_Type.As_Basic_Decl);
-      else
-         Result := LSP.Common.Get_Hover_Text (BD);
-      end if;
-
-      return Result;
-   end Get_Decl_Text;
-
-   ----------------------
-   -- Get_Tooltip_Text --
-   ----------------------
-
-   procedure Get_Tooltip_Text
-     (BD        : Libadalang.Analysis.Basic_Decl;
-      Trace     : GNATCOLL.Traces.Trace_Handle;
-      Style     : GNATdoc.Comments.Options.Documentation_Style;
-      Loc_Text  : out VSS.Strings.Virtual_String;
-      Doc_Text  : out VSS.Strings.Virtual_String;
-      Decl_Text : out VSS.Strings.Virtual_String)
-   is
-      pragma Unreferenced (Trace);
-
-      Options    : constant
-        GNATdoc.Comments.Options.Extractor_Options :=
-          (Style    => Style,
-           Pattern  => <>,
-           Fallback => True);
-      Decl_Lines : VSS.String_Vectors.Virtual_String_Vector;
-      Doc_Lines  : VSS.String_Vectors.Virtual_String_Vector;
-
-   begin
-      --  Extract documentation with GNATdoc when supported.
-
-      GNATdoc.Comments.Helpers.Get_Plain_Text_Documentation
-        (Name          => BD.P_Defining_Name,
-         Options       => Options,
-         Code_Snippet  => Decl_Lines,
-         Documentation => Doc_Lines);
-
-      Decl_Text := Decl_Lines.Join_Lines (VSS.Strings.LF, False);
-      Doc_Text := Doc_Lines.Join_Lines (VSS.Strings.LF, False);
-
-      --  If GNATdoc failed to compute the declaration text, use the old engine
-      if Decl_Text.Is_Empty
-        or else (BD.Kind not in Ada_Enum_Literal_Decl
-                   and not BD.P_Subp_Spec_Or_Null.Is_Null)
-      then
-         --  For subprograms additional information is added, use old code to
-         --  obtain it yet.
-         Decl_Text := Get_Decl_Text (BD);
-      end if;
-
-      Loc_Text := LSP.Lal_Utils.Node_Location_Image (BD);
-   end Get_Tooltip_Text;
 
    -----------------------
    -- Containing_Entity --

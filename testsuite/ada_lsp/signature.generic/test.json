@@ -159,8 +159,8 @@
                "result": {
                   "signatures": [
                      {
-                        "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
-                        "documentation": "Source:",
+                        "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
+                        "documentation": "Source:\n\n@formal Elt_Type\n@formal Elt_Ptr",
                         "parameters": [
                            {
                               "label": "Elt_Type"
@@ -260,8 +260,8 @@
                   "activeSignatureHelp": {
                      "signatures": [
                         {
-                           "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
-                           "documentation": "Source:",
+                           "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
+                           "documentation": "Source:\n\n@formal Elt_Type\n@formal Elt_Ptr",
                            "parameters": [
                               {
                                  "label": "Elt_Type"
@@ -285,8 +285,8 @@
                "result": {
                   "signatures": [
                      {
-                        "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G is\n    type T(Length: Natural) is private;\n    type T_Ptr is access all T;\nprivate\n    type Elt_Array is array(Positive range <>) of Elt_Ptr;\n    type T(Length: Natural) is\n\trecord\n\t    Elts: Elt_Array(1..Length);\n\tend record;\nend G;",
-                        "documentation": "Source:",
+                        "label": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
+                        "documentation": "Source:\n\n@formal Elt_Type\n@formal Elt_Ptr",
                         "parameters": [
                            {
                               "label": "Elt_Type"

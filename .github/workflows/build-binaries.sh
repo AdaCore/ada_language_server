@@ -18,6 +18,7 @@ fi
 export GPR_PROJECT_PATH=$prefix/share/gpr:\
 $PWD/subprojects/VSS/gnat:\
 $PWD/subprojects/gnatdoc/gnat:\
+$PWD/subprojects/lal-refactor/gnat:\
 $PWD/subprojects/libadalang-tools/src:\
 $PWD/subprojects/spawn/gnat:\
 $PWD/subprojects/stubs
