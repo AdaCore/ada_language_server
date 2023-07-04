@@ -1,0 +1,176 @@
+[
+   {
+      "comment": [
+         "verify that diags are published for root & related projects"
+      ]
+   }, 
+   {
+      "start": {
+          "cmd": ["${ALS}", "--language-gpr"]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [{
+            "id": 1,
+            "result": {
+              "capabilities": {
+                "textDocumentSync": {
+                  "openClose": true,
+                  "change": 1
+                  }
+                }
+              }
+            }]
+         }
+      }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with \"doesnotexist\";\nproject prj is\nend prj;", 
+                  "version": 0, 
+                  "uri": "$URI{prj.gpr}", 
+                  "languageId": "Gpr"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": [{
+            "method": "textDocument/publishDiagnostics",
+            "params": {
+              "uri": "$URI{prj.gpr}",
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 5
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "message": "imported project file \"doesnotexist.gpr\" not found"
+                }
+              ]
+            }
+         }]
+      }
+   },
+      {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 6
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 18
+                        }
+                     },
+                     "text": "imported"
+                  }
+               ]
+            }
+         },
+          "wait": [{
+            "method": "textDocument/publishDiagnostics",
+            "params": {
+              "uri": "$URI{imported.gpr}",
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 5
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "message": "imported project file \"doesnotexist.gpr\" not found"
+                }
+              ]
+            }
+         }]
+      }
+   },
+   
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didClose"
+         }, 
+         "wait": [{
+            "method": "textDocument/publishDiagnostics",
+            "params": {
+              "uri": "$URI{prj.gpr}",
+              "diagnostics": [
+              ]
+            }
+         }]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 7, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 7, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

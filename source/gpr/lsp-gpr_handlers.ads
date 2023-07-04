@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2022, AdaCore                        --
+--                     Copyright (C) 2022-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,30 +15,111 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  This package provides requests and notifications handler for GNAT Project
---  language.
+--  This package provides requests and notifications handler for GPR language.
 
+with Ada.Containers.Hashed_Maps;
+
+with GNATCOLL.Traces;
+with GNATCOLL.VFS;
+
+with GPR2.File_Readers;
+with GPR2.Path_Name;
+
+with LSP.GPR_Documents;
+with LSP.GPR_Files;
 with LSP.Messages.Server_Requests;
 with LSP.Messages.Server_Responses;
 with LSP.Server_Request_Handlers;
 with LSP.Server_Notification_Receivers;
+with LSP.Servers;
+with LSP.Types;
 
 package LSP.GPR_Handlers is
 
-   type Message_Handler is
-     limited new LSP.Server_Request_Handlers.Server_Request_Handler
+   type Message_Handler
+     (Server  : access LSP.Servers.Server;
+      Trace   : GNATCOLL.Traces.Trace_Handle) is
+   limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
+     and LSP.GPR_Documents.Document_Provider
+     and LSP.GPR_Files.File_Provider
    with private;
+   --  A handler of LSP notifications and requests from GPR language
    --  A LSP notifications/requests handler for GPR language
+
+   function From_File
+     (Self : Message_Handler'Class;
+      File : GNATCOLL.VFS.Virtual_File) return LSP.Messages.DocumentUri;
+   --  Turn Virtual_File to URI
+
+   function To_File
+     (Self : Message_Handler'Class;
+      URI  : LSP.Types.LSP_URI) return GNATCOLL.VFS.Virtual_File;
+   --  Turn URI into Virtual_File
+
+   function To_File
+     (URI             : LSP.Types.LSP_URI;
+      Follow_Symlinks : Boolean) return GPR2.Path_Name.Object;
+   --  Turn URI into GPR2 path object.
 
 private
 
-   type Message_Handler is
-     limited new LSP.Server_Request_Handlers.Server_Request_Handler
+   type Internal_Document_Access is access all LSP.GPR_Documents.Document;
+
+   procedure Free (Self : in out Internal_Document_Access);
+   --  Free all the data for the given document.
+
+   --  Container for documents indexed by URI (diagnostics request)
+   package Document_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => GNATCOLL.VFS.Virtual_File,
+      Element_Type    => Internal_Document_Access,
+      Hash            => GNATCOLL.VFS.Full_Name_Hash,
+      Equivalent_Keys => GNATCOLL.VFS."=");
+
+   type Internal_File_Access is access all LSP.GPR_Files.File;
+
+   --  Container for documents indexed by URI (others request)
+   package Files_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => GPR2.Path_Name.Object,
+      Element_Type    => Internal_File_Access,
+      Hash            => GPR2.Path_Name.Hash,
+      Equivalent_Keys => GPR2.Path_Name."=");
+
+   type Get_Symbol_Access is access procedure
+     (Provider : LSP.GPR_Files.File_Provider_Access;
+      Request  : LSP.Messages.Server_Requests.Document_Symbols_Request;
+      Result   : out LSP.Messages.Symbol_Vector);
+   --  textDocument/documentSymbol handler
+
+   type Message_Handler
+     (Server  : access LSP.Servers.Server;
+      Trace   : GNATCOLL.Traces.Trace_Handle) is
+   limited new LSP.Server_Request_Handlers.Server_Request_Handler
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
+     and LSP.GPR_Documents.Document_Provider
+     and LSP.GPR_Files.File_Provider
    with record
       Client_Settings : LSP.Messages.InitializeParams;
       --  Client information from the initialization request
+
+      Open_Documents : Document_Maps.Map;
+      --  The documents that are currently open
+
+      Parsed_Files : Files_Maps.Map;
+      --  open document & related files (imported, extended, aggregated)
+
+      Get_Symbols : Get_Symbol_Access;
+      --  textDocument/documentSymbol handler. Actual value depends on
+      --  client's capabilities.
+
+      Follow_Symlinks : Boolean := True;
+      --  False if the client disables symlink following. In this case
+      --  URIs from client should match file names reported by GPR2.Path_Name
+
+      Diagnostics_Enabled : Boolean := True;
+      --  Whether to publish diagnostics
+
+      File_Reader : GPR2.File_Readers.File_Reader_Reference;
    end record;
 
    overriding function On_Initialize_Request
@@ -249,15 +330,15 @@ private
 
    overriding procedure On_DidChangeTextDocument_Notification
      (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeTextDocumentParams) is null;
+      Value : LSP.Messages.DidChangeTextDocumentParams);
 
    overriding procedure On_DidCloseTextDocument_Notification
      (Self  : access Message_Handler;
-      Value : LSP.Messages.DidCloseTextDocumentParams) is null;
+      Value : LSP.Messages.DidCloseTextDocumentParams);
 
    overriding procedure On_DidOpenTextDocument_Notification
      (Self  : access Message_Handler;
-      Value : LSP.Messages.DidOpenTextDocumentParams) is null;
+      Value : LSP.Messages.DidOpenTextDocumentParams);
 
    overriding procedure On_DidSaveTextDocument_Notification
      (Self  : access Message_Handler;
@@ -299,4 +380,52 @@ private
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
       return LSP.Messages.Server_Responses.GLS_Executables_Response;
+
+   -----------------------------------------
+   -- LSP.GPR_Documents.Document_Provider --
+   -----------------------------------------
+
+   overriding function Get_Open_Document
+     (Self  : access Message_Handler;
+      URI   : LSP.Messages.DocumentUri;
+      Force : Boolean := False)
+      return LSP.GPR_Documents.Document_Access;
+   --  Return the open document for the given URI.
+   --  If the document is not opened, then if Force a new document
+   --  will be created and must be freed by the user else null will be
+   --  returned.
+
+   overriding function Get_Open_Document_Version
+     (Self  : access Message_Handler;
+      URI   : LSP.Messages.DocumentUri)
+      return LSP.Messages.OptionalVersionedTextDocumentIdentifier;
+   --  Return the version of an open document for the given URI.
+   --  If the document is not opened, then it returns a
+   --  VersionedTextDocumentIdentifier with a null version.
+
+   ---------------------------------
+   -- LSP.GPR_Files.File_Provider --
+   ---------------------------------
+
+   overriding function Get_Parsed_File
+     (Self  : access Message_Handler;
+      Path  : GPR2.Path_Name.Object)
+      return LSP.GPR_Files.File_Access;
+   --  Return the parsed file for the given URI.
+   --  If the file is not yet parsed, then it is parsed.
+
+   overriding function Follow_Symlinks
+     (Self : access Message_Handler) return Boolean is
+     (Self.Follow_Symlinks);
+   --  Return False if the client disables symlink following.
+
+   overriding function Is_Openened_Document
+     (Self : access Message_Handler;
+      File  : GNATCOLL.VFS.Virtual_File) return Boolean is
+     (Self.Open_Documents.Contains (File));
+
+   overriding function Get_File_Reader
+     (Self : access Message_Handler)
+      return GPR2.File_Readers.File_Reader_Reference is (Self.File_Reader);
+
 end LSP.GPR_Handlers;
