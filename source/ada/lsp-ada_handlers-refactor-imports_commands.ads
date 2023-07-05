@@ -25,13 +25,15 @@ with LAL_Refactor;
 with LAL_Refactor.Refactor_Imports;
 
 with LSP.Client_Message_Receivers;
-with LSP.Commands;
-with LSP.Errors;
 with LSP.JSON_Streams;
 
 package LSP.Ada_Handlers.Refactor.Imports_Commands is
 
-   type Command is new LSP.Commands.Command with private;
+   type Command is new LSP.Ada_Handlers.Refactor.Command with private;
+
+   overriding function Name (Self : Command) return String
+   is
+      ("Imports Command");
 
    procedure Initialize
      (Self         : in out Command'Class;
@@ -52,7 +54,7 @@ package LSP.Ada_Handlers.Refactor.Imports_Commands is
 
 private
 
-   type Command is new LSP.Commands.Command with record
+   type Command is new LSP.Ada_Handlers.Refactor.Command with record
       Context      : VSS.Strings.Virtual_String;
       Where        : LSP.Messages.TextDocumentPositionParams;
       With_Clause  : VSS.Strings.Virtual_String;
@@ -63,13 +65,13 @@ private
      (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
       return Command;
 
-   overriding procedure Execute
+   overriding procedure Refactor
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Edits   : out LAL_Refactor.Refactoring_Edits);
 
    procedure Write_Command
      (S : access Ada.Streams.Root_Stream_Type'Class;

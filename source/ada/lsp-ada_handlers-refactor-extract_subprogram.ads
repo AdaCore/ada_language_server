@@ -22,16 +22,18 @@ with Ada.Streams;
 with Libadalang.Common;
 
 with LSP.Client_Message_Receivers;
-with LSP.Commands;
 with LSP.Messages;
-with LSP.Errors;
 with LSP.JSON_Streams;
 
 with VSS.Strings;
 
 package LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
-   type Command is new LSP.Commands.Command with private;
+   type Command is new LSP.Ada_Handlers.Refactor.Command with private;
+
+      overriding function Name (Self : Command) return String
+   is
+      ("Extract Subprogram");
 
    procedure Append_Code_Action
      (Self                        : in out Command;
@@ -43,7 +45,7 @@ package LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
 private
 
-   type Command is new LSP.Commands.Command with record
+   type Command is new LSP.Ada_Handlers.Refactor.Command with record
       Context_Id              : VSS.Strings.Virtual_String;
       Section_To_Extract_SLOC : LSP.Messages.Location;
       Subprogram_Kind         : Libadalang.Common.Ada_Subp_Kind;
@@ -56,13 +58,13 @@ private
    --  Reads JS and creates a new Command
 
    overriding
-   procedure Execute
+   procedure Refactor
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Edits   : out LAL_Refactor.Refactoring_Edits);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize

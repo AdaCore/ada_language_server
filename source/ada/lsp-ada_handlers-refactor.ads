@@ -14,18 +14,39 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+--
+--  Base package for all the refactoring commands available via the ALS
 
 with LAL_Refactor;
+with LSP.Client_Message_Receivers;
 with LSP.Commands;
+with LSP.Errors;
 
 package LSP.Ada_Handlers.Refactor is
 
    type Command is abstract new LSP.Commands.Command with private;
 
+   function Name (Self : Command) return String is abstract;
+
+   overriding procedure Execute
+     (Self    : Command;
+      Handler : not null access
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
+      Client  : not null access
+        LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Error  : in out LSP.Errors.Optional_ResponseError);
+
+   procedure Refactor
+     (Self    : Command;
+      Handler : not null access
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
+      Client  : not null access
+        LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Edits   : out LAL_Refactor.Refactoring_Edits) is abstract;
+   --  Abstract procedure used to compute the refactoring edits.
+
 private
 
-   type Command is abstract new LSP.Commands.Command with record
-      Diagnostics : LAL_Refactor.Refactoring_Diagnostic_Vector;
-   end record;
+   type Command is abstract new LSP.Commands.Command with null record;
 
 end LSP.Ada_Handlers.Refactor;

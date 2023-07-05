@@ -21,12 +21,11 @@ with Libadalang.Analysis; use Libadalang.Analysis;
 
 with Laltools.Common; use Laltools.Common;
 
-with LSP.Common;
 with LSP.Messages;
-with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
+with LSP.Commands;
 
 package body LSP.Ada_Handlers.Refactor.Move_Parameter is
 
@@ -181,22 +180,20 @@ package body LSP.Ada_Handlers.Refactor.Move_Parameter is
       end return;
    end Create;
 
-   -------------
-   -- Execute --
-   -------------
+   --------------
+   -- Refactor --
+   --------------
 
-   overriding procedure Execute
+   overriding procedure Refactor
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
       Client : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error : in out LSP.Errors.Optional_ResponseError)
+      Edits   : out LAL_Refactor.Refactoring_Edits)
    is
       use LAL_Refactor;
-      use LSP.Messages;
       use LSP.Types;
-      use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -206,11 +203,7 @@ package body LSP.Ada_Handlers.Refactor.Move_Parameter is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
 
-      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
-      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
-      Label           : Optional_Virtual_String renames Apply.params.label;
-
-      Node : constant Ada_Node :=
+      Node            : constant Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
 
       Target_Subp            : constant Defining_Name :=
@@ -218,22 +211,20 @@ package body LSP.Ada_Handlers.Refactor.Move_Parameter is
       Target_Parameter_Index : constant Positive :=
         Positive (Self.Parameter_Index);
 
-      Edits : Refactoring_Edits;
-
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
    begin
       if Target_Subp.Is_Null then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.InvalidRequest,
-               message =>
-                 "Failed to execute the Move Parameter refactoring. "
-                 & "The target subprogram could not be resolved precisely.",
-               data    => <>));
+         Edits := (Diagnostics =>
+                     [LAL_Refactor.Subprogram_Signature.Create
+                        (Subp => Node,
+                         Info => VSS.Strings.Conversions.To_Virtual_String
+                           ("The target subprogram could "
+                            & "not be resolved precisely."))],
+                   others      => <>);
+
          return;
       end if;
 
@@ -252,41 +243,7 @@ package body LSP.Ada_Handlers.Refactor.Move_Parameter is
             Edits := Mover.Refactor (Analysis_Units'Access);
          end;
       end if;
-
-      if Edits = No_Refactoring_Edits then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Move Parameter refactoring."),
-               data    => <>));
-
-      else
-         Workspace_Edits :=
-           LSP.Lal_Utils.To_Workspace_Edit
-             (Edits               => Edits,
-              Resource_Operations => Message_Handler.Resource_Operations,
-              Versioned_Documents => Message_Handler.Versioned_Documents,
-              Document_Provider   => Message_Handler'Access);
-         Label :=
-           (Is_Set => True,
-            Value  => To_Virtual_String (Command'External_Tag));
-
-         Client.On_Workspace_Apply_Edit_Request (Apply);
-      end if;
-
-   exception
-      when E : others =>
-         LSP.Common.Log (Message_Handler.Trace, E);
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Move Parameter refactoring."),
-               data    => <>));
-   end Execute;
+   end Refactor;
 
    -------------------
    -- Write_Command --
