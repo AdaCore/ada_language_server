@@ -1,0 +1,582 @@
+[
+  {
+    "comment": [
+      "verify that hierarchical mode textDocument/documentSymbol request works on opened & closed document"
+    ]
+  },
+  {
+    "start": {
+      "cmd": [
+        "${ALS}",
+        "--language-gpr"
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "init",
+        "method": "initialize",
+        "params": {
+          "processId": 441587,
+          "rootUri": "$URI{.}",
+          "capabilities": {
+            "workspace": {
+              "applyEdit": true,
+              "workspaceEdit": {},
+              "didChangeConfiguration": {},
+              "didChangeWatchedFiles": {},
+              "executeCommand": {}
+            },
+            "textDocument": {
+              "synchronization": {},
+              "completion": {
+                "dynamicRegistration": true,
+                "completionItem": {
+                  "snippetSupport": true,
+                  "documentationFormat": [
+                    "plaintext",
+                    "markdown"
+                  ]
+                }
+              },
+              "hover": {},
+              "signatureHelp": {},
+              "declaration": {},
+              "definition": {},
+              "typeDefinition": {},
+              "implementation": {},
+              "references": {},
+              "documentHighlight": {},
+              "documentSymbol": {
+                "hierarchicalDocumentSymbolSupport": true
+              },
+              "codeLens": {},
+              "colorProvider": {},
+              "formatting": {
+                "dynamicRegistration": false
+              },
+              "rangeFormatting": {
+                "dynamicRegistration": false
+              },
+              "onTypeFormatting": {
+                "dynamicRegistration": false
+              },
+              "foldingRange": {
+                "lineFoldingOnly": true
+              },
+              "selectionRange": {},
+              "linkedEditingRange": {},
+              "callHierarchy": {},
+              "moniker": {}
+            }
+          }
+        }
+      },
+      "wait": [
+        {
+          "jsonrpc": "2.0",
+          "id": "init",
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "initialized"
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{prj1.gpr}",
+            "languageId": "Gpr",
+            "version": 1,
+            "text": "with \"imported\";\nlimited with \"limited_imported\";\nabstract project Prj1 is\ntype T is (\"V\");\nV : T := \"V\";\nfor Object_Dir use \"obj\";\npackage P is\nVP : T := \"V\";\nfor A use \"\";\nend P;\nend Prj1;"
+          }
+        }
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "1",
+        "method": "textDocument/documentSymbol",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{prj1.gpr}"
+          }
+        }
+      },
+      "wait": [
+        {
+          "jsonrpc": "2.0",
+          "id": "1",
+          "result": [
+            {
+              "name": "Imported",
+              "kind": 3,
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 5
+                },
+                "end": {
+                  "line": 0,
+                  "character": 15
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 0,
+                  "character": 5
+                },
+                "end": {
+                  "line": 0,
+                  "character": 15
+                }
+              }
+            },
+            {
+              "name": "limited Limited_Imported",
+              "kind": 3,
+              "range": {
+                "start": {
+                  "line": 1,
+                  "character": 13
+                },
+                "end": {
+                  "line": 1,
+                  "character": 31
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 1,
+                  "character": 13
+                },
+                "end": {
+                  "line": 1,
+                  "character": 31
+                }
+              }
+            },
+            {
+              "name": "Prj1",
+              "kind": 2,
+              "range": {
+                "start": {
+                  "line": 2,
+                  "character": 9
+                },
+                "end": {
+                  "line": 2,
+                  "character": 16
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 2,
+                  "character": 9
+                },
+                "end": {
+                  "line": 2,
+                  "character": 16
+                }
+              }
+            },
+            {
+              "name": "T",
+              "kind": 10,
+              "range": {
+                "start": {
+                  "line": 3,
+                  "character": 5
+                },
+                "end": {
+                  "line": 3,
+                  "character": 6
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 3,
+                  "character": 5
+                },
+                "end": {
+                  "line": 3,
+                  "character": 6
+                }
+              }
+            },
+            {
+              "name": "V",
+              "kind": 13,
+              "range": {
+                "start": {
+                  "line": 4,
+                  "character": 0
+                },
+                "end": {
+                  "line": 4,
+                  "character": 1
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 4,
+                  "character": 0
+                },
+                "end": {
+                  "line": 4,
+                  "character": 1
+                }
+              }
+            },
+            {
+              "name": "Object_Dir",
+              "kind": 7,
+              "range": {
+                "start": {
+                  "line": 5,
+                  "character": 4
+                },
+                "end": {
+                  "line": 5,
+                  "character": 14
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 5,
+                  "character": 4
+                },
+                "end": {
+                  "line": 5,
+                  "character": 14
+                }
+              }
+            },
+            {
+              "name": "P",
+              "kind": 4,
+              "range": {
+                "start": {
+                  "line": 6,
+                  "character": 8
+                },
+                "end": {
+                  "line": 6,
+                  "character": 9
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 6,
+                  "character": 8
+                },
+                "end": {
+                  "line": 6,
+                  "character": 9
+                }
+              },
+              "children": [
+                {
+                  "name": "Vp",
+                  "kind": 13,
+                  "range": {
+                    "start": {
+                      "line": 7,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 7,
+                      "character": 2
+                    }
+                  },
+                  "selectionRange": {
+                    "start": {
+                      "line": 7,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 7,
+                      "character": 2
+                    }
+                  }
+                },
+                {
+                  "name": "A",
+                  "kind": 7,
+                  "range": {
+                    "start": {
+                      "line": 8,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 8,
+                      "character": 5
+                    }
+                  },
+                  "selectionRange": {
+                    "start": {
+                      "line": 8,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 8,
+                      "character": 5
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "2",
+        "method": "textDocument/documentSymbol",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{prj2.gpr}"
+          }
+        }
+      },
+      "wait": [
+        {
+          "jsonrpc": "2.0",
+          "id": "2",
+          "result": [
+            {
+              "name": "Prj2",
+              "kind": 2,
+              "range": {
+                "start": {
+                  "line": 1,
+                  "character": 0
+                },
+                "end": {
+                  "line": 1,
+                  "character": 7
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 1,
+                  "character": 0
+                },
+                "end": {
+                  "line": 1,
+                  "character": 7
+                }
+              }
+            },
+            {
+              "name": "T2",
+              "kind": 10,
+              "range": {
+                "start": {
+                  "line": 2,
+                  "character": 6
+                },
+                "end": {
+                  "line": 2,
+                  "character": 8
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 2,
+                  "character": 6
+                },
+                "end": {
+                  "line": 2,
+                  "character": 8
+                }
+              }
+            },
+            {
+              "name": "V2_1",
+              "kind": 13,
+              "range": {
+                "start": {
+                  "line": 3,
+                  "character": 1
+                },
+                "end": {
+                  "line": 3,
+                  "character": 5
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 3,
+                  "character": 1
+                },
+                "end": {
+                  "line": 3,
+                  "character": 5
+                }
+              }
+            },
+            {
+              "name": "Obj_Dir",
+              "kind": 7,
+              "range": {
+                "start": {
+                  "line": 4,
+                  "character": 5
+                },
+                "end": {
+                  "line": 4,
+                  "character": 12
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 4,
+                  "character": 5
+                },
+                "end": {
+                  "line": 4,
+                  "character": 12
+                }
+              }
+            },
+            {
+              "name": "P2",
+              "kind": 4,
+              "range": {
+                "start": {
+                  "line": 5,
+                  "character": 9
+                },
+                "end": {
+                  "line": 5,
+                  "character": 11
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 5,
+                  "character": 9
+                },
+                "end": {
+                  "line": 5,
+                  "character": 11
+                }
+              },
+              "children": [
+                {
+                  "name": "V2_2",
+                  "kind": 13,
+                  "range": {
+                    "start": {
+                      "line": 6,
+                      "character": 2
+                    },
+                    "end": {
+                      "line": 6,
+                      "character": 6
+                    }
+                  },
+                  "selectionRange": {
+                    "start": {
+                      "line": 6,
+                      "character": 2
+                    },
+                    "end": {
+                      "line": 6,
+                      "character": 6
+                    }
+                  }
+                },
+                {
+                  "name": "A2",
+                  "kind": 7,
+                  "range": {
+                    "start": {
+                      "line": 7,
+                      "character": 6
+                    },
+                    "end": {
+                      "line": 7,
+                      "character": 8
+                    }
+                  },
+                  "selectionRange": {
+                    "start": {
+                      "line": 7,
+                      "character": 6
+                    },
+                    "end": {
+                      "line": 7,
+                      "character": 8
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "shutdown",
+        "method": "shutdown",
+        "params": null
+      },
+      "wait": [
+        {
+          "id": "shutdown",
+          "result": null
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "exit",
+        "params": {}
+      },
+      "wait": []
+    }
+  },
+  {
+    "stop": {
+      "exit_code": 0
+    }
+  }
+]

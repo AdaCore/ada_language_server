@@ -93,7 +93,8 @@ procedure LSP.Ada_Driver is
    Stream      : aliased LSP.Stdio_Streams.Stdio_Stream;
    Ada_Handler : aliased LSP.Ada_Handlers.Message_Handler
      (Server'Access, Server_Trace);
-   GPR_Handler : aliased LSP.GPR_Handlers.Message_Handler;
+   GPR_Handler : aliased LSP.GPR_Handlers.Message_Handler
+     (Server'Access, Server_Trace);
 
    Error_Decorator : aliased LSP.Error_Decorators.Error_Decorator
      (Server_Trace,
