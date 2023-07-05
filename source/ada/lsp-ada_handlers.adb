@@ -2421,6 +2421,7 @@ package body LSP.Ada_Handlers is
         Request.params;
       Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
         (Is_Error => True);
+
    begin
       if Params.Is_Unknown or else Params.Custom.Is_Null then
          Response.error :=
@@ -2431,20 +2432,26 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      Params.Custom.Unchecked_Get.Execute
-        (Handler => Self,
-         Client  => Self.Server,
-         Error   => Error);
+      declare
+         Command : constant LSP.Commands.Command'Class :=
+           Params.Custom.Unchecked_Get.all;
+      begin
+         Command.Execute
+           (Handler => Self,
+            Client  => Self.Server,
+            Error   => Error);
 
-      if Error.Is_Set then
-         Response.error := Error;
-         return Response;
-      end if;
+         if Error.Is_Set then
+            Response.error := Error;
 
-      --  No particular response in case of success.
-      return (Is_Error => False,
-              error    => (Is_Set => False),
-              others   => <>);
+            return Response;
+         end if;
+
+         --  No particular response in case of success.
+         return (Is_Error => False,
+                 error    => (Is_Set => False),
+                 others   => <>);
+      end;
    end On_Execute_Command_Request;
 
    ----------------------------

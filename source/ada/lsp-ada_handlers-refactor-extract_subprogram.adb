@@ -26,11 +26,8 @@ with LAL_Refactor; use LAL_Refactor;
 with LAL_Refactor.Extract_Subprogram;
 use LAL_Refactor.Extract_Subprogram;
 
-with LSP.Common;
-with LSP.Messages.Client_Requests;
-with LSP.Lal_Utils;
-
 with VSS.Strings.Conversions;
+with LSP.Commands;
 
 package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
@@ -135,30 +132,24 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
       end return;
    end Create;
 
-   -------------
-   -- Execute --
-   -------------
+   --------------
+   -- Refactor --
+   --------------
 
-   overriding procedure Execute
+   overriding procedure Refactor
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
-      Client : not null access LSP.Client_Message_Receivers.
+      Client  : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error : in out LSP.Errors.Optional_ResponseError)
+      Edits   : out LAL_Refactor.Refactoring_Edits)
    is
-      use LSP.Messages;
       use LSP.Types;
-      use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context_Id).all;
-
-      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
-      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
-      Label           : Optional_Virtual_String renames Apply.params.label;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
@@ -186,44 +177,9 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
                 Location        =>
                   (Section_To_Extract.Start_Line,
                    Section_To_Extract.Start_Column)));
-      Edits     : constant Refactoring_Edits :=
-        Extractor.Refactor (Analysis_Units'Access);
-
    begin
-      if Edits = No_Refactoring_Edits then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Extract Subprogram refactoring."),
-               data    => <>));
-
-      else
-         Workspace_Edits :=
-           LSP.Lal_Utils.To_Workspace_Edit
-             (Edits               => Edits,
-              Resource_Operations => Message_Handler.Resource_Operations,
-              Versioned_Documents => Message_Handler.Versioned_Documents,
-              Document_Provider   => Message_Handler'Access);
-         Label :=
-           (Is_Set => True,
-            Value  => To_Virtual_String (Command'External_Tag));
-
-         Client.On_Workspace_Apply_Edit_Request (Apply);
-      end if;
-
-   exception
-      when E : others =>
-         LSP.Common.Log (Message_Handler.Trace, E);
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Extract Subprogram refactoring."),
-               data => <>));
-   end Execute;
+      Edits := Extractor.Refactor (Analysis_Units'Access);
+   end Refactor;
 
    ----------------
    -- Initialize --

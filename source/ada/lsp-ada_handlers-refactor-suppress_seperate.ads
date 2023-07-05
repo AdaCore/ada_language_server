@@ -22,15 +22,17 @@ with Ada.Streams;
 private with VSS.Strings;
 
 with LSP.Client_Message_Receivers;
-with LSP.Commands;
-with LSP.Errors;
 with LSP.JSON_Streams;
 
 with Libadalang.Analysis;
 
 package LSP.Ada_Handlers.Refactor.Suppress_Seperate is
 
-   type Command is new LSP.Commands.Command with private;
+   type Command is new LSP.Ada_Handlers.Refactor.Command with private;
+
+   overriding function Name (Self : Command) return String
+   is
+      ("Suppress Separate");
 
    procedure Append_Code_Action
      (Self            : in out Command;
@@ -41,7 +43,7 @@ package LSP.Ada_Handlers.Refactor.Suppress_Seperate is
 
 private
 
-   type Command is new LSP.Commands.Command with record
+   type Command is new LSP.Ada_Handlers.Refactor.Command with record
       Context : VSS.Strings.Virtual_String;
       Where   : LSP.Messages.TextDocumentPositionParams;
    end record;
@@ -51,13 +53,13 @@ private
       return Command;
    --  Reads JS and creates a new Command
 
-   overriding procedure Execute
+   overriding procedure Refactor
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Edits   : out LAL_Refactor.Refactoring_Edits);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize

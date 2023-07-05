@@ -241,7 +241,7 @@
                "id": 3,
                "method": "workspace/applyEdit",
                "params": {
-                  "label": "als-refactor-sort_dependencies",
+                  "label": "Sort Dependencies",
                   "edit": {
                      "documentChanges": [
                         {

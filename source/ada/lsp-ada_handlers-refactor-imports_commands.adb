@@ -26,12 +26,10 @@ with Libadalang.Common;
 
 with Laltools.Common;
 
-with LSP.Common;
 with LSP.Messages;
-with LSP.Messages.Client_Requests;
-with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
+with LSP.Commands;
 
 package body LSP.Ada_Handlers.Refactor.Imports_Commands is
 
@@ -305,23 +303,19 @@ package body LSP.Ada_Handlers.Refactor.Imports_Commands is
       return Edits;
    end Command_To_Refactoring_Edits;
 
-   -------------
-   -- Execute --
-   -------------
+   --------------
+   -- Refactor --
+   --------------
 
-   overriding procedure Execute
+   overriding procedure Refactor
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
       Client : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error : in out LSP.Errors.Optional_ResponseError)
+      Edits   : out LAL_Refactor.Refactoring_Edits)
    is
       use LAL_Refactor;
-      use LSP.Messages;
-      use LSP.Types;
-      use VSS.Strings;
-      use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -331,37 +325,9 @@ package body LSP.Ada_Handlers.Refactor.Imports_Commands is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
 
-      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
-      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
-      Label           : Optional_Virtual_String renames Apply.params.label;
-
-      Edits : constant Refactoring_Edits :=
-        Self.Command_To_Refactoring_Edits (Context, Document);
-
    begin
-      Workspace_Edits :=
-        LSP.Lal_Utils.To_Workspace_Edit
-          (Edits               => Edits,
-           Resource_Operations => Message_Handler.Resource_Operations,
-           Versioned_Documents => Message_Handler.Versioned_Documents,
-           Document_Provider   => Message_Handler'Access);
-      Label :=
-        (Is_Set => True,
-         Value  => To_Virtual_String (Command'External_Tag));
-
-      Client.On_Workspace_Apply_Edit_Request (Apply);
-
-   exception
-      when E : others =>
-         LSP.Common.Log (Message_Handler.Trace, E);
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Auto Imports refactoring"),
-               data    => <>));
-   end Execute;
+      Edits := Self.Command_To_Refactoring_Edits (Context, Document);
+   end Refactor;
 
    -------------------
    -- Write_Command --
