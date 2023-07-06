@@ -1,30 +1,30 @@
 variables:
-   # The common part of the URL for cloning from within a CI
-   GIT_CLONE_BASE: https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}:${CI_SERVER_PORT}
+  # The common part of the URL for cloning from within a CI
+  GIT_CLONE_BASE: https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}:${CI_SERVER_PORT}
 
 stages:
   - build_and_test
   - run_downstream_ci
 
 .basic-setup:
-    # Temporary: clone the specific branch of ci-fragments
-    # TODO: remove the next 4 lines when this version of ci-fragments is available in the image
-    - cd /tmp
-    - git clone $GIT_CLONE_BASE/eng/it/ci-fragments -b topic/generic_ci_phase_2 --depth 1
-    - export PATH=/tmp/ci-fragments:$PATH
-    - cd -
-    # Use generic_anod_ci here.
-    - generic_anod_ci
-    - cat /tmp/ci_env.sh
-    - . /tmp/ci_env.sh
+  # Temporary: clone the specific branch of ci-fragments
+  # TODO: remove the next 4 lines when this version of ci-fragments is available in the image
+  - cd /tmp
+  - git clone $GIT_CLONE_BASE/eng/it/ci-fragments -b topic/generic_ci_phase_2 --depth 1
+  - export PATH=/tmp/ci-fragments:$PATH
+  - cd -
+  # Use generic_anod_ci here.
+  - generic_anod_ci
+  - cat /tmp/ci_env.sh
+  - . /tmp/ci_env.sh
 
 # Build and test with ANOD
 # TODO: add a build and test based on Alire in parallel to this.
 build_and_test:
   services:
-     - image:sandbox
-     - cpu:8
-     - mem:16
+    - image:sandbox
+    - cpu:8
+    - mem:16
   stage: build_and_test
   interruptible: true
   rules:
@@ -50,34 +50,34 @@ build_and_test:
 
     # Process the report
     - e3-testsuite-report
-       --failure-exit-code 1
-       --xunit-output $CI_PROJECT_DIR/xunit_output.xml
-       $SB_BASE/results/new/ || FAILED=true
+      --failure-exit-code 1
+      --xunit-output $CI_PROJECT_DIR/xunit_output.xml
+      $SB_BASE/results/new/ || FAILED=true
 
     # Build the lsif report
     - anod install lsif-ada
     - ( cd $ANOD_DEFAULT_SANDBOX_DIR ;
-        eval `anod printenv lsif-ada`;
-        eval `anod printenv stable-gnat`;
-        eval `anod printenv ada_libfswatch`;
-        eval `anod printenv stable-templates_parser`;
-        eval `anod printenv stable-langkit_support`;
-        eval `anod printenv stable-libgpr2 --qualifier=bare`;
-        eval `anod printenv stable-libadalang`;
-        eval `anod printenv stable-libadalang-tools`;
-        export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/gnatdoc/gnat:$GPR_PROJECT_PATH;
-        export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/VSS/gnat:$GPR_PROJECT_PATH;
-        cd $ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/als/src;
-        lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif 2>/dev/null ||
-        touch $CI_PROJECT_DIR/dump.lsif )
+      eval `anod printenv lsif-ada`;
+      eval `anod printenv stable-gnat`;
+      eval `anod printenv ada_libfswatch`;
+      eval `anod printenv stable-templates_parser`;
+      eval `anod printenv stable-langkit_support`;
+      eval `anod printenv stable-libgpr2 --qualifier=bare`;
+      eval `anod printenv stable-libadalang`;
+      eval `anod printenv stable-libadalang-tools`;
+      export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/gnatdoc/gnat:$GPR_PROJECT_PATH;
+      export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/VSS/gnat:$GPR_PROJECT_PATH;
+      cd $ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/als/src;
+      lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif 2>/dev/null ||
+      touch $CI_PROJECT_DIR/dump.lsif )
 
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 
   artifacts:
-     when: always  #  Upload on errors too
-     reports:
-       junit: xunit_output.xml
-       lsif: dump.lsif
+    when: always #  Upload on errors too
+    reports:
+      junit: xunit_output.xml
+      lsif: dump.lsif
 
 .run_ci_common: &run_ci_common
   stage: run_downstream_ci
