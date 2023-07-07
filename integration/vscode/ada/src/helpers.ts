@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
-import * as path from 'path'
+import * as path from 'path';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -26,12 +26,11 @@ import * as path from 'path'
  * @returns
  */
 export function substituteVariables(str: string, recursive = false) {
-
-    let workspaces = vscode.workspace.workspaceFolders ?? [];
-    let workspace = workspaces.length ? workspaces[0] : null;
-    let activeEditor = vscode.window.activeTextEditor
-    let activeFile = activeEditor?.document;
-    let absoluteFilePath = activeFile?.uri.fsPath ?? ""
+    const workspaces = vscode.workspace.workspaceFolders ?? [];
+    const workspace = workspaces.length ? workspaces[0] : null;
+    const activeEditor = vscode.window.activeTextEditor;
+    const activeFile = activeEditor?.document;
+    const absoluteFilePath = activeFile?.uri.fsPath ?? '';
 
     if (workspace != null) {
         str = str.replace(/\${workspaceFolder}/g, workspace?.uri.fsPath);
@@ -41,31 +40,44 @@ export function substituteVariables(str: string, recursive = false) {
     str = str.replace(/\${file}/g, absoluteFilePath);
     let activeWorkspace = workspace;
     let relativeFilePath = absoluteFilePath;
-    for (let workspace of workspaces) {
+    for (const workspace of workspaces) {
         if (absoluteFilePath.replace(workspace.uri.fsPath, '') !== absoluteFilePath) {
             activeWorkspace = workspace;
-            relativeFilePath = absoluteFilePath.replace(workspace.uri.fsPath, '').substr(path.sep.length);
+            relativeFilePath = absoluteFilePath
+                .replace(workspace.uri.fsPath, '')
+                .substr(path.sep.length);
             break;
         }
     }
-    let parsedPath = path.parse(absoluteFilePath);
+    const parsedPath = path.parse(absoluteFilePath);
 
     if (activeWorkspace != null) {
         str = str.replace(/\${fileWorkspaceFolder}/g, activeWorkspace?.uri.fsPath);
     }
 
     str = str.replace(/\${relativeFile}/g, relativeFilePath);
-    str = str.replace(/\${relativeFileDirname}/g, relativeFilePath.substr(0, relativeFilePath.lastIndexOf(path.sep)));
+    str = str.replace(
+        /\${relativeFileDirname}/g,
+        relativeFilePath.substr(0, relativeFilePath.lastIndexOf(path.sep))
+    );
     str = str.replace(/\${fileBasename}/g, parsedPath.base);
     str = str.replace(/\${fileBasenameNoExtension}/g, parsedPath.name);
     str = str.replace(/\${fileExtname}/g, parsedPath.ext);
-    str = str.replace(/\${fileDirname}/g, parsedPath.dir.substr(parsedPath.dir.lastIndexOf(path.sep) + 1));
+    str = str.replace(
+        /\${fileDirname}/g,
+        parsedPath.dir.substr(parsedPath.dir.lastIndexOf(path.sep) + 1)
+    );
     str = str.replace(/\${cwd}/g, parsedPath.dir);
     str = str.replace(/\${pathSeparator}/g, path.sep);
 
     if (activeEditor != null) {
         str = str.replace(/\${lineNumber}/g, (activeEditor.selection.start.line + 1).toString());
-        str = str.replace(/\${selectedText}/g, activeEditor.document.getText(new vscode.Range(activeEditor.selection.start, activeEditor.selection.end)));
+        str = str.replace(
+            /\${selectedText}/g,
+            activeEditor.document.getText(
+                new vscode.Range(activeEditor.selection.start, activeEditor.selection.end)
+            )
+        );
     }
 
     str = str.replace(/\${env:(.*?)}/g, function (variable) {
@@ -76,7 +88,12 @@ export function substituteVariables(str: string, recursive = false) {
         return vscode.workspace.getConfiguration().get(variable.match(/\${config:(.*?)}/)![1], '');
     });
 
-    if (recursive && str.match(/\${(workspaceFolder|workspaceFolderBasename|fileWorkspaceFolder|relativeFile|fileBasename|fileBasenameNoExtension|fileExtname|fileDirname|cwd|pathSeparator|lineNumber|selectedText|env:(.*?)|config:(.*?))}/)) {
+    if (
+        recursive &&
+        str.match(
+            /\${(workspaceFolder|workspaceFolderBasename|fileWorkspaceFolder|relativeFile|fileBasename|fileBasenameNoExtension|fileExtname|fileDirname|cwd|pathSeparator|lineNumber|selectedText|env:(.*?)|config:(.*?))}/
+        )
+    ) {
         str = substituteVariables(str, recursive);
     }
     return str;
