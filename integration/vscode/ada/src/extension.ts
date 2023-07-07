@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 
+import * as process from 'process';
 import * as vscode from 'vscode';
 import {
     Disposable,
@@ -25,14 +26,10 @@ import {
     ServerOptions,
     SymbolKind,
 } from 'vscode-languageclient/node';
-import { platform } from 'os';
-import * as process from 'process';
-import GnatTaskProvider from './gnatTaskProvider';
-import GprTaskProvider from './gprTaskProvider';
-import { getEnclosingSymbol } from './gnatTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
-import { ALSClientFeatures } from './alsClientFeatures';
-import { substituteVariables } from './helpers';
+import GnatTaskProvider, { getEnclosingSymbol } from './gnatTaskProvider';
+import GprTaskProvider from './gprTaskProvider';
+import { getEvaluatedCustomEnv } from './helpers';
 
 export let contextClients: ContextClients;
 export let mainLogChannel: vscode.OutputChannel;
@@ -181,29 +178,11 @@ function createClient(
     // Retrieve the user's custom environment variables if specified in their
     // settings/workspace: we'll then launch any child process with this custom
     // environment
-    const user_platform = platform();
-    let env_config_name = 'terminal.integrated.env.linux';
-
-    switch (user_platform) {
-        case 'darwin':
-            env_config_name = 'terminal.integrated.env.osx';
-            break;
-        case 'win32':
-            env_config_name = 'terminal.integrated.env.windows';
-            break;
-        default:
-            env_config_name = 'terminal.integrated.env.linux';
-    }
-
-    const custom_env = vscode.workspace.getConfiguration().get<[string]>(env_config_name);
+    const custom_env = getEvaluatedCustomEnv();
 
     if (custom_env) {
         for (const var_name in custom_env) {
-            let var_value: string = custom_env[var_name];
-
-            // Substitute VS Code variable references that might be present
-            // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
-            var_value = var_value.replace(/(\$\{.*\})/, substituteVariables);
+            const var_value: string = custom_env[var_name];
             process.env[var_name] = var_value;
         }
     }
@@ -243,42 +222,44 @@ function createClient(
 async function addSupbrogramBox() {
     const activeEditor = vscode.window.activeTextEditor;
 
-    await getEnclosingSymbol(
-        activeEditor, [SymbolKind.Function, SymbolKind.Module]).then(async (symbol) => {
-        if (symbol !== null) {
-            const name: string = symbol.name ?? '';
-            const insertPos = new vscode.Position(symbol.range.start.line, 0);
-            const indentationRange = new vscode.Range(insertPos, symbol.range.start);
-            const indentation: string = activeEditor?.document.getText(indentationRange) ?? '';
-            const eol: string = activeEditor?.document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n';
+    await getEnclosingSymbol(activeEditor, [SymbolKind.Function, SymbolKind.Module]).then(
+        async (symbol) => {
+            if (symbol !== null) {
+                const name: string = symbol.name ?? '';
+                const insertPos = new vscode.Position(symbol.range.start.line, 0);
+                const indentationRange = new vscode.Range(insertPos, symbol.range.start);
+                const indentation: string = activeEditor?.document.getText(indentationRange) ?? '';
+                const eol: string =
+                    activeEditor?.document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n';
 
-            // Generate the subprogram box after retrieving the indentation of the line of
-            // the subprogram's body declaration.
-            const text: string =
-                indentation +
-                '---' +
-                '-'.repeat(name.length) +
-                '---' +
-                eol +
-                indentation +
-                '-- ' +
-                name +
-                ' --' +
-                eol +
-                indentation +
-                '---' +
-                '-'.repeat(name.length) +
-                '---' +
-                eol +
-                eol;
+                // Generate the subprogram box after retrieving the indentation of the line of
+                // the subprogram's body declaration.
+                const text: string =
+                    indentation +
+                    '---' +
+                    '-'.repeat(name.length) +
+                    '---' +
+                    eol +
+                    indentation +
+                    '-- ' +
+                    name +
+                    ' --' +
+                    eol +
+                    indentation +
+                    '---' +
+                    '-'.repeat(name.length) +
+                    '---' +
+                    eol +
+                    eol;
 
-            if (activeEditor) {
-                await activeEditor.edit((editBuilder) => {
-                    editBuilder.insert(insertPos, text);
-                });
+                if (activeEditor) {
+                    await activeEditor.edit((editBuilder) => {
+                        editBuilder.insert(insertPos, text);
+                    });
+                }
             }
         }
-    });
+    );
 }
 
 type ALSSourceDirDescription = {

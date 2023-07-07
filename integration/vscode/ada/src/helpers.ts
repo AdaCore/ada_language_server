@@ -14,18 +14,21 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
-import * as vscode from 'vscode';
+import { platform } from 'os';
 import * as path from 'path';
+import * as vscode from 'vscode';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
  * variable references are listed here:
  * https://code.visualstudio.com/docs/editor/variables-reference
- * @param str
- * @param recursive
- * @returns
+ * @param str - string to perform substitution on
+ * @param recursive - whether to perform substitution recursively on the result
+ * of each substitution until there are no variables to substitute.
+ *
+ * @returns string after applying substitutions
  */
-export function substituteVariables(str: string, recursive = false) {
+export function substituteVariables(str: string, recursive = false): string {
     const workspaces = vscode.workspace.workspaceFolders ?? [];
     const workspace = workspaces.length ? workspaces[0] : null;
     const activeEditor = vscode.window.activeTextEditor;
@@ -81,20 +84,59 @@ export function substituteVariables(str: string, recursive = false) {
     }
 
     str = str.replace(/\${env:(.*?)}/g, function (variable) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return process.env[variable.match(/\${env:(.*?)}/)![1]] || '';
     });
 
     str = str.replace(/\${config:(.*?)}/g, function (variable) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return vscode.workspace.getConfiguration().get(variable.match(/\${config:(.*?)}/)![1], '');
     });
 
     if (
         recursive &&
         str.match(
+            // eslint-disable-next-line max-len
             /\${(workspaceFolder|workspaceFolderBasename|fileWorkspaceFolder|relativeFile|fileBasename|fileBasenameNoExtension|fileExtname|fileDirname|cwd|pathSeparator|lineNumber|selectedText|env:(.*?)|config:(.*?))}/
         )
     ) {
         str = substituteVariables(str, recursive);
     }
     return str;
+}
+
+export function getCustomEnv() {
+    const user_platform = platform();
+    let env_config_name = 'terminal.integrated.env';
+
+    switch (user_platform) {
+        case 'darwin':
+            env_config_name += '.osx';
+            break;
+        case 'win32':
+            env_config_name += '.windows';
+            break;
+        default:
+            env_config_name += '.linux';
+    }
+
+    const custom_env = vscode.workspace.getConfiguration().get<[string]>(env_config_name);
+
+    return custom_env;
+}
+
+export function getEvaluatedCustomEnv() {
+    const custom_env = getCustomEnv();
+
+    if (custom_env) {
+        for (const var_name in custom_env) {
+            // Substitute VS Code variable references that might be present
+            // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
+            custom_env[var_name] = custom_env[var_name].replace(/(\$\{.*\})/, (substring) =>
+                substituteVariables(substring, false)
+            );
+        }
+    }
+
+    return custom_env;
 }
