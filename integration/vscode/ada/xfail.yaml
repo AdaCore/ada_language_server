@@ -1,0 +1,8 @@
+xfails: # Format is <testname>, <expectedstatus CRASH|DIFF> [, <platform>, <irrelevant field>], <reason>
+    - [
+          'Highlighting-lsp-ada_handlers-lsp-ada_handlers-adb-semantic',
+          'DIFF',
+          '',
+          '',
+          'Fails in GitLab CI but not locally',
+      ]
