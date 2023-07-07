@@ -111,10 +111,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // for the Ada and Gpr language servers, and this one is a general channel
     // for non-LSP features of the extension.
     mainLogChannel = vscode.window.createOutputChannel('Ada Extension');
+    mainLogChannel.appendLine('Starting Ada extension');
 
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.showExtensionOutput', () => mainLogChannel.show())
     );
+
+    // Log the environment that the extension (and all VS Code) will be using
+    const customEnv = getEvaluatedCustomEnv();
+
+    if (customEnv && Object.keys(customEnv).length > 0) {
+        mainLogChannel.appendLine('Setting environment variables:');
+        for (const varName in customEnv) {
+            const varValue: string = customEnv[varName];
+            mainLogChannel.appendLine(`${varName}=${varValue}`);
+        }
+    }
 
     // Create the GPR language client and start it.
     const gprClient = createClient(
@@ -159,6 +171,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
     await Promise.all([alsClient.onReady(), gprClient.onReady()]);
     await checkSrcDirectories(alsClient);
+    mainLogChannel.appendLine('Started Ada extension');
 }
 
 function createClient(

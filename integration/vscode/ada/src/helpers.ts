@@ -120,7 +120,9 @@ export function getCustomEnv() {
             env_config_name += '.linux';
     }
 
-    const custom_env = vscode.workspace.getConfiguration().get<[string]>(env_config_name);
+    const custom_env = vscode.workspace
+        .getConfiguration()
+        .get<{ [name: string]: string }>(env_config_name);
 
     return custom_env;
 }
