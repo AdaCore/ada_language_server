@@ -14,7 +14,7 @@ stages:
     - export PATH=/tmp/ci-fragments:$PATH
     - cd -
     # Use generic_anod_ci here.
-    - generic_anod_ci --add-dep eng/fuzz/internal-fuzz-testsuite
+    - generic_anod_ci
     - cat /tmp/ci_env.sh
     - . /tmp/ci_env.sh
 
