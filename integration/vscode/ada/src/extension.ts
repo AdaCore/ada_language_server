@@ -23,12 +23,13 @@ import {
     LanguageClientOptions,
     Middleware,
     ServerOptions,
+    SymbolKind,
 } from 'vscode-languageclient/node';
 import { platform } from 'os';
 import * as process from 'process';
 import GnatTaskProvider from './gnatTaskProvider';
 import GprTaskProvider from './gprTaskProvider';
-import { getSubprogramSymbol } from './gnatTaskProvider';
+import { getEnclosingSymbol } from './gnatTaskProvider';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { substituteVariables } from './helpers';
@@ -242,7 +243,8 @@ function createClient(
 async function addSupbrogramBox() {
     const activeEditor = vscode.window.activeTextEditor;
 
-    await getSubprogramSymbol(activeEditor).then(async (symbol) => {
+    await getEnclosingSymbol(
+        activeEditor, [SymbolKind.Function, SymbolKind.Module]).then(async (symbol) => {
         if (symbol !== null) {
             const name: string = symbol.name ?? '';
             const insertPos = new vscode.Position(symbol.range.start.line, 0);

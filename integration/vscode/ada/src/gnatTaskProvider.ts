@@ -42,7 +42,7 @@ interface TaskProperties {
  * or '' if not found.
  */
 const limitSubp = async (): Promise<string> => {
-    return getSubprogramSymbol(vscode.window.activeTextEditor).then((Symbol) => {
+    return getEnclosingSymbol(vscode.window.activeTextEditor, [SymbolKind.Function]).then((Symbol) => {
         if (Symbol) {
             const subprogram_line: string = (Symbol.range.start.line + 1).toString();
             return `--limit-subp=\${fileBasename}:${subprogram_line}`;
@@ -282,16 +282,16 @@ async function getTasks(): Promise<vscode.Task[]> {
 }
 
 /**
- * Return the DocumentSymbol associated to the subprogram enclosing the
+ * Return the closest DocumentSymbol of the given kinds enclosing the
  * the given editor's cursor position, if any.
  * @param editor - The editor in which we want
- * to find the suprogram's body enclosing the cursor's position.
- * @returns Return the symbol corresponding to the
- * enclosing subprogram or null if not found.
+ * to find the closest symbol enclosing the cursor's position.
+ * @returns Return the closest enclosing symbol.
  */
-export const getSubprogramSymbol = async (
-    editor: vscode.TextEditor | undefined
-): Promise<vscode.DocumentSymbol | null> => {
+export async function getEnclosingSymbol (
+    editor: vscode.TextEditor | undefined,
+    kinds: vscode.SymbolKind[]
+): Promise<vscode.DocumentSymbol | null> {
     if (editor) {
         const line = editor.selection.active.line;
 
@@ -301,25 +301,25 @@ export const getSubprogramSymbol = async (
             editor.document.uri
         );
 
-        // Then select all subprograms
-        const subprograms: vscode.DocumentSymbol[] = [];
+        // Then filter them according to the specified kinds
+        const filtered_symbols: vscode.DocumentSymbol[] = [];
 
-        const getAllSubprograms = (symbols: vscode.DocumentSymbol[]) => {
+        const getAllSymbols = (symbols: vscode.DocumentSymbol[]) => {
             let sym;
             for (sym of symbols) {
-                if (sym.kind == SymbolKind.Function) {
-                    subprograms.push(sym);
+                if (sym.kind in kinds) {
+                    filtered_symbols.push(sym);
                 }
                 if (sym.kind == SymbolKind.Function || sym.kind == SymbolKind.Module) {
-                    getAllSubprograms(sym.children);
+                    getAllSymbols(sym.children);
                 }
             }
         };
 
-        getAllSubprograms(symbols);
+        getAllSymbols(symbols);
 
-        // Finally select from the subprograms the smallest one containing the current line
-        const scopeSymbols = subprograms.filter(
+        // Finally select from the filtered symbols the smallest one containing the current line
+        const scopeSymbols = filtered_symbols.filter(
             (sym) => line >= sym.range.start.line && line <= sym.range.end.line
         );
         if (scopeSymbols.length > 0) {
