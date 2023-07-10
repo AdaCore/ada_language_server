@@ -4460,8 +4460,10 @@ package body LSP.Ada_Handlers is
         "useCompletionSnippets";
       logThreshold                      : constant String :=
         "logThreshold";
-      onTypeFormattingIndentOnly        : constant String :=
-        "onTypeFormatting.indentOnly";
+      onTypeFormatting                  : constant String :=
+        "onTypeFormatting";
+      indentOnly                        : constant String :=
+        "indentOnly";
 
       Variables : Scenario_Variable_List;
 
@@ -4599,13 +4601,21 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
-      if Has_Field (onTypeFormattingIndentOnly) then
+      if Has_Field (onTypeFormatting) then
+         declare
+            On_Type_Formatting : constant GNATCOLL.JSON.JSON_Value'Class :=
+              Options.Get (onTypeFormatting);
          begin
-            Self.Options.On_Type_Formatting.Indent_Only :=
-              Options.Get (onTypeFormattingIndentOnly);
+            if On_Type_Formatting.Has_Field (indentOnly) then
+               Self.Options.On_Type_Formatting.Indent_Only :=
+                 On_Type_Formatting.Get (indentOnly);
+            end if;
 
          exception
             when Constraint_Error =>
+               Self.Trace.Trace
+                 ("Failed to get " & onTypeFormatting & "." & indentOnly
+                  & " option. Using True as default.");
                Self.Options.On_Type_Formatting.Indent_Only := True;
          end;
       end if;
@@ -6656,22 +6666,15 @@ package body LSP.Ada_Handlers is
 
                declare
                   Result              :
-                  LSP.Messages.Server_Responses.Formatting_Response
-                    (Is_Error => False) :=
-                    Range_Format
-                      (Self        => Context.all,
-                       Document    => Document,
-                       Span        => Previous_NWNC_Token_Span,
-                       Options     => Request.params.options);
+                    LSP.Messages.Server_Responses.Formatting_Response
+                      (Is_Error => False) :=
+                        Range_Format
+                          (Self     => Context.all,
+                           Document => Document,
+                           Span     => Previous_NWNC_Token_Span,
+                           Options  => Request.params.options);
                begin
-                  Result :=
-                    Range_Format
-                      (Self        => Context.all,
-                       Document    => Document,
-                       Span        => Previous_NWNC_Token_Span,
-                       Options     => Request.params.options);
-
-                  if not Result.Is_Error then
+                  if Result.Is_Error then
                      declare
                         Result :
                           LSP.Messages.Server_Responses.Formatting_Response
