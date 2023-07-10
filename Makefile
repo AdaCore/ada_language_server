@@ -162,3 +162,7 @@ check: all
 
 deploy: check
 	integration/$(USER)/deploy.sh $(NODE_PLATFORM)
+
+# Instantiates the VS Code workspace with default settings
+configure:
+	cp .vscode/settings.json.tmpl .vscode/settings.json
