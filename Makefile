@@ -34,19 +34,27 @@ COVERAGE=
 COVERAGE_INSTR=gnatcov instrument --level stmt $(LIBRARY_FLAGS) \
 	--dump-trigger=atexit --no-subprojects
 
+ifeq (,$(shell which node))
+   # Node is not available so do not define node-related variables
+else
+   # Set NODE variable as an indicator that node is available
+   NODE=node
+   # Obtain architecture and platform from the node executable. This information
+   # is used to deposit the ALS executable at the location expected by the VS
+   # Code Ada extension.
+   NODE_ARCH=$(shell node -e "console.log(process.arch)")
+   NODE_PLATFORM=$(shell node -e "console.log(process.platform)")
+endif
+
 # Target platform as nodejs reports it
 ifeq ($(OS),Windows_NT)
-   PLATFORM=win32
    PYTHON=python.exe
    EXE=.exe
 else
    UNAME_S := $(shell uname -s)
    ifeq ($(UNAME_S),Linux)
-      PLATFORM=linux
       OS=unix
-   endif
-   ifeq ($(UNAME_S),Darwin)
-      PLATFORM=darwin
+   else ifeq ($(UNAME_S),Darwin)
       OS=osx
    endif
    PYTHON=python3
@@ -80,8 +88,10 @@ all: coverage-instrument
 	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(VERSION)
-	mkdir -p integration/vscode/ada/$(PLATFORM)
-	cp -f $(ALS)$(EXE) integration/vscode/ada/$(PLATFORM)
+ifdef NODE
+	mkdir -p integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
+	cp -f $(ALS)$(EXE) integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
+endif
 
 generate:
 	python scripts/generate.py
@@ -119,7 +129,7 @@ clean:
 	-$(GPRCLEAN) -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/tester.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
-	-rm -rf integration/vscode/ada/$(PLATFORM)
+	-rm -rf integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
 
 vscode:
 ifneq ($(npm_config_offline),true)
@@ -151,4 +161,4 @@ check: all
 	${CODEC_TEST} < testsuite/codecs/index.txt
 
 deploy: check
-	integration/$(USER)/deploy.sh $(PLATFORM)
+	integration/$(USER)/deploy.sh $(NODE_PLATFORM)
