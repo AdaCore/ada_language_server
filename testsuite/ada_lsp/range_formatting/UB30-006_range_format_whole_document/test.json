@@ -51,6 +51,9 @@
                                         ]
                                     }
                                 }
+                            },
+                            "rangeFormatting": {
+                                "dynamicRegistration": true
                             }
                         }
                     }
@@ -99,7 +102,6 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -168,7 +170,7 @@
                             },
                             "newText": "procedure Main is\n\nbegin\n   declare\n      A : Integer;\n   begin\n      null;\n   end;\n\nend Main;"
                         }
-                   ]
+                    ]
                 }
             ]
         }

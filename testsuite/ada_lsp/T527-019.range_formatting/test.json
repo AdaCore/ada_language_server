@@ -15,14 +15,6 @@
         "send": {
             "request": {
                 "params": {
-                    "processId": 20634,
-                    "capabilities": {
-                        "textDocument": {
-                            "rangeFormatting": {
-                                "dynamicRegistration": true
-                            }
-                        }
-                    },
                     "rootUri": "$URI{.}"
                 },
                 "jsonrpc": "2.0",
@@ -63,25 +55,7 @@
                 "jsonrpc": "2.0",
                 "method": "workspace/didChangeConfiguration"
             },
-            "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "id": 2,
-                    "method": "client/registerCapability",
-                    "params": {
-                        "registrations": [
-                            {
-                                "method": "textDocument/rangeFormatting",
-                                "registerOptions": {
-                                    "documentSelector": [
-                                        "ada"
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                }
-            ]
+            "wait": []
         }
     },
     {

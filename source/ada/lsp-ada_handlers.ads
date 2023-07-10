@@ -29,8 +29,6 @@ with GNATCOLL.Traces;
 
 with VSS.Strings;
 
-private with GNATdoc.Comments.Options;
-
 with GPR2;
 with GPR2.Context;
 with GPR2.File_Readers;
@@ -55,6 +53,10 @@ with LSP.Server_Notification_Receivers;
 with LSP.Servers;
 with LSP.Types;
 with LSP.Messages;
+
+private with Ada.Characters.Wide_Wide_Latin_1;
+
+private with GNATdoc.Comments.Options;
 
 package LSP.Ada_Handlers is
 
@@ -130,6 +132,10 @@ private
         GNATdoc.Comments.Options.GNAT;
    end record;
 
+   type On_Type_Formatting_Options is record
+      Indent_Only : Boolean;
+   end record;
+
    -- Options holder --
    type Options_Holder is record
       Refactoring   : Refactoring_Options;
@@ -140,6 +146,9 @@ private
 
       Documentation : Documentation_Options;
       --  Configuration options for documentation
+
+      On_Type_Formatting : On_Type_Formatting_Options;
+      --  Configuration options for the onTypeFormatting request
    end record;
 
    type Internal_Document_Access is access all LSP.Ada_Documents.Document;
@@ -257,6 +266,11 @@ private
 
    Empty_Environment : constant Environment := (others => <>);
 
+   type On_Type_Formatting_Settings_Type is record
+      First_Trigger_Character : VSS.Strings.Virtual_String;
+      More_Trigger_Characters : LSP.Types.Optional_Virtual_String_Vector;
+   end record;
+
    type Message_Handler
      (Server  : access LSP.Servers.Server;
       Trace   : GNATCOLL.Traces.Trace_Handle)
@@ -361,9 +375,6 @@ private
       --  lazily (i.e: when the item is selected on client-side) via
       --  the completionItem/resolve request.
 
-      Range_Formatting_Enabled : Boolean := False;
-      --  True if the handler has registered rangeFormatting provider
-
       Named_Notation_Threshold : Natural := 3;
       --  Defines the number of parameters/components at which point named
       --  notation is used for subprogram/aggregate completion snippets.
@@ -383,6 +394,13 @@ private
 
       Highlighter    : LSP.Ada_Highlighters.Ada_Highlighter;
       --  Semantic token highlighter for Ada
+
+      On_Type_Formatting_Settings : On_Type_Formatting_Settings_Type :=
+        (First_Trigger_Character =>
+           VSS.Strings.To_Virtual_String
+             ((1 .. 1 => Ada.Characters.Wide_Wide_Latin_1.LF)),
+         More_Trigger_Characters =>
+           (Is_Set => False));
 
       ----------------------
       -- Project handling --
@@ -640,6 +658,11 @@ private
      (Self    : access Message_Handler;
       Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
       return LSP.Messages.Server_Responses.Range_Formatting_Response;
+
+   overriding function On_On_Type_Formatting_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+      return LSP.Messages.Server_Responses.On_Type_Formatting_Response;
 
    overriding procedure On_Initialized_Notification
      (Self  : access Message_Handler) is null;

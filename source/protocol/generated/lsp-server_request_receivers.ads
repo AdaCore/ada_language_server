@@ -128,6 +128,11 @@ package LSP.Server_Request_Receivers is
       Value : LSP.Messages.Server_Requests.Range_Formatting_Request)
         is abstract;
 
+   procedure On_On_Type_Formatting_Request
+     (Self  : access Server_Request_Receiver;
+      Value : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+        is abstract;
+
    procedure On_Selection_Range_Request
      (Self  : access Server_Request_Receiver;
       Value : LSP.Messages.Server_Requests.Selection_Range_Request)

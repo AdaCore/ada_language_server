@@ -295,6 +295,8 @@ REQUESTS = [
      'DocumentFormattingParams', 'Formatting_Response'),
     ('textDocument/rangeFormatting', 'Range_Formatting',
      'DocumentRangeFormattingParams', 'Range_Formatting_Response'),
+    ('textDocument/onTypeFormatting', 'On_Type_Formatting',
+     'DocumentOnTypeFormattingParams', 'On_Type_Formatting_Response'),
     ('textDocument/selectionRange', 'Selection_Range',
      'SelectionRangeParams', 'SelectionRange_Response'),
     ('textDocument/semanticTokens/full', 'Document_Tokens_Full',
