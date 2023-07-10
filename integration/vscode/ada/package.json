@@ -588,6 +588,7 @@
         "watch": "node ./node_modules/typescript/bin/tsc -watch",
         "pretest": "npm run compile",
         "lint": "eslint './src/**/*.{js,ts,tsx}' --quiet --fix",
+        "cilint": "eslint './src/**/*.{js,ts,tsx}'",
         "test": "node ./out/test/runTest.js"
     },
     "dependencies": {

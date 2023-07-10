@@ -14,24 +14,26 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
+import { platform } from 'os';
+import * as path from 'path';
 import * as vscode from 'vscode';
-import * as path from 'path'
 
 /**
  * Substitue any variable reference present in the given string. VS Code
  * variable references are listed here:
  * https://code.visualstudio.com/docs/editor/variables-reference
- * @param str
- * @param recursive
- * @returns
+ * @param str - string to perform substitution on
+ * @param recursive - whether to perform substitution recursively on the result
+ * of each substitution until there are no variables to substitute.
+ *
+ * @returns string after applying substitutions
  */
-export function substituteVariables(str: string, recursive = false) {
-
-    let workspaces = vscode.workspace.workspaceFolders ?? [];
-    let workspace = workspaces.length ? workspaces[0] : null;
-    let activeEditor = vscode.window.activeTextEditor
-    let activeFile = activeEditor?.document;
-    let absoluteFilePath = activeFile?.uri.fsPath ?? ""
+export function substituteVariables(str: string, recursive = false): string {
+    const workspaces = vscode.workspace.workspaceFolders ?? [];
+    const workspace = workspaces.length ? workspaces[0] : null;
+    const activeEditor = vscode.window.activeTextEditor;
+    const activeFile = activeEditor?.document;
+    const absoluteFilePath = activeFile?.uri.fsPath ?? '';
 
     if (workspace != null) {
         str = str.replace(/\${workspaceFolder}/g, workspace?.uri.fsPath);
@@ -41,43 +43,102 @@ export function substituteVariables(str: string, recursive = false) {
     str = str.replace(/\${file}/g, absoluteFilePath);
     let activeWorkspace = workspace;
     let relativeFilePath = absoluteFilePath;
-    for (let workspace of workspaces) {
+    for (const workspace of workspaces) {
         if (absoluteFilePath.replace(workspace.uri.fsPath, '') !== absoluteFilePath) {
             activeWorkspace = workspace;
-            relativeFilePath = absoluteFilePath.replace(workspace.uri.fsPath, '').substr(path.sep.length);
+            relativeFilePath = absoluteFilePath
+                .replace(workspace.uri.fsPath, '')
+                .substr(path.sep.length);
             break;
         }
     }
-    let parsedPath = path.parse(absoluteFilePath);
+    const parsedPath = path.parse(absoluteFilePath);
 
     if (activeWorkspace != null) {
         str = str.replace(/\${fileWorkspaceFolder}/g, activeWorkspace?.uri.fsPath);
     }
 
     str = str.replace(/\${relativeFile}/g, relativeFilePath);
-    str = str.replace(/\${relativeFileDirname}/g, relativeFilePath.substr(0, relativeFilePath.lastIndexOf(path.sep)));
+    str = str.replace(
+        /\${relativeFileDirname}/g,
+        relativeFilePath.substr(0, relativeFilePath.lastIndexOf(path.sep))
+    );
     str = str.replace(/\${fileBasename}/g, parsedPath.base);
     str = str.replace(/\${fileBasenameNoExtension}/g, parsedPath.name);
     str = str.replace(/\${fileExtname}/g, parsedPath.ext);
-    str = str.replace(/\${fileDirname}/g, parsedPath.dir.substr(parsedPath.dir.lastIndexOf(path.sep) + 1));
+    str = str.replace(
+        /\${fileDirname}/g,
+        parsedPath.dir.substr(parsedPath.dir.lastIndexOf(path.sep) + 1)
+    );
     str = str.replace(/\${cwd}/g, parsedPath.dir);
     str = str.replace(/\${pathSeparator}/g, path.sep);
 
     if (activeEditor != null) {
         str = str.replace(/\${lineNumber}/g, (activeEditor.selection.start.line + 1).toString());
-        str = str.replace(/\${selectedText}/g, activeEditor.document.getText(new vscode.Range(activeEditor.selection.start, activeEditor.selection.end)));
+        str = str.replace(
+            /\${selectedText}/g,
+            activeEditor.document.getText(
+                new vscode.Range(activeEditor.selection.start, activeEditor.selection.end)
+            )
+        );
     }
 
     str = str.replace(/\${env:(.*?)}/g, function (variable) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return process.env[variable.match(/\${env:(.*?)}/)![1]] || '';
     });
 
     str = str.replace(/\${config:(.*?)}/g, function (variable) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return vscode.workspace.getConfiguration().get(variable.match(/\${config:(.*?)}/)![1], '');
     });
 
-    if (recursive && str.match(/\${(workspaceFolder|workspaceFolderBasename|fileWorkspaceFolder|relativeFile|fileBasename|fileBasenameNoExtension|fileExtname|fileDirname|cwd|pathSeparator|lineNumber|selectedText|env:(.*?)|config:(.*?))}/)) {
+    if (
+        recursive &&
+        str.match(
+            // eslint-disable-next-line max-len
+            /\${(workspaceFolder|workspaceFolderBasename|fileWorkspaceFolder|relativeFile|fileBasename|fileBasenameNoExtension|fileExtname|fileDirname|cwd|pathSeparator|lineNumber|selectedText|env:(.*?)|config:(.*?))}/
+        )
+    ) {
         str = substituteVariables(str, recursive);
     }
     return str;
+}
+
+export function getCustomEnv() {
+    const user_platform = platform();
+    let env_config_name = 'terminal.integrated.env';
+
+    switch (user_platform) {
+        case 'darwin':
+            env_config_name += '.osx';
+            break;
+        case 'win32':
+            env_config_name += '.windows';
+            break;
+        default:
+            env_config_name += '.linux';
+    }
+
+    const custom_env = vscode.workspace
+        .getConfiguration()
+        .get<{ [name: string]: string }>(env_config_name);
+
+    return custom_env;
+}
+
+export function getEvaluatedCustomEnv() {
+    const custom_env = getCustomEnv();
+
+    if (custom_env) {
+        for (const var_name in custom_env) {
+            // Substitute VS Code variable references that might be present
+            // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
+            custom_env[var_name] = custom_env[var_name].replace(/(\$\{.*\})/, (substring) =>
+                substituteVariables(substring, false)
+            );
+        }
+    }
+
+    return custom_env;
 }

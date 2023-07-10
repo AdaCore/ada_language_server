@@ -128,6 +128,7 @@ ifneq ($(npm_config_offline),true)
 	cd integration/vscode/ada; LD_LIBRARY_PATH= npm install --no-audit
 	cd integration/vscode/ada; LD_LIBRARY_PATH= npm run check-licenses
 endif
+	cd integration/vscode/ada; LD_LIBRARY_PATH= npm run cilint
 	cd integration/vscode/ada; LD_LIBRARY_PATH= npm run compile
 	@echo Now run:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
