@@ -1,30 +1,31 @@
 variables:
-   # The common part of the URL for cloning from within a CI
-   GIT_CLONE_BASE: https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}:${CI_SERVER_PORT}
+  # The common part of the URL for cloning from within a CI
+  GIT_CLONE_BASE: https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}:${CI_SERVER_PORT}
 
 stages:
   - build_and_test
   - run_downstream_ci
 
 .basic-setup:
-    # Temporary: clone the specific branch of ci-fragments
-    # TODO: remove the next 4 lines when this version of ci-fragments is available in the image
-    - cd /tmp
-    - git clone $GIT_CLONE_BASE/eng/it/ci-fragments -b topic/generic_ci_phase_2 --depth 1
-    - export PATH=/tmp/ci-fragments:$PATH
-    - cd -
-    # Use generic_anod_ci here.
-    - generic_anod_ci
-    - cat /tmp/ci_env.sh
-    - . /tmp/ci_env.sh
+  # Temporary: clone the specific branch of ci-fragments
+  # TODO: remove the next 4 lines when this version of ci-fragments is available in the image
+  - cd /tmp
+  - git clone $GIT_CLONE_BASE/eng/it/ci-fragments -b topic/generic_ci_phase_2 --depth 1
+  - export PATH=/tmp/ci-fragments:$PATH
+  - cd -
+  # Use generic_anod_ci here.
+  - generic_anod_ci
+  - cat /tmp/ci_env.sh
+  - . /tmp/ci_env.sh
 
 # Build and test with ANOD
 # TODO: add a build and test based on Alire in parallel to this.
 build_and_test:
   services:
-     - image:sandbox
-     - cpu:8
-     - mem:16
+    - image:systemgtk
+    - cpu:8
+    - mem:16
+    - run_as_root:false
   stage: build_and_test
   interruptible: true
   rules:
@@ -35,49 +36,77 @@ build_and_test:
   script:
     - !reference [.basic-setup]
 
-    # Build & test using anod
+    - echo -e "\e[0Ksection_start:`date +%s`:build_als[collapsed=true]\r\e[0Kanod build als"
     - anod build als $ACI_TRACK_QUALIFIER --minimal
+    - echo -e "\e[0Ksection_end:`date +%s`:build_als\r\e[0K"
 
+    - echo -e "\e[0Ksection_start:`date +%s`:build_vscode[collapsed=true]\r\e[0Kanod build vscode-extension"
     # We pass --latest here because the vscode-extension will try to download
     # the Windows binary (it's a multi-platform extension), and this binary
     # might not be available right away.
     - anod build vscode-extension $ACI_TRACK_QUALIFIER --minimal --latest
+    - echo -e "\e[0Ksection_end:`date +%s`:build_vscode\r\e[0K"
+
+    - echo -e "\e[0Ksection_start:`date +%s`:test_als[collapsed=true]\r\e[0Kanod test als"
+    # Run ALS tests
     - anod test als $ACI_TRACK_QUALIFIER --minimal
 
     # TODO: it would be nice to have a simpler way of getting this info
-    - BUILD_SPACE=`anod eval als --primitive test build_space_name $ACI_TRACK_QUALIFIER | tr -d "'"`
-    - SB_BASE=$ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/$BUILD_SPACE
+    - ALS_BUILD_SPACE_NAME=`anod eval als --primitive test build_space_name $ACI_TRACK_QUALIFIER | tr -d "'"`
+    - ALS_BUILD_SPACE=$ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/$ALS_BUILD_SPACE_NAME
+    - echo -e "\e[0Ksection_end:`date +%s`:test_als\r\e[0K"
 
-    # Process the report
-    - e3-testsuite-report
-       --failure-exit-code 1
-       --xunit-output $CI_PROJECT_DIR/xunit_output.xml
-       $SB_BASE/results/new/ || FAILED=true
+    - echo -e "\e[0Ksection_start:`date +%s`:test_vscode[collapsed=true]\r\e[0Kanod test vscode-extension"
+    # Run VSCode tests
+    - anod test vscode-extension --qualifier=$ACI_TRACK_QUALIFIER --minimal
+    - VSCODE_BUILD_SPACE_NAME=`anod eval --primitive test --qualifier=$ACI_TRACK_QUALIFIER vscode-extension build_space_name | tr -d "'"`
+    - VSCODE_BUILD_SPACE=$ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/$VSCODE_BUILD_SPACE_NAME
+    - echo -e "\e[0Ksection_end:`date +%s`:test_vscode\r\e[0K"
 
+    - echo -e "\e[0Ksection_start:`date +%s`:lsif[collapsed=true]\r\e[0KBuild lsif report"
     # Build the lsif report
     - anod install lsif-ada
     - ( cd $ANOD_DEFAULT_SANDBOX_DIR ;
-        eval `anod printenv lsif-ada`;
-        eval `anod printenv stable-gnat`;
-        eval `anod printenv ada_libfswatch`;
-        eval `anod printenv stable-templates_parser`;
-        eval `anod printenv stable-langkit_support`;
-        eval `anod printenv stable-libgpr2 --qualifier=bare`;
-        eval `anod printenv stable-libadalang`;
-        eval `anod printenv stable-libadalang-tools`;
-        export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/gnatdoc/gnat:$GPR_PROJECT_PATH;
-        export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/VSS/gnat:$GPR_PROJECT_PATH;
-        cd $ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/als/src;
-        lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif 2>/dev/null ||
-        touch $CI_PROJECT_DIR/dump.lsif )
+      eval `anod printenv lsif-ada`;
+      eval `anod printenv stable-gnat`;
+      eval `anod printenv ada_libfswatch`;
+      eval `anod printenv stable-templates_parser`;
+      eval `anod printenv stable-langkit_support`;
+      eval `anod printenv stable-libgpr2 --qualifier=bare`;
+      eval `anod printenv stable-libadalang`;
+      eval `anod printenv stable-libadalang-tools`;
+      export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/gnatdoc/gnat:$GPR_PROJECT_PATH;
+      export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/VSS/gnat:$GPR_PROJECT_PATH;
+      cd $ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/als/src;
+      lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif 2>/dev/null ||
+      touch $CI_PROJECT_DIR/dump.lsif )
+    - echo -e "\e[0Ksection_end:`date +%s`:lsif\r\e[0K"
+
+    # Job artifacts must be produced in the project directory, so we do it at
+    # the end of the job to avoid changing Anod checkouts halfway through the
+    # job and triggering useless rebuilds.
+    - echo -e "\e[0Ksection_start:`date +%s`:prepare_artifacts[collapsed=true]\r\e[0KPrepare job artifacts"
+    # Process the als test report
+    - e3-testsuite-report
+      --failure-exit-code 1
+      --xunit-output $CI_PROJECT_DIR/als_xunit_output.xml
+      $ALS_BUILD_SPACE/results/new/ || FAILED=true
+    # Process the vscode-extension test report
+    - e3-testsuite-report
+      --failure-exit-code 1
+      --xunit-output $CI_PROJECT_DIR/vscode_xunit_output.xml
+      $VSCODE_BUILD_SPACE/results/new/ || FAILED=true
+    # Include Anod logs
+    - cp -r $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
+    - echo -e "\e[0Ksection_end:`date +%s`:prepare_artifacts\r\e[0K"
 
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 
   artifacts:
-     when: always  #  Upload on errors too
-     reports:
-       junit: xunit_output.xml
-       lsif: dump.lsif
+    when: always #  Upload on errors too
+    reports:
+      junit: [als_xunit_output.xml, vscode_xunit_output.xml]
+      lsif: dump.lsif
 
 .run_ci_common: &run_ci_common
   stage: run_downstream_ci

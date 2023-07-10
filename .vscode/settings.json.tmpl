@@ -16,6 +16,9 @@
       // Use the same line length as black and flake8
       "vim.textwidth": 88
    },
+   "[yaml]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+   },
    "terminal.integrated.env.osx": {
       // Dependencies can be provided under the subprojects/ directory. They
       // would automatically be included in GPR_PROJECT_PATH by the following
@@ -55,5 +58,7 @@
       "editor.detectIndentation": false,
       "files.trimFinalNewlines": true,
       "files.trimTrailingWhitespace": true
-   }
+   },
+   // Allow GitLab-specific Yaml tags in .gitlab-ci.yml
+   "yaml.customTags": ["!reference sequence"]
 }
