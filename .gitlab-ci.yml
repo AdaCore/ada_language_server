@@ -96,6 +96,9 @@ build_and_test:
       --failure-exit-code 1
       --xunit-output $CI_PROJECT_DIR/vscode_xunit_output.xml
       $VSCODE_BUILD_SPACE/results/new/ || FAILED=true
+    # Temporarily use the original JUnit report until e3-testsuite-report is
+    # fixed. See it/e3-testsuite#7.
+    - cp -f $VSCODE_BUILD_SPACE/results/mocha/test-results.xml $CI_PROJECT_DIR/vscode_xunit_output.xml
     # Include Anod logs
     - cp -r $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
     - echo -e "\e[0Ksection_end:`date +%s`:prepare_artifacts\r\e[0K"
