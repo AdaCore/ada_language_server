@@ -26,6 +26,7 @@ import {
     ServerOptions,
     SymbolKind,
 } from 'vscode-languageclient/node';
+import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import GnatTaskProvider, { getEnclosingSymbol } from './gnatTaskProvider';
 import GprTaskProvider from './gprTaskProvider';
