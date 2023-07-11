@@ -44,19 +44,19 @@ with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Other_File_Commands;
 with LSP.Ada_Handlers.Project_Reload_Commands;
-with LSP.Ada_Handlers.Refactor_Imports_Commands;
-with LSP.Ada_Handlers.Refactor_Add_Parameter;
-with LSP.Ada_Handlers.Refactor_Remove_Parameter;
-with LSP.Ada_Handlers.Refactor_Move_Parameter;
-with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
-with LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
-with LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
-with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
-with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
-with LSP.Ada_Handlers.Refactor_Introduce_Parameter;
-with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
-with LSP.Ada_Handlers.Refactor_Replace_Type;
-with LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+with LSP.Ada_Handlers.Refactor.Imports_Commands;
+with LSP.Ada_Handlers.Refactor.Add_Parameter;
+with LSP.Ada_Handlers.Refactor.Remove_Parameter;
+with LSP.Ada_Handlers.Refactor.Move_Parameter;
+with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
+with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor.Replace_Type;
+with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Commands;
 with LSP.Error_Decorators;
 with LSP.Fuzz_Decorators;
@@ -148,33 +148,33 @@ procedure LSP.Ada_Driver is
       LSP.Commands.Register
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Imports_Commands.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Imports_Commands.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Suppress_Seperate.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Suppress_Seperate.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Extract_Subprogram.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Extract_Subprogram.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Introduce_Parameter.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Introduce_Parameter.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Pull_Up_Declaration.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Replace_Type.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Replace_Type.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Sort_Dependencies.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command'Tag);
 
       --  Refactoring - Change Subprogram Signature Commands
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Add_Parameter.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Add_Parameter.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Remove_Parameter.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Remove_Parameter.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Move_Parameter.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Move_Parameter.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Change_Parameter_Mode.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Change_Parameter_Mode.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Change_Parameters_Type.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Change_Parameters_Type.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value.
+        (LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value.
            Command'Tag);
    end Register_Commands;
 

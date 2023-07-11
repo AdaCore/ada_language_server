@@ -256,6 +256,7 @@
                "id": 4,
                "method": "workspace/applyEdit",
                "params": {
+                  "label": "Suppress Separate",
                   "edit": {
                      "documentChanges": [
                         {

@@ -22,14 +22,13 @@ with Libadalang.Common; use Libadalang.Common;
 
 with Laltools.Common; use Laltools.Common;
 
-with LSP.Common;
 with LSP.Messages;
-with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
+with LSP.Commands;
 
-package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
+package body LSP.Ada_Handlers.Refactor.Change_Parameter_Mode is
 
    ------------------------
    -- Append_Code_Action --
@@ -234,23 +233,21 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       end return;
    end Create;
 
-   -------------
-   -- Execute --
-   -------------
+   --------------
+   -- Refactor --
+   --------------
 
    overriding
-   procedure Execute
+   procedure Refactor
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
       Client : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error : in out LSP.Errors.Optional_ResponseError)
+      Edits   : out LAL_Refactor.Refactoring_Edits)
    is
       use LAL_Refactor;
-      use LSP.Messages;
       use LSP.Types;
-      use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -259,10 +256,6 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
 
       Document : constant LSP.Ada_Documents.Document_Access :=
         Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
-
-      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
-      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
-      Label           : Optional_Virtual_String renames Apply.params.label;
 
       Node : constant Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
@@ -274,7 +267,6 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
          Last  => Positive (Self.Last_Param_Index));
 
       Changer : Mode_Changer;
-      Edits   : LAL_Refactor.Refactoring_Edits;
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
@@ -304,14 +296,14 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
 
    begin
       if Target_Subp.Is_Null then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.InvalidRequest,
-               message => VSS.Strings.To_Virtual_String
-                 ("Could not execute Change Parameter Mode command. "
-                  & "The target subprogram could not be resolved precisely."),
-               data    => <>));
+         Edits :=
+           (Diagnostics =>
+              [LAL_Refactor.Subprogram_Signature.Create
+                   (Subp => Node,
+                    Info => VSS.Strings.To_Virtual_String
+                      ("The target subprogram could "
+                       & "not be resolved precisely."))],
+            others      => <>);
          return;
       end if;
 
@@ -321,41 +313,7 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
          Value (Self.New_Mode));
 
       Edits := Changer.Refactor (Analysis_Units'Access);
-
-      if Edits = No_Refactoring_Edits then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Change Parameter Mode refactoring."),
-               data    => <>));
-
-      else
-         Workspace_Edits :=
-           LSP.Lal_Utils.To_Workspace_Edit
-             (Edits               => Edits,
-              Resource_Operations => Message_Handler.Resource_Operations,
-              Versioned_Documents => Message_Handler.Versioned_Documents,
-              Document_Provider   => Message_Handler'Access);
-         Label :=
-           (Is_Set => True,
-            Value  => To_Virtual_String (Command'External_Tag));
-
-         Client.On_Workspace_Apply_Edit_Request (Apply);
-      end if;
-
-   exception
-      when E : others =>
-         LSP.Common.Log (Message_Handler.Trace, E);
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Change Parameter Mode refactoring."),
-               data => <>));
-   end Execute;
+   end Refactor;
 
    ----------------
    -- Initialize --
@@ -400,4 +358,4 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameter_Mode is
       LSP.Types.Write_String (S, C.New_Mode);
       JS.End_Object;
    end Write_Command;
-end LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+end LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;

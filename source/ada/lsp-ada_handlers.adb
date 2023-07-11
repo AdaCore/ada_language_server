@@ -57,19 +57,19 @@ with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Alire;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
-with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
-with LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
-with LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
-with LSP.Ada_Handlers.Refactor_Add_Parameter;
-with LSP.Ada_Handlers.Refactor_Introduce_Parameter;
-with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
-with LSP.Ada_Handlers.Refactor_Imports_Commands;
-with LSP.Ada_Handlers.Refactor_Move_Parameter;
-with LSP.Ada_Handlers.Refactor_Remove_Parameter;
-with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
-with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
-with LSP.Ada_Handlers.Refactor_Replace_Type;
-with LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+with LSP.Ada_Handlers.Refactor.Add_Parameter;
+with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
+with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+with LSP.Ada_Handlers.Refactor.Imports_Commands;
+with LSP.Ada_Handlers.Refactor.Move_Parameter;
+with LSP.Ada_Handlers.Refactor.Remove_Parameter;
+with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor.Replace_Type;
+with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
@@ -1564,7 +1564,7 @@ package body LSP.Ada_Handlers is
          procedure Change_Parameters_Type_Code_Action is
             use Langkit_Support.Slocs;
             use LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
-            use LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
+            use LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 
             Span : constant Source_Location_Range :=
               (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
@@ -1603,7 +1603,7 @@ package body LSP.Ada_Handlers is
             use Langkit_Support.Slocs;
             use LAL_Refactor.Subprogram_Signature.
                   Change_Parameters_Default_Value;
-            use LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
+            use LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 
             Span : constant Source_Location_Range :=
               (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
@@ -1635,7 +1635,7 @@ package body LSP.Ada_Handlers is
          ------------------------------------
 
          procedure Extract_Subprogram_Code_Action is
-            use LSP.Ada_Handlers.Refactor_Extract_Subprogram;
+            use LSP.Ada_Handlers.Refactor.Extract_Subprogram;
             use Langkit_Support.Slocs;
             use LAL_Refactor.Extract_Subprogram;
             use type LSP.Messages.Position;
@@ -1696,7 +1696,7 @@ package body LSP.Ada_Handlers is
          procedure Introduce_Parameter_Code_Action is
             use Langkit_Support.Slocs;
             use LAL_Refactor.Introduce_Parameter;
-            use LSP.Ada_Handlers.Refactor_Introduce_Parameter;
+            use LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 
             Span : constant Source_Location_Range :=
               (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
@@ -1860,7 +1860,7 @@ package body LSP.Ada_Handlers is
             for Suggestion of Import_Suggestions loop
                declare
                   Command : LSP.Ada_Handlers.
-                    Refactor_Imports_Commands.Command;
+                    Refactor.Imports_Commands.Command;
                begin
                   Command.Append_Suggestion
                     (Context         => Context,
@@ -1977,7 +1977,7 @@ package body LSP.Ada_Handlers is
             use Langkit_Support.Slocs;
             use Libadalang.Analysis;
             use LAL_Refactor.Pull_Up_Declaration;
-            use LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
+            use LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
             use LSP.Messages;
 
             --  This code action is not available when a range of text is
@@ -1990,7 +1990,7 @@ package body LSP.Ada_Handlers is
                Column_Number (Params.span.first.character) + 1);
 
             Pull_Up_Declaration_Command :
-              LSP.Ada_Handlers.Refactor_Pull_Up_Declaration.Command;
+              LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command;
 
          begin
             if Single_Location
@@ -2013,7 +2013,7 @@ package body LSP.Ada_Handlers is
          ------------------------------
 
          procedure Replace_Type_Code_Action is
-            use LSP.Ada_Handlers.Refactor_Replace_Type;
+            use LSP.Ada_Handlers.Refactor.Replace_Type;
             use LAL_Refactor.Replace_Type;
 
             use Langkit_Support.Slocs;
@@ -2023,7 +2023,7 @@ package body LSP.Ada_Handlers is
                Column_Number (Params.span.first.character) + 1);
 
             Replace_Type_Command :
-              LSP.Ada_Handlers.Refactor_Replace_Type.Command;
+              LSP.Ada_Handlers.Refactor.Replace_Type.Command;
 
          begin
             if Is_Replace_Type_Available (Node.Unit, Location) then
@@ -2047,7 +2047,7 @@ package body LSP.Ada_Handlers is
             use Langkit_Support.Slocs;
             use Libadalang.Analysis;
             use LAL_Refactor.Sort_Dependencies;
-            use LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+            use LSP.Ada_Handlers.Refactor.Sort_Dependencies;
             use LSP.Messages;
 
             Location        : constant Source_Location :=
@@ -2055,7 +2055,7 @@ package body LSP.Ada_Handlers is
                Column_Number (Params.span.first.character) + 1);
 
             Sort_Dependencies_Command :
-              LSP.Ada_Handlers.Refactor_Sort_Dependencies.Command;
+              LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command;
 
          begin
             if Is_Sort_Dependencies_Available (Node.Unit, Location) then
@@ -2097,7 +2097,7 @@ package body LSP.Ada_Handlers is
               Advanced_Refactorings (Add_Parameter)
          then
             declare
-               use LSP.Ada_Handlers.Refactor_Add_Parameter;
+               use LSP.Ada_Handlers.Refactor.Add_Parameter;
                use Libadalang.Analysis;
                use LAL_Refactor.Subprogram_Signature;
                use Langkit_Support.Slocs;
@@ -2158,7 +2158,7 @@ package body LSP.Ada_Handlers is
 
          --  Remove Parameter
          declare
-            use LSP.Ada_Handlers.Refactor_Remove_Parameter;
+            use LSP.Ada_Handlers.Refactor.Remove_Parameter;
             use Libadalang.Analysis;
             use LAL_Refactor.Subprogram_Signature;
             use LAL_Refactor.Subprogram_Signature.Remove_Parameter;
@@ -2183,7 +2183,7 @@ package body LSP.Ada_Handlers is
 
          --  Move Parameter
          declare
-            use LSP.Ada_Handlers.Refactor_Move_Parameter;
+            use LSP.Ada_Handlers.Refactor.Move_Parameter;
             use Libadalang.Analysis;
             use LAL_Refactor.Subprogram_Signature;
 
@@ -2213,7 +2213,7 @@ package body LSP.Ada_Handlers is
 
          --  Change Parameter Mode
          declare
-            use LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+            use LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
             use Libadalang.Analysis;
             use LAL_Refactor.Subprogram_Signature;
 
@@ -2244,7 +2244,7 @@ package body LSP.Ada_Handlers is
 
          --  Suppress Subprogram
          declare
-            use LSP.Ada_Handlers.Refactor_Suppress_Seperate;
+            use LSP.Ada_Handlers.Refactor.Suppress_Seperate;
             use Libadalang.Analysis;
             use LAL_Refactor.Suppress_Separate;
 
@@ -2421,6 +2421,7 @@ package body LSP.Ada_Handlers is
         Request.params;
       Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
         (Is_Error => True);
+
    begin
       if Params.Is_Unknown or else Params.Custom.Is_Null then
          Response.error :=
@@ -2431,20 +2432,26 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      Params.Custom.Unchecked_Get.Execute
-        (Handler => Self,
-         Client  => Self.Server,
-         Error   => Error);
+      declare
+         Command : constant LSP.Commands.Command'Class :=
+           Params.Custom.Unchecked_Get.all;
+      begin
+         Command.Execute
+           (Handler => Self,
+            Client  => Self.Server,
+            Error   => Error);
 
-      if Error.Is_Set then
-         Response.error := Error;
-         return Response;
-      end if;
+         if Error.Is_Set then
+            Response.error := Error;
 
-      --  No particular response in case of success.
-      return (Is_Error => False,
-              error    => (Is_Set => False),
-              others   => <>);
+            return Response;
+         end if;
+
+         --  No particular response in case of success.
+         return (Is_Error => False,
+                 error    => (Is_Set => False),
+                 others   => <>);
+      end;
    end On_Execute_Command_Request;
 
    ----------------------------
@@ -4005,7 +4012,7 @@ package body LSP.Ada_Handlers is
       --  edits to `All_Edits`.
 
       function To_LSP_Diagnostic
-        (Problem         : LAL_Refactor.Refactoring_Diagnotic'Class;
+        (Problem         : LAL_Refactor.Refactoring_Diagnostic'Class;
          Definition_Node : Defining_Name)
          return LSP.Messages.Diagnostic;
       --  Convert a laltool refactoring diagnostic into a LSP one.
@@ -4298,7 +4305,7 @@ package body LSP.Ada_Handlers is
       -----------------------
 
       function To_LSP_Diagnostic
-        (Problem         : LAL_Refactor.Refactoring_Diagnotic'Class;
+        (Problem         : LAL_Refactor.Refactoring_Diagnostic'Class;
          Definition_Node : Defining_Name)
          return LSP.Messages.Diagnostic
       is

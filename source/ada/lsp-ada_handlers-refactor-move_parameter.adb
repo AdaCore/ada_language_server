@@ -20,88 +20,82 @@ with Ada.Strings.UTF_Encoding;
 with Libadalang.Analysis; use Libadalang.Analysis;
 
 with Laltools.Common; use Laltools.Common;
-with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
-use LAL_Refactor.Subprogram_Signature.Remove_Parameter;
 
-with LSP.Common;
 with LSP.Messages;
-with LSP.Messages.Client_Requests;
 with LSP.Lal_Utils;
 
 with VSS.Strings.Conversions;
+with LSP.Commands;
 
-package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
+package body LSP.Ada_Handlers.Refactor.Move_Parameter is
+
+   use type VSS.Strings.Virtual_String;
 
    ------------------------
    -- Append_Code_Action --
    ------------------------
 
    procedure Append_Code_Action
-     (Self               : in out Command;
-      Context            : Context_Access;
-      Commands_Vector    : in out LSP.Messages.CodeAction_Vector;
-      Target_Subp        : Basic_Decl;
-      Parameters_Indices : Parameter_Indices_Range_Type)
+     (Self              : in out Command;
+      Context           : Context_Access;
+      Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
+      Target_Subp       : Libadalang.Analysis.Basic_Decl;
+      Parameter_Index   : Positive;
+      Move_Direction    : Move_Direction_Type)
    is
       Pointer : LSP.Commands.Command_Pointer;
       Code_Action : LSP.Messages.CodeAction;
       Where       : constant LSP.Messages.Location :=
         LSP.Lal_Utils.Get_Node_Location (Target_Subp.P_Defining_Name.F_Name);
 
+      function Image
+        (D : Move_Direction_Type) return VSS.Strings.Virtual_String;
+      --  Returns 'forward' if D = Forward and 'backward' if D = Backward
+
       function Create_Code_Action_Title return VSS.Strings.Virtual_String;
       --  Creates the code action text that will be shown by the client to
       --  to the developer. The text is costumized based on the name and number
       --  of parameters that will be removed.
-      --  There are three handlers based on the number of parameters: 1, 2, or
-      --  more than 2.
 
       ------------------------------
       -- Create_Code_Action_Title --
       ------------------------------
 
       function Create_Code_Action_Title return VSS.Strings.Virtual_String is
-         use type VSS.Strings.Virtual_String;
-
-         First_Parameter_Name : constant VSS.Strings.Virtual_String :=
+         Parameter_Name : constant VSS.Strings.Virtual_String :=
            VSS.Strings.To_Virtual_String
-             (Get_Parameter_Name (Target_Subp, Parameters_Indices.First));
-         Last_Parameter_Name  : constant VSS.Strings.Virtual_String :=
-           VSS.Strings.To_Virtual_String
-             (Get_Parameter_Name (Target_Subp, Parameters_Indices.Last));
-
-         Action_Title : VSS.Strings.Virtual_String;
+             (Get_Parameter_Name (Target_Subp, Parameter_Index));
 
       begin
-         if Parameters_Indices.First = Parameters_Indices.Last then
-            --  One parameter
-            Action_Title := "Remove parameter " & First_Parameter_Name;
-
-         elsif Parameters_Indices.Last - Parameters_Indices.First = 1 then
-            --  Two parameters
-            Action_Title :=
-              "Remove parameters "
-              & First_Parameter_Name
-              & " and "
-              & Last_Parameter_Name;
-
-         else
-            --  Three or more parameters
-            Action_Title :=
-              "Remove parameters "
-              & First_Parameter_Name
-              & " to "
-              & Last_Parameter_Name;
-         end if;
-
-         return Action_Title;
+         return
+           "Move "
+           & Parameter_Name
+           & " "
+           & Image (Move_Direction);
       end Create_Code_Action_Title;
 
+      -----------
+      -- Image --
+      -----------
+
+      function Image
+        (D : Move_Direction_Type) return VSS.Strings.Virtual_String is
+      begin
+         case D is
+            when Backward => return "backward";
+            when Forward  => return "forward";
+         end case;
+      end Image;
+
    begin
+
       Self.Initialize
-        (Context           => Context.all,
-         Where             => ((uri => Where.uri), Where.span.first),
-         First_Parameter => LSP.Types.LSP_Number (Parameters_Indices.First),
-         Last_Parameter  => LSP.Types.LSP_Number (Parameters_Indices.Last));
+        (Context         => Context.all,
+         Where           =>
+           ((uri => Where.uri),
+            Where.span.first),
+         Parameter_Index => LSP.Types.LSP_Number (Parameter_Index),
+         Direction       => Image (Move_Direction));
 
       Pointer.Set (Self);
 
@@ -124,14 +118,30 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
       Commands_Vector.Append (Code_Action);
    end Append_Code_Action;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Self             : in out Command'Class;
+      Context          : LSP.Ada_Contexts.Context;
+      Where            : LSP.Messages.TextDocumentPositionParams;
+      Parameter_Index  : LSP.Types.LSP_Number;
+      Direction        : VSS.Strings.Virtual_String) is
+   begin
+      Self.Context         := Context.Id;
+      Self.Where           := Where;
+      Self.Parameter_Index := Parameter_Index;
+      Self.Direction       := Direction;
+   end Initialize;
+
    ------------
    -- Create --
    ------------
 
    overriding function Create
      (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
-      return Command
-   is
+      return Command is
    begin
       return V : Command do
          pragma Assert (JS.R.Is_Start_Object);
@@ -154,11 +164,11 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
                elsif Key = "where" then
                   LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
 
-               elsif Key = "first_parameter" then
-                  LSP.Types.Read (JS, V.First_Parameter);
+               elsif Key = "parameter_index" then
+                  LSP.Types.Read (JS, V.Parameter_Index);
 
-               elsif Key = "last_parameter" then
-                  LSP.Types.Read (JS, V.Last_Parameter);
+               elsif Key = "direction" then
+                  LSP.Types.Read_String (JS, V.Direction);
 
                else
                   JS.Skip_Value;
@@ -170,22 +180,20 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
       end return;
    end Create;
 
-   -------------
-   -- Execute --
-   -------------
+   --------------
+   -- Refactor --
+   --------------
 
-   overriding procedure Execute
+   overriding procedure Refactor
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
       Client : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error : in out LSP.Errors.Optional_ResponseError)
+      Edits   : out LAL_Refactor.Refactoring_Edits)
    is
       use LAL_Refactor;
-      use LSP.Messages;
       use LSP.Types;
-      use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -195,21 +203,13 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
       Document : constant LSP.Ada_Documents.Document_Access :=
         Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
 
-      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
-      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
-      Label           : Optional_Virtual_String renames Apply.params.label;
-
-      Node : constant Ada_Node :=
+      Node            : constant Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);
 
-      Target_Subp               : constant Defining_Name :=
+      Target_Subp            : constant Defining_Name :=
         Resolve_Name_Precisely (Get_Node_As_Name (Node));
-      Target_Parameters_Indices : constant Parameter_Indices_Range_Type :=
-        (First => Positive (Self.First_Parameter),
-         Last  => Positive (Self.Last_Parameter));
-
-      Remover : Parameter_Remover;
-      Edits   : Refactoring_Edits;
+      Target_Parameter_Index : constant Positive :=
+        Positive (Self.Parameter_Index);
 
       function Analysis_Units return Analysis_Unit_Array is
         (Context.Analysis_Units);
@@ -217,72 +217,33 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
 
    begin
       if Target_Subp.Is_Null then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.InvalidRequest,
-               message => VSS.Strings.To_Virtual_String
-                 ("Failed to execute the Remove Parameter refactoring. "
-                  & "The target subprogram could not be resolved precisely."),
-               data    => <>));
+         Edits := (Diagnostics =>
+                     [LAL_Refactor.Subprogram_Signature.Create
+                        (Subp => Node,
+                         Info => VSS.Strings.Conversions.To_Virtual_String
+                           ("The target subprogram could "
+                            & "not be resolved precisely."))],
+                   others      => <>);
+
          return;
       end if;
 
-      Remover := Create (Target_Subp.P_Basic_Decl, Target_Parameters_Indices);
-
-      Edits := Remover.Refactor (Analysis_Units'Access);
-
-      if Edits = LAL_Refactor.No_Refactoring_Edits then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Remove Parameter refactoring."),
-               data    => <>));
-
+      if Self.Direction = "backward" then
+         declare
+            Mover : constant Backward_Mover :=
+              Create (Target_Subp.P_Basic_Decl, Target_Parameter_Index);
+         begin
+            Edits := Mover.Refactor (Analysis_Units'Access);
+         end;
       else
-         Workspace_Edits :=
-           LSP.Lal_Utils.To_Workspace_Edit
-             (Edits               => Edits,
-              Resource_Operations => Message_Handler.Resource_Operations,
-              Versioned_Documents => Message_Handler.Versioned_Documents,
-              Document_Provider   => Message_Handler'Access);
-         Label :=
-           (Is_Set => True,
-            Value  => To_Virtual_String (Command'External_Tag));
-
-         Client.On_Workspace_Apply_Edit_Request (Apply);
+         declare
+            Mover : constant Forward_Mover :=
+              Create (Target_Subp.P_Basic_Decl, Target_Parameter_Index);
+         begin
+            Edits := Mover.Refactor (Analysis_Units'Access);
+         end;
       end if;
-
-   exception
-      when E : others =>
-         LSP.Common.Log (Message_Handler.Trace, E);
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Remove Parameter refactoring."),
-               data    => <>));
-   end Execute;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (Self             : in out Command'Class;
-      Context          : LSP.Ada_Contexts.Context;
-      Where            : LSP.Messages.TextDocumentPositionParams;
-      First_Parameter  : LSP.Types.LSP_Number;
-      Last_Parameter   : LSP.Types.LSP_Number) is
-   begin
-      Self.Context := Context.Id;
-      Self.Where := Where;
-      Self.First_Parameter := First_Parameter;
-      Self.Last_Parameter := Last_Parameter;
-   end Initialize;
+   end Refactor;
 
    -------------------
    -- Write_Command --
@@ -300,11 +261,11 @@ package body LSP.Ada_Handlers.Refactor_Remove_Parameter is
       LSP.Types.Write_String (S, C.Context);
       JS.Key ("where");
       LSP.Messages.TextDocumentPositionParams'Write (S, C.Where);
-      JS.Key ("first_parameter");
-      LSP.Types.Write (S, C.First_Parameter);
-      JS.Key ("last_parameter");
-      LSP.Types.Write (S, C.Last_Parameter);
+      JS.Key ("parameter_index");
+      LSP.Types.Write (S, C.Parameter_Index);
+      JS.Key ("direction");
+      LSP.Types.Write_String (S, C.Direction);
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Remove_Parameter;
+end LSP.Ada_Handlers.Refactor.Move_Parameter;

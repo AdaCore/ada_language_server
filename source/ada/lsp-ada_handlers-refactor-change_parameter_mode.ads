@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                        Copyright (C) 2021, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,33 +15,45 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to sort dependencies
+--  Implementation of the refactoring command to change parameters modes
 
 with Ada.Streams;
 
-with LSP.Client_Message_Receivers;
-with LSP.Commands;
-with LSP.Errors;
-with LSP.JSON_Streams;
-
 private with VSS.Strings;
 
-package LSP.Ada_Handlers.Refactor_Sort_Dependencies is
+with LSP.Client_Message_Receivers;
+with LSP.JSON_Streams;
 
-   type Command is new LSP.Commands.Command with private;
+with Libadalang.Analysis;
+with Libadalang.Common;
+
+with LAL_Refactor.Subprogram_Signature; use LAL_Refactor.Subprogram_Signature;
+
+package LSP.Ada_Handlers.Refactor.Change_Parameter_Mode is
+
+   type Command is new LSP.Ada_Handlers.Refactor.Command with private;
+
+      overriding function Name (Self : Command) return String
+   is
+      ("Change Parameter Mode");
 
    procedure Append_Code_Action
-     (Self            : in out Command;
-      Context         : Context_Access;
-      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Where           : LSP.Messages.Location);
-   --  Initializes Self and appends it to Commands_Vector
+     (Self               : in out Command;
+      Context            : Context_Access;
+      Commands_Vector    : in out LSP.Messages.CodeAction_Vector;
+      Target_Subp        : Libadalang.Analysis.Basic_Decl;
+      Parameters_Indices : Parameter_Indices_Range_Type;
+      New_Mode           : Libadalang.Common.Ada_Mode);
+   --  Initializes 'Self' and appends it to 'Commands_Vector'
 
 private
 
-   type Command is new LSP.Commands.Command with record
-      Context : VSS.Strings.Virtual_String;
-      Where   : LSP.Messages.Location;
+   type Command is new LSP.Ada_Handlers.Refactor.Command with record
+      Context           : VSS.Strings.Virtual_String;
+      Where             : LSP.Messages.TextDocumentPositionParams;
+      First_Param_Index : LSP.Types.LSP_Number;
+      Last_Param_Index  : LSP.Types.LSP_Number;
+      New_Mode          : VSS.Strings.Virtual_String;
    end record;
 
    overriding
@@ -51,19 +63,22 @@ private
    --  Reads JS and creates a new Command
 
    overriding
-   procedure Execute
+   procedure Refactor
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error   : in out LSP.Errors.Optional_ResponseError);
+      Edits   : out LAL_Refactor.Refactoring_Edits);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.Location);
+     (Self              : in out Command'Class;
+      Context           : LSP.Ada_Contexts.Context;
+      Where             : LSP.Messages.TextDocumentPositionParams;
+      First_Param_Index : LSP.Types.LSP_Number;
+      Last_Param_Index  : LSP.Types.LSP_Number;
+      New_Mode          : VSS.Strings.Virtual_String);
    --  Initializes Self
 
    procedure Write_Command
@@ -72,6 +87,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-sort_dependencies";
+   for Command'External_Tag use "als-refactor-change-parameter-mode";
 
-end LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+end LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;

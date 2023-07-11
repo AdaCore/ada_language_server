@@ -23,13 +23,12 @@ with Libadalang.Analysis;
 
 with LAL_Refactor.Pull_Up_Declaration;
 
-with LSP.Common;
-with LSP.Messages.Client_Requests;
-with LSP.Lal_Utils;
+with LSP.Messages;
 
 with VSS.Strings.Conversions;
+with LSP.Commands;
 
-package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
+package body LSP.Ada_Handlers.Refactor.Pull_Up_Declaration is
 
    ------------------------
    -- Append_Code_Action --
@@ -115,35 +114,29 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
       end return;
    end Create;
 
-   -------------
-   -- Execute --
-   -------------
+   --------------
+   -- Refactor --
+   --------------
 
    overriding
-   procedure Execute
+   procedure Refactor
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
       Client  : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error   : in out LSP.Errors.Optional_ResponseError)
+      Edits   : out LAL_Refactor.Refactoring_Edits)
    is
       use Langkit_Support.Slocs;
       use Libadalang.Analysis;
       use LAL_Refactor;
       use LAL_Refactor.Pull_Up_Declaration;
-      use LSP.Messages;
       use LSP.Types;
-      use VSS.Strings.Conversions;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
-
-      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
-      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
-      Label           : Optional_Virtual_String renames Apply.params.label;
 
       Unit : constant Analysis_Unit :=
         Context.LAL_Context.Get_From_File
@@ -160,44 +153,10 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
 
       Pull_Upper : constant Declaration_Extractor :=
         Create_Declaration_Pull_Upper (Unit, Declaration_SLOC);
-      Edits      : constant Refactoring_Edits :=
-        Pull_Upper.Refactor (Analysis_Units'Access);
 
    begin
-      if Edits = No_Refactoring_Edits then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Pull Up Declaration refactoring."),
-               data    => <>));
-
-      else
-         Workspace_Edits :=
-           LSP.Lal_Utils.To_Workspace_Edit
-             (Edits               => Edits,
-              Resource_Operations => Message_Handler.Resource_Operations,
-              Versioned_Documents => Message_Handler.Versioned_Documents,
-              Document_Provider   => Message_Handler'Access);
-         Label :=
-           (Is_Set => True,
-            Value  => To_Virtual_String (Command'External_Tag));
-
-         Client.On_Workspace_Apply_Edit_Request (Apply);
-      end if;
-
-   exception
-      when E : others =>
-         LSP.Common.Log (Message_Handler.Trace, E);
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Pull Up Declaration refactoring."),
-               data    => <>));
-   end Execute;
+      Edits := Pull_Upper.Refactor (Analysis_Units'Access);
+   end Refactor;
 
    ----------------
    -- Initialize --
@@ -235,4 +194,4 @@ package body LSP.Ada_Handlers.Refactor_Pull_Up_Declaration is
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
+end LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;

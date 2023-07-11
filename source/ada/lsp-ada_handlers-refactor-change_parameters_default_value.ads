@@ -15,21 +15,23 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring tool to introduce a parameter
+--  Implementation of the refactoring command to change a subprogram
+--  parameter default value
 
 with Ada.Streams;
 
 with LSP.Client_Message_Receivers;
-with LSP.Commands;
-with LSP.Messages;
-with LSP.Errors;
 with LSP.JSON_Streams;
 
-with VSS.Strings;
+private with VSS.Strings;
 
-package LSP.Ada_Handlers.Refactor_Introduce_Parameter is
+package LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value is
 
-   type Command is new LSP.Commands.Command with private;
+   type Command is new LSP.Ada_Handlers.Refactor.Command with private;
+
+   overriding function Name (Self : Command) return String
+   is
+      ("Change Parameters Default Value");
 
    procedure Append_Code_Action
      (Self            : in out Command;
@@ -40,9 +42,10 @@ package LSP.Ada_Handlers.Refactor_Introduce_Parameter is
 
 private
 
-   type Command is new LSP.Commands.Command with record
-      Context_Id : VSS.Strings.Virtual_String;
-      Where      : LSP.Messages.Location;
+   type Command is new LSP.Ada_Handlers.Refactor.Command with record
+      Context                      : VSS.Strings.Virtual_String;
+      Where                        : LSP.Messages.Location;
+      New_Parameters_Default_Value : VSS.Strings.Virtual_String;
    end record;
 
    overriding
@@ -52,19 +55,20 @@ private
    --  Reads JS and creates a new Command
 
    overriding
-   procedure Execute
+   procedure Refactor
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Edits   : out LAL_Refactor.Refactoring_Edits);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.Location);
+     (Self                         : in out Command'Class;
+      Context                      : LSP.Ada_Contexts.Context;
+      Where                        : LSP.Messages.Location;
+      New_Parameters_Default_Value : VSS.Strings.Virtual_String);
    --  Initializes Self
 
    procedure Write_Command
@@ -73,6 +77,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-introduce-parameter";
+   for Command'External_Tag use "als-refactor-change_parameters_default_value";
 
-end LSP.Ada_Handlers.Refactor_Introduce_Parameter;
+end LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;

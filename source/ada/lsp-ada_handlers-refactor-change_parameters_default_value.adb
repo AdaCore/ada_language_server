@@ -29,13 +29,12 @@ with Libadalang.Analysis; use  Libadalang.Analysis;
 
 with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 
-with LSP.Common;
-with LSP.Messages.Client_Requests;
-with LSP.Lal_Utils;
+with LSP.Messages;
 
 with VSS.Strings.Conversions;
+with LSP.Commands;
 
-package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
+package body LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value is
 
    ------------------------
    -- Append_Code_Action --
@@ -125,23 +124,22 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
       end return;
    end Create;
 
-   -------------
-   -- Execute --
-   -------------
+   --------------
+   -- Refactor --
+   --------------
 
    overriding
-   procedure Execute
+   procedure Refactor
      (Self    : Command;
       Handler : not null access LSP.Server_Notification_Receivers.
         Server_Notification_Receiver'Class;
       Client  : not null access LSP.Client_Message_Receivers.
         Client_Message_Receiver'Class;
-      Error   : in out LSP.Errors.Optional_ResponseError)
+      Edits   : out LAL_Refactor.Refactoring_Edits)
    is
       use LAL_Refactor;
       use LAL_Refactor.Subprogram_Signature.
             Change_Parameters_Default_Value;
-      use LSP.Messages;
       use LSP.Types;
       use VSS.Strings.Conversions;
 
@@ -149,10 +147,6 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
-
-      Apply           : Client_Requests.Workspace_Apply_Edit_Request;
-      Workspace_Edits : WorkspaceEdit renames Apply.params.edit;
-      Label           : Optional_Virtual_String renames Apply.params.label;
 
       Unit : constant Analysis_Unit :=
         Context.LAL_Context.Get_From_File
@@ -176,46 +170,9 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Pull_Upper
 
-      Edits : constant LAL_Refactor.Refactoring_Edits :=
-        Changer.Refactor (Analysis_Units'Access);
-
    begin
-      if Edits = No_Refactoring_Edits then
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Change Parameter Default Value "
-                  & "refactoring."),
-               data    => <>));
-
-      else
-         Workspace_Edits :=
-           LSP.Lal_Utils.To_Workspace_Edit
-             (Edits               => Edits,
-              Resource_Operations => Message_Handler.Resource_Operations,
-              Versioned_Documents => Message_Handler.Versioned_Documents,
-              Document_Provider   => Message_Handler'Access);
-         Label :=
-           (Is_Set => True,
-            Value  => To_Virtual_String (Command'External_Tag));
-
-         Client.On_Workspace_Apply_Edit_Request (Apply);
-      end if;
-
-   exception
-      when E : others =>
-         LSP.Common.Log (Message_Handler.Trace, E);
-         Error :=
-           (Is_Set => True,
-            Value  =>
-              (code => LSP.Errors.UnknownErrorCode,
-               message => VSS.Strings.Conversions.To_Virtual_String
-                 ("Failed to execute the Change Parameter Default Value "
-                  & "refactoring."),
-               data => <>));
-   end Execute;
+      Edits := Changer.Refactor (Analysis_Units'Access);
+   end Refactor;
 
    ----------------
    -- Initialize --
@@ -257,4 +214,4 @@ package body LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value is
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
+end LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;

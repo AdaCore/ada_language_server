@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2022, AdaCore                       --
+--                        Copyright (C) 2021, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,34 +19,35 @@
 
 with Ada.Streams;
 
-with Libadalang.Common;
-
 with LSP.Client_Message_Receivers;
-with LSP.Commands;
 with LSP.Messages;
-with LSP.Errors;
 with LSP.JSON_Streams;
 
 with VSS.Strings;
 
-package LSP.Ada_Handlers.Refactor_Extract_Subprogram is
+package LSP.Ada_Handlers.Refactor.Add_Parameter is
 
-   type Command is new LSP.Commands.Command with private;
+   type Command is new LSP.Ada_Handlers.Refactor.Command with private;
+
+   overriding function Name (Self : Command) return String
+   is
+      ("Add Parameter");
 
    procedure Append_Code_Action
      (Self                        : in out Command;
       Context                     : Context_Access;
       Commands_Vector             : in out LSP.Messages.CodeAction_Vector;
       Where                       : LSP.Messages.Location;
-      Subprogram_Kind             : Libadalang.Common.Ada_Subp_Kind);
+      Requires_Full_Specification : Boolean);
    --  Initializes Self and appends it to Commands_Vector
 
 private
 
-   type Command is new LSP.Commands.Command with record
-      Context_Id              : VSS.Strings.Virtual_String;
-      Section_To_Extract_SLOC : LSP.Messages.Location;
-      Subprogram_Kind         : Libadalang.Common.Ada_Subp_Kind;
+   type Command is new LSP.Ada_Handlers.Refactor.Command with record
+      Context_Id                  : VSS.Strings.Virtual_String;
+      Where                       : LSP.Messages.Location;
+      New_Parameter               : VSS.Strings.Virtual_String;
+      Requires_Full_Specification : Boolean;
    end record;
 
    overriding
@@ -56,20 +57,20 @@ private
    --  Reads JS and creates a new Command
 
    overriding
-   procedure Execute
+   procedure Refactor
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
       Client  : not null access
         LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Edits   : out LAL_Refactor.Refactoring_Edits);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
-     (Self             : in out Command'Class;
-      Context          : LSP.Ada_Contexts.Context;
-      Where            : LSP.Messages.Location;
-      Subprogram_Kind  : Libadalang.Common.Ada_Subp_Kind);
+     (Self                        : in out Command'Class;
+      Context                     : LSP.Ada_Contexts.Context;
+      Where                       : LSP.Messages.Location;
+      Requires_Full_Specification : Boolean);
    --  Initializes Self
 
    procedure Write_Command
@@ -78,6 +79,6 @@ private
    --  Writes C to S
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-refactor-extract-subprogram";
+   for Command'External_Tag use "als-refactor-add-parameters";
 
-end LSP.Ada_Handlers.Refactor_Extract_Subprogram;
+end LSP.Ada_Handlers.Refactor.Add_Parameter;
