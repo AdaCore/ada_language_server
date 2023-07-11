@@ -42,14 +42,16 @@ interface TaskProperties {
  * or '' if not found.
  */
 const limitSubp = async (): Promise<string> => {
-    return getEnclosingSymbol(vscode.window.activeTextEditor, [SymbolKind.Function]).then((Symbol) => {
-        if (Symbol) {
-            const subprogram_line: string = (Symbol.range.start.line + 1).toString();
-            return `--limit-subp=\${fileBasename}:${subprogram_line}`;
-        } else {
-            return '';
+    return getEnclosingSymbol(vscode.window.activeTextEditor, [SymbolKind.Function]).then(
+        (Symbol) => {
+            if (Symbol) {
+                const subprogram_line: string = (Symbol.range.start.line + 1).toString();
+                return `--limit-subp=\${fileBasename}:${subprogram_line}`;
+            } else {
+                return '';
+            }
         }
-    });
+    );
 };
 
 /**
@@ -288,7 +290,7 @@ async function getTasks(): Promise<vscode.Task[]> {
  * to find the closest symbol enclosing the cursor's position.
  * @returns Return the closest enclosing symbol.
  */
-export async function getEnclosingSymbol (
+export async function getEnclosingSymbol(
     editor: vscode.TextEditor | undefined,
     kinds: vscode.SymbolKind[]
 ): Promise<vscode.DocumentSymbol | null> {
@@ -332,7 +334,7 @@ export async function getEnclosingSymbol (
     }
 
     return null;
-};
+}
 
 const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
     if (editor) {

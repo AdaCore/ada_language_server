@@ -581,6 +581,7 @@
         "eslint-plugin-tsdoc": "0.2.17",
         "glob": "9.3.0",
         "mocha": "10.2.0",
+        "mocha-junit-reporter": "^2.2.0",
         "prettier": "2.8.4",
         "typescript": "4.9.5",
         "vscode-tmgrammar-test": "0.1.1"
@@ -593,6 +594,7 @@
         "watch": "node ./node_modules/typescript/bin/tsc -watch",
         "pretest": "npm run compile",
         "lint": "eslint './src/**/*.{js,ts,tsx}' --quiet --fix",
+        "cilint": "eslint './src/**/*.{js,ts,tsx}'",
         "test": "node ./out/test/runTest.js"
     },
     "dependencies": {
