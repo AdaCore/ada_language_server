@@ -18,8 +18,15 @@ function make_change_log()
 }
 
 chmod -R -v +x als-*-$DEBUG
-for X in Linux macOS Windows ; do mv -v -f als-$X-$DEBUG/* integration/vscode/ada/; done
-rm -rf -v integration/vscode/ada/{linux,darwin,win32}/*.{debug,dSYM}
+
+for X in Linux macOS Windows ; do
+    rsync -rva als-$X-$DEBUG/ integration/vscode/ada/
+done
+
+# VS Code is supported on arm, arm64 and x64 so we only consider those
+# architectures
+rm -rf -v integration/vscode/ada/{arm,arm64,x64}/{linux,darwin,win32}/*.{debug,dSYM}
+
 pushd integration/vscode/ada
 sed -i -e "/version/s/[0-9][0-9.]*/$TAG/" package.json
 [ -z "$DEBUG" ] || sed -i -e '/^    "name"/s/ada/ada-debug/' \
@@ -38,4 +45,4 @@ vsce package || true
 popd
 mv -v integration/vscode/ada/*.vsix .
 git checkout integration/vscode/ada/package.json
-rm -rf integration/vscode/ada/{linux,darwin,win32}
+rm -rf integration/vscode/ada/{arm,arm64,x64}/{linux,darwin,win32}

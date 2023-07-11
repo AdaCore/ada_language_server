@@ -93,22 +93,23 @@ function fix_rpath ()
     install_name_tool -add_rpath @executable_path $1
 }
 
+# Get architecture and platform information from node.
+NODE_ARCH=$(node -e "console.log(process.arch)")
+NODE_PLATFORM=$(node -e "console.log(process.platform)")
+ALS_EXEC_DIR=integration/vscode/ada/$NODE_ARCH/$NODE_PLATFORM
+
 if [ $RUNNER_OS = macOS ]; then
-    cp -v -f /usr/local/opt/gmp/lib/libgmp.10.dylib integration/vscode/ada/darwin/
-    fix_rpath integration/vscode/ada/darwin/ada_language_server
+    cp -v -f /usr/local/opt/gmp/lib/libgmp.10.dylib $ALS_EXEC_DIR
+    fix_rpath $ALS_EXEC_DIR/ada_language_server
 fi
 
 if [ "$DEBUG" != "debug" ]; then
-    # Here it's better to match an exact extension rather than mathing
-    # ada_language_server* because when running locally, the latter could match
-    # ada_language_server.dSYM from a previous run if it exists.
+    cd $ALS_EXEC_DIR
     if [ $RUNNER_OS = Windows ]; then
-        ALS=`ls integration/vscode/ada/*/ada_language_server.exe`
+        ALS=ada_language_server.exe
     else
-        ALS=`ls integration/vscode/ada/*/ada_language_server`
+        ALS=ada_language_server
     fi
-    cd `dirname $ALS`
-    ALS=`basename ${ALS}`
     if [ $RUNNER_OS = macOS ]; then
         # On macOS using objcopy from binutils to strip debug symbols to a
         # separate file doesn't work. Namely, the last step `objcopy
