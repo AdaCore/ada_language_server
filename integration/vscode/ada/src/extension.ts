@@ -115,11 +115,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     mainLogChannel = vscode.window.createOutputChannel('Ada Extension');
     mainLogChannel.appendLine('Starting Ada extension');
 
-    assertSupportedEnvironments();
-
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.showExtensionOutput', () => mainLogChannel.show())
     );
+
+    assertSupportedEnvironments();
 
     // Log the environment that the extension (and all VS Code) will be using
     const customEnv = getEvaluatedCustomEnv();
@@ -411,6 +411,7 @@ function assertSupportedEnvironments() {
 }
 
 function logErrorAndThrow(msg: string) {
+    void vscode.window.showErrorMessage(msg);
     mainLogChannel.appendLine('[Error] ' + msg);
     throw new Error(msg);
 }
