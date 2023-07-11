@@ -37,75 +37,54 @@ line  27: column 13 - 17: enum          [declaration, static]            : Major
 line  27: column 24 - 27: enum          [static]                         : Suit
 line  27: column 36 - 41: enumMember    [static]                         : Hearts
 line  27: column 46 - 51: enumMember    [static]                         : Spades
-line  28: column 24 - 28: modifier                                       : Color
 line  28: column 36 - 38: enumMember    [static]                         : Red
-line  28: column 43 - 46: modifier                                       : Blue
 line  30: column 10 - 17: type          [declaration, static]            : Page_Num
 line  31: column 10 - 18: type          [declaration]                    : Line_Size
-line  32: column 20 - 32: modifier                                       : Max_Line_Size
 line  34: column 13 - 21: type          [declaration, static]            : Small_Int
 line  34: column 28 - 34: type          [static, defaultLibrary]         : Integer
 line  35: column 13 - 22: type          [declaration, static]            : Column_Ptr
 line  35: column 28 - 36: type                                           : Line_Size
 line  36: column 13 - 23: type          [declaration]                    : Buffer_Size
 line  36: column 28 - 34: type          [static, defaultLibrary]         : Integer
-line  36: column 49 - 51: modifier                                       : Max
 line  38: column 10 - 13: type          [declaration, static]            : Byte
 line  39: column 10 - 19: type          [declaration, static]            : Hash_Index
 line  42: column 10 - 15: type          [declaration, static]            : Vector
 line  42: column 30 - 36: type          [static, defaultLibrary]         : Integer
-line  42: column 52 - 55: modifier                                       : Real
 line  43: column 10 - 15: type          [declaration, static]            : Matrix
 line  44: column 15 - 21: type          [static, defaultLibrary]         : Integer
 line  44: column 34 - 40: type          [static, defaultLibrary]         : Integer
-line  44: column 55 - 58: modifier                                       : Real
 line  45: column 10 - 19: type          [declaration, static]            : Bit_Vector
 line  47: column 13 - 19: type          [static, defaultLibrary]         : Integer
 line  48: column 14 - 20: enum          [static, defaultLibrary]         : Boolean
 line  49: column 10 - 14: type          [declaration, static]            : Roman
 line  49: column 30 - 37: type          [static, defaultLibrary]         : Positive
-line  49: column 52 - 62: modifier                                       : Roman_Digit
 line  50: column 10 - 14: type          [declaration, static]            : Table
 line  50: column 40 - 46: type          [static, defaultLibrary]         : Integer
 line  51: column 10 - 17: type          [declaration, static]            : Schedule
 line  51: column 28 - 30: enum          [static]                         : Day
 line  51: column 36 - 42: enum          [static, defaultLibrary]         : Boolean
 line  52: column 10 - 13: type          [declaration]                    : Line
-line  52: column 33 - 45: modifier                                       : Max_Line_Size
 line  52: column 51 - 59: enum          [static, defaultLibrary]         : Character
 line  54: column 10 - 13: struct        [declaration]                    : Date
 line  56: column  7 -  9: property      [declaration]                    : Day
 line  56: column 15 - 21: type          [static, defaultLibrary]         : Integer
 line  57: column  7 - 11: property      [declaration]                    : Month
-line  57: column 15 - 24: modifier                                       : Month_Name
 line  58: column  7 - 10: property      [declaration]                    : Year
 line  58: column 15 - 21: type          [static, defaultLibrary]         : Integer
 line  61: column 10 - 16: struct        [declaration]                    : Complex
 line  63: column  9 - 10: property      [declaration]                    : Re
-line  63: column 14 - 17: modifier                                       : Real
 line  65: column  9 - 10: property      [declaration]                    : Im
-line  65: column 14 - 17: modifier                                       : Real
 line  68: column 10 - 19: struct        [declaration]                    : Peripheral
 line  68: column 21 - 24: typeParameter [declaration, readonly]          : Unit
-line  68: column 28 - 33: modifier                                       : Device
-line  68: column 38 - 41: modifier                                       : Disk
 line  69: column  9 - 14: property      [declaration]                    : Status
-line  69: column 18 - 22: modifier                                       : State
 line  70: column 14 - 17: typeParameter [readonly]                       : Unit
-line  71: column 18 - 24: modifier                                       : Printer
 line  72: column 17 - 26: property      [declaration]                    : Line_Count
 line  72: column 30 - 36: type          [static, defaultLibrary]         : Integer
-line  72: column 49 - 57: modifier                                       : Page_Size
 line  74: column 17 - 24: property      [declaration]                    : Cylinder
-line  74: column 30 - 43: modifier                                       : Cylinder_Index
 line  76: column 17 - 21: property      [declaration]                    : Track
-line  76: column 30 - 41: modifier                                       : Track_Number
 line  80: column 10 - 23: type          [declaration]                    : Peripheral_Ref
 line  80: column 44 - 53: struct                                         : Peripheral
 line  81: column 10 - 18: type          [declaration]                    : Binop_Ptr
-line  82: column 20 - 35: modifier                                       : Binary_Operation
-line  82: column 37 - 41: modifier                                       : Class
-line  84: column 34 - 43: modifier                                       : Coordinate
 line  85: column 10 - 16: enum          [declaration, static]            : Midweek
 line  85: column 25 - 27: enum          [static]                         : Day
 line  85: column 35 - 37: enumMember    [static]                         : Tue
@@ -119,13 +98,10 @@ line  91: column 10 - 22: interface     [declaration]                    : Seria
 line  93: column 15 - 20: type          [declaration]                    : Server
 line  94: column 15 - 28: function      [declaration]                    : Next_Work_Item
 line  94: column 30 - 31: parameter     [declaration, readonly]          : WI
-line  94: column 38 - 46: modifier                                       : Work_Item
 line  95: column 15 - 23: function      [declaration]                    : Shut_Down
 line  96: column  9 - 14: type                                           : Server
 line  98: column 15 - 29: type          [declaration]                    : Keyboard_Driver
 line  98: column 31 - 32: typeParameter [declaration, readonly]          : ID
-line  98: column 36 - 46: modifier                                       : Keyboard_ID
-line  98: column 51 - 56: modifier                                       : New_ID
 line  99: column 13 - 25: interface                                      : Serial_Device
 line 100: column 15 - 18: function      [declaration]                    : Read
 line 101: column 14 - 14: parameter     [declaration]                    : C

@@ -35,6 +35,10 @@ export function run(): Promise<void> {
                 mocha.timeout(env['MOCHA_TIMEOUT']);
             }
 
+            if (env['MOCHA_GREP']) {
+                mocha.grep(env['MOCHA_GREP']);
+            }
+
             // Run the mocha test
             mocha.run((failures) => {
                 if (failures > 0) {

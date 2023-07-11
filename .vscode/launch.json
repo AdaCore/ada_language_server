@@ -25,9 +25,18 @@
             // debug instance on the same workspace as the development instance.
             // So you can checkout a second copy of the ALS repository under
             // ../als-rt and use it with the following line.
-            "${workspaceFolder}/../als-rt"
+            // "${workspaceFolder}/../als-rt"
+            "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
          ],
-         "preLaunchTask": "npm: compile"
+         "preLaunchTask": "npm: compile",
+         "env": {
+            // This is necessary to make the "child" vscode inherit the PATH
+            // variable set in the workspace settings. Without it in some setups
+            // (e.g. vscode remote) the child vscode does not get visibility
+            // over the Ada toolchain available in the parent vscode
+            // environment.
+            "PATH": "${env:PATH}"
+         }
       },
       {
          "name": "Extension Tests",
@@ -43,29 +52,20 @@
             "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
             "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
          ],
+         // Below we make the executables of node modules visible to the tests.
+         // In particular, vscode-tmgrammar-snap is used for syntax highlighting
+         // tests.
          "env": {
+            // This is necessary to make the "child" vscode inherit the PATH
+            // variable set in the workspace settings. Without it in some setups
+            // (e.g. vscode remote) the child vscode does not get visibility
+            // over the Ada toolchain available in the parent vscode
+            // environment.
+            "PATH": "${env:PATH}",
             // This is custom env var that we use in
             // integration/vscode/ada/test/suite/index.ts to prevent timeouts in
             // tests when debugging
             "MOCHA_TIMEOUT": "0"
-         },
-         // Below we make the executables of node modules visible to the tests.
-         // In particular, vscode-tmgrammar-snap is used for syntax highlighting
-         // tests.
-         "windows": {
-            "env": {
-               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin;${env:PATH}"
-            }
-         },
-         "osx": {
-            "env": {
-               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin:${env:PATH}"
-            }
-         },
-         "linux": {
-            "env": {
-               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin:${env:PATH}"
-            }
          },
          "preLaunchTask": "npm: pretest"
       },
@@ -83,7 +83,16 @@
             "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
             "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
          ],
+         // Below we make the executables of node modules visible to the tests.
+         // In particular, vscode-tmgrammar-snap is used for syntax highlighting
+         // tests.
          "env": {
+            // This is necessary to make the "child" vscode inherit the PATH
+            // variable set in the workspace settings. Without it in some setups
+            // (e.g. vscode remote) the child vscode does not get visibility
+            // over the Ada toolchain available in the parent vscode
+            // environment.
+            "PATH": "${env:PATH}",
             // This is custom env var that we use in
             // integration/vscode/ada/test/suite/index.ts to prevent timeouts in
             // tests when debugging
@@ -94,24 +103,6 @@
             // integration/vscode/ada/test/suite/highlighting.test.ts
             "MOCHA_ALS_UPDATE": "1"
          },
-         // Below we make the executables of node modules visible to the tests.
-         // In particular, vscode-tmgrammar-snap is used for syntax highlighting
-         // tests.
-         "windows": {
-            "env": {
-               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin;${env:PATH}"
-            }
-         },
-         "osx": {
-            "env": {
-               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin:${env:PATH}"
-            }
-         },
-         "linux": {
-            "env": {
-               "PATH": "${workspaceFolder}/integration/vscode/ada/node_modules/.bin:${env:PATH}"
-            }
-         },
          "preLaunchTask": "npm: pretest"
       },
       {
@@ -121,6 +112,45 @@
          "target": ".obj/server/ada_language_server",
          "cwd": "${workspaceRoot}",
          "valuesFormatting": "parseText"
+      },
+      {
+         "name": "Extension Tests (Test Name Regexp)",
+         "type": "extensionHost",
+         "request": "launch",
+         "runtimeExecutable": "${execPath}",
+         "outFiles": [
+            "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
+            "!**/node_modules/**"
+         ],
+         "args": [
+            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
+            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
+            "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
+         ],
+         // Below we make the executables of node modules visible to the tests.
+         // In particular, vscode-tmgrammar-snap is used for syntax highlighting
+         // tests.
+         "env": {
+            "MOCHA_GREP": "${input:testPattern}",
+            // This is necessary to make the "child" vscode inherit the PATH
+            // variable set in the workspace settings. Without it in some setups
+            // (e.g. vscode remote) the child vscode does not get visibility
+            // over the Ada toolchain available in the parent vscode
+            // environment.
+            "PATH": "${env:PATH}",
+            // This is custom env var that we use in
+            // integration/vscode/ada/test/suite/index.ts to prevent timeouts in
+            // tests when debugging
+            "MOCHA_TIMEOUT": "0"
+         },
+         "preLaunchTask": "npm: pretest"
+      }
+   ],
+   "inputs": [
+      {
+         "id": "testPattern",
+         "description": "A regexp of tests to run",
+         "type": "promptString"
       }
    ]
 }
