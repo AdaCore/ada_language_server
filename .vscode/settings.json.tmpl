@@ -27,7 +27,16 @@
       // Alternatively, dependencies can be obtained from different locations
       // and GPR_PROJECT_PATH can be set prior to invoking VS Code, making them
       // also visible if not overwritten in the subprojects/ directory.
-      "GPR_PROJECT_PATH": "${workspaceFolder}/subprojects/VSS/gnat:${workspaceFolder}/subprojects/gnatdoc/gnat:${workspaceFolder}/subprojects/libadalang-tools/src:${workspaceFolder}/subprojects/spawn/gnat:${workspaceFolder}/subprojects/stubs:${workspaceFolder}/subprojects/prefix/share/gpr:${env:GPR_PROJECT_PATH}"
+      "GPR_PROJECT_PATH": "${workspaceFolder}/subprojects/VSS/gnat:${workspaceFolder}/subprojects/gnatdoc/gnat:${workspaceFolder}/subprojects/libadalang-tools/src:${workspaceFolder}/subprojects/lal-refactor/gnat:${workspaceFolder}/subprojects/spawn/gnat:${workspaceFolder}/subprojects/stubs:${workspaceFolder}/subprojects/prefix/share/gpr:${env:GPR_PROJECT_PATH}",
+      "LIBRARY_TYPE": "static"
+   },
+   "terminal.integrated.env.linux": {
+      "GPR_PROJECT_PATH": "${workspaceFolder}/subprojects/VSS/gnat:${workspaceFolder}/subprojects/gnatdoc/gnat:${workspaceFolder}/subprojects/libadalang-tools/src:${workspaceFolder}/subprojects/lal-refactor/gnat:${workspaceFolder}/subprojects/spawn/gnat:${workspaceFolder}/subprojects/stubs:${workspaceFolder}/subprojects/prefix/share/gpr:${env:GPR_PROJECT_PATH}",
+      "LIBRARY_TYPE": "static"
+   },
+   "terminal.integrated.env.windows": {
+      "GPR_PROJECT_PATH": "${workspaceFolder}/subprojects/VSS/gnat:${workspaceFolder}/subprojects/gnatdoc/gnat:${workspaceFolder}/subprojects/libadalang-tools/src:${workspaceFolder}/subprojects/lal-refactor/gnat:${workspaceFolder}/subprojects/spawn/gnat:${workspaceFolder}/subprojects/stubs:${workspaceFolder}/subprojects/prefix/share/gpr:${env:GPR_PROJECT_PATH}",
+      "LIBRARY_TYPE": "static"
    },
    // To develop the VS Code extension, it is recommended to open the workspace
    // defined at integration/vscode/ada. Nonetheless, this configuration allows
