@@ -63,25 +63,6 @@ build_and_test:
     - VSCODE_BUILD_SPACE=$ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/$VSCODE_BUILD_SPACE_NAME
     - echo -e "\e[0Ksection_end:`date +%s`:test_vscode\r\e[0K"
 
-    - echo -e "\e[0Ksection_start:`date +%s`:lsif[collapsed=true]\r\e[0KBuild lsif report"
-    # Build the lsif report
-    - anod install lsif-ada
-    - ( cd $ANOD_DEFAULT_SANDBOX_DIR ;
-      eval `anod printenv lsif-ada`;
-      eval `anod printenv stable-gnat`;
-      eval `anod printenv ada_libfswatch`;
-      eval `anod printenv stable-templates_parser`;
-      eval `anod printenv stable-langkit_support`;
-      eval `anod printenv stable-libgpr2 --qualifier=bare`;
-      eval `anod printenv stable-libadalang`;
-      eval `anod printenv stable-libadalang-tools`;
-      export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/gnatdoc/gnat:$GPR_PROJECT_PATH;
-      export GPR_PROJECT_PATH=` pwd `/x86_64-linux/als/src/subprojects/VSS/gnat:$GPR_PROJECT_PATH;
-      cd $ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/als/src;
-      lsif-ada gnat/lsp_server.gpr > $CI_PROJECT_DIR/dump.lsif 2>/dev/null ||
-      touch $CI_PROJECT_DIR/dump.lsif )
-    - echo -e "\e[0Ksection_end:`date +%s`:lsif\r\e[0K"
-
     # Job artifacts must be produced in the project directory, so we do it at
     # the end of the job to avoid changing Anod checkouts halfway through the
     # job and triggering useless rebuilds.
@@ -109,7 +90,8 @@ build_and_test:
     when: always #  Upload on errors too
     reports:
       junit: [als_xunit_output.xml, vscode_xunit_output.xml]
-      lsif: dump.lsif
+    paths:
+      - anod-logs/
 
 .run_ci_common: &run_ci_common
   stage: run_downstream_ci
