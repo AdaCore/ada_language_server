@@ -61,6 +61,8 @@ else
    EXE=
 endif
 
+VSCE=npx vsce
+
 LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)	\
               -XOS=$(OS)			\
               -XLIBRARY_TYPE=$(LIBRARY_TYPE)	\
@@ -146,6 +148,9 @@ endif
 vscode-test:
 	# Run the VS Code integration testsuite.
 	cd integration/vscode/ada; LD_LIBRARY_PATH= npm run test
+
+vscode-package:
+	cd integration/vscode/ada; LD_LIBRARY_PATH= $(VSCE) package
 
 check: all
 	set -e; \
