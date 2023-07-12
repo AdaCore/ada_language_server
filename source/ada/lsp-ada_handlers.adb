@@ -6666,13 +6666,12 @@ package body LSP.Ada_Handlers is
 
                declare
                   Result              :
-                    LSP.Messages.Server_Responses.Formatting_Response
-                      (Is_Error => False) :=
-                        Range_Format
-                          (Self     => Context.all,
-                           Document => Document,
-                           Span     => Previous_NWNC_Token_Span,
-                           Options  => Request.params.options);
+                    LSP.Messages.Server_Responses.Formatting_Response :=
+                      Range_Format
+                        (Self     => Context.all,
+                         Document => Document,
+                         Span     => Previous_NWNC_Token_Span,
+                         Options  => Request.params.options);
                begin
                   if Result.Is_Error then
                      declare
