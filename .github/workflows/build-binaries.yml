@@ -107,7 +107,12 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: als-${{ runner.os }}-${{ matrix.debug }}
-          path: integration/vscode/ada/[ldw]*/*
+          # We know that only one of the following entries will match on a given
+          # run, so we use globs here to try to avoid warnings on unmatched
+          # entries
+          path: |
+            integration/vscode/ada/arm*
+            integration/vscode/ada/x64*
   package:
     if: ${{ github.event_name == 'push' }}
     needs: build

@@ -31,6 +31,7 @@ import { alsCommandExecutor } from './alsExecuteCommand';
 import GnatTaskProvider, { getEnclosingSymbol } from './gnatTaskProvider';
 import GprTaskProvider from './gprTaskProvider';
 import { getEvaluatedCustomEnv } from './helpers';
+import { existsSync } from 'fs';
 
 export let contextClients: ContextClients;
 export let mainLogChannel: vscode.OutputChannel;
@@ -118,6 +119,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.commands.registerCommand('ada.showExtensionOutput', () => mainLogChannel.show())
     );
 
+    assertSupportedEnvironments();
+
     // Log the environment that the extension (and all VS Code) will be using
     const customEnv = getEvaluatedCustomEnv();
 
@@ -182,8 +185,38 @@ function createClient(
     extra: string[],
     pattern: string
 ) {
-    let serverModule = context.asAbsolutePath(process.platform + '/ada_language_server');
-    if (process.env.ALS) serverModule = process.env.ALS;
+    let serverExecPath: string;
+
+    if (process.arch == 'arm64' && process.platform == 'darwin') {
+        // On arm64 darwin use the x64 darwin executable thanks to Apple Rosetta.
+        serverExecPath = context.asAbsolutePath(`x64/darwin/ada_language_server`);
+    } else {
+        serverExecPath = context.asAbsolutePath(
+            `${process.arch}/${process.platform}/ada_language_server`
+        );
+    }
+
+    // If the ALS environment variable is specified, use it as the path of the
+    // server executable.
+    if (process.env.ALS) {
+        serverExecPath = process.env.ALS;
+        if (!existsSync(serverExecPath)) {
+            logErrorAndThrow(
+                `The Ada language server given in the ALS environment ` +
+                    `variable does not exist: ${serverExecPath}`
+            );
+        }
+    } else {
+        if (!existsSync(serverExecPath)) {
+            logErrorAndThrow(
+                `This installation of the Ada extension does not have the Ada ` +
+                    `language server for your architecture (${process.arch}) ` +
+                    `and platform (${process.platform}) ` +
+                    `at the expected location: ${serverExecPath}`
+            );
+        }
+    }
+
     // The debug options for the server
     // let debugOptions = { execArgv: [] };
     // If the extension is launched in debug mode then the debug server options are used
@@ -203,8 +236,8 @@ function createClient(
 
     // Options to control the server
     const serverOptions: ServerOptions = {
-        run: { command: serverModule, args: extra },
-        debug: { command: serverModule, args: extra },
+        run: { command: serverExecPath, args: extra },
+        debug: { command: serverExecPath, args: extra },
     };
 
     // Options to control the language client
@@ -351,4 +384,34 @@ async function checkSrcDirectories(alsClient: LanguageClient) {
                 }
             });
     }
+}
+
+function assertSupportedEnvironments() {
+    type Env = {
+        arch: 'arm' | 'arm64' | 'x64';
+        platform: 'win32' | 'linux' | 'darwin';
+    };
+    const supportedEnvs: Env[] = [
+        { arch: 'x64', platform: 'linux' },
+        { arch: 'x64', platform: 'win32' },
+        { arch: 'x64', platform: 'darwin' },
+        { arch: 'arm64', platform: 'darwin' },
+    ];
+
+    if (
+        !supportedEnvs.some((val) => {
+            return val.arch == process.arch && val.platform == process.platform;
+        })
+    ) {
+        const msg =
+            `The Ada extension is not supported on ` +
+            `architecture '${process.arch}' and platform '${process.platform}'`;
+        logErrorAndThrow(msg);
+    }
+}
+
+function logErrorAndThrow(msg: string) {
+    void vscode.window.showErrorMessage(msg);
+    mainLogChannel.appendLine('[Error] ' + msg);
+    throw new Error(msg);
 }

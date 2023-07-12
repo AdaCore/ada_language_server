@@ -652,8 +652,9 @@ package body LSP.Ada_Highlighters is
          if Node.P_Is_Operator_Name then
             Highlight_Token (Node.Token_Start, operator);
          else
-            --  Fallback to some default for any unresolved identifier
-            Highlight_Token (Node.Token_Start, modifier);
+            --  In case of unresolved identifiers, do not set any semantic
+            --  highlighting
+            null;
          end if;
       end Highlight_Name;
 

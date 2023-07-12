@@ -38,6 +38,7 @@
         "darwin"
     ],
     "cpu": [
+        "arm64",
         "x64"
     ],
     "keywords": [

@@ -97,8 +97,16 @@ ENV/
 # Expected testsuite output
 testsuite/.als/inout.txt
 
-# Generated integration packages
+# Locations of ALS executable in VS Code extension. VS Code is supported on arm,
+# arm64 and x64 so we only consider those architectures.
+integration/vscode/ada/arm/
+integration/vscode/ada/arm64/
+integration/vscode/ada/x64/
+
+# Previous locations of ALS executable in VS Code extension
 integration/vscode/ada/linux/
+integration/vscode/ada/win32/
+integration/vscode/ada/darwin/
 
 # GNAT Studio clangd options
 .clang-format

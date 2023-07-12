@@ -1,0 +1,4 @@
+line   3: column  6 -  8: namespace     [defaultLibrary]                 : Ada
+line   3: column 10 - 16: namespace     [defaultLibrary]                 : Text_IO
+line   6: column  9 - 11: namespace     [declaration]                    : Pkg
+line   8: column  5 -  7: namespace                                      : Pkg
