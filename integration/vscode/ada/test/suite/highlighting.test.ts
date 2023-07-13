@@ -242,8 +242,11 @@ function testSyntaxHighlighting(absFilePath: string, syntax: Syntaxes) {
         }
 
         const cmd = [
-            // Use npx to avoid sensitivity to PATH env var
-            'npx',
+            // Use npx to avoid sensitivity to PATH env var. On Windows, the
+            // Node installation provides a 'npx' executable file which is a
+            // Bash script which doesn't work on Windows. Instead on Windows,
+            // the 'npx.cmd' file should be used.
+            process.platform == 'win32' ? 'npx.cmd' : 'npx',
             'vscode-tmgrammar-snap',
             // We pass a non-existing language configuration, otherwise the tool
             // picks up the package.json file and always loads the grammar in

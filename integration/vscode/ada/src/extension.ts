@@ -196,6 +196,11 @@ function createClient(
         );
     }
 
+    if (process.platform == 'win32') {
+        // Add the extension for the file lookup further below
+        serverExecPath = `${serverExecPath}.exe`;
+    }
+
     // If the ALS environment variable is specified, use it as the path of the
     // server executable.
     if (process.env.ALS) {
