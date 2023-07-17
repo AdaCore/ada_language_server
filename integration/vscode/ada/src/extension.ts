@@ -24,8 +24,8 @@ import {
     LanguageClientOptions,
     Middleware,
     ServerOptions,
-    SymbolKind,
 } from 'vscode-languageclient/node';
+import { SymbolKind } from 'vscode';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import GnatTaskProvider, { getEnclosingSymbol } from './gnatTaskProvider';
@@ -274,44 +274,45 @@ function createClient(
 async function addSupbrogramBox() {
     const activeEditor = vscode.window.activeTextEditor;
 
-    await getEnclosingSymbol(activeEditor, [SymbolKind.Function, SymbolKind.Module]).then(
-        async (symbol) => {
-            if (symbol !== null) {
-                const name: string = symbol.name ?? '';
-                const insertPos = new vscode.Position(symbol.range.start.line, 0);
-                const indentationRange = new vscode.Range(insertPos, symbol.range.start);
-                const indentation: string = activeEditor?.document.getText(indentationRange) ?? '';
-                const eol: string =
-                    activeEditor?.document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n';
+    await getEnclosingSymbol(activeEditor, [
+        SymbolKind.Function,
+        SymbolKind.Package,
+        SymbolKind.Module,
+    ]).then(async (symbol) => {
+        if (symbol !== null) {
+            const name: string = symbol.name ?? '';
+            const insertPos = new vscode.Position(symbol.range.start.line, 0);
+            const indentationRange = new vscode.Range(insertPos, symbol.range.start);
+            const indentation: string = activeEditor?.document.getText(indentationRange) ?? '';
+            const eol: string = activeEditor?.document.eol == vscode.EndOfLine.CRLF ? '\r\n' : '\n';
 
-                // Generate the subprogram box after retrieving the indentation of the line of
-                // the subprogram's body declaration.
-                const text: string =
-                    indentation +
-                    '---' +
-                    '-'.repeat(name.length) +
-                    '---' +
-                    eol +
-                    indentation +
-                    '-- ' +
-                    name +
-                    ' --' +
-                    eol +
-                    indentation +
-                    '---' +
-                    '-'.repeat(name.length) +
-                    '---' +
-                    eol +
-                    eol;
+            // Generate the subprogram box after retrieving the indentation of the line of
+            // the subprogram's body declaration.
+            const text: string =
+                indentation +
+                '---' +
+                '-'.repeat(name.length) +
+                '---' +
+                eol +
+                indentation +
+                '-- ' +
+                name +
+                ' --' +
+                eol +
+                indentation +
+                '---' +
+                '-'.repeat(name.length) +
+                '---' +
+                eol +
+                eol;
 
-                if (activeEditor) {
-                    await activeEditor.edit((editBuilder) => {
-                        editBuilder.insert(insertPos, text);
-                    });
-                }
+            if (activeEditor) {
+                await activeEditor.edit((editBuilder) => {
+                    editBuilder.insert(insertPos, text);
+                });
             }
         }
-    );
+    });
 }
 
 type ALSSourceDirDescription = {
