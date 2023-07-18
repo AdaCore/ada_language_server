@@ -1,0 +1,154 @@
+>-- Check that object declarations get their identifiers highlighted as
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- variable.name.ada by the TM grammar
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>package Objects is
+#^^^^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^^^ source.ada entity.name.label.ada
+#               ^ source.ada
+#                ^^ source.ada keyword.other.ada
+>   Obj : T;
+#^^^ source.ada
+#   ^^^ source.ada entity.name.label.ada
+#      ^^^ source.ada
+#         ^ source.ada entity.name.label.ada
+#          ^^ source.ada
+>   Obj : constant T;
+#^^^ source.ada
+#   ^^^ source.ada entity.name.label.ada
+#      ^^^ source.ada
+#         ^^^^^^^^ source.ada keyword.other.ada
+#                 ^ source.ada
+#                  ^ source.ada entity.name.label.ada
+#                   ^^ source.ada
+>
+>   -- Multiple objects of the same type
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>   Obj1, Obj2, Obj3 : T;
+#^^^ source.ada
+#   ^^^^ source.ada entity.name.label.ada
+#       ^ source.ada entity.name.operator.ada
+#        ^ source.ada
+#         ^^^^ source.ada entity.name.label.ada
+#             ^ source.ada entity.name.operator.ada
+#              ^ source.ada
+#               ^^^^ source.ada entity.name.label.ada
+#                   ^^^ source.ada
+#                      ^ source.ada entity.name.label.ada
+#                       ^^ source.ada
+>
+>   -- Subprogram parameters
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>   function S5 (Param1 : T1; Param2 : T2; Param3 : T3);
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^ source.ada entity.name.label.ada
+#              ^^ source.ada
+#                ^^^^^^ source.ada entity.name.label.ada
+#                      ^^^ source.ada
+#                         ^^ source.ada entity.name.label.ada
+#                           ^^ source.ada
+#                             ^^^^^^ source.ada entity.name.label.ada
+#                                   ^^^ source.ada
+#                                      ^^ source.ada entity.name.label.ada
+#                                        ^^ source.ada
+#                                          ^^^^^^ source.ada entity.name.label.ada
+#                                                ^^^ source.ada
+#                                                   ^^ source.ada entity.name.label.ada
+#                                                     ^^^ source.ada
+>   function S5 (Param1, Param2 : T1; Param3 : T2);
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^ source.ada entity.name.label.ada
+#              ^^ source.ada
+#                ^^^^^^ source.ada entity.name.label.ada
+#                      ^ source.ada entity.name.operator.ada
+#                       ^ source.ada
+#                        ^^^^^^ source.ada entity.name.label.ada
+#                              ^^^ source.ada
+#                                 ^^ source.ada entity.name.label.ada
+#                                   ^^ source.ada
+#                                     ^^^^^^ source.ada entity.name.label.ada
+#                                           ^^^ source.ada
+#                                              ^^ source.ada entity.name.label.ada
+#                                                ^^^ source.ada
+>
+>   -- Objects with initial values
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>   Obj1, Obj2, Obj3 : T := 1;
+#^^^ source.ada
+#   ^^^^ source.ada entity.name.label.ada
+#       ^ source.ada entity.name.operator.ada
+#        ^ source.ada
+#         ^^^^ source.ada entity.name.label.ada
+#             ^ source.ada entity.name.operator.ada
+#              ^ source.ada
+#               ^^^^ source.ada entity.name.label.ada
+#                   ^^^ source.ada
+#                      ^ source.ada entity.name.label.ada
+#                       ^ source.ada
+#                        ^^ source.ada entity.name.operator.assignment.ada
+#                          ^ source.ada
+#                           ^ source.ada constant.numeric.ada
+#                            ^^ source.ada
+>   function S5 (Param1 : T1; Param2 : T2 := Default; Param3 : T3);
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^ source.ada entity.name.label.ada
+#              ^^ source.ada
+#                ^^^^^^ source.ada entity.name.label.ada
+#                      ^^^ source.ada
+#                         ^^ source.ada entity.name.label.ada
+#                           ^^ source.ada
+#                             ^^^^^^ source.ada entity.name.label.ada
+#                                   ^^^ source.ada
+#                                      ^^ source.ada entity.name.label.ada
+#                                        ^ source.ada
+#                                         ^^ source.ada entity.name.operator.assignment.ada
+#                                           ^ source.ada
+#                                            ^^^^^^^ source.ada entity.name.label.ada
+#                                                   ^^ source.ada
+#                                                     ^^^^^^ source.ada entity.name.label.ada
+#                                                           ^^^ source.ada
+#                                                              ^^ source.ada entity.name.label.ada
+#                                                                ^^^ source.ada
+>   function S5 (Param1, Param2 : T1 := Default; Param3 : T2);
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^ source.ada entity.name.label.ada
+#              ^^ source.ada
+#                ^^^^^^ source.ada entity.name.label.ada
+#                      ^ source.ada entity.name.operator.ada
+#                       ^ source.ada
+#                        ^^^^^^ source.ada entity.name.label.ada
+#                              ^^^ source.ada
+#                                 ^^ source.ada entity.name.label.ada
+#                                   ^ source.ada
+#                                    ^^ source.ada entity.name.operator.assignment.ada
+#                                      ^ source.ada
+#                                       ^^^^^^^ source.ada entity.name.label.ada
+#                                              ^^ source.ada
+#                                                ^^^^^^ source.ada entity.name.label.ada
+#                                                      ^^^ source.ada
+#                                                         ^^ source.ada entity.name.label.ada
+#                                                           ^^^ source.ada
+>
+>end Objects;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^^^^^ source.ada entity.name.label.ada
+#           ^^ source.ada
+>

@@ -1,0 +1,2 @@
+line   1: column  9 - 23: namespace     [declaration]                    : PkgBodyWithSpec
+line   2: column  5 - 19: namespace                                      : PkgBodyWithSpec

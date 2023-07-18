@@ -1,0 +1,12 @@
+>package PkgBodyWithSpec is
+#^^^^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                       ^ source.ada
+#                        ^^ source.ada keyword.other.ada
+>end PkgBodyWithSpec;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                   ^^ source.ada
+>

@@ -1,0 +1,20 @@
+line   3: column 14 - 24: function      [declaration]                    : Subprograms
+line   4: column 13 - 14: function      [declaration]                    : S1
+line   5: column 14 - 15: function      [declaration]                    : S2
+line   8: column 13 - 14: function      [declaration]                    : S3
+line   8: column 17 - 22: parameter     [declaration, readonly]          : Param1
+line   8: column 30 - 35: parameter     [declaration, readonly]          : Param2
+line   9: column 14 - 15: function      [declaration]                    : S4
+line   9: column 18 - 23: parameter     [declaration, readonly]          : Param1
+line   9: column 31 - 36: parameter     [declaration, readonly]          : Param2
+line  12: column 13 - 14: function      [declaration]                    : S5
+line  12: column 17 - 22: parameter     [declaration, readonly]          : Param1
+line  12: column 25 - 30: parameter     [declaration, readonly]          : Param2
+line  12: column 38 - 43: parameter     [declaration, readonly]          : Param3
+line  15: column 13 - 15: function      [declaration]                    : "+"
+line  15: column 18 - 23: parameter     [declaration, readonly]          : Param1
+line  15: column 26 - 31: parameter     [declaration, readonly]          : Param2
+line  16: column 13 - 17: function      [declaration]                    : "xor"
+line  16: column 20 - 25: parameter     [declaration, readonly]          : Param1
+line  16: column 28 - 33: parameter     [declaration, readonly]          : Param2
+line  18: column  5 - 15: function                                       : Subprograms

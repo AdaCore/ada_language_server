@@ -1,0 +1,135 @@
+>-- This test aims at checking that subprograms get highlighted as
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- entity.name.function.ada
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>package body Subprograms is
+#^^^^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^ source.ada keyword.other.ada
+#            ^ source.ada
+#             ^^^^^^^^^^^ source.ada entity.name.label.ada
+#                        ^ source.ada
+#                         ^^ source.ada keyword.other.ada
+>   function S1 return Boolean;
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^ source.ada entity.name.label.ada
+#              ^ source.ada
+#               ^^^^^^ source.ada keyword.other.ada
+#                     ^ source.ada
+#                      ^^^^^^^ source.ada entity.name.label.ada
+#                             ^^ source.ada
+>   procedure S2;
+#^^^ source.ada
+#   ^^^^^^^^^ source.ada keyword.other.ada
+#            ^ source.ada
+#             ^^ source.ada entity.name.label.ada
+#               ^^ source.ada
+>
+>   -- With parameters
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>   function S3 (Param1 : T1; Param2 : T2);
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^ source.ada entity.name.label.ada
+#              ^^ source.ada
+#                ^^^^^^ source.ada entity.name.label.ada
+#                      ^^^ source.ada
+#                         ^^ source.ada entity.name.label.ada
+#                           ^^ source.ada
+#                             ^^^^^^ source.ada entity.name.label.ada
+#                                   ^^^ source.ada
+#                                      ^^ source.ada entity.name.label.ada
+#                                        ^^^ source.ada
+>   procedure S4 (Param1 : T1; Param2 : T2);
+#^^^ source.ada
+#   ^^^^^^^^^ source.ada keyword.other.ada
+#            ^ source.ada
+#             ^^ source.ada entity.name.label.ada
+#               ^^ source.ada
+#                 ^^^^^^ source.ada entity.name.label.ada
+#                       ^^^ source.ada
+#                          ^^ source.ada entity.name.label.ada
+#                            ^^ source.ada
+#                              ^^^^^^ source.ada entity.name.label.ada
+#                                    ^^^ source.ada
+#                                       ^^ source.ada entity.name.label.ada
+#                                         ^^^ source.ada
+>
+>   -- Multiple parameters of same type
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>   function S5 (Param1, Param2 : T1; Param3 : T2);
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^^ source.ada entity.name.label.ada
+#              ^^ source.ada
+#                ^^^^^^ source.ada entity.name.label.ada
+#                      ^ source.ada entity.name.operator.ada
+#                       ^ source.ada
+#                        ^^^^^^ source.ada entity.name.label.ada
+#                              ^^^ source.ada
+#                                 ^^ source.ada entity.name.label.ada
+#                                   ^^ source.ada
+#                                     ^^^^^^ source.ada entity.name.label.ada
+#                                           ^^^ source.ada
+#                                              ^^ source.ada entity.name.label.ada
+#                                                ^^^ source.ada
+>
+>   -- Operator declarations
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>   function "+" (Param1, Param2 : T1) return T1;
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^ source.ada string.quoted.double.ada
+#             ^ source.ada string.quoted.double.ada
+#              ^ source.ada string.quoted.double.ada
+#               ^^ source.ada
+#                 ^^^^^^ source.ada entity.name.label.ada
+#                       ^ source.ada entity.name.operator.ada
+#                        ^ source.ada
+#                         ^^^^^^ source.ada entity.name.label.ada
+#                               ^^^ source.ada
+#                                  ^^ source.ada entity.name.label.ada
+#                                    ^^ source.ada
+#                                      ^^^^^^ source.ada keyword.other.ada
+#                                            ^ source.ada
+#                                             ^^ source.ada entity.name.label.ada
+#                                               ^^ source.ada
+>   function "xor" (Param1, Param2 : T1) return T1;
+#^^^ source.ada
+#   ^^^^^^^^ source.ada keyword.other.ada
+#           ^ source.ada
+#            ^ source.ada string.quoted.double.ada
+#             ^^^ source.ada string.quoted.double.ada
+#                ^ source.ada string.quoted.double.ada
+#                 ^^ source.ada
+#                   ^^^^^^ source.ada entity.name.label.ada
+#                         ^ source.ada entity.name.operator.ada
+#                          ^ source.ada
+#                           ^^^^^^ source.ada entity.name.label.ada
+#                                 ^^^ source.ada
+#                                    ^^ source.ada entity.name.label.ada
+#                                      ^^ source.ada
+#                                        ^^^^^^ source.ada keyword.other.ada
+#                                              ^ source.ada
+#                                               ^^ source.ada entity.name.label.ada
+#                                                 ^^ source.ada
+>
+>end Subprograms;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^^^^^^^^^ source.ada entity.name.label.ada
+#               ^^ source.ada
+>

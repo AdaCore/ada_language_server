@@ -1,0 +1,37 @@
+line   1: column 14 - 28: namespace     [definition]                     : PkgBodyWithSpec
+line   2: column  4 - 10: variable      [declaration]                    : Global1
+line   2: column 14 - 20: type          [static, defaultLibrary]         : Integer
+line   4: column 14 - 18: function      [declaration]                    : Proc1
+line   4: column 21 - 24: parameter     [declaration, readonly]          : Arg1
+line   4: column 27 - 30: parameter     [declaration, readonly]          : Arg2
+line   4: column 34 - 40: type          [static, defaultLibrary]         : Integer
+line   5: column  7 -  7: variable      [declaration]                    : Y
+line   5: column 11 - 17: type          [static, defaultLibrary]         : Integer
+line   5: column 22 - 25: parameter     [readonly]                       : Arg1
+line   5: column 29 - 32: parameter     [readonly]                       : Arg2
+line   5: column 36 - 42: variable                                       : Global1
+line   8: column  8 - 12: function                                       : Proc1
+line  10: column 13 - 20: function      [declaration]                    : Expr_Fct
+line  10: column 23 - 26: parameter     [declaration, readonly]          : Arg1
+line  10: column 29 - 32: parameter     [declaration, readonly]          : Arg2
+line  10: column 36 - 42: type          [static, defaultLibrary]         : Integer
+line  10: column 52 - 58: type          [static, defaultLibrary]         : Integer
+line  11: column  8 - 11: parameter     [readonly]                       : Arg1
+line  11: column 15 - 18: parameter     [readonly]                       : Arg2
+line  11: column 22 - 28: variable                                       : Global1
+line  13: column 14 - 18: function      [declaration]                    : Proc2
+line  13: column 21 - 24: parameter     [declaration, readonly]          : Arg1
+line  13: column 27 - 30: parameter     [declaration, readonly]          : Arg2
+line  13: column 34 - 40: type          [static, defaultLibrary]         : Integer
+line  14: column 16 - 30: function      [declaration]                    : Nested_Expr_Fct
+line  14: column 33 - 36: parameter     [declaration, readonly]          : Arg3
+line  14: column 39 - 42: parameter     [declaration, readonly]          : Arg4
+line  14: column 46 - 52: type          [static, defaultLibrary]         : Integer
+line  14: column 62 - 68: type          [static, defaultLibrary]         : Integer
+line  15: column 11 - 14: parameter     [readonly]                       : Arg1
+line  15: column 18 - 21: parameter     [readonly]                       : Arg2
+line  15: column 25 - 28: parameter     [readonly]                       : Arg3
+line  15: column 32 - 35: parameter     [readonly]                       : Arg4
+line  15: column 39 - 45: variable                                       : Global1
+line  18: column  8 - 12: function                                       : Proc2
+line  20: column  5 - 19: namespace                                      : PkgBodyWithSpec
