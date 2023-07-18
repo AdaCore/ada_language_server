@@ -139,7 +139,6 @@ line 641: column  7 - 10: parameter     [declaration, readonly]          : Self
 line 642: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 645: column 28 - 31: parameter     [readonly]                       : Self
 line 645: column 34 - 40: parameter     [readonly]                       : Request
-line 647: column 14 - 21: modifier      [declaration]                    : Response
 line 649: column  8 - 26: function                                       : On_Shutdown_Request
 line 655: column 24 - 44: function      [declaration]                    : On_CodeAction_Request
 line 656: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -290,8 +289,6 @@ line 1495: column  7 - 11: variable      [declaration]                    : Valu
 line 1498: column  7 - 13: variable      [declaration, readonly]          : Context
 line 1500: column  7 - 14: variable      [declaration, readonly]          : Document
 line 1502: column  7 - 12: variable      [declaration]                    : Result
-line 1509: column 17 - 24: modifier      [declaration]                    : Response
-line 1516: column 17 - 24: modifier      [declaration]                    : Response
 line 1526: column  8 - 31: function                                       : On_Folding_Range_Request
 line 1532: column 24 - 49: function      [declaration]                    : On_Selection_Range_Request
 line 1533: column  7 - 10: parameter     [declaration, readonly]          : Self
@@ -372,7 +369,6 @@ line 1982: column 24 - 43: function      [declaration]                    : On_A
 line 1983: column  7 - 10: parameter     [declaration, readonly]          : Self
 line 1984: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 1990: column 16 - 20: variable      [declaration, readonly]          : Limit
-line 1998: column 14 - 21: modifier      [declaration]                    : Response
 line 2000: column  8 - 27: function                                       : On_ALS_Debug_Request
 line 2006: column 24 - 48: function      [declaration]                    : On_Signature_Help_Request
 line 2007: column  7 - 10: parameter     [declaration, readonly]          : Self
