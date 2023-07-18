@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { spawnSync } from 'child_process';
 import { existsSync, opendirSync, renameSync } from 'fs';
-import path from 'path';
+import path, { basename, dirname } from 'path';
 import * as vscode from 'vscode';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
 import { contextClients } from '../../src/extension';
@@ -16,7 +16,7 @@ suite('Highlighting', function () {
         await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     });
 
-    const highlightingTestRoot = getDocUri('highlighing').fsPath;
+    const highlightingTestRoot = getDocUri('src/highlighting').fsPath;
     const adaFilePaths: string[] = [];
 
     function walk(dir: string) {
@@ -41,8 +41,7 @@ suite('Highlighting', function () {
     walk(highlightingTestRoot);
 
     for (const absPath of adaFilePaths) {
-        const relFilePath = path.relative(highlightingTestRoot, absPath);
-        const testName = relFilePath;
+        const testName = `${basename(dirname(absPath))}/${basename(absPath)}`;
         const absFileUri = vscode.Uri.file(absPath);
 
         suite(testName, function () {

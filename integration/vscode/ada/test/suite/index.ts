@@ -16,6 +16,12 @@ export function run(): Promise<void> {
         mochaOptions.reporter = process.env.MOCHA_REPORTER;
     }
 
+    if (!mochaOptions.reporterOptions) {
+        mochaOptions.reporterOptions = {
+            maxDiffSize: 0,
+        };
+    }
+
     // Create the mocha test
     const mocha = new Mocha(mochaOptions);
 
