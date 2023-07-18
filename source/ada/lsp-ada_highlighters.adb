@@ -19,7 +19,7 @@ with Ada.Containers.Vectors;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Token_Data_Handlers;
-with Libadalang.Common;
+with Libadalang.Common; use Libadalang.Common;
 
 with LSP.Common;
 with LSP.Lal_Utils;
@@ -127,7 +127,6 @@ package body LSP.Ada_Highlighters is
          Empty : out Boolean)
       is
          use type Langkit_Support.Token_Data_Handlers.Token_Index;
-         use type Libadalang.Common.Token_Reference;
 
          First : Libadalang.Common.Token_Reference := From;
          Last  : Libadalang.Common.Token_Reference := To;
@@ -203,7 +202,6 @@ package body LSP.Ada_Highlighters is
          To    : Libadalang.Common.Token_Reference;
          Value : LSP.Messages.SemanticTokenModifiers)
       is
-         use type Libadalang.Common.Token_Reference;
          use type Langkit_Support.Token_Data_Handlers.Token_Index;
 
          Token : Libadalang.Common.Token_Reference := From;
@@ -259,7 +257,6 @@ package body LSP.Ada_Highlighters is
       return LSP.Messages.uinteger_Vector
    is
       use type LSP.Types.Line_Number;
-      use type Libadalang.Common.Token_Reference;
 
       First_Token : constant Libadalang.Common.Token_Reference :=
         (if Span.last.line = 0 then Unit.First_Token
@@ -317,7 +314,6 @@ package body LSP.Ada_Highlighters is
          Result : out LSP.Messages.uinteger_Vector)
       is
          use all type LSP.Messages.SemanticTokenTypes;
-         use all type Libadalang.Common.Token_Kind;
          use type Langkit_Support.Slocs.Line_Number;
          use type Langkit_Support.Slocs.Column_Number;
 
@@ -411,7 +407,6 @@ package body LSP.Ada_Highlighters is
       procedure Highlight_Name (Node : Libadalang.Analysis.Name'Class) is
          use all type LSP.Messages.SemanticTokenTypes;
          use all type LSP.Messages.SemanticTokenModifiers;
-         use all type Libadalang.Common.Ada_Node_Kind_Type;
          use type Libadalang.Analysis.Defining_Name;
 
          function To_Kind (Decl : Libadalang.Analysis.Basic_Decl)
@@ -500,35 +495,62 @@ package body LSP.Ada_Highlighters is
                      return a_type;
                   end if;
 
-                  --  Begin Base_Formal_Param_Decl
-               when Ada_Component_Decl =>
-                  return property;
-               when Ada_Discriminant_Spec =>
-                  return typeParameter;
-               when Ada_Param_Spec =>
-                  return parameter;
-               when Ada_Generic_Formal_Obj_Decl =>
-                  return variable;
-               when Ada_Generic_Formal_Package =>
-                  return namespace;
-               when Ada_Generic_Formal_Subp_Decl =>
-                  return a_function;
-               when Ada_Generic_Formal_Type_Decl =>
-                  return a_type;  --  class/enum/interface/struct...?
-                  --  End Base_Formal_Param_Decl
+               when Ada_Base_Formal_Param_Decl =>
+                  case Ada_Base_Formal_Param_Decl'(Decl.Kind) is
+                     when Ada_Component_Decl =>
+                        return property;
+                     when Ada_Discriminant_Spec =>
+                        return typeParameter;
+                     when Ada_Param_Spec =>
+                        return parameter;
+                     when Ada_Generic_Formal_Obj_Decl =>
+                        return variable;
+                     when Ada_Generic_Formal_Package =>
+                        return namespace;
+                     when Ada_Generic_Formal_Subp_Decl =>
+                        return a_function;
+                     when Ada_Generic_Formal_Type_Decl =>
+                        return a_type;  --  class/enum/interface/struct...?
+                     when Ada_Synthetic_Formal_Param_Decl =>
+                        --  Synthetic nodes do not correspond to source text
+                        return Skip;
+                  end case;
 
                when Libadalang.Common.Ada_Base_Package_Decl =>
                   return namespace;
 
-               when Libadalang.Common.Ada_Body_Node =>
+               when Ada_Body_Node =>
                   declare
                      Spec : constant Libadalang.Analysis.Basic_Decl :=
                        Decl.As_Body_Node.P_Decl_Part (True);
                   begin
-                     if Spec.Is_Null then
-                        return a_function;
-                     else
+                     if not Spec.Is_Null then
+                        --  If there's a spec, use it to determine the kind
                         return To_Kind (Spec);
+                     else
+                        --  Handle the kinds of bodies directly
+                        case Ada_Body_Node'(Decl.Kind) is
+                           when Ada_Accept_Stmt_Body =>
+                              return Skip;
+                           when Ada_Base_Subp_Body =>
+                              return a_function;
+                           when Ada_Package_Body_Stub =>
+                              return namespace;
+                           when Ada_Protected_Body_Stub =>
+                              return variable;
+                           when Ada_Subp_Body_Stub =>
+                              return a_function;
+                           when Ada_Task_Body_Stub =>
+                              return variable;
+                           when Ada_Entry_Body =>
+                              return variable;
+                           when Ada_Package_Body =>
+                              return namespace;
+                           when Ada_Protected_Body =>
+                              return variable;
+                           when Ada_Task_Body =>
+                              return variable;
+                        end case;
                      end if;
                   end;
 
