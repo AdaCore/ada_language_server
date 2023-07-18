@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { before } from 'mocha';
 import { contextClients } from '../../src/extension';
 import { GlsMainResult, GlsExecutableResult } from '../../src/gprTaskProvider';
-
+import { assertEqualToFileContent } from './utils';
 import * as vscode from 'vscode';
 
 suite('Extension Tasks Test Suite', () => {
@@ -41,6 +41,29 @@ suite('Extension Tasks Test Suite', () => {
             assert.strictEqual(filename, 'gnatpp');
             filename = result.executables[1].replace(/^.*[\\/]/, '');
             assert.strictEqual(filename, 'gnattest');
+        } else {
+            throw new Error('No workspace folder found for the specified URI');
+        }
+    });
+    test('Test Add Subprogram Box', async () => {
+        if (vscode.workspace.workspaceFolders !== undefined) {
+            await contextClients.adaClient.onReady();
+            const cursorPositions : vscode.Position[] =
+                [new vscode.Position (9, 1), new vscode.Position (4, 1), new vscode.Position (1, 1)];
+            const folder = vscode.workspace.workspaceFolders[0].uri;
+            const fileUri = vscode.Uri.joinPath(folder, 'src', 'test_subprogram_box.adb');
+            const expectedUri = vscode.Uri.joinPath(
+                folder, 'src', 'test_subprogram_box.expected');
+
+            for (let cursorPos of cursorPositions) {
+                await vscode.window.showTextDocument(fileUri,
+                    {selection: new vscode.Range(cursorPos, cursorPos)});
+                await vscode.commands.executeCommand('ada.subprogramBox');
+            }
+
+            const editorText = vscode.window.activeTextEditor?.document.getText()?? "";
+
+            assertEqualToFileContent(editorText, expectedUri);
         } else {
             throw new Error('No workspace folder found for the specified URI');
         }
