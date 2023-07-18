@@ -10,14 +10,14 @@
 #     ^^^ source.ada entity.name.label.ada
 #        ^ source.ada entity.name.operator.ada
 #         ^^^^^^^ source.ada entity.name.label.ada
-#                ^^ source.ada
+#                ^ source.ada punctuation.ada
 >with Unknown.Pkg;
 #^^^^ source.ada keyword.other.ada
 #    ^ source.ada
 #     ^^^^^^^ source.ada entity.name.label.ada
 #            ^ source.ada entity.name.operator.ada
 #             ^^^ source.ada entity.name.label.ada
-#                ^^ source.ada
+#                ^ source.ada punctuation.ada
 >
 >package Pkg is
 #^^^^^^^ source.ada keyword.other.ada
@@ -30,10 +30,10 @@
 #   ^^^^^^ source.ada keyword.control.ada
 #         ^ source.ada
 #          ^^^^^^^^^^^^ source.ada entity.name.label.ada
-#                      ^^ source.ada
+#                      ^ source.ada punctuation.ada
 >end Pkg;
 #^^^ source.ada keyword.other.ada
 #   ^ source.ada
 #    ^^^ source.ada entity.name.label.ada
-#       ^^ source.ada
+#       ^ source.ada punctuation.ada
 >

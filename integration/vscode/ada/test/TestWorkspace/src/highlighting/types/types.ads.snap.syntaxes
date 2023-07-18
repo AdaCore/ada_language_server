@@ -10,7 +10,7 @@
 #    ^^^^ source.ada keyword.other.ada
 #        ^ source.ada
 #         ^^^^^^^^^^ source.ada entity.name.label.ada
-#                   ^^ source.ada
+#                   ^ source.ada punctuation.ada
 >
 >    type Taggle_Incomplete is tagged;
 #^^^^ source.ada
@@ -21,7 +21,7 @@
 #                           ^^ source.ada keyword.other.ada
 #                             ^ source.ada
 #                              ^^^^^^ source.ada keyword.other.ada
-#                                    ^^ source.ada
+#                                    ^ source.ada punctuation.ada
 >
 >    type Day    is (Mon, Tue, Wed, Thu, Fri, Sat, Sun);
 #^^^^ source.ada
@@ -32,25 +32,26 @@
 #                ^^ source.ada keyword.other.ada
 #                  ^^ source.ada
 #                    ^^^ source.ada entity.name.label.ada
-#                       ^ source.ada entity.name.operator.ada
+#                       ^ source.ada punctuation.ada
 #                        ^ source.ada
 #                         ^^^ source.ada entity.name.label.ada
-#                            ^ source.ada entity.name.operator.ada
+#                            ^ source.ada punctuation.ada
 #                             ^ source.ada
 #                              ^^^ source.ada entity.name.label.ada
-#                                 ^ source.ada entity.name.operator.ada
+#                                 ^ source.ada punctuation.ada
 #                                  ^ source.ada
 #                                   ^^^ source.ada entity.name.label.ada
-#                                      ^ source.ada entity.name.operator.ada
+#                                      ^ source.ada punctuation.ada
 #                                       ^ source.ada
 #                                        ^^^ source.ada entity.name.label.ada
-#                                           ^ source.ada entity.name.operator.ada
+#                                           ^ source.ada punctuation.ada
 #                                            ^ source.ada
 #                                             ^^^ source.ada entity.name.label.ada
-#                                                ^ source.ada entity.name.operator.ada
+#                                                ^ source.ada punctuation.ada
 #                                                 ^ source.ada
 #                                                  ^^^ source.ada entity.name.label.ada
-#                                                     ^^^ source.ada
+#                                                     ^ source.ada
+#                                                      ^ source.ada punctuation.ada
 >    type Suit   is 
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -62,16 +63,17 @@
 >        (Clubs, Diamonds, Hearts, Spades);
 #^^^^^^^^^ source.ada
 #         ^^^^^ source.ada entity.name.label.ada
-#              ^ source.ada entity.name.operator.ada
+#              ^ source.ada punctuation.ada
 #               ^ source.ada
 #                ^^^^^^^^ source.ada entity.name.label.ada
-#                        ^ source.ada entity.name.operator.ada
+#                        ^ source.ada punctuation.ada
 #                         ^ source.ada
 #                          ^^^^^^ source.ada entity.name.label.ada
-#                                ^ source.ada entity.name.operator.ada
+#                                ^ source.ada punctuation.ada
 #                                 ^ source.ada
 #                                  ^^^^^^ source.ada entity.name.label.ada
-#                                        ^^^ source.ada
+#                                        ^ source.ada
+#                                         ^ source.ada punctuation.ada
 >    type Gender is 
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -85,12 +87,13 @@
 >            M,
 #^^^^^^^^^^^^ source.ada
 #            ^ source.ada entity.name.label.ada
-#             ^ source.ada entity.name.operator.ada
+#             ^ source.ada punctuation.ada
 >            F
 #^^^^^^^^^^^^ source.ada
 #            ^ source.ada entity.name.label.ada
 >        );
-#^^^^^^^^^^^ source.ada
+#^^^^^^^^^ source.ada
+#         ^ source.ada punctuation.ada
 >    type Level  is 
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -102,12 +105,12 @@
 >        (Low, 
 #^^^^^^^^^ source.ada
 #         ^^^ source.ada entity.name.label.ada
-#            ^ source.ada entity.name.operator.ada
+#            ^ source.ada punctuation.ada
 #             ^^ source.ada
 >        Medium,
 #^^^^^^^^ source.ada
 #        ^^^^^^ source.ada entity.name.label.ada
-#              ^ source.ada entity.name.operator.ada
+#              ^ source.ada punctuation.ada
 >        -- This is a comment
 #^^^^^^^^ source.ada
 #        ^^ source.ada comment.line.ada
@@ -115,7 +118,8 @@
 >        Urgent);
 #^^^^^^^^ source.ada
 #        ^^^^^^ source.ada entity.name.label.ada
-#              ^^^ source.ada
+#              ^ source.ada
+#               ^ source.ada punctuation.ada
 >    type Light  is (Red, Amber, Green); -- Red and Green are overloaded
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -125,13 +129,15 @@
 #                ^^ source.ada keyword.other.ada
 #                  ^^ source.ada
 #                    ^^^ source.ada entity.name.label.ada
-#                       ^ source.ada entity.name.operator.ada
+#                       ^ source.ada punctuation.ada
 #                        ^ source.ada
 #                         ^^^^^ source.ada entity.name.label.ada
-#                              ^ source.ada entity.name.operator.ada
+#                              ^ source.ada punctuation.ada
 #                               ^ source.ada
 #                                ^^^^^ source.ada entity.name.label.ada
-#                                     ^^^ source.ada
+#                                     ^ source.ada
+#                                      ^ source.ada punctuation.ada
+#                                       ^ source.ada
 #                                        ^^ source.ada comment.line.ada
 #                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >
@@ -144,22 +150,23 @@
 #                ^^ source.ada keyword.other.ada
 #                  ^^ source.ada
 #                    ^^^ source.ada constant.character.ada
-#                       ^ source.ada entity.name.operator.ada
+#                       ^ source.ada punctuation.ada
 #                        ^ source.ada
 #                         ^^^ source.ada constant.character.ada
-#                            ^ source.ada entity.name.operator.ada
+#                            ^ source.ada punctuation.ada
 #                             ^ source.ada
 #                              ^^^ source.ada constant.character.ada
-#                                 ^ source.ada entity.name.operator.ada
+#                                 ^ source.ada punctuation.ada
 #                                  ^ source.ada
 #                                   ^^^ source.ada constant.character.ada
-#                                      ^ source.ada entity.name.operator.ada
+#                                      ^ source.ada punctuation.ada
 #                                       ^ source.ada
 #                                        ^^^ source.ada constant.character.ada
-#                                           ^ source.ada entity.name.operator.ada
+#                                           ^ source.ada punctuation.ada
 #                                            ^ source.ada
 #                                             ^^^ source.ada constant.character.ada
-#                                                ^^^ source.ada
+#                                                ^ source.ada
+#                                                 ^ source.ada punctuation.ada
 >    type Mixed  is ('A', 'B', '*', B, None, '?', '%');
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -169,25 +176,26 @@
 #                ^^ source.ada keyword.other.ada
 #                  ^^ source.ada
 #                    ^^^ source.ada constant.character.ada
-#                       ^ source.ada entity.name.operator.ada
+#                       ^ source.ada punctuation.ada
 #                        ^ source.ada
 #                         ^^^ source.ada constant.character.ada
-#                            ^ source.ada entity.name.operator.ada
+#                            ^ source.ada punctuation.ada
 #                             ^ source.ada
 #                              ^^^ source.ada constant.character.ada
-#                                 ^ source.ada entity.name.operator.ada
+#                                 ^ source.ada punctuation.ada
 #                                  ^ source.ada
 #                                   ^ source.ada entity.name.label.ada
-#                                    ^ source.ada entity.name.operator.ada
+#                                    ^ source.ada punctuation.ada
 #                                     ^ source.ada
 #                                      ^^^^ source.ada entity.name.label.ada
-#                                          ^ source.ada entity.name.operator.ada
+#                                          ^ source.ada punctuation.ada
 #                                           ^ source.ada
 #                                            ^^^ source.ada constant.character.ada
-#                                               ^ source.ada entity.name.operator.ada
+#                                               ^ source.ada punctuation.ada
 #                                                ^ source.ada
 #                                                 ^^^ source.ada constant.character.ada
-#                                                    ^^^ source.ada
+#                                                    ^ source.ada
+#                                                     ^ source.ada punctuation.ada
 >
 >    subtype Weekday is 
 #^^^^ source.ada
@@ -208,7 +216,7 @@
 #                      ^^ source.ada entity.name.operator.ada
 #                        ^ source.ada
 #                         ^^^ source.ada entity.name.label.ada
-#                            ^^ source.ada
+#                            ^ source.ada punctuation.ada
 >    subtype Major   is Suit  range Hearts .. Spades;
 #^^^^ source.ada
 #    ^^^^^^^ source.ada keyword.other.ada
@@ -226,7 +234,7 @@
 #                                          ^^ source.ada entity.name.operator.ada
 #                                            ^ source.ada
 #                                             ^^^^^^ source.ada entity.name.label.ada
-#                                                   ^^ source.ada
+#                                                   ^ source.ada punctuation.ada
 >    subtype Rainbow is Color range Red .. Blue;  --  the Color Red, not the Light
 #^^^^ source.ada
 #    ^^^^^^^ source.ada keyword.other.ada
@@ -244,7 +252,8 @@
 #                                       ^^ source.ada entity.name.operator.ada
 #                                         ^ source.ada
 #                                          ^^^^ source.ada entity.name.label.ada
-#                                              ^^^ source.ada
+#                                              ^ source.ada punctuation.ada
+#                                               ^^ source.ada
 #                                                 ^^ source.ada comment.line.ada
 #                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >
@@ -263,7 +272,7 @@
 #                              ^^ source.ada entity.name.operator.ada
 #                                ^ source.ada
 #                                 ^^^^^ source.ada constant.numeric.ada
-#                                      ^^ source.ada
+#                                      ^ source.ada punctuation.ada
 >    type Line_Size is
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -280,7 +289,7 @@
 #                ^^ source.ada entity.name.operator.ada
 #                  ^ source.ada
 #                   ^^^^^^^^^^^^^ source.ada entity.name.label.ada
-#                                ^^ source.ada
+#                                ^ source.ada punctuation.ada
 >
 >    subtype Small_Int   is Integer   range -10 .. 10;
 #^^^^ source.ada
@@ -300,7 +309,7 @@
 #                                               ^^ source.ada entity.name.operator.ada
 #                                                 ^ source.ada
 #                                                  ^^ source.ada constant.numeric.ada
-#                                                    ^^ source.ada
+#                                                    ^ source.ada punctuation.ada
 >    subtype Column_Ptr  is Line_Size range 1 .. 10;
 #^^^^ source.ada
 #    ^^^^^^^ source.ada keyword.other.ada
@@ -318,7 +327,7 @@
 #                                             ^^ source.ada entity.name.operator.ada
 #                                               ^ source.ada
 #                                                ^^ source.ada constant.numeric.ada
-#                                                  ^^ source.ada
+#                                                  ^ source.ada punctuation.ada
 >    subtype Buffer_Size is Integer   range 0 .. Max;
 #^^^^ source.ada
 #    ^^^^^^^ source.ada keyword.other.ada
@@ -336,7 +345,7 @@
 #                                             ^^ source.ada entity.name.operator.ada
 #                                               ^ source.ada
 #                                                ^^^ source.ada entity.name.label.ada
-#                                                   ^^ source.ada
+#                                                   ^ source.ada punctuation.ada
 >
 >    type Byte        is mod 256; -- an unsigned byte
 #^^^^ source.ada
@@ -349,7 +358,8 @@
 #                        ^^^ source.ada entity.name.operator.ada
 #                           ^ source.ada
 #                            ^^^ source.ada constant.numeric.ada
-#                               ^^ source.ada
+#                               ^ source.ada punctuation.ada
+#                                ^ source.ada
 #                                 ^^ source.ada comment.line.ada
 #                                   ^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >    type Hash_Index  is
@@ -364,7 +374,8 @@
 #        ^^^ source.ada entity.name.operator.ada
 #           ^ source.ada
 #            ^^ source.ada constant.numeric.ada
-#              ^^^ source.ada
+#              ^ source.ada punctuation.ada
+#               ^^ source.ada
 #                 ^^ source.ada comment.line.ada
 #                   ^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >
@@ -387,7 +398,7 @@
 #                                                ^^ source.ada keyword.other.ada
 #                                                  ^ source.ada
 #                                                   ^^^^ source.ada entity.name.label.ada
-#                                                       ^^ source.ada
+#                                                       ^ source.ada punctuation.ada
 >    type Matrix     is 
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -405,7 +416,7 @@
 #                       ^^^^^ source.ada keyword.other.ada
 #                            ^ source.ada
 #                             ^^ source.ada entity.name.operator.ada
-#                               ^ source.ada entity.name.operator.ada
+#                               ^ source.ada punctuation.ada
 #                                ^ source.ada
 #                                 ^^^^^^^ source.ada entity.name.label.ada
 #                                        ^ source.ada
@@ -416,7 +427,7 @@
 #                                                   ^^ source.ada keyword.other.ada
 #                                                     ^ source.ada
 #                                                      ^^^^ source.ada entity.name.label.ada
-#                                                          ^^ source.ada
+#                                                          ^ source.ada punctuation.ada
 >    type Bit_Vector is 
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -441,7 +452,7 @@
 #          ^^ source.ada keyword.other.ada
 #            ^ source.ada
 #             ^^^^^^^ source.ada entity.name.label.ada
-#                    ^^ source.ada
+#                    ^ source.ada punctuation.ada
 >    type Roman      is array(Positive range <>) of Roman_Digit;
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -461,7 +472,7 @@
 #                                                ^^ source.ada keyword.other.ada
 #                                                  ^ source.ada
 #                                                   ^^^^^^^^^^^ source.ada entity.name.label.ada
-#                                                              ^^ source.ada
+#                                                              ^ source.ada punctuation.ada
 >    type Table    is array(1 .. 10) of Integer;
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -481,7 +492,7 @@
 #                                    ^^ source.ada keyword.other.ada
 #                                      ^ source.ada
 #                                       ^^^^^^^ source.ada entity.name.label.ada
-#                                              ^^ source.ada
+#                                              ^ source.ada punctuation.ada
 >    type Schedule is array(Day) of Boolean;
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -497,7 +508,7 @@
 #                                ^^ source.ada keyword.other.ada
 #                                  ^ source.ada
 #                                   ^^^^^^^ source.ada entity.name.label.ada
-#                                          ^^ source.ada
+#                                          ^ source.ada punctuation.ada
 >    type Line     is array(1 .. Max_Line_Size) of Character;
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -517,7 +528,7 @@
 #                                               ^^ source.ada keyword.other.ada
 #                                                 ^ source.ada
 #                                                  ^^^^^^^^^ source.ada entity.name.label.ada
-#                                                           ^^ source.ada
+#                                                           ^ source.ada punctuation.ada
 >
 >    type Date is
 #^^^^ source.ada
@@ -531,8 +542,10 @@
 #   ^^^^^^ source.ada keyword.other.ada
 >      Day   : Integer range 1 .. 31;
 #^^^^^^ source.ada
-#      ^^^ source.ada entity.name.label.ada
-#         ^^^^^ source.ada
+#      ^^^ source.ada meta.declaration.object.ada variable.name.ada
+#         ^^^ source.ada meta.declaration.object.ada
+#            ^ source.ada meta.declaration.object.ada punctuation.ada
+#             ^ source.ada
 #              ^^^^^^^ source.ada entity.name.label.ada
 #                     ^ source.ada
 #                      ^^^^^ source.ada keyword.other.ada
@@ -542,17 +555,21 @@
 #                              ^^ source.ada entity.name.operator.ada
 #                                ^ source.ada
 #                                 ^^ source.ada constant.numeric.ada
-#                                   ^^ source.ada
+#                                   ^ source.ada punctuation.ada
 >      Month : Month_Name;
 #^^^^^^ source.ada
-#      ^^^^^ source.ada entity.name.label.ada
-#           ^^^ source.ada
+#      ^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#           ^ source.ada meta.declaration.object.ada
+#            ^ source.ada meta.declaration.object.ada punctuation.ada
+#             ^ source.ada
 #              ^^^^^^^^^^ source.ada entity.name.label.ada
-#                        ^^ source.ada
+#                        ^ source.ada punctuation.ada
 >      Year  : Integer range 0 .. 4000;
 #^^^^^^ source.ada
-#      ^^^^ source.ada entity.name.label.ada
-#          ^^^^ source.ada
+#      ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#          ^^ source.ada meta.declaration.object.ada
+#            ^ source.ada meta.declaration.object.ada punctuation.ada
+#             ^ source.ada
 #              ^^^^^^^ source.ada entity.name.label.ada
 #                     ^ source.ada
 #                      ^^^^^ source.ada keyword.other.ada
@@ -562,13 +579,13 @@
 #                              ^^ source.ada entity.name.operator.ada
 #                                ^ source.ada
 #                                 ^^^^ source.ada constant.numeric.ada
-#                                     ^^ source.ada
+#                                     ^ source.ada punctuation.ada
 >   end record;
 #^^^ source.ada
 #   ^^^ source.ada keyword.other.ada
 #      ^ source.ada
 #       ^^^^^^ source.ada keyword.other.ada
-#             ^^ source.ada
+#             ^ source.ada punctuation.ada
 >
 >    type Complex is
 #^^^^ source.ada
@@ -582,34 +599,38 @@
 #    ^^^^^^ source.ada keyword.other.ada
 >        Re : Real := 0.0;
 #^^^^^^^^ source.ada
-#        ^^ source.ada entity.name.label.ada
-#          ^^^ source.ada
+#        ^^ source.ada meta.declaration.object.ada variable.name.ada
+#          ^ source.ada meta.declaration.object.ada
+#           ^ source.ada meta.declaration.object.ada punctuation.ada
+#            ^ source.ada
 #             ^^^^ source.ada entity.name.label.ada
 #                 ^ source.ada
 #                  ^^ source.ada entity.name.operator.assignment.ada
 #                    ^ source.ada
 #                     ^^^ source.ada constant.numeric.ada
-#                        ^^ source.ada
+#                        ^ source.ada punctuation.ada
 >        -- Comment
 #^^^^^^^^ source.ada
 #        ^^ source.ada comment.line.ada
 #          ^^^^^^^^ source.ada comment.line.ada
 >        Im : Real := 0.0;
 #^^^^^^^^ source.ada
-#        ^^ source.ada entity.name.label.ada
-#          ^^^ source.ada
+#        ^^ source.ada meta.declaration.object.ada variable.name.ada
+#          ^ source.ada meta.declaration.object.ada
+#           ^ source.ada meta.declaration.object.ada punctuation.ada
+#            ^ source.ada
 #             ^^^^ source.ada entity.name.label.ada
 #                 ^ source.ada
 #                  ^^ source.ada entity.name.operator.assignment.ada
 #                    ^ source.ada
 #                     ^^^ source.ada constant.numeric.ada
-#                        ^^ source.ada
+#                        ^ source.ada punctuation.ada
 >    end record;
 #^^^^ source.ada
 #    ^^^ source.ada keyword.other.ada
 #       ^ source.ada
 #        ^^^^^^ source.ada keyword.other.ada
-#              ^^ source.ada
+#              ^ source.ada punctuation.ada
 >
 >    type Peripheral(Unit : Device := Disk) is record
 #^^^^ source.ada
@@ -617,8 +638,10 @@
 #        ^ source.ada
 #         ^^^^^^^^^^ source.ada entity.name.label.ada
 #                   ^ source.ada
-#                    ^^^^ source.ada entity.name.label.ada
-#                        ^^^ source.ada
+#                    ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                        ^ source.ada meta.declaration.object.ada
+#                         ^ source.ada meta.declaration.object.ada punctuation.ada
+#                          ^ source.ada
 #                           ^^^^^^ source.ada entity.name.label.ada
 #                                 ^ source.ada
 #                                  ^^ source.ada entity.name.operator.assignment.ada
@@ -630,10 +653,12 @@
 #                                              ^^^^^^ source.ada keyword.other.ada
 >        Status : State;
 #^^^^^^^^ source.ada
-#        ^^^^^^ source.ada entity.name.label.ada
-#              ^^^ source.ada
+#        ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#              ^ source.ada meta.declaration.object.ada
+#               ^ source.ada meta.declaration.object.ada punctuation.ada
+#                ^ source.ada
 #                 ^^^^^ source.ada entity.name.label.ada
-#                      ^^ source.ada
+#                      ^ source.ada punctuation.ada
 >        case Unit is
 #^^^^^^^^ source.ada
 #        ^^^^ source.ada keyword.other.ada
@@ -650,8 +675,10 @@
 #                         ^^ source.ada entity.name.operator.ada
 >                Line_Count : Integer range 1 .. Page_Size;
 #^^^^^^^^^^^^^^^^ source.ada
-#                ^^^^^^^^^^ source.ada entity.name.label.ada
-#                          ^^^ source.ada
+#                ^^^^^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                          ^ source.ada meta.declaration.object.ada
+#                           ^ source.ada meta.declaration.object.ada punctuation.ada
+#                            ^ source.ada
 #                             ^^^^^^^ source.ada entity.name.label.ada
 #                                    ^ source.ada
 #                                     ^^^^^ source.ada keyword.other.ada
@@ -661,7 +688,7 @@
 #                                             ^^ source.ada entity.name.operator.ada
 #                                               ^ source.ada
 #                                                ^^^^^^^^^ source.ada entity.name.label.ada
-#                                                         ^^ source.ada
+#                                                         ^ source.ada punctuation.ada
 >            when others =>
 #^^^^^^^^^^^^ source.ada
 #            ^^^^ source.ada keyword.other.ada
@@ -671,32 +698,36 @@
 #                        ^^ source.ada entity.name.operator.ada
 >                Cylinder   : Cylinder_Index;
 #^^^^^^^^^^^^^^^^ source.ada
-#                ^^^^^^^^ source.ada entity.name.label.ada
-#                        ^^^^^ source.ada
+#                ^^^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                        ^^^ source.ada meta.declaration.object.ada
+#                           ^ source.ada meta.declaration.object.ada punctuation.ada
+#                            ^ source.ada
 #                             ^^^^^^^^^^^^^^ source.ada entity.name.label.ada
-#                                           ^^ source.ada
+#                                           ^ source.ada punctuation.ada
 >                -- Another comment
 #^^^^^^^^^^^^^^^^ source.ada
 #                ^^ source.ada comment.line.ada
 #                  ^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >                Track      : Track_Number;
 #^^^^^^^^^^^^^^^^ source.ada
-#                ^^^^^ source.ada entity.name.label.ada
-#                     ^^^^^^^^ source.ada
+#                ^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                     ^^^^^^ source.ada meta.declaration.object.ada
+#                           ^ source.ada meta.declaration.object.ada punctuation.ada
+#                            ^ source.ada
 #                             ^^^^^^^^^^^^ source.ada entity.name.label.ada
-#                                         ^^ source.ada
+#                                         ^ source.ada punctuation.ada
 >            end case;
 #^^^^^^^^^^^^ source.ada
 #            ^^^ source.ada keyword.other.ada
 #               ^ source.ada
 #                ^^^^ source.ada keyword.other.ada
-#                    ^^ source.ada
+#                    ^ source.ada punctuation.ada
 >        end record;
 #^^^^^^^^ source.ada
 #        ^^^ source.ada keyword.other.ada
 #           ^ source.ada
 #            ^^^^^^ source.ada keyword.other.ada
-#                  ^^ source.ada
+#                  ^ source.ada punctuation.ada
 >
 >    type Peripheral_Ref is not null access Peripheral;  --  see 3.8.1
 #^^^^ source.ada
@@ -713,7 +744,8 @@
 #                                    ^^^^^^ source.ada storage.modifier.ada
 #                                          ^ source.ada
 #                                           ^^^^^^^^^^ source.ada entity.name.label.ada
-#                                                     ^^^ source.ada
+#                                                     ^ source.ada punctuation.ada
+#                                                      ^^ source.ada
 #                                                        ^^ source.ada comment.line.ada
 #                                                          ^^^^^^^^^^^ source.ada comment.line.ada
 >    type Binop_Ptr is 
@@ -733,7 +765,7 @@
 #                   ^^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
 #                                   ^ source.ada
 #                                    ^^^^^ source.ada entity.name.label.ada
-#                                         ^^ source.ada
+#                                         ^ source.ada punctuation.ada
 >
 >    type Local_Coordinate is new Coordinate;   --  two different types
 #^^^^ source.ada
@@ -746,7 +778,8 @@
 #                             ^^^ source.ada keyword.other.ada
 #                                ^ source.ada
 #                                 ^^^^^^^^^^ source.ada entity.name.label.ada
-#                                           ^^^^ source.ada
+#                                           ^ source.ada punctuation.ada
+#                                            ^^^ source.ada
 #                                               ^^ source.ada comment.line.ada
 #                                                 ^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >    type Midweek is new Day range Tue .. Thu;  --  see 3.5.1
@@ -768,7 +801,8 @@
 #                                      ^^ source.ada entity.name.operator.ada
 #                                        ^ source.ada
 #                                         ^^^ source.ada entity.name.label.ada
-#                                            ^^^ source.ada
+#                                            ^ source.ada punctuation.ada
+#                                             ^^ source.ada
 #                                               ^^ source.ada comment.line.ada
 #                                                 ^^^^^^^^^^^ source.ada comment.line.ada
 >    type Counter is new Positive;              --  same range as Positive 
@@ -782,7 +816,8 @@
 #                    ^^^ source.ada keyword.other.ada
 #                       ^ source.ada
 #                        ^^^^^^^^ source.ada entity.name.label.ada
-#                                ^^^^^^^^^^^^^^^ source.ada
+#                                ^ source.ada punctuation.ada
+#                                 ^^^^^^^^^^^^^^ source.ada
 #                                               ^^ source.ada comment.line.ada
 #                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >
@@ -798,7 +833,7 @@
 #                  ^^^^^^^ source.ada keyword.other.ada
 #                         ^ source.ada
 #                          ^^^^^^^^^ source.ada keyword.other.ada
-#                                   ^^ source.ada
+#                                   ^ source.ada punctuation.ada
 >    type Synchronized_Queue is synchronized interface and Queue; -- see 9.11
 #^^^^ source.ada
 #    ^^^^ source.ada keyword.other.ada
@@ -814,7 +849,8 @@
 #                                                      ^^^ source.ada entity.name.operator.ada
 #                                                         ^ source.ada
 #                                                          ^^^^^ source.ada entity.name.label.ada
-#                                                               ^^ source.ada
+#                                                               ^ source.ada punctuation.ada
+#                                                                ^ source.ada
 #                                                                 ^^ source.ada comment.line.ada
 #                                                                   ^^^^^^^^^ source.ada comment.line.ada
 >    type Serial_Device is task interface;  -- see 9.1
@@ -828,7 +864,8 @@
 #                          ^^^^ source.ada keyword.other.ada
 #                              ^ source.ada
 #                               ^^^^^^^^^ source.ada keyword.other.ada
-#                                        ^^^ source.ada
+#                                        ^ source.ada punctuation.ada
+#                                         ^^ source.ada
 #                                           ^^ source.ada comment.line.ada
 #                                             ^^^^^^^^ source.ada comment.line.ada
 >
@@ -847,24 +884,27 @@
 #             ^ source.ada
 #              ^^^^^^^^^^^^^^ source.ada entity.name.label.ada
 #                            ^ source.ada
-#                             ^^ source.ada entity.name.label.ada
-#                               ^^^ source.ada
+#                             ^^ source.ada meta.declaration.object.ada variable.name.ada
+#                               ^ source.ada meta.declaration.object.ada
+#                                ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                 ^ source.ada
 #                                  ^^ source.ada storage.modifier.ada
 #                                    ^ source.ada
 #                                     ^^^^^^^^^ source.ada entity.name.label.ada
-#                                              ^^^ source.ada
+#                                              ^ source.ada
+#                                               ^ source.ada punctuation.ada
 >        entry Shut_Down;
 #^^^^^^^^ source.ada
 #        ^^^^^ source.ada keyword.control.ada
 #             ^ source.ada
 #              ^^^^^^^^^ source.ada entity.name.label.ada
-#                       ^^ source.ada
+#                       ^ source.ada punctuation.ada
 >    end Server;
 #^^^^ source.ada
 #    ^^^ source.ada keyword.other.ada
 #       ^ source.ada
 #        ^^^^^^ source.ada entity.name.label.ada
-#              ^^ source.ada
+#              ^ source.ada punctuation.ada
 >
 >    task type Keyboard_Driver(ID : Keyboard_ID := New_ID) is
 #^^^^ source.ada
@@ -874,8 +914,10 @@
 #             ^ source.ada
 #              ^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
 #                             ^ source.ada
-#                              ^^ source.ada entity.name.label.ada
-#                                ^^^ source.ada
+#                              ^^ source.ada meta.declaration.object.ada variable.name.ada
+#                                ^ source.ada meta.declaration.object.ada
+#                                 ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                  ^ source.ada
 #                                   ^^^^^^^^^^^ source.ada entity.name.label.ada
 #                                              ^ source.ada
 #                                               ^^ source.ada entity.name.operator.assignment.ada
@@ -901,33 +943,39 @@
 #                  ^^ source.ada
 >            (C : out Character);
 #^^^^^^^^^^^^^ source.ada
-#             ^ source.ada entity.name.label.ada
-#              ^^^ source.ada
+#             ^ source.ada meta.declaration.object.ada variable.name.ada
+#              ^ source.ada meta.declaration.object.ada
+#               ^ source.ada meta.declaration.object.ada punctuation.ada
+#                ^ source.ada
 #                 ^^^ source.ada storage.modifier.ada
 #                    ^ source.ada
 #                     ^^^^^^^^^ source.ada entity.name.label.ada
-#                              ^^^ source.ada
+#                              ^ source.ada
+#                               ^ source.ada punctuation.ada
 >        entry Write(C : in  Character);
 #^^^^^^^^ source.ada
 #        ^^^^^ source.ada keyword.control.ada
 #             ^ source.ada
 #              ^^^^^ source.ada entity.name.label.ada
 #                   ^ source.ada
-#                    ^ source.ada entity.name.label.ada
-#                     ^^^ source.ada
+#                    ^ source.ada meta.declaration.object.ada variable.name.ada
+#                     ^ source.ada meta.declaration.object.ada
+#                      ^ source.ada meta.declaration.object.ada punctuation.ada
+#                       ^ source.ada
 #                        ^^ source.ada storage.modifier.ada
 #                          ^^ source.ada
 #                            ^^^^^^^^^ source.ada entity.name.label.ada
-#                                     ^^^ source.ada
+#                                     ^ source.ada
+#                                      ^ source.ada punctuation.ada
 >    end Keyboard_Driver;
 #^^^^ source.ada
 #    ^^^ source.ada keyword.other.ada
 #       ^ source.ada
 #        ^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
-#                       ^^ source.ada
+#                       ^ source.ada punctuation.ada
 >
 >end Types;
 #^^^ source.ada keyword.other.ada
 #   ^ source.ada
 #    ^^^^^ source.ada entity.name.label.ada
-#         ^^ source.ada
+#         ^ source.ada punctuation.ada

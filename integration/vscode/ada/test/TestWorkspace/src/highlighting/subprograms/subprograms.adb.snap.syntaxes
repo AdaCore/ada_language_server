@@ -14,20 +14,20 @@
 #                         ^^ source.ada keyword.other.ada
 >   function S1 return Boolean;
 #^^^ source.ada
-#   ^^^^^^^^ source.ada keyword.other.ada
-#           ^ source.ada
-#            ^^ source.ada entity.name.label.ada
+#   ^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#           ^ source.ada meta.declaration.subprogram.ada
+#            ^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
 #              ^ source.ada
 #               ^^^^^^ source.ada keyword.other.ada
 #                     ^ source.ada
 #                      ^^^^^^^ source.ada entity.name.label.ada
-#                             ^^ source.ada
+#                             ^ source.ada punctuation.ada
 >   procedure S2;
 #^^^ source.ada
-#   ^^^^^^^^^ source.ada keyword.other.ada
-#            ^ source.ada
-#             ^^ source.ada entity.name.label.ada
-#               ^^ source.ada
+#   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#            ^ source.ada meta.declaration.subprogram.ada
+#             ^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#               ^ source.ada punctuation.ada
 >
 >   -- With parameters
 #^^^ source.ada
@@ -35,32 +35,44 @@
 #     ^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >   function S3 (Param1 : T1; Param2 : T2);
 #^^^ source.ada
-#   ^^^^^^^^ source.ada keyword.other.ada
-#           ^ source.ada
-#            ^^ source.ada entity.name.label.ada
+#   ^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#           ^ source.ada meta.declaration.subprogram.ada
+#            ^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
 #              ^^ source.ada
-#                ^^^^^^ source.ada entity.name.label.ada
-#                      ^^^ source.ada
+#                ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                      ^ source.ada meta.declaration.object.ada
+#                       ^ source.ada meta.declaration.object.ada punctuation.ada
+#                        ^ source.ada
 #                         ^^ source.ada entity.name.label.ada
-#                           ^^ source.ada
-#                             ^^^^^^ source.ada entity.name.label.ada
-#                                   ^^^ source.ada
+#                           ^ source.ada punctuation.ada
+#                            ^ source.ada
+#                             ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                                   ^ source.ada meta.declaration.object.ada
+#                                    ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                     ^ source.ada
 #                                      ^^ source.ada entity.name.label.ada
-#                                        ^^^ source.ada
+#                                        ^ source.ada
+#                                         ^ source.ada punctuation.ada
 >   procedure S4 (Param1 : T1; Param2 : T2);
 #^^^ source.ada
-#   ^^^^^^^^^ source.ada keyword.other.ada
-#            ^ source.ada
-#             ^^ source.ada entity.name.label.ada
+#   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#            ^ source.ada meta.declaration.subprogram.ada
+#             ^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
 #               ^^ source.ada
-#                 ^^^^^^ source.ada entity.name.label.ada
-#                       ^^^ source.ada
+#                 ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                       ^ source.ada meta.declaration.object.ada
+#                        ^ source.ada meta.declaration.object.ada punctuation.ada
+#                         ^ source.ada
 #                          ^^ source.ada entity.name.label.ada
-#                            ^^ source.ada
-#                              ^^^^^^ source.ada entity.name.label.ada
-#                                    ^^^ source.ada
+#                            ^ source.ada punctuation.ada
+#                             ^ source.ada
+#                              ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                                    ^ source.ada meta.declaration.object.ada
+#                                     ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                      ^ source.ada
 #                                       ^^ source.ada entity.name.label.ada
-#                                         ^^^ source.ada
+#                                         ^ source.ada
+#                                          ^ source.ada punctuation.ada
 >
 >   -- Multiple parameters of same type
 #^^^ source.ada
@@ -68,21 +80,27 @@
 #     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >   function S5 (Param1, Param2 : T1; Param3 : T2);
 #^^^ source.ada
-#   ^^^^^^^^ source.ada keyword.other.ada
-#           ^ source.ada
-#            ^^ source.ada entity.name.label.ada
+#   ^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#           ^ source.ada meta.declaration.subprogram.ada
+#            ^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
 #              ^^ source.ada
-#                ^^^^^^ source.ada entity.name.label.ada
-#                      ^ source.ada entity.name.operator.ada
-#                       ^ source.ada
-#                        ^^^^^^ source.ada entity.name.label.ada
-#                              ^^^ source.ada
+#                ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                      ^ source.ada meta.declaration.object.ada punctuation.ada
+#                       ^ source.ada meta.declaration.object.ada
+#                        ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                              ^ source.ada meta.declaration.object.ada
+#                               ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                ^ source.ada
 #                                 ^^ source.ada entity.name.label.ada
-#                                   ^^ source.ada
-#                                     ^^^^^^ source.ada entity.name.label.ada
-#                                           ^^^ source.ada
+#                                   ^ source.ada punctuation.ada
+#                                    ^ source.ada
+#                                     ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                                           ^ source.ada meta.declaration.object.ada
+#                                            ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                             ^ source.ada
 #                                              ^^ source.ada entity.name.label.ada
-#                                                ^^^ source.ada
+#                                                ^ source.ada
+#                                                 ^ source.ada punctuation.ada
 >
 >   -- Operator declarations
 #^^^ source.ada
@@ -90,46 +108,48 @@
 #     ^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
 >   function "+" (Param1, Param2 : T1) return T1;
 #^^^ source.ada
-#   ^^^^^^^^ source.ada keyword.other.ada
-#           ^ source.ada
-#            ^ source.ada string.quoted.double.ada
-#             ^ source.ada string.quoted.double.ada
-#              ^ source.ada string.quoted.double.ada
+#   ^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#           ^ source.ada meta.declaration.subprogram.ada
+#            ^ source.ada meta.declaration.subprogram.ada string.quoted.double.ada
+#             ^^ source.ada meta.declaration.subprogram.ada string.quoted.double.ada
 #               ^^ source.ada
-#                 ^^^^^^ source.ada entity.name.label.ada
-#                       ^ source.ada entity.name.operator.ada
-#                        ^ source.ada
-#                         ^^^^^^ source.ada entity.name.label.ada
-#                               ^^^ source.ada
+#                 ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                       ^ source.ada meta.declaration.object.ada punctuation.ada
+#                        ^ source.ada meta.declaration.object.ada
+#                         ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                               ^ source.ada meta.declaration.object.ada
+#                                ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                 ^ source.ada
 #                                  ^^ source.ada entity.name.label.ada
 #                                    ^^ source.ada
 #                                      ^^^^^^ source.ada keyword.other.ada
 #                                            ^ source.ada
 #                                             ^^ source.ada entity.name.label.ada
-#                                               ^^ source.ada
+#                                               ^ source.ada punctuation.ada
 >   function "xor" (Param1, Param2 : T1) return T1;
 #^^^ source.ada
-#   ^^^^^^^^ source.ada keyword.other.ada
-#           ^ source.ada
-#            ^ source.ada string.quoted.double.ada
-#             ^^^ source.ada string.quoted.double.ada
-#                ^ source.ada string.quoted.double.ada
+#   ^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#           ^ source.ada meta.declaration.subprogram.ada
+#            ^ source.ada meta.declaration.subprogram.ada string.quoted.double.ada
+#             ^^^^ source.ada meta.declaration.subprogram.ada string.quoted.double.ada
 #                 ^^ source.ada
-#                   ^^^^^^ source.ada entity.name.label.ada
-#                         ^ source.ada entity.name.operator.ada
-#                          ^ source.ada
-#                           ^^^^^^ source.ada entity.name.label.ada
-#                                 ^^^ source.ada
+#                   ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                         ^ source.ada meta.declaration.object.ada punctuation.ada
+#                          ^ source.ada meta.declaration.object.ada
+#                           ^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                                 ^ source.ada meta.declaration.object.ada
+#                                  ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                   ^ source.ada
 #                                    ^^ source.ada entity.name.label.ada
 #                                      ^^ source.ada
 #                                        ^^^^^^ source.ada keyword.other.ada
 #                                              ^ source.ada
 #                                               ^^ source.ada entity.name.label.ada
-#                                                 ^^ source.ada
+#                                                 ^ source.ada punctuation.ada
 >
 >end Subprograms;
 #^^^ source.ada keyword.other.ada
 #   ^ source.ada
 #    ^^^^^^^^^^^ source.ada entity.name.label.ada
-#               ^^ source.ada
+#               ^ source.ada punctuation.ada
 >
