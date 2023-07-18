@@ -565,7 +565,7 @@ package body LSP.Ada_Highlighters is
                when Ada_Single_Task_Decl =>
                   return variable;
                when others =>
-                  return modifier;
+                  return Skip;
             end case;
          end To_Kind;
 
@@ -605,7 +605,9 @@ package body LSP.Ada_Highlighters is
 
             if not Decl.Is_Null then
                Kind := To_Kind (Decl);
-               Highlight_Token (Node.Token_Start, Kind);
+               if Kind /= Skip then
+                  Highlight_Token (Node.Token_Start, Kind);
+               end if;
 
                begin
                   if Kind in variable | parameter | typeParameter | property
