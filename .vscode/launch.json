@@ -4,6 +4,14 @@
    "version": "0.2.0",
    "configurations": [
       {
+         "type": "gdb",
+         "request": "attach",
+         "name": "Attach to PID",
+         "target": "${input:pid}",
+         "cwd": "${workspaceRoot}",
+         "valuesFormatting": "parseText"
+      },
+      {
          "name": "Launch Extension",
          "type": "extensionHost",
          "request": "launch",
@@ -164,6 +172,11 @@
          "description": "Update test references? Keep empty for no update",
          "type": "promptString",
          "default": ""
+      },
+      {
+         "id": "pid",
+         "description": "Specify PID of process to debug",
+         "type": "promptString"
       }
    ]
 }
