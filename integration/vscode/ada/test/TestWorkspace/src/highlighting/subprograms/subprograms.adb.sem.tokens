@@ -1,4 +1,4 @@
-line   3: column 14 - 24: function      [declaration]                    : Subprograms
+line   3: column 14 - 24: namespace     [declaration]                    : Subprograms
 line   4: column 13 - 14: function      [declaration]                    : S1
 line   5: column 14 - 15: function      [declaration]                    : S2
 line   8: column 13 - 14: function      [declaration]                    : S3
@@ -17,4 +17,4 @@ line  15: column 26 - 31: parameter     [declaration, readonly]          : Param
 line  16: column 13 - 17: function      [declaration]                    : "xor"
 line  16: column 20 - 25: parameter     [declaration, readonly]          : Param1
 line  16: column 28 - 33: parameter     [declaration, readonly]          : Param2
-line  18: column  5 - 15: function                                       : Subprograms
+line  18: column  5 - 15: namespace                                      : Subprograms

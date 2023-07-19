@@ -1,0 +1,6 @@
+line  18: column  9 - 11: namespace     [declaration]                    : LSP
+line  21: column  9 - 22: enum          [declaration, static]            : On_Empty_Array
+line  21: column 28 - 31: enumMember    [declaration, static]            : Skip
+line  21: column 34 - 44: enumMember    [declaration, static]            : Write_Array
+line  21: column 47 - 56: enumMember    [declaration, static]            : Write_Null
+line  23: column  5 -  7: namespace                                      : LSP

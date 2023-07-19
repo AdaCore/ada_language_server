@@ -33,149 +33,280 @@ line  27: column 23 - 26: namespace                                      : GNAT
 line  27: column 28 - 33: namespace                                      : OS_Lib
 line  28: column  6 -  9: namespace                                      : GNAT
 line  28: column 11 - 17: namespace                                      : Strings
+line  33: column  6 -  8: namespace                                      : LSP
+line  33: column 29 - 31: namespace                                      : LSP
+line  34: column  6 -  8: namespace                                      : LSP
+line  34: column 29 - 31: namespace                                      : LSP
+line  35: column  6 -  8: namespace                                      : LSP
 line  35: column 10 - 21: namespace                                      : Ada_Handlers
+line  36: column  6 -  8: namespace                                      : LSP
+line  37: column  6 -  8: namespace                                      : LSP
+line  37: column 28 - 30: namespace                                      : LSP
+line  38: column  6 -  8: namespace                                      : LSP
+line  39: column  6 -  8: namespace                                      : LSP
+line  39: column 28 - 30: namespace                                      : LSP
+line  40: column  6 -  8: namespace                                      : LSP
+line  41: column  6 -  8: namespace                                      : LSP
+line  42: column  6 -  8: namespace                                      : LSP
+line  42: column 28 - 30: namespace                                      : LSP
+line  53: column 14 - 16: namespace                                      : LSP
 line  53: column 18 - 29: namespace     [definition]                     : Ada_Handlers
 line  55: column  9 - 24: type          [declaration, static]            : Cancel_Countdown
 line  58: column  4 - 33: variable      [declaration, readonly]          : Allow_Incremental_Text_Changes
 line  64: column  4 - 12: variable      [declaration, readonly]          : Is_Parent
 line  67: column  4 - 11: variable      [declaration, readonly]          : Is_Child
 line  72: column  4 - 12: variable      [declaration, readonly]          : Line_Feed
+line  72: column 61 - 62: variable      [readonly, static, defaultLibrary] : LF
 line  74: column 13 - 15: function      [declaration]                    : "+"
 line  74: column 18 - 21: parameter     [declaration, readonly]          : Text
+line  74: column 25 - 27: namespace     [defaultLibrary]                 : Ada
+line  74: column 29 - 35: namespace     [defaultLibrary]                 : Strings
+line  74: column 37 - 48: namespace     [defaultLibrary]                 : UTF_Encoding
+line  74: column 50 - 61: type          [static, defaultLibrary]         : UTF_8_String
+line  75: column 13 - 15: namespace                                      : LSP
 line  78: column 14 - 40: function      [declaration]                    : Send_Imprecise_Xref_Message
 line  79: column  7 - 10: parameter     [declaration, readonly]          : Self
+line  79: column 25 - 39: type                                           : Message_Handler
 line  80: column  7 -  9: parameter     [declaration, readonly]          : URI
+line  80: column 18 - 20: namespace                                      : LSP
 line  81: column  7 - 14: parameter     [declaration, readonly]          : Position
+line  81: column 18 - 20: namespace                                      : LSP
 line  82: column  7 - 14: parameter     [declaration, readonly]          : Msg_Type
+line  82: column 18 - 20: namespace                                      : LSP
+line  87: column 12 - 25: type          [declaration]                    : Context_Access
+line  87: column 30 - 32: namespace                                      : LSP
 line  89: column 14 - 35: function      [declaration]                    : Imprecise_Resolve_Name
 line  90: column  7 - 10: parameter     [declaration, readonly]          : Self
+line  90: column 27 - 41: type                                           : Message_Handler
 line  91: column  7 - 16: parameter     [declaration, readonly]          : In_Context
+line  91: column 20 - 33: type                                           : Context_Access
 line  92: column  7 - 14: parameter     [declaration, readonly]          : Position
 line  93: column  7 - 16: parameter     [declaration]                    : Definition
 line  94: column  7 - 14: parameter     [declaration, readonly]          : Msg_Type
 line  99: column 13 - 19: function      [declaration]                    : To_File
 line  99: column 22 - 24: parameter     [declaration, readonly]          : URI
+line  99: column 28 - 30: namespace                                      : LSP
 line 103: column 14 - 25: function      [declaration]                    : Show_Message
 line 104: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 104: column 21 - 35: type                                           : Message_Handler
 line 105: column  7 - 10: parameter     [declaration, readonly]          : Text
+line 105: column 14 - 19: type          [static, defaultLibrary]         : String
 line 106: column  7 - 10: parameter     [declaration, readonly]          : Mode
 line 109: column 13 - 37: function      [declaration]                    : Get_Unique_Progress_Token
 line 110: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 110: column 26 - 40: type                                           : Message_Handler
 line 111: column  7 - 15: parameter     [declaration, readonly]          : Operation
+line 111: column 19 - 24: type          [static, defaultLibrary]         : String
 line 114: column 14 - 24: function      [declaration]                    : Index_Files
 line 114: column 27 - 30: parameter     [declaration, readonly]          : Self
+line 114: column 41 - 55: type                                           : Message_Handler
 line 117: column 14 - 27: function      [declaration]                    : Unchecked_Free
+line 117: column 36 - 38: namespace     [defaultLibrary]                 : Ada
+line 117: column 40 - 61: function      [defaultLibrary]                 : Unchecked_Deallocation
+line 118: column  7 -  9: namespace                                      : LSP
+line 118: column 35 - 58: type                                           : Internal_Document_Access
 line 120: column 14 - 33: function      [declaration]                    : Release_Project_Info
 line 120: column 36 - 39: parameter     [declaration, readonly]          : Self
+line 120: column 50 - 64: type                                           : Message_Handler
 line 123: column 13 - 28: function      [declaration]                    : Contexts_For_URI
 line 124: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 124: column 21 - 35: type                                           : Message_Handler
 line 125: column  7 -  9: parameter     [declaration, readonly]          : URI
+line 125: column 14 - 16: namespace                                      : LSP
+line 126: column 14 - 16: namespace                                      : LSP
 line 133: column 14 - 41: function      [declaration]                    : Reload_Implicit_Project_Dirs
 line 133: column 44 - 47: parameter     [declaration, readonly]          : Self
+line 133: column 58 - 72: type                                           : Message_Handler
 line 171: column 14 - 34: function      [declaration]                    : Ensure_Project_Loaded
 line 172: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 172: column 21 - 35: type                                           : Message_Handler
 line 173: column  7 - 10: parameter     [declaration, readonly]          : Root
 line 178: column 14 - 34: function      [declaration]                    : Load_Implicit_Project
 line 178: column 37 - 40: parameter     [declaration, readonly]          : Self
+line 178: column 51 - 65: type                                           : Message_Handler
 line 181: column 14 - 25: function      [declaration]                    : Load_Project
 line 182: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 182: column 25 - 39: type                                           : Message_Handler
 line 183: column  7 -  9: parameter     [declaration, readonly]          : GPR
 line 184: column  7 - 14: parameter     [declaration, readonly]          : Scenario
+line 184: column 18 - 20: namespace                                      : LSP
 line 185: column  7 - 13: parameter     [declaration, readonly]          : Charset
+line 185: column 18 - 23: type          [static, defaultLibrary]         : String
 line 193: column 13 - 28: function      [declaration]                    : Contexts_For_URI
 line 194: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 194: column 21 - 35: type                                           : Message_Handler
 line 195: column  7 -  9: parameter     [declaration, readonly]          : URI
+line 195: column 14 - 16: namespace                                      : LSP
+line 196: column 14 - 16: namespace                                      : LSP
 line 198: column  7 - 10: variable      [declaration, readonly]          : File
 line 200: column 16 - 26: function      [declaration]                    : Is_A_Source
 line 200: column 29 - 32: parameter     [declaration, readonly]          : Self
+line 200: column 36 - 38: namespace                                      : LSP
+line 200: column 69 - 75: enum          [static, defaultLibrary]         : Boolean
 line 218: column  8 - 23: function                                       : Contexts_For_URI
 line 224: column 24 - 40: function      [declaration]                    : Get_Open_Document
 line 225: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 225: column 22 - 36: type                                           : Message_Handler
 line 226: column  7 -  9: parameter     [declaration, readonly]          : URI
+line 226: column 15 - 17: namespace                                      : LSP
 line 227: column  7 - 11: parameter     [declaration, readonly]          : Force
+line 228: column 14 - 16: namespace                                      : LSP
 line 237: column 13 - 20: variable      [declaration, readonly]          : Document
 line 246: column  8 - 24: function                                       : Get_Open_Document
 line 252: column 14 - 40: function      [declaration]                    : Send_Imprecise_Xref_Message
 line 253: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 253: column 25 - 39: type                                           : Message_Handler
 line 254: column  7 -  9: parameter     [declaration, readonly]          : URI
+line 254: column 18 - 20: namespace                                      : LSP
 line 255: column  7 - 14: parameter     [declaration, readonly]          : Position
+line 255: column 18 - 20: namespace                                      : LSP
 line 256: column  7 - 14: parameter     [declaration, readonly]          : Msg_Type
+line 256: column 18 - 20: namespace                                      : LSP
 line 258: column  7 - 10: variable      [declaration, readonly]          : File
 line 269: column  8 - 34: function                                       : Send_Imprecise_Xref_Message
+line 275: column 14 - 35: function      [declaration]                    : Imprecise_Resolve_Name
+line 276: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 276: column 27 - 41: type                                           : Message_Handler
+line 277: column  7 - 16: parameter     [declaration, readonly]          : In_Context
+line 277: column 20 - 33: type                                           : Context_Access
+line 278: column  7 - 14: parameter     [declaration, readonly]          : Position
+line 279: column  7 - 16: parameter     [declaration]                    : Definition
+line 280: column  7 - 14: parameter     [declaration, readonly]          : Msg_Type
 line 284: column  7 - 15: variable      [declaration, readonly]          : Name_Node
 line 290: column  7 - 15: variable      [declaration]                    : Imprecise
+line 290: column 20 - 26: enum          [static, defaultLibrary]         : Boolean
+line 308: column  8 - 29: function                                       : Imprecise_Resolve_Name
+line 314: column 14 - 33: function      [declaration]                    : Release_Project_Info
+line 314: column 36 - 39: parameter     [declaration, readonly]          : Self
+line 326: column  8 - 27: function                                       : Release_Project_Info
 line 332: column 14 - 20: function      [definition]                     : Cleanup
 line 332: column 23 - 26: parameter     [definition, readonly]           : Self
+line 332: column 37 - 51: type                                           : Message_Handler
 line 335: column 11 - 18: variable      [declaration]                    : Document
 line 345: column  8 - 14: function                                       : Cleanup
 line 351: column 25 - 44: function      [definition]                     : On_Exit_Notification
 line 351: column 47 - 50: parameter     [definition, readonly]           : Self
+line 351: column 61 - 75: type                                           : Message_Handler
 line 354: column  8 - 27: function                                       : On_Exit_Notification
+line 360: column 14 - 41: function      [declaration]                    : Reload_Implicit_Project_Dirs
+line 360: column 44 - 47: parameter     [declaration, readonly]          : Self
 line 361: column  7 - 10: variable      [declaration]                    : Attr
 line 363: column  7 - 11: variable      [declaration]                    : Index
 line 366: column 11 - 13: variable      [declaration]                    : Dir
 line 377: column 11 - 11: variable      [declaration, readonly]          : J
+line 380: column  8 - 35: function                                       : Reload_Implicit_Project_Dirs
+line 386: column 14 - 34: function      [declaration]                    : Load_Implicit_Project
+line 386: column 37 - 40: parameter     [declaration, readonly]          : Self
 line 387: column  7 -  7: variable      [declaration, readonly]          : C
 line 388: column  7 - 10: variable      [declaration]                    : Attr
 line 429: column 11 - 14: variable      [declaration]                    : File
+line 434: column  8 - 28: function                                       : Load_Implicit_Project
 line 440: column 14 - 34: function      [declaration]                    : Ensure_Project_Loaded
 line 441: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 441: column 21 - 35: type                                           : Message_Handler
 line 442: column  7 - 10: parameter     [declaration, readonly]          : Root
 line 444: column  7 - 16: variable      [declaration]                    : GPRs_Found
+line 444: column 20 - 26: type          [static, defaultLibrary]         : Natural
 line 445: column  7 - 11: variable      [declaration]                    : Files
 line 446: column  7 -  9: variable      [declaration]                    : GPR
 line 469: column 14 - 14: variable      [declaration]                    : X
 line 498: column  8 - 28: function                                       : Ensure_Project_Loaded
 line 504: column 24 - 44: function      [declaration]                    : On_Initialize_Request
 line 505: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 505: column 24 - 38: type                                           : Message_Handler
 line 506: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 506: column 17 - 19: namespace                                      : LSP
+line 507: column 14 - 16: namespace                                      : LSP
 line 509: column  7 - 11: variable      [declaration]                    : Value
 line 510: column  7 - 17: variable      [declaration]                    : Code_Action
 line 512: column  7 - 14: variable      [declaration]                    : Response
 line 514: column  7 - 10: variable      [declaration]                    : Root
+line 514: column 18 - 20: namespace                                      : LSP
 line 634: column  8 - 28: function                                       : On_Initialize_Request
 line 640: column 24 - 42: function      [declaration]                    : On_Shutdown_Request
 line 641: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 641: column 24 - 38: type                                           : Message_Handler
 line 642: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 642: column 17 - 19: namespace                                      : LSP
+line 643: column 14 - 16: namespace                                      : LSP
 line 645: column 28 - 31: parameter     [readonly]                       : Self
 line 645: column 34 - 40: parameter     [readonly]                       : Request
 line 649: column  8 - 26: function                                       : On_Shutdown_Request
 line 655: column 24 - 44: function      [declaration]                    : On_CodeAction_Request
 line 656: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 656: column 24 - 38: type                                           : Message_Handler
 line 657: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 657: column 17 - 19: namespace                                      : LSP
+line 658: column 14 - 16: namespace                                      : LSP
 line 660: column  7 - 12: variable      [declaration]                    : Params
 line 662: column 17 - 34: function      [declaration]                    : Analyse_In_Context
 line 663: column 10 - 16: parameter     [declaration, readonly]          : Context
+line 663: column 21 - 34: type                                           : Context_Access
 line 664: column 10 - 17: parameter     [declaration, readonly]          : Document
+line 664: column 21 - 23: namespace                                      : LSP
 line 665: column 10 - 15: parameter     [declaration]                    : Result
+line 665: column 25 - 27: namespace                                      : LSP
 line 666: column 10 - 14: parameter     [declaration]                    : Found
+line 666: column 28 - 34: enum          [static, defaultLibrary]         : Boolean
 line 671: column 16 - 43: function      [declaration]                    : Has_Assoc_Without_Designator
 line 672: column 10 - 13: parameter     [declaration, readonly]          : Node
+line 672: column 62 - 68: enum          [static, defaultLibrary]         : Boolean
 line 676: column 17 - 28: function      [declaration]                    : Analyse_Node
 line 677: column 10 - 16: parameter     [declaration, readonly]          : Context
+line 677: column 20 - 33: type                                           : Context_Access
 line 678: column 10 - 13: parameter     [declaration, readonly]          : Node
 line 679: column 10 - 15: parameter     [declaration]                    : Result
+line 679: column 24 - 26: namespace                                      : LSP
 line 680: column 10 - 14: parameter     [declaration]                    : Found
+line 680: column 27 - 33: enum          [static, defaultLibrary]         : Boolean
 line 681: column 10 - 13: parameter     [declaration]                    : Done
+line 681: column 27 - 33: enum          [static, defaultLibrary]         : Boolean
 line 687: column  7 - 28: variable      [declaration]                    : Found_Named_Parameters
 line 699: column 16 - 43: function      [declaration]                    : Has_Assoc_Without_Designator
 line 700: column 10 - 13: parameter     [declaration, readonly]          : Node
+line 700: column 62 - 68: enum          [static, defaultLibrary]         : Boolean
 line 702: column 10 - 14: variable      [declaration]                    : Found
 line 704: column 14 - 14: variable      [declaration]                    : J
 line 718: column 13 - 16: variable      [declaration, readonly]          : Expr
 line 719: column 13 - 16: variable      [declaration]                    : Name
 line 720: column 13 - 16: variable      [declaration]                    : Decl
 line 746: column 11 - 38: function                                       : Has_Assoc_Without_Designator
+line 752: column 17 - 28: function      [declaration]                    : Analyse_Node
+line 753: column 10 - 16: parameter     [declaration, readonly]          : Context
+line 753: column 20 - 33: type                                           : Context_Access
+line 754: column 10 - 13: parameter     [declaration, readonly]          : Node
+line 755: column 10 - 15: parameter     [declaration]                    : Result
+line 755: column 24 - 26: namespace                                      : LSP
+line 756: column 10 - 14: parameter     [declaration]                    : Found
+line 756: column 27 - 33: enum          [static, defaultLibrary]         : Boolean
+line 757: column 10 - 13: parameter     [declaration]                    : Done
+line 757: column 27 - 33: enum          [static, defaultLibrary]         : Boolean
 line 759: column 20 - 33: function      [declaration]                    : Append_Command
 line 759: column 36 - 39: parameter     [declaration, readonly]          : Node
+line 766: column 20 - 33: function      [declaration]                    : Append_Command
+line 766: column 36 - 39: parameter     [declaration, readonly]          : Node
 line 767: column 13 - 19: variable      [declaration]                    : Command
 line 768: column 13 - 19: variable      [declaration]                    : Pointer
+line 768: column 23 - 25: namespace                                      : LSP
 line 769: column 13 - 16: variable      [declaration]                    : Item
+line 769: column 23 - 25: namespace                                      : LSP
 line 770: column 13 - 17: variable      [declaration, readonly]          : Where
+line 799: column 14 - 27: function                                       : Append_Command
 line 801: column 10 - 13: variable      [declaration, readonly]          : Kind
 line 816: column 19 - 22: variable      [declaration, readonly]          : List
+line 831: column 11 - 22: function                                       : Analyse_Node
+line 837: column 17 - 34: function      [declaration]                    : Analyse_In_Context
+line 838: column 10 - 16: parameter     [declaration, readonly]          : Context
+line 838: column 21 - 34: type                                           : Context_Access
+line 839: column 10 - 17: parameter     [declaration, readonly]          : Document
+line 839: column 21 - 23: namespace                                      : LSP
+line 840: column 10 - 15: parameter     [declaration]                    : Result
+line 840: column 25 - 27: namespace                                      : LSP
+line 841: column 10 - 14: parameter     [declaration]                    : Found
+line 841: column 28 - 34: enum          [static, defaultLibrary]         : Boolean
 line 843: column 10 - 13: variable      [declaration]                    : Done
 line 844: column 10 - 13: variable      [declaration]                    : Node
+line 851: column 11 - 28: function                                       : Analyse_In_Context
 line 853: column  7 - 14: variable      [declaration, readonly]          : Document
 line 856: column  7 - 14: variable      [declaration]                    : Response
 line 859: column  7 - 11: variable      [declaration]                    : Found
@@ -183,26 +314,37 @@ line 866: column 11 - 11: variable      [declaration]                    : C
 line 873: column  8 - 28: function                                       : On_CodeAction_Request
 line 879: column 24 - 49: function      [declaration]                    : On_Execute_Command_Request
 line 880: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 880: column 24 - 38: type                                           : Message_Handler
 line 881: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 881: column 17 - 19: namespace                                      : LSP
+line 882: column 14 - 16: namespace                                      : LSP
 line 884: column  7 - 11: variable      [declaration]                    : Error
+line 884: column 18 - 20: namespace                                      : LSP
 line 885: column  7 - 12: variable      [declaration]                    : Params
 line 887: column  7 - 14: variable      [declaration]                    : Response
 line 913: column  8 - 33: function                                       : On_Execute_Command_Request
 line 919: column 24 - 45: function      [declaration]                    : On_Declaration_Request
 line 920: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 920: column 24 - 38: type                                           : Message_Handler
 line 921: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 921: column 17 - 19: namespace                                      : LSP
+line 922: column 14 - 16: namespace                                      : LSP
 line 925: column  7 - 14: variable      [declaration]                    : Position
 line 927: column  7 - 14: variable      [declaration]                    : Response
 line 929: column  7 - 15: variable      [declaration]                    : Imprecise
 line 931: column  7 - 14: variable      [declaration, readonly]          : Document
 line 935: column 11 - 11: variable      [declaration]                    : C
 line 953: column  8 - 29: function                                       : On_Declaration_Request
+line 959: column 24 - 48: function      [declaration]                    : On_Implementation_Request
+line 960: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 961: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 966: column  7 - 14: variable      [declaration]                    : Position
 line 968: column  7 - 14: variable      [declaration]                    : Response
 line 970: column  7 - 15: variable      [declaration]                    : Imprecise
 line 972: column  7 - 14: variable      [declaration, readonly]          : Document
 line 975: column 17 - 34: function      [declaration]                    : Resolve_In_Context
 line 975: column 37 - 37: parameter     [declaration, readonly]          : C
+line 982: column 17 - 34: function      [declaration]                    : Resolve_In_Context
 line 982: column 37 - 37: parameter     [declaration, readonly]          : C
 line 983: column 10 - 18: variable      [declaration, readonly]          : Name_Node
 line 986: column 20 - 33: function      [declaration]                    : List_Bodies_Of
@@ -220,12 +362,17 @@ line 1045: column 10 - 13: variable      [declaration]                    : Decl
 line 1066: column 14 - 17: variable      [declaration]                    : Subp
 line 1072: column 14 - 17: variable      [declaration]                    : Subp
 line 1079: column 11 - 11: variable      [declaration]                    : C
+line 1093: column  8 - 32: function                                       : On_Implementation_Request
+line 1099: column 24 - 44: function      [declaration]                    : On_Definition_Request
+line 1100: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1101: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 1106: column  7 - 11: variable      [declaration]                    : Value
 line 1108: column  7 - 14: variable      [declaration]                    : Response
 line 1110: column  7 - 15: variable      [declaration]                    : Imprecise
 line 1112: column  7 - 14: variable      [declaration, readonly]          : Document
 line 1115: column 17 - 34: function      [declaration]                    : Resolve_In_Context
 line 1115: column 37 - 37: parameter     [declaration, readonly]          : C
+line 1123: column 17 - 34: function      [declaration]                    : Resolve_In_Context
 line 1123: column 37 - 37: parameter     [declaration, readonly]          : C
 line 1124: column 10 - 18: variable      [declaration, readonly]          : Name_Node
 line 1127: column 10 - 19: variable      [declaration]                    : Definition
@@ -239,12 +386,17 @@ line 1185: column 16 - 25: variable      [declaration, readonly]          : Base
 line 1190: column 20 - 23: variable      [declaration]                    : Subp
 line 1194: column 20 - 23: variable      [declaration]                    : Subp
 line 1204: column 11 - 11: variable      [declaration]                    : C
+line 1218: column  8 - 28: function                                       : On_Definition_Request
+line 1224: column 24 - 49: function      [declaration]                    : On_Type_Definition_Request
+line 1225: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1226: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 1231: column  7 - 14: variable      [declaration]                    : Position
 line 1233: column  7 - 14: variable      [declaration]                    : Response
 line 1235: column  7 - 15: variable      [declaration]                    : Imprecise
 line 1237: column  7 - 14: variable      [declaration, readonly]          : Document
 line 1240: column 17 - 34: function      [declaration]                    : Resolve_In_Context
 line 1240: column 37 - 37: parameter     [declaration, readonly]          : C
+line 1247: column 17 - 34: function      [declaration]                    : Resolve_In_Context
 line 1247: column 37 - 37: parameter     [declaration, readonly]          : C
 line 1248: column 10 - 18: variable      [declaration, readonly]          : Name_Node
 line 1250: column 10 - 19: variable      [declaration]                    : Definition
@@ -252,58 +404,87 @@ line 1251: column 10 - 18: variable      [declaration]                    : Type
 line 1261: column 16 - 23: variable      [declaration, readonly]          : Def_Name
 line 1263: column 16 - 24: variable      [declaration, readonly]          : Type_Expr
 line 1290: column 11 - 11: variable      [declaration]                    : C
+line 1297: column  8 - 33: function                                       : On_Type_Definition_Request
 line 1303: column 25 - 61: function      [declaration]                    : On_DidChangeTextDocument_Notification
 line 1304: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1304: column 22 - 36: type                                           : Message_Handler
 line 1305: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 1305: column 15 - 17: namespace                                      : LSP
 line 1307: column 16 - 30: function      [declaration]                    : Skip_Did_Change
-line 1315: column 16 - 30: function      [declaration]                    : Skip_Did_Change
+line 1307: column 39 - 45: enum          [static, defaultLibrary]         : Boolean
+line 1315: column 16 - 30: function      [definition]                     : Skip_Did_Change
+line 1315: column 39 - 45: enum          [static, defaultLibrary]         : Boolean
+line 1316: column 19 - 21: namespace                                      : LSP
+line 1318: column 18 - 51: type          [declaration]                    : DidChangeTextDocument_Notification
+line 1318: column 56 - 58: namespace                                      : LSP
 line 1321: column 10 - 13: variable      [declaration, readonly]          : Next
 line 1332: column 13 - 18: variable      [declaration]                    : Object
 line 1341: column 11 - 25: function                                       : Skip_Did_Change
 line 1343: column  7 - 14: variable      [declaration, readonly]          : Document
 line 1345: column  7 - 10: variable      [declaration]                    : Diag
+line 1345: column 18 - 20: namespace                                      : LSP
 line 1346: column  7 - 29: variable      [declaration]                    : Diags_Already_Published
 line 1373: column 11 - 17: variable      [declaration]                    : Context
 line 1386: column  8 - 44: function                                       : On_DidChangeTextDocument_Notification
 line 1392: column 25 - 60: function      [declaration]                    : On_DidCloseTextDocument_Notification
 line 1393: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1393: column 22 - 36: type                                           : Message_Handler
 line 1394: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 1394: column 15 - 17: namespace                                      : LSP
 line 1396: column  7 - 10: variable      [declaration]                    : Diag
+line 1396: column 18 - 20: namespace                                      : LSP
 line 1397: column  7 - 14: variable      [declaration]                    : Document
 line 1397: column 18 - 41: type                                           : Internal_Document_Access
 line 1417: column  8 - 43: function                                       : On_DidCloseTextDocument_Notification
 line 1423: column 25 - 59: function      [declaration]                    : On_DidOpenTextDocument_Notification
 line 1424: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1424: column 22 - 36: type                                           : Message_Handler
 line 1425: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 1425: column 15 - 17: namespace                                      : LSP
 line 1427: column  7 -  9: variable      [declaration]                    : URI
 line 1428: column  7 - 12: variable      [declaration, readonly]          : Object
+line 1439: column 41 - 60: function      [defaultLibrary]                 : Containing_Directory
 line 1451: column 13 - 15: variable      [declaration, readonly]          : Dir
 line 1463: column 10 - 13: variable      [declaration]                    : Diag
+line 1463: column 17 - 19: namespace                                      : LSP
 line 1464: column 10 - 32: variable      [declaration]                    : Diags_Already_Published
 line 1466: column 14 - 20: variable      [declaration]                    : Context
 line 1484: column  8 - 42: function                                       : On_DidOpenTextDocument_Notification
 line 1490: column 24 - 47: function      [declaration]                    : On_Folding_Range_Request
 line 1491: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1491: column 24 - 38: type                                           : Message_Handler
 line 1492: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 1492: column 17 - 19: namespace                                      : LSP
+line 1493: column 14 - 16: namespace                                      : LSP
 line 1495: column  7 - 11: variable      [declaration]                    : Value
 line 1498: column  7 - 13: variable      [declaration, readonly]          : Context
 line 1500: column  7 - 14: variable      [declaration, readonly]          : Document
 line 1502: column  7 - 12: variable      [declaration]                    : Result
+line 1502: column 18 - 20: namespace                                      : LSP
 line 1526: column  8 - 31: function                                       : On_Folding_Range_Request
 line 1532: column 24 - 49: function      [declaration]                    : On_Selection_Range_Request
 line 1533: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1533: column 24 - 38: type                                           : Message_Handler
 line 1534: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 1534: column 17 - 19: namespace                                      : LSP
+line 1535: column 14 - 16: namespace                                      : LSP
 line 1537: column 28 - 31: parameter     [readonly]                       : Self
 line 1537: column 34 - 40: parameter     [readonly]                       : Request
 line 1538: column  7 - 14: variable      [declaration]                    : Response
 line 1547: column  8 - 33: function                                       : On_Selection_Range_Request
 line 1553: column 24 - 43: function      [declaration]                    : On_Highlight_Request
 line 1554: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1554: column 24 - 38: type                                           : Message_Handler
 line 1555: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 1555: column 17 - 19: namespace                                      : LSP
+line 1556: column 14 - 16: namespace                                      : LSP
 line 1558: column 28 - 31: parameter     [readonly]                       : Self
 line 1558: column 34 - 40: parameter     [readonly]                       : Request
 line 1559: column  7 - 14: variable      [declaration]                    : Response
 line 1568: column  8 - 27: function                                       : On_Highlight_Request
+line 1574: column 24 - 39: function      [declaration]                    : On_Hover_Request
+line 1575: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1576: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 1581: column  7 - 11: variable      [declaration]                    : Value
 line 1583: column  7 - 14: variable      [declaration]                    : Response
 line 1586: column  7 - 24: variable      [declaration]                    : Defining_Name_Node
@@ -313,6 +494,10 @@ line 1589: column  7 - 19: variable      [declaration]                    : Comm
 line 1590: column  7 - 19: variable      [declaration]                    : Location_Text
 line 1591: column  7 - 20: variable      [declaration]                    : Decl_Unit_File
 line 1593: column  7 -  7: variable      [declaration, readonly]          : C
+line 1673: column  8 - 23: function                                       : On_Hover_Request
+line 1679: column 24 - 44: function      [declaration]                    : On_References_Request
+line 1680: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1681: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 1686: column  7 - 11: variable      [declaration]                    : Value
 line 1687: column  7 - 14: variable      [declaration]                    : Response
 line 1689: column  7 - 15: variable      [declaration]                    : Imprecise
@@ -320,8 +505,11 @@ line 1691: column 17 - 31: function      [declaration]                    : Proc
 line 1691: column 34 - 34: parameter     [declaration, readonly]          : C
 line 1695: column 16 - 33: function      [declaration]                    : Get_Reference_Kind
 line 1696: column 10 - 13: parameter     [declaration, readonly]          : Node
+line 1699: column 16 - 27: function      [declaration]                    : Is_End_Label
 line 1699: column 30 - 33: parameter     [declaration, readonly]          : Node
+line 1710: column 16 - 33: function      [declaration]                    : Is_Type_Derivation
 line 1710: column 36 - 39: parameter     [declaration, readonly]          : Node
+line 1723: column 16 - 33: function      [declaration]                    : Get_Reference_Kind
 line 1724: column 10 - 13: parameter     [declaration, readonly]          : Node
 line 1728: column 10 - 11: variable      [declaration, readonly]          : Id
 line 1729: column 10 - 15: variable      [declaration]                    : Result
@@ -329,6 +517,7 @@ line 1734: column 18 - 18: variable      [declaration, readonly]          : E
 line 1741: column 18 - 18: variable      [declaration, readonly]          : E
 line 1749: column 18 - 18: variable      [declaration, readonly]          : E
 line 1757: column 18 - 18: variable      [declaration, readonly]          : E
+line 1774: column 17 - 31: function      [declaration]                    : Process_Context
 line 1774: column 34 - 34: parameter     [declaration, readonly]          : C
 line 1775: column 10 - 19: variable      [declaration]                    : Definition
 line 1784: column 13 - 17: variable      [declaration]                    : Count
@@ -336,6 +525,7 @@ line 1785: column 13 - 26: variable      [declaration]                    : This
 line 1786: column 13 - 22: variable      [declaration, readonly]          : References
 line 1791: column 17 - 20: variable      [declaration]                    : Node
 line 1814: column 11 - 11: variable      [declaration]                    : C
+line 1828: column  8 - 28: function                                       : On_References_Request
 line 1834: column 24 - 47: function      [declaration]                    : On_ALS_Called_By_Request
 line 1835: column  7 - 10: parameter     [declaration, readonly]          : Self
 line 1836: column  7 - 13: parameter     [declaration, readonly]          : Request
@@ -348,9 +538,11 @@ line 1852: column 17 - 31: function      [declaration]                    : Proc
 line 1852: column 34 - 34: parameter     [declaration, readonly]          : C
 line 1856: column 17 - 30: function      [declaration]                    : Add_Subprogram
 line 1857: column 10 - 13: parameter     [declaration, readonly]          : Subp
+line 1864: column 16 - 33: function      [declaration]                    : Get_Reference_Kind
 line 1865: column 10 - 13: parameter     [declaration, readonly]          : Node
 line 1867: column 10 - 15: variable      [declaration]                    : Result
 line 1875: column 18 - 18: variable      [declaration, readonly]          : E
+line 1886: column 17 - 31: function      [declaration]                    : Process_Context
 line 1886: column 34 - 34: parameter     [declaration, readonly]          : C
 line 1887: column 10 - 19: variable      [declaration]                    : Definition
 line 1903: column 13 - 26: variable      [declaration]                    : This_Imprecise
@@ -360,6 +552,7 @@ line 1916: column 19 - 22: variable      [declaration, readonly]          : Node
 line 1917: column 19 - 22: variable      [declaration, readonly]          : Refs
 line 1919: column 19 - 31: variable      [declaration]                    : Subp_And_Refs
 line 1925: column 23 - 25: variable      [declaration]                    : Ref
+line 1944: column 17 - 30: function      [declaration]                    : Add_Subprogram
 line 1945: column 10 - 13: parameter     [declaration, readonly]          : Subp
 line 1949: column 14 - 16: variable      [declaration]                    : Cur
 line 1960: column 11 - 11: variable      [declaration]                    : C
@@ -367,51 +560,73 @@ line 1972: column 11 - 13: variable      [declaration]                    : Loc
 line 1976: column  8 - 31: function                                       : On_ALS_Called_By_Request
 line 1982: column 24 - 43: function      [declaration]                    : On_ALS_Debug_Request
 line 1983: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 1983: column 24 - 38: type                                           : Message_Handler
 line 1984: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 1984: column 17 - 19: namespace                                      : LSP
+line 1985: column 14 - 16: namespace                                      : LSP
 line 1990: column 16 - 20: variable      [declaration, readonly]          : Limit
 line 2000: column  8 - 27: function                                       : On_ALS_Debug_Request
 line 2006: column 24 - 48: function      [declaration]                    : On_Signature_Help_Request
 line 2007: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2007: column 24 - 38: type                                           : Message_Handler
 line 2008: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 2008: column 17 - 19: namespace                                      : LSP
+line 2009: column 14 - 16: namespace                                      : LSP
 line 2011: column 28 - 31: parameter     [readonly]                       : Self
 line 2011: column 34 - 40: parameter     [readonly]                       : Request
 line 2012: column  7 - 14: variable      [declaration]                    : Response
 line 2021: column  8 - 32: function                                       : On_Signature_Help_Request
 line 2027: column 24 - 52: function      [declaration]                    : On_Color_Presentation_Request
 line 2028: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2028: column 24 - 38: type                                           : Message_Handler
 line 2029: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 2029: column 17 - 19: namespace                                      : LSP
+line 2030: column 14 - 16: namespace                                      : LSP
 line 2032: column 28 - 31: parameter     [readonly]                       : Self
 line 2032: column 34 - 40: parameter     [readonly]                       : Request
 line 2033: column  7 - 14: variable      [declaration]                    : Response
 line 2042: column  8 - 36: function                                       : On_Color_Presentation_Request
 line 2048: column 24 - 48: function      [declaration]                    : On_Document_Color_Request
 line 2049: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2049: column 24 - 38: type                                           : Message_Handler
 line 2050: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 2050: column 17 - 19: namespace                                      : LSP
+line 2051: column 14 - 16: namespace                                      : LSP
 line 2053: column 28 - 31: parameter     [readonly]                       : Self
 line 2053: column 34 - 40: parameter     [readonly]                       : Request
 line 2054: column  7 - 14: variable      [declaration]                    : Response
 line 2063: column  8 - 32: function                                       : On_Document_Color_Request
 line 2069: column 24 - 48: function      [declaration]                    : On_Document_Links_Request
 line 2070: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2070: column 24 - 38: type                                           : Message_Handler
 line 2071: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 2071: column 17 - 19: namespace                                      : LSP
+line 2072: column 14 - 16: namespace                                      : LSP
 line 2074: column 28 - 31: parameter     [readonly]                       : Self
 line 2074: column 34 - 40: parameter     [readonly]                       : Request
 line 2075: column  7 - 14: variable      [declaration]                    : Response
 line 2084: column  8 - 32: function                                       : On_Document_Links_Request
 line 2090: column 24 - 50: function      [declaration]                    : On_Document_Symbols_Request
 line 2091: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2091: column 24 - 38: type                                           : Message_Handler
 line 2092: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 2092: column 17 - 19: namespace                                      : LSP
+line 2093: column 14 - 16: namespace                                      : LSP
 line 2097: column  7 - 11: variable      [declaration]                    : Value
 line 2098: column  7 - 14: variable      [declaration, readonly]          : Document
 line 2100: column  7 - 13: variable      [declaration, readonly]          : Context
 line 2102: column  7 - 12: variable      [declaration]                    : Result
 line 2110: column 13 - 20: variable      [declaration]                    : Document
 line 2120: column  8 - 34: function                                       : On_Document_Symbols_Request
+line 2126: column 24 - 40: function      [declaration]                    : On_Rename_Request
+line 2127: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2128: column  7 - 13: parameter     [declaration, readonly]          : Request
 line 2133: column  7 - 11: variable      [declaration]                    : Value
 line 2134: column  7 - 14: variable      [declaration]                    : Response
 line 2137: column  7 - 14: variable      [declaration, readonly]          : Document
 line 2140: column 17 - 31: function      [declaration]                    : Process_Context
 line 2140: column 34 - 34: parameter     [declaration, readonly]          : C
+line 2148: column 17 - 31: function      [declaration]                    : Process_Context
 line 2148: column 34 - 34: parameter     [declaration, readonly]          : C
 line 2149: column 10 - 17: variable      [declaration, readonly]          : Position
 line 2152: column 10 - 18: variable      [declaration, readonly]          : Name_Node
@@ -447,23 +662,39 @@ line 2343: column 17 - 20: variable      [declaration]                    : Node
 line 2345: column 19 - 26: variable      [declaration, readonly]          : Location
 line 2347: column 19 - 22: variable      [declaration, readonly]          : Item
 line 2381: column 11 - 11: variable      [declaration]                    : C
+line 2387: column  8 - 24: function                                       : On_Rename_Request
 line 2393: column 25 - 62: function      [declaration]                    : On_DidChangeConfiguration_Notification
 line 2394: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2394: column 22 - 36: type                                           : Message_Handler
 line 2395: column  7 - 11: parameter     [declaration, readonly]          : Value
+line 2395: column 15 - 17: namespace                                      : LSP
 line 2399: column  7 - 17: variable      [declaration, readonly, static]  : projectFile
+line 2399: column 41 - 46: type          [static, defaultLibrary]         : String
 line 2400: column  7 - 23: variable      [declaration, readonly, static]  : scenarioVariables
+line 2400: column 41 - 46: type          [static, defaultLibrary]         : String
 line 2401: column  7 - 20: variable      [declaration, readonly, static]  : defaultCharset
+line 2401: column 41 - 46: type          [static, defaultLibrary]         : String
 line 2402: column  7 - 23: variable      [declaration, readonly, static]  : enableDiagnostics
+line 2402: column 41 - 46: type          [static, defaultLibrary]         : String
 line 2403: column  7 - 20: variable      [declaration, readonly, static]  : enableIndexing
+line 2403: column 41 - 46: type          [static, defaultLibrary]         : String
 line 2404: column  7 - 22: variable      [declaration, readonly, static]  : renameInComments
+line 2404: column 41 - 46: type          [static, defaultLibrary]         : String
 line 2406: column  7 -  9: variable      [declaration, readonly]          : Ada
 line 2407: column  7 - 10: variable      [declaration]                    : File
+line 2407: column 19 - 21: namespace                                      : LSP
 line 2408: column  7 - 13: variable      [declaration]                    : Charset
 line 2408: column 19 - 34: type          [defaultLibrary]                 : Unbounded_String
 line 2409: column  7 - 15: variable      [declaration]                    : Variables
+line 2409: column 19 - 21: namespace                                      : LSP
 line 2458: column 13 - 24: variable      [declaration, readonly]          : Project_File
 line 2460: column 13 - 15: variable      [declaration]                    : GPR
 line 2473: column  8 - 45: function                                       : On_DidChangeConfiguration_Notification
+line 2479: column 14 - 25: function      [declaration]                    : Load_Project
+line 2480: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2481: column  7 -  9: parameter     [declaration, readonly]          : GPR
+line 2482: column  7 - 14: parameter     [declaration, readonly]          : Scenario
+line 2483: column  7 - 13: parameter     [declaration, readonly]          : Charset
 line 2486: column  7 - 12: variable      [declaration]                    : Errors
 line 2487: column  7 - 16: variable      [declaration]                    : Error_Text
 line 2489: column 17 - 48: function      [declaration]                    : Create_Context_For_Non_Aggregate
@@ -473,9 +704,12 @@ line 2490: column 31 - 34: parameter     [declaration, readonly]          : Name
 line 2490: column 46 - 50: parameter     [declaration, readonly]          : Value
 line 2491: column 17 - 24: function      [declaration]                    : On_Error
 line 2491: column 27 - 30: parameter     [declaration, readonly]          : Text
+line 2497: column 17 - 28: function      [declaration]                    : Add_Variable
 line 2498: column 10 - 13: parameter     [declaration, readonly]          : Name
 line 2498: column 25 - 29: parameter     [declaration, readonly]          : Value
+line 2511: column 17 - 24: function      [declaration]                    : On_Error
 line 2511: column 27 - 30: parameter     [declaration, readonly]          : Text
+line 2520: column 17 - 48: function      [declaration]                    : Create_Context_For_Non_Aggregate
 line 2520: column 51 - 51: parameter     [declaration, readonly]          : P
 line 2521: column 10 - 10: variable      [declaration, readonly]          : C
 line 2553: column 14 - 17: variable      [declaration]                    : File
@@ -485,53 +719,72 @@ line 2570: column 15 - 15: variable      [declaration, readonly]          : E
 line 2589: column 14 - 17: variable      [declaration]                    : Line
 line 2597: column 11 - 18: variable      [declaration]                    : Document
 line 2598: column 14 - 20: variable      [declaration]                    : Context
+line 2605: column  8 - 19: function                                       : Load_Project
 line 2611: column 13 - 37: function      [declaration]                    : Get_Unique_Progress_Token
 line 2612: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2612: column 26 - 40: type                                           : Message_Handler
 line 2613: column  7 - 15: parameter     [declaration, readonly]          : Operation
+line 2613: column 19 - 24: type          [static, defaultLibrary]         : String
 line 2616: column  7 -  9: variable      [declaration, readonly]          : Pid
 line 2630: column  8 - 32: function                                       : Get_Unique_Progress_Token
 line 2636: column 14 - 24: function      [definition]                     : Index_Files
 line 2636: column 27 - 30: parameter     [definition, readonly]           : Self
+line 2636: column 41 - 55: type                                           : Message_Handler
 line 2637: column  7 - 11: variable      [declaration, readonly]          : token
 line 2640: column 17 - 35: function      [declaration]                    : Emit_Progress_Begin
 line 2641: column 17 - 36: function      [declaration]                    : Emit_Progress_Report
 line 2641: column 39 - 45: parameter     [declaration, readonly]          : Percent
+line 2641: column 49 - 55: type          [static, defaultLibrary]         : Natural
 line 2642: column 17 - 33: function      [declaration]                    : Emit_Progress_End
 line 2650: column 17 - 35: function      [definition]                     : Emit_Progress_Begin
 line 2651: column 10 - 10: variable      [declaration]                    : P
 line 2653: column 10 - 24: variable      [declaration, readonly]          : Create_Progress
 line 2668: column 11 - 29: function                                       : Emit_Progress_Begin
-line 2674: column 17 - 36: function      [declaration]                    : Emit_Progress_Report
-line 2674: column 39 - 45: parameter     [declaration, readonly]          : Percent
+line 2674: column 17 - 36: function      [definition]                     : Emit_Progress_Report
+line 2674: column 39 - 45: parameter     [definition, readonly]           : Percent
+line 2674: column 49 - 55: type          [static, defaultLibrary]         : Natural
 line 2675: column 10 - 10: variable      [declaration]                    : P
 line 2681: column 11 - 30: function                                       : Emit_Progress_Report
 line 2687: column 17 - 33: function      [definition]                     : Emit_Progress_End
 line 2688: column 10 - 10: variable      [declaration]                    : P
 line 2692: column 11 - 27: function                                       : Emit_Progress_End
 line 2694: column  7 - 11: variable      [declaration]                    : Index
+line 2694: column 25 - 31: type          [static, defaultLibrary]         : Natural
 line 2695: column  7 - 11: variable      [declaration, readonly]          : Total
 line 2696: column  7 - 18: variable      [declaration]                    : Last_Percent
+line 2696: column 25 - 31: type          [static, defaultLibrary]         : Natural
 line 2697: column  7 - 21: variable      [declaration]                    : Current_Percent
+line 2697: column 25 - 31: type          [static, defaultLibrary]         : Natural
 line 2707: column 11 - 17: variable      [declaration]                    : Context
 line 2708: column 14 - 14: variable      [declaration]                    : F
 line 2732: column  8 - 18: function                                       : Index_Files
 line 2738: column 24 - 59: function      [declaration]                    : On_Workspace_Execute_Command_Request
 line 2739: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2739: column 24 - 38: type                                           : Message_Handler
 line 2740: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 2740: column 17 - 19: namespace                                      : LSP
+line 2741: column 14 - 16: namespace                                      : LSP
 line 2743: column  7 - 11: variable      [declaration]                    : Error
+line 2743: column 18 - 20: namespace                                      : LSP
 line 2744: column  7 - 12: variable      [declaration]                    : Params
 line 2746: column  7 - 14: variable      [declaration]                    : Response
 line 2772: column  8 - 43: function                                       : On_Workspace_Execute_Command_Request
 line 2778: column 24 - 51: function      [declaration]                    : On_Workspace_Symbols_Request
 line 2779: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2779: column 24 - 38: type                                           : Message_Handler
 line 2780: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 2780: column 17 - 19: namespace                                      : LSP
+line 2781: column 14 - 16: namespace                                      : LSP
 line 2783: column 28 - 31: parameter     [readonly]                       : Self
 line 2783: column 34 - 40: parameter     [readonly]                       : Request
 line 2784: column  7 - 14: variable      [declaration]                    : Response
 line 2793: column  8 - 35: function                                       : On_Workspace_Symbols_Request
 line 2799: column 24 - 44: function      [declaration]                    : On_Completion_Request
 line 2800: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2800: column 24 - 38: type                                           : Message_Handler
 line 2801: column  7 - 13: parameter     [declaration, readonly]          : Request
+line 2801: column 17 - 19: namespace                                      : LSP
+line 2802: column 14 - 16: namespace                                      : LSP
 line 2808: column  7 - 11: variable      [declaration]                    : Value
 line 2810: column  7 - 14: variable      [declaration, readonly]          : Document
 line 2812: column  7 - 13: variable      [declaration, readonly]          : Context
@@ -539,18 +792,24 @@ line 2814: column  7 - 14: variable      [declaration]                    : Resp
 line 2824: column  8 - 28: function                                       : On_Completion_Request
 line 2830: column 25 - 36: function      [definition]                     : Handle_Error
 line 2831: column  7 - 10: parameter     [definition, readonly]           : Self
+line 2831: column 21 - 35: type                                           : Message_Handler
 line 2835: column  8 - 19: function                                       : Handle_Error
 line 2841: column 14 - 25: function      [declaration]                    : Show_Message
 line 2842: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2842: column 21 - 35: type                                           : Message_Handler
 line 2843: column  7 - 10: parameter     [declaration, readonly]          : Text
+line 2843: column 14 - 19: type          [static, defaultLibrary]         : String
 line 2844: column  7 - 10: parameter     [declaration, readonly]          : Mode
 line 2847: column  8 - 19: function                                       : Show_Message
 line 2853: column 25 - 35: function      [declaration]                    : Before_Work
 line 2854: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2854: column 24 - 38: type                                           : Message_Handler
 line 2855: column  7 - 13: parameter     [declaration, readonly]          : Message
 line 2861: column 25 - 34: function      [declaration]                    : After_Work
 line 2862: column  7 - 10: parameter     [declaration, readonly]          : Self
+line 2862: column 24 - 38: type                                           : Message_Handler
 line 2863: column  7 - 13: parameter     [declaration, readonly]          : Message
 line 2865: column 28 - 34: parameter     [readonly]                       : Message
 line 2872: column  8 - 17: function                                       : After_Work
+line 2874: column  5 -  7: namespace                                      : LSP
 line 2874: column  9 - 20: namespace                                      : Ada_Handlers

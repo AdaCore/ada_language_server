@@ -1,0 +1,89 @@
+>------------------------------------------------------------------------------
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>--                         Language Server Protocol                         --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>--                                                                          --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>--                     Copyright (C) 2018-2019, AdaCore                     --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>--                                                                          --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- This is free software;  you can redistribute it  and/or modify it  under --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- terms of the  GNU General Public License as published  by the Free Soft- --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- sion.  This software is distributed in the hope  that it will be useful, --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- License for  more details.  You should have  received  a copy of the GNU --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- General  Public  License  distributed  with  this  software;   see  file --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>-- of the license.                                                          --
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>------------------------------------------------------------------------------
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>
+>package LSP is
+#^^^^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^ source.ada entity.name.label.ada
+#           ^ source.ada
+#            ^^ source.ada keyword.other.ada
+>   pragma Pure;
+#^^^ source.ada
+#   ^^^^^^ source.ada keyword.control.ada
+#         ^ source.ada
+#          ^^^^ source.ada entity.name.label.ada
+#              ^ source.ada punctuation.ada
+>
+>   type On_Empty_Array is (Skip, Write_Array, Write_Null);
+#^^^ source.ada
+#   ^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                      ^ source.ada
+#                       ^^ source.ada keyword.other.ada
+#                         ^^ source.ada
+#                           ^^^^ source.ada entity.name.label.ada
+#                               ^ source.ada punctuation.ada
+#                                ^ source.ada
+#                                 ^^^^^^^^^^^ source.ada entity.name.label.ada
+#                                            ^ source.ada punctuation.ada
+#                                             ^ source.ada
+#                                              ^^^^^^^^^^ source.ada entity.name.label.ada
+#                                                        ^ source.ada
+#                                                         ^ source.ada punctuation.ada
+>   --  Configuration of array writting procedure
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>end LSP;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^ source.ada entity.name.label.ada
+#       ^ source.ada punctuation.ada
+>

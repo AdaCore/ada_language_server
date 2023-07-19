@@ -1,4 +1,4 @@
-line   3: column 14 - 26: function      [declaration]                    : PkgBodyNoSpec
+line   3: column 14 - 26: namespace     [declaration]                    : PkgBodyNoSpec
 line   4: column  4 - 10: variable      [declaration]                    : Global1
 line   6: column 14 - 18: function      [declaration]                    : Proc1
 line   6: column 21 - 24: parameter     [declaration, readonly]          : Arg1
@@ -26,4 +26,4 @@ line  17: column 25 - 28: parameter     [readonly]                       : Arg3
 line  17: column 32 - 35: parameter     [readonly]                       : Arg4
 line  17: column 39 - 45: variable                                       : Global1
 line  20: column  8 - 12: function                                       : Proc2
-line  22: column  5 - 17: function                                       : PkgBodyNoSpec
+line  22: column  5 - 17: namespace                                      : PkgBodyNoSpec
