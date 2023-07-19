@@ -38,12 +38,14 @@ package body LSP.Common is
       E       : Ada.Exceptions.Exception_Occurrence;
       Message : String := "") is
    begin
-      if Message /= "" then
+      if Trace.Is_Active and then Message /= "" then
          Trace.Trace (Message);
       end if;
 
-      Trace.Trace (Exception_Name (E) & ": " & Exception_Message (E)
-                   & Ada.Characters.Latin_1.LF & Symbolic_Traceback (E));
+      if Trace.Is_Active then
+         Trace.Trace (Exception_Name (E) & ": " & Exception_Message (E)
+                     & Ada.Characters.Latin_1.LF & Symbolic_Traceback (E));
+      end if;
    end Log;
 
    ----------------
