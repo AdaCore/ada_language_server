@@ -309,7 +309,7 @@ export async function getEnclosingSymbol(
         const getAllSymbols = (symbols: vscode.DocumentSymbol[]) => {
             let sym;
             for (sym of symbols) {
-                if (sym.kind in kinds) {
+                if (kinds.includes(sym.kind)) {
                     filtered_symbols.push(sym);
                 }
                 if (sym.kind == SymbolKind.Function || sym.kind == SymbolKind.Module) {
@@ -324,11 +324,13 @@ export async function getEnclosingSymbol(
         const scopeSymbols = filtered_symbols.filter(
             (sym) => line >= sym.range.start.line && line <= sym.range.end.line
         );
+
         if (scopeSymbols.length > 0) {
             scopeSymbols.sort(
                 (a, b) =>
                     a.range.end.line - a.range.start.line - (b.range.end.line - b.range.start.line)
             );
+
             return scopeSymbols[0];
         }
     }
