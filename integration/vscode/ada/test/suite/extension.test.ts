@@ -38,9 +38,10 @@ suite('Extension Tasks Test Suite', () => {
                 '$/glsExecutables'
             );
             let filename = result.executables[0].replace(/^.*[\\/]/, '');
-            assert.strictEqual(filename, 'gnatpp');
+            const exeExt = process.platform == 'win32' ? '.exe' : '';
+            assert.strictEqual(filename, 'gnatpp' + exeExt);
             filename = result.executables[1].replace(/^.*[\\/]/, '');
-            assert.strictEqual(filename, 'gnattest');
+            assert.strictEqual(filename, 'gnattest' + exeExt);
         } else {
             throw new Error('No workspace folder found for the specified URI');
         }
@@ -48,20 +49,23 @@ suite('Extension Tasks Test Suite', () => {
     test('Test Add Subprogram Box', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
             await contextClients.adaClient.onReady();
-            const cursorPositions : vscode.Position[] =
-                [new vscode.Position (9, 1), new vscode.Position (4, 1), new vscode.Position (1, 1)];
+            const cursorPositions: vscode.Position[] = [
+                new vscode.Position(9, 1),
+                new vscode.Position(4, 1),
+                new vscode.Position(1, 1),
+            ];
             const folder = vscode.workspace.workspaceFolders[0].uri;
             const fileUri = vscode.Uri.joinPath(folder, 'src', 'test_subprogram_box.adb');
-            const expectedUri = vscode.Uri.joinPath(
-                folder, 'src', 'test_subprogram_box.expected');
+            const expectedUri = vscode.Uri.joinPath(folder, 'src', 'test_subprogram_box.expected');
 
-            for (let cursorPos of cursorPositions) {
-                await vscode.window.showTextDocument(fileUri,
-                    {selection: new vscode.Range(cursorPos, cursorPos)});
+            for (const cursorPos of cursorPositions) {
+                await vscode.window.showTextDocument(fileUri, {
+                    selection: new vscode.Range(cursorPos, cursorPos),
+                });
                 await vscode.commands.executeCommand('ada.subprogramBox');
             }
 
-            const editorText = vscode.window.activeTextEditor?.document.getText()?? "";
+            const editorText = vscode.window.activeTextEditor?.document.getText() ?? '';
 
             assertEqualToFileContent(editorText, expectedUri);
         } else {
