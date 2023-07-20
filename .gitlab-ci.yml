@@ -93,6 +93,7 @@ build_and_test:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       when: manual
+      allow_failure: true
   trigger:
     strategy: depend
   inherit:
