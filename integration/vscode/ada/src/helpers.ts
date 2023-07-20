@@ -106,6 +106,18 @@ export function substituteVariables(str: string, recursive = false): string {
     return str;
 }
 
+/**
+ * Extract the name of a file from a path
+ *
+ * ei: from '/user/folder/src/main.adb' returns 'main.adb'
+ *
+ * @param path - string path to a file
+ * @returns the full name of a file
+ */
+export function fileNameFromPath(path: string) {
+    return path.replace(/^.*[\\/]/, '');
+}
+
 /*
     Environment setting helper functions
 */
@@ -189,6 +201,19 @@ type ObjDirResponse = {
     objectDir: string;
 };
 
+type MainsResponse = {
+    mains: string[];
+};
+
+type ExecutablesResponse = {
+    executables: string[];
+};
+
+/**
+ * Get the project file from the configuration or if not, the language server
+ * @param client - the client to send the request to
+ * @returns a string contains the path of the project file
+ */
 export async function getProjectFile(client: LanguageClient): Promise<string> {
     const config: string | undefined = vscode.workspace.getConfiguration('ada').get('projectFile');
     if (config != undefined && config != '') {
@@ -199,7 +224,32 @@ export async function getProjectFile(client: LanguageClient): Promise<string> {
     }
 }
 
+/**
+ * Get the Object Directory path
+ * @param client - the client to send the request to
+ * @returns a string path
+ */
 export async function getObjectDir(client: LanguageClient): Promise<string> {
     const result: ObjDirResponse = await client.sendRequest('$/glsObjectDir');
     return result.objectDir;
+}
+
+/**
+ * Get the mains in the project
+ * @param client - the client to send the request to
+ * @returns a vector of string paths
+ */
+export async function getMains(client: LanguageClient): Promise<string[]> {
+    const result: MainsResponse = await client.sendRequest('$/glsMains');
+    return result.mains;
+}
+
+/**
+ * Get the executables in the project
+ * @param client - the client to send the request to
+ * @returns a vector of string paths
+ */
+export async function getExecutables(client: LanguageClient): Promise<string[]> {
+    const result: ExecutablesResponse = await client.sendRequest('$/glsExecutables');
+    return result.executables;
 }

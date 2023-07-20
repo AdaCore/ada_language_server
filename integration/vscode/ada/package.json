@@ -508,6 +508,11 @@
                 "command": "ada.showGprLSOutput",
                 "title": "Ada: Show GPR Language Server Output",
                 "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.initDebugFile",
+                "title": "Ada: Debug File",
+                "when": "ADA_PROJECT_CONTEXT"
             }
         ],
         "keybindings": [
@@ -580,6 +585,79 @@
                         }
                     }
                 ]
+            }
+        ],
+        "debuggers": [
+            {
+                "type": "cppdbg",
+                "label": "Ada",
+                "languages": [
+                    "ada",
+                    "gpr",
+                    "GNAT Project"
+                ],
+                "when": "ADA_PROJECT_CONTEXT",
+                "configurationSnippets": [
+                    {
+                        "label": "Ada Debugger Launch",
+                        "description": "Launch configuration for Ada debugging.",
+                        "body": {
+                            "type": "cppdbg",
+                            "request": "launch",
+                            "name": "Ada Debugger Launch",
+                            "program": "your-executable-path",
+                            "args": [],
+                            "cwd": "${workspaceFolder}",
+                            "stopAtEntry": false,
+                            "preLaunchTask": "your-prelaunch-task"
+                        }
+                    }
+                ],
+                "configurationAttributes": {
+                    "launch": {
+                        "required": [
+                            "program"
+                        ],
+                        "properties": [
+                            {
+                                "program": {
+                                    "type": "string",
+                                    "description": "Path to program executable.",
+                                    "default": "${command:AskForProgram}"
+                                },
+                                "cwd": {
+                                    "type": "string",
+                                    "description": "The working directory of the target.",
+                                    "default": "${workspaceRoot}"
+                                },
+                                "stopAtEntry": {
+                                    "type": "boolean",
+                                    "description": "If true, the debugger should stop at the entrypoint of the target.",
+                                    "default": false
+                                },
+                                "args": {
+                                    "description": "Arguments passed to the program entrypoint",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": [
+                                        "array",
+                                        "string"
+                                    ],
+                                    "default": []
+                                },
+                                "preLaunchTask": {
+                                    "type": "string",
+                                    "description": "The build task to launch before debugging",
+                                    "default": "ada: Build current project"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "variables": {
+                    "AskForProgram": "ada.initDebugFile"
+                }
             }
         ]
     },

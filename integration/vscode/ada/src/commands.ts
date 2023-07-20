@@ -3,8 +3,13 @@ import { SymbolKind } from 'vscode';
 import { getEnclosingSymbol } from './gnatTaskProvider';
 import { mainLogChannel } from './extension';
 import { ContextClients } from './clients';
+import { AdaDebugConfigProvider } from './debugConfigProvider';
 
-export function RegisterCommands(context: vscode.ExtensionContext, clients: ContextClients) {
+export function registerCommands(
+    context: vscode.ExtensionContext,
+    clients: ContextClients,
+    debug: AdaDebugConfigProvider
+) {
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.otherFile', clients.otherFileHandler)
     );
@@ -23,6 +28,12 @@ export function RegisterCommands(context: vscode.ExtensionContext, clients: Cont
         vscode.commands.registerCommand('ada.showGprLSOutput', () =>
             clients.gprClient.outputChannel.show()
         )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.initDebugFile', async () => {
+            const p = await debug.initDebugCmd();
+            return p;
+        })
     );
 }
 /**
