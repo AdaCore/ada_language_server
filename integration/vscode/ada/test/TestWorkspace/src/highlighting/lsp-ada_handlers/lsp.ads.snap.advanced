@@ -1,0 +1,105 @@
+>------------------------------------------------------------------------------
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>--                         Language Server Protocol                         --
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+#                           ^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>--                                                                          --
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+#                                                                          ^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                            ^^^ source.ada comment.line.double-dash.ada
+>--                     Copyright (C) 2018-2019, AdaCore                     --
+#^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+#                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                       ^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>--                                                                          --
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+#                                                                          ^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                            ^^^ source.ada comment.line.double-dash.ada
+>-- This is free software;  you can redistribute it  and/or modify it  under --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                           ^^^^ source.ada comment.line.double-dash.ada
+>-- terms of the  GNU General Public License as published  by the Free Soft- --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                            ^^^ source.ada comment.line.double-dash.ada
+>-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                            ^^^ source.ada comment.line.double-dash.ada
+>-- sion.  This software is distributed in the hope  that it will be useful, --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                           ^^^^ source.ada comment.line.double-dash.ada
+>-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                            ^^^ source.ada comment.line.double-dash.ada
+>-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                           ^^^^ source.ada comment.line.double-dash.ada
+>-- License for  more details.  You should have  received  a copy of the GNU --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                           ^^^^ source.ada comment.line.double-dash.ada
+>-- General  Public  License  distributed  with  this  software;   see  file --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                           ^^^^ source.ada comment.line.double-dash.ada
+>-- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                                                                           ^^^^ source.ada comment.line.double-dash.ada
+>-- of the license.                                                          --
+#^^^ source.ada comment.line.double-dash.ada
+#   ^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada entity.name.section.ada
+#                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>------------------------------------------------------------------------------
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>
+>package LSP is
+#^^^^^^^ source.ada meta.declaration.package.specification.ada keyword.ada
+#       ^ source.ada meta.declaration.package.specification.ada
+#        ^^^ source.ada meta.declaration.package.specification.ada entity.name.package.ada
+#           ^ source.ada meta.declaration.package.specification.ada
+#            ^^ source.ada meta.declaration.package.specification.ada keyword.ada
+>   pragma Pure;
+#^^^ source.ada meta.declaration.package.specification.ada
+#   ^^^^^^ source.ada meta.declaration.package.specification.ada meta.pragma.ada keyword.ada
+#         ^ source.ada meta.declaration.package.specification.ada meta.pragma.ada
+#          ^^^^ source.ada meta.declaration.package.specification.ada meta.pragma.ada keyword.control.directive.ada
+#              ^ source.ada meta.declaration.package.specification.ada meta.pragma.ada punctuation.ada
+>
+>   type On_Empty_Array is (Skip, Write_Array, Write_Null);
+#^^^ source.ada meta.declaration.package.specification.ada
+#   ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#       ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#        ^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#          ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#           ^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada punctuation.ada
+#                 ^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada entity.name.type.ada
+#                      ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                       ^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada keyword.ada
+#                         ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada
+#                          ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada punctuation.ada
+#                           ^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada variable.name.ada
+#                               ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada punctuation.ada
+#                                ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada
+#                                 ^^^^^^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada variable.name.ada
+#                                            ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada punctuation.ada
+#                                             ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada
+#                                              ^^^^^^^^^^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada variable.name.ada
+#                                                        ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada meta.declaration.type.definition.enumeration.ada punctuation.ada
+#                                                         ^ source.ada meta.declaration.package.specification.ada meta.declaration.type.definition.regular.ada punctuation.ada
+>   --  Configuration of array writting procedure
+#^^^ source.ada meta.declaration.package.specification.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada meta.declaration.package.specification.ada comment.line.double-dash.ada
+>end LSP;
+#^^^ source.ada meta.declaration.package.specification.ada keyword.ada
+#   ^ source.ada meta.declaration.package.specification.ada
+#    ^^^ source.ada meta.declaration.package.specification.ada entity.name.package.ada
+#       ^ source.ada meta.declaration.package.specification.ada punctuation.ada
+>

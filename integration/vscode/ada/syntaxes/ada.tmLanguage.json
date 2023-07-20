@@ -36,7 +36,7 @@
         },
         {
             "name": "keyword.other.ada",
-            "match": "\\b(?i:(abort|abstract|all|array|at|begin|body|case|constant|declare|delta|digits|do|else|elsif|end|exception|for|function|generic|if|interface|is|limited|loop|new|of|others|overriding|package|private|procedure|protected|range|record|renames|return|reverse|select|separate|some|subtype|synchronized|tagged|task|then|type|use|when|while|with))\\b"
+            "match": "\\b(?i:(abort|abstract|all|array|at|begin|body|case|constant|declare|delta|digits|do|else|elsif|end|exception|for|generic|if|interface|is|limited|loop|new|of|others|overriding|package|private|protected|range|record|renames|return|reverse|select|separate|some|subtype|synchronized|tagged|task|then|type|use|when|while|with))\\b"
         },
         {
             "name": "keyword.control.ada",
@@ -51,15 +51,7 @@
             "match": "\\b(?i:(access|aliased|in|out))\\b"
         },
         {
-            "name": "string.quoted.double.ada",
-            "begin": "\"",
-            "end": "\"(?=[^\"])",
-            "patterns": [
-                {
-                    "name": "constant.character.escape",
-                    "match": "\"\""
-                }
-            ]
+            "include": "#string-literal"
         },
         {
             "name": "entity.name.operator.assignment.ada",
@@ -67,11 +59,35 @@
         },
         {
             "name": "entity.name.operator.ada",
-            "match": "=>|\\.\\.|\\*\\*|/=|>=|<=|<>|&|\\*|\\+|,|\\-|\\.|/|<|=|>|\\|"
+            "match": "=>|\\.\\.|\\*\\*|/=|>=|<=|<>|&|\\*|\\+|\\-|\\.|/|<|=|>|\\|"
         },
         {
-            "name": "entity.name.label.ada",
-            "match": "[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}](\\p{Pc}?[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}\\p{Mn}\\p{Mc}\\p{Nd}])*"
+            "name": "meta.declaration.subprogram.ada",
+            "match": "(?i)(function|procedure)\\s+(?:((?:\\w|\\d|_)+)|(\".*\"))",
+            "captures": {
+                "1": { "name": "keyword.other.ada" },
+                "2": { "name": "entity.name.function.ada" },
+                "3": { "patterns": [{ "include": "#string-literal" }] }
+            }
+        },
+        {
+            "name": "meta.declaration.object.ada",
+            "match": "\\b((?:\\w|\\d|_)+(?:\\s*,\\s*(?:\\w|\\d|_)+)*)\\s*(:(?!=))",
+            "captures": {
+                "1": {
+                    "patterns": [
+                        {
+                            "include": "#object-identifier"
+                        },
+                        { "name": "punctuation.ada", "match": "," }
+                    ]
+                },
+                "2": { "name": "punctuation.ada" }
+            }
+        },
+        { "name": "punctuation.ada", "match": "[;,]" },
+        {
+            "include": "#identifier"
         }
     ],
     "repository": {
@@ -87,6 +103,25 @@
         "based_literal": {
             "name": "constant.numeric.ada",
             "match": "\\d[0-9_]*#[0-9a-fA-F][0-9a-fA-F_]*(\\.[0-9a-fA-F][0-9a-fA-F_]*)?#([eE][-+]?\\d[0-9_]*)?"
+        },
+        "string-literal": {
+            "name": "string.quoted.double.ada",
+            "begin": "\"",
+            "end": "\"(?=[^\"])",
+            "patterns": [
+                {
+                    "name": "constant.character.escape",
+                    "match": "\"\""
+                }
+            ]
+        },
+        "identifier": {
+            "name": "entity.name.label.ada",
+            "match": "[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}](\\p{Pc}?[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}\\p{Mn}\\p{Mc}\\p{Nd}])*"
+        },
+        "object-identifier": {
+            "name": "variable.name.ada",
+            "match": "[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}](\\p{Pc}?[\\p{Lu}\\p{Ll}\\p{Lt}\\p{Lm}\\p{Lo}\\p{Nl}\\p{Mn}\\p{Mc}\\p{Nd}])*"
         },
         "gnatdoc_tag": {
             "match": "\\s*(@)(?:(description|format|group|noformat|private|return|summary)|(enum|exception|field|formal|image|param|value)\\s+(\\S*))",

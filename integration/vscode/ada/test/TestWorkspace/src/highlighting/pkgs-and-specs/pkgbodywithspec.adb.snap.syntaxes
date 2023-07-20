@@ -1,0 +1,182 @@
+>package body PkgBodyWithSpec is
+#^^^^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^ source.ada keyword.other.ada
+#            ^ source.ada
+#             ^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                            ^ source.ada
+#                             ^^ source.ada keyword.other.ada
+>   Global1 : Integer := 0;
+#^^^ source.ada
+#   ^^^^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#          ^ source.ada meta.declaration.object.ada
+#           ^ source.ada meta.declaration.object.ada punctuation.ada
+#            ^ source.ada
+#             ^^^^^^^ source.ada entity.name.label.ada
+#                    ^ source.ada
+#                     ^^ source.ada entity.name.operator.assignment.ada
+#                       ^ source.ada
+#                        ^ source.ada constant.numeric.ada
+#                         ^ source.ada punctuation.ada
+>
+>   procedure Proc1 (Arg1, Arg2 : Integer) is
+#^^^ source.ada
+#   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#            ^ source.ada meta.declaration.subprogram.ada
+#             ^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#                  ^^ source.ada
+#                    ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                        ^ source.ada meta.declaration.object.ada punctuation.ada
+#                         ^ source.ada meta.declaration.object.ada
+#                          ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                              ^ source.ada meta.declaration.object.ada
+#                               ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                ^ source.ada
+#                                 ^^^^^^^ source.ada entity.name.label.ada
+#                                        ^^ source.ada
+#                                          ^^ source.ada keyword.other.ada
+>      Y : Integer := Arg1 + Arg2 + Global1;
+#^^^^^^ source.ada
+#      ^ source.ada meta.declaration.object.ada variable.name.ada
+#       ^ source.ada meta.declaration.object.ada
+#        ^ source.ada meta.declaration.object.ada punctuation.ada
+#         ^ source.ada
+#          ^^^^^^^ source.ada entity.name.label.ada
+#                 ^ source.ada
+#                  ^^ source.ada entity.name.operator.assignment.ada
+#                    ^ source.ada
+#                     ^^^^ source.ada entity.name.label.ada
+#                         ^ source.ada
+#                          ^ source.ada entity.name.operator.ada
+#                           ^ source.ada
+#                            ^^^^ source.ada entity.name.label.ada
+#                                ^ source.ada
+#                                 ^ source.ada entity.name.operator.ada
+#                                  ^ source.ada
+#                                   ^^^^^^^ source.ada entity.name.label.ada
+#                                          ^ source.ada punctuation.ada
+>   begin
+#^^^ source.ada
+#   ^^^^^ source.ada keyword.other.ada
+>      null;
+#^^^^^^ source.ada
+#      ^^^^ source.ada variable.other.constant.ada
+#          ^ source.ada punctuation.ada
+>   end Proc1;
+#^^^ source.ada
+#   ^^^ source.ada keyword.other.ada
+#      ^ source.ada
+#       ^^^^^ source.ada entity.name.label.ada
+#            ^ source.ada punctuation.ada
+>
+>   function Expr_Fct (Arg1, Arg2 : Integer) return Integer
+#^^^ source.ada
+#   ^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#           ^ source.ada meta.declaration.subprogram.ada
+#            ^^^^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#                    ^^ source.ada
+#                      ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                          ^ source.ada meta.declaration.object.ada punctuation.ada
+#                           ^ source.ada meta.declaration.object.ada
+#                            ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                                ^ source.ada meta.declaration.object.ada
+#                                 ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                  ^ source.ada
+#                                   ^^^^^^^ source.ada entity.name.label.ada
+#                                          ^^ source.ada
+#                                            ^^^^^^ source.ada keyword.other.ada
+#                                                  ^ source.ada
+#                                                   ^^^^^^^ source.ada entity.name.label.ada
+>   is (Arg1 + Arg2 + Global1);
+#^^^ source.ada
+#   ^^ source.ada keyword.other.ada
+#     ^^ source.ada
+#       ^^^^ source.ada entity.name.label.ada
+#           ^ source.ada
+#            ^ source.ada entity.name.operator.ada
+#             ^ source.ada
+#              ^^^^ source.ada entity.name.label.ada
+#                  ^ source.ada
+#                   ^ source.ada entity.name.operator.ada
+#                    ^ source.ada
+#                     ^^^^^^^ source.ada entity.name.label.ada
+#                            ^ source.ada
+#                             ^ source.ada punctuation.ada
+>
+>   procedure Proc2 (Arg1, Arg2 : Integer) is
+#^^^ source.ada
+#   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#            ^ source.ada meta.declaration.subprogram.ada
+#             ^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#                  ^^ source.ada
+#                    ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                        ^ source.ada meta.declaration.object.ada punctuation.ada
+#                         ^ source.ada meta.declaration.object.ada
+#                          ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                              ^ source.ada meta.declaration.object.ada
+#                               ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                ^ source.ada
+#                                 ^^^^^^^ source.ada entity.name.label.ada
+#                                        ^^ source.ada
+#                                          ^^ source.ada keyword.other.ada
+>      function Nested_Expr_Fct (Arg3, Arg4 : Integer) return Integer
+#^^^^^^ source.ada
+#      ^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#              ^ source.ada meta.declaration.subprogram.ada
+#               ^^^^^^^^^^^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#                              ^^ source.ada
+#                                ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                                    ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                     ^ source.ada meta.declaration.object.ada
+#                                      ^^^^ source.ada meta.declaration.object.ada variable.name.ada
+#                                          ^ source.ada meta.declaration.object.ada
+#                                           ^ source.ada meta.declaration.object.ada punctuation.ada
+#                                            ^ source.ada
+#                                             ^^^^^^^ source.ada entity.name.label.ada
+#                                                    ^^ source.ada
+#                                                      ^^^^^^ source.ada keyword.other.ada
+#                                                            ^ source.ada
+#                                                             ^^^^^^^ source.ada entity.name.label.ada
+>      is (Arg1 + Arg2 + Arg3 + Arg4 + Global1);
+#^^^^^^ source.ada
+#      ^^ source.ada keyword.other.ada
+#        ^^ source.ada
+#          ^^^^ source.ada entity.name.label.ada
+#              ^ source.ada
+#               ^ source.ada entity.name.operator.ada
+#                ^ source.ada
+#                 ^^^^ source.ada entity.name.label.ada
+#                     ^ source.ada
+#                      ^ source.ada entity.name.operator.ada
+#                       ^ source.ada
+#                        ^^^^ source.ada entity.name.label.ada
+#                            ^ source.ada
+#                             ^ source.ada entity.name.operator.ada
+#                              ^ source.ada
+#                               ^^^^ source.ada entity.name.label.ada
+#                                   ^ source.ada
+#                                    ^ source.ada entity.name.operator.ada
+#                                     ^ source.ada
+#                                      ^^^^^^^ source.ada entity.name.label.ada
+#                                             ^ source.ada
+#                                              ^ source.ada punctuation.ada
+>   begin
+#^^^ source.ada
+#   ^^^^^ source.ada keyword.other.ada
+>      null;
+#^^^^^^ source.ada
+#      ^^^^ source.ada variable.other.constant.ada
+#          ^ source.ada punctuation.ada
+>   end Proc2;
+#^^^ source.ada
+#   ^^^ source.ada keyword.other.ada
+#      ^ source.ada
+#       ^^^^^ source.ada entity.name.label.ada
+#            ^ source.ada punctuation.ada
+>
+>end PkgBodyWithSpec;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                   ^ source.ada punctuation.ada
+>

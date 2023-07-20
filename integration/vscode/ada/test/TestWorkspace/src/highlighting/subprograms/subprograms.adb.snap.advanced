@@ -1,0 +1,159 @@
+>-- This test aims at checking that subprograms get highlighted as
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>-- entity.name.function.ada
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.double-dash.ada
+>package body Subprograms is
+#^^^^^^^ source.ada meta.declaration.package.body.ada keyword.ada
+#       ^ source.ada meta.declaration.package.body.ada
+#        ^^^^ source.ada meta.declaration.package.body.ada keyword.ada
+#            ^ source.ada meta.declaration.package.body.ada
+#             ^^^^^^^^^^^ source.ada meta.declaration.package.body.ada entity.name.package.ada
+#                        ^ source.ada meta.declaration.package.body.ada
+#                         ^^ source.ada meta.declaration.package.body.ada keyword.ada
+>   function S1 return Boolean;
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada keyword.ada
+#           ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#            ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada entity.name.function.ada
+#              ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#               ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada keyword.ada
+#                     ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                      ^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada entity.name.type.ada
+#                             ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+>   procedure S2;
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#             ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#               ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada punctuation.ada
+>
+>   -- With parameters
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^^^^^^^^^^^ source.ada meta.declaration.package.body.ada comment.line.double-dash.ada
+>   function S3 (Param1 : T1; Param2 : T2);
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada keyword.ada
+#           ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#            ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada entity.name.function.ada
+#              ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#               ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                      ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                       ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada punctuation.ada
+#                        ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada
+#                         ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada entity.name.type.ada
+#                           ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                            ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                             ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                                   ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                    ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada punctuation.ada
+#                                     ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada
+#                                      ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada entity.name.type.ada
+#                                        ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                                         ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+>   procedure S4 (Param1 : T1; Param2 : T2);
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada keyword.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#             ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada entity.name.function.ada
+#               ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada punctuation.ada
+#                 ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada variable.parameter.ada
+#                       ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                        ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.type.annotation.ada punctuation.ada
+#                         ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.type.annotation.ada
+#                          ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.type.annotation.ada entity.name.type.ada
+#                            ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada punctuation.ada
+#                             ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                              ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada variable.parameter.ada
+#                                    ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada
+#                                     ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.type.annotation.ada punctuation.ada
+#                                      ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.type.annotation.ada
+#                                       ^^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada meta.type.annotation.ada entity.name.type.ada
+#                                         ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada punctuation.ada
+#                                          ^ source.ada meta.declaration.package.body.ada meta.declaration.procedure.body.ada punctuation.ada
+>
+>   -- Multiple parameters of same type
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada meta.declaration.package.body.ada comment.line.double-dash.ada
+>   function S5 (Param1, Param2 : T1; Param3 : T2);
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada keyword.ada
+#           ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#            ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada entity.name.function.ada
+#              ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#               ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                      ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                       ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                        ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                              ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                               ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada punctuation.ada
+#                                ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada
+#                                 ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada entity.name.type.ada
+#                                   ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                                    ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                     ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                                           ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                            ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada punctuation.ada
+#                                             ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada
+#                                              ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada entity.name.type.ada
+#                                                ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                                                 ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+>
+>   -- Operator declarations
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^^^^^^^^^^^^^^^^^ source.ada meta.declaration.package.body.ada comment.line.double-dash.ada
+>   function "+" (Param1, Param2 : T1) return T1;
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada keyword.ada
+#           ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada string.quoted.double.ada punctuation.definition.string.ada
+#             ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada string.quoted.double.ada
+#              ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada string.quoted.double.ada punctuation.definition.string.ada
+#               ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                 ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                       ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                        ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                         ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                               ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada punctuation.ada
+#                                 ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada
+#                                  ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada entity.name.type.ada
+#                                    ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                                     ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                      ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada keyword.ada
+#                                            ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                             ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada entity.name.type.ada
+#                                               ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+>   function "xor" (Param1, Param2 : T1) return T1;
+#^^^ source.ada meta.declaration.package.body.ada
+#   ^^^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada keyword.ada
+#           ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#            ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada string.quoted.double.ada punctuation.definition.string.ada
+#             ^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada string.quoted.double.ada
+#                ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada string.quoted.double.ada punctuation.definition.string.ada
+#                 ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                  ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                   ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                         ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                          ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                           ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada variable.parameter.ada
+#                                 ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                  ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada punctuation.ada
+#                                   ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada
+#                                    ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada meta.type.annotation.ada entity.name.type.ada
+#                                      ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+#                                       ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                        ^^^^^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada keyword.ada
+#                                              ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada
+#                                               ^^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada entity.name.type.ada
+#                                                 ^ source.ada meta.declaration.package.body.ada meta.declaration.function.body.ada punctuation.ada
+>
+>end Subprograms;
+#^^^ source.ada meta.declaration.package.body.ada keyword.ada
+#   ^ source.ada meta.declaration.package.body.ada
+#    ^^^^^^^^^^^ source.ada meta.declaration.package.body.ada entity.name.package.ada
+#               ^ source.ada meta.declaration.package.body.ada punctuation.ada
+>
