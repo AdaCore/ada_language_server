@@ -864,7 +864,7 @@ package LSP.Messages is
    package Diagnostic_Vectors is new LSP.Generic_Vectors
      (Diagnostic, Write_Empty => LSP.Write_Array);
 
-   type Diagnostic_Vector is new Diagnostic_Vectors.Vector with null record;
+   subtype Diagnostic_Vector is Diagnostic_Vectors.Vector;
 
    package Optional_Diagnostic_Vectors is new LSP.Generic_Optional (Diagnostic_Vector);
    type Optional_Diagnostic_Vector is new Optional_Diagnostic_Vectors.Optional_Type;
