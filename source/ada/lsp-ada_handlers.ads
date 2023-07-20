@@ -748,4 +748,16 @@ private
    procedure Reload_Project (Self : access Message_Handler);
    --  Reload current project
 
+   procedure Publish_Diagnostics
+     (Self              : access Message_Handler'Class;
+      Document          : not null LSP.Ada_Documents.Document_Access;
+      Other_Diagnostics : LSP.Messages.Diagnostic_Vector :=
+        LSP.Messages.Diagnostic_Vectors.Empty;
+      Force             : Boolean := False);
+   --  Publish diagnostic messages for given document if needed.
+   --  Other_Diagnostics can be used to specify punctual diagnostics not coming
+   --  from sources that analyze files when being opened or modified.
+   --  When Force is True, the diagnostics will always be sent, not matter if
+   --  they have changed or not.
+
 end LSP.Ada_Handlers;

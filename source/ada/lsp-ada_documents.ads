@@ -110,8 +110,11 @@ package LSP.Ada_Documents is
      (Self    : in out Document;
       Context : LSP.Ada_Contexts.Context;
       Changed : out Boolean;
-      Errors  : out LSP.Messages.Diagnostic_Vector);
+      Errors  : out LSP.Messages.Diagnostic_Vector;
+      Force   : Boolean := False);
    --  Get errors found during document parsing.
+   --  When Force is True, any existing diagnostic will be retrieved, no matter
+   --  if they have changed or not since the last query.
 
    function Has_Diagnostics
      (Self    : Document;

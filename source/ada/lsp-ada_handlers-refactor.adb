@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with VSS.Strings.Conversions;
+with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Common;
 with LSP.Messages.Client_Requests; use LSP.Messages.Client_Requests;
 with LSP.Types; use LSP.Types;
@@ -109,27 +110,46 @@ package body LSP.Ada_Handlers.Refactor is
          --  Publish the diagnostics when we have some
          if not Edits.Diagnostics.Is_Empty then
             declare
-               Diag_Params : LSP.Messages.PublishDiagnosticsParams;
                Diagnostic  : LSP.Messages.Diagnostic;
+               Diagnostics : LSP.Messages.Diagnostic_Vector;
+               URI         : LSP.Types.LSP_URI := To_LSP_URI ("");
+               Document    : Document_Access;
+               Idx         : Integer := 1;
             begin
                for Problem of Edits.Diagnostics loop
-                  Diagnostic := To_LSP_Diagnostic (Problem, Error_Msg);
+                  Document := Get_Open_Document
+                    (Self  => Message_Handler'Access,
+                     URI   => File_To_URI (Problem.Filename),
+                     Force => False);
 
-                  if To_UTF_8_String (Diag_Params.uri) = "" or else
-                    To_UTF_8_String (Diag_Params.uri) = Problem.Filename
+                  --  Publish any processed diagnostic when switching to a
+                  --  different file.
+                  if not Diagnostics.Is_Empty
+                    and then To_UTF_8_String (URI) /= Problem.Filename
                   then
-                     Diag_Params.diagnostics.Append (Diagnostic);
-                     Diag_Params.uri := File_To_URI (Problem.Filename);
-                  else
-                     Client.On_Publish_Diagnostics (Diag_Params);
-                     Diag_Params.uri := File_To_URI ("");
-                     Diag_Params.diagnostics.Clear;
+                     Publish_Diagnostics
+                       (Self              => Message_Handler'Access,
+                        Document          => Document,
+                        Other_Diagnostics => Diagnostics,
+                        Force             => True);
                   end if;
-               end loop;
 
-               if not Diag_Params.diagnostics.Is_Empty then
-                  Client.On_Publish_Diagnostics (Diag_Params);
-               end if;
+                  URI := File_To_URI (Problem.Filename);
+                  Diagnostic := To_LSP_Diagnostic (Problem, Error_Msg);
+                  Diagnostics.Append (Diagnostic);
+
+                  --  We have processed the last refactoring diagnostic:
+                  --  publish all the LSP diagnostics we have.
+                  if Idx = Integer (Edits.Diagnostics.Length) then
+                     Publish_Diagnostics
+                       (Self              => Message_Handler'Access,
+                        Document          => Document,
+                        Other_Diagnostics => Diagnostics,
+                        Force             => True);
+                  end if;
+
+                  Idx := Idx + 1;
+               end loop;
             end;
          end if;
       else
