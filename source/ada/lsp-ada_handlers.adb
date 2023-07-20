@@ -217,11 +217,6 @@ package body LSP.Ada_Handlers is
    --  Reload as project source dirs the directories in
    --  Self.Project_Dirs_Loaded.
 
-   procedure Publish_Diagnostics
-     (Self     : access Message_Handler'Class;
-      Document : not null LSP.Ada_Documents.Document_Access);
-   --  Publish diagnostic messages for given document if needed
-
    function Compute_File_Operations_Server_Capabilities
      (Self : access Message_Handler)
       return LSP.Messages.Optional_FileOperationsServerCapabilities;
@@ -6797,8 +6792,11 @@ package body LSP.Ada_Handlers is
    -------------------------
 
    procedure Publish_Diagnostics
-     (Self     : access Message_Handler'Class;
-      Document : not null LSP.Ada_Documents.Document_Access)
+     (Self              : access Message_Handler'Class;
+      Document          : not null LSP.Ada_Documents.Document_Access;
+      Other_Diagnostics : LSP.Messages.Diagnostic_Vector :=
+        LSP.Messages.Diagnostic_Vectors.Empty;
+      Force             : Boolean := False)
    is
       Changed : Boolean;
       Diag    : LSP.Messages.PublishDiagnosticsParams;
@@ -6807,9 +6805,12 @@ package body LSP.Ada_Handlers is
          Document.Get_Errors
            (Context => Self.Contexts.Get_Best_Context (Document.URI).all,
             Changed => Changed,
-            Errors  => Diag.diagnostics);
+            Errors  => Diag.diagnostics,
+            Force   => Force);
 
-         if Changed then
+         Diag.diagnostics.Append_Vector (Other_Diagnostics);
+
+         if Changed or else not Other_Diagnostics.Is_Empty then
             Diag.uri := Document.URI;
             Self.Server.On_Publish_Diagnostics (Diag);
          end if;

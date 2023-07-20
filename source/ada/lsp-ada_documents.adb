@@ -1342,13 +1342,14 @@ package body LSP.Ada_Documents is
      (Self    : in out Document;
       Context : LSP.Ada_Contexts.Context;
       Changed : out Boolean;
-      Errors  : out LSP.Messages.Diagnostic_Vector) is
+      Errors  : out LSP.Messages.Diagnostic_Vector;
+      Force   : Boolean := False) is
    begin
       Errors.Clear;
       Changed := (for some Source of Self.Diagnostic_Sources =>
                     Source.Has_New_Diagnostic (Context));
 
-      if Changed then
+      if Changed or else Force then
          for Source of Self.Diagnostic_Sources loop
             Source.Get_Diagnostic (Context, Errors);
          end loop;
