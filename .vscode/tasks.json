@@ -51,6 +51,39 @@
             "showReuseMessage": true,
             "clear": false
          }
+      },
+      {
+         "type": "shell",
+         "label": "ada: Compile current file",
+         "command": "gprbuild",
+         "args": [
+            "-q",
+            "-f",
+            "-c",
+            "-u",
+            "${file}",
+            "-P",
+            "${config:ada.projectFile}",
+            "-cargs",
+            "-gnatef"
+         ],
+         "problemMatcher": "$ada",
+         "presentation": {
+            "echo": true,
+            "reveal": "silent",
+            "revealProblems": "onProblem",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": true
+         }
+      },
+      {
+         "type": "gnat",
+         "taskKind": "checkFile",
+         "problemMatcher": ["$ada"],
+         "group": "build",
+         "label": "ada: Check current file"
       }
    ]
 }

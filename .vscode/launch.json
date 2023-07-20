@@ -4,6 +4,14 @@
    "version": "0.2.0",
    "configurations": [
       {
+         "type": "gdb",
+         "request": "attach",
+         "name": "Attach to PID",
+         "target": "${input:pid}",
+         "cwd": "${workspaceRoot}",
+         "valuesFormatting": "parseText"
+      },
+      {
          "name": "Launch Extension",
          "type": "extensionHost",
          "request": "launch",
@@ -67,7 +75,9 @@
             // tests when debugging
             "MOCHA_TIMEOUT": "0"
          },
-         "preLaunchTask": "npm: pretest"
+         "preLaunchTask": "npm: pretest",
+         // Switch to Debug Console to see test results
+         "internalConsoleOptions": "openOnSessionStart"
       },
       {
          "name": "Extension Tests (Update Test Refs)",
@@ -103,7 +113,9 @@
             // integration/vscode/ada/test/suite/highlighting.test.ts
             "MOCHA_ALS_UPDATE": "1"
          },
-         "preLaunchTask": "npm: pretest"
+         "preLaunchTask": "npm: pretest",
+         // Switch to Debug Console to see test results
+         "internalConsoleOptions": "openOnSessionStart"
       },
       {
          "type": "gdb",
@@ -141,15 +153,29 @@
             // This is custom env var that we use in
             // integration/vscode/ada/test/suite/index.ts to prevent timeouts in
             // tests when debugging
-            "MOCHA_TIMEOUT": "0"
+            "MOCHA_TIMEOUT": "0",
+            "MOCHA_ALS_UPDATE": "${input:updateTestRefs}"
          },
-         "preLaunchTask": "npm: pretest"
+         "preLaunchTask": "npm: pretest",
+         // Switch to Debug Console to see test results
+         "internalConsoleOptions": "openOnSessionStart"
       }
    ],
    "inputs": [
       {
          "id": "testPattern",
          "description": "A regexp of tests to run",
+         "type": "promptString"
+      },
+      {
+         "id": "updateTestRefs",
+         "description": "Update test references? Keep empty for no update",
+         "type": "promptString",
+         "default": ""
+      },
+      {
+         "id": "pid",
+         "description": "Specify PID of process to debug",
          "type": "promptString"
       }
    ]

@@ -1,10 +1,16 @@
-node_modules
-.vsix
-out
-.vscode-test
-**/obj
+/node_modules/
+/*.vsix
+/out/
+/.vscode-test/
+**/obj/
 
-# Paths of ALS executables
+# Locations of ALS executable in VS Code extension. VS Code is supported on arm,
+# arm64 and x64 so we only consider those architectures.
+/arm/
+/arm64/
+/x64/
+
+# Previous locations of ALS executable in VS Code extension
 /linux/
-/windows/
+/win32/
 /darwin/
