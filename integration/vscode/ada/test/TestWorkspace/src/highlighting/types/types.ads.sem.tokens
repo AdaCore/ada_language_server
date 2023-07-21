@@ -37,6 +37,7 @@ line  27: column 13 - 17: enum          [declaration, static]            : Major
 line  27: column 24 - 27: enum          [static]                         : Suit
 line  27: column 36 - 41: enumMember    [static]                         : Hearts
 line  27: column 46 - 51: enumMember    [static]                         : Spades
+line  28: column 13 - 19: type          [declaration]                    : Rainbow
 line  28: column 36 - 38: enumMember    [static]                         : Red
 line  30: column 10 - 17: type          [declaration, static]            : Page_Num
 line  31: column 10 - 18: type          [declaration]                    : Line_Size
@@ -85,6 +86,7 @@ line  76: column 17 - 21: property      [declaration]                    : Track
 line  80: column 10 - 23: type          [declaration]                    : Peripheral_Ref
 line  80: column 44 - 53: struct                                         : Peripheral
 line  81: column 10 - 18: type          [declaration]                    : Binop_Ptr
+line  84: column 10 - 25: type          [declaration]                    : Local_Coordinate
 line  85: column 10 - 16: enum          [declaration, static]            : Midweek
 line  85: column 25 - 27: enum          [static]                         : Day
 line  85: column 35 - 37: enumMember    [static]                         : Tue

@@ -6,9 +6,9 @@
 #  ^^^^^^^^^^^^ source.ada comment.line.ada
 >
 >procedure Hello is
-#^^^^^^^^^ source.ada keyword.other.ada
-#         ^ source.ada
-#          ^^^^^ source.ada entity.name.label.ada
+#^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#         ^ source.ada meta.declaration.subprogram.ada
+#          ^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
 #               ^ source.ada
 #                ^^ source.ada keyword.other.ada
 >begin
@@ -16,10 +16,10 @@
 >   null;
 #^^^ source.ada
 #   ^^^^ source.ada variable.other.constant.ada
-#       ^^ source.ada
+#       ^ source.ada punctuation.ada
 >end Hello;
 #^^^ source.ada keyword.other.ada
 #   ^ source.ada
 #    ^^^^^ source.ada entity.name.label.ada
-#         ^^ source.ada
+#         ^ source.ada punctuation.ada
 >

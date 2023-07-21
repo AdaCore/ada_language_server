@@ -1,0 +1,29 @@
+line   3: column 14 - 26: namespace     [declaration]                    : PkgBodyNoSpec
+line   4: column  4 - 10: variable      [declaration]                    : Global1
+line   6: column 14 - 18: function      [declaration]                    : Proc1
+line   6: column 21 - 24: parameter     [declaration, readonly]          : Arg1
+line   6: column 27 - 30: parameter     [declaration, readonly]          : Arg2
+line   7: column  7 -  7: variable      [declaration]                    : Y
+line   7: column 22 - 25: parameter     [readonly]                       : Arg1
+line   7: column 29 - 32: parameter     [readonly]                       : Arg2
+line   7: column 36 - 42: variable                                       : Global1
+line  10: column  8 - 12: function                                       : Proc1
+line  12: column 13 - 20: function      [declaration]                    : Expr_Fct
+line  12: column 23 - 26: parameter     [declaration, readonly]          : Arg1
+line  12: column 29 - 32: parameter     [declaration, readonly]          : Arg2
+line  13: column  8 - 11: parameter     [readonly]                       : Arg1
+line  13: column 15 - 18: parameter     [readonly]                       : Arg2
+line  13: column 22 - 28: variable                                       : Global1
+line  15: column 14 - 18: function      [declaration]                    : Proc2
+line  15: column 21 - 24: parameter     [declaration, readonly]          : Arg1
+line  15: column 27 - 30: parameter     [declaration, readonly]          : Arg2
+line  16: column 16 - 30: function      [declaration]                    : Nested_Expr_Fct
+line  16: column 33 - 36: parameter     [declaration, readonly]          : Arg3
+line  16: column 39 - 42: parameter     [declaration, readonly]          : Arg4
+line  17: column 11 - 14: parameter     [readonly]                       : Arg1
+line  17: column 18 - 21: parameter     [readonly]                       : Arg2
+line  17: column 25 - 28: parameter     [readonly]                       : Arg3
+line  17: column 32 - 35: parameter     [readonly]                       : Arg4
+line  17: column 39 - 45: variable                                       : Global1
+line  20: column  8 - 12: function                                       : Proc2
+line  22: column  5 - 17: namespace                                      : PkgBodyNoSpec

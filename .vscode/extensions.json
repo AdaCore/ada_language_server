@@ -4,6 +4,7 @@
       "ms-python.flake8",
       "editorconfig.editorconfig",
       "dbaeumer.vscode-eslint",
-      "esbenp.prettier-vscode"
+      "esbenp.prettier-vscode",
+      "gruntfuggly.triggertaskonsave"
    ]
 }

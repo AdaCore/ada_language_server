@@ -1,0 +1,12 @@
+>package PkgBodyWithSpec is
+#^^^^^^^ source.ada meta.declaration.package.specification.ada keyword.ada
+#       ^ source.ada meta.declaration.package.specification.ada
+#        ^^^^^^^^^^^^^^^ source.ada meta.declaration.package.specification.ada entity.name.package.ada
+#                       ^ source.ada meta.declaration.package.specification.ada
+#                        ^^ source.ada meta.declaration.package.specification.ada keyword.ada
+>end PkgBodyWithSpec;
+#^^^ source.ada meta.declaration.package.specification.ada keyword.ada
+#   ^ source.ada meta.declaration.package.specification.ada
+#    ^^^^^^^^^^^^^^^ source.ada meta.declaration.package.specification.ada entity.name.package.ada
+#                   ^ source.ada meta.declaration.package.specification.ada punctuation.ada
+>

@@ -74,5 +74,10 @@
       "files.trimTrailingWhitespace": true
    },
    // Allow GitLab-specific Yaml tags in .gitlab-ci.yml
-   "yaml.customTags": ["!reference sequence"]
+   "yaml.customTags": ["!reference sequence"],
+   "triggerTaskOnSave.tasks": {
+      "ada: Compile current file": ["*.adb"],
+      "ada: Check current file": ["*.ads"]
+   },
+   "triggerTaskOnSave.restart": true
 }

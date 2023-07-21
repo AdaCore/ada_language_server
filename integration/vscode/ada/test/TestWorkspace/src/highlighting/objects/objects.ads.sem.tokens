@@ -1,0 +1,26 @@
+line   3: column  9 - 15: namespace     [declaration]                    : Objects
+line   4: column  4 -  6: variable      [declaration]                    : Obj
+line   5: column  4 -  6: variable      [declaration, readonly]          : Obj
+line   8: column  4 -  7: variable      [declaration]                    : Obj1
+line   8: column 10 - 13: variable      [declaration]                    : Obj2
+line   8: column 16 - 19: variable      [declaration]                    : Obj3
+line  11: column 13 - 14: function      [declaration]                    : S5
+line  11: column 17 - 22: parameter     [declaration, readonly]          : Param1
+line  11: column 30 - 35: parameter     [declaration, readonly]          : Param2
+line  11: column 43 - 48: parameter     [declaration, readonly]          : Param3
+line  12: column 13 - 14: function      [declaration]                    : S5
+line  12: column 17 - 22: parameter     [declaration, readonly]          : Param1
+line  12: column 25 - 30: parameter     [declaration, readonly]          : Param2
+line  12: column 38 - 43: parameter     [declaration, readonly]          : Param3
+line  15: column  4 -  7: variable      [declaration]                    : Obj1
+line  15: column 10 - 13: variable      [declaration]                    : Obj2
+line  15: column 16 - 19: variable      [declaration]                    : Obj3
+line  16: column 13 - 14: function      [declaration]                    : S5
+line  16: column 17 - 22: parameter     [declaration, readonly]          : Param1
+line  16: column 30 - 35: parameter     [declaration, readonly]          : Param2
+line  16: column 54 - 59: parameter     [declaration, readonly]          : Param3
+line  17: column 13 - 14: function      [declaration]                    : S5
+line  17: column 17 - 22: parameter     [declaration, readonly]          : Param1
+line  17: column 25 - 30: parameter     [declaration, readonly]          : Param2
+line  17: column 49 - 54: parameter     [declaration, readonly]          : Param3
+line  19: column  5 - 11: namespace                                      : Objects

@@ -4,12 +4,12 @@
 #     ^^^ source.ada entity.name.label.ada
 #        ^ source.ada entity.name.operator.ada
 #         ^^^^^^^ source.ada entity.name.label.ada
-#                ^^ source.ada
+#                ^ source.ada punctuation.ada
 >
 >procedure Main is
-#^^^^^^^^^ source.ada keyword.other.ada
-#         ^ source.ada
-#          ^^^^ source.ada entity.name.label.ada
+#^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#         ^ source.ada meta.declaration.subprogram.ada
+#          ^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
 #              ^ source.ada
 #               ^^ source.ada keyword.other.ada
 >   package B is
@@ -21,26 +21,27 @@
 #             ^^ source.ada keyword.other.ada
 >      procedure C is begin null; end C;
 #^^^^^^ source.ada
-#      ^^^^^^^^^ source.ada keyword.other.ada
-#               ^ source.ada
-#                ^ source.ada entity.name.label.ada
+#      ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#               ^ source.ada meta.declaration.subprogram.ada
+#                ^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
 #                 ^ source.ada
 #                  ^^ source.ada keyword.other.ada
 #                    ^ source.ada
 #                     ^^^^^ source.ada keyword.other.ada
 #                          ^ source.ada
 #                           ^^^^ source.ada variable.other.constant.ada
-#                               ^^ source.ada
+#                               ^ source.ada punctuation.ada
+#                                ^ source.ada
 #                                 ^^^ source.ada keyword.other.ada
 #                                    ^ source.ada
 #                                     ^ source.ada entity.name.label.ada
-#                                      ^^ source.ada
+#                                      ^ source.ada punctuation.ada
 >   end B;
 #^^^ source.ada
 #   ^^^ source.ada keyword.other.ada
 #      ^ source.ada
 #       ^ source.ada entity.name.label.ada
-#        ^^ source.ada
+#        ^ source.ada punctuation.ada
 >
 >   package body B is
 #^^^ source.ada
@@ -53,30 +54,31 @@
 #                  ^^ source.ada keyword.other.ada
 >      procedure C is begin null; end C;
 #^^^^^^ source.ada
-#      ^^^^^^^^^ source.ada keyword.other.ada
-#               ^ source.ada
-#                ^ source.ada entity.name.label.ada
+#      ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#               ^ source.ada meta.declaration.subprogram.ada
+#                ^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
 #                 ^ source.ada
 #                  ^^ source.ada keyword.other.ada
 #                    ^ source.ada
 #                     ^^^^^ source.ada keyword.other.ada
 #                          ^ source.ada
 #                           ^^^^ source.ada variable.other.constant.ada
-#                               ^^ source.ada
+#                               ^ source.ada punctuation.ada
+#                                ^ source.ada
 #                                 ^^^ source.ada keyword.other.ada
 #                                    ^ source.ada
 #                                     ^ source.ada entity.name.label.ada
-#                                      ^^ source.ada
+#                                      ^ source.ada punctuation.ada
 >   end B;
 #^^^ source.ada
 #   ^^^ source.ada keyword.other.ada
 #      ^ source.ada
 #       ^ source.ada entity.name.label.ada
-#        ^^ source.ada
+#        ^ source.ada punctuation.ada
 >begin
 #^^^^^ source.ada keyword.other.ada
 >end Main;
 #^^^ source.ada keyword.other.ada
 #   ^ source.ada
 #    ^^^^ source.ada entity.name.label.ada
-#        ^^ source.ada
+#        ^ source.ada punctuation.ada
