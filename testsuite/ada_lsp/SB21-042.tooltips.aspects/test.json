@@ -128,7 +128,7 @@
                "result": {
                   "contents": [
                      {
-                        "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record\n  with Alignment => (8);",
+                        "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record;",
                         "language": "ada"
                      },
                      "at foo.adb (3:4)",
@@ -164,7 +164,7 @@
                "result": {
                   "contents": [
                      {
-                        "value": "type My_New_Record is new My_Record with\n  Record\n    J : Integer := 2;\n    K : Integer := 3;\n end record with Alignment => (8);",
+                        "value": "type My_New_Record is new My_Record with\n  Record\n    J : Integer := 2;\n    K : Integer := 3;\n end record;",
                         "language": "ada"
                      },
                      "at foo.adb (8:4)",
@@ -445,7 +445,7 @@
                "result": {
                   "contents": [
                      {
-                        "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record\n  with Alignment => (8);",
+                        "value": "type My_Record is tagged record\n   I : Integer := 1;\nend record;",
                         "language": "ada"
                      },
                      "at foo.adb (3:4)",
@@ -481,7 +481,7 @@
                "result": {
                   "contents": [
                      {
-                        "value": "type My_New_Record is new My_Record with\n  Record\n    J : Integer := 2;\n    K : Integer := 3;\n end record with Alignment => (8);",
+                        "value": "type My_New_Record is new My_Record with\n  Record\n    J : Integer := 2;\n    K : Integer := 3;\n end record;",
                         "language": "ada"
                      },
                      "at foo.adb (8:4)",
