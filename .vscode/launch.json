@@ -21,7 +21,7 @@
             "!**/node_modules/**"
          ],
          "args": [
-            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
+            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada"
 
             // It is useful to have workspace available for local debugging. The
             // following one is provided within the repository with test folders
@@ -34,7 +34,6 @@
             // So you can checkout a second copy of the ALS repository under
             // ../als-rt and use it with the following line.
             // "${workspaceFolder}/../als-rt"
-            "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
          ],
          "preLaunchTask": "npm: compile",
          "env": {
@@ -47,40 +46,7 @@
          }
       },
       {
-         "name": "Extension Tests",
-         "type": "extensionHost",
-         "request": "launch",
-         "runtimeExecutable": "${execPath}",
-         "outFiles": [
-            "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
-            "!**/node_modules/**"
-         ],
-         "args": [
-            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
-            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
-            "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
-         ],
-         // Below we make the executables of node modules visible to the tests.
-         // In particular, vscode-tmgrammar-snap is used for syntax highlighting
-         // tests.
-         "env": {
-            // This is necessary to make the "child" vscode inherit the PATH
-            // variable set in the workspace settings. Without it in some setups
-            // (e.g. vscode remote) the child vscode does not get visibility
-            // over the Ada toolchain available in the parent vscode
-            // environment.
-            "PATH": "${env:PATH}",
-            // This is custom env var that we use in
-            // integration/vscode/ada/test/suite/index.ts to prevent timeouts in
-            // tests when debugging
-            "MOCHA_TIMEOUT": "0"
-         },
-         "preLaunchTask": "npm: pretest",
-         // Switch to Debug Console to see test results
-         "internalConsoleOptions": "openOnSessionStart"
-      },
-      {
-         "name": "Extension Tests (Update Test Refs)",
+         "name": "Highlighting Tests (Update Test Refs)",
          "type": "extensionHost",
          "request": "launch",
          "runtimeExecutable": "${execPath}",
@@ -136,7 +102,7 @@
          ],
          "args": [
             "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
-            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
+            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/highlighting/index",
             "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
          ],
          // Below we make the executables of node modules visible to the tests.

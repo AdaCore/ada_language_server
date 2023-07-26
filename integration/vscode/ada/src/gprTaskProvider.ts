@@ -17,6 +17,7 @@
 
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
+import { getProjectFile } from './helpers';
 
 export type GlsMainResult = {
     mains: string[];
@@ -28,7 +29,7 @@ export type GlsExecutableResult = {
 
 export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
     private readonly client: LanguageClient;
-    public static gprTaskType = 'GPR Tasks';
+    public static gprTaskType = 'gpr';
     glsTasks: vscode.Task[] | undefined;
 
     constructor(client: LanguageClient) {
@@ -39,10 +40,13 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public async provideTasks(): Promise<vscode.Task[] | undefined> {
         if (!this.glsTasks) {
-            const result: GlsMainResult = await this.client.sendRequest('$/glsMains');
-            this.glsTasks = getMainBuildTasks(result.mains);
+            const project_file = await getProjectFile(this.client);
+            const mains_result: GlsMainResult = await this.client.sendRequest('$/glsMains');
+            this.glsTasks = getMainBuildTasks(project_file, mains_result.mains);
             const execs: GlsExecutableResult = await this.client.sendRequest('$/glsExecutables');
-            this.glsTasks = this.glsTasks.concat(getExecutableRunTasks(execs.executables));
+            this.glsTasks = this.glsTasks.concat(
+                getExecutableRunTasks(project_file, execs.executables)
+            );
         }
         return this.glsTasks;
     }
@@ -68,22 +72,22 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
                 definition,
                 vscode.TaskScope.Workspace,
                 title,
-                'ada',
+                'gpr',
                 shell,
-                '$ada'
+                '$gpr'
             );
         }
         return undefined;
     }
 }
 
-const getMainBuildTasks = (mainFiles: string[]): vscode.Task[] => {
+const getMainBuildTasks = (project_file: string, mainFiles: string[]): vscode.Task[] => {
     const result: vscode.Task[] = [];
     //  build current project file
     for (let i = 0; i < mainFiles.length; i++) {
         const kind = {
             type: GprTaskProvider.gprTaskType,
-            projectFile: '${config:ada.projectFile}',
+            projectFile: project_file,
             mainFile: vscode.workspace.asRelativePath(mainFiles[i]),
         };
         const args = getMainBuildArgs(kind.projectFile, kind.mainFile);
@@ -93,9 +97,9 @@ const getMainBuildTasks = (mainFiles: string[]): vscode.Task[] => {
             kind,
             vscode.TaskScope.Workspace,
             'Build Executable for File ' + filename,
-            'ada',
+            'gpr',
             shell,
-            '$ada'
+            '$gpr'
         );
         task.group = vscode.TaskGroup.Build;
         result.push(task);
@@ -104,13 +108,13 @@ const getMainBuildTasks = (mainFiles: string[]): vscode.Task[] => {
     return result;
 };
 
-const getExecutableRunTasks = (executables: string[]): vscode.Task[] => {
+const getExecutableRunTasks = (project_file: string, executables: string[]): vscode.Task[] => {
     const result: vscode.Task[] = [];
     //  build current project file
     for (let i = 0; i < executables.length; i++) {
         const kind = {
             type: GprTaskProvider.gprTaskType,
-            projectFile: '${config:ada.projectFile}',
+            projectFile: project_file,
             executable: vscode.workspace.asRelativePath(executables[i]),
         };
         const filename = executables[i].replace(/^.*[\\/]/, '');
@@ -119,9 +123,9 @@ const getExecutableRunTasks = (executables: string[]): vscode.Task[] => {
             kind,
             vscode.TaskScope.Workspace,
             'Run Executable: ' + filename,
-            'ada',
+            'gpr',
             shell,
-            '$ada'
+            '$gpr'
         );
         task.group = vscode.TaskGroup.Build;
         result.push(task);

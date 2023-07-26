@@ -8,6 +8,7 @@ function LSP.Servers.Handle_Request
    Request : LSP.Messages.RequestMessage'Class)
       return LSP.Messages.ResponseMessage'Class is
 begin
+
       if Request in Initialize_Request'Class then
          declare
             R : LSP.Messages.ResponseMessage'Class :=
@@ -493,6 +494,30 @@ begin
             R : LSP.Messages.ResponseMessage'Class :=
                Self.On_GLS_Executables_Request
                   (GLS_Executables_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in GLS_Object_Dir_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_GLS_Object_Dir_Request
+                  (GLS_Object_Dir_Request (Request));
+         begin
+            R.jsonrpc := "2.0";
+            R.id := Request.id;
+            return R;
+         end;
+      end if;
+
+      if Request in GLS_Project_File_Request'Class then
+         declare
+            R : LSP.Messages.ResponseMessage'Class :=
+               Self.On_GLS_Project_File_Request
+                  (GLS_Project_File_Request (Request));
          begin
             R.jsonrpc := "2.0";
             R.id := Request.id;

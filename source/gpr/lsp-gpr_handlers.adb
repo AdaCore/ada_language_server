@@ -215,6 +215,30 @@ package body LSP.GPR_Handlers is
    end Log_Unexpected_Null_Document;
 
    --------------------------------
+   -- On_GLS_Project_File_Request --
+   --------------------------------
+
+   overriding function On_GLS_Project_File_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Project_File_Request)
+      return LSP.Messages.Server_Responses.GLS_Project_File_Response is
+   begin
+      return raise Program_Error with "Unimplemented request";
+   end On_GLS_Project_File_Request;
+
+   --------------------------------
+   -- On_GLS_ObjectDir_Request --
+   --------------------------------
+
+   overriding function On_GLS_Object_Dir_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Object_Dir_Request)
+      return LSP.Messages.Server_Responses.GLS_Object_Dir_Response is
+   begin
+      return raise Program_Error with "Unimplemented request";
+   end On_GLS_Object_Dir_Request;
+
+   --------------------------------
    -- On_GLS_Executables_Request --
    --------------------------------
 
