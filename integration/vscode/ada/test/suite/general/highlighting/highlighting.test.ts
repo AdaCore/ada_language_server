@@ -5,8 +5,10 @@ import { suite, test } from 'mocha';
 import { existsSync, opendirSync, renameSync } from 'fs';
 import path, { basename, dirname } from 'path';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
-import { contextClients } from '../../src/extension';
-import { assertEqualToFileContent, update } from './utils';
+import { contextClients } from '../../../../src/extension';
+import { assertEqualToFileContent, update, activate } from '../../utils';
+
+let adaFilePaths: string[] = [];
 
 suite('Highlighting', function () {
     this.beforeAll(async function () {
@@ -17,48 +19,53 @@ suite('Highlighting', function () {
         await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     });
 
-    const highlightingTestRoot = getDocUri('src/highlighting').fsPath;
-    const adaFilePaths: string[] = [];
+    test('file paths recovered', function () {
+        const highlightingTestRoot = getDocUri('src/highlighting').fsPath;
+        adaFilePaths = [];
 
-    function walk(dir: string) {
-        const openDir = opendirSync(dir);
-        try {
-            let child;
-            while ((child = openDir.readSync()) != null) {
-                const childPath = path.join(dir, child.name);
-                if (child.isDirectory()) {
-                    walk(childPath);
-                } else if (child.isFile()) {
-                    if (child.name.match(/\.ad[bs]$/)) {
-                        adaFilePaths.push(childPath);
+        function walk(dir: string) {
+            const openDir = opendirSync(dir);
+            try {
+                let child;
+                while ((child = openDir.readSync()) != null) {
+                    const childPath = path.join(dir, child.name);
+                    if (child.isDirectory()) {
+                        walk(childPath);
+                    } else if (child.isFile()) {
+                        if (child.name.match(/\.ad[bs]$/)) {
+                            adaFilePaths.push(childPath);
+                        }
                     }
                 }
+            } finally {
+                openDir.closeSync();
             }
-        } finally {
-            openDir.closeSync();
         }
-    }
 
-    walk(highlightingTestRoot);
+        walk(highlightingTestRoot);
+        assert.notStrictEqual(adaFilePaths, []);
+    });
 
-    for (const absPath of adaFilePaths) {
-        const testName = `${basename(dirname(absPath))}/${basename(absPath)}`;
-        const absFileUri = vscode.Uri.file(absPath);
+    this.afterAll(function () {
+        for (const absPath of adaFilePaths) {
+            const testName = `${basename(dirname(absPath))}/${basename(absPath)}`;
+            const absFileUri = vscode.Uri.file(absPath);
 
-        suite(testName, function () {
-            test('syntax.main', function () {
-                testSyntaxHighlighting(absPath, 'syntaxes');
+            suite(testName, function () {
+                test('syntax.main', function () {
+                    testSyntaxHighlighting(absPath, 'syntaxes');
+                });
+
+                test('syntax.advanced', function () {
+                    testSyntaxHighlighting(absPath, 'advanced');
+                });
+
+                test('semantic', async function () {
+                    await testSemanticHighlighting(absFileUri);
+                });
             });
-
-            test('syntax.advanced', function () {
-                testSyntaxHighlighting(absPath, 'advanced');
-            });
-
-            test('semantic', async function () {
-                await testSemanticHighlighting(absFileUri);
-            });
-        });
-    }
+        }
+    });
 });
 
 /**
@@ -169,31 +176,22 @@ async function testSemanticHighlighting(docUri: vscode.Uri) {
 }
 
 /**
- * This function queries the VS Code API for the Ada extension and waits until
- * it is activated.
- */
-async function activate(): Promise<void> {
-    const ext = vscode.extensions.getExtension('AdaCore.ada');
-    if (ext !== undefined) {
-        if (!ext.isActive) {
-            await ext.activate();
-        }
-    }
-}
-
-/**
  *
  * @param path - path of a file or directory relative to the TestWorkspace
  * workspace.
  * @returns a Uri representing the full path to the given relative workspace
  * path
  */
-function getDocUri(path: string): vscode.Uri {
-    assert(vscode.workspace.workspaceFolders !== undefined);
-    return vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, path);
+function getDocUri(p: string): vscode.Uri {
+    if (path.isAbsolute(p)) {
+        return vscode.Uri.parse(p);
+    } else {
+        assert(vscode.workspace.workspaceFolders !== undefined);
+        return vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, p);
+    }
 }
 
-const extensionRootPath = path.resolve(__dirname, '../../../');
+const extensionRootPath = path.resolve(__dirname, '../../../../../');
 
 /**
  * A type representing the two TextMate grammars available in the repository.

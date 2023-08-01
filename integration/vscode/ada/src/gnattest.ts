@@ -6,10 +6,13 @@ import { ContextClients } from './clients';
 import { getProjectFile, getObjectDir } from './helpers';
 import { integer } from 'vscode-languageclient';
 
+export let controller: vscode.TestController;
+export let testRunProfile: vscode.TestRunProfile;
+
 /*
     Types definition for the Gnattest XML file structure
 */
-type Root = {
+export type Root = {
     tests_mapping: TestMapping;
 };
 
@@ -33,7 +36,6 @@ type Tested = {
     '@_line': string;
     '@_name': string;
     test_case: TestCase | [TestCase];
-    test: Test;
 };
 
 type TestCase = {
@@ -55,7 +57,7 @@ export async function initializeTestView(
     clients: ContextClients
 ) {
     if (vscode.workspace.workspaceFolders !== undefined) {
-        const controller = vscode.tests.createTestController(
+        controller = vscode.tests.createTestController(
             'gnattest-test-controller',
             'GNATtest Test Controller'
         );
@@ -65,8 +67,7 @@ export async function initializeTestView(
         // Getting Paths Information from the server
         const projectFile = await getProjectFile(clients.adaClient);
         const objectDir: string = await getObjectDir(clients.adaClient);
-        let gnattestPath = vscode.workspace.asRelativePath(objectDir);
-        gnattestPath = path.join(gnattestPath, 'gnattest');
+        const gnattestPath = path.join(objectDir, 'gnattest');
 
         startTestRun(controller, projectFile, gnattestPath);
         await discoverTests(controller, gnattestPath);
@@ -124,7 +125,7 @@ function startTestRun(
         }
     };
 
-    const testRunProfile = controller.createRunProfile(
+    testRunProfile = controller.createRunProfile(
         'GNATtest',
         vscode.TestRunProfileKind.Run,
         runHandler,
@@ -149,7 +150,7 @@ function startTestRun(
 /*
     Run all tests handler
 */
-function handleRunAll(
+export function handleRunAll(
     tests: vscode.TestItem[],
     run: vscode.TestRun,
     terminalName: string,
@@ -208,7 +209,7 @@ function handleUnitRun(
 /*
     Resolves Tests to run for a selected test item in the Explorer
 */
-function gatherChildTestItems(
+export function gatherChildTestItems(
     collection: vscode.TestItemCollection | readonly vscode.TestItem[]
 ): vscode.TestItem[] {
     let items: vscode.TestItem[] = [];
@@ -226,7 +227,7 @@ function gatherChildTestItems(
     Gets the Source file name for a test item
     Needed for the --routines switch
 */
-function getParentTestSourceName(item: vscode.TestItem) {
+export function getParentTestSourceName(item: vscode.TestItem) {
     let parent: vscode.TestItem = item;
     if (item.parent != undefined) {
         parent = getParentTestSourceName(item.parent);
@@ -237,12 +238,10 @@ function getParentTestSourceName(item: vscode.TestItem) {
 /*
     Return the test_runner output stored in the result.txt file
 */
-async function readResultFile(resultPath: string) {
+export async function readResultFile(resultPath: string) {
     if (vscode.workspace.workspaceFolders !== undefined) {
-        const main_path = vscode.workspace.workspaceFolders[0].uri.path;
-        const full_result_path = path.join(main_path, resultPath);
-        if (pathExists(full_result_path)) {
-            const file = await vscode.workspace.fs.readFile(vscode.Uri.file(full_result_path));
+        if (pathExists(resultPath)) {
+            const file = await vscode.workspace.fs.readFile(vscode.Uri.file(resultPath));
             return file.toString();
         }
     }
@@ -257,7 +256,11 @@ enum Test_State {
 /*
     Parses the result of the file 'result.txt'
 */
-function parseResults(tests: vscode.TestItem[], run: vscode.TestRun, file: string) {
+export function parseResults(
+    tests: vscode.TestItem[],
+    run: vscode.TestRun | undefined,
+    file: string
+): boolean {
     const matchs = file.match(
         /(^|\n)((\w|-)+).ad[b|s]:\d+:\d+: (info|error): corresponding test (\w+)/g
     );
@@ -271,7 +274,7 @@ function parseResults(tests: vscode.TestItem[], run: vscode.TestRun, file: strin
                 const test_line: integer = p ? p + 1 : 0;
                 const check_line = matchs[i].match(test_src.label + ':' + test_line.toString());
                 // update the state of the test
-                if (check_line != null) {
+                if (check_line != null && run != undefined) {
                     run.appendOutput(`Completed ${e.id}\r\n`);
                     const mm: string = matchs[i].substring(matchs[i].length - 6, matchs[i].length);
                     if (mm == Test_State.PASSED) {
@@ -282,13 +285,15 @@ function parseResults(tests: vscode.TestItem[], run: vscode.TestRun, file: strin
                 }
             }
         }
+        return true;
     }
+    return false;
 }
 
 /*
     Return the tests structure stored in gnattest.xml file
 */
-async function readXMLfile(harnessPath: string): Promise<string | undefined> {
+export async function readXMLfile(harnessPath: string): Promise<string | undefined> {
     if (vscode.workspace.workspaceFolders !== undefined) {
         const mainPath = vscode.workspace.workspaceFolders[0].uri.path;
         const fullHarnessPath = path.join(mainPath, harnessPath);
@@ -306,7 +311,7 @@ async function readXMLfile(harnessPath: string): Promise<string | undefined> {
 /*
     Discover tests by parsing the xml input
 */
-async function discoverTests(controller: vscode.TestController, gnattestPath: string) {
+export async function discoverTests(controller: vscode.TestController, gnattestPath: string) {
     if (vscode.workspace.workspaceFolders !== undefined) {
         const mainPath = vscode.workspace.workspaceFolders[0].uri.path;
         const file = await readXMLfile(path.join(gnattestPath, 'harness'));
@@ -325,8 +330,10 @@ async function discoverTests(controller: vscode.TestController, gnattestPath: st
             } else {
                 addUnitTestItems(rootNode.unit, controller, mainPath);
             }
+            return xmlDoc;
         }
     }
+    return undefined;
 }
 
 /*

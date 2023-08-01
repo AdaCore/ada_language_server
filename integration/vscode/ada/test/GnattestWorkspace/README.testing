@@ -1,0 +1,39 @@
+             G N A T T E S T   E X A M P L E S
+
+In order to generate and compile test driver, make sure that 'gnattest' and
+'gprbuild' commands are in your path and AUnit is in your default project path.
+
+To generate a test driver for a number of sources you need to use gnattest
+utility. Note that in order to process given files, gnattest has to
+semantically analyze the Ada sources. Therefore, test packages can only be
+generated legal Ada units. Moreover, when a unit depends semantically upon
+units located outside the current directory, the source search path has to be
+provided when calling gnattest through a specified project file.
+
+Invocation
+----------
+
+In order to build the executables provided in this example you need to
+generate a test driver for the project and compile it:
+  $ gnattest -Ptagged_rec.gpr
+  $ gprbuild -Pobj/gnattest/harness/test_driver.gpr
+
+Actual tests are already provided for this example, so let's run the driver:
+  $ obj/gnattest/harness/test_runner
+
+Test Inheritance
+----------------
+
+As can be seen from test driver output, the test for subprogram Speed is also
+applied to objects of derived type Auto_Controller.
+
+Substitutability Testing
+------------------------
+
+To see an example of Substitutability Testing of tagged types first invoke
+gnattest with a special switch:
+  $ gnattest -Ptagged_rec.gpr --validate-type-extensions
+
+After recompiling and running the driver you can see that while all the tests
+pass by themselves, the parent test for Adjust_Speed fails against object
+of derived type.

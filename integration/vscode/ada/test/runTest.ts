@@ -11,7 +11,7 @@ async function main() {
 
         // The path to the extension test runner script
         // Passed to --extensionTestsPath
-        const extensionTestsPath = path.resolve(__dirname, '../test/suite');
+        const extensionTestsPath = path.resolve(__dirname, '../test/suite/general');
         const testWorkspace = path.resolve(extensionDevelopmentPath, './test/TestWorkspace');
 
         const testOptions: TestOptions = {
@@ -34,6 +34,12 @@ async function main() {
         }
 
         // Download VS Code, unzip it and run the integration test
+        await runTests(testOptions);
+
+        testOptions.extensionTestsPath = path.resolve(__dirname, '../test/suite/gnattest');
+        testOptions.launchArgs = [
+            path.resolve(extensionDevelopmentPath, './test/GnattestWorkspace'),
+        ];
         await runTests(testOptions);
     } catch (err) {
         console.error(err);
