@@ -463,17 +463,20 @@
             {
                 "type": "gpr",
                 "required": [
-                    "projectFile",
-                    "mainFile"
+                    "main"
                 ],
                 "properties": {
                     "projectFile": {
                         "type": "string",
                         "description": "The project file"
                     },
+                    "main": {
+                        "type": "string",
+                        "description": "The main file targeted"
+                    },
                     "executable": {
                         "type": "string",
-                        "description": "The main file"
+                        "description": "The related executable"
                     }
                 }
             }
