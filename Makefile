@@ -92,13 +92,13 @@ else
 endif
 
 all: coverage-instrument
+	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE)
 	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
-	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) \
-		-XVERSION=$(VERSION)
+	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS)
 ifdef NODE
 	mkdir -p integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
 	cp -f $(ALS) integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
@@ -137,6 +137,7 @@ endif
 
 clean:
 	-$(GPRCLEAN) -P gnat/lsp.gpr $(LIBRARY_FLAGS)
+	-$(GPRCLEAN) -P gnat/lsp_3_17.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/tester.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
