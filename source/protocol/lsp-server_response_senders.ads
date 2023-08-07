@@ -157,6 +157,11 @@ package LSP.Server_Response_Senders is
       Response : LSP.Messages.Server_Responses.Range_Formatting_Response)
        is abstract;
 
+   procedure On_On_Type_Formatting_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.On_Type_Formatting_Response)
+       is abstract;
+
    procedure On_SemanticTokens_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.SemanticTokens_Response)
@@ -183,6 +188,16 @@ package LSP.Server_Response_Senders is
    procedure On_GLS_Executables_Response
      (Self     : in out Server_Response_Sender;
       Response : LSP.Messages.Server_Responses.GLS_Executables_Response)
+   is abstract;
+
+   procedure On_GLS_Object_Dir_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.GLS_Object_Dir_Response)
+   is abstract;
+
+   procedure On_GLS_Project_File_Response
+     (Self     : in out Server_Response_Sender;
+      Response : LSP.Messages.Server_Responses.GLS_Project_File_Response)
    is abstract;
 
 end LSP.Server_Response_Senders;

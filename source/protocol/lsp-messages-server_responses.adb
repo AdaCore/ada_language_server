@@ -367,6 +367,17 @@ package body LSP.Messages.Server_Responses is
    -----------
 
    overriding procedure Visit
+     (Self    : On_Type_Formatting_Response;
+      Handler : access Server_Response_Sender'Class) is
+   begin
+      Handler.On_On_Type_Formatting_Response (Self);
+   end Visit;
+
+   -----------
+   -- Visit --
+   -----------
+
+   overriding procedure Visit
      (Self    : SemanticTokens_Response;
       Handler : access Server_Response_Sender'Class) is
    begin
@@ -400,4 +411,21 @@ package body LSP.Messages.Server_Responses is
    begin
       Handler.On_GLS_Executables_Response (Self);
    end Visit;
+
+   overriding procedure Visit
+     (Self    : GLS_Object_Dir_Response;
+      Handler : access Server_Response_Sender'Class)
+   is
+   begin
+      Handler.On_GLS_Object_Dir_Response (Self);
+   end Visit;
+
+   overriding procedure Visit
+     (Self    : GLS_Project_File_Response;
+      Handler : access Server_Response_Sender'Class)
+   is
+   begin
+      Handler.On_GLS_Project_File_Response (Self);
+   end Visit;
+
 end LSP.Messages.Server_Responses;

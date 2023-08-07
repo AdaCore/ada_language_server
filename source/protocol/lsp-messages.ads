@@ -864,7 +864,7 @@ package LSP.Messages is
    package Diagnostic_Vectors is new LSP.Generic_Vectors
      (Diagnostic, Write_Empty => LSP.Write_Array);
 
-   type Diagnostic_Vector is new Diagnostic_Vectors.Vector with null record;
+   subtype Diagnostic_Vector is Diagnostic_Vectors.Vector;
 
    package Optional_Diagnostic_Vectors is new LSP.Generic_Optional (Diagnostic_Vector);
    type Optional_Diagnostic_Vector is new Optional_Diagnostic_Vectors.Optional_Type;
@@ -5416,7 +5416,7 @@ package LSP.Messages is
    --	moreTriggerCharacter?: string[];
    --}
    --```
-   type DocumentOnTypeFormattingOptions is new WorkDoneProgressOptions with record
+   type DocumentOnTypeFormattingOptions is record
       firstTriggerCharacter : VSS.Strings.Virtual_String;
       moreTriggerCharacter  : Optional_Virtual_String_Vector;
    end record;
@@ -8777,21 +8777,39 @@ package LSP.Messages is
      Write_DocumentRangeFormattingParams;
 
    --```typescript
-   --interface DocumentOnTypeFormattingParams extends TextDocumentPositionParams {
-   --	/**
-   --	 * The character that has been typed.
-   --	 */
-   --	ch: string;
+   --interface DocumentOnTypeFormattingParams {
    --
-   --	/**
-   --	 * The format options.
-   --	 */
-   --	options: FormattingOptions;
+   --  	/**
+   -- 	 * The document to format.
+   -- 	 */
+   -- 	textDocument: TextDocumentIdentifier;
+   --
+   -- 	/**
+   -- 	 * The position around which the on type formatting should happen.
+   -- 	 * This is not necessarily the exact position where the character denoted
+   -- 	 * by the property `ch` got typed.
+   -- 	 */
+   -- 	position: Position;
+   --
+   -- 	/**
+   -- 	 * The character that has been typed that triggered the formatting
+   -- 	 * on type request. That is not necessarily the last character that
+   -- 	 * got inserted into the document since the client could auto insert
+   -- 	 * characters as well (e.g. like automatic brace completion).
+   -- 	 */
+   -- 	ch: string;
+   --
+   -- 	/**
+   -- 	 * The formatting options.
+   -- 	 */
+   --  	options: FormattingOptions;
    --}
    --```
-   type DocumentOnTypeFormattingParams is new TextDocumentPositionParams with record
-      ch      : VSS.Strings.Virtual_String;
-      options : FormattingOptions;
+   type DocumentOnTypeFormattingParams is record
+      textDocument : TextDocumentIdentifier;
+      position     : LSP.Messages.Position;
+      ch           : VSS.Strings.Virtual_String;
+      options      : FormattingOptions;
    end record;
    procedure Read_DocumentOnTypeFormattingParams
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -10980,18 +10998,7 @@ package LSP.Messages is
       V : ALS_Check_Syntax_Result);
    for ALS_Check_Syntax_Result'Write use Write_ALS_Check_Syntax_Result;
 
-   type GLS_Mains_Params is null record;
    type GLS_Mains_Result is new Optional_Virtual_String_Vector;
-
-   procedure Read_GLS_Mains_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out GLS_Mains_Params);
-   for GLS_Mains_Params'Read use Read_GLS_Mains_Params;
-
-   procedure Write_GLS_Mains_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : GLS_Mains_Params);
-   for GLS_Mains_Params'Write use Write_GLS_Mains_Params;
 
    procedure Read_GLS_Mains_Result
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -11003,18 +11010,7 @@ package LSP.Messages is
       V : GLS_Mains_Result);
    for GLS_Mains_Result'Write use Write_GLS_Mains_Result;
 
-   type GLS_Executables_Params is null record;
    type GLS_Executables_Result is new Optional_Virtual_String_Vector;
-
-   procedure Read_GLS_Executables_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : out GLS_Executables_Params);
-   for GLS_Executables_Params'Read use Read_GLS_Executables_Params;
-
-   procedure Write_GLS_Executables_Params
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : GLS_Executables_Params);
-   for GLS_Executables_Params'Write use Write_GLS_Executables_Params;
 
    procedure Read_GLS_Executables_Result
      (S : access Ada.Streams.Root_Stream_Type'Class;
@@ -11025,6 +11021,30 @@ package LSP.Messages is
      (S : access Ada.Streams.Root_Stream_Type'Class;
       V : GLS_Executables_Result);
    for GLS_Executables_Result'Write use Write_GLS_Executables_Result;
+
+   type GLS_Object_Dir_Result is new Optional_Virtual_String;
+
+   procedure Read_GLS_Object_Dir_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GLS_Object_Dir_Result);
+   for GLS_Object_Dir_Result'Read use Read_GLS_Object_Dir_Result;
+
+   procedure Write_GLS_Object_Dir_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GLS_Object_Dir_Result);
+   for GLS_Object_Dir_Result'Write use Write_GLS_Object_Dir_Result;
+
+   type GLS_Project_File_Result is new Optional_Virtual_String;
+
+   procedure Read_GLS_Project_File_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : out GLS_Project_File_Result);
+   for GLS_Project_File_Result'Read use Read_GLS_Project_File_Result;
+
+   procedure Write_GLS_Project_File_Result
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      V : GLS_Project_File_Result);
+   for GLS_Project_File_Result'Write use Write_GLS_Project_File_Result;
 
 private
 

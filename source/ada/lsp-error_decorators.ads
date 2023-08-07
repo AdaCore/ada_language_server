@@ -227,6 +227,11 @@ package LSP.Error_Decorators is
       Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
       return LSP.Messages.Server_Responses.Range_Formatting_Response;
 
+   overriding function On_On_Type_Formatting_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+      return LSP.Messages.Server_Responses.On_Type_Formatting_Response;
+
    overriding function On_ALS_Check_Syntax_Request
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
@@ -241,5 +246,15 @@ package LSP.Error_Decorators is
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
       return LSP.Messages.Server_Responses.GLS_Executables_Response;
+
+   overriding function On_GLS_Object_Dir_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.GLS_Object_Dir_Request)
+      return LSP.Messages.Server_Responses.GLS_Object_Dir_Response;
+
+   overriding function On_GLS_Project_File_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.GLS_Project_File_Request)
+      return LSP.Messages.Server_Responses.GLS_Project_File_Response;
 
 end LSP.Error_Decorators;

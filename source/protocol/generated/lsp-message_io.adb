@@ -4886,9 +4886,7 @@ package body LSP.Message_IO is
             Key : constant VSS.Strings.Virtual_String := JS.R.Key_Name;
          begin
             JS.R.Read_Next;
-            if Key = "workDoneProgress" then
-               Optional_Boolean'Read (S, V.workDoneProgress);
-            elsif Key = "firstTriggerCharacter" then
+            if Key = "firstTriggerCharacter" then
                LSP.Types.Read_String (S, V.firstTriggerCharacter);
             elsif Key = "moreTriggerCharacter" then
                Optional_Virtual_String_Vector'Read (S, V.moreTriggerCharacter);
@@ -4908,8 +4906,6 @@ package body LSP.Message_IO is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       JS.Start_Object;
-      JS.Key ("workDoneProgress");
-      Optional_Boolean'Write (S, V.workDoneProgress);
       JS.Key ("firstTriggerCharacter");
       LSP.Types.Write_String (S, V.firstTriggerCharacter);
       JS.Key ("moreTriggerCharacter");

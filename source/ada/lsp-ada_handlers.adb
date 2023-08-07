@@ -17,7 +17,6 @@
 
 with Ada.Calendar; use Ada.Calendar;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
-with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
 with Ada.Strings.Wide_Wide_Unbounded;
@@ -58,19 +57,19 @@ with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Alire;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
-with LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
-with LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
-with LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
-with LSP.Ada_Handlers.Refactor_Add_Parameter;
-with LSP.Ada_Handlers.Refactor_Introduce_Parameter;
-with LSP.Ada_Handlers.Refactor_Extract_Subprogram;
-with LSP.Ada_Handlers.Refactor_Imports_Commands;
-with LSP.Ada_Handlers.Refactor_Move_Parameter;
-with LSP.Ada_Handlers.Refactor_Remove_Parameter;
-with LSP.Ada_Handlers.Refactor_Suppress_Seperate;
-with LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
-with LSP.Ada_Handlers.Refactor_Replace_Type;
-with LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+with LSP.Ada_Handlers.Refactor.Add_Parameter;
+with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
+with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+with LSP.Ada_Handlers.Refactor.Imports_Commands;
+with LSP.Ada_Handlers.Refactor.Move_Parameter;
+with LSP.Ada_Handlers.Refactor.Remove_Parameter;
+with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor.Replace_Type;
+with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Client_Side_File_Monitors;
 with LSP.Commands;
@@ -89,18 +88,20 @@ with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Laltools.Common;
-with Laltools.Refactor_Imports;
-with Laltools.Refactor.Subprogram_Signature;
-with Laltools.Refactor.Safe_Rename;
-with Laltools.Refactor.Suppress_Separate;
-with Laltools.Refactor.Extract_Subprogram;
-with Laltools.Refactor.Introduce_Parameter;
-with Laltools.Refactor.Pull_Up_Declaration;
-with Laltools.Refactor.Sort_Dependencies;
-with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
-with Laltools.Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
-with Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
-with Laltools.Refactor.Replace_Type;
+with Laltools.Partial_GNATPP;
+
+with LAL_Refactor.Refactor_Imports;
+with LAL_Refactor.Subprogram_Signature;
+with LAL_Refactor.Safe_Rename;
+with LAL_Refactor.Suppress_Separate;
+with LAL_Refactor.Extract_Subprogram;
+with LAL_Refactor.Introduce_Parameter;
+with LAL_Refactor.Pull_Up_Declaration;
+with LAL_Refactor.Sort_Dependencies;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
+with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
+with LAL_Refactor.Replace_Type;
 
 with Libadalang.Analysis;
 with Libadalang.Common;    use Libadalang.Common;
@@ -129,11 +130,19 @@ package body LSP.Ada_Handlers is
                              GNATCOLL.Traces.On);
    --  Trace to enable/disable runtime indexing. Useful for the testsuite.
 
-   Partial_GNATpp : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.PARTIAL_GNATPP",
-                             GNATCOLL.Traces.On);
-   --  Use partial formatting mode of gnatpp if On. Otherwise, use diff
-   --  algorithm.
+   Partial_Gnatpp_Trace   : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create
+       (Unit_Name => "ALS.PARTIAL_GNATPP",
+        Default   => GNATCOLL.Traces.On);
+   --  Trace to enable/disable using partial Gnatpp in the rangeFormatting
+   --  request.
+
+   On_Type_Formatting_Trace : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create
+       (Unit_Name => "ALS.ON_TYPE_FORMATTING",
+        Default   => GNATCOLL.Traces.On);
+   --  Trace to enable/disable ALS from providing the
+   --  documentOnTypeFormattingProvider capability.
 
    Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
      (Is_Server_Side => True,
@@ -208,11 +217,6 @@ package body LSP.Ada_Handlers is
    --  Reload as project source dirs the directories in
    --  Self.Project_Dirs_Loaded.
 
-   procedure Publish_Diagnostics
-     (Self     : access Message_Handler'Class;
-      Document : not null LSP.Ada_Documents.Document_Access);
-   --  Publish diagnostic messages for given document if needed
-
    function Compute_File_Operations_Server_Capabilities
      (Self : access Message_Handler)
       return LSP.Messages.Optional_FileOperationsServerCapabilities;
@@ -237,10 +241,10 @@ package body LSP.Ada_Handlers is
    --  Format the text of the given document in the given range (span).
 
    function Range_Format
-     (Self     : in out LSP.Ada_Contexts.Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions)
+     (Self        : in out LSP.Ada_Contexts.Context;
+      Document    : LSP.Ada_Documents.Document_Access;
+      Span        : LSP.Messages.Span;
+      Options     : LSP.Messages.FormattingOptions)
       return LSP.Messages.Server_Responses.Formatting_Response;
    --  Format the text of the given document in the given range (span).
 
@@ -1094,11 +1098,19 @@ package body LSP.Ada_Handlers is
       Response.result.capabilities.documentFormattingProvider :=
         (Is_Set => True,
          Value  => (workDoneProgress => LSP.Types.None));
-      if Partial_GNATpp.Is_Active then
-         Response.result.capabilities.documentRangeFormattingProvider :=
+      Response.result.capabilities.documentRangeFormattingProvider :=
+        (Is_Set => True,
+         Value  => (workDoneProgress => LSP.Types.None));
+      Response.result.capabilities.documentOnTypeFormattingProvider :=
+        (if On_Type_Formatting_Trace.Is_Active then
            (Is_Set => True,
-            Value  => (workDoneProgress => LSP.Types.None));
-      end if;
+            Value  =>
+              (firstTriggerCharacter =>
+                 Self.On_Type_Formatting_Settings.First_Trigger_Character,
+               moreTriggerCharacter  =>
+                 Self.On_Type_Formatting_Settings.More_Trigger_Characters))
+         else
+           (Is_Set => False));
       Response.result.capabilities.callHierarchyProvider :=
         (Is_Set => True,
          Value  => (Is_Boolean => False, Options => <>));
@@ -1546,8 +1558,8 @@ package body LSP.Ada_Handlers is
 
          procedure Change_Parameters_Type_Code_Action is
             use Langkit_Support.Slocs;
-            use Laltools.Refactor.Subprogram_Signature.Change_Parameters_Type;
-            use LSP.Ada_Handlers.Refactor_Change_Parameters_Type;
+            use LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+            use LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 
             Span : constant Source_Location_Range :=
               (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
@@ -1584,9 +1596,9 @@ package body LSP.Ada_Handlers is
 
          procedure Change_Parameters_Default_Value_Code_Action is
             use Langkit_Support.Slocs;
-            use Laltools.Refactor.Subprogram_Signature.
+            use LAL_Refactor.Subprogram_Signature.
                   Change_Parameters_Default_Value;
-            use LSP.Ada_Handlers.Refactor_Change_Parameters_Default_Value;
+            use LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 
             Span : constant Source_Location_Range :=
               (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
@@ -1618,9 +1630,9 @@ package body LSP.Ada_Handlers is
          ------------------------------------
 
          procedure Extract_Subprogram_Code_Action is
-            use LSP.Ada_Handlers.Refactor_Extract_Subprogram;
+            use LSP.Ada_Handlers.Refactor.Extract_Subprogram;
             use Langkit_Support.Slocs;
-            use Laltools.Refactor.Extract_Subprogram;
+            use LAL_Refactor.Extract_Subprogram;
             use type LSP.Messages.Position;
 
             Single_Location : constant Boolean :=
@@ -1678,8 +1690,8 @@ package body LSP.Ada_Handlers is
 
          procedure Introduce_Parameter_Code_Action is
             use Langkit_Support.Slocs;
-            use Laltools.Refactor.Introduce_Parameter;
-            use LSP.Ada_Handlers.Refactor_Introduce_Parameter;
+            use LAL_Refactor.Introduce_Parameter;
+            use LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 
             Span : constant Source_Location_Range :=
               (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
@@ -1712,7 +1724,7 @@ package body LSP.Ada_Handlers is
 
          procedure Import_Package_Code_Action is
             use Libadalang.Analysis;
-            use Laltools.Refactor_Imports;
+            use LAL_Refactor.Refactor_Imports;
             use LSP.Messages;
 
             Single_Location : constant Boolean :=
@@ -1843,7 +1855,7 @@ package body LSP.Ada_Handlers is
             for Suggestion of Import_Suggestions loop
                declare
                   Command : LSP.Ada_Handlers.
-                    Refactor_Imports_Commands.Command;
+                    Refactor.Imports_Commands.Command;
                begin
                   Command.Append_Suggestion
                     (Context         => Context,
@@ -1959,8 +1971,8 @@ package body LSP.Ada_Handlers is
          procedure Pull_Up_Declaration_Code_Action is
             use Langkit_Support.Slocs;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Pull_Up_Declaration;
-            use LSP.Ada_Handlers.Refactor_Pull_Up_Declaration;
+            use LAL_Refactor.Pull_Up_Declaration;
+            use LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
             use LSP.Messages;
 
             --  This code action is not available when a range of text is
@@ -1973,7 +1985,7 @@ package body LSP.Ada_Handlers is
                Column_Number (Params.span.first.character) + 1);
 
             Pull_Up_Declaration_Command :
-              LSP.Ada_Handlers.Refactor_Pull_Up_Declaration.Command;
+              LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command;
 
          begin
             if Single_Location
@@ -1996,8 +2008,8 @@ package body LSP.Ada_Handlers is
          ------------------------------
 
          procedure Replace_Type_Code_Action is
-            use LSP.Ada_Handlers.Refactor_Replace_Type;
-            use Laltools.Refactor.Replace_Type;
+            use LSP.Ada_Handlers.Refactor.Replace_Type;
+            use LAL_Refactor.Replace_Type;
 
             use Langkit_Support.Slocs;
 
@@ -2006,7 +2018,7 @@ package body LSP.Ada_Handlers is
                Column_Number (Params.span.first.character) + 1);
 
             Replace_Type_Command :
-              LSP.Ada_Handlers.Refactor_Replace_Type.Command;
+              LSP.Ada_Handlers.Refactor.Replace_Type.Command;
 
          begin
             if Is_Replace_Type_Available (Node.Unit, Location) then
@@ -2029,8 +2041,8 @@ package body LSP.Ada_Handlers is
          procedure Sort_Dependencies_Code_Action is
             use Langkit_Support.Slocs;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Sort_Dependencies;
-            use LSP.Ada_Handlers.Refactor_Sort_Dependencies;
+            use LAL_Refactor.Sort_Dependencies;
+            use LSP.Ada_Handlers.Refactor.Sort_Dependencies;
             use LSP.Messages;
 
             Location        : constant Source_Location :=
@@ -2038,7 +2050,7 @@ package body LSP.Ada_Handlers is
                Column_Number (Params.span.first.character) + 1);
 
             Sort_Dependencies_Command :
-              LSP.Ada_Handlers.Refactor_Sort_Dependencies.Command;
+              LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command;
 
          begin
             if Is_Sort_Dependencies_Available (Node.Unit, Location) then
@@ -2080,9 +2092,9 @@ package body LSP.Ada_Handlers is
               Advanced_Refactorings (Add_Parameter)
          then
             declare
-               use LSP.Ada_Handlers.Refactor_Add_Parameter;
+               use LSP.Ada_Handlers.Refactor.Add_Parameter;
                use Libadalang.Analysis;
-               use Laltools.Refactor.Subprogram_Signature;
+               use LAL_Refactor.Subprogram_Signature;
                use Langkit_Support.Slocs;
                use type LSP.Messages.Position;
 
@@ -2141,10 +2153,10 @@ package body LSP.Ada_Handlers is
 
          --  Remove Parameter
          declare
-            use LSP.Ada_Handlers.Refactor_Remove_Parameter;
+            use LSP.Ada_Handlers.Refactor.Remove_Parameter;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Subprogram_Signature;
-            use Laltools.Refactor.Subprogram_Signature.Remove_Parameter;
+            use LAL_Refactor.Subprogram_Signature;
+            use LAL_Refactor.Subprogram_Signature.Remove_Parameter;
 
             Target_Subp              : Basic_Decl := No_Basic_Decl;
             Parameter_Indices_Range  : Parameter_Indices_Range_Type;
@@ -2166,9 +2178,9 @@ package body LSP.Ada_Handlers is
 
          --  Move Parameter
          declare
-            use LSP.Ada_Handlers.Refactor_Move_Parameter;
+            use LSP.Ada_Handlers.Refactor.Move_Parameter;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Subprogram_Signature;
+            use LAL_Refactor.Subprogram_Signature;
 
             Target_Subp            : Basic_Decl := No_Basic_Decl;
             Parameter_Index        : Positive;
@@ -2196,9 +2208,9 @@ package body LSP.Ada_Handlers is
 
          --  Change Parameter Mode
          declare
-            use LSP.Ada_Handlers.Refactor_Change_Parameter_Mode;
+            use LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Subprogram_Signature;
+            use LAL_Refactor.Subprogram_Signature;
 
             Target_Subp                   : Basic_Decl := No_Basic_Decl;
             Target_Parameters_Indices     : Parameter_Indices_Range_Type;
@@ -2227,9 +2239,9 @@ package body LSP.Ada_Handlers is
 
          --  Suppress Subprogram
          declare
-            use LSP.Ada_Handlers.Refactor_Suppress_Seperate;
+            use LSP.Ada_Handlers.Refactor.Suppress_Seperate;
             use Libadalang.Analysis;
-            use Laltools.Refactor.Suppress_Separate;
+            use LAL_Refactor.Suppress_Separate;
 
             Target_Separate           : Basic_Decl := No_Basic_Decl;
             Suppress_Separate_Command : Command;
@@ -2404,6 +2416,7 @@ package body LSP.Ada_Handlers is
         Request.params;
       Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
         (Is_Error => True);
+
    begin
       if Params.Is_Unknown or else Params.Custom.Is_Null then
          Response.error :=
@@ -2414,20 +2427,26 @@ package body LSP.Ada_Handlers is
          return Response;
       end if;
 
-      Params.Custom.Unchecked_Get.Execute
-        (Handler => Self,
-         Client  => Self.Server,
-         Error   => Error);
+      declare
+         Command : constant LSP.Commands.Command'Class :=
+           Params.Custom.Unchecked_Get.all;
+      begin
+         Command.Execute
+           (Handler => Self,
+            Client  => Self.Server,
+            Error   => Error);
 
-      if Error.Is_Set then
-         Response.error := Error;
-         return Response;
-      end if;
+         if Error.Is_Set then
+            Response.error := Error;
 
-      --  No particular response in case of success.
-      return (Is_Error => False,
-              error    => (Is_Set => False),
-              others   => <>);
+            return Response;
+         end if;
+
+         --  No particular response in case of success.
+         return (Is_Error => False,
+                 error    => (Is_Set => False),
+                 others   => <>);
+      end;
    end On_Execute_Command_Request;
 
    ----------------------------
@@ -3966,14 +3985,14 @@ package body LSP.Ada_Handlers is
       Document  : constant LSP.Ada_Documents.Document_Access :=
         Get_Open_Document (Self, Value.textDocument.uri);
 
-      Safe_Renamer : Laltools.Refactor.Safe_Rename.Safe_Renamer;
-      Algorithm    : constant Laltools.Refactor.Safe_Rename.
+      Safe_Renamer : LAL_Refactor.Safe_Rename.Safe_Renamer;
+      Algorithm    : constant LAL_Refactor.Safe_Rename.
         Problem_Finder_Algorithm_Kind :=
-          Laltools.Refactor.Safe_Rename.Analyse_AST;
+          LAL_Refactor.Safe_Rename.Analyse_AST;
 
-      Context_Edits : Laltools.Refactor.Refactoring_Edits;
+      Context_Edits : LAL_Refactor.Refactoring_Edits;
       --  Edits found for a particular context
-      All_Edits     : Laltools.Refactor.Refactoring_Edits;
+      All_Edits     : LAL_Refactor.Refactoring_Edits;
       --  When iterating over all contexts (and therefore all projects), it's
       --  possible to encounter the same Text_Edit more than once, so this
       --  stores all the unique edits
@@ -3988,7 +4007,7 @@ package body LSP.Ada_Handlers is
       --  edits to `All_Edits`.
 
       function To_LSP_Diagnostic
-        (Problem         : Laltools.Refactor.Refactoring_Diagnotic'Class;
+        (Problem         : LAL_Refactor.Refactoring_Diagnostic'Class;
          Definition_Node : Defining_Name)
          return LSP.Messages.Diagnostic;
       --  Convert a laltool refactoring diagnostic into a LSP one.
@@ -4001,7 +4020,7 @@ package body LSP.Ada_Handlers is
         (C               : Context_Access;
          Definition_Node : out Defining_Name)
       is
-         use Laltools.Refactor.Safe_Rename;
+         use LAL_Refactor.Safe_Rename;
 
          Node       : constant Ada_Node := C.Get_Node_At (Document, Position);
          Name_Node  : constant Libadalang.Analysis.Name :=
@@ -4045,7 +4064,7 @@ package body LSP.Ada_Handlers is
 
          procedure Process_Comments (Node : Ada_Node)
          is
-            use Laltools.Refactor;
+            use LAL_Refactor;
 
             File_Name : constant File_Name_Type :=
               Node.Unit.Get_Filename;
@@ -4053,7 +4072,7 @@ package body LSP.Ada_Handlers is
             Name      : constant Wide_Wide_String :=
               Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
                 (Laltools.Common.Get_Last_Name (Name_Node));
-            Text_Edit : Laltools.Refactor.Text_Edit;
+            Text_Edit : LAL_Refactor.Text_Edit;
             Span      : Langkit_Support.Slocs.Source_Location_Range;
             Current   : Token_Reference;
             Diff      : Integer;
@@ -4098,10 +4117,10 @@ package body LSP.Ada_Handlers is
                            begin
                               Sloc.Start_Column := Sloc.End_Column;
 
-                              Laltools.Refactor.Safe_Insert
+                              LAL_Refactor.Safe_Insert
                                 (All_Edits.Text_Edits,
                                  File_Name,
-                                 Laltools.Refactor.Text_Edit'
+                                 LAL_Refactor.Text_Edit'
                                    (Sloc,
                                     Ada.Strings.Unbounded."*" (Diff, '-')));
                            end;
@@ -4116,10 +4135,10 @@ package body LSP.Ada_Handlers is
                               Sloc.Start_Column :=
                                 Sloc.End_Column - Column_Number (abs Diff);
 
-                              Laltools.Refactor.Safe_Insert
+                              LAL_Refactor.Safe_Insert
                                 (All_Edits.Text_Edits,
                                  File_Name,
-                                 Laltools.Refactor.Text_Edit'
+                                 LAL_Refactor.Text_Edit'
                                    (Sloc, Null_Unbounded_String));
                            end;
                         end if;
@@ -4161,7 +4180,7 @@ package body LSP.Ada_Handlers is
                         end loop;
 
                         --  Include corrected comment itself
-                        Laltools.Refactor.Safe_Insert
+                        LAL_Refactor.Safe_Insert
                           (All_Edits.Text_Edits,
                            Node.Unit.Get_Filename,
                            Text_Edit);
@@ -4173,7 +4192,7 @@ package body LSP.Ada_Handlers is
                            Current := Next (Current);
                         end loop;
                      else
-                        Laltools.Refactor.Safe_Insert
+                        LAL_Refactor.Safe_Insert
                           (All_Edits.Text_Edits,
                            Node.Unit.Get_Filename,
                            Text_Edit);
@@ -4200,7 +4219,7 @@ package body LSP.Ada_Handlers is
 
          procedure Process_References
          is
-            use Laltools.Refactor;
+            use LAL_Refactor;
 
             Text_Edits_Cursor : Text_Edit_Ordered_Maps.Cursor :=
               Context_Edits.Text_Edits.First;
@@ -4256,7 +4275,7 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         Safe_Renamer := Laltools.Refactor.Safe_Rename.Create_Safe_Renamer
+         Safe_Renamer := LAL_Refactor.Safe_Rename.Create_Safe_Renamer
            (Definition               => Definition,
             New_Name                 =>
               Libadalang.Text.To_Unbounded_Text
@@ -4281,7 +4300,7 @@ package body LSP.Ada_Handlers is
       -----------------------
 
       function To_LSP_Diagnostic
-        (Problem         : Laltools.Refactor.Refactoring_Diagnotic'Class;
+        (Problem         : LAL_Refactor.Refactoring_Diagnostic'Class;
          Definition_Node : Defining_Name)
          return LSP.Messages.Diagnostic
       is
@@ -4436,6 +4455,10 @@ package body LSP.Ada_Handlers is
         "useCompletionSnippets";
       logThreshold                      : constant String :=
         "logThreshold";
+      onTypeFormatting                  : constant String :=
+        "onTypeFormatting";
+      indentOnly                        : constant String :=
+        "indentOnly";
 
       Variables : Scenario_Variable_List;
 
@@ -4573,6 +4596,25 @@ package body LSP.Ada_Handlers is
          end;
       end if;
 
+      if Has_Field (onTypeFormatting) then
+         declare
+            On_Type_Formatting : constant GNATCOLL.JSON.JSON_Value'Class :=
+              Options.Get (onTypeFormatting);
+         begin
+            if On_Type_Formatting.Has_Field (indentOnly) then
+               Self.Options.On_Type_Formatting.Indent_Only :=
+                 On_Type_Formatting.Get (indentOnly);
+            end if;
+
+         exception
+            when Constraint_Error =>
+               Self.Trace.Trace
+                 ("Failed to get " & onTypeFormatting & "." & indentOnly
+                  & " option. Using True as default.");
+               Self.Options.On_Type_Formatting.Indent_Only := True;
+         end;
+      end if;
+
       if Self.Project_File = File
         and then Self.Charset = Charset
         and then Self.Relocate_Build_Tree = Relocate_Build_Tree
@@ -4632,33 +4674,6 @@ package body LSP.Ada_Handlers is
 
    begin
       Self.Change_Configuration (Ada);
-
-      --  Register rangeFormatting provider is the client supports
-      --  dynamic registration for it (and we haven't done it before).
-      if not Self.Range_Formatting_Enabled
-        and then Self.Client.capabilities.textDocument.rangeFormatting.Is_Set
-        and then Self.Client.capabilities.textDocument.rangeFormatting.Value
-          .dynamicRegistration = True
-      then
-         declare
-            Request : LSP.Messages.Client_Requests.RegisterCapability_Request;
-            Registration : LSP.Messages.Registration;
-            Selector     : LSP.Messages.DocumentSelector;
-            Filter       : constant LSP.Messages.DocumentFilter :=
-              (language => (True, "ada"),
-               others   => <>);
-         begin
-            Selector.Append (Filter);
-            Registration.method := "textDocument/rangeFormatting";
-            Registration.registerOptions :=
-              (LSP.Types.Text_Document_Registration_Option,
-               (documentSelector => Selector));
-            Registration.id := "rf";
-            Request.params.registrations.Append (Registration);
-            Self.Server.On_RegisterCapability_Request (Request);
-            Self.Range_Formatting_Enabled := True;
-         end;
-      end if;
 
       --  Dynamically register file operations if supported by the client
       if Dynamically_Register_File_Operations
@@ -6446,22 +6461,23 @@ package body LSP.Ada_Handlers is
       declare
          use LSP.Messages;
 
-         Result   : constant Server_Responses.Formatting_Response :=
-           (if Partial_GNATpp.Is_Active then
-              Range_Format
+         Result : constant Server_Responses.Formatting_Response :=
+           (if Partial_Gnatpp_Trace.Is_Active then
+               Range_Format
                 (Self     => Context.all,
                  Document => Document,
                  Span     => Request.params.span,
                  Options  => Request.params.options)
             else
-              Format
-                (Self     => Context.all,
-                 Document => Document,
-                 Span     => Request.params.span,
-                 Options  => Request.params.options,
-                 Handler  => Self));
+               Format
+                 (Self     => Context.all,
+                  Document => Document,
+                  Span     => Request.params.span,
+                  Options  => Request.params.options,
+                  Handler  => Self));
          Response : Server_Responses.Range_Formatting_Response
-           (Is_Error => Result.Is_Error);
+                      (Is_Error => Result.Is_Error);
+
       begin
          if not Result.Is_Error then
             Response.result := Result.result;
@@ -6472,6 +6488,279 @@ package body LSP.Ada_Handlers is
          return Response;
       end;
    end On_Range_Formatting_Request;
+
+   -----------------------------------
+   -- On_On_Type_Formatting_Request --
+   -----------------------------------
+
+   overriding function On_On_Type_Formatting_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+      return LSP.Messages.Server_Responses.On_Type_Formatting_Response
+   is
+      use type VSS.Strings.Virtual_String;
+
+      Context        : constant Context_Access :=
+        Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
+      Document       : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Request.params.textDocument.uri);
+      Has_Dianostics : constant Boolean :=
+        Document.all.Has_Diagnostics (Context.all);
+
+      Indentation : constant Natural :=
+        (declare
+           Indentation_First_Guess : constant Natural :=
+             Document.all.Get_Indentation
+               (Context.all, Request.params.position.line);
+         begin
+           (if Indentation_First_Guess >=
+                 Natural (Request.params.position.character)
+            then Indentation_First_Guess -
+                   Natural (Request.params.position.character)
+            else 0));
+      --  Do not add any indentation if the current cursor position is greater
+      --  than the calculated one.
+
+      Response :
+        LSP.Messages.Server_Responses.On_Type_Formatting_Response
+          (Is_Error => False);
+
+      procedure Handle_Document_With_Diagnostics;
+      --  Simply adds indentation to the new line
+
+      procedure Handle_Document_Without_Diagnostics;
+      --  Adds indentation to the new line and formats the previous node
+      --  if configured to do so and taking into account where the cursor
+      --  is.
+
+      --------------------------------------
+      -- Handle_Document_With_Diagnostics --
+      --------------------------------------
+
+      procedure Handle_Document_With_Diagnostics is
+         use VSS.Strings.Conversions;
+
+         Result :
+           LSP.Messages.Server_Responses.Formatting_Response
+             (Is_Error => False);
+
+      begin
+         Result.result.Append
+           (LSP.Messages.TextEdit'
+              (span    =>
+                 LSP.Messages.Span'
+                   (first => Request.params.position,
+                    last  => Request.params.position),
+                 newText => To_Virtual_String (Indentation * " ")));
+
+         Response.result := Result.result;
+      end Handle_Document_With_Diagnostics;
+
+      -----------------------------------------
+      -- Handle_Document_Without_Diagnostics --
+      -----------------------------------------
+
+      procedure Handle_Document_Without_Diagnostics is
+         use Laltools.Partial_GNATPP;
+         use VSS.Strings.Conversions;
+
+         use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+         function Is_Between
+           (Position : LSP.Messages.Position;
+            Span     : LSP.Messages.Span)
+            return Boolean;
+         --  Checks if Position is between Span
+
+         ----------------
+         -- Is_Between --
+         ----------------
+
+         function Is_Between
+           (Position : LSP.Messages.Position;
+            Span     : LSP.Messages.Span)
+            return Boolean
+         is ((Position.line = Span.first.line
+              and then Position.character >= Span.first.character)
+             or else (Position.line = Span.last.line
+                      and then Position.character <= Span.last.character)
+             or else (Position.line > Span.first.line
+                      and then Position.line < Span.last.line));
+
+         Token                    : constant Token_Reference :=
+           Document.all.Get_Token_At (Context.all, Request.params.position);
+         Previous_NWNC_Token      :
+           constant Libadalang.Common.Token_Reference :=
+             Previous_Non_Whitespace_Non_Comment_Token (Token);
+         Previous_NWNC_Token_Span : constant LSP.Messages.Span :=
+           Document.all.To_LSP_Range (Sloc_Range (Data (Previous_NWNC_Token)));
+
+         Formatting_Region : constant Formatting_Region_Type :=
+           Document.all.Get_Formatting_Region
+             (Context.all, Previous_NWNC_Token_Span.first);
+         Formatting_Span   : constant LSP.Messages.Span :=
+           Document.all.To_LSP_Range
+             (Langkit_Support.Slocs.Make_Range
+                (Langkit_Support.Slocs.Start_Sloc
+                   (Sloc_Range (Data (Formatting_Region.Start_Token))),
+                 Langkit_Support.Slocs.Start_Sloc
+                   (Sloc_Range (Data (Formatting_Region.End_Token)))));
+         --  This is the span that would be formatted based on the cursor
+         --  position.
+
+      begin
+         if Self.Options.On_Type_Formatting.Indent_Only then
+            Self.Trace.Trace
+              ("'onTypeFormatting' request configured to indent only");
+            declare
+               Result :
+                 LSP.Messages.Server_Responses.Formatting_Response
+                   (Is_Error => False);
+
+            begin
+               Result.result.Append
+                 (LSP.Messages.TextEdit'
+                    (span    =>
+                       LSP.Messages.Span'
+                         (first => Request.params.position,
+                          last  => Request.params.position),
+                     newText => To_Virtual_String (Indentation * " ")));
+
+               Response.result := Result.result;
+            end;
+
+         else
+            --  onTypeFormatting is configured to also format the previous
+            --  node, however, we can only do this if the cursor is not
+            --  between the Formatting_Span.
+
+            if Is_Between (Request.params.position, Formatting_Span) then
+               Self.Trace.Trace
+                 ("Current position is within the Formatting_Span");
+               Self.Trace.Trace ("Adding indentation only");
+
+               declare
+                  Result :
+                  LSP.Messages.Server_Responses.Formatting_Response
+                    (Is_Error => False);
+               begin
+                  Result.result.Append
+                    (LSP.Messages.TextEdit'
+                       (span    =>
+                            LSP.Messages.Span'
+                          (first => Request.params.position,
+                           last  => Request.params.position),
+                        newText => To_Virtual_String (Indentation * " ")));
+
+                  Response.result := Result.result;
+               end;
+
+            else
+               Self.Trace.Trace
+                 ("Formatting previous node and adding indentation");
+
+               declare
+                  Result              :
+                    LSP.Messages.Server_Responses.Formatting_Response :=
+                      Range_Format
+                        (Self     => Context.all,
+                         Document => Document,
+                         Span     => Previous_NWNC_Token_Span,
+                         Options  => Request.params.options);
+               begin
+                  if Result.Is_Error then
+                     declare
+                        Result :
+                          LSP.Messages.Server_Responses.Formatting_Response
+                            (Is_Error => False);
+                     begin
+                        Result.result.Append
+                          (LSP.Messages.TextEdit'
+                             (span    =>
+                                LSP.Messages.Span'
+                                  (first => Request.params.position,
+                                   last  => Request.params.position),
+                              newText =>
+                                To_Virtual_String (Indentation * " ")));
+
+                        Response.result := Result.result;
+                     end;
+
+                     Self.Trace.Trace
+                       ("The 'onTypeFormatting' has failed because of a "
+                        & "Range_Format error");
+
+                  else
+                     --  Result contains the Range_Format result.
+                     --  Add indentation to the next line.
+                     Result.result.Append
+                       (LSP.Messages.TextEdit'
+                          (span    =>
+                             LSP.Messages.Span'
+                               (first => Request.params.position,
+                                last  => Request.params.position),
+                           newText => To_Virtual_String (Indentation * " ")));
+
+                     Response.result := Result.result;
+                  end if;
+               end;
+            end if;
+         end if;
+      end Handle_Document_Without_Diagnostics;
+
+   begin
+      Self.Trace.Trace ("On 'onTypeFormatting' Request");
+
+      Self.Trace.Trace
+        ("uri       : "
+         & LSP.Types.To_UTF_8_String (Request.params.textDocument.uri));
+      Self.Trace.Trace
+        ("ch        : "
+         & VSS.Strings.Conversions.To_UTF_8_String (Request.params.ch));
+      Self.Trace.Trace
+        ("line      : " & Request.params.position.line'Image);
+      Self.Trace.Trace
+        ("character : " & Request.params.position.character'Image);
+
+      if not On_Type_Formatting_Trace.Is_Active then
+         Self.Trace.Trace
+           ("'onTypeFormatting' is not active, yet, ALS received a request - "
+            & "exiting earlier");
+
+         return Response;
+      end if;
+
+      if Request.params.ch /=
+        Self.On_Type_Formatting_Settings.First_Trigger_Character
+      then
+         Self.Trace.Trace
+           ("Trigger character ch is not a new line - exiting earlier");
+
+         return Response;
+      end if;
+
+      if Has_Dianostics then
+         --  This is the unhappy path: when this Document has diagnostics.
+         --  Get the previous node (based on the previous non whitespace
+         --  token), compute the indentation and format it (if configured to
+         --  to so).
+
+         Self.Trace.Trace ("Document has diagnostics");
+         Handle_Document_With_Diagnostics;
+
+      else
+         --  This is the happy path: when this Document does not have any
+         --  diagnostics.
+         --  Get the previous node (based on the previous non whitespace
+         --  token) and compute the indentation.
+
+         Self.Trace.Trace ("Document does not have any diagnostics");
+         Handle_Document_Without_Diagnostics;
+      end if;
+
+      Self.Trace.Trace ("Exiting 'onTypeFormatting' Request");
+      return Response;
+   end On_On_Type_Formatting_Request;
 
    ------------------
    -- Handle_Error --
@@ -6503,8 +6792,11 @@ package body LSP.Ada_Handlers is
    -------------------------
 
    procedure Publish_Diagnostics
-     (Self     : access Message_Handler'Class;
-      Document : not null LSP.Ada_Documents.Document_Access)
+     (Self              : access Message_Handler'Class;
+      Document          : not null LSP.Ada_Documents.Document_Access;
+      Other_Diagnostics : LSP.Messages.Diagnostic_Vector :=
+        LSP.Messages.Diagnostic_Vectors.Empty;
+      Force             : Boolean := False)
    is
       Changed : Boolean;
       Diag    : LSP.Messages.PublishDiagnosticsParams;
@@ -6513,9 +6805,12 @@ package body LSP.Ada_Handlers is
          Document.Get_Errors
            (Context => Self.Contexts.Get_Best_Context (Document.URI).all,
             Changed => Changed,
-            Errors  => Diag.diagnostics);
+            Errors  => Diag.diagnostics,
+            Force   => Force);
 
-         if Changed then
+         Diag.diagnostics.Append_Vector (Other_Diagnostics);
+
+         if Changed or else not Other_Diagnostics.Is_Empty then
             Diag.uri := Document.URI;
             Self.Server.On_Publish_Diagnostics (Diag);
          end if;
@@ -6760,6 +7055,56 @@ package body LSP.Ada_Handlers is
             Response.result := (Is_Set => True, Value => Result);
       end return;
    end On_GLS_Executables_Request;
+
+   --------------------------------
+   -- On_GLS_ObjectDir_Request --
+   --------------------------------
+
+   overriding function On_GLS_Object_Dir_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Object_Dir_Request)
+      return LSP.Messages.Server_Responses.GLS_Object_Dir_Response
+   is
+      use LSP.Messages.Server_Responses;
+      use VSS.Strings;
+      Result : Virtual_String;
+      Element : GPR2.Project.View.Object;
+   begin
+      if Self.Project_Tree.Is_Defined
+      then
+         Element := Self.Project_Tree.Root_Project;
+         Result := VSS.Strings.Conversions.To_Virtual_String
+                (Element.Object_Directory.Value);
+      end if;
+      return Response : GLS_Object_Dir_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => Result);
+      end return;
+   end On_GLS_Object_Dir_Request;
+
+   --------------------------------
+   -- On_GLS_Project_File_Request --
+   --------------------------------
+
+   overriding function On_GLS_Project_File_Request
+     (Self    : access Message_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Project_File_Request)
+      return LSP.Messages.Server_Responses.GLS_Project_File_Response
+   is
+      use LSP.Messages.Server_Responses;
+      use VSS.Strings;
+      Result : Virtual_String;
+      Element : GPR2.Project.View.Object;
+   begin
+      if Self.Project_Tree.Is_Defined
+      then
+         Element := Self.Project_Tree.Root_Project;
+         Result := VSS.Strings.Conversions.To_Virtual_String
+           (Element.Path_Name.Value);
+      end if;
+      return Response : GLS_Project_File_Response (Is_Error => False) do
+            Response.result := (Is_Set => True, Value => Result);
+      end return;
+   end On_GLS_Project_File_Request;
 
    -----------
    -- Parse --

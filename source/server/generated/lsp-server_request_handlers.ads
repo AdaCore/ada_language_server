@@ -154,6 +154,12 @@ package LSP.Server_Request_Handlers is
       return LSP.Messages.Server_Responses.Range_Formatting_Response
         is abstract;
 
+   function On_On_Type_Formatting_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+      return LSP.Messages.Server_Responses.On_Type_Formatting_Response
+        is abstract;
+
    function On_Selection_Range_Request
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.Selection_Range_Request)
@@ -254,6 +260,18 @@ package LSP.Server_Request_Handlers is
      (Self    : access Server_Request_Handler;
       Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
       return LSP.Messages.Server_Responses.GLS_Executables_Response
+        is abstract;
+
+   function On_GLS_Object_Dir_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Object_Dir_Request)
+      return LSP.Messages.Server_Responses.GLS_Object_Dir_Response
+        is abstract;
+
+   function On_GLS_Project_File_Request
+     (Self    : access Server_Request_Handler;
+      Request : LSP.Messages.Server_Requests.GLS_Project_File_Request)
+      return LSP.Messages.Server_Responses.GLS_Project_File_Response
         is abstract;
 
    procedure Handle_Error

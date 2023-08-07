@@ -35,7 +35,6 @@ with Libadalang.Sources;
 with Libadalang.Iterators;
 
 with Laltools.Common;
-with Laltools.Partial_GNATPP;
 
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Line_Iterators;
@@ -919,6 +918,22 @@ package body LSP.Ada_Documents is
       end;
    end Diff_Symbols;
 
+   ---------------------------
+   -- Get_Formatting_Region --
+   ---------------------------
+
+   function Get_Formatting_Region
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Messages.Position)
+      return Laltools.Partial_GNATPP.Formatting_Region_Type
+   is (Laltools.Partial_GNATPP.Get_Formatting_Region
+        (Unit        => Self.Unit (Context),
+         Input_Range =>
+           Langkit_Support.Slocs.Make_Range
+             (Self.Get_Source_Location (Position),
+              Self.Get_Source_Location (Position))));
+
    ----------------
    -- Formatting --
    ----------------
@@ -1327,13 +1342,14 @@ package body LSP.Ada_Documents is
      (Self    : in out Document;
       Context : LSP.Ada_Contexts.Context;
       Changed : out Boolean;
-      Errors  : out LSP.Messages.Diagnostic_Vector) is
+      Errors  : out LSP.Messages.Diagnostic_Vector;
+      Force   : Boolean := False) is
    begin
       Errors.Clear;
       Changed := (for some Source of Self.Diagnostic_Sources =>
                     Source.Has_New_Diagnostic (Context));
 
-      if Changed then
+      if Changed or else Force then
          for Source of Self.Diagnostic_Sources loop
             Source.Get_Diagnostic (Context, Errors);
          end loop;
@@ -1627,6 +1643,24 @@ package body LSP.Ada_Documents is
          return Self.Line_Terminator;
       end if;
    end Line_Terminator;
+
+   ---------------------
+   -- Get_Indentation --
+   ---------------------
+
+   function Get_Indentation
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Line     : LSP.Types.Line_Number)
+      return Natural
+   is
+      Unit        : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.Unit (Context);
+      Line_Number : constant Langkit_Support.Slocs.Line_Number :=
+        Self.Get_Source_Location (LSP.Messages.Position'(Line, 1)).Line;
+   begin
+      return Laltools.Partial_GNATPP.Estimate_Indentation (Unit, Line_Number);
+   end Get_Indentation;
 
    -----------------
    -- Get_Node_At --

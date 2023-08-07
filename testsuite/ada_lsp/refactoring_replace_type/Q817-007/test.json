@@ -280,7 +280,7 @@
                "id": 3,
                "method": "workspace/applyEdit",
                "params": {
-                  "label": "als-refactor-replace-type",
+                  "label": "Replace Type",
                   "edit": {
                      "documentChanges": [
                         {

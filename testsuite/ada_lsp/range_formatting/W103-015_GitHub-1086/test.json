@@ -18,20 +18,17 @@
                 "id": 1,
                 "method": "initialize",
                 "params": {
-                    "rootUri": "$URI{.}"
-                }
-            },
-            "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "result": {
-                        "capabilities": {
-                            "documentFormattingProvider": true
+                    "rootUri": "$URI{.}",
+                    "capabilities": {
+                        "textDocument": {
+                            "rangeFormatting": {
+                                "dynamicRegistration": true
+                            }
                         }
                     }
                 }
-            ]
+            },
+            "wait": []
         }
     },
     {
@@ -40,6 +37,31 @@
                 "jsonrpc": "2.0",
                 "method": "initialized",
                 "params": {}
+            },
+            "wait": []
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "method": "workspace/didChangeConfiguration",
+                "params": {
+                    "settings": {
+                        "ada": {
+                            "trace": {
+                                "server": "off"
+                            },
+                            "projectFile": "default.gpr",
+                            "scenarioVariables": {},
+                            "defaultCharset": "iso-8859-1",
+                            "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                            "enableDiagnostics": true,
+                            "useCompletionSnippets": false,
+                            "renameInComments": false
+                        }
+                    }
+                }
             },
             "wait": []
         }

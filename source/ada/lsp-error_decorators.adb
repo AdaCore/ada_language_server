@@ -692,6 +692,22 @@ package body LSP.Error_Decorators is
       return LSP.Messages.Server_Responses.Range_Formatting_Response
         renames Range_Formatting_Request;
 
+   -----------------------------------
+   -- On_On_Type_Formatting_Request --
+   -----------------------------------
+
+   function On_Type_Formatting_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.On_Type_Formatting_Request,
+      Response   => LSP.Messages.Server_Responses.On_Type_Formatting_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_On_Type_Formatting_Request);
+
+   overriding function On_On_Type_Formatting_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
+      return LSP.Messages.Server_Responses.On_Type_Formatting_Response
+        renames On_Type_Formatting_Request;
+
    ---------------------------------
    -- On_ALS_Check_Syntax_Request --
    ---------------------------------
@@ -730,6 +746,38 @@ package body LSP.Error_Decorators is
      (Self    : access Error_Decorator;
       Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
       return LSP.Messages.Server_Responses.GLS_Executables_Response
-        renames GLS_Executables_Request;
+      renames GLS_Executables_Request;
+
+   ---------------------------------
+   -- GLS_Object_Dir_Request --
+   ---------------------------------
+
+   function GLS_Object_Dir_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.GLS_Object_Dir_Request,
+      Response   => LSP.Messages.Server_Responses.GLS_Object_Dir_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_GLS_Object_Dir_Request);
+
+   overriding function On_GLS_Object_Dir_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.GLS_Object_Dir_Request)
+      return LSP.Messages.Server_Responses.GLS_Object_Dir_Response
+      renames GLS_Object_Dir_Request;
+
+   ---------------------------------
+   -- GLS_Project_File_Request --
+   ---------------------------------
+
+   function GLS_Project_File_Request is new Generic_Request
+     (Request    => LSP.Messages.Server_Requests.GLS_Project_File_Request,
+      Response   => LSP.Messages.Server_Responses.GLS_Project_File_Response,
+      Handler    => LSP.Server_Request_Handlers.Server_Request_Handler,
+      On_Request => LSP.Server_Request_Handlers.On_GLS_Project_File_Request);
+
+   overriding function On_GLS_Project_File_Request
+     (Self    : access Error_Decorator;
+      Request : LSP.Messages.Server_Requests.GLS_Project_File_Request)
+      return LSP.Messages.Server_Responses.GLS_Project_File_Response
+        renames GLS_Project_File_Request;
 
 end LSP.Error_Decorators;

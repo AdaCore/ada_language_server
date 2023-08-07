@@ -17,6 +17,7 @@
 
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
+import { getProjectFile } from './helpers';
 
 export type GlsMainResult = {
     mains: string[];
@@ -28,7 +29,7 @@ export type GlsExecutableResult = {
 
 export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
     private readonly client: LanguageClient;
-    public static gprTaskType = 'GPR Tasks';
+    public static gprTaskType = 'gpr';
     glsTasks: vscode.Task[] | undefined;
 
     constructor(client: LanguageClient) {
@@ -37,100 +38,142 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public async provideTasks(): Promise<vscode.Task[] | undefined> {
+    async provideTasks(): Promise<vscode.Task[] | undefined> {
         if (!this.glsTasks) {
-            const result: GlsMainResult = await this.client.sendRequest('$/glsMains');
-            this.glsTasks = getMainBuildTasks(result.mains);
+            const project_file = await getProjectFile(this.client);
+            const mains_result: GlsMainResult = await this.client.sendRequest('$/glsMains');
+            this.glsTasks = getBuildTasks(project_file, mains_result.mains);
             const execs: GlsExecutableResult = await this.client.sendRequest('$/glsExecutables');
-            this.glsTasks = this.glsTasks.concat(getExecutableRunTasks(execs.executables));
+            this.glsTasks = this.glsTasks.concat(
+                getBuildAndRunTasks(project_file, mains_result.mains, execs.executables)
+            );
         }
         return this.glsTasks;
     }
 
-    resolveTask(
+    async resolveTask(
         task: vscode.Task,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _token: vscode.CancellationToken
-    ): vscode.ProviderResult<vscode.Task> {
+    ): Promise<vscode.Task | undefined> {
         const definition = task.definition;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const projectFile: string = definition.projectFile;
         // Make sure that this looks like a execute task by checking that there is a projectFile.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const executableFile: string = definition.executable;
-        if (projectFile || projectFile === '') {
+        if (definition.type == GprTaskProvider.gprTaskType) {
             //  Refresh gprbuild command line
-            const args = getMainBuildArgs(projectFile, executableFile);
-            const shell = new vscode.ShellExecution('gprbuild', args);
-            const title = `Build Executable for: ${executableFile}`;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const projectFile: string =
+                definition.projectFile != undefined
+                    ? definition.projectFile
+                    : await getProjectFile(this.client);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            const args = getMainBuildArgs(projectFile, definition.main);
+            let shell: vscode.ShellExecution;
+            let title: string;
+            if (definition.executable != undefined) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                args.push('&&', 'clear', '&&', definition.executable);
+                shell = new vscode.ShellExecution(fullCommand('gprbuild', args));
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                title = `Build And Run Main: ${definition.main}`;
+            } else {
+                shell = new vscode.ShellExecution(fullCommand('gprbuild', args));
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                title = `Build Main: ${definition.main}`;
+            }
             // resolveTask requires that the same definition object be used.
             return new vscode.Task(
                 definition,
                 vscode.TaskScope.Workspace,
                 title,
-                'ada',
+                'gpr',
                 shell,
-                '$ada'
+                '$gpr'
             );
         }
         return undefined;
     }
 }
 
-const getMainBuildTasks = (mainFiles: string[]): vscode.Task[] => {
+/**
+ * Generates the build and run tasks for mains
+ * @param projectFile - the project file path
+ * @param mainFiles - a list of main files paths
+ * @param execs - a list of executable files paths
+ * @returns a list of tasks
+ */
+function getBuildAndRunTasks(
+    projectFile: string,
+    mainFiles: string[],
+    execs: string[]
+): vscode.Task[] {
     const result: vscode.Task[] = [];
     //  build current project file
     for (let i = 0; i < mainFiles.length; i++) {
         const kind = {
             type: GprTaskProvider.gprTaskType,
-            projectFile: '${config:ada.projectFile}',
-            mainFile: vscode.workspace.asRelativePath(mainFiles[i]),
+            projectFile: projectFile,
+            main: vscode.workspace.asRelativePath(mainFiles[i]),
+            executable: vscode.workspace.asRelativePath(execs[i]),
         };
-        const args = getMainBuildArgs(kind.projectFile, kind.mainFile);
-        const shell = new vscode.ShellExecution('gprbuild', args);
+        const args = getMainBuildArgs(kind.projectFile, kind.main);
+        args.push('&&', 'clear', '&&', kind.executable);
+        const shell = new vscode.ShellExecution(fullCommand('gprbuild', args));
         const filename = mainFiles[i].replace(/^.*[\\/]/, '');
         const task = new vscode.Task(
             kind,
             vscode.TaskScope.Workspace,
-            'Build Executable for File ' + filename,
-            'ada',
+            'Build And Run Main: ' + filename,
+            'gpr',
             shell,
-            '$ada'
+            '$gpr'
         );
         task.group = vscode.TaskGroup.Build;
         result.push(task);
     }
 
     return result;
-};
+}
 
-const getExecutableRunTasks = (executables: string[]): vscode.Task[] => {
+/**
+ * Generates the build tasks for mains
+ * @param projectFile - the project file path
+ * @param mainFiles - a list of main files paths
+ * @returns a list of tasks
+ */
+function getBuildTasks(projectFile: string, mainFiles: string[]): vscode.Task[] {
     const result: vscode.Task[] = [];
     //  build current project file
-    for (let i = 0; i < executables.length; i++) {
+    for (let i = 0; i < mainFiles.length; i++) {
         const kind = {
             type: GprTaskProvider.gprTaskType,
-            projectFile: '${config:ada.projectFile}',
-            executable: vscode.workspace.asRelativePath(executables[i]),
+            projectFile: projectFile,
+            main: vscode.workspace.asRelativePath(mainFiles[i]),
         };
-        const filename = executables[i].replace(/^.*[\\/]/, '');
-        const shell = new vscode.ShellExecution('./' + kind.executable, []);
+        const filename = mainFiles[i].replace(/^.*[\\/]/, '');
+        const args = getMainBuildArgs(kind.projectFile, kind.main);
+        const shell = new vscode.ShellExecution(fullCommand('gprbuild', args));
         const task = new vscode.Task(
             kind,
             vscode.TaskScope.Workspace,
-            'Run Executable: ' + filename,
-            'ada',
+            'Build Main: ' + filename,
+            'gpr',
             shell,
-            '$ada'
+            '$gpr'
         );
         task.group = vscode.TaskGroup.Build;
         result.push(task);
     }
 
     return result;
-};
+}
 
-const getMainBuildArgs = (projectFile?: string, mainFile?: string): string[] => {
+/**
+ * Adds relative arguments for the target build command
+ * @param projectFile - the project file path
+ * @param mainFile - the main file path
+ * @returns a list of arguments
+ */
+function getMainBuildArgs(projectFile?: string, mainFile?: string): string[] {
     const vars: string[][] = Object.entries(
         vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
     );
@@ -148,4 +191,18 @@ const getMainBuildArgs = (projectFile?: string, mainFile?: string): string[] => 
     args.unshift('-P');
     args.unshift('-d');
     return args;
-};
+}
+
+/**
+ * Return the command while ignoring unecessary spaces
+ * @param command - the command to execute
+ * @param args - the list of arguments
+ * @returns a string
+ */
+function fullCommand(command: string, args: string[]) {
+    let cmd: string = command + ' ';
+    for (const arg of args) {
+        cmd += arg.replace(/^\s+|\s+$/g, '') + ' ';
+    }
+    return cmd;
+}

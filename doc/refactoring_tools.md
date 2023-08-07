@@ -38,7 +38,7 @@
 * The new parameter type is infered when only the name is provided.
 * The new parameter location is infered from the cursor position.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-subprogram_signature.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/add_parameter/)
 
@@ -50,7 +50,7 @@
 * All subprogram specs are updated.
 * Actual parameter is removed from the subprogram calls.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature-remove_parameter.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-subprogram_signature-remove_parameter.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/remove_parameter)
 
@@ -62,7 +62,7 @@
 * All subprogram specs are updated.
 * Actual parameter are moved in the subprogram calls when needed.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-subprogram_signature.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/move_parameter)
 
@@ -73,7 +73,7 @@
 * Changes the parameter mode within a subprogram spec.
 * All subprogram specs are updated.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-subprogram_signature.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/change_parameter_mode)
 
@@ -85,7 +85,7 @@
 * Only subtype indications with correct syntax are accepted.
 * All subprogram specs are updated.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature-change_parameters_type.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-subprogram_signature-change_parameters_type.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/change_parameter_type)
 
@@ -97,7 +97,7 @@
 * Only default value expressions with correct syntax are accepted.
 * All subprogram specs are updated.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-subprogram_signature-change_parameters_defualt_value.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-subprogram_signature-change_parameters_default_value.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/change_parameter_default_value)
 
@@ -110,7 +110,7 @@
 * Local declarations of for loop and exception handlers are passed to the extracted subprogram as new parameters.
 * Extract function is available is the last statment is either an assignment or a return statment.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-extract_subprogram.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-extract_subprogram.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/extract_subprogram)
 
@@ -121,7 +121,7 @@
 * Moves a declaration and its dependent declarations to their parent declarative part.
 * When pulling up a subprogram, object declaration are not pulled up. Instead, they're added as formal parameters to the subprogram specification and as actual parameters to the subprogram calls.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-pull_up_declaration.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-pull_up_declaration.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/pull_up_declaration)
 
@@ -133,7 +133,7 @@
 * Use clauses in the separate subunit are moved to the subprogram's declarative part to avoid namespace collisions.
 * .bak is added to the separate subunit source filename.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-suppress_separate.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-suppress_separate.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/suppress_separate)
 
@@ -145,7 +145,7 @@
 * All references of the object declaration or expression are replaced by the introduced parameter.
 * The user must mannually fix the calls to the subprogram that was refactored by addings the corresponding actual parameter.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-introduce_parameter.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-introduce_parameter.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/introduce_parameter)
 
@@ -155,7 +155,7 @@
 
 * Replaces a type in the intire project by another type provided by the user.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-replace_type.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-replace_type.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/replace_type)
 
@@ -165,7 +165,7 @@
 
 * For an unresolved name, suggests all packages that can be imported and prefix to be added so that that the name gets resolved.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor_imports.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-refactor_imports.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/auto_import)
 
@@ -175,7 +175,7 @@
 
 * Sorts all with and use clauses and their associated pragmas.
 
-[Source](https://github.com/AdaCore/libadalang-tools/blob/master/src/laltools-refactor-sort_dependencies.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-sort_dependencies.ads)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/sort_dependencies)
 
