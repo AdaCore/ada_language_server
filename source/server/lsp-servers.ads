@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2022, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,36 +21,30 @@
 --  that actually implements message processing.
 
 with Ada.Streams;
-with Ada.Exceptions;
 
 with LSP.Client_Message_Receivers;
-with LSP.Client_Notification_Receivers;
-with LSP.Message_Loggers;
-with LSP.Messages.Client_Requests;
-with LSP.Messages;
-with LSP.Server_Backends;
-with LSP.Server_Notification_Receivers;
-with LSP.Server_Request_Handlers;
-with LSP.Types;
+with LSP.Server_Message_Visitors;
 
-with GNATCOLL.Traces;
+with LSP.Server_Messages;
+private with LSP.Client_Message_Factories;
+private with LSP.Client_Messages;
 
-private with Ada.Strings.Unbounded;
-private with Ada.Containers.Hashed_Maps;
 private with Ada.Containers.Synchronized_Queue_Interfaces;
 private with Ada.Containers.Unbounded_Synchronized_Queues;
 private with GNAT.Semaphores;
 private with System;
-private with LSP.Messages.Server_Notifications;
-private with LSP.Messages.Server_Requests;
+private with LSP.Server_Notifications;
+private with LSP.Server_Requests;
+private with VSS.Stream_Element_Vectors;
 
 package LSP.Servers is
 
    type Server is limited
-     new LSP.Client_Message_Receivers.Client_Message_Receiver with private;
+     new LSP.Client_Message_Receivers.Client_Message_Receiver
+       with private;
    --  The representation of LSP server.
-   --  Use methods of Client_Message_Receiver to send notifications and
-   --  requests to the LSP client.
+   --  Use methods of Client_Message_Receiver to send notifications, requests
+   --  and responses to the LSP client.
 
    procedure Initialize
      (Self   : in out Server;
@@ -60,20 +54,13 @@ package LSP.Servers is
    procedure Finalize (Self : in out Server);
    --  Clean up memory, file handles, tasks, etc.
 
-   type Uncaught_Exception_Handler is access
-     procedure (E : Ada.Exceptions.Exception_Occurrence);
+   type Server_Message_Visitor_Access is access all
+     LSP.Server_Message_Visitors.Server_Message_Visitor'Class
+       with Storage_Size => 0;
 
    procedure Run
      (Self         : in out Server;
-      Request      : not null
-        LSP.Server_Request_Handlers.Server_Request_Handler_Access;
-      Notification : not null
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
-      Server       : LSP.Server_Backends.Server_Backend_Access;
-      On_Error     : not null Uncaught_Exception_Handler;
-      Server_Trace : GNATCOLL.Traces.Trace_Handle;
-      In_Trace     : GNATCOLL.Traces.Trace_Handle;
-      Out_Trace    : GNATCOLL.Traces.Trace_Handle);
+      Handler      : not null Server_Message_Visitor_Access);
    --  Run the server using given Request and Notification handler.
    --  Server_Trace - main trace for the LSP.
    --  In_Trace and Out_Trace - traces that logs all input & output for
@@ -82,72 +69,16 @@ package LSP.Servers is
    procedure Stop (Self : in out Server);
    --  Ask server to stop
 
-   type Message_Access is access all LSP.Messages.Message'Class;
+   subtype Server_Message_Access is LSP.Server_Messages.Server_Message_Access;
+   --  Message send by a client to a server
 
-   function Look_Ahead_Message (Self : Server) return Message_Access;
-   --  Get next nessage in the queue if any. Only request/notification
+   function Look_Ahead_Message (Self : Server) return Server_Message_Access;
+   --  Get next message in the queue if any. Only request/notification
    --  handlers are allowed to call this function.
 
    function Input_Queue_Length (Self : Server) return Natural;
    --  Return number of messages pending in Input_Queue.
    --  For debug purposes only!
-
-   overriding procedure On_Show_Message
-     (Self   : access Server;
-      Params : LSP.Messages.ShowMessageParams);
-
-   overriding procedure On_Log_Message
-     (Self   : access Server;
-      Params : LSP.Messages.LogMessageParams);
-
-   overriding procedure On_Publish_Diagnostics
-     (Self   : access Server;
-      Params : LSP.Messages.PublishDiagnosticsParams);
-
-   overriding function Get_Progress_Type
-     (Self  : access Server;
-      Token : LSP.Types.LSP_Number_Or_String)
-      return LSP.Client_Notification_Receivers.Progress_Value_Kind;
-
-   overriding procedure On_Progress
-     (Self   : access Server;
-      Params : LSP.Messages.Progress_Params);
-
-   overriding procedure On_Progress_SymbolInformation_Vector
-     (Self   : access Server;
-      Params : LSP.Messages.Progress_SymbolInformation_Vector);
-
-   overriding procedure On_ShowMessage_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.ShowMessage_Request);
-
-   overriding procedure On_ShowDocument_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.ShowDocument_Request);
-
-   overriding procedure On_Workspace_Apply_Edit_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request);
-
-   overriding procedure On_Workspace_Configuration_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.Workspace_Configuration_Request);
-
-   overriding procedure On_WorkDoneProgress_Create_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request);
-
-   overriding procedure On_Workspace_Folders_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.Workspace_Folders_Request);
-
-   overriding procedure On_RegisterCapability_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.RegisterCapability_Request);
-
-   overriding procedure On_UnregisterCapability_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.UnregisterCapability_Request);
 
    function Has_Pending_Work (Self : Server) return Boolean;
    --  Return True if the server has work in the queue, other than the
@@ -188,28 +119,30 @@ private
    type Stream_Access is access all Ada.Streams.Root_Stream_Type'Class;
 
    type Request_Access is
-     access all LSP.Messages.Server_Requests.Server_Request'Class;
+     access all LSP.Server_Requests.Server_Request'Class;
 
    type Notification_Access is
-     access all LSP.Messages.Server_Notifications.Server_Notification'Class;
+     access all LSP.Server_Notifications.Server_Notification'Class;
 
-   package Request_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => LSP.Types.LSP_Number_Or_String,  --  Request id
-      Element_Type    => Request_Access,
-      Hash            => LSP.Types.Hash,
-      Equivalent_Keys => LSP.Types."=",
-      "="             => "=");
+   package Input_Message_Queue_Interface is new
+     Ada.Containers.Synchronized_Queue_Interfaces (Server_Message_Access);
 
-   package Message_Queue_Interface is new
-     Ada.Containers.Synchronized_Queue_Interfaces
-       (Message_Access);
-
-   package Message_Queues is new
+   package Input_Message_Queues is new
      Ada.Containers.Unbounded_Synchronized_Queues
-       (Message_Queue_Interface);
+       (Input_Message_Queue_Interface);
 
-   type Input_Queue_Access is access Message_Queues.Queue;
-   type Output_Queue_Access is access Message_Queues.Queue;
+   type Input_Queue_Access is access Input_Message_Queues.Queue;
+
+   subtype Client_Message_Access is LSP.Client_Messages.Client_Message_Access;
+   --  Message send by a server to a client
+
+   package Output_Message_Queue_Interface is new
+     Ada.Containers.Synchronized_Queue_Interfaces (Client_Message_Access);
+
+   package Output_Message_Queues is new
+     Ada.Containers.Unbounded_Synchronized_Queues
+       (Output_Message_Queue_Interface);
+   type Output_Queue_Access is access Output_Message_Queues.Queue;
 
    Processing_Task_Stack_Size : constant := 32 * 1_024 * 1_024;
    --  Size of the stack for request processing task. Set it to high enough
@@ -220,12 +153,7 @@ private
      (Server : access LSP.Servers.Server)
      with Storage_Size => Processing_Task_Stack_Size
    is
-      entry Start
-        (Request      : not null LSP.Server_Request_Handlers
-           .Server_Request_Handler_Access;
-         Notification : not null LSP.Server_Notification_Receivers
-         .Server_Notification_Receiver_Access;
-         Server       : LSP.Server_Backends.Server_Backend_Access);
+      entry Start (Handler : not null Server_Message_Visitor_Access);
       entry Stop;
       --  Clean shutdown of the task
    end Processing_Task_Type;
@@ -257,7 +185,7 @@ private
    ------------
 
    type Server is limited
-     new LSP.Client_Message_Receivers.Client_Message_Receiver with
+     new LSP.Client_Message_Factories.Client_Message_Factory with
    record
       Stop          : GNAT.Semaphores.Binary_Semaphore
                           (Initially_Available => False,
@@ -265,29 +193,26 @@ private
       --  Signal to main task to stop server. Released on "exit" message or
       --  on end of input stream.
       Stream        : access Ada.Streams.Root_Stream_Type'Class;
-      Last_Request  : LSP.Types.LSP_Number := 1;
-      Vector        : Ada.Strings.Unbounded.Unbounded_String;
+      Last_Request  : Positive := 1;
+      Vector        : VSS.Stream_Element_Vectors.Stream_Element_Vector;
 
       --  Queues and tasks used for asynchronous processing, see doc above
-      Input_Queue     : Message_Queues.Queue;
-      Look_Ahead      : Message_Access;
+      Input_Queue     : Input_Message_Queues.Queue;
+      Look_Ahead      : Server_Message_Access;
       --  One message look-ahead buffer for Input_Queue
-      Output_Queue    : Message_Queues.Queue;
+      Output_Queue    : Output_Message_Queues.Queue;
       Processing_Task : Processing_Task_Type (Server'Unchecked_Access);
       Output_Task     : Output_Task_Type (Server'Unchecked_Access);
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
-      Request_Map     : Request_Maps.Map;
-      Destroy_Queue   : Message_Queues.Queue;
-
-      Server_Trace    : GNATCOLL.Traces.Trace_Handle;
-      In_Trace        : GNATCOLL.Traces.Trace_Handle;
-      Out_Trace       : GNATCOLL.Traces.Trace_Handle;
-      Logger          : aliased LSP.Message_Loggers.Message_Logger;
-      On_Error        : Uncaught_Exception_Handler;
+      Destroy_Queue   : Input_Message_Queues.Queue;
 
    end record;
 
-   Unknown_Method : exception;
+   overriding procedure On_Message
+     (Self    : in out Server;
+      Message : LSP.Client_Messages.Client_Message_Access);
+
+   Unknown_Method : exception renames Program_Error;
    --  This exception is raised by message decoder when it's unable to decode
    --  an unknown request
 end LSP.Servers;

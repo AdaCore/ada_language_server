@@ -17,11 +17,8 @@
 --
 --  This is driver to run LSP server for Ada language.
 
-with Ada.Characters.Latin_1;
 with Ada.Text_IO;
-with Ada.Exceptions;          use Ada.Exceptions;
 with Ada.Strings.Unbounded;
-with GNAT.Traceback.Symbolic; use GNAT.Traceback.Symbolic;
 with GNAT.OS_Lib;
 with GNAT.Strings;
 
@@ -41,28 +38,7 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with LSP.Ada_Handlers;
-with LSP.Ada_Handlers.Named_Parameters_Commands;
-with LSP.Ada_Handlers.Other_File_Commands;
-with LSP.Ada_Handlers.Project_Reload_Commands;
-with LSP.Ada_Handlers.Refactor.Imports_Commands;
-with LSP.Ada_Handlers.Refactor.Add_Parameter;
-with LSP.Ada_Handlers.Refactor.Remove_Parameter;
-with LSP.Ada_Handlers.Refactor.Move_Parameter;
-with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
-with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
-with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
-with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
-with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
-with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
-with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
-with LSP.Ada_Handlers.Refactor.Replace_Type;
-with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
-with LSP.Commands;
-with LSP.Error_Decorators;
-with LSP.Fuzz_Decorators;
-with LSP.GPR_Handlers;
 with LSP.Memory_Statistics;
-with LSP.Predefined_Completion;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -72,123 +48,27 @@ with LSP.Stdio_Streams;
 
 procedure LSP.Ada_Driver is
 
-   procedure On_Uncaught_Exception (E : Exception_Occurrence);
-   --  Reset LAL contexts in Message_Handler after catching some exception.
-
-   procedure Register_Commands;
-   --  Register all known commands
-
-   procedure Die_On_Uncaught (E : Exception_Occurrence);
-   --  Quit the process when an uncaught exception reaches this. Used for
-   --  fuzzing.
-
-   Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
-   --  Main trace for the LSP.
-
-   In_Trace  : constant Trace_Handle := Create ("ALS.IN", Off);
-   Out_Trace : constant Trace_Handle := Create ("ALS.OUT", Off);
-   --  Traces that logs all input & output. For debugging purposes.
-
    Server      : aliased LSP.Servers.Server;
    Stream      : aliased LSP.Stdio_Streams.Stdio_Stream;
    Ada_Handler : aliased LSP.Ada_Handlers.Message_Handler
-     (Server'Access, Server_Trace);
-   GPR_Handler : aliased LSP.GPR_Handlers.Message_Handler
-     (Server'Access, Server_Trace);
-
-   Error_Decorator : aliased LSP.Error_Decorators.Error_Decorator
-     (Server_Trace,
-      Ada_Handler'Unchecked_Access,
-      On_Uncaught_Exception'Unrestricted_Access);
-   --  This decorator catches all Property_Error exceptions and provides
-   --  default responses for each request. It also reset Libadalang Context
-   --  on any other exception.
-
-   ---------------------------
-   -- On_Uncaught_Exception --
-   ---------------------------
-
-   procedure On_Uncaught_Exception (E : Exception_Occurrence) is
-   begin
-      Trace (Server_Trace,
-             "EXCEPTION: " & Exception_Name (E) &
-               Ada.Characters.Latin_1.LF &
-               "INFORMATION: " & Exception_Information (E) &
-               Ada.Characters.Latin_1.LF &
-               Symbolic_Traceback (E));
-      Ada_Handler.Handle_Error;
-   end On_Uncaught_Exception;
-
-   ---------------------
-   -- Die_On_Uncaught --
-   ---------------------
-
-   procedure Die_On_Uncaught (E : Exception_Occurrence) is
-   begin
-      Trace (Server_Trace,
-             "EXCEPTION: " & Exception_Name (E) &
-               Ada.Characters.Latin_1.LF &
-               "INFORMATION: " & Exception_Information (E) &
-               Ada.Characters.Latin_1.LF &
-               Symbolic_Traceback (E));
-      --  An exception occurred while fuzzing: make it fatal.
-      GNAT.OS_Lib.OS_Exit (42);
-   end Die_On_Uncaught;
-
-   -----------------------
-   -- Register_Commands --
-   -----------------------
-
-   procedure Register_Commands is
-   begin
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Other_File_Commands.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Project_Reload_Commands.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Imports_Commands.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Suppress_Seperate.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Extract_Subprogram.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Introduce_Parameter.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Replace_Type.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command'Tag);
-
-      --  Refactoring - Change Subprogram Signature Commands
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Add_Parameter.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Remove_Parameter.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Move_Parameter.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Change_Parameter_Mode.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Change_Parameters_Type.Command'Tag);
-      LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value.
-           Command'Tag);
-   end Register_Commands;
+     (Server'Access);
+   GPR_Handler : aliased LSP.Ada_Handlers.Message_Handler
+     (Server'Access);
 
    use type VSS.Strings.Virtual_String;
 
    Fuzzing_Activated      : constant Boolean :=
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
+   pragma Unreferenced (Fuzzing_Activated);
 
    ALS_Home               : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("ALS_HOME");
    GPR_Path               : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("GPR_PROJECT_PATH");
+   pragma Unreferenced (GPR_Path);
    Path                   : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("PATH");
+   pragma Unreferenced (Path);
    Home_Dir               : constant Virtual_File :=
      Create_From_UTF8
        (VSS.Strings.Conversions.To_UTF_8_String
@@ -230,7 +110,7 @@ procedure LSP.Ada_Driver is
 
    Config_File            : Virtual_File;
 
-   Memory_Monitor_Enabled : Boolean;
+   Memory_Monitor_Enabled : Boolean := False;
 begin
    --  Handle the command line
 
@@ -310,10 +190,6 @@ begin
               (Ada.Strings.Unbounded.To_String (Parse_Result.Error.Message));
             GNAT.OS_Lib.OS_Exit (1);
          end if;
-
-         Ada_Handler.Change_Configuration_Before_Init
-           (Options => Parse_Result.Value,
-            Root    => Config_File.Dir);
       end;
    end if;
 
@@ -335,8 +211,7 @@ begin
 
    if not VSS.Command_Line.Is_Specified (Language_GPR_Option) then
       --  Load predefined completion items
-      LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
-      Register_Commands;
+      pragma Assert (not VSS.Command_Line.Is_Specified (Language_GPR_Option));
    end if;
 
    Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Error);
@@ -344,58 +219,11 @@ begin
 
    Server.Initialize (Stream'Unchecked_Access);
 
-   begin
-      if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
-         Server.Run
-           (GPR_Handler'Unchecked_Access,
-            GPR_Handler'Unchecked_Access,
-            Server       => null,
-            On_Error     => On_Uncaught_Exception'Unrestricted_Access,
-            Server_Trace => Server_Trace,
-            In_Trace     => In_Trace,
-            Out_Trace    => Out_Trace);
-      elsif Fuzzing_Activated then
-         --  Fuzzing mode means registering the fuzzing decorators and
-         --  registering Die_On_Uncaught as error handler.
-         declare
-            Fuzz_Requests : aliased LSP.Fuzz_Decorators.Fuzz_Request_Decorator
-              (Server_Trace,
-               Error_Decorator'Unchecked_Access,
-               Die_On_Uncaught'Unrestricted_Access);
-            Fuzz_Notifications : aliased
-              LSP.Fuzz_Decorators.Fuzz_Notification_Decorator
-                (Server_Trace,
-                 Ada_Handler'Unchecked_Access,
-                 Ada_Handler'Unchecked_Access);
-         begin
-            Server.Run
-              (Fuzz_Requests'Unchecked_Access,
-               Fuzz_Notifications'Unchecked_Access,
-               Server       => Ada_Handler'Unchecked_Access,
-               On_Error     => Die_On_Uncaught'Unrestricted_Access,
-               Server_Trace => Server_Trace,
-               In_Trace     => In_Trace,
-               Out_Trace    => Out_Trace);
-         end;
-      else
-         Server.Run
-           (Error_Decorator'Unchecked_Access,
-            Ada_Handler'Unchecked_Access,
-            Server       => Ada_Handler'Unchecked_Access,
-            On_Error     => On_Uncaught_Exception'Unrestricted_Access,
-            Server_Trace => Server_Trace,
-            In_Trace     => In_Trace,
-            Out_Trace    => Out_Trace);
-      end if;
-   exception
-      when E : others =>
-         Server_Trace.Trace
-           ("FATAL - Unexpected exception in the main thread: "
-            & Exception_Name (E) & " - " &  Exception_Message (E));
-         Server_Trace.Trace (Symbolic_Traceback (E));
-   end;
-
-   Server_Trace.Trace ("Shutting server down ...");
+   if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
+      Server.Run (GPR_Handler'Unchecked_Access);
+   else
+      Server.Run (Ada_Handler'Unchecked_Access);
+   end if;
 
    --  Dump the memory statistics if the memory monitor trace is active
    if Memory_Monitor_Enabled then
@@ -404,16 +232,14 @@ begin
                           LSP.Memory_Statistics.Dump_Memory_Statistics (3);
 
       begin
-         Server_Trace.Trace (Memory_Stats);
+         Ada.Text_IO.Put_Line (Memory_Stats);
       end;
    end if;
 
-   Ada_Handler.Stop_File_Monitoring;
    Server.Finalize;
    if Clean_ALS_Dir then
-      Ada_Handler.Clean_Logs (ALS_Dir);
+      pragma Assert (Clean_ALS_Dir);
    end if;
-   Ada_Handler.Cleanup;
 
    --  Clean secondary stack up
    declare

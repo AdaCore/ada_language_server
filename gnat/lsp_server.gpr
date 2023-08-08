@@ -23,7 +23,7 @@ with "ada_libfswatch.gpr";
 with "libgnatdoc.gpr";
 with "spawn.gpr";
 
-with "lsp";
+with "lsp_3_17";
 
 project LSP_Server is
 
@@ -46,14 +46,23 @@ project LSP_Server is
       "../source/ada/generated",
       "../source/memory");
 
+   for Excluded_Source_Dirs use
+     ("../source/server/generated",
+      "../source/gpr",
+      "../source/ada/generated");
+
+   for Excluded_Source_List_File use "ignore_in_317.txt";
+
    for Object_Dir use "../.obj/server";
    for Main use ("lsp-ada_driver.adb");
 
    package Compiler is
-      for Default_Switches ("Ada") use LSP.Compiler'Default_Switches ("Ada");
+      for Default_Switches ("Ada") use
+        LSP_3_17.Compiler'Default_Switches ("Ada");
       for Switches ("lsp-ada_driver.adb") use
-        LSP.Compiler'Default_Switches ("Ada") &
-        ("-gnateDVERSION=""" & VERSION & """", "-gnateDBUILD_DATE=""" & BUILD_DATE & """");
+        LSP_3_17.Compiler'Default_Switches ("Ada")
+          & ("-gnateDVERSION=""" & VERSION & """",
+	     "-gnateDBUILD_DATE=""" & BUILD_DATE & """");
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
       for Local_Configuration_Pragmas use "gnat.adc";
    end Compiler;
