@@ -1,0 +1,222 @@
+{
+    //  These lines will be put as a header into each Ada file
+    "license header": [
+        "",
+        "Copyright (C) <YEAR>, <COPYRIGHT HOLDER>",
+        "",
+        "SPDX-License-Identifier: MIT",
+        ""
+    ],
+
+    //  Notification
+
+    "$/cancelRequest": {
+        "from": "both"
+    },
+    "$/logTrace": {
+        "from": "server"
+    },
+    "$/progress": {
+        "from": "both"
+    },
+    "$/setTrace": {
+        "from": "client"
+    },
+    "exit": {
+        "from": "client",
+        "name": "Exits"
+    },
+    "initialized": {
+        "from": "client"
+    },
+    "notebookDocument/didChange": {
+        "from": "client",
+        "name": "DidChangeNotebook"
+    },
+    "notebookDocument/didClose": {
+        "from": "client",
+        "name": "DidCloseNotebook"
+    },
+    "notebookDocument/didOpen": {
+        "from": "client",
+        "name": "DidOpenNotebook"
+    },
+    "notebookDocument/didSave": {
+        "from": "client",
+        "name": "DidSaveNotebook"
+    },
+    "telemetry/event": {
+        "from": "server"
+    },
+    "textDocument/didChange": {
+        "from": "client"
+    },
+    "textDocument/didClose": {
+        "from": "client"
+    },
+    "textDocument/didOpen": {
+        "from": "client"
+    },
+    "textDocument/didSave": {
+        "from": "client"
+    },
+    "textDocument/publishDiagnostics": {
+        "from": "server"
+    },
+    "textDocument/willSave": {
+        "from": "client"
+    },
+    "window/logMessage": {
+        "from": "server"
+    },
+    "window/showMessage": {
+        "from": "server"
+    },
+    "window/workDoneProgress/cancel": {
+        "from": "client"
+    },
+    "workspace/didChangeConfiguration": {
+        "from": "client"
+    },
+    "workspace/didChangeWatchedFiles": {
+        "from": "client"
+    },
+    "workspace/didChangeWorkspaceFolders": {
+        "from": "client"
+    },
+    "workspace/didCreateFiles": {
+        "from": "client"
+    },
+    "workspace/didDeleteFiles": {
+        "from": "client"
+    },
+    "workspace/didRenameFiles": {
+        "from": "client"
+    },
+    //  Requests:
+
+    // "callHierarchy/incomingCalls"
+    // "callHierarchy/outgoingCalls"
+    "client/registerCapability": {
+        "from": "server"
+    },
+    "client/unregisterCapability": {
+        "from": "server"
+    },
+    "codeAction/resolve": {
+        "from": "client",
+        "name": "Code_Action_Resolve"
+    },
+    "codeLens/resolve": {
+        "from": "client",
+        "name": "Code_Lens_Resolve"
+    },
+    "completionItem/resolve": {
+        "from": "client",
+        "name": "Completion_Resolve"
+    },
+    "documentLink/resolve": {
+        "from": "client",
+        "name": "Link_Resolve"
+    },
+    // "initialize"
+    "inlayHint/resolve": {
+        "from": "client",
+        "name": "Inlay_Resolve"
+    },
+    // "shutdown"
+    // "textDocument/codeAction"
+    // "textDocument/codeLens"
+    // "textDocument/colorPresentation"
+    // "textDocument/completion"
+    // "textDocument/declaration"
+    // "textDocument/definition"
+    // "textDocument/diagnostic"
+    // "textDocument/documentColor"
+    // "textDocument/documentHighlight"
+    // "textDocument/documentLink"
+    // "textDocument/documentSymbol"
+    // "textDocument/foldingRange"
+    // "textDocument/formatting"
+    // "textDocument/hover"
+    // "textDocument/implementation"
+    // "textDocument/inlayHint"
+    // "textDocument/inlineValue"
+    // "textDocument/linkedEditingRange"
+    // "textDocument/moniker"
+    // "textDocument/onTypeFormatting"
+    // "textDocument/prepareCallHierarchy"
+    // "textDocument/prepareRename"
+    // "textDocument/prepareTypeHierarchy"
+    // "textDocument/rangeFormatting"
+    // "textDocument/references"
+    // "textDocument/rename"
+    // "textDocument/selectionRange"
+    // "textDocument/semanticTokens/full"
+    "textDocument/semanticTokens/full/delta": {
+        "from": "client",
+        "name": "Tokens_Delta"
+    },
+    "textDocument/semanticTokens/range": {
+        "from": "client",
+        "name": "Tokens_Range"
+    },
+    // "textDocument/signatureHelp"
+    // "textDocument/typeDefinition"
+    // "textDocument/willSaveWaitUntil"
+    // "typeHierarchy/subtypes"
+    // "typeHierarchy/supertypes"
+    "window/showDocument": {
+        "from": "server"
+    },
+    "window/showMessageRequest": {
+        "from": "server"
+    },
+    "window/workDoneProgress/create": {
+        "from": "server",
+        "name": "Progress_Create"
+    },
+    "workspace/applyEdit": {
+        "from": "server"
+    },
+    "workspace/codeLens/refresh": {
+        "from": "server",
+        "name": "Code_Lens_Refresh"
+    },
+    "workspace/configuration": {
+        "from": "server"
+    },
+    "workspace/diagnostic": {
+        "from": "client",
+        "name": "Workspace_Diagnostic"
+    },
+    "workspace/diagnostic/refresh": {
+        "from": "server",
+        "name": "Diagnostic_Refresh"
+    },
+    // "workspace/executeCommand"
+    "workspace/inlayHint/refresh": {
+        "from": "server",
+        "name": "Inlay_Refresh"
+    },
+    "workspace/inlineValue/refresh": {
+        "from": "server",
+        "name": "Inline_Refresh"
+    },
+    "workspace/semanticTokens/refresh": {
+        "from": "server",
+        "name": "Tokens_Refresh"
+    },
+    // "workspace/symbol"
+    "workspaceSymbol/resolve": {
+        "from": "client",
+        "name": "Symbol_Resolve"
+    },
+    // "workspace/willCreateFiles"
+    // "workspace/willDeleteFiles"
+    // "workspace/willRenameFiles"
+    "workspace/workspaceFolders": {
+        "from": "server"
+    }
+
+}
