@@ -31,6 +31,7 @@ with VSS.Text_Streams.Memory_UTF8_Output;
 with LSP.Client_Message_Writers;
 with LSP.Enumerations;
 with LSP.Errors;
+with LSP.Lifecycle_Checkers;
 with LSP.Server_Notification_Readers;
 with LSP.Server_Request_Readers;
 with LSP.Structures;
@@ -42,6 +43,7 @@ package body LSP.Servers is
 
    procedure Process_One_Message
      (Self        : in out Server'Class;
+      Checker     : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
       EOF         : in out Boolean);
    --  Read data from stdin and create a message if there is enough data.
    --  Then put the message into Self.Input_Queue.
@@ -140,6 +142,7 @@ package body LSP.Servers is
 
    procedure Process_One_Message
      (Self        : in out Server'Class;
+      Checker     : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
       EOF         : in out Boolean)
    is
       use type Ada.Streams.Stream_Element_Count;
@@ -329,8 +332,8 @@ package body LSP.Servers is
          Request      : Request_Access;
          Notification : Notification_Access;
 
-         Ok : constant Boolean := True;
-         Is_Exit_Notification : constant Boolean := False;
+         Ok : Boolean;
+         Is_Exit_Notification : Boolean;
 
          Version    : VSS.Strings.Virtual_String;
          Method     : VSS.Strings.Virtual_String;
@@ -429,7 +432,7 @@ package body LSP.Servers is
             Message := Server_Message_Access (Notification);
          end if;
 
-         --  TODO: Set Is_Exit_Notification;
+         Checker.Check_Message (Self, Message.all, Ok, Is_Exit_Notification);
          --  Check initialization status and send a response if this is a
          --  request before initialization.
          --
@@ -606,6 +609,7 @@ package body LSP.Servers is
    task body Input_Task_Type is
       EOF         : Boolean := False;
       Message     : Server_Message_Access;
+      Checker     : LSP.Lifecycle_Checkers.Lifecycle_Checker;
    begin
       accept Start;
 
@@ -626,7 +630,7 @@ package body LSP.Servers is
             accept Stop;
             exit;
          else
-            Server.Process_One_Message (EOF);
+            Server.Process_One_Message (Checker, EOF);
             --  This call can block reading from stream
 
             if EOF then
