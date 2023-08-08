@@ -1,10 +1,16 @@
 {
+   "files.associations": {
+      // Treat the settings template file as JSON so it benefits from linting
+      // and formatting
+      "*.json.tmpl": "jsonc"
+   },
    "ada.projectFile": "gnat/lsp_server.gpr",
    "ada.scenarioVariables": {
       // Use static linking in local development to enable running the
       // ada_language_server executable after relocation into the VS Code
       // extension.
       "LIBRARY_TYPE": "static"
+   },
    "ada.onTypeFormatting.indentOnly": true,
    "[ada]": {
       "editor.autoIndent": "none",
