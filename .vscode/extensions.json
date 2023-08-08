@@ -2,6 +2,7 @@
    "recommendations": [
       "ms-python.black-formatter",
       "ms-python.flake8",
+      "ms-python.mypy-type-checker",
       "editorconfig.editorconfig",
       "dbaeumer.vscode-eslint",
       "esbenp.prettier-vscode",
