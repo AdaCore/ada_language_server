@@ -24,7 +24,6 @@ with Ada.Unchecked_Deallocation;
 with VSS.JSON.Pull_Readers.Simple;
 with VSS.JSON.Push_Writers;
 with VSS.JSON.Streams;
-with VSS.Stream_Element_Vectors.Conversions;
 with VSS.Strings;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
@@ -57,14 +56,15 @@ package body LSP.Servers is
    procedure Send_Exception_Response
      (Self       : in out Server'Class;
       E          : Ada.Exceptions.Exception_Occurrence;
-      Trace_Text : String;
+      Message    : VSS.Strings.Virtual_String;
+      Request    : VSS.Stream_Element_Vectors.Stream_Element_Vector;
       Request_Id : LSP.Structures.Integer_Or_Virtual_String;
       Code       : LSP.Enumerations.ErrorCodes :=
-        LSP.Enumerations.InternalError) is null;
-   --  Send a response to the stream representing the exception. This
+        LSP.Enumerations.InternalError);
+   --  Send a response representing the exception to the client. This
    --  should be called whenever an exception occurred while processing
    --  a request.
-   --  Trace_Text is the additional info to write in the traces, and
+   --  Message is the additional info to write in the traces, and
    --  Request_Id is the id of the request we were trying to process.
    --  Use given Code in the response.
 
@@ -75,12 +75,6 @@ package body LSP.Servers is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object => LSP.Client_Messages.Client_Message'Class,
       Name   => Client_Message_Access);
-
-   function To_String
-     (Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector'Class)
-        return String
-          renames VSS.Stream_Element_Vectors.Conversions.Unchecked_To_String;
-   --  Cast Stream_Element_Vector to a string
 
    ------------
    -- Append --
@@ -322,6 +316,9 @@ package body LSP.Servers is
             end loop;
 
             Memory.Rewind;
+         exception
+            when E : others =>
+               Self.Tracer.Trace_Exception (E, "JSON decoding error");
          end Decode_JSON_RPC_Headers;
 
          function Assigned
@@ -353,7 +350,8 @@ package body LSP.Servers is
             --  TODO: Process client responses here.
 
             if Error.Is_Set then
-               null;
+               Self.Tracer.Trace ("Got Error response:");
+               Self.Tracer.Trace_Text (Error.Value.message);
             end if;
 
             return;
@@ -374,11 +372,21 @@ package body LSP.Servers is
                    (LSP.Server_Request_Readers.Read_Request
                       (R, Method));
 
+               if not R.Is_End_Document then
+                  Self.Tracer.Trace ("Request decoding failed:");
+                  Self.Tracer.Trace (Vector);
+                  Self.On_Error_Response
+                    (Request_Id,
+                     (code    => LSP.Enumerations.InvalidParams,
+                      message => "Unable to decode request."));
+
+                  return;
+               end if;
             exception
                when UR : Unknown_Method =>
                   Send_Exception_Response
-                    (Self, UR,
-                     To_String (Vector),
+                    (Self, UR, "Unknown method.",
+                     Vector,
                      Request_Id,
                      LSP.Enumerations.MethodNotFound);
                   return;
@@ -387,8 +395,8 @@ package body LSP.Servers is
                   --  If we reach this exception handler, this means the
                   --  request could not be decoded.
                   Send_Exception_Response
-                    (Self, E,
-                     To_String (Vector),
+                    (Self, E, "Request decoding fails:",
+                     Vector,
                      Request_Id,
                      LSP.Enumerations.InvalidParams);
                   return;
@@ -411,6 +419,11 @@ package body LSP.Servers is
                  new LSP.Server_Notifications.Server_Notification'Class'
                    (LSP.Server_Notification_Readers.Read_Notification
                       (R, Method));
+
+               if not R.Is_End_Document then
+                  Self.Tracer.Trace ("Notification decoding failed:");
+                  Self.Tracer.Trace (Vector);
+               end if;
             end;
 
             Message := Server_Message_Access (Notification);
@@ -443,6 +456,7 @@ package body LSP.Servers is
       procedure Parse_JSON
         (Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector) is
       begin
+         Self.Tracer.Trace_Input (Vector);
          Process_JSON_Document (Vector);
       end Parse_JSON;
 
@@ -516,14 +530,16 @@ package body LSP.Servers is
 
    procedure Run
      (Self         : in out Server;
-      Handler      : not null Server_Message_Visitor_Access) is
+      Handler      : not null Server_Message_Visitor_Access;
+      Tracer       : not null LSP.Tracers.Tracer_Access) is
    begin
+      Self.Tracer := Tracer;
       Self.Processing_Task.Start (Handler);
       Self.Output_Task.Start;
       Self.Input_Task.Start;
 
       --  Wait for stop signal
-      Self.Stop.Seize;
+      Self.Stop_Signal.Seize;
    end Run;
 
    ----------------
@@ -538,13 +554,34 @@ package body LSP.Servers is
       Self.Output_Queue.Enqueue (Message);
    end On_Message;
 
+   -----------------------------
+   -- Send_Exception_Response --
+   -----------------------------
+
+   procedure Send_Exception_Response
+     (Self       : in out Server'Class;
+      E          : Ada.Exceptions.Exception_Occurrence;
+      Message    : VSS.Strings.Virtual_String;
+      Request    : VSS.Stream_Element_Vectors.Stream_Element_Vector;
+      Request_Id : LSP.Structures.Integer_Or_Virtual_String;
+      Code       : LSP.Enumerations.ErrorCodes :=
+        LSP.Enumerations.InternalError) is
+   begin
+      Self.Tracer.Trace_Exception (E, Message);
+      Self.Tracer.Trace (Request);
+      Self.On_Error_Response
+        (Request_Id,
+         (code    => Code,
+          message => Message));
+   end Send_Exception_Response;
+
    ----------
    -- Stop --
    ----------
 
    procedure Stop (Self : in out Server) is
    begin
-      Self.Stop.Release;
+      Self.Stop_Signal.Release;
    end Stop;
 
    ------------------------
@@ -608,6 +645,11 @@ package body LSP.Servers is
          Server.Destroy_Queue.Dequeue (Message);
          Free (Message);
       end loop;
+
+   exception
+      when E : others =>
+         Server.Tracer.Trace_Exception (E, "Input_Task died");
+         Server.Stop;  --  Ask server to stop
    end Input_Task_Type;
 
    ----------------------
@@ -639,9 +681,15 @@ package body LSP.Servers is
            & New_Line & New_Line;
 
       begin
+         Server.Tracer.Trace_Output (Vector);
          String'Write (Stream, Header);
          VSS.Stream_Element_Vectors.Stream_Element_Vector'Write
            (Stream, Vector);
+
+      exception
+         when E : others =>
+            Server.Tracer.Trace_Exception (E, "Can't write JSON to stdout");
+            raise;
       end Write_JSON_RPC;
 
    begin
@@ -684,6 +732,11 @@ package body LSP.Servers is
             end select;
          end select;
       end loop;
+
+   exception
+      when E : others =>
+         Server.Tracer.Trace_Exception (E, "Output_Task died");
+         Server.Stop;  --  Ask server to stop
    end Output_Task_Type;
 
    --------------------------
@@ -721,6 +774,10 @@ package body LSP.Servers is
          Message.Visit_Server_Message_Visitor (Handler.all);
          Server.Destroy_Queue.Enqueue (Message);
          Message := null;
+      exception
+         when E : others =>
+            --  Message handler should never raise any exception
+            Server.Tracer.Trace_Exception (E, "Message handler raised error!");
       end Process_Message;
 
       Request : Server_Message_Access;
@@ -787,6 +844,11 @@ package body LSP.Servers is
       if Server.Look_Ahead.Assigned then
          Free (Server.Look_Ahead);
       end if;
+
+   exception
+      when E : others =>
+         Server.Tracer.Trace_Exception (E, "Processing_Task died");
+         Server.Stop;  --  Ask server to stop
    end Processing_Task_Type;
 
    ------------------------

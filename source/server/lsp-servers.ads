@@ -26,6 +26,8 @@ with LSP.Client_Message_Receivers;
 with LSP.Server_Message_Visitors;
 
 with LSP.Server_Messages;
+with LSP.Tracers;
+
 private with LSP.Client_Message_Factories;
 private with LSP.Client_Messages;
 
@@ -60,11 +62,12 @@ package LSP.Servers is
 
    procedure Run
      (Self         : in out Server;
-      Handler      : not null Server_Message_Visitor_Access);
+      Handler      : not null Server_Message_Visitor_Access;
+      Tracer       : not null LSP.Tracers.Tracer_Access);
    --  Run the server using given Request and Notification handler.
-   --  Server_Trace - main trace for the LSP.
-   --  In_Trace and Out_Trace - traces that logs all input & output for
-   --  debugging purposes. Call On_Error in case of uncaught exceptions.
+   --  Tracer object provides tracing/logging capabilities for the main trace,
+   --  all input & output traces for debugging purposes.
+   --  Call On_Error in case of uncaught exceptions.
 
    procedure Stop (Self : in out Server);
    --  Ask server to stop
@@ -187,7 +190,7 @@ private
    type Server is limited
      new LSP.Client_Message_Factories.Client_Message_Factory with
    record
-      Stop          : GNAT.Semaphores.Binary_Semaphore
+      Stop_Signal   : GNAT.Semaphores.Binary_Semaphore
                           (Initially_Available => False,
                            Ceiling => System.Default_Priority);
       --  Signal to main task to stop server. Released on "exit" message or
@@ -206,6 +209,7 @@ private
       Input_Task      : Input_Task_Type (Server'Unchecked_Access);
       Destroy_Queue   : Input_Message_Queues.Queue;
 
+      Tracer          : LSP.Tracers.Tracer_Access;
    end record;
 
    overriding procedure On_Message

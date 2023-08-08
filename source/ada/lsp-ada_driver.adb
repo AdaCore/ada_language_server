@@ -38,6 +38,7 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with LSP.Ada_Handlers;
+with LSP.GNATCOLL_Tracers;
 with LSP.Memory_Statistics;
 with LSP.Servers;
 with LSP.Stdio_Streams;
@@ -48,14 +49,22 @@ with LSP.Stdio_Streams;
 
 procedure LSP.Ada_Driver is
 
+   use type VSS.Strings.Virtual_String;
+
+   Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
+   --  Main trace for the LSP.
+
+   In_Trace  : constant Trace_Handle := Create ("ALS.IN", Off);
+   Out_Trace : constant Trace_Handle := Create ("ALS.OUT", Off);
+   --  Traces that logs all input & output. For debugging purposes.
+   Tracer    : aliased LSP.GNATCOLL_Tracers.Tracer;
+
    Server      : aliased LSP.Servers.Server;
    Stream      : aliased LSP.Stdio_Streams.Stdio_Stream;
    Ada_Handler : aliased LSP.Ada_Handlers.Message_Handler
      (Server'Access);
    GPR_Handler : aliased LSP.Ada_Handlers.Message_Handler
      (Server'Access);
-
-   use type VSS.Strings.Virtual_String;
 
    Fuzzing_Activated      : constant Boolean :=
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
@@ -65,10 +74,8 @@ procedure LSP.Ada_Driver is
      VSS.Application.System_Environment.Value ("ALS_HOME");
    GPR_Path               : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("GPR_PROJECT_PATH");
-   pragma Unreferenced (GPR_Path);
    Path                   : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("PATH");
-   pragma Unreferenced (Path);
    Home_Dir               : constant Virtual_File :=
      Create_From_UTF8
        (VSS.Strings.Conversions.To_UTF_8_String
@@ -110,7 +117,7 @@ procedure LSP.Ada_Driver is
 
    Config_File            : Virtual_File;
 
-   Memory_Monitor_Enabled : Boolean := False;
+   Memory_Monitor_Enabled : Boolean;
 begin
    --  Handle the command line
 
@@ -193,14 +200,16 @@ begin
       end;
    end if;
 
-   Server_Trace.Trace ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");
+   Tracer.Initialize (Server_Trace, In_Trace, Out_Trace);
+   Tracer.Trace ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");
 
-   Server_Trace.Trace ("Initializing server ...");
+   Tracer.Trace ("Initializing server ...");
 
-   Server_Trace.Trace
+   Tracer.Trace
      ("GPR PATH: " & VSS.Strings.Conversions.To_UTF_8_String (GPR_Path));
-   Server_Trace.Trace
+   Tracer.Trace
      ("PATH: " & VSS.Strings.Conversions.To_UTF_8_String (Path));
+
    --  Start monitoring the memory if the memory monitor trace is active
 
    Memory_Monitor_Enabled := Create ("DEBUG.ADA_MEMORY").Is_Active;
@@ -219,11 +228,17 @@ begin
 
    Server.Initialize (Stream'Unchecked_Access);
 
-   if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
-      Server.Run (GPR_Handler'Unchecked_Access);
-   else
-      Server.Run (Ada_Handler'Unchecked_Access);
-   end if;
+   begin
+      if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
+         Server.Run (GPR_Handler'Unchecked_Access, Tracer'Unchecked_Access);
+      else
+         Server.Run (Ada_Handler'Unchecked_Access, Tracer'Unchecked_Access);
+      end if;
+   exception
+      when E : others =>
+         Tracer.Trace_Exception
+           (E, "FATAL - Unexpected exception in the main thread:");
+   end;
 
    --  Dump the memory statistics if the memory monitor trace is active
    if Memory_Monitor_Enabled then
@@ -232,7 +247,7 @@ begin
                           LSP.Memory_Statistics.Dump_Memory_Statistics (3);
 
       begin
-         Ada.Text_IO.Put_Line (Memory_Stats);
+         Tracer.Trace (Memory_Stats);
       end;
    end if;
 
