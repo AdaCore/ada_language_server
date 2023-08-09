@@ -19,7 +19,8 @@ import { platform } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
-import { contextClients } from './extension';
+import winston from 'winston';
+import { contextClients, logger } from './extension';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -113,6 +114,16 @@ export function substituteVariables(str: string, recursive = false): string {
 */
 
 export function getCustomEnv() {
+    const env_config_name = getCustomEnvSettingName();
+
+    const custom_env = vscode.workspace
+        .getConfiguration()
+        .get<{ [name: string]: string }>(env_config_name);
+
+    return custom_env;
+}
+
+export function getCustomEnvSettingName() {
     const user_platform = platform();
     let env_config_name = 'terminal.integrated.env';
 
@@ -126,12 +137,7 @@ export function getCustomEnv() {
         default:
             env_config_name += '.linux';
     }
-
-    const custom_env = vscode.workspace
-        .getConfiguration()
-        .get<{ [name: string]: string }>(env_config_name);
-
-    return custom_env;
+    return env_config_name;
 }
 
 export function getEvaluatedCustomEnv() {
@@ -169,7 +175,7 @@ export function setCustomEnvironment() {
     }
 }
 
-export function assertSupportedEnvironments(mainChannel: vscode.OutputChannel) {
+export function assertSupportedEnvironments(mainChannel: winston.Logger) {
     if (process.env.ALS) {
         // The User provided an external ALS executable. Do not perform any
         // platform support checks because we may be on an unsupported platform
@@ -198,11 +204,15 @@ export function assertSupportedEnvironments(mainChannel: vscode.OutputChannel) {
             `architecture '${process.arch}' and platform '${process.platform}'`;
         logErrorAndThrow(msg, mainChannel);
     }
+
+    logger.debug(
+        `Asserted compatibility with runtime environment: ${process.arch}, ${process.platform}`
+    );
 }
 
-export function logErrorAndThrow(msg: string, channel: vscode.OutputChannel) {
+export function logErrorAndThrow(msg: string, logger: winston.Logger) {
     void vscode.window.showErrorMessage(msg);
-    channel.appendLine('[Error] ' + msg);
+    logger.error(msg);
     throw new Error(msg);
 }
 
@@ -305,4 +315,16 @@ export class AdaMain {
     execRelPath(): string {
         return vscode.workspace.asRelativePath(this.execFullPath);
     }
+}
+
+/**
+ *
+ * @returns true if the Node process was started with debug command line arguments
+ */
+export function startedInDebugMode() {
+    const args = process.execArgv;
+    if (args) {
+        return args.some((arg) => /^--(debug(-brk)?|inspect-brk)=?/.test(arg));
+    }
+    return false;
 }
