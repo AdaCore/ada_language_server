@@ -1,4 +1,9 @@
 {
+   "files.associations": {
+      // Treat the settings template file as JSON so it benefits from linting
+      // and formatting
+      "*.json.tmpl": "jsonc"
+   },
    "ada.projectFile": "gnat/lsp_server.gpr",
    "ada.scenarioVariables": {
       // Use static linking in local development to enable running the
@@ -11,12 +16,14 @@
       "editor.formatOnType": false,
       "editor.tabSize": 3
    },
+   "ada.onTypeFormatting.indentOnly": true,
+   "[ada]": {
+      "editor.autoIndent": "none",
+      "editor.formatOnType": false,
+      "editor.tabSize": 3
+   },
    "python.analysis.extraPaths": ["testsuite"],
-   "python.linting.enabled": true,
-   "python.linting.mypyEnabled": true,
-   "python.linting.flake8Enabled": true,
    "flake8.args": ["--max-line-length", "88"],
-   "python.formatting.provider": "black",
    "[python]": {
       // Use the same line length as black and flake8
       "vim.textwidth": 88
