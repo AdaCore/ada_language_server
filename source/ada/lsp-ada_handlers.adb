@@ -23,6 +23,36 @@ with LSP.Enumerations;
 
 package body LSP.Ada_Handlers is
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Self : in out Message_Handler'Class;
+      Incremental_Text_Changes : Boolean) is
+   begin
+      Self.Incremental_Text_Changes := Incremental_Text_Changes;
+   end Initialize;
+
+   ---------------------------
+   -- On_Initialize_Request --
+   ---------------------------
+
+   overriding procedure On_Initialize_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.InitializeParams)
+   is
+      Response : LSP.Structures.InitializeResult;
+   begin
+      Self.Client.Initialize (Value);
+
+      Response.capabilities := Self.Client.To_Server_Capabilities
+        (Incremental_Text_Changes => Self.Incremental_Text_Changes);
+
+      Self.Sender.On_Initialize_Response (Id, Response);
+   end On_Initialize_Request;
+
    -----------------------
    -- On_Server_Request --
    -----------------------
@@ -36,7 +66,7 @@ package body LSP.Ada_Handlers is
       Value.Visit_Server_Receiver (Self);
 
       if not Self.Implemented then
-         Self.Client.On_Error_Response
+         Self.Sender.On_Error_Response
            (Value.Id,
             (code    => LSP.Enumerations.MethodNotFound,
              message => "Not implemented"));
@@ -54,7 +84,7 @@ package body LSP.Ada_Handlers is
          begin
             Self.Tracer.Trace_Exception (E, "On_Server_Request");
 
-            Self.Client.On_Error_Response
+            Self.Sender.On_Error_Response
               (Value.Id,
                (code    => LSP.Enumerations.InternalError,
                 message => Message));

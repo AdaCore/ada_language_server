@@ -226,6 +226,16 @@ begin
    Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Error);
    --  Protect stdout from pollution by accidental Put_Line calls
 
+   declare
+      Allow_Incremental_Text_Changes : constant GNATCOLL.Traces.Trace_Handle
+        := GNATCOLL.Traces.Create ("ALS.ALLOW_INCREMENTAL_TEXT_CHANGES",
+                                   GNATCOLL.Traces.On);
+      --  Trace to activate the support for incremental text changes.
+   begin
+      Ada_Handler.Initialize
+        (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active);
+   end;
+
    Server.Initialize (Stream'Unchecked_Access);
 
    begin

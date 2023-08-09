@@ -18,49 +18,53 @@
 --  This package provides requests and notifications handler for Ada
 --  language.
 
+with LSP.Ada_Client_Capabilities;
 with LSP.Client_Message_Receivers;
-with LSP.Server_Request_Receivers;
 with LSP.Server_Message_Visitors;
+with LSP.Server_Request_Receivers;
 with LSP.Server_Requests;
-with LSP.Unimplemented_Handlers;
+with LSP.Structures;
 with LSP.Tracers;
+with LSP.Unimplemented_Handlers;
 
 package LSP.Ada_Handlers is
 
    type Message_Handler
-     (Client : not null access LSP.Client_Message_Receivers
+     (Sender : not null access LSP.Client_Message_Receivers
         .Client_Message_Receiver'Class;
       Tracer : not null LSP.Tracers.Tracer_Access) is limited
    new LSP.Server_Message_Visitors.Server_Message_Visitor
      and LSP.Server_Request_Receivers.Server_Request_Receiver
    with private;
 
+   procedure Initialize
+     (Self : in out Message_Handler'Class;
+      Incremental_Text_Changes : Boolean);
+   --  Initialize the message handler and configure it.
+   --
+   --  Incremental_Text_Changes - activate the support for incremental text
+   --  changes.
+
 private
 
    type Message_Handler
-     (Client : not null access LSP.Client_Message_Receivers
+     (Sender : not null access LSP.Client_Message_Receivers
         .Client_Message_Receiver'Class;
       Tracer : not null LSP.Tracers.Tracer_Access) is limited
    new LSP.Unimplemented_Handlers.Unimplemented_Handler
      and LSP.Server_Message_Visitors.Server_Message_Visitor
    with record
-      null;
+      Client : LSP.Ada_Client_Capabilities.Client_Capability;
+      Incremental_Text_Changes : Boolean;
    end record;
 
    overriding procedure On_Server_Request
      (Self  : in out Message_Handler;
       Value : LSP.Server_Requests.Server_Request'Class);
 
-   procedure Publish_Diagnostics
-     (Self              : access Message_Handler'Class;
-      Document          : not null LSP.Ada_Documents.Document_Access;
-      Other_Diagnostics : LSP.Messages.Diagnostic_Vector :=
-        LSP.Messages.Diagnostic_Vectors.Empty;
-      Force             : Boolean := False);
-   --  Publish diagnostic messages for given document if needed.
-   --  Other_Diagnostics can be used to specify punctual diagnostics not coming
-   --  from sources that analyze files when being opened or modified.
-   --  When Force is True, the diagnostics will always be sent, not matter if
-   --  they have changed or not.
+   overriding procedure On_Initialize_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.InitializeParams);
 
 end LSP.Ada_Handlers;
