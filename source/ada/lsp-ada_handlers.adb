@@ -15,6 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
+with VSS.Strings.Conversions;
+
 with LSP.Enumerations;
 
 package body LSP.Ada_Handlers is
@@ -27,7 +31,7 @@ package body LSP.Ada_Handlers is
      (Self  : in out Message_Handler;
       Value : LSP.Server_Requests.Server_Request'Class) is
    begin
-      Self.Implemented := False;
+      Self.Implemented := True;
 
       Value.Visit_Server_Receiver (Self);
 
@@ -37,6 +41,25 @@ package body LSP.Ada_Handlers is
             (code    => LSP.Enumerations.MethodNotFound,
              message => "Not implemented"));
       end if;
+
+   exception
+      when E : others =>
+         declare
+            Message : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.Conversions.To_Virtual_String
+                ("Exception: " &
+                   Ada.Exceptions.Exception_Name (E) & " (" &
+                     Ada.Exceptions.Exception_Message (E) & ")");
+
+         begin
+            Self.Tracer.Trace_Exception (E, "On_Server_Request");
+
+            Self.Client.On_Error_Response
+              (Value.Id,
+               (code    => LSP.Enumerations.InternalError,
+                message => Message));
+
+         end;
    end On_Server_Request;
 
 end LSP.Ada_Handlers;

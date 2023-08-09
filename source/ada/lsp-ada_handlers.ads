@@ -22,17 +22,29 @@ with LSP.Client_Message_Receivers;
 with LSP.Server_Request_Receivers;
 with LSP.Server_Message_Visitors;
 with LSP.Server_Requests;
+with LSP.Unimplemented_Handlers;
+with LSP.Tracers;
 
 package LSP.Ada_Handlers is
 
    type Message_Handler
      (Client : not null access LSP.Client_Message_Receivers
-        .Client_Message_Receiver'Class) is limited
+        .Client_Message_Receiver'Class;
+      Tracer : not null LSP.Tracers.Tracer_Access) is limited
    new LSP.Server_Message_Visitors.Server_Message_Visitor
      and LSP.Server_Request_Receivers.Server_Request_Receiver
+   with private;
+
+private
+
+   type Message_Handler
+     (Client : not null access LSP.Client_Message_Receivers
+        .Client_Message_Receiver'Class;
+      Tracer : not null LSP.Tracers.Tracer_Access) is limited
+   new LSP.Unimplemented_Handlers.Unimplemented_Handler
+     and LSP.Server_Message_Visitors.Server_Message_Visitor
    with record
-      Implemented : Boolean;
-      --  A flag to check if a request was handled
+      null;
    end record;
 
    overriding procedure On_Server_Request
