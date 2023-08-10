@@ -23,6 +23,9 @@ with LSP.Enumerations;
 
 package body LSP.Ada_Handlers is
 
+   procedure Reload_Project (Self : in out Message_Handler'CLass) is null;
+   --  TBD
+
    ----------------
    -- Initialize --
    ----------------
@@ -33,6 +36,23 @@ package body LSP.Ada_Handlers is
    begin
       Self.Incremental_Text_Changes := Incremental_Text_Changes;
    end Initialize;
+
+   --------------------------------------------
+   -- On_DidChangeConfiguration_Notification --
+   --------------------------------------------
+
+   overriding procedure On_DidChangeConfiguration_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeConfigurationParams)
+   is
+      Reload : Boolean := False;
+   begin
+      Self.Configuration.Read_JSON (Value.settings, Reload);
+
+      if Reload then
+         Self.Reload_Project;
+      end if;
+   end On_DidChangeConfiguration_Notification;
 
    ---------------------------
    -- On_Initialize_Request --
@@ -52,6 +72,20 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
+
+   ----------------------------
+   -- On_Server_Notification --
+   ----------------------------
+
+   overriding procedure On_Server_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Server_Notifications.Server_Notification'Class) is
+   begin
+      Value.Visit_Server_Receiver (Self);
+   exception
+      when E : others =>
+         Self.Tracer.Trace_Exception (E, "On_Server_Notification");
+   end On_Server_Notification;
 
    -----------------------
    -- On_Server_Request --
