@@ -73,8 +73,6 @@ lsp-ada_handlers-refactor-suppress_seperate.adb
 lsp-ada_handlers-refactor-suppress_seperate.ads
 lsp-ada_highlighters.adb
 lsp-ada_highlighters.ads
-lsp-ada_id_iterators.adb
-lsp-ada_id_iterators.ads
 lsp-client_side_file_monitors.adb
 lsp-client_side_file_monitors.ads
 lsp-common.adb

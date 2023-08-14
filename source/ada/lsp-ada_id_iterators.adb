@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,9 +15,43 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Laltools.Common;
-
 package body LSP.Ada_Id_Iterators is
+
+   function Find_Next_Part
+     (Definition         : Libadalang.Analysis.Defining_Name;
+      Tracer             : in out LSP.Tracers.Tracer'Class;
+      Imprecise_Fallback : Boolean := False)
+      return Libadalang.Analysis.Defining_Name;
+   --  Wrapper around P_Next_Part that returns No_Defining_Name if next part
+   --  is name itself. It also catches Property_Error and reports it in traces.
+
+   --------------------
+   -- Find_Next_Part --
+   --------------------
+
+   function Find_Next_Part
+     (Definition         : Libadalang.Analysis.Defining_Name;
+      Tracer             : in out LSP.Tracers.Tracer'Class;
+      Imprecise_Fallback : Boolean := False)
+      return Libadalang.Analysis.Defining_Name
+   is
+      use type Libadalang.Analysis.Defining_Name;
+
+      Next : Libadalang.Analysis.Defining_Name;
+   begin
+      Next :=
+        Definition.P_Next_Part (Imprecise_Fallback => Imprecise_Fallback);
+
+      if Next = Definition then
+         return Libadalang.Analysis.No_Defining_Name;
+      else
+         return Next;
+      end if;
+   exception
+      when E : Libadalang.Common.Property_Error =>
+         Tracer.Trace_Exception (E, "in Find_Next_Part");
+         return Libadalang.Analysis.No_Defining_Name;
+   end Find_Next_Part;
 
    --------------------------------------------
    -- Find_All_Param_References_In_Hierarchy --
@@ -68,7 +102,7 @@ package body LSP.Ada_Id_Iterators is
 
    procedure Find_All_Subp_References_In_Hierarchy
      (Hierarchy  : Libadalang.Analysis.Basic_Decl_Array;
-      Trace      : GNATCOLL.Traces.Trace_Handle;
+      Tracer     : in out LSP.Tracers.Tracer'Class;
       Callback   : not null access procedure
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;
@@ -87,8 +121,7 @@ package body LSP.Ada_Id_Iterators is
          exit when Cancel;
 
          --  Try to get the corresponding body
-         Subp_Body_Name := Laltools.Common.Find_Next_Part
-           (Subp_Decl.P_Defining_Name, Trace);
+         Subp_Body_Name := Find_Next_Part (Subp_Decl.P_Defining_Name, Tracer);
 
          --  If there is a body, append the body's begin and end labels
          --  to the result.
