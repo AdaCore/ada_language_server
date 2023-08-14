@@ -41,7 +41,6 @@ with Langkit_Support.Text;
 
 with URIs;
 with LSP.Ada_Id_Iterators;
-with LSP.Structures;
 
 package body LSP.Ada_Contexts is
 
@@ -550,10 +549,10 @@ package body LSP.Ada_Contexts is
 
    function Is_Part_Of_Project
      (Self : Context;
-      File : Virtual_File) return Boolean is
+      URI : LSP.Structures.DocumentUri) return Boolean is
    begin
       return Self.Is_Fallback_Context
-        or else Self.Source_Files.Contains (File);
+        or else Self.Source_Files.Contains (Self.URI_To_File (URI));
    end Is_Part_Of_Project;
 
    ------------------

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -71,17 +71,12 @@ package body LSP.Ada_Context_Sets is
 
    function Get_Best_Context
      (Self : Context_Set'Class;
-      URI  : LSP.Messages.DocumentUri) return Context_Access is
+      URI  : LSP.Structures.DocumentUri) return Context_Access is
    begin
       for Context of Self.Contexts loop
-         declare
-            File : constant Virtual_File :=
-              Create_From_UTF8 (Context.URI_To_File (URI));
-         begin
-            if Context.Is_Part_Of_Project (File) then
-               return Context;
-            end if;
-         end;
+         if Context.Is_Part_Of_Project (URI) then
+            return Context;
+         end if;
       end loop;
 
       return Self.Contexts.First_Element;

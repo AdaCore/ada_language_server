@@ -37,10 +37,11 @@ with Pp.Command_Lines;
 
 with VSS.Strings;
 
-with LSP.Tracers;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
 with LSP.Search;
+with LSP.Structures;
+with LSP.Tracers;
 
 package LSP.Ada_Contexts is
 
@@ -161,7 +162,7 @@ package LSP.Ada_Contexts is
 
    function Is_Part_Of_Project
      (Self : Context;
-      File : GNATCOLL.VFS.Virtual_File) return Boolean;
+      URI  : LSP.Structures.DocumentUri) return Boolean;
    --  Check if given file belongs to the project loaded in the Context
 
    function List_Files (Self : Context'CLass)

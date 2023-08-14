@@ -17,8 +17,6 @@ lsp-ada_completions-pragmas.adb
 lsp-ada_completions-pragmas.ads
 lsp-ada_completions-use_clauses.adb
 lsp-ada_completions-use_clauses.ads
-lsp-ada_context_sets.adb
-lsp-ada_context_sets.ads
 lsp-ada_documentation.adb
 lsp-ada_documentation.ads
 lsp-ada_documents-lal_diagnostics.adb
