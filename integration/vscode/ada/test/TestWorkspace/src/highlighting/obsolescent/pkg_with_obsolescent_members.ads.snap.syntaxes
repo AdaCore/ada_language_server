@@ -1,0 +1,62 @@
+>--  Check that only marked subprograms get highlighted as obsolescent.  In
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>--  particular, there was a LAL bug that made the pragmas impact the enclosing
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>--  package, so this test should check that the parent package does not get
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>--  marked as obsolescent.
+#^^ source.ada comment.line.ada
+#  ^^^^^^^^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>package Pkg_With_Obsolescent_Members is
+#^^^^^^^ source.ada keyword.other.ada
+#       ^ source.ada
+#        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                                    ^ source.ada
+#                                     ^^ source.ada keyword.other.ada
+>
+>   procedure Proc1;
+#^^^ source.ada
+#   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#            ^ source.ada meta.declaration.subprogram.ada
+#             ^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#                  ^ source.ada punctuation.ada
+>   pragma Obsolescent;
+#^^^ source.ada
+#   ^^^^^^ source.ada keyword.control.ada
+#         ^ source.ada
+#          ^^^^^^^^^^^ source.ada entity.name.label.ada
+#                     ^ source.ada punctuation.ada
+>
+>   procedure Proc2;
+#^^^ source.ada
+#   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#            ^ source.ada meta.declaration.subprogram.ada
+#             ^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#                  ^ source.ada punctuation.ada
+>   --  Not obsolescent
+#^^^ source.ada
+#   ^^ source.ada comment.line.ada
+#     ^^^^^^^^^^^^^^^^^ source.ada comment.line.ada
+>
+>   procedure Proc3;
+#^^^ source.ada
+#   ^^^^^^^^^ source.ada meta.declaration.subprogram.ada keyword.other.ada
+#            ^ source.ada meta.declaration.subprogram.ada
+#             ^^^^^ source.ada meta.declaration.subprogram.ada entity.name.function.ada
+#                  ^ source.ada punctuation.ada
+>   pragma Obsolescent;
+#^^^ source.ada
+#   ^^^^^^ source.ada keyword.control.ada
+#         ^ source.ada
+#          ^^^^^^^^^^^ source.ada entity.name.label.ada
+#                     ^ source.ada punctuation.ada
+>
+>end Pkg_With_Obsolescent_Members;
+#^^^ source.ada keyword.other.ada
+#   ^ source.ada
+#    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.ada entity.name.label.ada
+#                                ^ source.ada punctuation.ada
+>
