@@ -90,8 +90,6 @@ lsp-lal_utils.adb
 lsp-lal_utils.ads
 lsp-predefined_completion.adb
 lsp-predefined_completion.ads
-lsp-search.adb
-lsp-search.ads
 lsp-search-approximate.adb
 lsp-search-approximate.ads
 lsp-search-empty.adb

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021, AdaCore                          --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,10 +17,34 @@
 
 with Ada.Finalization;
 
-with VSS.Strings;  use VSS.Strings;
-with LSP.Messages; use LSP.Messages;
+with VSS.Strings;
 
 package LSP.Search is
+
+   type Search_Kind is
+     (Full_Text, Regexp, Fuzzy, Approximate, Start_Word_Text);
+   --  A Full_Text match searches the pattern exactly in the contents.
+   --
+   --  A Start_Word_Text works like a Full_Text but tested word should mutch
+   --  patters from the first letter
+   --
+   --  A regexp parses the pattern as a regular expression.
+   --
+   --  A fuzzy match will search for some contents that contains all the
+   --  characters of the pattern, in the same order, but possibly with
+   --  other characters in-between. The number of characters in-between is not
+   --  limited, so this mode really only makes sense when matching short text
+   --  (and not, for instance, in text editors).
+   --
+   --  Approximate allows one or two errors to appear in the match (character
+   --  insertion, deletion or substitution). This is mostly suitable when
+   --  matching in long texts. The implementation of this algorithm is
+   --  optimized so that characters are matched only once, but the total length
+   --  of the pattern is limited to 64 characters. The exact number of errors
+   --  depends on the length of the pattern:
+   --      patterns of length <= 4  => no error allowed
+   --      patterns of length <= 10 => one error allowed
+   --      long patterns            => up to two errors
 
    --------------------
    -- Search_Pattern --
@@ -75,7 +99,7 @@ private
 
    type Search_Pattern is abstract new
      Ada.Finalization.Limited_Controlled with record
-      Text           : VSS.Strings.Virtual_String := Empty_Virtual_String;
+      Text           : VSS.Strings.Virtual_String;
       Case_Sensitive : Boolean     := False;
       Whole_Word     : Boolean     := False;
       Kind           : Search_Kind := Full_Text;
