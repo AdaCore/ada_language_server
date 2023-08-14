@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2023, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,32 +15,32 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-package body LSP.Ada_Highlighters is
+with VSS.Strings;
+with GPR2.Environment;
 
-   ----------------
-   -- Get_Tokens --
-   ----------------
+with LSP.Ada_Configurations;
 
-   function Get_Tokens
-     (Self   : Ada_Highlighter'Class; Unit : Libadalang.Analysis.Analysis_Unit;
-      Tracer : in out LSP.Tracers.Tracer'Class; Span : LSP.Structures.A_Range)
-      return LSP.Structures.Natural_Vector
-   is
-      pragma Unreferenced (Self, Unit, Tracer, Span);
-   begin
-      return LSP.Structures.Empty;
-   end Get_Tokens;
+private
 
-   ----------------
-   -- Initialize --
-   ----------------
+package LSP.Ada_Handlers.Project_Loading is
 
-   procedure Initialize
-     (Self   : in out Ada_Highlighter'Class;
-      Client :        LSP.Structures.SemanticTokensClientCapabilities;
-      Legend :    out LSP.Structures.SemanticTokensLegend) is
-   begin
-      null;
-   end Initialize;
+   procedure Load_Project
+     (Self         : in out Message_Handler'Class;
+      Project_File : VSS.Strings.Virtual_String;
+      Scenario     : LSP.Ada_Configurations.Variable_List;
+      Environment  : GPR2.Environment.Object;
+      Charset      : VSS.Strings.Virtual_String;
+      Status       : Load_Project_Status);
+   --  Attempt to load the given project file, with the scenario provided.
+   --  This unloads all currently loaded project contexts. This factorizes code
+   --  between Load_Project_With_Alire and Ensure_Project_Loaded.
 
-end LSP.Ada_Highlighters;
+   procedure Ensure_Project_Loaded (Self : in out Message_Handler'Class);
+
+   procedure Reload_Project (Self : in out Message_Handler'CLass);
+
+   procedure Release_Contexts_And_Project_Info
+     (Self : in out Message_Handler'Class);
+   --  Release the memory associated to project information in Self
+
+end LSP.Ada_Handlers.Project_Loading;

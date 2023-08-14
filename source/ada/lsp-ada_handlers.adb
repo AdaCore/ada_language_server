@@ -19,12 +19,10 @@ with Ada.Exceptions;
 
 with VSS.Strings.Conversions;
 
+with LSP.Ada_Handlers.Project_Loading;
 with LSP.Enumerations;
 
 package body LSP.Ada_Handlers is
-
-   procedure Reload_Project (Self : in out Message_Handler'CLass) is null;
-   --  TBD
 
    -----------------------
    -- Get_Open_Document --
@@ -61,7 +59,7 @@ package body LSP.Ada_Handlers is
       Self.Configuration.Read_JSON (Value.settings, Reload);
 
       if Reload then
-         Self.Reload_Project;
+         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
       end if;
    end On_DidChangeConfiguration_Notification;
 
