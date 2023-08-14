@@ -71,8 +71,6 @@ lsp-ada_handlers-refactor-sort_dependencies.adb
 lsp-ada_handlers-refactor-sort_dependencies.ads
 lsp-ada_handlers-refactor-suppress_seperate.adb
 lsp-ada_handlers-refactor-suppress_seperate.ads
-lsp-ada_highlighters.adb
-lsp-ada_highlighters.ads
 lsp-client_side_file_monitors.adb
 lsp-client_side_file_monitors.ads
 lsp-common.adb
