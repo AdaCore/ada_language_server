@@ -16,6 +16,12 @@ export function run(): Promise<void> {
         mochaOptions.reporter = process.env.MOCHA_REPORTER;
     }
 
+    if (!mochaOptions.reporterOptions) {
+        mochaOptions.reporterOptions = {
+            maxDiffSize: 0,
+        };
+    }
+
     // Create the mocha test
     const mocha = new Mocha(mochaOptions);
 
@@ -33,6 +39,10 @@ export function run(): Promise<void> {
             // timeouts.
             if (env['MOCHA_TIMEOUT']) {
                 mocha.timeout(env['MOCHA_TIMEOUT']);
+            }
+
+            if (env['MOCHA_GREP']) {
+                mocha.grep(env['MOCHA_GREP']);
             }
 
             // Run the mocha test
