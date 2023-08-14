@@ -20,6 +20,7 @@
 
 with LSP.Ada_Client_Capabilities;
 with LSP.Ada_Configurations;
+with LSP.Ada_Documents;
 with LSP.Client_Message_Receivers;
 with LSP.Server_Message_Visitors;
 with LSP.Server_Notification_Receivers;
@@ -48,6 +49,16 @@ package LSP.Ada_Handlers is
    --
    --  Incremental_Text_Changes - activate the support for incremental text
    --  changes.
+
+   function Get_Open_Document
+     (Self  : access Message_Handler;
+      URI   : LSP.Structures.DocumentUri;
+      Force : Boolean := False)
+      return LSP.Ada_Documents.Document_Access;
+   --  Return the open document for the given URI.
+   --  If the document is not opened, then if Force a new document
+   --  will be created and must be freed by the user else null will be
+   --  returned.
 
 private
 

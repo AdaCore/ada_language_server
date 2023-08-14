@@ -26,6 +26,17 @@ package body LSP.Ada_Handlers is
    procedure Reload_Project (Self : in out Message_Handler'CLass) is null;
    --  TBD
 
+   -----------------------
+   -- Get_Open_Document --
+   -----------------------
+
+   function Get_Open_Document
+     (Self  : access Message_Handler;
+      URI   : LSP.Structures.DocumentUri;
+      Force : Boolean := False)
+      return LSP.Ada_Documents.Document_Access
+   is (raise Program_Error with "Unimplemented");
+
    ----------------
    -- Initialize --
    ----------------

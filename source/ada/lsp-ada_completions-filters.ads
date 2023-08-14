@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2021, AdaCore                        --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Types;
+with LSP.Structures;
 
 package LSP.Ada_Completions.Filters is
 
@@ -53,12 +53,12 @@ private
    type Filter is tagged limited record
       Token              : Libadalang.Common.Token_Reference;
       Node               : Libadalang.Analysis.Ada_Node;
-      Is_End_Label       : LSP.Types.Optional_Boolean;
-      Is_Numeric_Literal : LSP.Types.Optional_Boolean;
-      Is_Attribute       : LSP.Types.Optional_Boolean;
-      Is_Aspect          : LSP.Types.Optional_Boolean;
-      Is_Semicolon       : LSP.Types.Optional_Boolean;
-      Is_Comma           : LSP.Types.Optional_Boolean;
+      Is_End_Label       : LSP.Structures.Boolean_Optional;
+      Is_Numeric_Literal : LSP.Structures.Boolean_Optional;
+      Is_Attribute       : LSP.Structures.Boolean_Optional;
+      Is_Aspect          : LSP.Structures.Boolean_Optional;
+      Is_Semicolon       : LSP.Structures.Boolean_Optional;
+      Is_Comma           : LSP.Structures.Boolean_Optional;
    end record;
 
 end LSP.Ada_Completions.Filters;
