@@ -56,11 +56,19 @@ private
    with record
       Client : LSP.Ada_Client_Capabilities.Client_Capability;
       Incremental_Text_Changes : Boolean;
+
+      Indexing_Enabled         : Boolean := True;
+      --  Whether to index sources in the background. This should be True
+      --  for normal use, and can be disabled for debug or testing purposes.
    end record;
 
    overriding procedure On_Server_Request
      (Self  : in out Message_Handler;
       Value : LSP.Server_Requests.Server_Request'Class);
+
+   overriding procedure On_Shutdown_Request
+     (Self : in out Message_Handler;
+      Id   : LSP.Structures.Integer_Or_Virtual_String);
 
    overriding procedure On_Initialize_Request
      (Self  : in out Message_Handler;

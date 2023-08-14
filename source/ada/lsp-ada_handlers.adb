@@ -92,4 +92,21 @@ package body LSP.Ada_Handlers is
          end;
    end On_Server_Request;
 
+   -------------------------
+   -- On_Shutdown_Request --
+   -------------------------
+
+   overriding procedure On_Shutdown_Request
+     (Self : in out Message_Handler;
+      Id   : LSP.Structures.Integer_Or_Virtual_String)
+   is
+      Result : LSP.Structures.Null_Record;
+
+   begin
+      --  Suspend files/runtime indexing after shutdown requst
+      Self.Indexing_Enabled := False;
+
+      Self.Sender.On_Shutdown_Response (Id, Result);
+   end On_Shutdown_Request;
+
 end LSP.Ada_Handlers;
