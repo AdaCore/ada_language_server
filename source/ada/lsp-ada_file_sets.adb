@@ -20,8 +20,7 @@ with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Iterators;
 with Libadalang.Sources;
 
-with LSP.Lal_Utils;
-with LSP.Messages;
+with LSP.Predicates;
 
 package body LSP.Ada_File_Sets is
 
@@ -94,7 +93,7 @@ package body LSP.Ada_File_Sets is
          Defining_Name : Libadalang.Analysis.Defining_Name;
          Stop          : in out Boolean))
    is
-      use type LSP.Messages.Search_Kind;
+      use all type LSP.Search.Search_Kind;
 
       Stop          : Boolean := False;
       Cursor        : Symbol_Maps.Cursor;
@@ -102,9 +101,9 @@ package body LSP.Ada_File_Sets is
       Use_Celling   : constant Boolean :=
         not Pattern.Get_Case_Sensitive
         and then not Pattern.Get_Negate
-        and then ((Pattern.Get_Kind = LSP.Messages.Full_Text
+        and then ((Pattern.Get_Kind = Full_Text
                    and then Pattern.Get_Whole_Word)
-                  or else Pattern.Get_Kind = LSP.Messages.Start_Word_Text);
+                  or else Pattern.Get_Kind = Start_Word_Text);
 
    begin
       if Use_Celling then
@@ -123,7 +122,7 @@ package body LSP.Ada_File_Sets is
 
                if not Defining_Name.Is_Null
                  and then Pattern.Match
-                   (LSP.Lal_Utils.To_Virtual_String
+                   (VSS.Strings.To_Virtual_String
                       (Defining_Name.As_Ada_Node.Text))
                then
                   if not Only_Public or else Item.Is_Public then
@@ -196,10 +195,10 @@ package body LSP.Ada_File_Sets is
       Node       : Libadalang.Analysis.Ada_Node;
 
       Global_Visible : constant Libadalang.Iterators.Ada_Node_Predicate :=
-        LSP.Lal_Utils.Is_Global_Visible;
+        LSP.Predicates.Is_Global_Visible;
 
       Restricted_Kind : constant Libadalang.Iterators.Ada_Node_Predicate :=
-        LSP.Lal_Utils.Is_Restricted_Kind;
+        LSP.Predicates.Is_Restricted_Kind;
 
       --  Find all definings names excluding private parts and bodies content
       It : Libadalang.Iterators.Traverse_Iterator'Class :=
@@ -237,7 +236,7 @@ package body LSP.Ada_File_Sets is
          begin
             if Canonical.Success then
                Self.All_Symbols.Insert
-                 (LSP.Lal_Utils.To_Virtual_String (Canonical.Symbol),
+                 (VSS.Strings.To_Virtual_String (Canonical.Symbol),
                   Name_Vectors.Empty_Vector,
                   Cursor,
                   Inserted);

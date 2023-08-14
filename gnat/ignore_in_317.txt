@@ -31,8 +31,6 @@ lsp-ada_documents.adb
 lsp-ada_documents.ads
 lsp-ada_documents-lal_diagnostics.adb
 lsp-ada_documents-lal_diagnostics.ads
-lsp-ada_file_sets.adb
-lsp-ada_file_sets.ads
 lsp-ada_handlers-alire.adb
 lsp-ada_handlers-alire.ads
 lsp-ada_handlers-file_readers.adb
