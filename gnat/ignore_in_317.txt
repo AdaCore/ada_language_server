@@ -19,8 +19,6 @@ lsp-ada_completions-use_clauses.adb
 lsp-ada_completions-use_clauses.ads
 lsp-ada_documentation.adb
 lsp-ada_documentation.ads
-lsp-ada_documents-lal_diagnostics.adb
-lsp-ada_documents-lal_diagnostics.ads
 lsp-ada_handlers-alire.adb
 lsp-ada_handlers-alire.ads
 lsp-ada_handlers-invisibles.adb

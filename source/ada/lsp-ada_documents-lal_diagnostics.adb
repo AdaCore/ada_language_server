@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,7 +17,7 @@
 
 with Ada.Strings.Wide_Wide_Unbounded;
 
-with LSP.Lal_Utils;
+with VSS.Strings.Conversions;
 
 package body LSP.Ada_Documents.LAL_Diagnostics is
 
@@ -32,16 +32,18 @@ package body LSP.Ada_Documents.LAL_Diagnostics is
    overriding procedure Get_Diagnostic
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
-      Errors  : out LSP.Messages.Diagnostic_Vector)
+      Errors  : out LSP.Structures.Diagnostic_Vector)
    is
-      Item : LSP.Messages.Diagnostic;
+      Item : LSP.Structures.Diagnostic;
    begin
-      Item.source := (True, "libadalang");
+      Item.source := "libadalang";
       Self.Errors := Self.Get_Diagnostics (Context);
 
       for J in Self.Errors.List'Range loop
-         Item.span := LSP.Lal_Utils.To_Span (Self.Errors.List (J).Sloc_Range);
-         Item.message := LSP.Lal_Utils.To_Virtual_String
+         Item.a_range := Self.Document.To_LSP_Range
+           (Self.Errors.List (J).Sloc_Range);
+
+         Item.message := VSS.Strings.Conversions.To_Virtual_String
            (Self.Errors.List (J).Message);
 
          Errors.Append (Item);
