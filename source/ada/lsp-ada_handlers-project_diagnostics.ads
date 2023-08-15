@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with LSP.Ada_Contexts;
 with LSP.Diagnostic_Sources;
 
 package LSP.Ada_Handlers.Project_Diagnostics is
@@ -26,7 +27,7 @@ package LSP.Ada_Handlers.Project_Diagnostics is
    overriding procedure Get_Diagnostic
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
-      Errors  : out LSP.Messages.Diagnostic_Vector);
+      Errors  : out LSP.Structures.Diagnostic_Vector);
    --  Fill diagnostics for given document.
 
    overriding function Has_New_Diagnostic

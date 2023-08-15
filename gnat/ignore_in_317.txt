@@ -29,8 +29,6 @@ lsp-ada_handlers-named_parameters_commands.adb
 lsp-ada_handlers-named_parameters_commands.ads
 lsp-ada_handlers-other_file_commands.adb
 lsp-ada_handlers-other_file_commands.ads
-lsp-ada_handlers-project_diagnostics.adb
-lsp-ada_handlers-project_diagnostics.ads
 lsp-ada_handlers-project_reload_commands.adb
 lsp-ada_handlers-project_reload_commands.ads
 lsp-ada_handlers-refactor-add_parameter.adb
