@@ -80,8 +80,6 @@ lsp-search-regexp.ads
 lsp-search-start_word_text.adb
 lsp-search-start_word_text.ads
 lsp-file_monitors.ads
-lsp-generic_cancel_check.adb
-lsp-generic_cancel_check.ads
 lsp-message_loggers.adb
 lsp-message_loggers.ads
 lsp-server_backends.ads

@@ -49,6 +49,9 @@ package LSP.Ada_Client_Capabilities is
       Value : VSS.Strings.Virtual_String);
    --  Is Self.Root is empty then replace it with given Value
 
+   function Line_Folding_Only (Self : Client_Capability'Class) return Boolean;
+   --  Returns capabilities.textDocument.foldingRange.lineFoldingOnly or False
+
 private
 
    type Client_Capability is tagged limited record

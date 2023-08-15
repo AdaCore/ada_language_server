@@ -65,7 +65,6 @@ package body LSP.Ada_Client_Capabilities is
       pragma Unreferenced (Self);
    begin
       return Result : LSP.Structures.ServerCapabilities do
-
          Result.textDocumentSync :=
            (Is_Set => True,
             Value  =>
@@ -75,7 +74,32 @@ package body LSP.Ada_Client_Capabilities is
                        LSP.Enumerations.Incremental
                   else
                      LSP.Enumerations.Full)));
+
+         Result.foldingRangeProvider :=
+           (Is_Set => True,
+            Value  =>
+              (Kind => LSP.Structures.Varian_1, Varian_1 => True));
       end return;
    end To_Server_Capabilities;
+
+   -----------------------
+   -- Line_Folding_Only --
+   -----------------------
+
+   function Line_Folding_Only
+     (Self : Client_Capability'Class) return Boolean is
+   begin
+      if Self.Value.capabilities.textDocument.Is_Set
+        and then Self.Value.capabilities.textDocument.Value.foldingRange.Is_Set
+        and then Self.Value.capabilities.textDocument.Value.foldingRange.Value.
+          lineFoldingOnly.Is_Set
+      then
+         return Self.Value.capabilities.textDocument.Value.foldingRange.Value.
+           lineFoldingOnly.Value;
+
+      else
+         return False;
+      end if;
+   end Line_Folding_Only;
 
 end LSP.Ada_Client_Capabilities;

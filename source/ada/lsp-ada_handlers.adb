@@ -27,6 +27,7 @@ with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Handlers.Project_Loading;
 with LSP.Diagnostic_Sources;
 with LSP.Enumerations;
+with LSP.Generic_Cancel_Check;
 
 package body LSP.Ada_Handlers is
 
@@ -107,14 +108,14 @@ package body LSP.Ada_Handlers is
    -----------------------
 
    function Get_Open_Document
-     (Self  : access Message_Handler;
+     (Self  : in out Message_Handler;
       URI   : LSP.Structures.DocumentUri;
       Force : Boolean := False)
       return LSP.Ada_Documents.Document_Access
    is
       File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
    begin
-      Project_Loading.Ensure_Project_Loaded (Self.all);
+      Project_Loading.Ensure_Project_Loaded (Self);
 
       if Self.Open_Documents.Contains (File) then
          return LSP.Ada_Documents.Document_Access
@@ -142,6 +143,44 @@ package body LSP.Ada_Handlers is
    begin
       Self.Incremental_Text_Changes := Incremental_Text_Changes;
    end Initialize;
+
+   -----------------------------
+   -- On_FoldingRange_Request --
+   -----------------------------
+
+   overriding procedure On_FoldingRange_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.FoldingRangeParams)
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+      Response : LSP.Structures.FoldingRange_Vector_Or_Null;
+
+   begin
+      if Document /= null then
+         Document.Get_Folding_Blocks
+           (Context.all,
+            Self.Client.Line_Folding_Only,
+            Self.Configuration.Folding_Comments,
+            Self.Is_Canceled,
+            Response);
+
+         if Self.Is_Canceled.all then
+            Response.Clear;
+         end if;
+         Self.Sender.On_FoldingRange_Response (Id, Response);
+
+      else
+         Self.Sender.On_Error_Response
+           (Id, (code => LSP.Enumerations.InternalError,
+                 message => "Document is not opened"));
+      end if;
+   end On_FoldingRange_Request;
 
    --------------------------------------------
    -- On_DidChangeConfiguration_Notification --
@@ -232,7 +271,7 @@ package body LSP.Ada_Handlers is
       Self.Client.Initialize (Value);
 
       Response.capabilities := Self.Client.To_Server_Capabilities
-        (Incremental_Text_Changes => Self.Incremental_Text_Changes);
+        (Self.Incremental_Text_Changes);
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
@@ -257,9 +296,12 @@ package body LSP.Ada_Handlers is
 
    overriding procedure On_Server_Request
      (Self  : in out Message_Handler;
-      Value : LSP.Server_Requests.Server_Request'Class) is
+      Value : LSP.Server_Requests.Server_Request'Class)
+   is
+      package Canceled is new LSP.Generic_Cancel_Check (Value'Access, 127);
    begin
       Self.Implemented := True;
+      Self.Is_Canceled := Canceled.Has_Been_Canceled'Unrestricted_Access;
 
       Value.Visit_Server_Receiver (Self);
 

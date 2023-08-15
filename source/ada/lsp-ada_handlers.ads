@@ -60,7 +60,7 @@ package LSP.Ada_Handlers is
    --  changes.
 
    function Get_Open_Document
-     (Self  : access Message_Handler;
+     (Self  : in out Message_Handler;
       URI   : LSP.Structures.DocumentUri;
       Force : Boolean := False)
       return LSP.Ada_Documents.Document_Access;
@@ -124,6 +124,8 @@ private
       Hash                => GNATCOLL.VFS.Full_Name_Hash,
       Equivalent_Elements => GNATCOLL.VFS."=",
       "="                 => GNATCOLL.VFS."=");
+
+   type Has_Been_Canceled_Function is access function return Boolean;
 
    type Message_Handler
      (Sender : not null access LSP.Client_Message_Receivers
@@ -198,6 +200,8 @@ private
       Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"
 
+      Is_Canceled : Has_Been_Canceled_Function;
+      --  Is request has been canceled
    end record;
 
    overriding procedure On_Server_Request
@@ -215,6 +219,11 @@ private
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InitializeParams);
+
+   overriding procedure On_FoldingRange_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.FoldingRangeParams);
 
    overriding procedure On_DidChangeConfiguration_Notification
      (Self  : in out Message_Handler;
