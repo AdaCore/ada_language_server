@@ -88,6 +88,10 @@ package body LSP.Ada_Contexts is
    --  references to the base primitives it inherits and all the references to
    --  the overriding ones.
 
+   -----------------
+   -- URI_To_File --
+   -----------------
+
    function URI_To_File
      (Self : Context;
       URI  : LSP.Structures.DocumentUri)

@@ -87,10 +87,10 @@ package LSP.Ada_Contexts is
    --     URI  : LSP.Types.LSP_URI)
    --     return Ada.Strings.UTF_Encoding.UTF_8_String;
    --
-   --  function URI_To_File
-   --    (Self : Context;
-   --     URI  : LSP.Types.LSP_URI)
-   --     return GNATCOLL.VFS.Virtual_File;
+   function URI_To_File
+     (Self : Context;
+      URI  : LSP.Structures.DocumentUri)
+      return GNATCOLL.VFS.Virtual_File;
 
    procedure Find_All_References
      (Self       : Context;
