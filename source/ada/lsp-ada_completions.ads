@@ -134,4 +134,14 @@ package LSP.Ada_Completions is
    type Completion_Provider_List is array (Positive range <>) of
      Completion_Provider_Access;
 
+private
+
+   function Skip_Dotted_Names (Node : Libadalang.Analysis.Ada_Node)
+      return Libadalang.Analysis.Ada_Node;
+   --  While Node.Kind is the Dotted_Name go up.
+
+   function Is_End_Token (Token : Libadalang.Common.Token_Reference)
+      return Boolean;
+   --  Check if Token is <end>.
+
 end LSP.Ada_Completions;

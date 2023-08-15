@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Structures;
+private with LSP.Structures;
 
 package LSP.Ada_Completions.Filters is
 

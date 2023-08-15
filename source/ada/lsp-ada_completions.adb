@@ -18,6 +18,24 @@
 package body LSP.Ada_Completions is
    pragma Warnings (Off);
 
+   ------------------
+   -- Is_End_Token --
+   ------------------
+
+   function Is_End_Token
+     (Token : Libadalang.Common.Token_Reference)
+      return Boolean
+   is
+      use Libadalang.Common;
+      End_Token : constant Libadalang.Common.Token_Data_Type :=
+        Libadalang.Common.Data (Token);
+
+      Token_Kind : constant Libadalang.Common.Token_Kind :=
+        Libadalang.Common.Kind (End_Token);
+   begin
+      return Token_Kind = Libadalang.Common.Ada_End;
+   end Is_End_Token;
+
    ------------------------
    -- Is_Full_Sloc_Equal --
    ------------------------
@@ -31,6 +49,26 @@ package body LSP.Ada_Completions is
       return
         raise Program_Error with "Unimplemented function Is_Full_Sloc_Equal";
    end Is_Full_Sloc_Equal;
+
+   -----------------------
+   -- Skip_Dotted_Names --
+   -----------------------
+
+   function Skip_Dotted_Names
+     (Node : Libadalang.Analysis.Ada_Node)
+      return Libadalang.Analysis.Ada_Node
+   is
+      use Libadalang.Common;
+      Parent : Libadalang.Analysis.Ada_Node := Node;
+   begin
+      while not Parent.Is_Null
+        and then Parent.Kind = Libadalang.Common.Ada_Dotted_Name
+      loop
+         Parent := Parent.Parent;
+      end loop;
+
+      return Parent;
+   end Skip_Dotted_Names;
 
    -----------------------
    -- Write_Completions --
