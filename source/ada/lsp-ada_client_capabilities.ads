@@ -44,6 +44,11 @@ package LSP.Ada_Client_Capabilities is
    --  if not rootUri/rootPath is provided, then it means no folder is open.
    --  Return an empty string in this case.
 
+   procedure Set_Root_If_Empty
+     (Self  : in out Client_Capability'Class;
+      Value : VSS.Strings.Virtual_String);
+   --  Is Self.Root is empty then replace it with given Value
+
 private
 
    type Client_Capability is tagged limited record

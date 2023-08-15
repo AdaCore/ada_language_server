@@ -127,7 +127,7 @@ package body LSP.GNATCOLL_Tracers is
 
    overriding procedure Trace_Text
      (Self : in out Tracer;
-      Text : VSS.Strings.Virtual_String) is
+      Text : VSS.Strings.Virtual_String'Class) is
    begin
       Self.Server_Trace.Trace (VSS.Strings.Conversions.To_UTF_8_String (Text));
    end Trace_Text;

@@ -18,6 +18,7 @@
 --  This package provides requests and notifications handler for Ada
 --  language.
 
+with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
 
 with GNATCOLL.VFS;
@@ -105,6 +106,18 @@ private
      No_Project_Found .. Invalid_Project_Configured;
    --  Project status when an implicit project loaded
 
+   type Internal_Document_Access is access all LSP.Ada_Documents.Document;
+
+   procedure Free (Self : in out Internal_Document_Access);
+   --  Free all the data for the given document.
+
+   --  Container for documents indexed by URI
+   package Document_Maps is new Ada.Containers.Hashed_Maps
+     (Key_Type        => GNATCOLL.VFS.Virtual_File,
+      Element_Type    => Internal_Document_Access,
+      Hash            => GNATCOLL.VFS.Full_Name_Hash,
+      Equivalent_Keys => GNATCOLL.VFS."=");
+
    --  Container for the predefined source files
    package File_Sets is new Ada.Containers.Hashed_Sets
      (Element_Type        => GNATCOLL.VFS.Virtual_File,
@@ -135,6 +148,9 @@ private
       Indexing_Enabled         : Boolean := True;
       --  Whether to index sources in the background. This should be True
       --  for normal use, and can be disabled for debug or testing purposes.
+
+      Open_Documents : Document_Maps.Map;
+      --  The documents that are currently open
 
       Files_To_Index : File_Sets.Set;
       --  Contains any files that need indexing.
@@ -203,5 +219,9 @@ private
    overriding procedure On_DidChangeConfiguration_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeConfigurationParams);
+
+   overriding procedure On_DidOpen_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidOpenTextDocumentParams);
 
 end LSP.Ada_Handlers;

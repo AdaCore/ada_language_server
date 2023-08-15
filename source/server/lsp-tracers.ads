@@ -36,7 +36,7 @@ package LSP.Tracers is
 
    procedure Trace_Text
      (Self : in out Tracer;
-      Text : VSS.Strings.Virtual_String) is abstract;
+      Text : VSS.Strings.Virtual_String'Class) is abstract;
    --  Append Text to default trace file
 
    procedure Trace_Exception

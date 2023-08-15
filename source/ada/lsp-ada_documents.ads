@@ -28,8 +28,6 @@ with Libadalang.Common;
 with Langkit_Support.Slocs;
 with Laltools.Partial_GNATPP;
 
-with GNATCOLL.Traces;
-
 with Pp.Command_Lines;
 
 limited with LSP.Ada_Contexts;
@@ -38,12 +36,13 @@ with LSP.Diagnostic_Sources;
 with LSP.Ada_Highlighters;
 with LSP.Search;
 with LSP.Structures;
+with LSP.Tracers;
 
 package LSP.Ada_Documents is
 
    MAX_NB_DIAGNOSTICS : constant := 2;
 
-   type Document (Trace : GNATCOLL.Traces.Trace_Handle) is
+   type Document (Tracer : not null LSP.Tracers.Tracer_Access) is
      tagged limited private;
    --  An Ada document (file).
 
@@ -355,7 +354,8 @@ private
    type Diagnostic_Source_Array is array (Natural range <>) of
      LSP.Diagnostic_Sources.Diagnostic_Source_Access;
 
-   type Document (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited
+   type Document (Tracer : not null LSP.Tracers.Tracer_Access) is
+     tagged limited
    record
       URI  : LSP.Structures.DocumentUri;
 

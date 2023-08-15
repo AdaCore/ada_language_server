@@ -43,7 +43,7 @@ package LSP.GNATCOLL_Tracers is
 
    overriding procedure Trace_Text
      (Self : in out Tracer;
-      Text : VSS.Strings.Virtual_String);
+      Text : VSS.Strings.Virtual_String'Class);
 
    overriding procedure Trace_Exception
      (Self    : in out Tracer;

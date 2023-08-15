@@ -40,6 +40,19 @@ package body LSP.Ada_Client_Capabilities is
       end if;
    end Initialize;
 
+   -----------------------
+   -- Set_Root_If_Empty --
+   -----------------------
+
+   procedure Set_Root_If_Empty
+     (Self  : in out Client_Capability'Class;
+      Value : VSS.Strings.Virtual_String) is
+   begin
+      if Self.Root.Is_Empty then
+         Self.Root := Value;
+      end if;
+   end Set_Root_If_Empty;
+
    ----------------------------
    -- To_Server_Capabilities --
    ----------------------------

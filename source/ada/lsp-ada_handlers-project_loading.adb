@@ -98,11 +98,6 @@ package body LSP.Ada_Handlers.Project_Loading is
       Status : Implicit_Project_Loaded);
    --  Load the implicit project
 
-   procedure Reload_Implicit_Project_Dirs
-     (Self : in out Message_Handler'Class);
-   --  Reload as project source dirs the directories in
-   --  Self.Project_Dirs_Loaded.
-
    procedure Update_Project_Predefined_Sources
      (Self : in out Message_Handler'Class);
    --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
