@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 
@@ -62,6 +63,11 @@ package body LSP.Ada_Handlers is
    function To_DocumentUri (X : VSS.Strings.Virtual_String)
      return LSP.Structures.DocumentUri is (X with null record);
 
+   function To_DocumentUri
+     (X : LSP.Structures.URI)
+      return LSP.Structures.DocumentUri is
+     (VSS.Strings.Virtual_String (X) with null record);
+
    EmptyDocumentUri : constant LSP.Structures.DocumentUri :=
      To_DocumentUri (VSS.Strings.Empty_Virtual_String);
 
@@ -93,9 +99,11 @@ package body LSP.Ada_Handlers is
       Name : String;
       URI  : LSP.Structures.DocumentUri := EmptyDocumentUri) is
    begin
-      Self.Tracer.Trace ("In Message_Handler " & Name);
       if not URI.Is_Empty then
+         Self.Tracer.Trace ("In Message_Handler " & Name & " URI:");
          Self.Tracer.Trace_Text (URI);
+      else
+         Self.Tracer.Trace ("In Message_Handler " & Name);
       end if;
    end Log_Method_In;
 
@@ -359,7 +367,7 @@ package body LSP.Ada_Handlers is
         new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
           (Self'Unchecked_Access);
    begin
-      Self.Log_Method_In ("Text_Document_Did_Open. Uri :", URI);
+      Self.Log_Method_In ("Text_Document_Did_Open", URI);
 
       --  Some clients don't properly call initialize, or don't pass the
       --  project to didChangeConfiguration: fallback here on loading a
@@ -540,6 +548,211 @@ package body LSP.Ada_Handlers is
 
       Self.Log_Method_Out ("On_DidDeleteFiles_Notification");
    end On_DidDeleteFiles_Notification;
+
+   ------------------------------------
+   -- On_DidRenameFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.RenameFilesParams)
+   is
+      use LSP.Ada_Context_Sets;
+
+      package URI_Contexts_Maps is new
+        Ada.Containers.Indefinite_Hashed_Maps
+          (Key_Type        => LSP.Structures.DocumentUri,
+           Element_Type    => Context_Lists.List,
+           Hash            => LSP.Structures.Get_Hash,
+           Equivalent_Keys => LSP.Structures."=",
+           "="             => Context_Lists."=");
+
+      subtype URI_Contexts_Map is URI_Contexts_Maps.Map;
+
+      URIs_Contexts : URI_Contexts_Map;
+
+   begin
+      Self.Log_Method_In ("On_DidRenameFiles_Notification");
+
+      --  Some project sources were renamed, so recompute its view
+
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+      --  For each oldUri of Value.files:
+      --  - map it to a list of context that contains it
+      --  - remove it from those contexts
+      --  - re-index it on those contexts so that an empty unit is reparsed
+
+      for File_Rename of Value.files loop
+         declare
+            use VSS.Strings.Conversions;
+
+            Old_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (To_DocumentUri (File_Rename.oldUri));
+
+            function Has_File
+              (Context : LSP.Ada_Contexts.Context)
+               return Boolean
+            is (Context.Is_Part_Of_Project
+                (To_DocumentUri (File_Rename.oldUri)));
+            --  Return True if Old_File is a source of the project held by
+            --  Context.
+
+            URI_Contexts : Context_Lists.List;
+
+         begin
+            for Context of Self.Contexts.Each_Context
+              (Has_File'Unrestricted_Access)
+            loop
+               URI_Contexts.Append (Context);
+               Context.Exclude_File (Old_File);
+               Context.Index_File (Old_File);
+
+               Self.Tracer.Trace
+                 ("Excluded " & Old_File.Display_Full_Name
+                  & " from context " & To_UTF_8_String (Context.Id));
+            end loop;
+
+            URIs_Contexts.Insert
+              (To_DocumentUri (File_Rename.oldUri), URI_Contexts);
+         end;
+      end loop;
+
+      --  For each (oldUri, newUri) tuple:
+      --  - add newUri to all contexts that contained oldUri
+      --  - index the newUri (using the appriate method depending if
+      --    (there's an open document of not)
+
+      for File_Rename of Value.files loop
+         declare
+            use VSS.Strings.Conversions;
+            use type LSP.Ada_Documents.Document_Access;
+
+            New_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (To_DocumentUri (File_Rename.newUri));
+            Document : constant LSP.Ada_Documents.Document_Access :=
+              Get_Open_Document (Self, To_DocumentUri (File_Rename.newUri));
+            Is_Document_Open : constant Boolean := Document /= null;
+
+         begin
+            for Context of URIs_Contexts.Constant_Reference
+              (To_DocumentUri (File_Rename.oldUri))
+            loop
+               Context.Include_File (New_File);
+               if Is_Document_Open then
+                  Context.Index_Document (Document.all);
+               else
+                  Context.Index_File (New_File);
+               end if;
+               Self.Tracer.Trace
+                 ("Included " & New_File.Display_Base_Name & " in context "
+                  & To_UTF_8_String (Context.Id));
+            end loop;
+         end;
+      end loop;
+
+      Self.Log_Method_Out ("On_DidRenameFiles_Notification");
+   end On_DidRenameFiles_Notification;
+
+   -----------------------------------------------
+   -- On_DidChangeWorkspaceFolders_Notification --
+   -----------------------------------------------
+
+   overriding procedure On_DidChangeWorkspaceFolders_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeWorkspaceFoldersParams)
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI  : LSP.Structures.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File;
+
+      procedure Process_Created_File;
+      --  Processes a created file
+
+      procedure Process_Deleted_File;
+      --  Processes a deleted file
+
+      --------------------------
+      -- Process_Created_File --
+      --------------------------
+
+      procedure Process_Created_File
+      is
+         use VSS.Strings.Conversions;
+
+         Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
+           Self.Contexts_For_URI (URI);
+
+         function Has_Dir
+           (Context : LSP.Ada_Contexts.Context)
+            return Boolean
+         is (Context.List_Source_Directories.Contains (File.Dir));
+         --  Return True if File is in a source directory of the project held
+         --  by Context.
+
+      begin
+         --  If the file was created by the client, then the DidCreateFiles
+         --  notification might have been received from it. In that case,
+         --  Contexts wont be empty, and all we need to do is check if
+         --  there's an open document. If there is, it takes precedence over
+         --  the filesystem.
+         --  If Contexts is empty, then we need to check if is a new source
+         --  that needs to be added. For instance, a source that was moved
+         --  to the the project source directories.
+
+         if Contexts.Is_Empty then
+            for Context of Self.Contexts.Each_Context
+              (Has_Dir'Unrestricted_Access)
+            loop
+               Context.Include_File (File);
+               Context.Index_File (File);
+
+               Self.Tracer.Trace
+                 ("Included " & File.Display_Base_Name
+                  & " in context " & To_UTF_8_String (Context.Id));
+            end loop;
+
+         else
+            if Self.Get_Open_Document (URI) = null then
+               for Context of Contexts loop
+                  Context.Index_File (File);
+               end loop;
+            end if;
+         end if;
+      end Process_Created_File;
+
+      ---------------------------
+      -- Process_Deleted_Files --
+      ---------------------------
+
+      procedure Process_Deleted_File is
+      begin
+         if Self.Get_Open_Document (URI) = null then
+            --  If there is no document, remove from the sources list
+            --  and reindex the file for each context where it is
+            --  relevant.
+            for C of Self.Contexts_For_URI (URI) loop
+               C.Exclude_File (File);
+               C.Index_File (File);
+            end loop;
+         end if;
+      end Process_Deleted_File;
+
+   begin
+      --  Look through each change, filtering non Ada source files
+      for Change of Value.event.added loop
+         URI  := To_DocumentUri (Change.uri);
+         File := Self.To_File (URI);
+         Process_Created_File;
+      end loop;
+
+      for Change of Value.event.removed loop
+         URI  := To_DocumentUri (Change.uri);
+         File := Self.To_File (URI);
+         Process_Deleted_File;
+      end loop;
+   end On_DidChangeWorkspaceFolders_Notification;
 
    ---------------------------
    -- On_Initialize_Request --

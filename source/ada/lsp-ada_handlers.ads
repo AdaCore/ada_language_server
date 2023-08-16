@@ -249,4 +249,12 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DeleteFilesParams);
 
+   overriding procedure On_DidRenameFiles_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.RenameFilesParams);
+
+   overriding procedure On_DidChangeWorkspaceFolders_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeWorkspaceFoldersParams);
+
 end LSP.Ada_Handlers;
