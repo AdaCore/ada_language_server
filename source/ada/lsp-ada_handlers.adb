@@ -54,6 +54,27 @@ package body LSP.Ada_Handlers is
    --  When Force is True, the diagnostics will always be sent, not matter if
    --  they have changed or not.
 
+   procedure Clean_Diagnostics
+     (Self     : in out Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access);
+   --  Clean diagnostics up for the document
+
+   function To_DocumentUri (X : VSS.Strings.Virtual_String)
+     return LSP.Structures.DocumentUri is (X with null record);
+
+   EmptyDocumentUri : constant LSP.Structures.DocumentUri :=
+     To_DocumentUri (VSS.Strings.Empty_Virtual_String);
+
+   procedure Log_Method_In
+     (Self : in out Message_Handler;
+      Name : String;
+      URI  : LSP.Structures.DocumentUri := EmptyDocumentUri);
+
+   procedure Log_Method_Out
+     (Self : in out Message_Handler;
+      Name : String);
+   --  Save method in/out in a log file
+
    function To_File
      (Self : Message_Handler'Class;
       URI  : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File
@@ -62,6 +83,32 @@ package body LSP.Ada_Handlers is
         (URIs.Conversions.To_File
            (VSS.Strings.Conversions.To_UTF_8_String (URI),
             Normalize => Self.Configuration.Follow_Symlinks)));
+
+   -------------------
+   -- Log_Method_In --
+   -------------------
+
+   procedure Log_Method_In
+     (Self : in out Message_Handler;
+      Name : String;
+      URI  : LSP.Structures.DocumentUri := EmptyDocumentUri) is
+   begin
+      Self.Tracer.Trace ("In Message_Handler " & Name);
+      if not URI.Is_Empty then
+         Self.Tracer.Trace_Text (URI);
+      end if;
+   end Log_Method_In;
+
+   --------------------
+   -- Log_Method_Out --
+   --------------------
+
+   procedure Log_Method_Out
+     (Self : in out Message_Handler;
+      Name : String) is
+   begin
+      Self.Tracer.Trace ("Out Message_Handler " & Name);
+   end Log_Method_Out;
 
    ----------------------
    -- Contexts_For_URI --
@@ -179,7 +226,7 @@ package body LSP.Ada_Handlers is
 
       else
          Self.Sender.On_Error_Response
-           (Id, (code => LSP.Enumerations.InternalError,
+           (Id, (code    => LSP.Enumerations.InternalError,
                  message => "Document is not opened"));
       end if;
    end On_FoldingRange_Request;
@@ -312,8 +359,7 @@ package body LSP.Ada_Handlers is
         new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
           (Self'Unchecked_Access);
    begin
-      Self.Tracer.Trace ("In Text_Document_Did_Open. Uri :");
-      Self.Tracer.Trace_Text (URI);
+      Self.Log_Method_In ("Text_Document_Did_Open. Uri :", URI);
 
       --  Some clients don't properly call initialize, or don't pass the
       --  project to didChangeConfiguration: fallback here on loading a
@@ -351,8 +397,149 @@ package body LSP.Ada_Handlers is
       --  Emit diagnostics
       Self.Publish_Diagnostics (LSP.Ada_Documents.Document_Access (Object));
 
-      Self.Tracer.Trace ("Finished Text_Document_Did_Open");
+      Self.Log_Method_Out ("Text_Document_Did_Open");
    end On_DidOpen_Notification;
+
+   ------------------------------
+   -- On_DidClose_Notification --
+   ------------------------------
+
+   overriding procedure On_DidClose_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidCloseTextDocumentParams)
+   is
+      URI      : LSP.Structures.DocumentUri renames Value.textDocument.uri;
+      File     : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
+      Document : Internal_Document_Access;
+   begin
+      if Self.Open_Documents.Contains (File) then
+         Document := Self.Open_Documents.Element (File);
+
+         --  Remove the URI from the set of open documents now: this way,
+         --  the call to Flush_Document below will not attempt to reindex
+         --  from an open document, but from the file on disk.
+         Self.Open_Documents.Delete (File);
+
+         for Context of Self.Contexts_For_URI (URI) loop
+            Context.Flush_Document (File);
+         end loop;
+
+         Free (Document);
+
+      else
+         --  We have received a didCloseTextDocument but the document was
+         --  not open: this is not supposed to happen, log it.
+
+         Self.Tracer.Trace
+           ("received a On_DidClose_Notification for non-open document "
+            & "with uri: ");
+         Self.Tracer.Trace_Text (URI);
+      end if;
+
+      --  Clean diagnostics up on closing document
+      Self.Clean_Diagnostics
+        (LSP.Ada_Documents.Document_Access (Document));
+   end On_DidClose_Notification;
+
+   ------------------------------------
+   -- On_DidCreateFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidCreateFiles_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.CreateFilesParams) is
+   begin
+      Self.Log_Method_In ("On_DidCreateFiles_Notification");
+
+      --  New sources were created on this project, so recompute its view
+
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+      --  For each created file of Value.files:
+      --  - find the contexts that contains its directory
+      --  - add it to those contexts
+      --  - index it on those contexts
+
+      for File of Value.files loop
+         declare
+            use VSS.Strings.Conversions;
+
+            Created_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (To_DocumentUri (File.uri));
+
+            function Has_Dir
+              (Context : LSP.Ada_Contexts.Context)
+                  return Boolean
+            is (Context.List_Source_Directories.Contains
+                (Created_File.Dir));
+            --  Return True if Old_File is a source of the project held by
+            --  Context.
+
+         begin
+            for Context of Self.Contexts.Each_Context
+              (Has_Dir'Unrestricted_Access)
+            loop
+               Context.Include_File (Created_File);
+               Context.Index_File (Created_File);
+
+               Self.Tracer.Trace
+                 ("Included " & Created_File.Display_Base_Name
+                  & " in context " & To_UTF_8_String (Context.Id));
+            end loop;
+         end;
+      end loop;
+
+      Self.Log_Method_Out ("On_DidCreateFiles_Notification");
+   end On_DidCreateFiles_Notification;
+
+   ------------------------------------
+   -- On_DidDeleteFiles_Notification --
+   ------------------------------------
+
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DeleteFilesParams) is
+   begin
+      Self.Log_Method_In ("On_DidDeleteFiles_Notification");
+
+      --  Some project sources were deleted, so recompute its view
+
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+      --  For each delete file of Value.files:
+      --  - find the contexts that contains it
+      --  - remove it from those contexts
+      --  - re-index it on those contexts so that an empty unit is reparsed
+
+      for File of Value.files loop
+         declare
+            Deleted_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (To_DocumentUri (File.uri));
+
+            function Has_File
+              (Context : LSP.Ada_Contexts.Context)
+               return Boolean
+            is (Context.Is_Part_Of_Project (To_DocumentUri (File.uri)));
+            --  Return True if Old_File is a source of the project held by
+            --  Context.
+
+         begin
+            for Context of Self.Contexts.Each_Context
+              (Has_File'Unrestricted_Access)
+            loop
+               Context.Exclude_File (Deleted_File);
+               Context.Index_File (Deleted_File);
+
+               Self.Tracer.Trace
+                 ("Excluded " & Deleted_File.Display_Base_Name
+                  & " from context "
+                  & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
+            end loop;
+         end;
+      end loop;
+
+      Self.Log_Method_Out ("On_DidDeleteFiles_Notification");
+   end On_DidDeleteFiles_Notification;
 
    ---------------------------
    -- On_Initialize_Request --
@@ -475,5 +662,21 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
    end Publish_Diagnostics;
+
+   -----------------------
+   -- Clean_Diagnostics --
+   -----------------------
+
+   procedure Clean_Diagnostics
+     (Self     : in out Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access)
+   is
+      Diag : LSP.Structures.PublishDiagnosticsParams;
+   begin
+      if Self.Configuration.Diagnostics_Enabled then
+         Diag.uri := Document.URI;
+         Self.Sender.On_PublishDiagnostics_Notification (Diag);
+      end if;
+   end Clean_Diagnostics;
 
 end LSP.Ada_Handlers;
