@@ -91,6 +91,12 @@ package LSP.Ada_Configurations is
      (Self : Configuration'Class) return Variable_List;
    --  Scenario variables, if provided by the user on Configuration/Init
 
+   type DisplayMethodAncestryOnNavigationPolicy is
+     (Never, Usage_And_Abstract_Only, Definition_Only, Always);
+
+   function Display_Method_Ancestry_Policy (Self : Configuration'Class)
+     return DisplayMethodAncestryOnNavigationPolicy;
+
 private
 
    type Configuration is tagged limited record
@@ -110,6 +116,9 @@ private
 
       Documentation_Style      : GNATdoc.Comments.Options.Documentation_Style
         := GNATdoc.Comments.Options.GNAT;
+
+      Method_Ancestry_Policy   : DisplayMethodAncestryOnNavigationPolicy :=
+        Usage_And_Abstract_Only;
 
       Variables_Names          : VSS.String_Vectors.Virtual_String_Vector;
       Variables_Values         : VSS.String_Vectors.Virtual_String_Vector;
@@ -167,5 +176,9 @@ private
    function Documentation_Style (Self : Configuration'Class)
      return GNATdoc.Comments.Options.Documentation_Style is
        (Self.Documentation_Style);
+
+   function Display_Method_Ancestry_Policy (Self : Configuration'Class)
+     return DisplayMethodAncestryOnNavigationPolicy is
+       (Self.Method_Ancestry_Policy);
 
 end LSP.Ada_Configurations;

@@ -28,6 +28,13 @@ package body LSP.Ada_Configurations is
      [for Item in GNATdoc.Comments.Options.Documentation_Style =>
         VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).To_Lowercase];
 
+   Display_Method_Values : constant VSS.String_Vectors.Virtual_String_Vector :=
+     [for Item in DisplayMethodAncestryOnNavigationPolicy =>
+        VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).To_Lowercase];
+
+   function "+" (X : VSS.Strings.Virtual_String'Class) return String renames
+     VSS.Strings.Conversions.To_UTF_8_String;
+
    ---------------
    -- Read_JSON --
    ---------------
@@ -144,8 +151,14 @@ package body LSP.Ada_Configurations is
             then
                Self.Folding_Comments := JSON (Index).Boolean_Value;
 
-            elsif Name = "displayMethodAncestryOnNavigation" then
-               null;  --  TBD
+            elsif Name = "displayMethodAncestryOnNavigation"
+              and then JSON (Index).Kind = String_Value
+              and then Display_Method_Values.Contains
+                (JSON (Index).String_Value)
+            then
+               Self.Method_Ancestry_Policy :=
+                 DisplayMethodAncestryOnNavigationPolicy'Value
+                   (+JSON (Index).String_Value);
 
             elsif Name = "followSymlinks"
               and then JSON (Index).Kind = Boolean_Value
@@ -158,8 +171,7 @@ package body LSP.Ada_Configurations is
             then
                Self.Documentation_Style :=
                  GNATdoc.Comments.Options.Documentation_Style'Value
-                   (VSS.Strings.Conversions.To_UTF_8_String
-                      (JSON (Index).String_Value));
+                   (+JSON (Index).String_Value);
 
             elsif Name = "useCompletionSnippets"
               and then JSON (Index).Kind = Boolean_Value
