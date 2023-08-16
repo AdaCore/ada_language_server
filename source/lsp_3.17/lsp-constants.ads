@@ -23,4 +23,12 @@ package LSP.Constants is
      return LSP.Structures.foldingRangeProvider_OfServerCapabilities_Optional
        is (Is_Set => True, Value => True);
 
+   function True
+     return LSP.Structures.Boolean_Or_DefinitionOptions
+       is (Is_Boolean => True, Boolean => True);
+
+   function True
+     return LSP.Structures.Boolean_Or_DefinitionOptions_Optional
+       is (Is_Set => True, Value => True);
+
 end LSP.Constants;

@@ -77,6 +77,7 @@ package body LSP.Ada_Client_Capabilities is
                   else
                      LSP.Enumerations.Full)));
 
+         Result.definitionProvider := LSP.Constants.True;
          Result.foldingRangeProvider := LSP.Constants.True;
       end return;
    end To_Server_Capabilities;
