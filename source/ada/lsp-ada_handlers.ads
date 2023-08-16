@@ -225,6 +225,10 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.FoldingRangeParams);
 
+   overriding procedure On_DidChange_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeTextDocumentParams);
+
    overriding procedure On_DidChangeConfiguration_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeConfigurationParams);

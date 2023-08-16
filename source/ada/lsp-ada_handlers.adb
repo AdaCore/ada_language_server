@@ -28,6 +28,8 @@ with LSP.Ada_Handlers.Project_Loading;
 with LSP.Diagnostic_Sources;
 with LSP.Enumerations;
 with LSP.Generic_Cancel_Check;
+with LSP.Servers;
+with LSP.Server_Notifications.DidChange;
 
 package body LSP.Ada_Handlers is
 
@@ -181,6 +183,101 @@ package body LSP.Ada_Handlers is
                  message => "Document is not opened"));
       end if;
    end On_FoldingRange_Request;
+
+   -------------------------------
+   -- On_DidChange_Notification --
+   -------------------------------
+
+   overriding procedure On_DidChange_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeTextDocumentParams)
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      function Skip_Did_Change return Boolean;
+      --  Check if the following message in the queue is didChange for
+      --  the same document
+
+      URI      : LSP.Structures.DocumentUri renames Value.textDocument.uri;
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, URI);
+
+      ---------------------
+      -- Skip_Did_Change --
+      ---------------------
+
+      function Skip_Did_Change return Boolean is
+         use type LSP.Servers.Server_Message_Access;
+
+         subtype DidChange_Notification is
+           LSP.Server_Notifications.DidChange.Notification;
+
+         Next : constant LSP.Servers.Server_Message_Access :=
+           LSP.Servers.Server'Class (Self.Sender.all).Look_Ahead_Message;
+      begin
+
+         if Next = null
+           or else Next.all not in DidChange_Notification'Class
+         then
+            return False;
+         end if;
+
+         declare
+            use GNATCOLL.VFS;
+            Object      : DidChange_Notification'Class renames
+              DidChange_Notification'Class (Next.all);
+            Object_File : constant Virtual_File := Self.To_File
+              (Object.Params.textDocument.uri);
+            Value_File  : constant Virtual_File := Self.To_File (URI);
+         begin
+            if Object_File /= Value_File then
+               return False;
+            end if;
+         end;
+
+         return True;
+      end Skip_Did_Change;
+
+   begin
+      if Document = null then
+         Self.Tracer.Trace
+           ("Unexpected null document in On_DidChange_Notification");
+         return;
+      end if;
+
+      if Self.Incremental_Text_Changes then
+         --  If we are applying incremental changes, we can't skip the
+         --  call to Apply_Changes, since this would break synchronization.
+         Document.Apply_Changes
+           (Value.textDocument.version,
+            Value.contentChanges);
+
+         --  However, we should skip the Indexing part if the next change in
+         --  the queue will re-change the text document.
+         if Skip_Did_Change then
+            return;
+         end if;
+      else
+         --  If we are not applying incremental changes, we can skip
+         --  Apply_Changes: the next change will contain the full text.
+         if Skip_Did_Change then
+            return;
+         end if;
+
+         Document.Apply_Changes
+           (Value.textDocument.version,
+            Value.contentChanges);
+      end if;
+
+      --  Reindex the document in each of the contexts where it is relevant
+
+      for Context of Self.Contexts_For_URI (URI) loop
+         Context.Index_Document (Document.all);
+      end loop;
+
+      --  Emit diagnostics
+      Self.Publish_Diagnostics (Document);
+   end On_DidChange_Notification;
 
    --------------------------------------------
    -- On_DidChangeConfiguration_Notification --
