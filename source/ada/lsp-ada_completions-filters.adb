@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with LSP.Constants;
+
 package body LSP.Ada_Completions.Filters is
 
    function Kind
@@ -62,19 +64,19 @@ package body LSP.Ada_Completions.Filters is
             if not Parent.Is_Null
               and then Parent.Kind = Libadalang.Common.Ada_End_Name
             then
-               Self.Is_End_Label := (True, True);
+               Self.Is_End_Label := LSP.Constants.True;
 
             elsif Is_End_Token (Self.Token) then
-               Self.Is_End_Label := (True, True);
+               Self.Is_End_Label := LSP.Constants.True;
 
             elsif Is_End_Token
               (Libadalang.Common.Previous
                  (Self.Token, Exclude_Trivia => True))
             then
-               Self.Is_End_Label := (True, True);
+               Self.Is_End_Label := LSP.Constants.True;
 
             else
-               Self.Is_End_Label := (True, False);
+               Self.Is_End_Label := LSP.Constants.False;
 
             end if;
          end;
@@ -99,7 +101,7 @@ package body LSP.Ada_Completions.Filters is
       end if;
 
       --  Let me be pessimistic
-      Self.Is_Numeric_Literal := (True, False);
+      Self.Is_Numeric_Literal := LSP.Constants.False;
 
       --  An incomplete numeric literal may be represented in LAL as tokens.
       --  Scan tokens backward till the start token of numeric literal.
@@ -162,7 +164,7 @@ package body LSP.Ada_Completions.Filters is
       end if;
 
       --  Ok, we have found a numeric literal
-      Self.Is_Numeric_Literal := (True, True);
+      Self.Is_Numeric_Literal := LSP.Constants.True;
 
       return Self.Is_Numeric_Literal.Value;
    end Is_Numeric_Literal;

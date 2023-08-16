@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Structures.Unwrap;
 
@@ -76,10 +77,7 @@ package body LSP.Ada_Client_Capabilities is
                   else
                      LSP.Enumerations.Full)));
 
-         Result.foldingRangeProvider :=
-           (Is_Set => True,
-            Value  =>
-              (Kind => LSP.Structures.Varian_1, Varian_1 => True));
+         Result.foldingRangeProvider := LSP.Constants.True;
       end return;
    end To_Server_Capabilities;
 
