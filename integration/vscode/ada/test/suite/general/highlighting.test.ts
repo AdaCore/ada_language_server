@@ -5,8 +5,8 @@ import { suite, test } from 'mocha';
 import { existsSync, opendirSync, renameSync } from 'fs';
 import path, { basename, dirname } from 'path';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
-import { contextClients } from '../../../../src/extension';
-import { assertEqualToFileContent, update, activate } from '../../utils';
+import { contextClients } from '../../../src/extension';
+import { assertEqualToFileContent, update, activate } from '../utils';
 
 let adaFilePaths: string[] = [];
 
@@ -191,7 +191,7 @@ function getDocUri(p: string): vscode.Uri {
     }
 }
 
-const extensionRootPath = path.resolve(__dirname, '../../../../../');
+const extensionRootPath = path.resolve(__dirname, '../../../../');
 
 /**
  * A type representing the two TextMate grammars available in the repository.

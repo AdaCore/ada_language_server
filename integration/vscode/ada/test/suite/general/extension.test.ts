@@ -1,8 +1,8 @@
 import * as assert from 'assert';
-import { contextClients } from '../../../../src/extension';
+import { contextClients } from '../../../src/extension';
 import { suite, test } from 'mocha';
-import { getProjectFile, getObjectDir } from '../../../../src/helpers';
-import { assertEqualToFileContent, activate } from '../../utils';
+import { getProjectFile, getObjectDir } from '../../../src/helpers';
+import { assertEqualToFileContent, activate } from '../utils';
 
 import * as vscode from 'vscode';
 

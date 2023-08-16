@@ -12,6 +12,14 @@
          "valuesFormatting": "parseText"
       },
       {
+         "type": "gdb",
+         "request": "launch",
+         "name": "Launch Program",
+         "target": ".obj/server/ada_language_server",
+         "cwd": "${workspaceRoot}",
+         "valuesFormatting": "parseText"
+      },
+      {
          "name": "Launch Extension",
          "type": "extensionHost",
          "request": "launch",
@@ -47,7 +55,15 @@
          }
       },
       {
-         "name": "Highlighting Tests (Update tests ref)",
+         "name": "Launch Extension Testsuite",
+         "type": "node",
+         "request": "launch",
+         "cwd": "${workspaceFolder}/integration/vscode/ada/",
+         "runtimeExecutable": "npm",
+         "runtimeArgs": ["run-script", "test"]
+      },
+      {
+         "name": "General Testsuite",
          "type": "extensionHost",
          "request": "launch",
          "runtimeExecutable": "${execPath}",
@@ -57,13 +73,14 @@
          ],
          "args": [
             "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
-            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/general/highlighting/index",
-            "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
+            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/general/index",
+            "${workspaceFolder}/integration/vscode/ada/test/workspaces/general"
          ],
          // Below we make the executables of node modules visible to the tests.
          // In particular, vscode-tmgrammar-snap is used for syntax highlighting
          // tests.
          "env": {
+            "MOCHA_GREP": "${input:testPattern}",
             // This is necessary to make the "child" vscode inherit the PATH
             // variable set in the workspace settings. Without it in some setups
             // (e.g. vscode remote) the child vscode does not get visibility
@@ -74,39 +91,13 @@
             // integration/vscode/ada/test/suite/index.ts to prevent timeouts in
             // tests when debugging
             "MOCHA_TIMEOUT": "0",
-            // Setting this environment variable causes the tests to overwrite
-            // previous test references when they are stored in files. See
-            // assertEqualToFileContent in
-            // integration/vscode/ada/test/suite/highlighting.test.ts
-            "MOCHA_ALS_UPDATE": "1"
-         },
-         "preLaunchTask": "npm: pretest",
-         // Switch to Debug Console to see test results
-         "internalConsoleOptions": "openOnSessionStart"
-      },
-      {
-         "name": "Server Extensions Tests",
-         "type": "extensionHost",
-         "request": "launch",
-         "runtimeExecutable": "${execPath}",
-         "outFiles": [
-            "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
-            "!**/node_modules/**"
-         ],
-         "args": [
-            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
-            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/general/serverExtensions/index",
-            "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
-         ],
-         "env": {
-            "PATH": "${env:PATH}",
-            "MOCHA_TIMEOUT": "0"
+            "MOCHA_ALS_UPDATE": "${input:updateTestRefs}"
          },
          "preLaunchTask": "npm: pretest",
          "internalConsoleOptions": "openOnSessionStart"
       },
       {
-         "name": "GNATtest Integration Tests",
+         "name": "GNATtest Integration Testsuite",
          "type": "extensionHost",
          "request": "launch",
          "runtimeExecutable": "${execPath}",
@@ -117,36 +108,7 @@
          "args": [
             "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
             "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/gnattest/index",
-            "${workspaceFolder}/integration/vscode/ada/test/GnattestWorkspace"
-         ],
-         "env": {
-            "PATH": "${env:PATH}",
-            "MOCHA_TIMEOUT": "0"
-         },
-         "preLaunchTask": "npm: pretest",
-         "internalConsoleOptions": "openOnSessionStart"
-      },
-      {
-         "type": "gdb",
-         "request": "launch",
-         "name": "Launch Program",
-         "target": ".obj/server/ada_language_server",
-         "cwd": "${workspaceRoot}",
-         "valuesFormatting": "parseText"
-      },
-      {
-         "name": "Extension Tests (Test Name Regexp)",
-         "type": "extensionHost",
-         "request": "launch",
-         "runtimeExecutable": "${execPath}",
-         "outFiles": [
-            "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
-            "!**/node_modules/**"
-         ],
-         "args": [
-            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
-            "--extensionTestsPath=${workspaceFolder}/integration/vscode/ada/out/test/suite/index",
-            "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
+            "${workspaceFolder}/integration/vscode/ada/test/workspaces/gnattest"
          ],
          // Below we make the executables of node modules visible to the tests.
          // In particular, vscode-tmgrammar-snap is used for syntax highlighting
@@ -173,14 +135,13 @@
    "inputs": [
       {
          "id": "testPattern",
-         "description": "A regexp of tests to run",
+         "description": "A regexp of tests to run. Keep empty for not filtering any",
          "type": "promptString"
       },
       {
          "id": "updateTestRefs",
          "description": "Update test references? Keep empty for no update",
-         "type": "promptString",
-         "default": ""
+         "type": "promptString"
       },
       {
          "id": "pid",

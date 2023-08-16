@@ -1,25 +1,40 @@
 import * as path from 'path';
+import os from 'os';
 
 import { runTests } from '@vscode/test-electron';
 import { TestOptions } from '@vscode/test-electron/out/runTest';
 
 async function main() {
-    try {
-        // The folder containing the Extension Manifest package.json
-        // Passed to `--extensionDevelopmentPath`
-        const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+    // The folder containing the Extension Manifest package.json
+    // Passed to `--extensionDevelopmentPath`
+    const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
+    const testsuites = ['general', 'gnattest'];
+
+    let someTestsuiteFailed = false;
+
+    for (const testsuite of testsuites) {
         // The path to the extension test runner script
-        // Passed to --extensionTestsPath
-        const extensionTestsPath = path.resolve(__dirname, '../test/suite/general');
-        const testWorkspace = path.resolve(extensionDevelopmentPath, './test/TestWorkspace');
+        //  Passed to --extensionTestsPath
+        const extensionTestsPath = path.resolve(
+            extensionDevelopmentPath,
+            `out/test/suite/${testsuite}`
+        );
+
+        // The workspace that will be openned in VSCode
+        // Passed as an argument
+        const testWorkspace = path.resolve(
+            extensionDevelopmentPath,
+            `test/workspaces/${testsuite}`
+        );
 
         const testOptions: TestOptions = {
             extensionDevelopmentPath,
             extensionTestsPath,
-            launchArgs: [testWorkspace],
+            // --user-data-dir is set to the OS default directory for temporary files to avoid
+            // warnings related to longs paths in IPC sockets created by VSCode.
+            launchArgs: ['--user-data-dir', `${os.tmpdir()}`, testWorkspace],
         };
-
         if (process.env.VSCODE) {
             // If specified, use the VSCode executable provided externally. This
             // can be use to test with an externally installed VS Code version
@@ -33,17 +48,20 @@ async function main() {
             testOptions.version = 'stable';
         }
 
-        // Download VS Code, unzip it and run the integration test
-        await runTests(testOptions);
+        // Catch any errors running this testsuite, but continue running the remaining ones.
+        try {
+            // Download and unzip VS Code (if it has not been done before), and run this testsuite.
+            await runTests(testOptions);
+        } catch (err) {
+            console.error(err);
+            console.error(`Failed to run ${testsuite} testsuite`);
+            // If this testsuite failed, flag it so that we can exit with a non zero error code
+            // later.
+            someTestsuiteFailed = true;
+        }
+    }
 
-        testOptions.extensionTestsPath = path.resolve(__dirname, '../test/suite/gnattest');
-        testOptions.launchArgs = [
-            path.resolve(extensionDevelopmentPath, './test/GnattestWorkspace'),
-        ];
-        await runTests(testOptions);
-    } catch (err) {
-        console.error(err);
-        console.error('Failed to run tests');
+    if (someTestsuiteFailed) {
         process.exit(1);
     }
 }

@@ -1,8 +1,8 @@
 import * as assert from 'assert';
-import { contextClients } from '../../../../src/extension';
-import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../../../../src/alsProtocolExtensions';
+import { contextClients } from '../../../src/extension';
+import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../../../src/alsProtocolExtensions';
 import { suite, test } from 'mocha';
-import { activate } from '../../utils';
+import { activate } from '../utils';
 
 suite('Syntax Check Test Suite', function () {
     this.beforeAll(async () => {

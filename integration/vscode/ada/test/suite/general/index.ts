@@ -1,5 +1,5 @@
-import { runMochaTests } from '../utils';
+import { runMochaTestsuite } from './../utils';
 
 export function run(): Promise<void> {
-    return runMochaTests(__dirname);
+    return runMochaTestsuite('general', __dirname);
 }

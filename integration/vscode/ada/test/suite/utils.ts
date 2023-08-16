@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import assert from 'assert';
 import { env } from 'process';
-import { resolve } from 'path';
+import path, { resolve } from 'path';
 import Mocha, { MochaOptions } from 'mocha';
 import { Glob, GlobOptionsWithFileTypesUnset } from 'glob';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
@@ -53,7 +53,7 @@ export async function activate(): Promise<void> {
     }
 }
 
-export function runMochaTests(dirPath: string) {
+export function runMochaTestsuite(suiteName: string, suiteDirectory: string) {
     const mochaOptions: MochaOptions = {
         ui: 'bdd',
         color: true,
@@ -64,6 +64,12 @@ export function runMochaTests(dirPath: string) {
         // environment could set this to 'mocha-junit-reporter' to produce JUnit
         // results.
         mochaOptions.reporter = process.env.MOCHA_REPORTER;
+        const mochaFile = process.env.MOCHA_RESULTS_DIR
+            ? path.join(`${process.env.MOCHA_RESULTS_DIR}`, `${suiteName}.xml`)
+            : `${suiteName}.xml`;
+        mochaOptions.reporterOptions = {
+            mochaFile,
+        };
     }
 
     if (!mochaOptions.reporterOptions) {
@@ -75,13 +81,11 @@ export function runMochaTests(dirPath: string) {
     // Create the mocha test
     const mocha = new Mocha(mochaOptions);
 
-    const testsRoot = dirPath;
-
     return new Promise<void>((c, e) => {
-        const globOptions: GlobOptionsWithFileTypesUnset = { cwd: testsRoot };
-        const g = new Glob('**/*.test.js', globOptions);
-        for (const file of g) {
-            mocha.addFile(resolve(testsRoot, file));
+        const globOptions: GlobOptionsWithFileTypesUnset = { cwd: suiteDirectory };
+        const glob = new Glob('**/*.test.js', globOptions);
+        for (const file of glob) {
+            mocha.addFile(resolve(suiteDirectory, file));
         }
         try {
             // This variable is set in the launch configuration (launch.json) of
