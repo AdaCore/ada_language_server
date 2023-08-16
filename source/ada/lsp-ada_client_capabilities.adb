@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with LSP.Enumerations;
+with LSP.Structures.Unwrap;
 
 package body LSP.Ada_Client_Capabilities is
 
@@ -87,19 +88,14 @@ package body LSP.Ada_Client_Capabilities is
    -----------------------
 
    function Line_Folding_Only
-     (Self : Client_Capability'Class) return Boolean is
-   begin
-      if Self.Value.capabilities.textDocument.Is_Set
-        and then Self.Value.capabilities.textDocument.Value.foldingRange.Is_Set
-        and then Self.Value.capabilities.textDocument.Value.foldingRange.Value.
-          lineFoldingOnly.Is_Set
-      then
-         return Self.Value.capabilities.textDocument.Value.foldingRange.Value.
-           lineFoldingOnly.Value;
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
 
-      else
-         return False;
-      end if;
+      Result : constant LSP.Structures.Boolean_Optional :=
+        lineFoldingOnly (foldingRange (Self.Value.capabilities.textDocument));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
    end Line_Folding_Only;
 
 end LSP.Ada_Client_Capabilities;
