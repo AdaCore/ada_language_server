@@ -42,6 +42,8 @@ with LSP.Ada_Handlers.File_Readers;
 with LSP.Enumerations;
 with LSP.Structures;
 
+with URIs;
+
 package body LSP.Ada_Handlers.Project_Loading is
 
    Line_Feed : constant Wide_Wide_Character :=
@@ -112,10 +114,8 @@ package body LSP.Ada_Handlers.Project_Loading is
        (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
    --  Cast Virtual_File to Virtual_String
 
-   function Root (Self : Message_Handler'Class) return GNATCOLL.VFS.Virtual_File
-     is (GNATCOLL.VFS.Create_From_UTF8
-              (VSS.Strings.Conversions.To_UTF_8_String
-                   (Self.Client.Root)));
+   function Root
+     (Self : Message_Handler'Class) return GNATCOLL.VFS.Virtual_File;
    --  Return the root directory of the client workspace
 
    type Environment is record
@@ -158,7 +158,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       if not Self.Client.Root.Is_Empty then
          declare
             Files : GNATCOLL.VFS.File_Array_Access :=
-              Root (Self).Read_Dir (GNATCOLL.VFS.Files_Only);
+              Root (Self).Dir.Read_Dir (GNATCOLL.VFS.Files_Only);
          begin
             for X of Files.all loop
                if X.Has_Suffix (".gpr") then
@@ -736,6 +736,23 @@ package body LSP.Ada_Handlers.Project_Loading is
             Self.Configuration.Charset);
       end if;
    end Reload_Project;
+
+   ----------
+   -- Root --
+   ----------
+
+   function Root
+     (Self : Message_Handler'Class) return GNATCOLL.VFS.Virtual_File
+   is
+      Value : constant VSS.Strings.Virtual_String := Self.Client.Root;
+      Root  : constant String :=
+        VSS.Strings.Conversions.To_UTF_8_String (Value);
+   begin
+      return GNATCOLL.VFS.Create_From_UTF8
+        (if Value.Starts_With ("file://")
+         then URIs.Conversions.To_File (Root, True)
+         else Root);
+   end Root;
 
    ---------------------------------------
    -- Update_Project_Predefined_Sources --
