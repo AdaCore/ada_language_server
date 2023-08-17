@@ -19,22 +19,62 @@ with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 
+with GNATCOLL.Traces;
+
+with Libadalang.Analysis;
+with Libadalang.Common;
+
+with Laltools.Common;
+
 with VSS.Strings.Conversions;
 
 with URIs;
 
 with LSP.Ada_Contexts;
+with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Handlers.Project_Loading;
 with LSP.Diagnostic_Sources;
 with LSP.Enumerations;
 with LSP.Generic_Cancel_Check;
+with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
 
 package body LSP.Ada_Handlers is
 
    pragma Style_Checks ("o");  --  check subprogram bodies in alphabetical ordr
+
+   type AlsReferenceKind is
+     (Simple,
+      Access_Ref,
+      Write,
+      Static_Call,
+      Dispatching_Call,
+      Parent,
+      Child,
+      Overriding_Decl);
+   --  This should be part of the protocol
+
+   pragma Unreferenced
+     (Simple, Access_Ref, Write, Static_Call, Dispatching_Call,
+      Overriding_Decl);
+
+   type AlsReferenceKind_Array is array (AlsReferenceKind) of Boolean;
+
+   function Empty return AlsReferenceKind_Array is ([others => False]);
+
+   function Is_Parent return AlsReferenceKind_Array is
+     ([Parent => True, others => False]);
+
+   function Is_Child return AlsReferenceKind_Array is
+     ([Child => True, others => False]);
+
+   procedure Append_Location
+     (Self   : in out Message_Handler;
+      Result : in out LSP.Structures.Location_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Ignore : AlsReferenceKind_Array := Empty);
 
    function Contexts_For_URI
      (Self : access Message_Handler;
@@ -83,6 +123,12 @@ package body LSP.Ada_Handlers is
       Name : String);
    --  Save method in/out in a log file
 
+   function To_LSP_Location
+     (Self : in out Message_Handler'Class;
+      Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.Location
+        renames LSP.Ada_Handlers.Locations.To_LSP_Location;
+
    function To_File
      (Self : Message_Handler'Class;
       URI  : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File
@@ -91,6 +137,21 @@ package body LSP.Ada_Handlers is
         (URIs.Conversions.To_File
            (VSS.Strings.Conversions.To_UTF_8_String (URI),
             Normalize => Self.Configuration.Follow_Symlinks)));
+
+   ---------------------
+   -- Append_Location --
+   ---------------------
+
+   procedure Append_Location
+     (Self   : in out Message_Handler;
+      Result : in out LSP.Structures.Location_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Ignore : AlsReferenceKind_Array := Empty) is
+   begin
+      if not Node.Is_Synthetic then
+         Result.Append (Self.To_LSP_Location (Node));
+      end if;
+   end Append_Location;
 
    -----------------------
    -- Clean_Diagnostics --
@@ -218,6 +279,193 @@ package body LSP.Ada_Handlers is
    begin
       Self.Tracer.Trace ("Out Message_Handler " & Name);
    end Log_Method_Out;
+
+   ---------------------------
+   -- On_Definition_Request --
+   ---------------------------
+
+   overriding procedure On_Definition_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DefinitionParams)
+   is
+      use Libadalang.Analysis;
+      use all type LSP.Ada_Configurations.
+        DisplayMethodAncestryOnNavigationPolicy;
+
+      Trace      : constant GNATCOLL.Traces.Trace_Handle :=
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+
+      Response   : LSP.Structures.Definition_Result (LSP.Structures.Varian_1);
+      Vector     : LSP.Structures.Location_Vector renames Response.Varian_1;
+
+      Imprecise  : Boolean := False;
+
+      Display_Method_Ancestry_Policy : constant
+        LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
+          Self.Configuration.Display_Method_Ancestry_Policy;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Utility function, appends to Resonse.result all results of the
+      --  definition requests found in context C.
+
+      ------------------------
+      -- Resolve_In_Context --
+      ------------------------
+
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+         use Libadalang.Common;
+
+         Name_Node               : constant Name :=
+           Laltools.Common.Get_Node_As_Name
+             (Document.Get_Node_At (C.all, Value.position));
+
+         Definition              : Defining_Name;
+         Other_Part              : Defining_Name;
+         Manual_Fallback         : Defining_Name;
+         Definition_Node         : Basic_Decl := No_Basic_Decl;
+         Decl_For_Find_Overrides : Basic_Decl := No_Basic_Decl;
+         Entry_Decl_Node         : Entry_Decl := No_Entry_Decl;
+      begin
+         if Name_Node.Is_Null then
+            return;
+         end if;
+
+         --  Check if we are on some defining name
+         Definition := Laltools.Common.Get_Name_As_Defining (Name_Node);
+
+         if Definition.Is_Null then
+            Definition := Laltools.Common.Resolve_Name
+              (Name_Node,
+               Trace,
+               Imprecise => Imprecise);
+
+            if not Definition.Is_Null then
+               Self.Append_Location (Vector, Definition);
+
+               if Display_Method_Ancestry_Policy
+                  in Usage_And_Abstract_Only | Always
+               then
+                  Decl_For_Find_Overrides := Definition.P_Basic_Decl;
+               end if;
+            end if;
+         else  --  If we are on a defining_name already
+            Other_Part := Laltools.Common.Find_Next_Part (Definition, Trace);
+
+            Definition_Node := Definition.P_Basic_Decl;
+
+            --  Search for overriding subprograms only if we are on an
+            --  abstract subprogram.
+            if Display_Method_Ancestry_Policy /= Never
+              and then
+                (Display_Method_Ancestry_Policy /= Usage_And_Abstract_Only
+                  or else Definition_Node.Kind in Ada_Abstract_Subp_Decl_Range)
+            then
+               Decl_For_Find_Overrides := Definition_Node;
+            end if;
+
+            --  Search for accept statements only if we are on an entry
+            if Definition_Node.Kind in Ada_Entry_Decl_Range then
+               Entry_Decl_Node := Definition_Node.As_Entry_Decl;
+
+            elsif Definition_Node.Kind in
+              Ada_Single_Task_Type_Decl_Range | Ada_Protected_Type_Decl_Range
+            then
+               --  These node types are not handled by Find_Next_Part
+               --  (LAL design limitations)
+               declare
+                  Other_Part_For_Decl : constant Basic_Decl :=
+                    Laltools.Common.Find_Next_Part_For_Decl
+                      (Definition_Node, Trace);
+               begin
+                  if not Other_Part_For_Decl.Is_Null then
+                     Other_Part := Other_Part_For_Decl.P_Defining_Name;
+                  end if;
+               end;
+            end if;
+
+            if Other_Part.Is_Null then
+               --  No next part is found. Check first defining name
+               Other_Part := Laltools.Common.Find_Canonical_Part
+                 (Definition, Trace);
+            end if;
+
+            if not Other_Part.Is_Null then
+               Self.Append_Location (Vector, Other_Part);
+
+            else
+               --  We were on a defining name, but did not manage to find
+               --  an answer using Find_Next_Part / Find_Canonical_Part.
+               --  Use the manual fallback to attempt to find a good enough
+               --  result.
+               Manual_Fallback := Laltools.Common.Find_Other_Part_Fallback
+                 (Definition, Trace);
+
+               if not Manual_Fallback.Is_Null then
+                  --  We have found a result using the imprecise heuristics.
+                  --  We'll warn the user and send the result.
+                  Imprecise := True;
+                  Self.Append_Location (Vector, Manual_Fallback);
+               end if;
+            end if;
+         end if;
+
+         if not Decl_For_Find_Overrides.Is_Null then
+            declare
+               Imprecise_Over       : Boolean;
+               Imprecise_Base       : Boolean;
+               Overriding_Subps     : constant Basic_Decl_Array :=
+                 C.Find_All_Overrides
+                   (Decl_For_Find_Overrides,
+                    Imprecise_Results => Imprecise_Over);
+               Base_Subps           : constant Basic_Decl_Array :=
+                 C.Find_All_Base_Declarations
+                   (Decl_For_Find_Overrides,
+                    Imprecise_Results => Imprecise_Base);
+            begin
+               for Subp of Base_Subps loop
+                  Self.Append_Location
+                    (Vector, Subp.P_Defining_Name, Is_Parent);
+               end loop;
+
+               for Subp of Overriding_Subps loop
+                  Self.Append_Location
+                    (Vector, Subp.P_Defining_Name, Is_Child);
+               end loop;
+
+               Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
+            end;
+         end if;
+
+         if not Entry_Decl_Node.Is_Null then
+            for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
+               Self.Append_Location
+                 (Vector, Accept_Node.F_Body_Decl.F_Name);
+            end loop;
+         end if;
+      end Resolve_In_Context;
+
+   begin
+      --  Override the displayMethodAncestryOnNavigation global configuration
+      --  flag if there is on embedded in the request.
+      --  if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+      --     Display_Method_Ancestry_Policy :=
+      --       Value.alsDisplayMethodAncestryOnNavigation.Value;
+      --  end if;
+
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (C);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      --  Sort_And_Remove_Duplicates (Vector);
+
+      Self.Sender.On_Definition_Response (Id, Response);
+   end On_Definition_Request;
 
    -------------------------------
    -- On_DidChange_Notification --

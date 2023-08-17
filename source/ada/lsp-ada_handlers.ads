@@ -208,9 +208,15 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Server_Requests.Server_Request'Class);
 
+   overriding procedure On_Definition_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DefinitionParams);
+
    overriding procedure On_Shutdown_Request
      (Self : in out Message_Handler;
       Id   : LSP.Structures.Integer_Or_Virtual_String);
+
    overriding procedure On_Server_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Server_Notifications.Server_Notification'Class);
