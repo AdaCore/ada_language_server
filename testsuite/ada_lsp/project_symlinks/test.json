@@ -76,9 +76,9 @@
                     }
                 }
             },
-            "wait":[{
+            "wait":{
                 "id": "defname-1",
-                "result":[{
+                "result":{
                     "uri": "$URI{link/aaa.ads}",
                     "range": {
                         "start": {
@@ -90,8 +90,8 @@
                             "character": 11
                         }
                     }
-                }]
-            }]
+                }
+            }
         }
     },  {
         "send": {

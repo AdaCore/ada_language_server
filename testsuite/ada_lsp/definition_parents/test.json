@@ -237,7 +237,7 @@
          "wait": [
             {
                "id": 4,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -251,7 +251,6 @@
                      },
                      "uri": "$URI{pack.adb}"
                   }
-               ]
             }
          ]
       }
@@ -301,7 +300,7 @@
          "wait": [
             {
                "id": 10,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -315,7 +314,6 @@
                      },
                      "uri": "$URI{pack.adb}"
                   }
-               ]
             }
          ]
       }

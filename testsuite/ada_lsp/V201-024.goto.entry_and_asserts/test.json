@@ -206,7 +206,7 @@
          "wait": [
             {
                "id": 9,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -220,7 +220,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -297,7 +296,7 @@
          "wait": [
             {
                "id": 15,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -311,7 +310,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }

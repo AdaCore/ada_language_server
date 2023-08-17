@@ -75,7 +75,7 @@
             },
             "wait":[{
                 "id": "defname-1",
-                "result":[{
+                "result":{
                     "uri": "$URI{second.ads}",
                     "range": {
                         "start": {
@@ -87,7 +87,7 @@
                             "character": 22
                         }
                     }
-                }]
+                }
             }]
         }
     },  {

@@ -183,7 +183,7 @@
          "wait": [
             {
                "id": "ada-6",
-               "result": [
+               "result":
                   {
                      "uri": "$URI{mytypes.ads}",
                      "range": {
@@ -197,7 +197,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -254,7 +253,7 @@
          "wait": [
             {
                "id": "ada-14",
-               "result": [
+               "result":
                   {
                      "uri": "$URI{mytypes.ads}",
                      "range": {
@@ -268,7 +267,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -320,7 +318,7 @@
          "wait": [
             {
                "id": "ada-25",
-               "result": [
+               "result":
                   {
                      "uri": "$URI{mytypes.ads}",
                      "range": {
@@ -334,7 +332,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }

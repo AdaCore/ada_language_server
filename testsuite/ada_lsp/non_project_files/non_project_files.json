@@ -70,7 +70,7 @@
             },
             "wait":[{
                 "id": "defname-1",
-                "result":[{
+                "result":{
                     "uri": "$URI{p.ads}",
                     "range": {
                         "start": {
@@ -82,7 +82,7 @@
                             "character": 9
                         }
                     }
-                }]
+                }
             }]
         }
     },  {
@@ -137,7 +137,7 @@
             },
             "wait":[{
                 "id": "defname-3",
-                "result":[{
+                "result":{
                     "uri": "$URI{p.adb}",
                     "range": {
                         "start": {
@@ -149,7 +149,7 @@
                             "character": 14
                         }
                     }
-                }]
+                }
             }]
         }
     },  {
@@ -170,7 +170,7 @@
             },
             "wait":[{
                 "id": "defname-4",
-                "result":[{
+                "result":{
                     "uri": "$URI{p.ads}",
                     "range": {
                         "start": {
@@ -182,7 +182,7 @@
                             "character": 9
                         }
                     }
-                }]
+                }
             }]
         }
     },  {

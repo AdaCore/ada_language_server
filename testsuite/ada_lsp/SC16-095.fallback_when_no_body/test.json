@@ -232,7 +232,7 @@
          "wait": [
             {
                "id": 5,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -246,7 +246,6 @@
                      },
                      "uri": "$URI{pack.adb}"
                   }
-               ]
             }
          ]
       }

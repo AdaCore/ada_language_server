@@ -113,7 +113,7 @@
             },
             "wait":[{
                 "id": "defname-2",
-                "result":[{
+                "result":{
                     "uri": "$URI{aaa.adb}",
                     "range": {
                         "start": {
@@ -125,7 +125,7 @@
                             "character": 13
                         }
                     }
-                }]
+                }
             }]
         }
     },  {

@@ -1085,7 +1085,7 @@
          "wait": [
             {
                "id": 20,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{qux.ads}",
                      "range": {
@@ -1099,7 +1099,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -1227,7 +1226,7 @@
          "wait": [
             {
                "id": 31,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.ads}",
                      "range": {
@@ -1241,7 +1240,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }

@@ -610,7 +610,7 @@
          "wait": [
             {
                "id": 2,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{qux.ads}",
                      "range": {
@@ -624,7 +624,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -907,7 +906,7 @@
          "wait": [
             {
                "id": 6,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{qux.ads}",
                      "range": {
@@ -921,7 +920,7 @@
                         }
                      }
                   }
-               ]
+              
             }
          ]
       }
@@ -996,7 +995,7 @@
             {
                "jsonrpc": "2.0",
                "id": 8,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{qux.ads}",
                      "range": {
@@ -1010,7 +1009,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
