@@ -342,9 +342,12 @@ package body LSP.Ada_Handlers is
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeConfigurationParams)
    is
-      Reload : Boolean := False;
+      Reload : Boolean;
    begin
       Self.Configuration.Read_JSON (Value.settings, Reload);
+
+      --  Always reload project if Project_Tree isn't ready
+      Reload := Reload or not Self.Project_Tree.Is_Defined;
 
       if Reload then
          LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
