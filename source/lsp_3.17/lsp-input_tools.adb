@@ -58,6 +58,8 @@ package body LSP.Input_Tools is
                when End_Array | End_Object => -1,
                when others => 0);
 
+         Handler.Read_Next;
+
          exit when Level = 0;
       end loop;
    end Read_LSPAny_Class;
