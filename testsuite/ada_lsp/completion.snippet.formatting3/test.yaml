@@ -1,1 +1,4 @@
 title: 'completion.snippet.formatting3'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

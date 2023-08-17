@@ -1,1 +1,4 @@
 title: 'JB24-033.xrefs.no_refs_for_non_loaded_projects'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

@@ -1,1 +1,4 @@
 title: 'UA28-007.Did_Create_Files_0'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

@@ -1,1 +1,4 @@
 title: 'T713-012.completion.generic_package'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

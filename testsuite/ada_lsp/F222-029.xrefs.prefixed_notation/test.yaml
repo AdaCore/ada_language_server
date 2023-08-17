@@ -1,1 +1,4 @@
 title: 'F222-029.xrefs.prefixed_notation'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

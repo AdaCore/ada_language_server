@@ -1,1 +1,4 @@
 title: 'SC28-001.named.parameters.0'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

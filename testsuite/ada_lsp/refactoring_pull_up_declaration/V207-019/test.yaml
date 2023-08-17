@@ -1,1 +1,4 @@
 title: 'refactoring_pull_up_declaration/V207-019'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

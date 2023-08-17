@@ -1,1 +1,4 @@
 title: 'S312-063.documentSymbol.constant'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

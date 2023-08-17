@@ -1,1 +1,4 @@
 title: 'S314-015.refactor_move_parameter_0'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

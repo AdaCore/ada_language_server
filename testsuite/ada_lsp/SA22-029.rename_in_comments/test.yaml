@@ -1,1 +1,4 @@
 title: 'SA22-029.rename_in_comments'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

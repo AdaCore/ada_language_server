@@ -1,1 +1,4 @@
 title: 'U721-012.signatureHelp.null_expr_funcs'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

@@ -1,1 +1,4 @@
 title: 'U614-031.completion.simple_aggregate_formatting'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

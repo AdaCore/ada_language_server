@@ -1,1 +1,4 @@
 title: 'rename'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

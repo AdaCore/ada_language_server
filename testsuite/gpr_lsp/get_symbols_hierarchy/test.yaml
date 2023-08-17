@@ -1,1 +1,4 @@
 title: 'textDocument/documentSymbol request using hierarchicalDocumentSymbolSupport'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

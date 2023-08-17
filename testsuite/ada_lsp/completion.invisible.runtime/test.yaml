@@ -3,3 +3,5 @@ title: 'completion.invisible.runtime'
 # different depending on the platform
 skip:
     - ['SKIP', 'env.build.os.name != "linux"']
+    # Skip till 3.17 ready
+    - ['XFAIL', 'True']

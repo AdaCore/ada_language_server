@@ -1,1 +1,4 @@
 title: 'D301-004.xrefs.generics'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

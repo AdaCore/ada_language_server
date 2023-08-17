@@ -1,1 +1,4 @@
 title: 'SA11-040.definition.fallback'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

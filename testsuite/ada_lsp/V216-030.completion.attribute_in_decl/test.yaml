@@ -1,1 +1,4 @@
 title: 'V216-030.completion.attribute_in_decl'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

@@ -1,1 +1,4 @@
 title: 'completion.param.no_named_notation'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

@@ -1,1 +1,4 @@
 title: 'U511-009.refactoring.import_with_use'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

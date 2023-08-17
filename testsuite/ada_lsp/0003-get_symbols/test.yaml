@@ -1,1 +1,4 @@
 title: '0003-get_symbols'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

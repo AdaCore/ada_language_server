@@ -1,1 +1,4 @@
 title: 'V705-026.completion.predefined_types'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

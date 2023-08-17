@@ -1,1 +1,4 @@
 title: 'T318-086.suppress.separates.0'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

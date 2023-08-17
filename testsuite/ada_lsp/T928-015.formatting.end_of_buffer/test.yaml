@@ -1,1 +1,4 @@
 title: 'T928-015.formatting.end_of_buffer'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']

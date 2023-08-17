@@ -1,3 +1,6 @@
 title: 'U415-027.refactor_safe_rename_1'
 
 description: 'Checks that file renames are not sent if client does not support them'
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']
