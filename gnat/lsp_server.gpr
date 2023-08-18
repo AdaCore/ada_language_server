@@ -48,8 +48,7 @@ project LSP_Server is
 
    for Excluded_Source_Dirs use
      ("../source/server/generated",
-      "../source/gpr",
-      "../source/ada/generated");
+      "../source/gpr");
 
    for Excluded_Source_List_File use "ignore_in_317.txt";
 

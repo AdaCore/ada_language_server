@@ -190,11 +190,6 @@ package LSP.Lal_Utils is
    --  TODO: Reactivate these lines when libadalang supports
    --  P_Next_Part for tasks: T716-049
 
-   function Canonicalize
-     (Text : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
-   --  Return a canonicalized value for Text. This performs case folding and
-   --  brackets decoding.
-
    function Get_Decl_Kind
      (Node         : Libadalang.Analysis.Basic_Decl;
       Ignore_Local : Boolean := False)
@@ -202,12 +197,6 @@ package LSP.Lal_Utils is
    --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
    --  When Ignore_Local it will return Is_Null for all local objects like
    --  variables.
-
-   function Get_Call_Expr
-     (Node : Libadalang.Analysis.Ada_Node'Class)
-      return Libadalang.Analysis.Call_Expr;
-   --  From Node try to find a Call_Expr node, it will handle basic error
-   --  recovery.
 
    function To_Call_Hierarchy_Item
      (Name : Libadalang.Analysis.Defining_Name)
@@ -223,11 +212,6 @@ package LSP.Lal_Utils is
    --  Convert the given Node and the given references to it to the
    --  corresponding CallHierarchyItem and its associated spans, which contains
    --  the references. This should be used for the callHierarchy requests.
-
-   function Node_Location_Image
-     (Node : Libadalang.Analysis.Ada_Node'Class)
-      return VSS.Strings.Virtual_String;
-   --  Return "file.adb:line:col" as a string
 
    function Containing_Entity
      (Ref       : Ada_Node;

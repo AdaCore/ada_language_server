@@ -17,7 +17,7 @@
 
 with VSS.Strings;
 
-with LSP.Lal_Utils;
+with LSP.Enumerations;
 
 package body LSP.Ada_Completions.End_Names is
    --  List on Ada 2012 syntax rules with <end> token:
@@ -54,7 +54,7 @@ package body LSP.Ada_Completions.End_Names is
       Node   :        Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList)
+      Result : in out LSP.Structures.CompletionList)
    is
       pragma Unreferenced (Filter);
       use type Libadalang.Common.Ada_Node_Kind_Type;
@@ -255,10 +255,10 @@ package body LSP.Ada_Completions.End_Names is
       Label       : VSS.Strings.Virtual_String;
       Has_Space   : Boolean := Libadalang.Common.Is_Trivia (Token);
       End_Token   : Libadalang.Common.Token_Data_Type;
-      Item        : LSP.Messages.CompletionItem;
+      Item        : LSP.Structures.CompletionItem;
       Parent      : constant Libadalang.Analysis.Ada_Node :=
         (if Node.Is_Null then Node
-         else LSP.Lal_Utils.Skip_Dotted_Names (Node.Parent));
+         else Skip_Dotted_Names (Node.Parent));
       --  Skip the outermost dotted name enclosing Node.Parent, so
       --  that when completing in a situation such as the following:
       --
@@ -284,21 +284,21 @@ package body LSP.Ada_Completions.End_Names is
          Token_Reference := Libadalang.Common.Previous
            (Token_Reference, Exclude_Trivia => True);
 
-         if LSP.Lal_Utils.Is_End_Token (Token_Reference) then
+         if Is_End_Token (Token_Reference) then
             End_Token := Libadalang.Common.Data (Token_Reference);
             Has_Space := True;  --  Fix for <end Prefix.Name|> case
          else
             return;
          end if;
 
-      elsif LSP.Lal_Utils.Is_End_Token (Token) then
+      elsif Is_End_Token (Token) then
          End_Token := Libadalang.Common.Data (Token);
 
       else  --  The <end |> case:
          Token_Reference := Libadalang.Common.Previous
            (Token_Reference, Exclude_Trivia => True);
 
-         if LSP.Lal_Utils.Is_End_Token (Token_Reference) then
+         if Is_End_Token (Token_Reference) then
             End_Token := Libadalang.Common.Data (Token_Reference);
             Has_Space := True;  --  Fix for <end something|> case
          else
@@ -324,22 +324,24 @@ package body LSP.Ada_Completions.End_Names is
       Label.Append (';');
 
       Item := (label               => Label,
-               kind                => (True, LSP.Messages.Keyword),
-               tags                => (Is_Set => False),
-               detail              => (Is_Set => False),
+               labelDetails        => (Is_Set => False),
+               kind                => (True, LSP.Enumerations.Keyword),
+               tags                => <>,
+               detail              => <>,
                documentation       => (Is_Set => False),
                deprecated          => (Is_Set => False),
                preselect           => (True, Has_Space),
-               sortText            => (True, Label),
-               filterText          => (Is_Set => False),
-               insertText          => (True, Label),
+               sortText            => Label,
+               filterText          => <>,
+               insertText          => Label,
                insertTextFormat    => (Is_Set => False),
                insertTextMode      => (Is_Set => False),
                textEdit            => (Is_Set => False),
+               textEditText        => <>,
                additionalTextEdits => <>,
-               commitCharacters    => (Is_Set => False),
+               commitCharacters    => <>,
                command             => (Is_Set => False),
-               data                => (Is_Set => False));
+               data                => <>);
 
       Result.items.Append (Item);
    end Propose_Completion;

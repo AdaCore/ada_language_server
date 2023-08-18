@@ -28,7 +28,7 @@ package LSP.Ada_Completions.Use_Clauses is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList);
+      Result : in out LSP.Structures.CompletionList);
    --  Get completion for use-clauses if we have a with-clause node on the
    --  same line.
 

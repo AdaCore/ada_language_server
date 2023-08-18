@@ -344,53 +344,6 @@ package body LSP.Lal_Utils is
       return LSP.Messages.A_Null;
    end Get_Decl_Kind;
 
-   -------------------
-   -- Get_Call_Expr --
-   -------------------
-
-   function Get_Call_Expr
-     (Node : Libadalang.Analysis.Ada_Node'Class)
-      return Libadalang.Analysis.Call_Expr
-   is
-      Cur_Node : Ada_Node := Node.As_Ada_Node;
-   begin
-      if not Cur_Node.Is_Null
-        and then Cur_Node.Kind in Ada_Error_Stmt_Range
-      then
-         --  In case of Error_Stmt, find the nearest previous sibling
-         --  which is not also an Error_Stmt
-         while not Cur_Node.Is_Null
-           and then Cur_Node.Kind in Ada_Error_Stmt_Range
-         loop
-            Cur_Node := Cur_Node.Previous_Sibling;
-         end loop;
-
-         --  Find the nearest Call_Expr node in the children
-         if not Cur_Node.Is_Null then
-            for Child_Node of Cur_Node.Children loop
-               if Child_Node.Kind in Ada_Call_Expr_Range then
-                  Cur_Node := Child_Node;
-                  exit;
-               end if;
-            end loop;
-         end if;
-      end if;
-
-      --  Find the nearest Call_Expr node in the parents or itself
-      while not Cur_Node.Is_Null loop
-         exit when Cur_Node.Kind in Ada_Call_Expr_Range;
-
-         Cur_Node := Cur_Node.Parent;
-      end loop;
-
-      --  At this point we have null or a Call_Expr
-      if Cur_Node.Is_Null then
-         return No_Call_Expr;
-      else
-         return Cur_Node.As_Call_Expr;
-      end if;
-   end Get_Call_Expr;
-
    ------------------
    -- Get_Location --
    ------------------
@@ -722,26 +675,6 @@ package body LSP.Lal_Utils is
       end return;
    end To_Workspace_Edit;
 
-   ------------------
-   -- Canonicalize --
-   ------------------
-
-   function Canonicalize
-     (Text : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String
-   is
-      UTF_32 : constant Wide_Wide_String :=
-        VSS.Strings.Conversions.To_Wide_Wide_String (Text);
-      Result : constant Symbolization_Result :=
-        Libadalang.Sources.Canonicalize (UTF_32);
-
-   begin
-      if Result.Success then
-         return LSP.Lal_Utils.To_Virtual_String (Result.Symbol);
-      else
-         return VSS.Strings.Empty_Virtual_String;
-      end if;
-   end Canonicalize;
-
    -----------------------
    -- Containing_Entity --
    -----------------------
@@ -994,37 +927,6 @@ package body LSP.Lal_Utils is
         VSS.Strings.To_Virtual_String
           (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String (Item));
    end To_Virtual_String;
-
-   -------------------------
-   -- Node_Location_Image --
-   -------------------------
-
-   function Node_Location_Image
-     (Node : Libadalang.Analysis.Ada_Node'Class)
-      return VSS.Strings.Virtual_String
-   is
-      Decl_Unit_File : constant GNATCOLL.VFS.Virtual_File :=
-        GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
-
-   begin
-      return Result : VSS.Strings.Virtual_String do
-         Result.Append ("at ");
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String
-              (Decl_Unit_File.Display_Base_Name));
-         Result.Append (" (");
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String
-              (GNATCOLL.Utils.Image
-                   (Integer (Node.Sloc_Range.Start_Line), Min_Width => 1)));
-         Result.Append (':');
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String
-              (GNATCOLL.Utils.Image
-                   (Integer (Node.Sloc_Range.Start_Column), Min_Width => 1)));
-         Result.Append (')');
-      end return;
-   end Node_Location_Image;
 
    -------------
    -- Is_Task --

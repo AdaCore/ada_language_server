@@ -52,6 +52,9 @@ package LSP.Ada_Client_Capabilities is
    function Line_Folding_Only (Self : Client_Capability'Class) return Boolean;
    --  Returns capabilities.textDocument.foldingRange.lineFoldingOnly or False
 
+   function Resolve_Lazily (Self : Client_Capability'Class) return Boolean;
+   --  Returns True when resolve contains `documentation` and `details`
+
 private
 
    type Client_Capability is tagged limited record

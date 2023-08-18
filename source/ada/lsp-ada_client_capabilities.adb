@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with VSS.String_Vectors;
+
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Structures.Unwrap;
@@ -77,6 +79,12 @@ package body LSP.Ada_Client_Capabilities is
                   else
                      LSP.Enumerations.Full)));
 
+         Result.completionProvider :=
+           (Is_Set => True,
+            Value  => (triggerCharacters => [".", ",", "'", "("],
+                       resolveProvider   => LSP.Constants.True,
+                       others            => <>));
+
          Result.definitionProvider := LSP.Constants.True;
          Result.foldingRangeProvider := LSP.Constants.True;
       end return;
@@ -96,5 +104,23 @@ package body LSP.Ada_Client_Capabilities is
    begin
       return (if Result.Is_Set then Result.Value else False);
    end Line_Folding_Only;
+
+   --------------------
+   -- Resolve_Lazily --
+   --------------------
+
+   function Resolve_Lazily (Self : Client_Capability'Class) return Boolean is
+      use LSP.Structures.Unwrap;
+
+      List : constant VSS.String_Vectors.Virtual_String_Vector :=
+        properties
+          (resolveSupport
+             (completionItem
+                (completion
+                   (Self.Value.capabilities.textDocument))));
+
+   begin
+      return List.Contains ("detail") and then List.Contains ("documentation");
+   end Resolve_Lazily;
 
 end LSP.Ada_Client_Capabilities;

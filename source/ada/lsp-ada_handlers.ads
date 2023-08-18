@@ -263,4 +263,9 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeWorkspaceFoldersParams);
 
+   overriding procedure On_Completion_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CompletionParams);
+
 end LSP.Ada_Handlers;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2023, AdaCore                          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,22 +14,23 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---  A completion provider for pragmas
+--
+--  This package provides some utility subprograms.
 
-package LSP.Ada_Completions.Pragmas is
+with VSS.Strings;
 
-   type Pragma_Completion_Provider is new Completion_Provider with null record;
+with Libadalang.Analysis;
 
-   overriding procedure Propose_Completion
-     (Self   : Pragma_Completion_Provider;
-      Sloc   : Langkit_Support.Slocs.Source_Location;
-      Token  : Libadalang.Common.Token_Reference;
-      Node   : Libadalang.Analysis.Ada_Node;
-      Filter : in out LSP.Ada_Completions.Filters.Filter;
-      Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList);
-   --  Get completion for pragmas if we are within an pragma node and return
-   --  immediately, since we don't want to propose other items than pragmas
-   --  when wthin a pragma node.
+package LSP.Utils is
 
-end LSP.Ada_Completions.Pragmas;
+   function Canonicalize
+     (Text : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
+   --  Return a canonicalized value for Text. This performs case folding and
+   --  brackets decoding.
+
+   function Node_Location_Image
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return VSS.Strings.Virtual_String;
+   --  Return "file.adb:line:col" as a string
+
+end LSP.Utils;
