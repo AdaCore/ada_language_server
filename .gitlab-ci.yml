@@ -58,8 +58,8 @@ build_and_test:
 
     - echo -e "\e[0Ksection_start:`date +%s`:test_vscode[collapsed=true]\r\e[0Kanod test vscode-extension"
     # Run VSCode tests
-    - anod test vscode-extension --qualifier=$ACI_TRACK_QUALIFIER --minimal
-    - VSCODE_BUILD_SPACE_NAME=`anod eval --primitive test --qualifier=$ACI_TRACK_QUALIFIER vscode-extension build_space_name | tr -d "'"`
+    - anod test vscode-extension $ACI_TRACK_QUALIFIER --minimal
+    - VSCODE_BUILD_SPACE_NAME=`anod eval --primitive test $ACI_TRACK_QUALIFIER vscode-extension build_space_name | tr -d "'"`
     - VSCODE_BUILD_SPACE=$ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/$VSCODE_BUILD_SPACE_NAME
     - echo -e "\e[0Ksection_end:`date +%s`:test_vscode\r\e[0K"
 
