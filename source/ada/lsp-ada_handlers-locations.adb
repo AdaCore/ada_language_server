@@ -25,6 +25,73 @@ with URIs;
 package body LSP.Ada_Handlers.Locations is
 
    ---------------------
+   -- Append_Location --
+   ---------------------
+
+   procedure Append_Location
+     (Self   : in out Message_Handler;
+      Result : in out LSP.Structures.Location_Vector;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Ignore : AlsReferenceKind_Array := Empty) is
+   begin
+      if not Node.Is_Synthetic then
+         Result.Append (To_LSP_Location (Self, Node));
+      end if;
+   end Append_Location;
+
+   -----------------
+   -- Get_Node_At --
+   -----------------
+
+   function Get_Node_At
+     (Self     : in out Message_Handler'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Value    : LSP.Structures.TextDocumentPositionParams'Class)
+      return Libadalang.Analysis.Ada_Node
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+   begin
+      if Document /= null then
+         return Document.Get_Node_At (Context, Value.position);
+      end if;
+
+      declare
+         File : constant GNATCOLL.VFS.Virtual_File :=
+           Self.To_File (Value.textDocument.uri);
+
+         Unit : constant Libadalang.Analysis.Analysis_Unit :=
+           Context.Get_AU (File);
+
+         Sloc : Langkit_Support.Slocs.Source_Location :=
+           (Line   => Langkit_Support.Slocs.Line_Number
+              (Value.position.line + 1),
+            Column => <>);
+
+         Line : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (Unit.Get_Line (Value.position.line + 1));
+
+         Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.Before_First_Character;
+      begin
+         while Cursor.Forward and then
+           Value.position.character < Natural (Cursor.First_UTF16_Offset)
+         loop
+            null;  -- Skip characters on the left of the `position.character`
+         end loop;
+
+         Sloc.Column := Langkit_Support.Slocs.Column_Number
+           (Cursor.Character_Index);
+
+         return Unit.Root.Lookup (Sloc);
+      end;
+   end Get_Node_At;
+
+   ---------------------
    -- To_LSP_Location --
    ---------------------
 

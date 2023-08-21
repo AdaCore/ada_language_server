@@ -25,6 +25,8 @@ with GNATCOLL.VFS;
 
 with GPR2.Project.Tree;
 
+with VSS.Strings.Conversions;
+
 with LSP.Ada_Client_Capabilities;
 with LSP.Ada_Configurations;
 with LSP.Ada_Context_Sets;
@@ -39,6 +41,8 @@ with LSP.Server_Requests;
 with LSP.Structures;
 with LSP.Tracers;
 with LSP.Unimplemented_Handlers;
+
+with URIs;
 
 package LSP.Ada_Handlers is
 
@@ -208,6 +212,11 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Server_Requests.Server_Request'Class);
 
+   overriding procedure On_Declaration_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DeclarationParams);
+
    overriding procedure On_Definition_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
@@ -267,5 +276,14 @@ private
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionParams);
+
+   function To_File
+     (Self : Message_Handler'Class;
+      URI  : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File
+   is
+     (GNATCOLL.VFS.Create_From_UTF8
+        (URIs.Conversions.To_File
+           (VSS.Strings.Conversions.To_UTF_8_String (URI),
+            Normalize => Self.Configuration.Follow_Symlinks)));
 
 end LSP.Ada_Handlers;

@@ -24,6 +24,14 @@ package LSP.Constants is
        is (Is_Set => True, Value => True);
 
    function True
+     return LSP.Structures.declarationProvider_OfServerCapabilities
+       is (Kind => LSP.Structures.Varian_1, Varian_1 => True);
+
+   function True
+     return LSP.Structures.declarationProvider_OfServerCapabilities_Optional
+       is (Is_Set => True, Value => True);
+
+   function True
      return LSP.Structures.Boolean_Or_DefinitionOptions
        is (Is_Boolean => True, Boolean => True);
 
