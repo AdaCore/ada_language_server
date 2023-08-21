@@ -21,6 +21,8 @@ with VSS.Strings;
 
 with Libadalang.Analysis;
 
+with LSP.Enumerations;
+
 package LSP.Utils is
 
    function Canonicalize
@@ -32,5 +34,13 @@ package LSP.Utils is
      (Node : Libadalang.Analysis.Ada_Node'Class)
       return VSS.Strings.Virtual_String;
    --  Return "file.adb:line:col" as a string
+
+   function Get_Decl_Kind
+     (Node         : Libadalang.Analysis.Basic_Decl;
+      Ignore_Local : Boolean := False)
+      return LSP.Enumerations.SymbolKind;
+   --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
+   --  When Ignore_Local it will return Is_Null for all local objects like
+   --  variables.
 
 end LSP.Utils;

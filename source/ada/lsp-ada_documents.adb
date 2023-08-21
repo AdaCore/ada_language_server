@@ -19,6 +19,8 @@ with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
+with GNATCOLL.Utils;
+
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
 
@@ -33,7 +35,10 @@ with VSS.Characters;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
 with VSS.Strings.Cursors;
+with VSS.Strings.Formatters.Integers;
+with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Line_Iterators;
+with VSS.Strings.Templates;
 with VSS.Unicode;
 
 with LSP.Ada_Completions.Filters;
@@ -42,9 +47,12 @@ with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Id_Iterators;
 with LSP.Enumerations;
 with LSP.Predicates;
+with LSP.Utils;
 
 package body LSP.Ada_Documents is
    pragma Warnings (Off);
+
+   package Utils renames Standard.Utils;
 
    LSP_New_Line_Function_Set : constant VSS.Strings.Line_Terminator_Set :=
      (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
@@ -69,6 +77,26 @@ package body LSP.Ada_Documents is
       Span : LSP.Structures.A_Range;
       From : out VSS.Strings.Markers.Character_Marker;
       To   : out VSS.Strings.Markers.Character_Marker);
+
+   function To_Completion_Kind (K : LSP.Enumerations.SymbolKind)
+     return LSP.Enumerations.CompletionItemKind
+   is
+     (case K is
+        when LSP.Enumerations.A_Function => LSP.Enumerations.A_Function,
+        when LSP.Enumerations.Field      => LSP.Enumerations.Field,
+        when LSP.Enumerations.Variable   => LSP.Enumerations.Variable,
+        when LSP.Enumerations.A_Package  => LSP.Enumerations.Module,
+        when LSP.Enumerations.Module     => LSP.Enumerations.Module,
+        when LSP.Enumerations.Class      => LSP.Enumerations.Class,
+        when LSP.Enumerations.Struct     => LSP.Enumerations.Class,
+        when LSP.Enumerations.Number     => LSP.Enumerations.Value,
+        when LSP.Enumerations.Enum       => LSP.Enumerations.Enum,
+        when LSP.Enumerations.String     => LSP.Enumerations.Value,
+        when LSP.Enumerations.A_Constant => LSP.Enumerations.Value,
+        when others                      => LSP.Enumerations.Reference);
+   --  Convert a SymbolKind to a CompletionItemKind.
+   --  TODO: It might be better to have a unified kind, and then convert to
+   --  specific kind types, but for the moment this is good enough.
 
    -------------------
    -- Apply_Changes --
@@ -180,22 +208,213 @@ package body LSP.Ada_Documents is
    -----------------------------
 
    function Compute_Completion_Item
-     (Document                : LSP.Ada_Documents.Document;
-      Context                 : LSP.Ada_Contexts.Context;
-      Sloc                    : Langkit_Support.Slocs.Source_Location;
-      Node : Libadalang.Analysis.Ada_Node; BD : Libadalang.Analysis.Basic_Decl;
-      Label : VSS.Strings.Virtual_String; Use_Snippets : Boolean;
-      Compute_Doc_And_Details : Boolean; Named_Notation_Threshold : Natural;
-      Is_Dot_Call             : Boolean; Is_Visible : Boolean; Pos : Integer;
-      Weight                  : Ada_Completions.Completion_Item_Weight_Type;
-      Completions_Count       : Natural) return LSP.Structures.CompletionItem
+     (Document                 : LSP.Ada_Documents.Document;
+      Context                  : LSP.Ada_Contexts.Context;
+      Sloc                     : Langkit_Support.Slocs.Source_Location;
+      Node                     : Libadalang.Analysis.Ada_Node;
+      BD                       : Libadalang.Analysis.Basic_Decl;
+      Label                    : VSS.Strings.Virtual_String;
+      Use_Snippets             : Boolean;
+      Compute_Doc_And_Details  : Boolean;
+      Named_Notation_Threshold : Natural;
+      Is_Dot_Call              : Boolean;
+      Is_Visible               : Boolean;
+      Pos                      : Integer;
+      Weight                   : Ada_Completions.Completion_Item_Weight_Type;
+      Completions_Count        : Natural) return LSP.Structures.CompletionItem
    is
+
+      package Weight_Formatters renames VSS.Strings.Formatters.Integers;
+
+      Item           : LSP.Structures.CompletionItem;
+      Subp_Spec_Node : Libadalang.Analysis.Base_Subp_Spec;
+      Min_Width      : constant Natural := Completions_Count'Image'Length - 1;
+      --  The -1 remove the whitespace added by 'Image
+
+      Last_Weight : constant Ada_Completions.Completion_Item_Weight_Type :=
+        Ada_Completions.Completion_Item_Weight_Type'Last;
+
+      function Get_Sort_Text
+        (Base_Label : VSS.Strings.Virtual_String)
+         return VSS.Strings.Virtual_String;
+      --  Return a suitable sortText according to the completion item's
+      --  visibility and position in the completion list.
+
+      -------------------
+      -- Get_Sort_Text --
+      -------------------
+
+      function Get_Sort_Text
+        (Base_Label : VSS.Strings.Virtual_String)
+         return VSS.Strings.Virtual_String
+      is
+         use VSS.Strings;
+      begin
+         return Sort_Text : VSS.Strings.Virtual_String do
+
+            Sort_Text := VSS.Strings.Templates.Format
+              ("{:02}&{:05}{}",
+               Weight_Formatters.Image (Last_Weight - Weight),
+               Weight_Formatters.Image (Pos),
+               VSS.Strings.Formatters.Strings.Image (Base_Label));
+
+            if not Is_Visible then
+               Sort_Text.Prepend ('~');
+            end if;
+         end return;
+      end Get_Sort_Text;
+
    begin
-      pragma Compile_Time_Warning
-        (Standard.True, "Compute_Completion_Item unimplemented");
-      return
-        raise Program_Error
-          with "Unimplemented function Compute_Completion_Item";
+      Item.label := Label;
+      Item.kind := (True, To_Completion_Kind (LSP.Utils.Get_Decl_Kind (BD)));
+
+      if not Is_Visible then
+         Item.insertText := Label;
+         Item.label.Append (" (invisible)");
+         Item.filterText := Label;
+      end if;
+
+      Item.sortText := Get_Sort_Text (Label);
+
+      Set_Completion_Item_Documentation
+        (Context                 => Context,
+         BD                      => BD,
+         Item                    => Item,
+         Compute_Doc_And_Details => Compute_Doc_And_Details);
+
+      --  Return immediately if we should not use snippets (e.g: completion for
+      --  invisible symbols).
+      if not Use_Snippets then
+         return Item;
+      end if;
+
+      --  Check if we are dealing with a subprogram and return a completion
+      --  snippet that lists all the formal parameters if it's the case.
+
+      Subp_Spec_Node := BD.P_Subp_Spec_Or_Null;
+
+      if Subp_Spec_Node.Is_Null then
+         return Item;
+      end if;
+
+      declare
+         Insert_Text : VSS.Strings.Virtual_String := Label;
+         All_Params  : constant Libadalang.Analysis.Param_Spec_Array :=
+           Subp_Spec_Node.P_Params;
+
+         Params      : constant Libadalang.Analysis.Param_Spec_Array :=
+           (if Is_Dot_Call then
+               All_Params (All_Params'First + 1 .. All_Params'Last)
+            else
+               All_Params);
+         --  Remove the first formal parameter from the list when the dotted
+         --  notation is used.
+
+         Idx                : Positive := 1;
+         Nb_Params          : Natural := 0;
+         Use_Named_Notation : Boolean := False;
+      begin
+
+         --  Create a completion snippet if the subprogram expects some
+         --  parameters.
+
+         if Params'Length /= 0 then
+            Item.insertTextFormat :=
+              (Is_Set => True,
+               Value  => LSP.Enumerations.Snippet);
+
+            Insert_Text.Append (" (");
+
+            --  Compute number of params to know if named notation should be
+            --  used.
+
+            for Param of Params loop
+               Nb_Params := Nb_Params + Param.F_Ids.Children_Count;
+            end loop;
+
+            Use_Named_Notation := Named_Notation_Threshold > 0
+              and then Nb_Params >= Named_Notation_Threshold;
+
+            for Param of Params loop
+               for Id of Param.F_Ids loop
+                  declare
+                     Mode : constant Langkit_Support.Text.Text_Type :=
+                       Param.F_Mode.Text;
+
+                  begin
+                     if Use_Named_Notation then
+                        Insert_Text.Append
+                          (VSS.Strings.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" => ");
+                        Insert_Text.Append ("${");
+                        Insert_Text.Append
+                          (VSS.Strings.Conversions.To_Virtual_String
+                            (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+                        Insert_Text.Append (':');
+                        Insert_Text.Append
+                          (VSS.Strings.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" : ");
+                        Insert_Text.Append
+                          ((if Mode /= ""
+                             then VSS.Strings.To_Virtual_String (Mode & " ")
+                             else ""));
+                        Insert_Text.Append
+                          (VSS.Strings.To_Virtual_String
+                             (Param.F_Type_Expr.Text));
+                        Insert_Text.Append ("}, ");
+
+                     else
+                        Insert_Text.Append ("${");
+                        Insert_Text.Append
+                          (VSS.Strings.Conversions.To_Virtual_String
+                             (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
+                        Insert_Text.Append (':');
+                        Insert_Text.Append
+                          (VSS.Strings.To_Virtual_String (Id.Text));
+                        Insert_Text.Append (" : ");
+                        Insert_Text.Append
+                          ((if Mode /= ""
+                             then VSS.Strings.To_Virtual_String (Mode & " ")
+                             else ""));
+                        Insert_Text.Append
+                          (VSS.Strings.To_Virtual_String
+                             (Param.F_Type_Expr.Text));
+                        Insert_Text.Append ("}, ");
+                     end if;
+
+                     Idx := Idx + 1;
+                  end;
+               end loop;
+            end loop;
+
+            --  Remove the ", " substring that has been appended in the last
+            --  loop iteration.
+
+            declare
+               First   : constant
+                 VSS.Strings.Character_Iterators.Character_Iterator :=
+                   Insert_Text.At_First_Character;
+               Last    : VSS.Strings.Character_Iterators.Character_Iterator :=
+                 Insert_Text.At_Last_Character;
+               Success : Boolean with Unreferenced;
+
+            begin
+               Success := Last.Backward;
+               Success := Last.Backward;
+
+               Insert_Text := Insert_Text.Slice (First, Last);
+               --  ??? May be replaced by "Head" like procedure when it will be
+               --  implemented.
+            end;
+
+            --  Insert '$0' (i.e: the final tab stop) at the end.
+            Insert_Text.Append (")$0");
+
+            Item.insertText := Insert_Text;
+         end if;
+      end;
+
+      return Item;
    end Compute_Completion_Item;
 
    ----------
@@ -837,7 +1056,6 @@ package body LSP.Ada_Documents is
       Canceled    : access function return Boolean;
       Result      : in out LSP.Ada_Completions.Completion_Maps.Map)
    is
-      --  use type LSP.Messages.Search_Kind;
 
       procedure Refresh_Symbol_Cache;
       --  Find intresting definings names in the document and put them

@@ -319,6 +319,8 @@ package body LSP.Ada_Handlers is
       Response : LSP.Structures.Completion_Result
         (Kind => LSP.Structures.Varian_2);
    begin
+      Response.Varian_2.isIncomplete := False;
+
       Document.Get_Completion_Node
         (Context  => Context.all,
          Position => Value.position,

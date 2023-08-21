@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with LSP.Search.Start_Word;
+
 package body LSP.Search is
 
    -----------
@@ -27,8 +29,16 @@ package body LSP.Search is
       Whole_Word     : Boolean := False;
       Negate         : Boolean := False;
       Kind           : Search_Kind := Full_Text)
-      return Search_Pattern'Class
-   is (raise Program_Error with "Unimplemented");  --  FIXME
+      return Search_Pattern'Class is
+   begin
+      case Kind is
+         when Start_Word_Text =>
+            return Start_Word.Build
+              (Pattern, Case_Sensitive, Whole_Word, Negate);
+         when others =>
+            raise Program_Error with "Unimplemented";  --  FIXME
+      end case;
+   end Build;
 
    --------------
    -- Get_Kind --

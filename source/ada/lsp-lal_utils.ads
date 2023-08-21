@@ -190,14 +190,6 @@ package LSP.Lal_Utils is
    --  TODO: Reactivate these lines when libadalang supports
    --  P_Next_Part for tasks: T716-049
 
-   function Get_Decl_Kind
-     (Node         : Libadalang.Analysis.Basic_Decl;
-      Ignore_Local : Boolean := False)
-      return LSP.Messages.SymbolKind;
-   --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
-   --  When Ignore_Local it will return Is_Null for all local objects like
-   --  variables.
-
    function To_Call_Hierarchy_Item
      (Name : Libadalang.Analysis.Defining_Name)
       return LSP.Messages.CallHierarchyItem;

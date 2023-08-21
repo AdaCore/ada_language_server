@@ -20,10 +20,13 @@
 with GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
-with VSS.Strings.Conversions;
-
+with Libadalang.Common;
 with Libadalang.Sources;
 with Langkit_Support.Symbols;
+
+with Laltools.Common;
+
+with VSS.Strings.Conversions;
 
 package body LSP.Utils is
 
@@ -48,6 +51,107 @@ package body LSP.Utils is
          return VSS.Strings.Empty_Virtual_String;
       end if;
    end Canonicalize;
+
+   -------------------
+   -- Get_Decl_Kind --
+   -------------------
+
+   function Get_Decl_Kind
+     (Node         : Libadalang.Analysis.Basic_Decl;
+      Ignore_Local : Boolean := False)
+        return LSP.Enumerations.SymbolKind
+   is
+      use Libadalang.Common;
+   begin
+      case Node.Kind is
+         when Ada_Classic_Subp_Decl |
+              Ada_Base_Subp_Body |
+              Ada_Entry_Body_Range |
+              Ada_Entry_Decl_Range |
+              Ada_Generic_Subp_Decl_Range |
+              Ada_Generic_Subp_Instantiation_Range |
+              Ada_Generic_Subp_Renaming_Decl_Range |
+              Ada_Subp_Body_Stub_Range  =>
+            return LSP.Enumerations.A_Function;
+
+         when Ada_Component_Decl |
+              Ada_Discriminant_Spec =>
+            return LSP.Enumerations.Field;
+
+         when Ada_Generic_Formal_Obj_Decl |
+              Ada_Param_Spec |
+              Ada_Exception_Handler |
+              Ada_Object_Decl |
+              Ada_Extended_Return_Stmt_Object_Decl |
+              Ada_Single_Protected_Decl |
+              Ada_Single_Task_Decl =>
+            return (if Ignore_Local
+                    then LSP.Enumerations.A_Null
+                    else
+                      (if Laltools.Common.Is_Constant (Node)
+                       then LSP.Enumerations.A_Constant
+                       else LSP.Enumerations.Variable));
+
+         when Ada_Base_Package_Decl |
+              Ada_Generic_Formal_Package |
+              --  Ignore: Ada_Generic_Package_Decl kind, this node always have
+              --  an Ada_Generic_Package_Internal as a child and we will use it
+              --  to create the CompletionItem/DocumentSymbol
+              Ada_Generic_Package_Instantiation |
+              Ada_Generic_Package_Renaming_Decl |
+              Ada_Package_Renaming_Decl =>
+            return LSP.Enumerations.A_Package;
+
+         when Ada_Package_Body_Stub |
+              Ada_Protected_Body_Stub |
+              Ada_Task_Body_Stub |
+              Ada_Package_Body |
+              Ada_Protected_Body |
+              Ada_Task_Body =>
+            return LSP.Enumerations.Module;
+
+         when Ada_Concrete_Type_Decl |
+              Ada_Formal_Type_Decl =>
+            return (if Laltools.Common.Is_Structure (Node)
+                    then LSP.Enumerations.Struct
+                    else LSP.Enumerations.Class);
+
+         when Ada_Generic_Formal_Type_Decl |
+              Ada_Classwide_Type_Decl |
+              Ada_Incomplete_Type_Decl |
+              Ada_Incomplete_Tagged_Type_Decl |
+              Ada_Protected_Type_Decl |
+              Ada_Task_Type_Decl |
+              Ada_Subtype_Decl |
+              Ada_Anonymous_Type_Decl |
+              Ada_Synth_Anonymous_Type_Decl =>
+            return LSP.Enumerations.Class;
+
+         when Ada_Entry_Index_Spec |
+              Ada_Number_Decl =>
+            return LSP.Enumerations.Number;
+
+         when Ada_Enum_Literal_Decl =>
+            return (if Ignore_Local
+                    then LSP.Enumerations.A_Null
+                    else LSP.Enumerations.Enum);
+
+         when Ada_Exception_Decl =>
+            return LSP.Enumerations.String;
+
+         when Ada_For_Loop_Var_Decl |
+              Ada_Label_Decl |
+              Ada_Named_Stmt_Decl =>
+            return (if Ignore_Local
+                    then LSP.Enumerations.A_Null
+                    else LSP.Enumerations.A_Constant);
+
+         when others =>
+            null;
+      end case;
+
+      return LSP.Enumerations.A_Null;
+   end Get_Decl_Kind;
 
    -------------------------
    -- Node_Location_Image --

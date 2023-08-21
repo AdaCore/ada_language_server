@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021, AdaCore                          --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,9 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.Boyer_Moore;  use GNATCOLL.Boyer_Moore;
-
-package LSP.Search.Start_Word_Text is
+package LSP.Search.Start_Word is
 
    function Build
      (Pattern        : VSS.Strings.Virtual_String;
@@ -28,15 +26,13 @@ package LSP.Search.Start_Word_Text is
 
 private
 
-   type Start_Word_Text_Search is new Search_Pattern with record
-      Boyer : GNATCOLL.Boyer_Moore.Pattern;
-   end record;
+   type Start_Word_Search is new Search_Pattern with null record;
 
-   overriding procedure Finalize (Self : in out Start_Word_Text_Search);
+   overriding procedure Finalize (Self : in out Start_Word_Search);
 
    overriding function Match
-     (Self : Start_Word_Text_Search;
+     (Self : Start_Word_Search;
       Text : VSS.Strings.Virtual_String)
       return Boolean;
 
-end LSP.Search.Start_Word_Text;
+end LSP.Search.Start_Word;

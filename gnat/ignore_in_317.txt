@@ -54,8 +54,6 @@ lsp-search-fuzzy.adb
 lsp-search-fuzzy.ads
 lsp-search-regexp.adb
 lsp-search-regexp.ads
-lsp-search-start_word_text.adb
-lsp-search-start_word_text.ads
 lsp-file_monitors.ads
 lsp-message_loggers.adb
 lsp-message_loggers.ads
