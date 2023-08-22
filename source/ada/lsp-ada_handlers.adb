@@ -307,9 +307,6 @@ package body LSP.Ada_Handlers is
       --  be to return only results that are available for all
       --  project contexts.
 
-      --  Value    : LSP.Structures.TextDocumentPositionParams renames
-      --    Request.params;
-
       Context  : constant LSP.Ada_Context_Sets.Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
@@ -1282,6 +1279,133 @@ package body LSP.Ada_Handlers is
                  message => "Document is not opened"));
       end if;
    end On_FoldingRange_Request;
+
+   -------------------------------
+   -- On_Implementation_Request --
+   -------------------------------
+
+   overriding procedure On_Implementation_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.ImplementationParams)
+   is
+
+      Trace : constant GNATCOLL.Traces.Trace_Handle :=
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+
+      Response : LSP.Structures.Definition_Result (LSP.Structures.Varian_1);
+
+      Vector : LSP.Structures.Location_Vector renames Response.Varian_1;
+
+      Display_Method_Ancestry_Policy : constant
+        LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
+          Self.Configuration.Display_Method_Ancestry_Policy;
+
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Utility function to gather results on one context
+
+      ------------------------
+      -- Resolve_In_Context --
+      ------------------------
+
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+
+         use all type LSP.Ada_Configurations.
+           DisplayMethodAncestryOnNavigationPolicy;
+
+         use Libadalang.Common;
+
+         Name_Node : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
+
+         procedure Update_Response
+           (Bodies : Laltools.Common.Bodies_List.List;
+            Ignore : AlsReferenceKind_Array);
+         --  Utility function to update response with the bodies
+
+         ---------------------
+         -- Update_Response --
+         ---------------------
+
+         procedure Update_Response
+           (Bodies : Laltools.Common.Bodies_List.List;
+            Ignore : AlsReferenceKind_Array)
+         is
+         begin
+            for E of Bodies loop
+               Self.Append_Location (Vector, E);
+            end loop;
+         end Update_Response;
+
+         Definition : Libadalang.Analysis.Defining_Name;
+         Imprecise  : Boolean;
+         Decl       : Libadalang.Analysis.Basic_Decl;
+
+      begin
+         if Name_Node.Is_Null then
+            return;
+         end if;
+
+         --  Find the definition
+         Definition := Laltools.Common.Resolve_Name
+           (Name_Node, Trace, Imprecise);
+
+         --  If we didn't find a definition, give up for this context
+         if Definition.Is_Null then
+            return;
+         end if;
+
+         --  First list the bodies of this definition
+         Update_Response
+           (Laltools.Common.List_Bodies_Of (Definition, Trace, Imprecise),
+            LSP.Ada_Handlers.Locations.Empty);
+
+         --  Then list the bodies of the parent implementations
+         Decl := Definition.P_Basic_Decl;
+
+         --  Display overriding/overridden subprograms depending on the
+         --  displayMethodAncestryOnNavigation flag.
+         if Display_Method_Ancestry_Policy in Definition_Only | Always
+           or else
+             (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
+                     and then Decl.Kind in Ada_Abstract_Subp_Decl_Range)
+         then
+            for Subp of C.Find_All_Base_Declarations (Decl, Imprecise)
+            loop
+               Update_Response
+                 (Laltools.Common.List_Bodies_Of
+                    (Subp.P_Defining_Name, Trace, Imprecise),
+                  Is_Parent);
+            end loop;
+
+            --  And finally the bodies of child implementations
+            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
+               Update_Response
+                 (Laltools.Common.List_Bodies_Of
+                    (Subp.P_Defining_Name, Trace, Imprecise),
+                  Is_Child);
+            end loop;
+         end if;
+      end Resolve_In_Context;
+
+   begin
+      --  Override the displayMethodAncestryOnNavigation global configuration
+      --  flag if there is on embedded in the request.
+      --  if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+      --     Display_Method_Ancestry_Policy :=
+      --       Value.alsDisplayMethodAncestryOnNavigation.Value;
+      --  end if;
+
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (C);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      --  Sort_And_Remove_Duplicates (Response.result.Locations);
+
+      Self.Sender.On_Implementation_Response (Id, Response);
+   end On_Implementation_Request;
 
    ------------------------------
    -- On_IncomingCalls_Request --

@@ -235,6 +235,11 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CallHierarchyIncomingCallsParams);
 
+   overriding procedure On_Implementation_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.ImplementationParams);
+
    overriding procedure On_Initialize_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
