@@ -1677,6 +1677,84 @@ package body LSP.Ada_Handlers is
       Self.Sender.On_Shutdown_Response (Id, Result);
    end On_Shutdown_Request;
 
+   -------------------------------
+   -- On_TypeDefinition_Request --
+   -------------------------------
+
+   overriding procedure On_TypeDefinition_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.TypeDefinitionParams)
+   is
+
+      Response   : LSP.Structures.Definition_Result (LSP.Structures.Varian_1);
+      Vector     : LSP.Structures.Location_Vector renames Response.Varian_1;
+      Imprecise  : Boolean := False;
+
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Utility function to gather results on one context
+
+      ------------------------
+      -- Resolve_In_Context --
+      ------------------------
+
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+         Trace      : constant GNATCOLL.Traces.Trace_Handle :=
+           LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+
+         Name_Node  : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
+
+         Definition : Libadalang.Analysis.Defining_Name;
+         Type_Decl  : Libadalang.Analysis.Base_Type_Decl;
+      begin
+         if Name_Node.Is_Null then
+            return;
+         end if;
+
+         if Name_Node.P_Is_Defining then
+            --  Special case if Name_Node is defining, for instance on the X in
+            --      X : My_Type;
+            declare
+               Def_Name : constant Libadalang.Analysis.Defining_Name :=
+                 Name_Node.P_Enclosing_Defining_Name;
+
+               Type_Expr : constant Libadalang.Analysis.Type_Expr :=
+                 Def_Name.P_Basic_Decl.P_Type_Expression;
+            begin
+               if not Type_Expr.Is_Null then
+                  Definition := Laltools.Common.Resolve_Name
+                    (Type_Expr.P_Type_Name, Trace, Imprecise);
+               end if;
+            end;
+         else
+            --  Name_Node is not defining. In this case we can rely on
+            --  P_Expression_Type.
+            Type_Decl := Name_Node.P_Expression_Type;
+
+            --  P_Expression_Type returns the entire expression: narrow the
+            --  result down to the type declaration. Here we assume that the
+            --  first defining name in this expression is the name of the type.
+            if not Type_Decl.Is_Null then
+               Definition := Type_Decl.P_Defining_Name;
+            end if;
+         end if;
+
+         if not Definition.Is_Null then
+            Self.Append_Location (Vector, Definition);
+         end if;
+      end Resolve_In_Context;
+
+   begin
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (C);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      Self.Sender.On_Definition_Response (Id, Response);
+   end On_TypeDefinition_Request;
+
    -------------------------
    -- Publish_Diagnostics --
    -------------------------

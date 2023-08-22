@@ -297,6 +297,11 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionParams);
 
+   overriding procedure On_TypeDefinition_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.TypeDefinitionParams);
+
    function To_File
      (Self : Message_Handler'Class;
       URI  : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File

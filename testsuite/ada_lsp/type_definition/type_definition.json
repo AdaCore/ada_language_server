@@ -71,7 +71,7 @@
             },
             "wait":[{
                 "id": "typedefname-1",
-                "result":[{
+                "result":{
                     "uri": "$URI{bbb.ads}",
                     "range": {
                         "start": {
@@ -83,7 +83,7 @@
                             "character": 15
                         }
                     }
-                }]
+                }
             }]
         }
     },  {
