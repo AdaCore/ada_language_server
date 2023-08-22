@@ -1242,6 +1242,16 @@ package body LSP.Ada_Handlers is
       Self.Log_Method_Out ("On_DidRenameFiles_Notification");
    end On_DidRenameFiles_Notification;
 
+   ---------------------------
+   -- On_Exits_Notification --
+   ---------------------------
+
+   overriding procedure On_Exits_Notification
+     (Self : in out Message_Handler) is
+   begin
+      LSP.Servers.Server'Class (Self.Sender.all).Stop;
+   end On_Exits_Notification;
+
    -----------------------------
    -- On_FoldingRange_Request --
    -----------------------------
