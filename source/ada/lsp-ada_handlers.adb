@@ -38,6 +38,7 @@ with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Completions.Use_Clauses;
 with LSP.Ada_Contexts;
+with LSP.Ada_Handlers.Call_Hierarchy;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Project_Diagnostics;
@@ -48,6 +49,7 @@ with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
+with LSP.Utils;
 
 package body LSP.Ada_Handlers is
 
@@ -109,6 +111,12 @@ package body LSP.Ada_Handlers is
       Name : String);
    --  Save method in/out in a log file
 
+   function To_LSP_Location
+     (Self : in out Message_Handler'Class;
+      Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.Location
+        renames LSP.Ada_Handlers.Locations.To_LSP_Location;
+
    function Get_Node_At
      (Self     : in out Message_Handler'Class;
       Context  : LSP.Ada_Contexts.Context;
@@ -122,6 +130,12 @@ package body LSP.Ada_Handlers is
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Ignore : AlsReferenceKind_Array := LSP.Ada_Handlers.Locations.Empty)
         renames LSP.Ada_Handlers.Locations.Append_Location;
+
+   function Imprecise_Resolve_Name
+     (Self     : in out Message_Handler'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Structures.TextDocumentPositionParams'Class)
+        return Libadalang.Analysis.Defining_Name;
 
    -----------------------
    -- Clean_Diagnostics --
@@ -211,6 +225,35 @@ package body LSP.Ada_Handlers is
       end if;
    end Get_Open_Document;
 
+   ----------------------------
+   -- Imprecise_Resolve_Name --
+   ----------------------------
+
+   function Imprecise_Resolve_Name
+     (Self     : in out Message_Handler'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Structures.TextDocumentPositionParams'Class)
+        return Libadalang.Analysis.Defining_Name
+   is
+      Trace     : constant GNATCOLL.Traces.Trace_Handle :=
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+
+      Name_Node  : constant Libadalang.Analysis.Name :=
+        Laltools.Common.Get_Node_As_Name
+          (Self.Get_Node_At (Context, Position));
+
+      Imprecise : Boolean;
+   begin
+      if Name_Node.Is_Null then
+         return Libadalang.Analysis.No_Defining_Name;
+      end if;
+
+      return Laltools.Common.Resolve_Name
+        (Name_Node,
+         Trace,
+         Imprecise => Imprecise);
+   end Imprecise_Resolve_Name;
+
    ----------------
    -- Initialize --
    ----------------
@@ -264,7 +307,7 @@ package body LSP.Ada_Handlers is
       --  be to return only results that are available for all
       --  project contexts.
 
-      --  Value    : LSP.Messages.TextDocumentPositionParams renames
+      --  Value    : LSP.Structures.TextDocumentPositionParams renames
       --    Request.params;
 
       Context  : constant LSP.Ada_Context_Sets.Context_Access :=
@@ -1240,6 +1283,66 @@ package body LSP.Ada_Handlers is
       end if;
    end On_FoldingRange_Request;
 
+   ------------------------------
+   -- On_IncomingCalls_Request --
+   ------------------------------
+
+   overriding procedure On_IncomingCalls_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyIncomingCallsParams)
+   is
+      use Libadalang.Analysis;
+
+      procedure Process_Context (C : LSP.Ada_Contexts.Context);
+      --  Process the subprogram found in one context and append corresponding
+      --  calls to Response.
+
+      Response   : LSP.Structures.CallHierarchyIncomingCall_Vector;
+
+      Item : LSP.Structures.CallHierarchyItem renames
+        Value.item;
+
+      Position : constant LSP.Structures.TextDocumentPositionParams :=
+        (textDocument => (uri => Item.uri),
+         position     => Item.selectionRange.start);
+
+      Filter : Call_Hierarchy.File_Span_Sets.Set;
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : LSP.Ada_Contexts.Context) is
+         Definition : Defining_Name;
+      begin
+         Definition := Self.Imprecise_Resolve_Name (C, Position);
+
+         --  Attempt to resolve the name, return no results if we can't or if
+         --  the name does not resolve to a callable object, like a subprogram
+         --  or an entry.
+
+         if not Definition.Is_Null
+           and then Definition.P_Basic_Decl.P_Is_Subprogram
+           and then not Self.Is_Canceled.all
+         then
+            Call_Hierarchy.Find_Incoming_Calls
+              (Self, Response, Filter, C, Definition);
+         end if;
+
+      end Process_Context;
+
+   begin
+      --  Find the references in all contexts
+      for C of Self.Contexts_For_URI (Item.uri) loop
+         Process_Context (C.all);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      Self.Sender.On_IncomingCalls_Response (Id, Response);
+   end On_IncomingCalls_Request;
+
    ---------------------------
    -- On_Initialize_Request --
    ---------------------------
@@ -1258,6 +1361,124 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
+
+   ------------------------------
+   -- On_OutgoingCalls_Request --
+   ------------------------------
+
+   overriding procedure On_OutgoingCalls_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyOutgoingCallsParams)
+   is
+      use Libadalang.Analysis;
+
+      procedure Process_Context (C : LSP.Ada_Contexts.Context);
+      --  Process the subprogram found in one context and append corresponding
+      --  calls to Response.
+
+      Response   : LSP.Structures.CallHierarchyOutgoingCall_Vector;
+
+      Item : LSP.Structures.CallHierarchyItem renames
+        Value.item;
+
+      Position : constant LSP.Structures.TextDocumentPositionParams :=
+        (textDocument => (uri => Item.uri),
+         position     => Item.selectionRange.start);
+
+      Filter : Call_Hierarchy.File_Span_Sets.Set;
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : LSP.Ada_Contexts.Context) is
+         Definition : Defining_Name;
+      begin
+         Definition := Self.Imprecise_Resolve_Name (C, Position);
+
+         --  Attempt to resolve the name, return no results if we can't or if
+         --  the name does not resolve to a callable object, like a subprogram
+         --  or an entry.
+
+         if not Definition.Is_Null
+           and then Definition.P_Basic_Decl.P_Is_Subprogram
+           and then not Self.Is_Canceled.all
+         then
+            Call_Hierarchy.Find_Outgoing_Calls
+              (Self, Response, Filter, Definition);
+         end if;
+      end Process_Context;
+
+   begin
+      --  Find the references in all contexts
+      for C of Self.Contexts_For_URI (Item.uri) loop
+         Process_Context (C.all);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      Self.Sender.On_OutgoingCalls_Response (Id, Response);
+   end On_OutgoingCalls_Request;
+
+   -------------------------------------
+   -- On_PrepareCallHierarchy_Request --
+   -------------------------------------
+
+   overriding procedure On_PrepareCallHierarchy_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyPrepareParams)
+   is
+      Response  : LSP.Structures.CallHierarchyItem_Vector;
+
+      C    : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      --  For the PrepareCallHierarchy request, we're only interested in the
+      --  "best" response value, not in the list of values for all contexts
+
+      Name : constant Libadalang.Analysis.Defining_Name :=
+        Self.Imprecise_Resolve_Name (C.all, Value);
+
+      Decl : Libadalang.Analysis.Basic_Decl;
+      Next : Libadalang.Analysis.Basic_Decl;
+   begin
+      if not Name.Is_Null then
+         Decl := Name.P_Basic_Decl;
+
+         if not Decl.Is_Null and then Decl.P_Is_Subprogram then
+
+            Next := Decl.P_Next_Part_For_Decl;
+            Decl := (if Next.Is_Null then Decl else Next);
+
+            declare
+               Span : constant LSP.Structures.A_Range :=
+                 Self.To_LSP_Location (Decl).a_range;
+
+               Node : constant Libadalang.Analysis.Defining_Name :=
+                 Decl.P_Defining_Name;
+
+               Location : constant LSP.Structures.Location :=
+                 Self.To_LSP_Location (Node);
+
+               Item : constant LSP.Structures.CallHierarchyItem :=
+                 (name           => VSS.Strings.To_Virtual_String (Node.Text),
+                  kind           => Utils.Get_Decl_Kind (Decl),
+                  tags           => <>,
+                  detail         => Utils.Node_Location_Image (Node),
+                  uri            => Location.uri,
+                  a_range        => Span,
+                  selectionRange => Location.a_range,
+                  data           => <>);
+            begin
+
+               Response.Append (Item);
+            end;
+         end if;
+      end if;
+
+      Self.Sender.On_PrepareCallHierarchy_Response (Id, Response);
+   end On_PrepareCallHierarchy_Request;
 
    ----------------------------
    -- On_Server_Notification --

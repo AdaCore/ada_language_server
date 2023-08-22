@@ -24,9 +24,8 @@ with Libadalang.Common;
 with Libadalang.Sources;
 with Langkit_Support.Symbols;
 
-with Laltools.Common;
-
 with VSS.Strings.Conversions;
+with Laltools.Common;
 
 package body LSP.Utils is
 

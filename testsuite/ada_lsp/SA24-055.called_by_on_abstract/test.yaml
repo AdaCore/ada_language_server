@@ -1,4 +1,1 @@
 title: 'SA24-055.called_by_on_abstract'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

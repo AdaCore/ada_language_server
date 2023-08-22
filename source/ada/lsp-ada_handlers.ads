@@ -230,10 +230,25 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Server_Notifications.Server_Notification'Class);
 
+   overriding procedure On_IncomingCalls_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyIncomingCallsParams);
+
    overriding procedure On_Initialize_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InitializeParams);
+
+   overriding procedure On_OutgoingCalls_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyOutgoingCallsParams);
+
+   overriding procedure On_PrepareCallHierarchy_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyPrepareParams);
 
    overriding procedure On_FoldingRange_Request
      (Self  : in out Message_Handler;

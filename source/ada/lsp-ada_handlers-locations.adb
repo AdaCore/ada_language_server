@@ -79,7 +79,7 @@ package body LSP.Ada_Handlers.Locations is
            Line.Before_First_Character;
       begin
          while Cursor.Forward and then
-           Value.position.character < Natural (Cursor.First_UTF16_Offset)
+           Natural (Cursor.First_UTF16_Offset) < Value.position.character
          loop
             null;  -- Skip characters on the left of the `position.character`
          end loop;
@@ -166,7 +166,7 @@ package body LSP.Ada_Handlers.Locations is
            Line.Before_First_Character;
 
       begin
-         for J in 1 .. Sloc.Start_Column loop
+         for J in 1 .. Sloc.End_Column loop
             exit when not Cursor.Forward;
          end loop;
 

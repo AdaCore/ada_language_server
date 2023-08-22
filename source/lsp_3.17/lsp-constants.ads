@@ -39,4 +39,12 @@ package LSP.Constants is
      return LSP.Structures.Boolean_Or_DefinitionOptions_Optional
        is (Is_Set => True, Value => True);
 
+   function True
+     return LSP.Structures.callHierarchyProvider_OfServerCapabilities
+       is (Kind => LSP.Structures.Varian_1, Varian_1 => True);
+
+   function True
+     return LSP.Structures.callHierarchyProvider_OfServerCapabilities_Optional
+       is (Is_Set => True, Value => True);
+
 end LSP.Constants;

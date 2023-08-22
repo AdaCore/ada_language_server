@@ -85,6 +85,7 @@ package body LSP.Ada_Client_Capabilities is
                        resolveProvider   => LSP.Constants.True,
                        others            => <>));
 
+         Result.callHierarchyProvider := LSP.Constants.True;
          Result.declarationProvider := LSP.Constants.True;
          Result.definitionProvider := LSP.Constants.True;
          Result.foldingRangeProvider := LSP.Constants.True;
