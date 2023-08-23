@@ -724,14 +724,22 @@ package body LSP.Ada_Handlers.Project_Loading is
    --------------------
 
    procedure Reload_Project (Self : in out Message_Handler'CLass) is
+      Project_File : VSS.Strings.Virtual_String :=
+        Self.Configuration.Project_File;
    begin
-      if Self.Configuration.Project_File.Is_Empty then
+      if Project_File.Starts_With ("file://") then
+         Project_File := VSS.Strings.Conversions.To_Virtual_String
+           (URIs.Conversions.To_File
+              (VSS.Strings.Conversions.To_UTF_8_String (Project_File), True));
+      end if;
+
+      if Project_File.Is_Empty then
          Release_Contexts_And_Project_Info (Self);
          Ensure_Project_Loaded (Self);
       else
          Load_Project_With_Alire
            (Self,
-            Self.Configuration.Project_File,
+            Project_File,
             Self.Configuration.Scenario_Variables,
             Self.Configuration.Charset);
       end if;
