@@ -20,6 +20,7 @@ with Ada.Strings.Wide_Wide_Unbounded;
 
 with Libadalang.Analysis;
 
+with LSP.Ada_Client_Capabilities;
 with LSP.Enumerations;
 with LSP.Structures;
 with LSP.Tracers;
@@ -29,9 +30,10 @@ package LSP.Ada_Highlighters is
    type Ada_Highlighter is tagged limited private;
 
    procedure Initialize
-     (Self   : in out Ada_Highlighter'Class;
-      Client : LSP.Structures.SemanticTokensClientCapabilities;
-      Legend : out LSP.Structures.SemanticTokensLegend);
+     (Self      : in out Ada_Highlighter'Class;
+      Client    : LSP.Ada_Client_Capabilities.Client_Capability;
+      Types     : out LSP.Structures.Virtual_String_Vector;
+      Modifiers : out LSP.Structures.Virtual_String_Vector);
 
    function Get_Tokens
      (Self   : Ada_Highlighter'Class;

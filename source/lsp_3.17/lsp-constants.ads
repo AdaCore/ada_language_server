@@ -4,6 +4,8 @@
 --  SPDX-License-Identifier: Apache-2.0
 --
 
+with VSS.JSON.Streams;
+
 with LSP.Structures;
 
 package LSP.Constants is
@@ -62,5 +64,17 @@ package LSP.Constants is
    function True
      return LSP.Structures.typeDefinitionProvider_OfServerCapabilities_Optional
        is (Is_Set => True, Value => True);
+
+   function True return LSP.Structures.Boolean_Or_Something
+     is (Is_Boolean => True, Boolean => True);
+
+   function True return LSP.Structures.Boolean_Or_Something_Optional
+     is (Is_Set => True, Value => True);
+
+   function True return LSP.Structures.Boolean_Or_Any
+     is [(VSS.JSON.Streams.Boolean_Value, True)];
+
+   function True return LSP.Structures.Boolean_Or_Any_Optional
+      is (Is_Set => True, Value => True);
 
 end LSP.Constants;

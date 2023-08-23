@@ -32,6 +32,7 @@ with LSP.Ada_Configurations;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
+with LSP.Ada_Highlighters;
 with LSP.Client_Message_Receivers;
 with LSP.Server_Message_Visitors;
 with LSP.Server_Notification_Receivers;
@@ -148,6 +149,9 @@ private
       --  is known to the server, this context should map to the implicit
       --  project.
 
+      Highlighter    : LSP.Ada_Highlighters.Ada_Highlighter;
+      --  Semantic token highlighter for Ada
+
       Incremental_Text_Changes : Boolean;
       --  the support for incremental text changes is active
 
@@ -262,6 +266,11 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.FoldingRangeParams);
 
+   overriding procedure On_Full_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensParams);
+
    overriding procedure On_DidChangeConfiguration_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeConfigurationParams);
@@ -298,6 +307,11 @@ private
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionParams);
+
+   overriding procedure On_Tokens_Range_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensRangeParams);
 
    overriding procedure On_TypeDefinition_Request
      (Self  : in out Message_Handler;

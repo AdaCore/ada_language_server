@@ -13,6 +13,20 @@ package LSP.Structures.Unwrap is
      return FoldingRangeClientCapabilities_Optional is
        (if X.Is_Set then X.Value.foldingRange else (Is_Set => False));
 
+   function semanticTokens (X : TextDocumentClientCapabilities_Optional)
+     return SemanticTokensClientCapabilities_Optional is
+       (if X.Is_Set then X.Value.semanticTokens else (Is_Set => False));
+
+   function tokenTypes (X : SemanticTokensClientCapabilities_Optional)
+     return LSP.Structures.Virtual_String_Vector is
+       (if X.Is_Set then X.Value.tokenTypes
+        else VSS.String_Vectors.Empty_Virtual_String_Vector);
+
+   function tokenModifiers (X : SemanticTokensClientCapabilities_Optional)
+     return LSP.Structures.Virtual_String_Vector is
+       (if X.Is_Set then X.Value.tokenModifiers
+        else VSS.String_Vectors.Empty_Virtual_String_Vector);
+
    function lineFoldingOnly (X : FoldingRangeClientCapabilities_Optional)
      return Boolean_Optional is
        (if X.Is_Set then X.Value.lineFoldingOnly else (Is_Set => False));

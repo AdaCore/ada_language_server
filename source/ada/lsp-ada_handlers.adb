@@ -1290,6 +1290,35 @@ package body LSP.Ada_Handlers is
       end if;
    end On_FoldingRange_Request;
 
+   ---------------------
+   -- On_Full_Request --
+   ---------------------
+
+   overriding procedure On_Full_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensParams)
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
+
+      Result   : LSP.Structures.Natural_Vector renames
+        Response.Value.data;
+   begin
+      if Document /= null then
+         Result := Document.Get_Tokens (Context.all, Self.Highlighter);
+      end if;
+
+      Self.Sender.On_Full_Response (Id, Response);
+   end On_Full_Request;
+
    -------------------------------
    -- On_Implementation_Request --
    -------------------------------
@@ -1487,11 +1516,18 @@ package body LSP.Ada_Handlers is
       Value : LSP.Structures.InitializeParams)
    is
       Response : LSP.Structures.InitializeResult;
+      Token_Types     : LSP.Structures.Virtual_String_Vector;
+      Token_Motifiers : LSP.Structures.Virtual_String_Vector;
    begin
       Self.Client.Initialize (Value);
 
+      Self.Highlighter.Initialize
+        (Self.Client, Token_Types, Token_Motifiers);
+
       Response.capabilities := Self.Client.To_Server_Capabilities
-        (Self.Incremental_Text_Changes);
+        (Self.Incremental_Text_Changes,
+         Token_Types,
+         Token_Motifiers);
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
@@ -1686,6 +1722,36 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Shutdown_Response (Id, Result);
    end On_Shutdown_Request;
+
+   -----------------------------
+   -- On_Tokens_Range_Request --
+   -----------------------------
+
+   overriding procedure On_Tokens_Range_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensRangeParams)
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
+
+      Result   : LSP.Structures.Natural_Vector renames
+        Response.Value.data;
+   begin
+      if Document /= null then
+         Result := Document.Get_Tokens
+           (Context.all, Self.Highlighter, Value.a_range);
+      end if;
+
+      Self.Sender.On_Full_Response (Id, Response);
+   end On_Tokens_Range_Request;
 
    -------------------------------
    -- On_TypeDefinition_Request --

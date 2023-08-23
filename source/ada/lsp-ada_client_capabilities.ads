@@ -33,7 +33,9 @@ package LSP.Ada_Client_Capabilities is
 
    function To_Server_Capabilities
      (Self : Client_Capability'Class;
-      Incremental_Text_Changes : Boolean)
+      Incremental_Text_Changes : Boolean;
+      Token_Types              : LSP.Structures.Virtual_String_Vector;
+      Token_Modifiers          : LSP.Structures.Virtual_String_Vector)
       return LSP.Structures.ServerCapabilities;
    --  Calculate server capabilities by client Capability and configuation
    --  options.
@@ -54,6 +56,12 @@ package LSP.Ada_Client_Capabilities is
 
    function Resolve_Lazily (Self : Client_Capability'Class) return Boolean;
    --  Returns True when resolve contains `documentation` and `details`
+
+   function Token_Types (Self : Client_Capability'Class)
+     return LSP.Structures.Virtual_String_Vector;
+
+   function Token_Modifiers (Self : Client_Capability'Class)
+     return LSP.Structures.Virtual_String_Vector;
 
 private
 

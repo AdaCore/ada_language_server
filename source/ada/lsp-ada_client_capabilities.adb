@@ -62,8 +62,10 @@ package body LSP.Ada_Client_Capabilities is
    ----------------------------
 
    function To_Server_Capabilities
-     (Self : Client_Capability'Class;
-      Incremental_Text_Changes : Boolean)
+     (Self                     : Client_Capability'Class;
+      Incremental_Text_Changes : Boolean;
+      Token_Types              : LSP.Structures.Virtual_String_Vector;
+      Token_Modifiers          : LSP.Structures.Virtual_String_Vector)
       return LSP.Structures.ServerCapabilities
    is
       pragma Unreferenced (Self);
@@ -91,6 +93,18 @@ package body LSP.Ada_Client_Capabilities is
          Result.foldingRangeProvider := LSP.Constants.True;
          Result.implementationProvider := LSP.Constants.True;
          Result.typeDefinitionProvider := LSP.Constants.True;
+
+         Result.semanticTokensProvider :=
+           (Is_Set => True,
+            Value  =>
+              (Is_SemanticTokensOptions => True,
+               SemanticTokensOptions    =>
+                 (full    => LSP.Constants.True,
+                  a_range => LSP.Constants.True,
+                  legend  =>
+                    (tokenTypes     => Token_Types,
+                     tokenModifiers => Token_Modifiers),
+                  others  => <>)));
       end return;
    end To_Server_Capabilities;
 
@@ -108,6 +122,34 @@ package body LSP.Ada_Client_Capabilities is
    begin
       return (if Result.Is_Set then Result.Value else False);
    end Line_Folding_Only;
+
+   ---------------------
+   -- Token_Modifiers --
+   ---------------------
+
+   function Token_Modifiers (Self : Client_Capability'Class)
+     return LSP.Structures.Virtual_String_Vector
+   is
+      use LSP.Structures.Unwrap;
+
+   begin
+      return tokenModifiers
+        (semanticTokens (Self.Value.capabilities.textDocument));
+   end Token_Modifiers;
+
+   -----------------
+   -- Token_Types --
+   -----------------
+
+   function Token_Types (Self : Client_Capability'Class)
+     return LSP.Structures.Virtual_String_Vector
+   is
+      use LSP.Structures.Unwrap;
+
+   begin
+      return tokenTypes
+        (semanticTokens (Self.Value.capabilities.textDocument));
+   end Token_Types;
 
    --------------------
    -- Resolve_Lazily --
