@@ -62,9 +62,9 @@ procedure LSP.Ada_Driver is
    Server      : aliased LSP.Servers.Server;
    Stream      : aliased LSP.Stdio_Streams.Stdio_Stream;
    Ada_Handler : aliased LSP.Ada_Handlers.Message_Handler
-     (Server'Access, Tracer'Unchecked_Access);
+     (Server'Access, Server'Access, Tracer'Unchecked_Access);
    GPR_Handler : aliased LSP.Ada_Handlers.Message_Handler
-     (Server'Access, Tracer'Unchecked_Access);
+     (Server'Access, Server'Access, Tracer'Unchecked_Access);
 
    Fuzzing_Activated      : constant Boolean :=
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;

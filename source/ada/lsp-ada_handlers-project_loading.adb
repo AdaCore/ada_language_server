@@ -39,6 +39,7 @@ with Spawn.Environments;
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Handlers.File_Readers;
+with LSP.Ada_Indexing;
 with LSP.Enumerations;
 with LSP.Structures;
 
@@ -632,15 +633,15 @@ package body LSP.Ada_Handlers.Project_Loading is
    ------------------------------------
 
    procedure Mark_Source_Files_For_Indexing
-     (Self : in out Message_Handler'Class) is
-   begin
-      Self.Files_To_Index.Clear;
+     (Self : in out Message_Handler'Class)
+   is
+      Files : LSP.Ada_Indexing.File_Sets.Set;
 
+   begin
       --  Mark all the project's source files
       for C of Self.Contexts.Each_Context loop
          for F in C.List_Files loop
-            Self.Files_To_Index.Include
-              (LSP.Ada_File_Sets.File_Sets.Element (F));
+            Files.Include (LSP.Ada_File_Sets.File_Sets.Element (F));
          end loop;
       end loop;
 
@@ -652,15 +653,18 @@ package body LSP.Ada_Handlers.Project_Loading is
                  LSP.Ada_File_Sets.File_Sets.Element (F);
             begin
                for Context of Self.Contexts.Each_Context loop
-                  Self.Files_To_Index.Include (File);
+                  Files.Include (File);
                end loop;
             end;
          end loop;
       end if;
 
-      Self.Total_Files_Indexed := 0;
-      Self.Total_Files_To_Index := Positive'Max
-        (1, Natural (Self.Files_To_Index.Length));
+      LSP.Ada_Indexing.Schedule_Indexing
+        (Self.Server,
+         Self'Unchecked_Access,
+         Self.Configuration,
+         Self.Project_Stamp,
+         Files);
    end Mark_Source_Files_For_Indexing;
 
    ---------------------------------------
@@ -677,10 +681,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       Self.Project_Predefined_Sources.Clear;
       Self.Project_Dirs_Loaded.Clear;
 
-      --  Clear indexing data
-      Self.Files_To_Index.Clear;
-      Self.Total_Files_To_Index := 1;
-      Self.Total_Files_Indexed := 0;
+      Self.Project_Stamp := @ + 1;
    end Release_Contexts_And_Project_Info;
 
    ----------------------------------

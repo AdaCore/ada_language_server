@@ -39,6 +39,7 @@ with LSP.Server_Notification_Receivers;
 with LSP.Server_Notifications;
 with LSP.Server_Request_Receivers;
 with LSP.Server_Requests;
+limited with LSP.Servers;
 with LSP.Structures;
 with LSP.Tracers;
 with LSP.Unimplemented_Handlers;
@@ -48,7 +49,9 @@ with URIs;
 package LSP.Ada_Handlers is
 
    type Message_Handler
-     (Sender : not null access LSP.Client_Message_Receivers
+     (Server : not null access LSP.Servers.Server'Class;
+      --  Please avoid to use this discriminant!
+      Sender : not null access LSP.Client_Message_Receivers
         .Client_Message_Receiver'Class;
       Tracer : not null LSP.Tracers.Tracer_Access) is limited
    new LSP.Server_Message_Visitors.Server_Message_Visitor
@@ -64,6 +67,24 @@ package LSP.Ada_Handlers is
    --  Incremental_Text_Changes - activate the support for incremental text
    --  changes.
 
+   function Contexts_For_File
+     (Self : access Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File)
+      return LSP.Ada_Context_Sets.Context_Lists.List;
+
+   function Is_Shutdown (Self : Message_Handler'Class) return Boolean;
+   --  Return True when shutdown has been requested.
+
+   function Allocate_Progress_Token
+     (Self      : in out Message_Handler'Class;
+      Operation : VSS.Strings.Virtual_String)
+      return LSP.Structures.ProgressToken;
+   --  Return an unique token for indicating progress
+
+   ----------------------------
+   --  Open Document Manger  --
+   ----------------------------
+
    function Get_Open_Document
      (Self  : in out Message_Handler;
       URI   : LSP.Structures.DocumentUri;
@@ -73,6 +94,22 @@ package LSP.Ada_Handlers is
    --  If the document is not opened, then if Force a new document
    --  will be created and must be freed by the user else null will be
    --  returned.
+
+   function Is_Open_Document
+     (Self : Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean;
+   --  Return True when given document is open.
+
+   -----------------------
+   --  Project Manager  --
+   -----------------------
+
+   type Project_Stamp is private;
+
+   function Get_Project_Stamp
+     (Self : Message_Handler'Class) return Project_Stamp;
+   --  Return stamp of the state of the project. Stamp is changed each time
+   --  project is (re)loaded.
 
 private
 
@@ -107,6 +144,8 @@ private
    --  @value Invalid_Project_Configured didChangeConfiguration provided a
    --  valid project
 
+   type Project_Stamp is mod 2**32;
+
    subtype Implicit_Project_Loaded is Load_Project_Status range
      No_Project_Found .. Invalid_Project_Configured;
    --  Project status when an implicit project loaded
@@ -133,7 +172,9 @@ private
    type Has_Been_Canceled_Function is access function return Boolean;
 
    type Message_Handler
-     (Sender : not null access LSP.Client_Message_Receivers
+     (Server : not null access LSP.Servers.Server'Class;
+      --  Please avoid to use this discriminant!
+      Sender : not null access LSP.Client_Message_Receivers
         .Client_Message_Receiver'Class;
       Tracer : not null LSP.Tracers.Tracer_Access) is limited
    new LSP.Unimplemented_Handlers.Unimplemented_Handler
@@ -155,38 +196,14 @@ private
       Incremental_Text_Changes : Boolean;
       --  the support for incremental text changes is active
 
-      Indexing_Enabled         : Boolean := True;
-      --  Whether to index sources in the background. This should be True
-      --  for normal use, and can be disabled for debug or testing purposes.
+      Shutdown         : Boolean := False;
+      --  Server is in the shutdown state.
 
       Open_Documents : Document_Maps.Map;
       --  The documents that are currently open
 
-      Files_To_Index : File_Sets.Set;
-      --  Contains any files that need indexing.
-      --
-      --  Indexing of sources is performed in the background as soon as needed
-      --  (typically after a project load), and pre-indexes the Ada source
-      --  files, so that subsequent request are fast.
-      --  The way the "backgrounding" works is the following:
-      --
-      --      * each request which should trigger indexing (for instance
-      --        project load) adds files to Files_To_Index
-      --
-      --      * the procedure Index_Files takes care of the indexing; it's also
-      --        looking at the queue after each indexing to see if there
-      --        are requests pending. If a request is pending, it stops
-      --        indexing.
-      --
-      --      * whenever the server has finished processing a notification
-      --        or a requests, it looks at whether Files_To_Index contains
-      --        files; if it does, it runs Index_Files
-
-      Total_Files_Indexed  : Natural := 0;
-      Total_Files_To_Index : Positive := 1;
-      --  These two fields are used to produce a progress bar for the indexing
-      --  operations. Total_Files_To_Index starts at 1 so that the progress
-      --  bar starts at 0%.
+      Token_Id       : Integer := 0;
+      --  An ever-increasing number used to generate unique progress tokens
 
       ----------------------
       -- Project handling --
@@ -207,6 +224,9 @@ private
 
       Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"
+
+      Project_Stamp       : LSP.Ada_Handlers.Project_Stamp := 0;
+      --  Stamp of the current project.
 
       Is_Canceled : Has_Been_Canceled_Function;
       --  Is request has been canceled

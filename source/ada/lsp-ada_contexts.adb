@@ -559,6 +559,18 @@ package body LSP.Ada_Contexts is
         or else Self.Source_Files.Contains (Self.URI_To_File (URI));
    end Is_Part_Of_Project;
 
+   ------------------------
+   -- Is_Part_Of_Project --
+   ------------------------
+
+   function Is_Part_Of_Project
+     (Self : Context;
+      File : Virtual_File) return Boolean is
+   begin
+      return Self.Is_Fallback_Context
+        or else Self.Source_Files.Contains (File);
+   end Is_Part_Of_Project;
+
    ------------------
    -- Load_Project --
    ------------------

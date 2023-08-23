@@ -24,7 +24,9 @@ with Ada.Streams;
 
 with LSP.Client_Message_Receivers;
 with LSP.Server_Message_Visitors;
+with LSP.Structures;
 
+with LSP.Server_Jobs;
 with LSP.Server_Messages;
 with LSP.Tracers;
 
@@ -87,6 +89,16 @@ package LSP.Servers is
    --  Return True if the server has work in the queue, other than the
    --  notification/request it's currently processing. This should only be
    --  called from the processing task.
+
+   procedure Enqueue
+     (Self : in out Server'Class;
+      Job  : in out LSP.Server_Jobs.Server_Jobs_Access);
+   --  Put server job into the queue.
+
+   function Allocate_Request_Id
+     (Self : in out Server'Class)
+      return LSP.Structures.Integer_Or_Virtual_String;
+   --  Allocate request identifier.
 
 private
 
@@ -196,7 +208,7 @@ private
       --  Signal to main task to stop server. Released on "exit" message or
       --  on end of input stream.
       Stream        : access Ada.Streams.Root_Stream_Type'Class;
-      Last_Request  : Positive := 1;
+      Last_Request  : Natural := 0;
       Vector        : VSS.Stream_Element_Vectors.Stream_Element_Vector;
 
       --  Queues and tasks used for asynchronous processing, see doc above

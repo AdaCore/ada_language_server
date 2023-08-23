@@ -31,30 +31,6 @@
                "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true,
-                     "alsReferenceKinds": [
-                       "reference",
-                         "access",
-                        "write",
-                        "call",
-                        "dispatching call", "parent", "child",
-                        "overriding"
-                     ],
-                     "hoverProvider": true,
-                     "definitionProvider": true,
-                     "renameProvider": {},
-                     "referencesProvider": true,
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "documentSymbolProvider": true
                   }
                }
             }
@@ -88,7 +64,7 @@
          "wait": [
             {
                "jsonrpc":"2.0",
-               "id":2,
+               "id":1,
                "method":"window/workDoneProgress/create",
                "params":{
                   "token":"<ANY>"

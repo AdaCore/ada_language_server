@@ -34,7 +34,6 @@ with LSP.Errors;
 with LSP.Lifecycle_Checkers;
 with LSP.Server_Notification_Readers;
 with LSP.Server_Request_Readers;
-with LSP.Structures;
 
 package body LSP.Servers is
 
@@ -78,6 +77,19 @@ package body LSP.Servers is
      (Object => LSP.Client_Messages.Client_Message'Class,
       Name   => Client_Message_Access);
 
+   -------------------------
+   -- Allocate_Request_Id --
+   -------------------------
+
+   function Allocate_Request_Id
+     (Self : in out Server'Class)
+      return LSP.Structures.Integer_Or_Virtual_String is
+   begin
+      Self.Last_Request := @ + 1;
+
+      return (Is_Integer => True, Integer => Self.Last_Request);
+   end Allocate_Request_Id;
+
    ------------
    -- Append --
    ------------
@@ -94,6 +106,23 @@ package body LSP.Servers is
          Vector.Append (Byte);
       end loop;
    end Append;
+
+   -------------
+   -- Enqueue --
+   -------------
+
+   procedure Enqueue
+     (Self : in out Server'Class;
+      Job  : in out LSP.Server_Jobs.Server_Jobs_Access)
+   is
+      use type LSP.Server_Jobs.Server_Jobs_Access;
+
+   begin
+      if Job /= null then
+         Self.Input_Queue.Enqueue (Server_Message_Access (Job));
+         Job := null;
+      end if;
+   end Enqueue;
 
    --------------
    -- Finalize --

@@ -165,6 +165,11 @@ package LSP.Ada_Contexts is
       URI  : LSP.Structures.DocumentUri) return Boolean;
    --  Check if given file belongs to the project loaded in the Context
 
+   function Is_Part_Of_Project
+     (Self : Context;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean;
+   --  Check if given file belongs to the project loaded in the Context
+
    function List_Files (Self : Context'CLass)
      return LSP.Ada_File_Sets.File_Sets.Set_Iterator_Interfaces
        .Reversible_Iterator'Class;

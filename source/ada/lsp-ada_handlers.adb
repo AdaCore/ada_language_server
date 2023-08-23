@@ -19,7 +19,12 @@ with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 
+with GNAT.OS_Lib;
 with GNATCOLL.Traces;
+
+with VSS.Strings.Formatters.Integers;
+with VSS.Strings.Formatters.Strings;
+with VSS.Strings.Templates;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
@@ -137,6 +142,35 @@ package body LSP.Ada_Handlers is
       Position : LSP.Structures.TextDocumentPositionParams'Class)
         return Libadalang.Analysis.Defining_Name;
 
+   -----------------------------
+   -- Allocate_Progress_Token --
+   -----------------------------
+
+   function Allocate_Progress_Token
+     (Self      : in out Message_Handler'Class;
+      Operation : VSS.Strings.Virtual_String)
+      return LSP.Structures.ProgressToken
+   is
+      Token_Template : VSS.Strings.Templates.Virtual_String_Template :=
+        "ada_ls-{}-{}-{}";
+
+   begin
+      Self.Token_Id := Self.Token_Id + 1;
+      --  Generate an identifier that has little risk of collision with
+      --  other language servers, or other occurrences of this server.
+      --  (There is still a very small risk of collision with PID recyclings,
+      --  but the consequences are acceptable.)
+
+      return
+        (Is_Integer     => False,
+         Virtual_String =>
+           Token_Template.Format
+             (VSS.Strings.Formatters.Integers.Image
+                (GNAT.OS_Lib.Pid_To_Integer (GNAT.OS_Lib.Current_Process_Id)),
+              VSS.Strings.Formatters.Strings.Image (Operation),
+              VSS.Strings.Formatters.Integers.Image (Self.Token_Id)));
+   end Allocate_Progress_Token;
+
    -----------------------
    -- Clean_Diagnostics --
    -----------------------
@@ -152,6 +186,35 @@ package body LSP.Ada_Handlers is
          Self.Sender.On_PublishDiagnostics_Notification (Diag);
       end if;
    end Clean_Diagnostics;
+
+   -----------------------
+   -- Contexts_For_File --
+   -----------------------
+
+   function Contexts_For_File
+     (Self : access Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File)
+      return LSP.Ada_Context_Sets.Context_Lists.List
+   is
+      function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
+        (Self.Is_Part_Of_Project (File));
+      --  Return True if File is a source of the project held by Context
+
+   begin
+      --  If the file does not exist on disk, assume this is a file
+      --  being created and, as a special convenience in this case,
+      --  assume it could belong to any project.
+      if not File.Is_Regular_File
+      --  If the file is a runtime file for the loaded project environment,
+      --  all projects can see it.
+        or else Self.Project_Predefined_Sources.Contains (File)
+      then
+         return Self.Contexts.Each_Context;
+      end if;
+
+      --  List contexts where File is a source of the project hierarchy
+      return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
+   end Contexts_For_File;
 
    ----------------------
    -- Contexts_For_URI --
@@ -225,6 +288,14 @@ package body LSP.Ada_Handlers is
       end if;
    end Get_Open_Document;
 
+   -----------------------
+   -- Get_Project_Stamp --
+   -----------------------
+
+   function Get_Project_Stamp
+     (Self : Message_Handler'Class)
+      return Project_Stamp is (Self.Project_Stamp);
+
    ----------------------------
    -- Imprecise_Resolve_Name --
    ----------------------------
@@ -264,6 +335,24 @@ package body LSP.Ada_Handlers is
    begin
       Self.Incremental_Text_Changes := Incremental_Text_Changes;
    end Initialize;
+
+   ----------------------
+   -- Is_Open_Document --
+   ----------------------
+
+   function Is_Open_Document
+     (Self : Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean is
+   begin
+      return Self.Open_Documents.Contains (File);
+   end Is_Open_Document;
+
+   -----------------
+   -- Is_Shutdown --
+   -----------------
+
+   function Is_Shutdown
+     (Self : Message_Handler'Class) return Boolean is (Self.Shutdown);
 
    -------------------
    -- Log_Method_In --
@@ -1717,9 +1806,7 @@ package body LSP.Ada_Handlers is
       Result : LSP.Structures.Null_Record;
 
    begin
-      --  Suspend files/runtime indexing after shutdown requst
-      Self.Indexing_Enabled := False;
-
+      Self.Shutdown := True;
       Self.Sender.On_Shutdown_Response (Id, Result);
    end On_Shutdown_Request;
 
