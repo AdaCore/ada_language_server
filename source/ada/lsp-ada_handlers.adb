@@ -1739,6 +1739,185 @@ package body LSP.Ada_Handlers is
       Self.Sender.On_PrepareCallHierarchy_Response (Id, Response);
    end On_PrepareCallHierarchy_Request;
 
+   ---------------------------
+   -- On_References_Request --
+   ---------------------------
+
+   overriding procedure On_References_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.ReferenceParams)
+   is
+      use all type LSP.Ada_Handlers.Locations.AlsReferenceKind;
+
+      Response   : LSP.Structures.Location_Vector_Or_Null;
+      Imprecise  : Boolean := False;
+
+      Additional_Kinds : AlsReferenceKind_Array :=
+        [others => False];
+
+      procedure Process_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Process the references found in one context and append
+      --  them to Response.results.
+
+      function Get_Reference_Kind
+        (Node               : Libadalang.Analysis.Ada_Node'Class;
+         Is_Overriding_Decl : Boolean := False)
+         return AlsReferenceKind_Array;
+      --  Fetch reference kind for given node.
+
+      ------------------------
+      -- Get_Reference_Kind --
+      ------------------------
+
+      function Get_Reference_Kind
+        (Node               : Libadalang.Analysis.Ada_Node'Class;
+         Is_Overriding_Decl : Boolean := False)
+         return AlsReferenceKind_Array
+      is
+         use type AlsReferenceKind_Array;
+
+         Id     : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Node.As_Ada_Node);
+
+         Result : AlsReferenceKind_Array := [others => False];
+      begin
+         begin
+            Result (Write) := Id.P_Is_Write_Reference;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         begin
+            Result (Access_Ref) :=
+              Laltools.Common.Is_Access_Ref (Id.As_Ada_Node);
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         begin
+            Result (Static_Call) := Id.P_Is_Static_Call;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         begin
+            Result (Dispatching_Call) :=
+              Id.P_Is_Dispatching_Call;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         begin
+            Result (Child) :=
+              Laltools.Common.Is_Type_Derivation (Id.As_Ada_Node);
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         Result (Overriding_Decl) := Is_Overriding_Decl;
+
+         --  If the result has not any set flags at this point, flag it as a
+         --  simple reference.
+         if Result = [Result'Range => False] then
+            Result (Simple) := True;
+         end if;
+
+         --  Apply additional kinds
+         Result := Result or Additional_Kinds;
+
+         return Result;
+      end Get_Reference_Kind;
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+         procedure Callback
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean);
+
+         procedure Callback
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean)
+         is
+            pragma Unreferenced (Kind);
+         begin
+            if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
+
+               Self.Append_Location
+                 (Response,
+                  Node,
+                  Get_Reference_Kind (Node));
+            end if;
+
+            Cancel := Self.Is_Canceled.all;
+         end Callback;
+
+         Definition : Libadalang.Analysis.Defining_Name;
+
+         use Libadalang.Common;
+      begin
+
+         Definition := Self.Imprecise_Resolve_Name (C.all, Value);
+
+         if Definition.Is_Null or else Self.Is_Canceled.all then
+            return;
+         end if;
+
+         --  Set additional "reference" kind for enumeration literal
+         declare
+            Decl : constant Libadalang.Analysis.Basic_Decl :=
+              Libadalang.Analysis.P_Basic_Decl (Definition);
+         begin
+            if not Decl.Is_Null
+              and then Libadalang.Analysis.Kind (Decl) = Ada_Enum_Literal_Decl
+            then
+               Additional_Kinds (Simple) := True;
+            end if;
+
+            --  Find all the references
+            C.Find_All_References (Definition, Callback'Access);
+
+            --  Find all the overriding declarations, if any
+            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
+               Self.Append_Location
+                 (Response,
+                  Subp.P_Defining_Name,
+                  Get_Reference_Kind
+                    (Definition,
+                     Is_Overriding_Decl => True));
+            end loop;
+
+            if Value.context.includeDeclaration then
+               Self.Append_Location
+                 (Response,
+                  Definition,
+                  Get_Reference_Kind (Definition));
+            end if;
+         end;
+      end Process_Context;
+
+   begin
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Process_Context (C);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      --  Sort_And_Remove_Duplicates (Response.result);
+
+      Self.Sender.On_References_Response (Id, Response);
+   end On_References_Request;
+
    ----------------------------
    -- On_Server_Notification --
    ----------------------------

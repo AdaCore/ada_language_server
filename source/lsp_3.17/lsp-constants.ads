@@ -75,6 +75,12 @@ package LSP.Constants is
      is [(VSS.JSON.Streams.Boolean_Value, True)];
 
    function True return LSP.Structures.Boolean_Or_Any_Optional
-      is (Is_Set => True, Value => True);
+     is (Is_Set => True, Value => True);
+
+   function True return LSP.Structures.Boolean_Or_ReferenceOptions
+     is (Is_Boolean => True, Boolean => True);
+
+   function True return LSP.Structures.Boolean_Or_ReferenceOptions_Optional
+     is (Is_Set => True, Value => True);
 
 end LSP.Constants;
