@@ -13,6 +13,8 @@ with LSP.Client_Request_Writers;
 with LSP.Client_Requests;
 with LSP.Client_Response_Writers;
 with LSP.Client_Responses;
+with LSP.Progress_Reports;
+with LSP.Progress_Report_Writers;
 
 package LSP.Client_Message_Writers is
    pragma Preelaborate;
@@ -29,6 +31,9 @@ package LSP.Client_Message_Writers is
 
       Response_Writer     : LSP.Client_Response_Writers
         .Client_Response_Writer (Output);
+
+      Progress_Writer     :
+        LSP.Progress_Report_Writers.Progress_Report_Writer (Output);
    end record;
 
    overriding procedure On_Client_Notification
@@ -42,5 +47,9 @@ package LSP.Client_Message_Writers is
    overriding procedure On_Client_Response
      (Self    : in out Client_Message_Writer;
       Message : LSP.Client_Responses.Client_Response'Class);
+
+   overriding procedure On_Progress_Report
+     (Self    : in out Client_Message_Writer;
+      Message : LSP.Progress_Reports.Progress_Report'Class);
 
 end LSP.Client_Message_Writers;

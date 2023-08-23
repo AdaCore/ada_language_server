@@ -17,6 +17,17 @@ package body LSP.Client_Message_Writers is
       Message.Visit_Client_Receiver (Self.Notification_Writer);
    end On_Client_Notification;
 
+   ------------------------
+   -- On_Progress_Report --
+   ------------------------
+
+   overriding procedure On_Progress_Report
+     (Self    : in out Client_Message_Writer;
+      Message : LSP.Progress_Reports.Progress_Report'Class) is
+   begin
+      Message.Visit_Receiver (Self.Progress_Writer);
+   end On_Progress_Report;
+
    -----------------------
    -- On_Client_Request --
    -----------------------
