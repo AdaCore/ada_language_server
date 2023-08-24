@@ -14,17 +14,19 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
+
 --  This package provides some utility subprograms.
 
 with GNATCOLL.VFS;
-with GNATCOLL.Utils;
 
 with Libadalang.Common;
 with Libadalang.Sources;
 with Langkit_Support.Symbols;
 
 with VSS.Strings.Conversions;
+with VSS.Strings.Formatters.Integers;
+with VSS.Strings.Formatters.Strings;
+with VSS.Strings.Templates;
 with Laltools.Common;
 
 with LSP.Constants;
@@ -189,27 +191,21 @@ package body LSP.Utils is
      (Node : Libadalang.Analysis.Ada_Node'Class)
       return VSS.Strings.Virtual_String
    is
-      Decl_Unit_File : constant GNATCOLL.VFS.Virtual_File :=
+      File     : constant GNATCOLL.VFS.Virtual_File :=
         GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
+      Template : constant VSS.Strings.Templates.Virtual_String_Template :=
+        "at {} ({}:{})";
 
    begin
-      return Result : VSS.Strings.Virtual_String do
-         Result.Append ("at ");
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String
-              (Decl_Unit_File.Display_Base_Name));
-         Result.Append (" (");
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String
-              (GNATCOLL.Utils.Image
-                   (Integer (Node.Sloc_Range.Start_Line), Min_Width => 1)));
-         Result.Append (':');
-         Result.Append
-           (VSS.Strings.Conversions.To_Virtual_String
-              (GNATCOLL.Utils.Image
-                   (Integer (Node.Sloc_Range.Start_Column), Min_Width => 1)));
-         Result.Append (')');
-      end return;
+      return
+        Template.Format
+          (VSS.Strings.Formatters.Strings.Image
+             (VSS.Strings.Conversions.To_Virtual_String
+                (File.Display_Base_Name)),
+           VSS.Strings.Formatters.Integers.Image
+             (Integer (Node.Sloc_Range.Start_Line)),
+           VSS.Strings.Formatters.Integers.Image
+             (Integer (Node.Sloc_Range.Start_Column)));
    end Node_Location_Image;
 
    --------------
