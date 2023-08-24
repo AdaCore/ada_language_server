@@ -1,4 +1,1 @@
 title: 'hover.for_loops'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']
