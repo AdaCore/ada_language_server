@@ -52,14 +52,23 @@ package LSP.Structures.Unwrap is
 
    function workspaceEdit (X : WorkspaceClientCapabilities_Optional)
      return WorkspaceEditClientCapabilities_Optional is
-     (if X.Is_Set then X.Value.workspaceEdit else (Is_Set => False));
+       (if X.Is_Set then X.Value.workspaceEdit else (Is_Set => False));
 
    function documentChanges (X : WorkspaceEditClientCapabilities_Optional)
      return Boolean_Optional is
-     (if X.Is_Set then X.Value.documentChanges else (Is_Set => False));
+       (if X.Is_Set then X.Value.documentChanges else (Is_Set => False));
 
    function resourceOperations (X : WorkspaceEditClientCapabilities_Optional)
      return LSP.Structures.ResourceOperationKind_Set is
-     (if X.Is_Set then X.Value.resourceOperations else (others => False));
+       (if X.Is_Set then X.Value.resourceOperations else (others => False));
+
+   function publishDiagnostics (X : TextDocumentClientCapabilities_Optional)
+     return PublishDiagnosticsClientCapabilities_Optional is
+       (if X.Is_Set then X.Value.publishDiagnostics else (Is_Set => False));
+
+   function relatedInformation
+     (X : PublishDiagnosticsClientCapabilities_Optional)
+       return Boolean_Optional is
+         (if X.Is_Set then X.Value.relatedInformation else (Is_Set => False));
 
 end LSP.Structures.Unwrap;

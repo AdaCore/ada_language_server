@@ -7,6 +7,7 @@
 with VSS.JSON.Streams;
 with VSS.Strings;
 
+with LSP.Enumerations;
 with LSP.Structures;
 
 package LSP.Constants is
@@ -88,13 +89,14 @@ package LSP.Constants is
      return LSP.Structures.Boolean_Or_DocumentHighlightOptions_Optional
       is (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
 
-   function Empty
-     return LSP.Structures.Position
-       is (line => 0, character => 0);
+   function Empty return LSP.Structures.Position
+     is (line => 0, character => 0);
 
-   function Empty
-     return LSP.Structures.A_Range
-       is (start => Empty, an_end => Empty);
+   function Empty return LSP.Structures.A_Range
+     is (start => Empty, an_end => Empty);
+
+   function Error return LSP.Structures.DiagnosticSeverity_Optional
+     is (Is_Set => True, Value => LSP.Enumerations.Error);
 
    function Empty
      return LSP.Structures.DocumentUri

@@ -20,6 +20,7 @@
 --  to do conversion. Otherwise we use Libadalang to get corresponding lines
 --  and compute character offsets.
 
+with Langkit_Support.Slocs;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
@@ -32,6 +33,13 @@ package LSP.Ada_Handlers.Locations is
       Node : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.Location;
    --  Convert LAL's Node to a LSP location
+
+   function To_LSP_Location
+     (Self    : in out Message_Handler'Class;
+      Context : LSP.Ada_Contexts.Context;
+      File    : String;
+      Sloc    : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.Location;
 
    function Get_Node_At
      (Self     : in out Message_Handler'Class;

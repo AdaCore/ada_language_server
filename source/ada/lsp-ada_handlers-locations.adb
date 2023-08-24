@@ -15,14 +15,17 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Langkit_Support.Slocs;
-
 with VSS.Strings.Conversions;
 with VSS.Strings.Character_Iterators;
 
 with URIs;
 
 package body LSP.Ada_Handlers.Locations is
+
+   function To_LSP_Range
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : Langkit_Support.Slocs.Source_Location_Range)
+        return LSP.Structures.A_Range;
 
    ---------------------
    -- Append_Location --
@@ -152,6 +155,38 @@ package body LSP.Ada_Handlers.Locations is
    ---------------------
 
    function To_LSP_Location
+     (Self    : in out Message_Handler'Class;
+      Context : LSP.Ada_Contexts.Context;
+      File    : String;
+      Sloc    : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.Location
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI : constant LSP.Structures.DocumentUri :=
+        (VSS.Strings.Conversions.To_Virtual_String
+           (URIs.Conversions.From_File (File))
+         with null record);
+
+      Doc : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+
+   begin
+      if Doc /= null then
+         return Doc.To_LSP_Location (Sloc);
+      else
+         return
+           (uri     => URI,
+            a_range => To_LSP_Range
+              (Context.Get_AU (GNATCOLL.VFS.Create_From_UTF8 (File)), Sloc));
+      end if;
+   end To_LSP_Location;
+
+   ---------------------
+   -- To_LSP_Location --
+   ---------------------
+
+   function To_LSP_Location
      (Self : in out Message_Handler'Class;
       Node : Libadalang.Analysis.Ada_Node'Class)
         return LSP.Structures.Location
@@ -169,27 +204,39 @@ package body LSP.Ada_Handlers.Locations is
       Doc : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (URI);
 
-      Result : LSP.Structures.Location;
    begin
       if Doc /= null then
          return Doc.To_LSP_Location (Sloc);
 
       else
-         Result :=
-           (uri     => URI,
-            a_range =>
-              (start  => (line      => Positive (Sloc.Start_Line) - 1,
-                          character => 0),
-               an_end => (line      => Positive (Sloc.End_Line) - 1,
-                          character => 0)));
-      end if;
+         return
+           (uri => URI,
+            a_range => To_LSP_Range (Node.Unit, Sloc));
 
+      end if;
+   end To_LSP_Location;
+
+   ------------------
+   -- To_LSP_Range --
+   ------------------
+
+   function To_LSP_Range
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : Langkit_Support.Slocs.Source_Location_Range)
+        return LSP.Structures.A_Range
+   is
+      Result : LSP.Structures.A_Range :=
+        (start  => (line      => Positive (Sloc.Start_Line) - 1,
+                    character => 0),
+         an_end => (line      => Positive (Sloc.End_Line) - 1,
+                          character => 0));
+   begin
       declare
          use type Langkit_Support.Slocs.Column_Number;
 
          Line   : constant VSS.Strings.Virtual_String :=
            VSS.Strings.To_Virtual_String
-             (Node.Unit.Get_Line (Positive (Sloc.Start_Line)));
+             (Unit.Get_Line (Positive (Sloc.Start_Line)));
 
          Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
            Line.Before_First_Character;
@@ -199,14 +246,14 @@ package body LSP.Ada_Handlers.Locations is
             exit when not Cursor.Forward;
          end loop;
 
-         Result.a_range.start.character := Natural (Cursor.First_UTF16_Offset);
+         Result.start.character := Natural (Cursor.First_UTF16_Offset);
 
-         if Result.a_range.start.line = Result.a_range.an_end.line then
+         if Result.start.line = Result.an_end.line then
             for J in Sloc.Start_Column .. Sloc.End_Column - 1 loop
                exit when not Cursor.Forward;
             end loop;
 
-            Result.a_range.an_end.character :=
+            Result.an_end.character :=
               Natural (Cursor.First_UTF16_Offset);
 
             return Result;
@@ -216,7 +263,7 @@ package body LSP.Ada_Handlers.Locations is
       declare
          Line : constant VSS.Strings.Virtual_String :=
            VSS.Strings.To_Virtual_String
-             (Node.Unit.Get_Line (Positive (Sloc.End_Line)));
+             (Unit.Get_Line (Positive (Sloc.End_Line)));
 
          Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
            Line.Before_First_Character;
@@ -226,10 +273,10 @@ package body LSP.Ada_Handlers.Locations is
             exit when not Cursor.Forward;
          end loop;
 
-         Result.a_range.an_end.character := Natural (Cursor.First_UTF16_Offset);
+         Result.an_end.character := Natural (Cursor.First_UTF16_Offset);
 
          return Result;
       end;
-   end To_LSP_Location;
+   end To_LSP_Range;
 
 end LSP.Ada_Handlers.Locations;

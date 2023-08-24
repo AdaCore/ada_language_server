@@ -183,6 +183,25 @@ package body LSP.Utils is
       return Get_Location (Node.Unit, Node.Sloc_Range);
    end Get_Node_Location;
 
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash
+     (Value : LSP.Structures.A_Range) return Ada.Containers.Hash_Type
+   is
+      use type Ada.Containers.Hash_Type;
+      Prime : constant := 271;
+      From  : constant Ada.Containers.Hash_Type :=
+        Prime * Ada.Containers.Hash_Type'Mod (Value.start.line)
+        + Ada.Containers.Hash_Type'Mod (Value.start.character);
+      To    : constant Ada.Containers.Hash_Type :=
+        Prime * Ada.Containers.Hash_Type'Mod (Value.an_end.line)
+        + Ada.Containers.Hash_Type'Mod (Value.an_end.character);
+   begin
+      return From + To;
+   end Hash;
+
    -------------------------
    -- Node_Location_Image --
    -------------------------

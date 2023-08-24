@@ -67,6 +67,10 @@ package LSP.Ada_Client_Capabilities is
      (Self : Client_Capability'Class) return Boolean;
    --  Returns capabilities.workspace.workspaceEdit.documentChanges or False
 
+   function Supports_Related_Diagnostics
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns capabilities.textDocument.publishDiagnostics.relatedInformation
+
    --  Resource 0perations --
 
    function Resource_Create_Supported

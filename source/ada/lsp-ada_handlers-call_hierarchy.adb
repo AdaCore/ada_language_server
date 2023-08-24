@@ -347,17 +347,8 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
    function Hash
      (Value : LSP.Structures.Location) return Ada.Containers.Hash_Type is
       use type Ada.Containers.Hash_Type;
-      Prime : constant := 271;
-      Name  : constant Ada.Containers.Hash_Type :=
-        Ada.Containers.Hash_Type'Mod (Value.uri.Hash);
-      From  : constant Ada.Containers.Hash_Type :=
-        Prime * Ada.Containers.Hash_Type'Mod (Value.a_range.start.line)
-        + Ada.Containers.Hash_Type'Mod (Value.a_range.start.character);
-      To    : constant Ada.Containers.Hash_Type :=
-        Prime * Ada.Containers.Hash_Type'Mod (Value.a_range.an_end.line)
-        + Ada.Containers.Hash_Type'Mod (Value.a_range.an_end.character);
    begin
-      return Name + From + To;
+      return Value.uri.Get_Hash + LSP.Utils.Hash (Value.a_range);
    end Hash;
 
 end LSP.Ada_Handlers.Call_Hierarchy;

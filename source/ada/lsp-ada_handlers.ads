@@ -306,6 +306,16 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CallHierarchyPrepareParams);
 
+   overriding procedure On_PrepareRename_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.PrepareRenameParams);
+
+   overriding procedure On_Rename_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.RenameParams);
+
    overriding procedure On_FoldingRange_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
@@ -403,6 +413,13 @@ private
         (URIs.Conversions.To_File
            (VSS.Strings.Conversions.To_UTF_8_String (URI),
             Normalize => Self.Configuration.Follow_Symlinks)));
+
+   function To_URI
+     (Ignore : Message_Handler'Class;
+      File   : String) return LSP.Structures.DocumentUri
+   is
+     (VSS.Strings.Conversions.To_Virtual_String
+        (URIs.Conversions.From_File (File)) with null record);
 
    function To_Workspace_Edit
      (Self   : in out Message_Handler'Class;

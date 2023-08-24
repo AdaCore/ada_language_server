@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
 with Ada.Tags.Generic_Dispatching_Constructor;
 with Ada.Unchecked_Deallocation;
@@ -48,7 +47,6 @@ with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
 with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
 with LAL_Refactor.Suppress_Separate;
 
-with LSP.Ada_Completions;
 with LSP.Ada_Completions.Aspects;
 with LSP.Ada_Completions.Attributes;
 with LSP.Ada_Completions.End_Names;
@@ -57,6 +55,7 @@ with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Completions.Use_Clauses;
+with LSP.Ada_Completions;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Call_Hierarchy;
@@ -66,8 +65,8 @@ with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Handlers.Project_Loading;
 with LSP.Ada_Handlers.Refactor.Add_Parameter;
-with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Imports_Commands;
@@ -78,7 +77,9 @@ with LSP.Ada_Handlers.Refactor.Remove_Parameter;
 with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+with LSP.Ada_Handlers.Renaming;
 with LSP.Commands;
+with LSP.Constants;
 with LSP.Diagnostic_Sources;
 with LSP.Enumerations;
 with LSP.Errors;
@@ -87,8 +88,6 @@ with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
 with LSP.Structures.LSPAny_Vectors;
-
-with LSP.Constants;
 with LSP.Utils;
 
 package body LSP.Ada_Handlers is
@@ -2430,7 +2429,7 @@ package body LSP.Ada_Handlers is
       use LSP.Ada_Context_Sets;
 
       package URI_Contexts_Maps is new
-        Ada.Containers.Indefinite_Hashed_Maps
+        Ada.Containers.Hashed_Maps
           (Key_Type        => LSP.Structures.DocumentUri,
            Element_Type    => Context_Lists.List,
            Hash            => LSP.Structures.Get_Hash,
@@ -3220,6 +3219,52 @@ package body LSP.Ada_Handlers is
       Self.Sender.On_PrepareCallHierarchy_Response (Id, Response);
    end On_PrepareCallHierarchy_Request;
 
+   ------------------------------
+   -- On_PrepareRename_Request --
+   ------------------------------
+
+   overriding procedure On_PrepareRename_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.PrepareRenameParams)
+   is
+      Trace : constant GNATCOLL.Traces.Trace_Handle :=
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+
+      Response : LSP.Structures.PrepareRenameResult_Or_Null (Is_Null => False);
+
+      Context : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      --  For the prepareRename request, we're only interested in the "best"
+      --  context to check that we are able to rename the name.
+
+      Name_Node  : constant Libadalang.Analysis.Name :=
+        Laltools.Common.Get_Node_As_Name
+          (Self.Get_Node_At (Context.all, Value));
+
+      Defining_Name : Libadalang.Analysis.Defining_Name;
+
+      Imprecise : Boolean;
+   begin
+      if not Name_Node.Is_Null then
+         Defining_Name := Laltools.Common.Resolve_Name
+           (Name_Node,
+            Trace,
+            Imprecise => Imprecise);
+      end if;
+
+      if not Name_Node.Is_Null
+        and then not Defining_Name.Is_Null
+        and then not Imprecise
+      then
+         --  Success only if the node is a name and can be resolved precisely
+         Response.Value.Varian_1 := Self.To_LSP_Location (Name_Node).a_range;
+
+      end if;
+
+      Self.Sender.On_PrepareRename_Response (Id, Response);
+   end On_PrepareRename_Request;
+
    ---------------------------
    -- On_References_Request --
    ---------------------------
@@ -3398,6 +3443,106 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_References_Response (Id, Response);
    end On_References_Request;
+
+   -----------------------
+   -- On_Rename_Request --
+   -----------------------
+
+   overriding procedure On_Rename_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.RenameParams)
+   is
+      Response : LSP.Structures.WorkspaceEdit_Or_Null (Is_Null => False);
+
+      Position : constant LSP.Structures.TextDocumentPositionParams :=
+        (textDocument => Value.textDocument,
+         position => Value.position);
+
+      Filter : LSP.Ada_Handlers.Renaming.Edit_Sets.Set;
+      --  When iterating over all contexts (and therefore all projects), it's
+      --  possible to encounter the same Text_Edit more than once, so this
+      --  stores all the unique edits
+
+      Errors : LAL_Refactor.Refactoring_Diagnostic_Vector;
+
+   begin
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         declare
+            Name_Node : constant Libadalang.Analysis.Name :=
+              Laltools.Common.Get_Node_As_Name
+                (Self.Get_Node_At (C.all, Position));
+         begin
+            LSP.Ada_Handlers.Renaming.Process_Context
+              (Self,
+               C,
+               Name_Node,
+               New_Name   => Value.newName,
+               Filter     => Filter,
+               Result     => Response.Value,
+               Errors     => Errors);
+
+            if not Errors.Is_Empty then
+               declare
+                  Template : VSS.Strings.Templates.Virtual_String_Template :=
+                    "Can't rename identifier '{}'";
+
+                  Message : constant VSS.Strings.Virtual_String :=
+                    Template.Format
+                      (VSS.Strings.Formatters.Strings.Image
+                         (VSS.Strings.To_Virtual_String (Name_Node.Text)));
+
+                  Diag_Params : LSP.Structures.PublishDiagnosticsParams;
+                  Diagnostic  : LSP.Structures.Diagnostic;
+               begin
+                  Diagnostic.a_range :=
+                    Self.To_LSP_Location (Name_Node).a_range;
+                  Diagnostic.severity := LSP.Constants.Error;
+                  Diagnostic.source := "Ada";
+
+                  if Self.Client.Supports_Related_Diagnostics then
+
+                     Diagnostic.message := Message;
+
+                     for Problem of Errors loop
+                        Diagnostic.relatedInformation.Append
+                          (LSP.Structures.DiagnosticRelatedInformation'
+                             (location =>
+                                LSP.Ada_Handlers.Locations.To_LSP_Location
+                                (Self,
+                                 C.all,
+                                 Problem.Filename,
+                                 Problem.Location),
+
+                              message  =>
+                                VSS.Strings.Conversions.To_Virtual_String
+                                  (Problem.Info)));
+                     end loop;
+                  else
+                     Diagnostic.message :=
+                       VSS.Strings.Conversions.To_Virtual_String
+                         (Errors.First_Element.Info);
+
+                  end if;
+
+                  Diag_Params.uri := Value.textDocument.uri;
+                  Diag_Params.diagnostics.Append (Diagnostic);
+                  Self.Sender.On_PublishDiagnostics_Notification (Diag_Params);
+                  exit;
+               end;
+            end if;
+         end;
+      end loop;
+
+      if Errors.Is_Empty then
+         Self.Sender.On_Rename_Response (Id, Response);
+      else
+         Self.Sender.On_Error_Response
+           (Id,
+            (code    => LSP.Enumerations.InternalError,  --  RequestFailed,
+             message => <>));
+      end if;
+   end On_Rename_Request;
 
    ----------------------------
    -- On_Server_Notification --

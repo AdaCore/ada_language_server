@@ -119,6 +119,23 @@ package body LSP.Ada_Client_Capabilities is
       end if;
    end Set_Root_If_Empty;
 
+   ----------------------------------
+   -- Supports_Related_Diagnostics --
+   ----------------------------------
+
+   function Supports_Related_Diagnostics
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        relatedInformation
+          (publishDiagnostics
+             (Self.Value.capabilities.textDocument));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end Supports_Related_Diagnostics;
+
    ----------------------------
    -- To_Server_Capabilities --
    ----------------------------
@@ -167,6 +184,14 @@ package body LSP.Ada_Client_Capabilities is
                retriggerCharacters => [1 * VSS.Characters.Latin.Backspace],
                workDoneProgress    => <>));
          Result.typeDefinitionProvider    := LSP.Constants.True;
+
+         Result.renameProvider :=
+           (Is_Set => True,
+            Value  =>
+              (Is_Boolean    => False,
+               RenameOptions =>
+                 (prepareProvider => LSP.Constants.True,
+                  others          => <>)));
 
          Result.semanticTokensProvider :=
            (Is_Set => True,

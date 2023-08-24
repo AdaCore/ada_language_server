@@ -17,6 +17,8 @@
 --
 --  This package provides some utility subprograms.
 
+with Ada.Containers;
+
 with VSS.Strings;
 
 with Libadalang.Analysis;
@@ -69,5 +71,8 @@ package LSP.Utils is
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
    --  use Document.To_LSP_Range instead, or add necessary wrapper.
+
+   function Hash
+     (Value : LSP.Structures.A_Range) return Ada.Containers.Hash_Type;
 
 end LSP.Utils;
