@@ -83,4 +83,12 @@ package LSP.Constants is
    function True return LSP.Structures.Boolean_Or_ReferenceOptions_Optional
      is (Is_Set => True, Value => True);
 
+   function Empty
+     return LSP.Structures.Position
+       is (line => 0, character => 0);
+
+   function Empty
+     return LSP.Structures.A_Range
+       is (start => Empty, an_end => Empty);
+
 end LSP.Constants;

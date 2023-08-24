@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                        Copyright (C) 2021-2023, AdaCore                  --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,11 +17,8 @@
 --
 --  Implementation of the refactoring command to add parameters
 
-with Ada.Streams;
-
+with LSP.Ada_Contexts;
 with LSP.Client_Message_Receivers;
-with LSP.Messages;
-with LSP.JSON_Streams;
 
 with VSS.Strings;
 
@@ -35,9 +32,10 @@ package LSP.Ada_Handlers.Refactor.Add_Parameter is
 
    procedure Append_Code_Action
      (Self                        : in out Command;
-      Context                     : Context_Access;
-      Commands_Vector             : in out LSP.Messages.CodeAction_Vector;
-      Where                       : LSP.Messages.Location;
+      Context                     : LSP.Ada_Context_Sets.Context_Access;
+      Commands_Vector             : in out LSP.Structures.
+        Command_Or_CodeAction_Vector;
+      Where                       : LSP.Structures.Location;
       Requires_Full_Specification : Boolean);
    --  Initializes Self and appends it to Commands_Vector
 
@@ -45,14 +43,14 @@ private
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with record
       Context_Id                  : VSS.Strings.Virtual_String;
-      Where                       : LSP.Messages.Location;
+      Where                       : LSP.Structures.Location;
       New_Parameter               : VSS.Strings.Virtual_String;
       Requires_Full_Specification : Boolean;
    end record;
 
    overriding
    function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
+     (Any : not null access LSP.Structures.LSPAny_Vector)
       return Command;
    --  Reads JS and creates a new Command
 
@@ -69,16 +67,12 @@ private
    procedure Initialize
      (Self                        : in out Command'Class;
       Context                     : LSP.Ada_Contexts.Context;
-      Where                       : LSP.Messages.Location;
+      Where                       : LSP.Structures.Location;
       Requires_Full_Specification : Boolean);
    --  Initializes Self
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      C : Command);
-   --  Writes C to S
+   function Write_Command (Self : Command) return LSP.Structures.LSPAny_Vector;
 
-   for Command'Write use Write_Command;
    for Command'External_Tag use "als-refactor-add-parameters";
 
 end LSP.Ada_Handlers.Refactor.Add_Parameter;

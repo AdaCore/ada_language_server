@@ -50,4 +50,16 @@ package LSP.Structures.Unwrap is
          (if X.Is_Set then X.Value.properties
           else VSS.String_Vectors.Empty_Virtual_String_Vector);
 
+   function workspaceEdit (X : WorkspaceClientCapabilities_Optional)
+     return WorkspaceEditClientCapabilities_Optional is
+     (if X.Is_Set then X.Value.workspaceEdit else (Is_Set => False));
+
+   function documentChanges (X : WorkspaceEditClientCapabilities_Optional)
+     return Boolean_Optional is
+     (if X.Is_Set then X.Value.documentChanges else (Is_Set => False));
+
+   function resourceOperations (X : WorkspaceEditClientCapabilities_Optional)
+     return LSP.Structures.ResourceOperationKind_Set is
+     (if X.Is_Set then X.Value.resourceOperations else (others => False));
+
 end LSP.Structures.Unwrap;

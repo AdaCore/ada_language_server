@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020-2022, AdaCore                     --
+--                     Copyright (C) 2020-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Wide_Unbounded;
 
@@ -26,10 +25,10 @@ with Libadalang.Common;
 
 with Laltools.Common;
 
-with LSP.Messages;
+with VSS.JSON.Streams;
 
-with VSS.Strings.Conversions;
-with LSP.Commands;
+with LSP.Enumerations;
+with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
 
 package body LSP.Ada_Handlers.Refactor.Imports_Commands is
 
@@ -40,14 +39,14 @@ package body LSP.Ada_Handlers.Refactor.Imports_Commands is
    procedure Initialize
      (Self         : in out Command'Class;
       Context      : LSP.Ada_Contexts.Context;
-      Where        : LSP.Messages.TextDocumentPositionParams;
+      Where        : LSP.Structures.TextDocumentPositionParams;
       With_Clause  : VSS.Strings.Virtual_String;
       Prefix       : VSS.Strings.Virtual_String) is
    begin
-      Self.Context := Context.Id;
-      Self.Where := Where;
+      Self.Context     := Context.Id;
+      Self.Where       := Where;
       Self.With_Clause := With_Clause;
-      Self.Prefix := Prefix;
+      Self.Prefix      := Prefix;
    end Initialize;
 
    ------------
@@ -55,35 +54,47 @@ package body LSP.Ada_Handlers.Refactor.Imports_Commands is
    ------------
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
+     (Any : not null access LSP.Structures.LSPAny_Vector)
       return Command
    is
+      use VSS.JSON.Streams;
+      use VSS.Strings;
+      use LSP.Structures.JSON_Event_Vectors;
+
+      C : Cursor := Any.First;
    begin
-      return V : Command do
-         pragma Assert (JS.R.Is_Start_Object);
-         JS.R.Read_Next;
-         while not JS.R.Is_End_Object loop
-            pragma Assert (JS.R.Is_Key_Name);
+      return Self : Command do
+         pragma Assert (Element (C).Kind = Start_Object);
+         Next (C);
+
+         while Has_Element (C)
+           and then Element (C).Kind /= End_Object
+         loop
+            pragma Assert (Element (C).Kind = Key_Name);
             declare
-               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               Key : constant Virtual_String := Element (C).Key_Name;
             begin
-               JS.R.Read_Next;
+               Next (C);
 
                if Key = "context" then
-                  LSP.Types.Read_String (JS, V.Context);
+                  Self.Context := Element (C).String_Value;
+
                elsif Key = "where" then
-                  LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
+                  Self.Where := From_Any (C);
+
                elsif Key = "with_clause" then
-                  LSP.Types.Read_String (JS, V.With_Clause);
+                  Self.With_Clause := Element (C).String_Value;
+
                elsif Key = "prefix" then
-                  LSP.Types.Read_String (JS, V.Prefix);
+                  Self.Prefix := Element (C).String_Value;
+
                else
-                  JS.Skip_Value;
+                  Skip_Value (C);
                end if;
             end;
+
+            Next (C);
          end loop;
-         JS.R.Read_Next;
       end return;
    end Create;
 
@@ -93,13 +104,12 @@ package body LSP.Ada_Handlers.Refactor.Imports_Commands is
 
    procedure Append_Suggestion
      (Self              : in out Command;
-      Context           : Context_Access;
-      Where             : LSP.Messages.Location;
-      Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
+      Context           : LSP.Ada_Context_Sets.Context_Access;
+      Where             : LSP.Structures.Location;
+      Commands_Vector   : in out LSP.Structures.Command_Or_CodeAction_Vector;
       Suggestion        : LAL_Refactor.Refactor_Imports.Import_Suggestion)
    is
-      Pointer : LSP.Commands.Command_Pointer;
-      Item    : LSP.Messages.CodeAction;
+      Item    : LSP.Structures.CodeAction;
 
       function Create_Suggestion_Title
         (Suggestion : LAL_Refactor.Refactor_Imports.Import_Suggestion)
@@ -111,16 +121,14 @@ package body LSP.Ada_Handlers.Refactor.Imports_Commands is
       ------------------------------
       -- Create_Suggestions_Title --
       ------------------------------
+
       function Create_Suggestion_Title
         (Suggestion : LAL_Refactor.Refactor_Imports.Import_Suggestion)
          return VSS.Strings.Virtual_String
       is
-         Title : Ada.Strings.Wide_Wide_Unbounded.
-           Unbounded_Wide_Wide_String
-             := Ada.Strings.Wide_Wide_Unbounded.
-               Null_Unbounded_Wide_Wide_String;
-         use type Ada.Strings.Wide_Wide_Unbounded.
-           Unbounded_Wide_Wide_String;
+         Title : Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String :=
+             Ada.Strings.Wide_Wide_Unbounded.Null_Unbounded_Wide_Wide_String;
+         use type Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String;
 
       begin
          if Suggestion.With_Clause_Text /= "" then
@@ -154,28 +162,33 @@ package body LSP.Ada_Handlers.Refactor.Imports_Commands is
       Self.Initialize
         (Context     => Context.all,
          Where       => ((uri => Where.uri),
-                         Where.span.first),
+                         Where.a_range.start),
          With_Clause =>
            VSS.Strings.Conversions.To_Virtual_String
              (Suggestion.With_Clause_Text),
          Prefix      =>
            VSS.Strings.Conversions.To_Virtual_String
              (Suggestion.Prefix_Text));
-      Pointer.Set (Self);
+
       Item :=
         (title       => Create_Suggestion_Title (Suggestion),
          kind        => (Is_Set => True,
-                         Value  => LSP.Messages.RefactorRewrite),
-         diagnostics => (Is_Set => False),
+                         Value  => LSP.Enumerations.RefactorRewrite),
+         diagnostics => <>,
          disabled    => (Is_Set => False),
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
          command     => (Is_Set => True,
                          Value  =>
-                           (Is_Unknown => False,
-                            title      => <>,
-                            Custom     => Pointer)));
-      Commands_Vector.Append (Item);
+                           (title     => <>,
+                            command   => VSS.Strings.Conversions.
+                              To_Virtual_String (Command'External_Tag),
+                            arguments => Self.Write_Command)),
+         data        => <>);
+
+      Commands_Vector.Append
+        (LSP.Structures.Command_Or_CodeAction'
+           (Is_Command => False, CodeAction => Item));
    end Append_Suggestion;
 
    ----------------------------------
@@ -333,23 +346,34 @@ package body LSP.Ada_Handlers.Refactor.Imports_Commands is
    -- Write_Command --
    -------------------
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Command)
+   function Write_Command
+     (Self : Command) return LSP.Structures.LSPAny_Vector
    is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      use VSS.JSON.Streams;
+
+      Result : LSP.Structures.LSPAny_Vector;
    begin
-      JS.Start_Object;
-      JS.Key ("context");
-      LSP.Types.Write_String (S, V.Context);
-      JS.Key ("where");
-      LSP.Messages.TextDocumentPositionParams'Write (S, V.Where);
-      JS.Key ("with_clause");
-      LSP.Types.Write_String (S, V.With_Clause);
-      JS.Key ("prefix");
-      LSP.Types.Write_String (S, V.Prefix);
-      JS.End_Object;
+      Result.Append (JSON_Stream_Element'(Kind => Start_Object));
+
+      --  "context"
+      Add_Key ("context", Result);
+      To_Any (Self.Context, Result);
+
+      --  "where"
+      Add_Key ("where", Result);
+      To_Any (Self.Where, Result);
+
+      --  "with_clause"
+      Add_Key ("with_clause", Result);
+      To_Any (Self.With_Clause, Result);
+
+      --  "prefix"
+      Add_Key ("prefix", Result);
+      To_Any (Self.Prefix, Result);
+
+      Result.Append (JSON_Stream_Element'(Kind => End_Object));
+
+      return Result;
    end Write_Command;
 
 end LSP.Ada_Handlers.Refactor.Imports_Commands;

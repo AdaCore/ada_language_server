@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020-2021, AdaCore                     --
+--                     Copyright (C) 2020-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,17 +16,18 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with Ada.Strings.UTF_Encoding;
 
+with VSS.JSON.Streams;
 with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 
-with LSP.Lal_Utils;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
-with LSP.Messages.Client_Requests;
-with LSP.Types;
+with LSP.Ada_Contexts;
+with LSP.Enumerations;
+with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
+with LSP.Utils;
 
 package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
@@ -35,39 +36,106 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       return VSS.String_Vectors.Virtual_String_Vector;
    --  Find list of parameter names from given AST node.
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Self                : in out Command'Class;
+      Context             : LSP.Ada_Context_Sets.Context_Access;
+      Where               : LSP.Structures.TextDocumentPositionParams;
+      Versioned_Documents : Boolean) is
+   begin
+      Self.Context             := Context.Id;
+      Self.Where               := Where;
+      Self.Versioned_Documents := Versioned_Documents;
+   end Initialize;
+
    ------------
    -- Create --
    ------------
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
-      return Command
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+       return Command
    is
-   begin
-      return V : Command do
-         pragma Assert (JS.R.Is_Start_Object);
-         JS.R.Read_Next;
+      use VSS.JSON.Streams;
+      use VSS.Strings;
+      use LSP.Structures.JSON_Event_Vectors;
 
-         while not JS.R.Is_End_Object loop
-            pragma Assert (JS.R.Is_Key_Name);
+      C : Cursor := Any.First;
+   begin
+      return Self : Command do
+         pragma Assert (Element (C).Kind = Start_Object);
+         Next (C);
+
+         while Has_Element (C)
+           and then Element (C).Kind /= End_Object
+         loop
+            pragma Assert (Element (C).Kind = Key_Name);
             declare
-               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+               Key : constant Virtual_String := Element (C).Key_Name;
             begin
-               JS.R.Read_Next;
+               Next (C);
 
                if Key = "context" then
-                  LSP.Types.Read_String (JS, V.Context);
+                  Self.Context := Element (C).String_Value;
+
                elsif Key = "where" then
-                  LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
+                  Self.Where := From_Any (C);
+
+               elsif Key = "versioned_documents" then
+                  Self.Versioned_Documents := From_Any (C);
+
                else
-                  JS.Skip_Value;
+                  Skip_Value (C);
                end if;
             end;
+
+            Next (C);
          end loop;
-         JS.R.Read_Next;
       end return;
    end Create;
+
+   -----------------------
+   -- Append_Suggestion --
+   -----------------------
+
+   procedure Append_Suggestion
+     (Self                : in out Command;
+      Context             : LSP.Ada_Context_Sets.Context_Access;
+      Commands_Vector     : in out LSP.Structures.Command_Or_CodeAction_Vector;
+      Where               : LSP.Structures.Location;
+      Versioned_Documents : Boolean)
+   is
+      Code_Action : LSP.Structures.CodeAction;
+   begin
+      Self.Initialize
+        (Context             => Context,
+         Where               => ((uri => Where.uri), Where.a_range.start),
+         Versioned_Documents => Versioned_Documents);
+
+      Code_Action :=
+        (title       => "Name parameters in the call",
+         kind        => (Is_Set => True,
+                         Value  => LSP.Enumerations.RefactorRewrite),
+         diagnostics => <>,
+         disabled    => (Is_Set => False),
+         edit        => (Is_Set => False),
+         isPreferred => (Is_Set => False),
+         command     =>
+           (Is_Set => True,
+            Value  =>
+              (title     => <>,
+               command   => VSS.Strings.Conversions.To_Virtual_String
+                 (Command'External_Tag),
+               arguments => Self.Write_Command)),
+         data        => <>);
+
+      Commands_Vector.Append
+        (LSP.Structures.Command_Or_CodeAction'
+           (Is_Command => False, CodeAction => Code_Action));
+   end Append_Suggestion;
 
    -------------
    -- Execute --
@@ -75,21 +143,22 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
    overriding procedure Execute
      (Self    : Command;
-      Handler : not null access LSP.Server_Notification_Receivers
-        .Server_Notification_Receiver'
-        Class;
-      Client : not null access LSP.Client_Message_Receivers
-        .Client_Message_Receiver'
-        Class;
-      Error : in out LSP.Errors.Optional_ResponseError)
+      Handler : not null access
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
+      Client  : not null access
+        LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Id     : LSP.Structures.Integer_Or_Virtual_String;
+      Error  : in out LSP.Errors.ResponseError_Optional)
    is
+      use LSP.Structures;
+
       procedure Append
         (Node : Libadalang.Analysis.Ada_Node;
          Name : VSS.Strings.Virtual_String);
       --  Create and append a TextEdit to insert Name & " => " before Node.
 
-      Apply  : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request;
-      Edits  : LSP.Messages.WorkspaceEdit renames Apply.params.edit;
+      Apply  : LSP.Structures.ApplyWorkspaceEditParams;
+      Edits  : LSP.Structures.WorkspaceEdit renames Apply.edit;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -104,25 +173,27 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       is
          use type VSS.Strings.Virtual_String;
 
-         Loc  : constant LSP.Messages.Location :=
-           LSP.Lal_Utils.Get_Node_Location (Node);
-         Edit : LSP.Messages.AnnotatedTextEdit;
+         Loc  : constant LSP.Structures.Location :=
+           LSP.Utils.Get_Node_Location (Node);
+         Edit : LSP.Structures.AnnotatedTextEdit;
 
       begin
-         Edit.span := (Loc.span.first, Loc.span.first);
+         Edit.a_range := (Loc.a_range.start, Loc.a_range.start);
          Edit.newText := Name & " => ";
 
-         if Message_Handler.Versioned_Documents then
-            Edits.documentChanges (1).Text_Document_Edit.edits.Append (Edit);
+         if Self.Versioned_Documents then
+            Edits.documentChanges (1).Varian_1.edits.Append
+              (LSP.Structures.TextEdit_Or_AnnotatedTextEdit'
+                 (Is_TextEdit => False, AnnotatedTextEdit => Edit));
          else
             if Edits.changes.Contains (Self.Where.textDocument.uri) then
                Edits.changes (Self.Where.textDocument.uri).Append
-                 (LSP.Messages.TextEdit (Edit));
+                 (LSP.Structures.TextEdit (Edit));
             else
                declare
-                  Text_Edits : LSP.Messages.TextEdit_Vector;
+                  Text_Edits : LSP.Structures.TextEdit_Vector;
                begin
-                  Text_Edits.Append (LSP.Messages.TextEdit (Edit));
+                  Text_Edits.Append (LSP.Structures.TextEdit (Edit));
                   Edits.changes.Include
                     (Self.Where.textDocument.uri, Text_Edits);
                end;
@@ -142,23 +213,23 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       Args    : Libadalang.Analysis.Basic_Assoc_List;
       Params  : VSS.String_Vectors.Virtual_String_Vector;
       Index   : Natural := 0;
-      Version : constant LSP.Messages.VersionedTextDocumentIdentifier :=
+      Version : constant LSP.Structures.VersionedTextDocumentIdentifier :=
         Document.Versioned_Identifier;
 
    begin
-      Apply.params.label :=
-        (Is_Set => True,
-         Value  =>
-           VSS.Strings.Conversions.To_Virtual_String (Command'External_Tag));
+      Apply.label := VSS.Strings.Conversions.To_Virtual_String
+        (Command'External_Tag);
 
-      if Message_Handler.Versioned_Documents then
+      if Self.Versioned_Documents then
          Edits.documentChanges.Append
-           (LSP.Messages.Document_Change'
-              (Kind               => LSP.Messages.Text_Document_Edit,
-               Text_Document_Edit =>
+           (documentChanges_OfWorkspaceEdit_Item'
+              (Kind     =>
+                   documentChanges_OfWorkspaceEdit_Item_Variant'(Varian_1),
+               Varian_1 =>
                  (textDocument =>
-                      (uri => Version.uri,
-                       version => (True, Version.version)),
+                      (uri      => Version.uri,
+                       version  => (Is_Null => False,
+                                    Value   => Version.version)),
                   edits        => <>)));
       end if;
 
@@ -172,9 +243,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Errors.InvalidRequest,
-               message => "This is not a valid position to name parameters.",
-               data    => <>));
+              (code    => LSP.Enumerations.InvalidRequest,
+               message => "This is not a valid position to name parameters."));
          return;
       end if;
 
@@ -190,9 +260,9 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Errors.InvalidRequest,
-               message => "Could not resolve this call expression precisely.",
-               data    => <>));
+              (code    => LSP.Enumerations.InvalidRequest,
+               message =>
+                 "Could not resolve this call expression precisely."));
          return;
       end if;
 
@@ -214,16 +284,15 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Index := Index - 1;
       end loop;
 
-      Client.On_Workspace_Apply_Edit_Request (Apply);
+      Client.On_ApplyEdit_Request (Id, Apply);
    exception
       when E : others =>
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Errors.UnknownErrorCode,
+              (code    => LSP.Enumerations.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
-                 (Ada.Exceptions.Exception_Information (E)),
-               data    => <>));
+                 (Ada.Exceptions.Exception_Information (E))));
    end Execute;
 
    --------------------
@@ -258,7 +327,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       begin
          for Param of Params loop
             for Id of Param.F_Ids loop
-               Result.Append (LSP.Lal_Utils.To_Virtual_String (Id.Text));
+               Result.Append (VSS.Strings.To_Virtual_String (Id.Text));
             end loop;
          end loop;
       end Append;
@@ -440,36 +509,34 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       return Result;
    end Get_Parameters;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (Self    : in out Command'Class;
-      Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.TextDocumentPositionParams) is
-   begin
-      Self.Context := Context.Id;
-      Self.Where := Where;
-   end Initialize;
-
    -------------------
    -- Write_Command --
    -------------------
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Command)
+   function Write_Command
+     (Self : Command) return LSP.Structures.LSPAny_Vector
    is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      use VSS.JSON.Streams;
+
+      Result : LSP.Structures.LSPAny_Vector;
    begin
-      JS.Start_Object;
-      JS.Key ("context");
-      LSP.Types.Write_String (S, V.Context);
-      JS.Key ("where");
-      LSP.Messages.TextDocumentPositionParams'Write (S, V.Where);
-      JS.End_Object;
+      Result.Append (JSON_Stream_Element'(Kind => Start_Object));
+
+      --  "context"
+      Add_Key ("context", Result);
+      To_Any (Self.Context, Result);
+
+      --  "where"
+      Add_Key ("where", Result);
+      To_Any (Self.Where, Result);
+
+      --  "versioned_documents"
+      Add_Key ("versioned_documents", Result);
+      To_Any (Self.Versioned_Documents, Result);
+
+      Result.Append (JSON_Stream_Element'(Kind => End_Object));
+
+      return Result;
    end Write_Command;
 
 end LSP.Ada_Handlers.Named_Parameters_Commands;

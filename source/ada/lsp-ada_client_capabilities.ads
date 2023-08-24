@@ -63,14 +63,61 @@ package LSP.Ada_Client_Capabilities is
    function Token_Modifiers (Self : Client_Capability'Class)
      return LSP.Structures.Virtual_String_Vector;
 
+   function Versioned_Documents
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns capabilities.workspace.workspaceEdit.documentChanges or False
+
+   --  Resource 0perations --
+
+   function Resource_Create_Supported
+     (Self : Client_Capability'Class) return Boolean;
+
+   function Resource_Delete_Supported
+     (Self : Client_Capability'Class) return Boolean;
+
+   function Resource_Rename_Supported
+     (Self : Client_Capability'Class) return Boolean;
+
+   --  Advanced refactoring settings --
+
+   function Refactoring_Change_Parameters_Type
+     (Self : Client_Capability'Class) return Boolean;
+
+   function Refactoring_Add_Parameter
+     (Self : Client_Capability'Class) return Boolean;
+
+   function Refactoring_Change_Parameters_Default_Value
+     (Self : Client_Capability'Class) return Boolean;
+
+   function Refactoring_Replace_Type
+     (Self : Client_Capability'Class) return Boolean;
+
 private
+
+   type Advanced_Refactorings is
+     (Add_Parameter,
+      Change_Parameters_Type,
+      Change_Parameters_Default_Value,
+      Replace_Type);
+   --  Enum with the advanced refactorings that clients might support
+
+   type Advanced_Refactorings_Capabilities is
+     array (Advanced_Refactorings) of Boolean;
+   --  Array that determines what advanced refactorings clients support
 
    type Client_Capability is tagged limited record
       Value : LSP.Structures.InitializeParams;
       Root  : VSS.Strings.Virtual_String;
+
+      Advanced_Refactorings : Advanced_Refactorings_Capabilities :=
+        (others => False);
+      --  Experimental client capabilities that are extensions of the ones
+      --  defined in the LSP
    end record;
 
    function Root (Self : Client_Capability'Class)
      return VSS.Strings.Virtual_String is (Self.Root);
+
+   procedure Parse_Experimental (Self : Client_Capability'Class);
 
 end LSP.Ada_Client_Capabilities;

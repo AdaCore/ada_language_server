@@ -15,18 +15,17 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
 with Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
 
 with LAL_Refactor.Sort_Dependencies;
 
-with LSP.Messages;
-
+with VSS.JSON.Streams;
 with VSS.Strings.Conversions;
-with LSP.Commands;
+
+with LSP.Enumerations;
+with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
 
 package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
@@ -36,37 +35,38 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
    procedure Append_Code_Action
      (Self            : in out Command;
-      Context         : Context_Access;
-      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Where           : LSP.Messages.Location)
+      Context         : LSP.Ada_Context_Sets.Context_Access;
+      Commands_Vector : in out LSP.Structures.Command_Or_CodeAction_Vector;
+      Where           : LSP.Structures.Location)
    is
-      Pointer     : LSP.Commands.Command_Pointer;
-      Code_Action : LSP.Messages.CodeAction;
+      Code_Action : LSP.Structures.CodeAction;
 
    begin
       Self.Initialize
         (Context           => Context.all,
          Where             => Where);
 
-      Pointer.Set (Self);
-
       Code_Action :=
         (title       => "Sort Dependencies",
          kind        =>
            (Is_Set => True,
-            Value  => LSP.Messages.Refactor),
-         diagnostics => (Is_Set => False),
+            Value  => LSP.Enumerations.Refactor),
+         diagnostics => <>,
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
          disabled    => (Is_Set => False),
          command     =>
            (Is_Set => True,
             Value  =>
-              (Is_Unknown => False,
-               title      => <>,
-               Custom     => Pointer)));
+              (title     => <>,
+               command   => VSS.Strings.Conversions.To_Virtual_String
+                 (Command'External_Tag),
+               arguments => Self.Write_Command)),
+         data        => <>);
 
-      Commands_Vector.Append (Code_Action);
+      Commands_Vector.Append
+        (LSP.Structures.Command_Or_CodeAction'
+           (Is_Command => False, CodeAction => Code_Action));
    end Append_Code_Action;
 
    ------------
@@ -75,42 +75,41 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
    overriding
    function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
+     (Any : not null access LSP.Structures.LSPAny_Vector)
       return Command
    is
-      use Ada.Strings.UTF_Encoding;
-      use LSP.Messages;
-      use LSP.Types;
-      use VSS.Strings.Conversions;
+      use VSS.JSON.Streams;
+      use VSS.Strings;
+      use LSP.Structures.JSON_Event_Vectors;
 
+      C : Cursor := Any.First;
    begin
-      return C : Command do
-         pragma Assert (JS.R.Is_Start_Object);
+      return Self : Command do
+         pragma Assert (Element (C).Kind = Start_Object);
+         Next (C);
 
-         JS.R.Read_Next;
-
-         while not JS.R.Is_End_Object loop
-            pragma Assert (JS.R.Is_Key_Name);
-
+         while Has_Element (C)
+           and then Element (C).Kind /= End_Object
+         loop
+            pragma Assert (Element (C).Kind = Key_Name);
             declare
-               Key : constant UTF_8_String := To_UTF_8_String (JS.R.Key_Name);
-
+               Key : constant Virtual_String := Element (C).Key_Name;
             begin
-               JS.R.Read_Next;
+               Next (C);
 
                if Key = "context" then
-                  Read_String (JS, C.Context);
+                  Self.Context := Element (C).String_Value;
 
                elsif Key = "where" then
-                  Location'Read (JS, C.Where);
+                  Self.Where := From_Any (C);
 
                else
-                  JS.Skip_Value;
+                  Skip_Value (C);
                end if;
             end;
-         end loop;
 
-         JS.R.Read_Next;
+            Next (C);
+         end loop;
       end return;
    end Create;
 
@@ -131,7 +130,6 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
       use Libadalang.Analysis;
       use LAL_Refactor;
       use LAL_Refactor.Sort_Dependencies;
-      use LSP.Types;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -140,11 +138,12 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
       Analysis_Unit    : constant Libadalang.Analysis.Analysis_Unit :=
         Context.LAL_Context.Get_From_File
-          (Context.URI_To_File (Self.Where.uri));
+          (VSS.Strings.Conversions.To_UTF_8_String (Self.Where.uri));
       Sloc             : constant Source_Location :=
-        (Langkit_Support.Slocs.Line_Number (Self.Where.span.first.line) + 1,
-         Langkit_Support.Slocs.Column_Number (Self.Where.span.first.character)
-         + 1);
+        (Langkit_Support.Slocs.Line_Number
+           (Self.Where.a_range.start.line) + 1,
+         Langkit_Support.Slocs.Column_Number
+           (Self.Where.a_range.start.character) + 1);
       Compilation_Unit : constant Libadalang.Analysis.Compilation_Unit :=
         Analysis_Unit.Root.Lookup (Sloc).P_Enclosing_Compilation_Unit;
 
@@ -162,7 +161,7 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
    procedure Initialize
      (Self    : in out Command'Class;
       Context : LSP.Ada_Contexts.Context;
-      Where   : LSP.Messages.Location) is
+      Where   : LSP.Structures.Location) is
    begin
       Self.Context := Context.Id;
       Self.Where   := Where;
@@ -172,23 +171,26 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
    -- Write_Command --
    -------------------
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      C : Command)
+   function Write_Command
+     (Self : Command) return LSP.Structures.LSPAny_Vector
    is
-      use LSP.Messages;
-      use LSP.Types;
+      use VSS.JSON.Streams;
 
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-
+      Result : LSP.Structures.LSPAny_Vector;
    begin
-      JS.Start_Object;
-      JS.Key ("context");
-      Write_String (S, C.Context);
-      JS.Key ("where");
-      Location'Write (S, C.Where);
-      JS.End_Object;
+      Result.Append (JSON_Stream_Element'(Kind => Start_Object));
+
+      --  "context"
+      Add_Key ("context", Result);
+      To_Any (Self.Context, Result);
+
+      --  "where"
+      Add_Key ("where", Result);
+      To_Any (Self.Where, Result);
+
+      Result.Append (JSON_Stream_Element'(Kind => End_Object));
+
+      return Result;
    end Write_Command;
 
 end LSP.Ada_Handlers.Refactor.Sort_Dependencies;

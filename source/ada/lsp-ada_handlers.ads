@@ -46,6 +46,8 @@ with LSP.Unimplemented_Handlers;
 
 with URIs;
 
+private with LAL_Refactor;
+
 package LSP.Ada_Handlers is
 
    type Message_Handler
@@ -110,6 +112,14 @@ package LSP.Ada_Handlers is
      (Self : Message_Handler'Class) return Project_Stamp;
    --  Return stamp of the state of the project. Stamp is changed each time
    --  project is (re)loaded.
+
+   function Get_Open_Document_Version
+     (Self : in out Message_Handler;
+      URI  : LSP.Structures.DocumentUri)
+      return LSP.Structures.OptionalVersionedTextDocumentIdentifier;
+   --  Return the version of an open document for the given URI.
+   --  If the document is not opened, then it returns a
+   --  OptionalVersionedTextDocumentIdentifier with a null version.
 
 private
 
@@ -343,6 +353,23 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.TypeDefinitionParams);
 
+   overriding procedure On_CodeAction_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CodeActionParams);
+
+   procedure Publish_Diagnostics
+     (Self              : in out Message_Handler'Class;
+      Document          : not null LSP.Ada_Documents.Document_Access;
+      Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
+        LSP.Structures.Empty;
+      Force             : Boolean := False);
+   --  Publish diagnostic messages for given document if needed.
+   --  Other_Diagnostics can be used to specify punctual diagnostics not coming
+   --  from sources that analyze files when being opened or modified.
+   --  When Force is True, the diagnostics will always be sent, not matter if
+   --  they have changed or not.
+
    function To_File
      (Self : Message_Handler'Class;
       URI  : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File
@@ -351,5 +378,13 @@ private
         (URIs.Conversions.To_File
            (VSS.Strings.Conversions.To_UTF_8_String (URI),
             Normalize => Self.Configuration.Follow_Symlinks)));
+
+   function To_Workspace_Edit
+     (Self   : in out Message_Handler'Class;
+      Edits  : LAL_Refactor.Refactoring_Edits;
+      Rename : Boolean := False)
+      return LSP.Structures.WorkspaceEdit;
+   --  Converts a Refactoring_Edits into a WorkspaceEdit. The Rename flag
+   --  controls if files that are supposed to be deleted, are renamed instead.
 
 end LSP.Ada_Handlers;

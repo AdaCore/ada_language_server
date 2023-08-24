@@ -25,13 +25,26 @@ with GNATCOLL.Traces;
 with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
+with VSS.JSON.Streams;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
+with Libadalang.Helpers;
 
 with Laltools.Common;
 
 with Langkit_Support.Slocs;
+
+with LAL_Refactor.Extract_Subprogram;
+with LAL_Refactor.Introduce_Parameter;
+with LAL_Refactor.Pull_Up_Declaration;
+with LAL_Refactor.Refactor_Imports;
+with LAL_Refactor.Replace_Type;
+with LAL_Refactor.Sort_Dependencies;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
+with LAL_Refactor.Suppress_Separate;
 
 with LSP.Ada_Completions;
 with LSP.Ada_Completions.Aspects;
@@ -46,14 +59,30 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Call_Hierarchy;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Locations;
+with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Ada_Handlers.Project_Loading;
+with LSP.Ada_Handlers.Refactor.Add_Parameter;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+with LSP.Ada_Handlers.Refactor.Imports_Commands;
+with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
+with LSP.Ada_Handlers.Refactor.Move_Parameter;
+with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor.Remove_Parameter;
+with LSP.Ada_Handlers.Refactor.Replace_Type;
+with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
+with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Diagnostic_Sources;
 with LSP.Enumerations;
 with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
+
+with LSP.Constants;
 with LSP.Utils;
 
 package body LSP.Ada_Handlers is
@@ -77,18 +106,6 @@ package body LSP.Ada_Handlers is
    --  a list of all contexts where the file is known to be part of the
    --  project tree, or is a runtime file for this project. If the file
    --  is not known to any project, return an empty list.
-
-   procedure Publish_Diagnostics
-     (Self              : in out Message_Handler'Class;
-      Document          : not null LSP.Ada_Documents.Document_Access;
-      Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
-        LSP.Structures.Empty;
-      Force             : Boolean := False);
-   --  Publish diagnostic messages for given document if needed.
-   --  Other_Diagnostics can be used to specify punctual diagnostics not coming
-   --  from sources that analyze files when being opened or modified.
-   --  When Force is True, the diagnostics will always be sent, not matter if
-   --  they have changed or not.
 
    procedure Clean_Diagnostics
      (Self     : in out Message_Handler'Class;
@@ -296,6 +313,37 @@ package body LSP.Ada_Handlers is
      (Self : Message_Handler'Class)
       return Project_Stamp is (Self.Project_Stamp);
 
+   -------------------------------
+   -- Get_Open_Document_Version --
+   -------------------------------
+
+   function Get_Open_Document_Version
+     (Self : in out Message_Handler;
+      URI  : LSP.Structures.DocumentUri)
+      return LSP.Structures.OptionalVersionedTextDocumentIdentifier
+   is
+      use type LSP.Ada_Documents.Document_Access;
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+
+   begin
+      --  If the target textDocument hasn't been opened in the editor
+      --  then ALS hasn't received an open notification before. Therefore
+      --  Target_Text_Document will be null.
+      --  In that case, its VersionedTextDocumentIdentifier.version will
+      --  be null.
+
+      if Document = null then
+         return (URI, LSP.Structures.Integer_Or_Null'(Is_Null => True));
+
+      else
+         return
+           (uri     => Document.Versioned_Identifier.uri,
+            version => (Is_Null => False,
+                        Value   => Document.Versioned_Identifier.version));
+      end if;
+   end Get_Open_Document_Version;
+
    ----------------------------
    -- Imprecise_Resolve_Name --
    ----------------------------
@@ -381,6 +429,1064 @@ package body LSP.Ada_Handlers is
    begin
       Self.Tracer.Trace ("Out Message_Handler " & Name);
    end Log_Method_Out;
+
+   ---------------------------
+   -- On_CodeAction_Request --
+   ---------------------------
+
+   overriding procedure On_CodeAction_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CodeActionParams)
+   is
+
+      use Libadalang.Common;
+
+      procedure Analyse_In_Context
+        (Context  : LSP.Ada_Context_Sets.Context_Access;
+         Document : LSP.Ada_Documents.Document_Access;
+         Result   : out LSP.Structures.Command_Or_CodeAction_Vector;
+         Found    : in out Boolean);
+      --  Perform refactoring ananlysis given Document in the Context.
+      --  Return Found = True if some refactoring is possible. Populate
+      --  Result with Code_Actions in this case.
+
+      function Has_Assoc_Without_Designator
+        (Node : Libadalang.Analysis.Basic_Assoc_List) return Boolean;
+      --  Check if Node is Basic_Assoc_List that contains at least one
+      --  ParamAssoc without a designator.
+
+      procedure Analyse_Node
+        (Context : LSP.Ada_Context_Sets.Context_Access;
+         Node    : Libadalang.Analysis.Ada_Node;
+         Result  : out LSP.Structures.Command_Or_CodeAction_Vector;
+         Found   : in out Boolean);
+      --  Look for a possible refactoring in given Node.
+      --  Return Found = True if some refactoring is possible. Populate
+      --  Result with Code_Actions in this case. Return Done = True if futher
+      --  analysis has no sense.
+
+      procedure Append_Project_Status_Code_Actions
+        (Result : in out LSP.Structures.Command_Or_CodeAction_Vector);
+      --  Append project status code action if needed
+
+      ------------------------
+      -- Analyse_In_Context --
+      ------------------------
+
+      procedure Analyse_In_Context
+        (Context  : LSP.Ada_Context_Sets.Context_Access;
+         Document : LSP.Ada_Documents.Document_Access;
+         Result   : out LSP.Structures.Command_Or_CodeAction_Vector;
+         Found    : in out Boolean)
+      is
+         Node : constant Libadalang.Analysis.Ada_Node :=
+           Document.Get_Node_At (Context.all, Value.a_range.start);
+      begin
+         if Node.Is_Null then
+            Found := False;
+            return;
+         end if;
+
+         Analyse_Node (Context, Node, Result, Found);
+      end Analyse_In_Context;
+
+      ------------------
+      -- Analyse_Node --
+      ------------------
+
+      procedure Analyse_Node
+        (Context : LSP.Ada_Context_Sets.Context_Access;
+         Node    : Libadalang.Analysis.Ada_Node;
+         Result  : out LSP.Structures.Command_Or_CodeAction_Vector;
+         Found   : in out Boolean)
+      is
+         procedure Change_Parameters_Type_Code_Action;
+         --  Checks if the Change Parameters Type refactoring tool is avaiable,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Change_Parameters_Default_Value_Code_Action;
+         --  Checks if the Change Parameters Default Value refactoring tool is
+         --  avaiable, and if so, appends a Code Action with its Command.
+
+         procedure Extract_Subprogram_Code_Action;
+         --  Checks if the Extract Subprogram refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Introduce_Parameter_Code_Action;
+         --  Checks if the Introduce Parameter refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Import_Package_Code_Action;
+         --  Checks if the Import Package code assist is available,
+         --  and if so, appends a Code Aciton with its Command.
+
+         procedure Named_Parameters_Code_Action;
+         --  Checks if the Named Parameters refactoring is available, and if
+         --  so, appends a Code Action with its Command.
+
+         procedure Pull_Up_Declaration_Code_Action;
+         --  Checks if the Pull Up Declaration refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Replace_Type_Code_Action;
+         --  Checks if the Replace Type refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Sort_Dependencies_Code_Action;
+         --  Checks if the Sort Dependencies refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         -------------------------------------------------
+         -- Change_Parameters_Default_Value_Code_Action --
+         -------------------------------------------------
+
+         procedure Change_Parameters_Default_Value_Code_Action is
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Subprogram_Signature.
+                  Change_Parameters_Default_Value;
+            use LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Change_Parameters_Default_Value_Command : Command;
+
+         begin
+            if Is_Change_Parameters_Default_Value_Available
+                 (Unit                             => Node.Unit,
+                  Parameters_Source_Location_Range => Span)
+            then
+               Change_Parameters_Default_Value_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range));
+
+               Found := True;
+            end if;
+         end Change_Parameters_Default_Value_Code_Action;
+
+         ----------------------------------------
+         -- Change_Parameters_Type_Code_Action --
+         ----------------------------------------
+
+         procedure Change_Parameters_Type_Code_Action is
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+            use LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Syntax_Rules : Laltools.Common.Grammar_Rule_Vector;
+
+            Change_Parameters_Type_Command : Command;
+
+         begin
+            if Is_Change_Parameters_Type_Available
+                 (Unit                             => Node.Unit,
+                  Parameters_Source_Location_Range => Span,
+                  New_Parameter_Syntax_Rules       => Syntax_Rules)
+            then
+               Change_Parameters_Type_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range),
+                  Syntax_Rules    => Syntax_Rules);
+
+               Found := True;
+            end if;
+         end Change_Parameters_Type_Code_Action;
+
+         ------------------------------------
+         -- Extract_Subprogram_Code_Action --
+         ------------------------------------
+
+         procedure Extract_Subprogram_Code_Action is
+            use LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Extract_Subprogram;
+            use type LSP.Structures.Position;
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+
+            Section_To_Extract_SLOC : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Available_Subprogram_Kinds : Available_Subprogram_Kinds_Type;
+
+            Extract_Subprogram_Command : Command;
+
+         begin
+            if not Single_Location then
+               if Is_Extract_Subprogram_Available
+                 (Node.Unit,
+                  Section_To_Extract_SLOC,
+                  Available_Subprogram_Kinds)
+               then
+                  if Available_Subprogram_Kinds (Ada_Subp_Kind_Procedure) then
+                     Extract_Subprogram_Command.Append_Code_Action
+                       (Context         => Context,
+                        Commands_Vector => Result,
+                        Where           =>
+                          (Value.textDocument.uri,
+                           Value.a_range),
+                        Subprogram_Kind => Ada_Subp_Kind_Procedure);
+                  end if;
+
+                  if Available_Subprogram_Kinds (Ada_Subp_Kind_Function) then
+                     Extract_Subprogram_Command.Append_Code_Action
+                       (Context         => Context,
+                        Commands_Vector => Result,
+                        Where           =>
+                          (Value.textDocument.uri,
+                           Value.a_range),
+                        Subprogram_Kind => Ada_Subp_Kind_Function);
+                  end if;
+
+                  Found := True;
+               end if;
+            end if;
+         end Extract_Subprogram_Code_Action;
+
+         --------------------------------
+         -- Import_Package_Code_Action --
+         --------------------------------
+
+         procedure Import_Package_Code_Action is
+            use Libadalang.Analysis;
+            use LAL_Refactor.Refactor_Imports;
+            use LSP.Structures;
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+
+            Units_Vector : Libadalang.Helpers.Unit_Vectors.Vector;
+            Units_Array  : constant Analysis_Unit_Array :=
+              Context.Analysis_Units;
+
+            Import_Suggestions : Import_Suggestions_Vector.Vector;
+
+            function Is_Import_Suggestions_Available
+              (This_Node : Ada_Node'Class)
+               return Boolean;
+            --  Checks if This_Node is a suitable node to get import
+            --  suggestions. A suitable node must be an identifier, non
+            --  defining and if it resolves, it must be to a declaration not
+            --  declared in the standard package.
+            --  This function also prepares Units_Vector with the right units
+            --  where suggestions should be searched for.
+
+            -------------------------------------
+            -- Is_Import_Suggestions_Available --
+            -------------------------------------
+
+            function Is_Import_Suggestions_Available
+              (This_Node : Ada_Node'Class)
+               return Boolean
+            is
+               Aux_Node              : Ada_Node :=
+                 (if This_Node.Is_Null then No_Ada_Node
+                  else This_Node.As_Ada_Node);
+               Referenced_Definition : Defining_Name := No_Defining_Name;
+
+            begin
+               --  Only get suggestions for Identifiers or Dotted_Names
+               if Aux_Node.Is_Null
+                 or else Aux_Node.Kind not in
+                   Ada_Identifier_Range | Ada_Dotted_Name_Range
+               then
+                  return False;
+               end if;
+
+               --  Get the full Dotted_Name if applicable
+               while not Aux_Node.Is_Null
+                 and then not Aux_Node.Parent.Is_Null
+                 and then Aux_Node.Parent.Kind in Ada_Dotted_Name_Range
+               loop
+                  Aux_Node := Aux_Node.Parent;
+               end loop;
+
+               --  Defining names do not need prefixes
+               if Aux_Node.Is_Null or else Aux_Node.As_Name.P_Is_Defining then
+                  return False;
+               end if;
+
+               Referenced_Definition :=
+                 Aux_Node.As_Name.P_Referenced_Defining_Name;
+
+               --  Declarations in the standard package do not need prefixes
+               if not Referenced_Definition.Is_Null then
+                  if Referenced_Definition.Unit = Node.P_Standard_Unit then
+                     return False;
+                  end if;
+               end if;
+
+               if Referenced_Definition.Is_Null then
+                  --  The name could not be resolved so a full search needs to
+                  --  be done.
+
+                  for U of Units_Array loop
+                     Units_Vector.Append (U);
+                  end loop;
+
+                  --  Add runtime analysis units for this context
+                  --  ??? If possible, this should be cached.
+
+                  for F in Self.Project_Predefined_Sources.Iterate loop
+                     declare
+                        VF : GNATCOLL.VFS.Virtual_File renames
+                          LSP.Ada_File_Sets.File_Sets.Element (F);
+                     begin
+                        Units_Vector.Append
+                          (Context.LAL_Context.Get_From_File
+                             (VF.Display_Full_Name,
+                              --  ??? What is the charset for predefined
+                              --  files?
+                              ""));
+                     end;
+                  end loop;
+
+               else
+                  --  Libadalang sometimes can resolve names that are not
+                  --  withed.
+                  --  For instance, with Ada.Text_IO, resolve
+                  --  Ada.Text_IO.Put_Line, remove the Ada.Text_IO and then
+                  --  resolve again Ada.Text_IO.Put_Line. Even though
+                  --  Ada.Text_IO is no longer withed, Libadalang is still
+                  --  able to resolve Put_Line.
+                  --  For such cases, include only Referenced_Definition's
+                  --  Analysis_Units and the tool will suggest the prefixes
+                  --  (there can be more than one, for instance, when there
+                  --  are nested packages.
+                  Units_Vector.Append (Referenced_Definition.Unit);
+               end if;
+
+               return True;
+            exception
+               when others => return False;
+            end Is_Import_Suggestions_Available;
+
+         begin
+            if not Single_Location
+              or else not Is_Import_Suggestions_Available (Node)
+            then
+               return;
+            end if;
+
+            --  Get suggestions for all reachable declarations.
+            --  Each suggestion contains a with clause and a
+            --  prefix.
+
+            Import_Suggestions :=
+              Get_Import_Suggestions (Node, Units_Vector);
+
+            --  Create a new codeAction command for each suggestion
+
+            for Suggestion of Import_Suggestions loop
+               declare
+                  Command : LSP.Ada_Handlers.Refactor.Imports_Commands.Command;
+               begin
+                  Command.Append_Suggestion
+                    (Context         => Context,
+                     Where           =>
+                       LSP.Utils.Get_Node_Location (Node),
+                     Commands_Vector => Result,
+                     Suggestion      => Suggestion);
+               end;
+            end loop;
+
+            if not Import_Suggestions.Is_Empty then
+               Found := True;
+            end if;
+         end Import_Package_Code_Action;
+
+         -------------------------------------
+         -- Introduce_Parameter_Code_Action --
+         -------------------------------------
+
+         procedure Introduce_Parameter_Code_Action is
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Introduce_Parameter;
+            use LSP.Ada_Handlers.Refactor.Introduce_Parameter;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Introduce_Parameter_Command : Command;
+
+         begin
+            if Is_Introduce_Parameter_Available
+                 (Unit       => Node.Unit,
+                  SLOC_Range => Span)
+            then
+               Introduce_Parameter_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range));
+
+               Found := True;
+            end if;
+         end Introduce_Parameter_Code_Action;
+
+         ----------------------------------
+         -- Named_Parameters_Code_Action --
+         ----------------------------------
+
+         procedure Named_Parameters_Code_Action is
+            Aux_Node : Libadalang.Analysis.Ada_Node := Node;
+            Done     : Boolean := False;
+            --  We propose only one choice of Named_Parameters refactoring per
+            --  request. So, if a user clicks on `1` in `A (B (1))` we propose
+            --  the refactoring for B (1), but not for A (...) call. We
+            --  consider this as better user experience.
+            --
+            --  This boolean filter to detect such refactoring duplication.
+
+            procedure Append_Command (Node : Libadalang.Analysis.Ada_Node);
+            --  Contruct a command and append it to Result
+
+            --------------------
+            -- Append_Command --
+            --------------------
+
+            procedure Append_Command (Node : Libadalang.Analysis.Ada_Node) is
+               use LSP.Ada_Handlers.Named_Parameters_Commands;
+
+               Named_Parameters_Command : LSP.Ada_Handlers.
+                 Named_Parameters_Commands.Command;
+
+            begin
+               Named_Parameters_Command.Append_Suggestion
+                 (Context             => Context,
+                  Commands_Vector     => Result,
+                  Where               => LSP.Utils.Get_Node_Location (Node),
+                  Versioned_Documents => Self.Client.Versioned_Documents);
+
+               Done  := True;
+               Found := True;
+            end Append_Command;
+
+         begin
+            while not Done and then not Aux_Node.Is_Null loop
+               case Aux_Node.Kind is
+                  when Libadalang.Common.Ada_Stmt
+                     | Libadalang.Common.Ada_Basic_Decl =>
+
+                     Done := True;
+
+                  when Libadalang.Common.Ada_Basic_Assoc_List =>
+                     if Has_Assoc_Without_Designator
+                          (Aux_Node.As_Basic_Assoc_List)
+                     then
+                        Append_Command (Aux_Node);
+                     end if;
+
+                  when Libadalang.Common.Ada_Call_Expr =>
+                     declare
+                        List : constant Libadalang.Analysis.Ada_Node :=
+                          Aux_Node.As_Call_Expr.F_Suffix;
+
+                     begin
+                        if not List.Is_Null
+                          and then List.Kind in
+                                     Libadalang.Common.Ada_Basic_Assoc_List
+                          and then Has_Assoc_Without_Designator
+                                     (List.As_Basic_Assoc_List)
+                        then
+                           Append_Command (List);
+                        end if;
+                     end;
+                  when others =>
+                     null;
+               end case;
+
+               Aux_Node := Aux_Node.Parent;
+            end loop;
+         end Named_Parameters_Code_Action;
+
+         -------------------------------------
+         -- Pull_Up_Declaration_Code_Action --
+         -------------------------------------
+
+         procedure Pull_Up_Declaration_Code_Action is
+            use Langkit_Support.Slocs;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Pull_Up_Declaration;
+            use LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
+            use LSP.Structures;
+
+            --  This code action is not available when a range of text is
+            --  selected.
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+            Location        : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Pull_Up_Declaration_Command :
+              LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command;
+
+         begin
+            if Single_Location
+              and then Is_Pull_Up_Declaration_Available (Node.Unit, Location)
+            then
+               Pull_Up_Declaration_Command.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range));
+
+               Found := True;
+            end if;
+         end Pull_Up_Declaration_Code_Action;
+
+         ------------------------------
+         -- Replace_Type_Code_Action --
+         ------------------------------
+
+         procedure Replace_Type_Code_Action is
+            use LSP.Ada_Handlers.Refactor.Replace_Type;
+            use LAL_Refactor.Replace_Type;
+
+            use Langkit_Support.Slocs;
+
+            Location : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Replace_Type_Command :
+              LSP.Ada_Handlers.Refactor.Replace_Type.Command;
+
+         begin
+            if Is_Replace_Type_Available (Node.Unit, Location) then
+               Replace_Type_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (Value.textDocument.uri,
+                     Value.a_range));
+
+               Found := True;
+            end if;
+         end Replace_Type_Code_Action;
+
+         -----------------------------------
+         -- Sort_Dependencies_Code_Action --
+         -----------------------------------
+
+         procedure Sort_Dependencies_Code_Action is
+            use Langkit_Support.Slocs;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Sort_Dependencies;
+            use LSP.Ada_Handlers.Refactor.Sort_Dependencies;
+            use LSP.Structures;
+
+            Location        : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Sort_Dependencies_Command :
+              LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command;
+
+         begin
+            if Is_Sort_Dependencies_Available (Node.Unit, Location) then
+               Sort_Dependencies_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range));
+
+               Found := True;
+            end if;
+         end Sort_Dependencies_Code_Action;
+
+      begin
+         Named_Parameters_Code_Action;
+
+         Sort_Dependencies_Code_Action;
+
+         Import_Package_Code_Action;
+
+         --  Refactoring Code Actions
+
+         --  Extract Subprogram
+         Extract_Subprogram_Code_Action;
+
+         --  Pull Up Declaration
+         Pull_Up_Declaration_Code_Action;
+
+         --  These refactorings are only available for clients that can
+         --  provide user inputs:
+         --  - Add Parameter
+         --  - Change Parameters Type
+         --  - Change Parameters Default Value
+
+         --  Add Parameter
+         if Self.Client.Refactoring_Add_Parameter then
+            declare
+               use LSP.Ada_Handlers.Refactor.Add_Parameter;
+               use Libadalang.Analysis;
+               use LAL_Refactor.Subprogram_Signature;
+               use Langkit_Support.Slocs;
+               use type LSP.Structures.Position;
+
+               --  This code action is not available when a range of text is
+               --  selected.
+
+               Single_Location             : constant Boolean :=
+                 Value.a_range.start = Value.a_range.an_end;
+               Location                    : constant Source_Location :=
+                 (if Single_Location then
+                    (Langkit_Support.Slocs.Line_Number
+                         (Value.a_range.start.line) + 1,
+                     Column_Number (Value.a_range.start.character) + 1)
+                  else
+                     No_Source_Location);
+
+               Requires_Full_Specification : Boolean;
+
+               Add_Parameter_Commad : Command;
+
+            begin
+               if Single_Location
+                 and then Is_Add_Parameter_Available
+                   (Node.Unit,
+                    Location,
+                    Requires_Full_Specification)
+               then
+                  Add_Parameter_Commad.Append_Code_Action
+                    (Context                     => Context,
+                     Commands_Vector             => Result,
+                     Where                       =>
+                       (Value.textDocument.uri,
+                        Value.a_range),
+                     Requires_Full_Specification =>
+                       Requires_Full_Specification);
+
+                  Found := True;
+               end if;
+            end;
+         end if;
+
+         --  Change Parameters Type
+         if Self.Client.Refactoring_Change_Parameters_Type then
+            Change_Parameters_Type_Code_Action;
+         end if;
+
+         --  Change Parameters Default Value
+         if Self.Client.Refactoring_Change_Parameters_Default_Value then
+            Change_Parameters_Default_Value_Code_Action;
+         end if;
+
+         --  Remove Parameter
+         declare
+            use LSP.Ada_Handlers.Refactor.Remove_Parameter;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Subprogram_Signature;
+            use LAL_Refactor.Subprogram_Signature.Remove_Parameter;
+
+            Target_Subp              : Basic_Decl := No_Basic_Decl;
+            Parameter_Indices_Range  : Parameter_Indices_Range_Type;
+            Remove_Parameter_Command : Command;
+
+         begin
+            if Is_Remove_Parameter_Available
+              (Node, Target_Subp, Parameter_Indices_Range)
+            then
+               Remove_Parameter_Command.Append_Code_Action
+                 (Context            => Context,
+                  Commands_Vector    => Result,
+                  Target_Subp        => Target_Subp,
+                  Parameters_Indices => Parameter_Indices_Range);
+
+               Found := True;
+            end if;
+         end;
+
+         --  Move Parameter
+         declare
+            use LSP.Ada_Handlers.Refactor.Move_Parameter;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Subprogram_Signature;
+
+            Target_Subp            : Basic_Decl := No_Basic_Decl;
+            Parameter_Index        : Positive;
+            Move_Directions        : Move_Direction_Availability_Type;
+            Move_Parameter_Command : Command;
+
+         begin
+            if Is_Move_Parameter_Available
+              (Node, Target_Subp, Parameter_Index, Move_Directions)
+            then
+               for Direction in Move_Direction_Type loop
+                  if Move_Directions (Direction) then
+                     Move_Parameter_Command.Append_Code_Action
+                       (Context          => Context,
+                        Commands_Vector  => Result,
+                        Target_Subp      => Target_Subp,
+                        Parameter_Index  => Parameter_Index,
+                        Move_Direction   => Direction);
+                  end if;
+               end loop;
+
+               Found := True;
+            end if;
+         end;
+
+         --  Change Parameter Mode
+         declare
+            use LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Subprogram_Signature;
+
+            Target_Subp                   : Basic_Decl := No_Basic_Decl;
+            Target_Parameters_Indices     : Parameter_Indices_Range_Type;
+            Mode_Alternatives             : Mode_Alternatives_Type;
+            Change_Parameter_Mode_Command : Command;
+
+         begin
+            if Is_Change_Mode_Available
+              (Node, Target_Subp, Target_Parameters_Indices, Mode_Alternatives)
+            then
+               for Alternative of Mode_Alternatives loop
+                  Change_Parameter_Mode_Command.Append_Code_Action
+                    (Context            => Context,
+                     Commands_Vector    => Result,
+                     Target_Subp        => Target_Subp,
+                     Parameters_Indices => Target_Parameters_Indices,
+                     New_Mode           => Alternative);
+               end loop;
+
+               Found := True;
+            end if;
+         end;
+
+         --  Introduce Parameter
+         Introduce_Parameter_Code_Action;
+
+         --  Suppress Subprogram
+         declare
+            use LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Suppress_Separate;
+
+            Target_Separate           : Basic_Decl := No_Basic_Decl;
+            Suppress_Separate_Command : Command;
+         begin
+            if Is_Suppress_Separate_Available (Node, Target_Separate) then
+               Suppress_Separate_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Target_Separate => Target_Separate);
+
+               Found := True;
+            end if;
+         end;
+
+         --  Replace Type
+         if Self.Client.Refactoring_Replace_Type then
+            Replace_Type_Code_Action;
+         end if;
+      end Analyse_Node;
+
+      ----------------------------------------
+      -- Append_Project_Status_Code_Actions --
+      ----------------------------------------
+
+      procedure Append_Project_Status_Code_Actions
+        (Result : in out LSP.Structures.Command_Or_CodeAction_Vector)
+      is
+         use type VSS.Strings.Virtual_String;
+
+         Diagnostics : LSP.Structures.Diagnostic_Vector;
+
+      begin
+         for Item of Value.context.diagnostics loop
+            if Item.source = "project" then
+               Diagnostics.Append (Item);
+            end if;
+         end loop;
+
+         case Self.Project_Status is
+            when Valid_Project_Configured | Alire_Project =>
+               null;
+            when No_Runtime_Found =>
+               --  TODO: Provide help with the compiler installation
+               null;
+            when Single_Project_Found | Multiple_Projects_Found =>
+               declare
+                  Item    : LSP.Structures.CodeAction;
+                  Command : LSP.Structures.Command;
+                  Arg     : constant VSS.JSON.Streams.JSON_Stream_Element :=
+                    VSS.JSON.Streams.JSON_Stream_Element'
+                      (Kind         => VSS.JSON.Streams.String_Value,
+                       String_Value => "ada.projectFile");
+               begin
+                  Command.title := "Open settings for ada.projectFile";
+                  Command.command := "workbench.action.openSettings";
+                  Command.arguments.Append (Arg);
+
+                  Item :=
+                    (title       => Command.title,
+                     kind        => (True, LSP.Enumerations.QuickFix),
+                     diagnostics => Diagnostics,
+                     disabled    => (Is_Set => False),
+                     edit        => (Is_Set => False),
+                     isPreferred => LSP.Constants.True,
+                     command     => (True, Command),
+                     data        => <>);
+
+                  Result.Append
+                    (LSP.Structures.Command_Or_CodeAction'
+                       (Is_Command => False, CodeAction => Item));
+               end;
+            when No_Project_Found =>
+               declare
+                  Title  : constant VSS.Strings.Virtual_String :=
+                    "Create a default project file (default.gpr)";
+                  URI    : constant LSP.Structures.DocumentUri :=
+                    To_DocumentUri
+                      (VSS.Strings.Conversions.To_Virtual_String
+                         (GNATCOLL.VFS.Create_From_UTF8
+                         (VSS.Strings.Conversions.To_UTF_8_String
+                            (Self.Client.Root)).Join
+                              ("default.gpr").Display_Full_Name));
+
+                  Create : constant LSP.Structures.
+                    documentChanges_OfWorkspaceEdit_Item :=
+                      (Kind    => LSP.Structures.create,
+                       create  => (uri    => URI,
+                                   others => <>));
+
+                  Text   : constant LSP.Structures.
+                    TextEdit_Or_AnnotatedTextEdit :=
+                      (Is_TextEdit => True,
+                       TextEdit    =>
+                         (a_range => ((0, 0), (0, 0)),
+                          newText => "project Default is end Default;"));
+                  Insert : LSP.Structures.
+                    documentChanges_OfWorkspaceEdit_Item :=
+                    (LSP.Structures.Varian_1,
+                     (textDocument => (uri => URI, others => <>),
+                      edits        => <>));
+
+                  Item   : LSP.Structures.CodeAction;
+                  Edit   : LSP.Structures.WorkspaceEdit;
+               begin
+                  Insert.Varian_1.edits.Append (Text);
+                  Edit.documentChanges.Append (Create);
+                  Edit.documentChanges.Append (Insert);
+                  Item :=
+                    (title       => Title,
+                     kind        => (True, LSP.Enumerations.QuickFix),
+                     diagnostics => Diagnostics,
+                     disabled    => (Is_Set => False),
+                     edit        => (True, Edit),
+                     isPreferred => LSP.Constants.True,
+                     command     => (Is_Set => False),
+                     data        => <>);
+
+                  Result.Append
+                    (LSP.Structures.Command_Or_CodeAction'
+                       (Is_Command => False, CodeAction => Item));
+               end;
+            when Invalid_Project_Configured =>
+               null;
+         end case;
+      end Append_Project_Status_Code_Actions;
+
+      ----------------------------------
+      -- Has_Assoc_Without_Designator --
+      ----------------------------------
+
+      function Has_Assoc_Without_Designator
+        (Node : Libadalang.Analysis.Basic_Assoc_List) return Boolean
+      is
+         Found : Boolean := False;
+
+         function Process_Type_Expr
+           (TE : Libadalang.Analysis.Type_Expr)
+            return Boolean;
+         --  Returns True if TE is associated to an access of a subprogram
+
+         -----------------------
+         -- Process_Type_Expr --
+         -----------------------
+
+         function Process_Type_Expr
+           (TE : Libadalang.Analysis.Type_Expr)
+            return Boolean
+         is
+            TD : Libadalang.Analysis.Base_Type_Decl;
+            --  If TE is not an anonymous type then we'll need to know its
+            --  declaration.
+
+         begin
+            case TE.Kind is
+               when Ada_Subtype_Indication_Range =>
+                  TD := TE.As_Subtype_Indication.P_Designated_Type_Decl;
+
+                  if TD.Is_Null
+                    or else not (TD.Kind in Ada_Type_Decl)
+                  then
+                     return False;
+                  end if;
+
+                  case TD.As_Type_Decl.F_Type_Def.Kind is
+                     when Ada_Access_To_Subp_Def_Range =>
+                        --  Confirmation that TD is an access to a subprogram
+
+                        return True;
+
+                     when Ada_Array_Type_Def_Range =>
+                        --  If TD is an array type, then it might be an array
+                        --  of accesses to subprograms. Therefore, recursively
+                        --  call Process_Type_Expr to check the type of the
+                        --  components of the array.
+
+                        return Process_Type_Expr
+                          (TD.As_Type_Decl.F_Type_Def.As_Array_Type_Def.
+                             F_Component_Type.F_Type_Expr);
+
+                     when others =>
+                        return False;
+                  end case;
+
+               when Ada_Anonymous_Type_Range =>
+                  return TE.As_Anonymous_Type.F_Type_Decl.F_Type_Def.Kind in
+                    Ada_Access_To_Subp_Def_Range;
+
+               when others =>
+                  return False;
+
+            end case;
+         end Process_Type_Expr;
+
+      begin
+         for J of Node loop
+            if J.Kind in Libadalang.Common.Ada_Param_Assoc and then
+              J.As_Param_Assoc.F_Designator.Is_Null
+            then
+               Found := True;
+               exit;
+            end if;
+         end loop;
+
+         if not Found then
+            return False;
+         end if;
+
+         declare
+            Expr : constant Libadalang.Analysis.Ada_Node := Node.Parent;
+            Name : Libadalang.Analysis.Name;
+            Decl : Libadalang.Analysis.Basic_Decl;
+         begin
+            case Expr.Kind is
+               when Libadalang.Common.Ada_Call_Expr =>
+                  Name := Expr.As_Call_Expr.F_Name;
+               when others =>
+                  return False;
+            end case;
+
+            Decl := Name.P_Referenced_Decl;
+
+            if Decl.Is_Null then
+               return False;
+            end if;
+
+            --  For Ada_Param_Spec, Ada_Component_Decl or Object_Decl nodes,
+            --  check the type definition of Decl. Named parameters can be
+            --  added if Decl's type is a (possibly anonymous) access to a
+            --  subprogram.
+
+            case Decl.Kind is
+               when Libadalang.Common.Ada_Base_Subp_Body
+                  | Libadalang.Common.Ada_Basic_Subp_Decl =>
+                  return True;
+
+               when Libadalang.Common.Ada_Param_Spec_Range =>
+                  return Process_Type_Expr (Decl.As_Param_Spec.F_Type_Expr);
+
+               when Libadalang.Common.Ada_Component_Decl_Range =>
+                  return Process_Type_Expr
+                    (Decl.As_Component_Decl.F_Component_Def.F_Type_Expr);
+
+               when  Libadalang.Common.Ada_Object_Decl_Range =>
+                  --  This can either be an object which type is an access
+                  --  to a subprogram or an array of accesses to
+                  --  subprograms.
+                  return Process_Type_Expr (Decl.As_Object_Decl.F_Type_Expr);
+
+               when others =>
+                  return False;
+            end case;
+         end;
+      end Has_Assoc_Without_Designator;
+
+      use type LSP.Ada_Documents.Document_Access;
+      use type LSP.Structures.Position;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+
+      Response : LSP.Structures.Command_Or_CodeAction_Vector_Or_Null;
+
+      Found : Boolean := False;
+   begin
+      if Document = null then
+         Self.Tracer.Trace
+           ("Unexpected null document in On_CodeAction_Request");
+         Self.Sender.On_CodeAction_Response (Id, Response);
+         return;
+      end if;
+
+      --  Find any context where we can do some refactoring
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Analyse_In_Context (C, Document, Response, Found);
+
+         exit when Self.Is_Canceled.all or else Found;
+      end loop;
+
+      if Value.a_range.start = LSP.Constants.Empty then
+         Append_Project_Status_Code_Actions (Response);
+      end if;
+
+      Self.Sender.On_CodeAction_Response (Id, Response);
+   end On_CodeAction_Request;
 
    ---------------------------
    -- On_Completion_Request --
@@ -2126,5 +3232,175 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
    end Publish_Diagnostics;
+
+   -----------------------
+   -- To_Workspace_Edit --
+   -----------------------
+
+   function To_Workspace_Edit
+     (Self   : in out Message_Handler'Class;
+      Edits  : LAL_Refactor.Refactoring_Edits;
+      Rename : Boolean := False)
+      return LSP.Structures.WorkspaceEdit
+   is
+      File_URI   : LSP.Structures.DocumentUri;
+      Text_Edits : LSP.Structures.TextEdit_Vector;
+
+      use LAL_Refactor;
+      use LSP.Structures;
+
+      Text_Edits_Cursor     : Text_Edit_Ordered_Maps.Cursor :=
+        Edits.Text_Edits.First;
+      File_Deletions_Cursor : Unbounded_String_Ordered_Sets.Cursor :=
+        Edits.File_Deletions.First;
+
+      function To_TextEdit
+        (E : LAL_Refactor.Text_Edit)
+         return LSP.Structures.TextEdit is
+        (LSP.Structures.TextEdit'
+           (LSP.Utils.To_Range (E.Location),
+            VSS.Strings.Conversions.To_Virtual_String (E.Text)));
+
+   begin
+      return WE : LSP.Structures.WorkspaceEdit do
+         --  Text edits
+
+         while Text_Edit_Ordered_Maps.Has_Element (Text_Edits_Cursor) loop
+            Text_Edits.Clear;
+
+            for Edit of Text_Edit_Ordered_Maps.Element (Text_Edits_Cursor) loop
+               Text_Edits.Append (To_TextEdit (Edit));
+            end loop;
+
+            File_URI := To_DocumentUri
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor)));
+
+            --  If `workspace.workspaceEdit.documentChanges` client capability
+            --  was true, then use `TextDocumentEdit[]` instead of
+            --  `TextEdit[]`.
+
+            if Self.Client.Versioned_Documents then
+               declare
+                  Annotaded_Edits : TextEdit_Or_AnnotatedTextEdit_Vector;
+
+               begin
+                  Annotaded_Edits.Reserve_Capacity (Text_Edits.Capacity);
+                  for X of Text_Edits loop
+                     Annotaded_Edits.Append
+                       (TextEdit_Or_AnnotatedTextEdit'
+                          (Is_TextEdit       => False,
+                           AnnotatedTextEdit => (X with annotationId => <>)));
+                  end loop;
+
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'(
+                     (Kind     => Varian_1,
+                      Varian_1 => TextDocumentEdit'
+                        (textDocument => Self.Get_Open_Document_Version
+                           (File_URI),
+                         edits        => Annotaded_Edits))));
+               end;
+            else
+               WE.changes.Insert (File_URI, Text_Edits);
+            end if;
+
+            Text_Edit_Ordered_Maps.Next (Text_Edits_Cursor);
+         end loop;
+
+         --  Resource operations are only supported if
+         --  `workspace.workspaceEdit.documentChanges` is True since they
+         --  must be sent in the `documentChanges` field.
+         --  `workspace.workspaceEdit.resourceOperations` client capability
+         --  must be checked in order to know which kind of operations are
+         --  supported.
+
+         --  File creations
+
+         if Self.Client.Versioned_Documents
+           and then Self.Client.Resource_Create_Supported
+         then
+            for File_Creation of Edits.File_Creations loop
+               WE.documentChanges.Append
+                 (documentChanges_OfWorkspaceEdit_Item'(
+                  (Kind   => create,
+                   create => CreateFile'
+                     (uri    => To_DocumentUri
+                        (VSS.Strings.Conversions.To_Virtual_String
+                             (File_Creation.Filepath)),
+                      others => <>))));
+
+               declare
+                  Annotaded_Edits : TextEdit_Or_AnnotatedTextEdit_Vector;
+                  Content : constant TextEdit := TextEdit'
+                    (a_range    => ((0, 0), (0, 0)),
+                     newText =>
+                       VSS.Strings.Conversions.To_Virtual_String
+                         (File_Creation.Content));
+
+               begin
+                  Annotaded_Edits.Append
+                    (TextEdit_Or_AnnotatedTextEdit'
+                       (Is_TextEdit => True, TextEdit => Content));
+
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'(
+                     (Kind     => Varian_1,
+                      Varian_1 => TextDocumentEdit'
+                        (edits => Annotaded_Edits,
+                         others => <>))));
+               end;
+            end loop;
+         end if;
+
+         --  File deletions
+
+         if Self.Client.Versioned_Documents
+           and then Self.Client.Resource_Delete_Supported
+         then
+            while Unbounded_String_Ordered_Sets.Has_Element
+              (File_Deletions_Cursor)
+            loop
+               File_URI := To_DocumentUri
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (Unbounded_String_Ordered_Sets.Element
+                         (File_Deletions_Cursor)));
+
+               WE.documentChanges.Append
+                 (documentChanges_OfWorkspaceEdit_Item'(
+                  (Kind   => LSP.Structures.rename,
+                   rename => RenameFile'
+                     (oldUri       => File_URI,
+                      newUri       =>
+                        (if Rename
+                         then File_URI & ".bak"
+                         else File_URI),
+                      others => <>))));
+
+               Unbounded_String_Ordered_Sets.Next (File_Deletions_Cursor);
+            end loop;
+         end if;
+
+         --  File renames
+
+         if Self.Client.Versioned_Documents
+           and then Self.Client.Resource_Rename_Supported
+         then
+            for File_Rename of Edits.File_Renames loop
+               WE.documentChanges.Append
+                 (documentChanges_OfWorkspaceEdit_Item'(
+                  (Kind   => LSP.Structures.rename,
+                   rename => RenameFile'
+                     (oldUri => To_DocumentUri
+                        (VSS.Strings.Conversions.To_Virtual_String
+                             (File_Rename.Filepath)),
+                      newUri => To_DocumentUri
+                        (VSS.Strings.Conversions.To_Virtual_String
+                             (File_Rename.New_Name)),
+                      others => <>))));
+            end loop;
+         end if;
+      end return;
+   end To_Workspace_Edit;
 
 end LSP.Ada_Handlers;

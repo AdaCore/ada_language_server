@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                        Copyright (C) 2021-2023, AdaCore                  --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,12 +17,9 @@
 --
 --  Implementation of the refactoring command to suppress separate subprograms
 
-with Ada.Streams;
-
 private with VSS.Strings;
 
 with LSP.Client_Message_Receivers;
-with LSP.JSON_Streams;
 
 with Libadalang.Analysis;
 
@@ -36,8 +33,8 @@ package LSP.Ada_Handlers.Refactor.Suppress_Seperate is
 
    procedure Append_Code_Action
      (Self            : in out Command;
-      Context         : Context_Access;
-      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
+      Context         : LSP.Ada_Context_Sets.Context_Access;
+      Commands_Vector : in out LSP.Structures.Command_Or_CodeAction_Vector;
       Target_Separate : Libadalang.Analysis.Basic_Decl);
    --  Initializes 'Self' and appends it to 'Commands_Vector'
 
@@ -45,11 +42,11 @@ private
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with record
       Context : VSS.Strings.Virtual_String;
-      Where   : LSP.Messages.TextDocumentPositionParams;
+      Where   : LSP.Structures.TextDocumentPositionParams;
    end record;
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
+     (Any : not null access LSP.Structures.LSPAny_Vector)
       return Command;
    --  Reads JS and creates a new Command
 
@@ -64,16 +61,13 @@ private
 
    procedure Initialize
      (Self            : in out Command'Class;
-      Context         : LSP.Ada_Contexts.Context;
-      Where           : LSP.Messages.TextDocumentPositionParams);
+      Context         : LSP.Ada_Context_Sets.Context_Access;
+      Where           : LSP.Structures.TextDocumentPositionParams);
    --  Initializes Self
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      C : Command);
-   --  Writes C to S
+   function Write_Command
+     (Self : Command) return LSP.Structures.LSPAny_Vector;
 
-   for Command'Write use Write_Command;
    for Command'External_Tag use "als-suppress-separate";
 
 end LSP.Ada_Handlers.Refactor.Suppress_Seperate;

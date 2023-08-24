@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
 with Langkit_Support.Slocs;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
@@ -24,10 +22,11 @@ with Libadalang.Analysis; use Libadalang.Analysis;
 with LAL_Refactor.Replace_Type;
 use LAL_Refactor.Replace_Type;
 
-with LSP.Messages;
-
+with VSS.JSON.Streams;
 with VSS.Strings.Conversions;
-with LSP.Commands;
+
+with LSP.Enumerations;
+with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
 
 package body LSP.Ada_Handlers.Refactor.Replace_Type is
 
@@ -36,38 +35,39 @@ package body LSP.Ada_Handlers.Refactor.Replace_Type is
    ------------------------
 
    procedure Append_Code_Action
-     (Self                        : in out Command;
-      Context                     : Context_Access;
-      Commands_Vector             : in out LSP.Messages.CodeAction_Vector;
-      Where                       : LSP.Messages.Location)
+     (Self            : in out Command;
+      Context         : LSP.Ada_Context_Sets.Context_Access;
+      Commands_Vector : in out LSP.Structures.Command_Or_CodeAction_Vector;
+      Where           : LSP.Structures.Location)
    is
-      Pointer     : LSP.Commands.Command_Pointer;
-      Code_Action : LSP.Messages.CodeAction;
+      Code_Action : LSP.Structures.CodeAction;
 
    begin
       Self.Initialize
         (Context => Context.all,
          Where   => Where);
 
-      Pointer.Set (Self);
-
       Code_Action :=
         (title       => "Replace Type",
          kind        =>
            (Is_Set => True,
-            Value  => LSP.Messages.RefactorRewrite),
-         diagnostics => (Is_Set => False),
+            Value  => LSP.Enumerations.RefactorRewrite),
+         diagnostics => <>,
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
          disabled    => (Is_Set => False),
          command     =>
            (Is_Set => True,
             Value  =>
-              (Is_Unknown => False,
-               title      => <>,
-               Custom     => Pointer)));
+              (title     => <>,
+               command   => VSS.Strings.Conversions.To_Virtual_String
+                 (Command'External_Tag),
+               arguments => Self.Write_Command)),
+         data        => <>);
 
-      Commands_Vector.Append (Code_Action);
+      Commands_Vector.Append
+        (LSP.Structures.Command_Or_CodeAction'
+           (Is_Command => False, CodeAction => Code_Action));
    end Append_Code_Action;
 
    ------------
@@ -75,40 +75,44 @@ package body LSP.Ada_Handlers.Refactor.Replace_Type is
    ------------
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
-      return Command is
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+      return Command
+   is
+      use VSS.JSON.Streams;
+      use VSS.Strings;
+      use LSP.Structures.JSON_Event_Vectors;
+
+      C : Cursor := Any.First;
    begin
-      return V : Command do
-         pragma Assert (JS.R.Is_Start_Object);
+      return Self : Command do
+         pragma Assert (Element (C).Kind = Start_Object);
+         Next (C);
 
-         JS.R.Read_Next;
-
-         while not JS.R.Is_End_Object loop
-            pragma Assert (JS.R.Is_Key_Name);
-
+         while Has_Element (C)
+           and then Element (C).Kind /= End_Object
+         loop
+            pragma Assert (Element (C).Kind = Key_Name);
             declare
-               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
-
+               Key : constant Virtual_String := Element (C).Key_Name;
             begin
-               JS.R.Read_Next;
+               Next (C);
 
                if Key = "context_id" then
-                  LSP.Types.Read_String (JS, V.Context_Id);
+                  Self.Context_Id := Element (C).String_Value;
 
                elsif Key = "where" then
-                  LSP.Messages.Location'Read (JS, V.Where);
+                  Self.Where := From_Any (C);
 
                elsif Key = "newType" then
-                  LSP.Types.Read_String (JS, V.New_Type);
+                  Self.New_Type := Element (C).String_Value;
 
                else
-                  JS.Skip_Value;
+                  Skip_Value (C);
                end if;
             end;
-         end loop;
 
-         JS.R.Read_Next;
+            Next (C);
+         end loop;
       end return;
    end Create;
 
@@ -126,7 +130,6 @@ package body LSP.Ada_Handlers.Refactor.Replace_Type is
    is
       use Langkit_Support.Slocs;
       use LAL_Refactor;
-      use LSP.Types;
 
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -144,9 +147,9 @@ package body LSP.Ada_Handlers.Refactor.Replace_Type is
                (Context.URI_To_File (Self.Where.uri)),
            Source_Type_SLOC =>
              (Langkit_Support.Slocs.Line_Number
-                (Self.Where.span.first.line) + 1,
+                (Self.Where.a_range.start.line) + 1,
               Langkit_Support.Slocs.Column_Number
-                (Self.Where.span.first.character) + 1),
+                (Self.Where.a_range.start.character) + 1),
            New_Type         =>
              VSS.Strings.Conversions.To_Unbounded_UTF_8_String
                (Self.New_Type));
@@ -160,35 +163,43 @@ package body LSP.Ada_Handlers.Refactor.Replace_Type is
    ----------------
 
    procedure Initialize
-     (Self                        : in out Command'Class;
-      Context                     : LSP.Ada_Contexts.Context;
-      Where                       : LSP.Messages.Location) is
+     (Self    : in out Command'Class;
+      Context : LSP.Ada_Contexts.Context;
+      Where   : LSP.Structures.Location) is
    begin
       Self.Context_Id := Context.Id;
-      Self.Where := Where;
-      Self.New_Type := VSS.Strings.Empty_Virtual_String;
+      Self.Where      := Where;
+      Self.New_Type   := VSS.Strings.Empty_Virtual_String;
    end Initialize;
 
    -------------------
    -- Write_Command --
    -------------------
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      C : Command)
+   function Write_Command
+     (Self : Command) return LSP.Structures.LSPAny_Vector
    is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      use VSS.JSON.Streams;
 
+      Result : LSP.Structures.LSPAny_Vector;
    begin
-      JS.Start_Object;
-      JS.Key ("context_id");
-      LSP.Types.Write_String (S, C.Context_Id);
-      JS.Key ("where");
-      LSP.Messages.Location'Write (S, C.Where);
-      JS.Key ("newType");
-      LSP.Types.Write_String (S, C.New_Type);
-      JS.End_Object;
+      Result.Append (JSON_Stream_Element'(Kind => Start_Object));
+
+      --  "context_id"
+      Add_Key ("context_id", Result);
+      To_Any (Self.Context_Id, Result);
+
+      --  "where"
+      Add_Key ("where", Result);
+      To_Any (Self.Where, Result);
+
+      --  "newType"
+      Add_Key ("newType", Result);
+      To_Any (Self.New_Type, Result);
+
+      Result.Append (JSON_Stream_Element'(Kind => End_Object));
+
+      return Result;
    end Write_Command;
 
 end LSP.Ada_Handlers.Refactor.Replace_Type;

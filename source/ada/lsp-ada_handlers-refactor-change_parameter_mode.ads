@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                        Copyright (C) 2021-2023, AdaCore                  --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,12 +17,9 @@
 --
 --  Implementation of the refactoring command to change parameters modes
 
-with Ada.Streams;
-
 private with VSS.Strings;
 
 with LSP.Client_Message_Receivers;
-with LSP.JSON_Streams;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
@@ -39,8 +36,8 @@ package LSP.Ada_Handlers.Refactor.Change_Parameter_Mode is
 
    procedure Append_Code_Action
      (Self               : in out Command;
-      Context            : Context_Access;
-      Commands_Vector    : in out LSP.Messages.CodeAction_Vector;
+      Context            : LSP.Ada_Context_Sets.Context_Access;
+      Commands_Vector    : in out LSP.Structures.Command_Or_CodeAction_Vector;
       Target_Subp        : Libadalang.Analysis.Basic_Decl;
       Parameters_Indices : Parameter_Indices_Range_Type;
       New_Mode           : Libadalang.Common.Ada_Mode);
@@ -50,15 +47,15 @@ private
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with record
       Context           : VSS.Strings.Virtual_String;
-      Where             : LSP.Messages.TextDocumentPositionParams;
-      First_Param_Index : LSP.Types.LSP_Number;
-      Last_Param_Index  : LSP.Types.LSP_Number;
+      Where             : LSP.Structures.TextDocumentPositionParams;
+      First_Param_Index : Integer;
+      Last_Param_Index  : Integer;
       New_Mode          : VSS.Strings.Virtual_String;
    end record;
 
    overriding
    function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
+     (Any : not null access LSP.Structures.LSPAny_Vector)
       return Command;
    --  Reads JS and creates a new Command
 
@@ -74,19 +71,16 @@ private
 
    procedure Initialize
      (Self              : in out Command'Class;
-      Context           : LSP.Ada_Contexts.Context;
-      Where             : LSP.Messages.TextDocumentPositionParams;
-      First_Param_Index : LSP.Types.LSP_Number;
-      Last_Param_Index  : LSP.Types.LSP_Number;
+      Context           : LSP.Ada_Context_Sets.Context_Access;
+      Where             : LSP.Structures.TextDocumentPositionParams;
+      First_Param_Index : Integer;
+      Last_Param_Index  : Integer;
       New_Mode          : VSS.Strings.Virtual_String);
    --  Initializes Self
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      C : Command);
-   --  Writes C to S
+   function Write_Command (Self : Command) return LSP.Structures.LSPAny_Vector;
+   --  Writes the command to Any_Vector
 
-   for Command'Write use Write_Command;
    for Command'External_Tag use "als-refactor-change-parameter-mode";
 
 end LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;

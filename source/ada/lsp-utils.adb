@@ -27,6 +27,8 @@ with Langkit_Support.Symbols;
 with VSS.Strings.Conversions;
 with Laltools.Common;
 
+with LSP.Constants;
+
 package body LSP.Utils is
 
    ------------------
@@ -152,6 +154,33 @@ package body LSP.Utils is
       return LSP.Enumerations.A_Null;
    end Get_Decl_Kind;
 
+   ------------------
+   -- Get_Location --
+   ------------------
+
+   function Get_Location
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Span : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.Location is
+   begin
+      return
+        (uri     =>
+           (VSS.Strings.Conversions.To_Virtual_String
+                (Unit.Get_Filename) with null record),
+         a_range => To_Range (Span));
+   end Get_Location;
+
+   -----------------------
+   -- Get_Node_Location --
+   -----------------------
+
+   function Get_Node_Location
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.Location is
+   begin
+      return Get_Location (Node.Unit, Node.Sloc_Range);
+   end Get_Node_Location;
+
    -------------------------
    -- Node_Location_Image --
    -------------------------
@@ -182,5 +211,33 @@ package body LSP.Utils is
          Result.Append (')');
       end return;
    end Node_Location_Image;
+
+   --------------
+   -- To_Range --
+   --------------
+
+   function To_Range
+     (Value : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range
+   is
+      use type Langkit_Support.Slocs.Source_Location_Range;
+
+      Result : constant LSP.Structures.A_Range :=
+        (if Value = Langkit_Support.Slocs.No_Source_Location_Range then
+           LSP.Constants.Empty
+         else
+           (start =>
+                (line      => Natural (Value.Start_Line) - 1,
+                 character => Natural --  FIXME (UTF16 index)!
+                   (Value.Start_Column) - 1),
+            an_end =>
+              (line      => Natural (Value.End_Line) - 1,
+               character => Natural --  FIXME (UTF16 index)!
+                 (Value.End_Column) - 1)));
+         --  XXX Code unit offset computation is incorrect here
+
+   begin
+      return Result;
+   end To_Range;
 
 end LSP.Utils;

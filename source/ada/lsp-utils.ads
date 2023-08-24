@@ -20,8 +20,10 @@
 with VSS.Strings;
 
 with Libadalang.Analysis;
+with Langkit_Support.Slocs;
 
 with LSP.Enumerations;
+with LSP.Structures;
 
 package LSP.Utils is
 
@@ -42,5 +44,30 @@ package LSP.Utils is
    --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
    --  When Ignore_Local it will return Is_Null for all local objects like
    --  variables.
+
+   function To_Range
+     (Value : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range;
+   --  Convert Source_Location_Range to A_Range
+   --  XXX Please avoid use of this subprogram, it doesn't provide Document
+   --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
+
+   function Get_Location
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Span : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.Location;
+   --  Return the location in a unit.
+   --  XXX Please avoid use of this subprogram, it doesn't provide Document
+   --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
+
+   function Get_Node_Location
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.Location;
+   --  Return the location of the given node.
+   --  XXX Please avoid use of this subprogram, it doesn't provide Document
+   --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
+   --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
 end LSP.Utils;

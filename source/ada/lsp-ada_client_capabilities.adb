@@ -39,10 +39,71 @@ package body LSP.Ada_Client_Capabilities is
       then
          --  URI isn't provided, rollback to deprecated rootPath
          Self.Root := Value.rootPath.Value.Value;
+
       elsif not Value.rootUri.Is_Null then
          Self.Root := VSS.Strings.Virtual_String (Value.rootUri.Value);
       end if;
+
+      Self.Parse_Experimental;
    end Initialize;
+
+   ------------------------
+   -- Parse_Experimental --
+   ------------------------
+
+   procedure Parse_Experimental (Self : Client_Capability'Class) is
+   begin
+      if Self.Value.capabilities.experimental.Is_Empty then
+         return;
+      end if;
+
+      --  FIXME: Implement parsing
+   end Parse_Experimental;
+
+   -------------------------------
+   -- Resource_Create_Supported --
+   -------------------------------
+
+   function Resource_Create_Supported
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.ResourceOperationKind_Set :=
+        resourceOperations (workspaceEdit (Self.Value.capabilities.workspace));
+   begin
+      return Result (LSP.Enumerations.Create);
+   end Resource_Create_Supported;
+
+   -------------------------------
+   -- Resource_Delete_Supported --
+   -------------------------------
+
+   function Resource_Delete_Supported
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.ResourceOperationKind_Set :=
+        resourceOperations (workspaceEdit (Self.Value.capabilities.workspace));
+   begin
+      return Result (LSP.Enumerations.Delete);
+   end Resource_Delete_Supported;
+
+   -------------------------------
+   -- Resource_Rename_Supported --
+   -------------------------------
+
+   function Resource_Rename_Supported
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.ResourceOperationKind_Set :=
+        resourceOperations (workspaceEdit (Self.Value.capabilities.workspace));
+   begin
+      return Result (LSP.Enumerations.Rename);
+   end Resource_Rename_Supported;
 
    -----------------------
    -- Set_Root_If_Empty --
@@ -152,6 +213,46 @@ package body LSP.Ada_Client_Capabilities is
         (semanticTokens (Self.Value.capabilities.textDocument));
    end Token_Types;
 
+   -------------------------------
+   -- Refactoring_Add_Parameter --
+   -------------------------------
+
+   function Refactoring_Add_Parameter
+     (Self : Client_Capability'Class) return Boolean is
+   begin
+      return Self.Advanced_Refactorings (Add_Parameter);
+   end Refactoring_Add_Parameter;
+
+   -------------------------------------------------
+   -- Refactoring_Change_Parameters_Default_Value --
+   -------------------------------------------------
+
+   function Refactoring_Change_Parameters_Default_Value
+     (Self : Client_Capability'Class) return Boolean is
+   begin
+      return Self.Advanced_Refactorings (Change_Parameters_Default_Value);
+   end Refactoring_Change_Parameters_Default_Value;
+
+   ----------------------------------------
+   -- Refactoring_Change_Parameters_Type --
+   ----------------------------------------
+
+   function Refactoring_Change_Parameters_Type
+     (Self : Client_Capability'Class) return Boolean is
+   begin
+      return Self.Advanced_Refactorings (Change_Parameters_Type);
+   end Refactoring_Change_Parameters_Type;
+
+   ------------------------------
+   -- Refactoring_Replace_Type --
+   ------------------------------
+
+   function Refactoring_Replace_Type
+     (Self : Client_Capability'Class) return Boolean is
+   begin
+      return Self.Advanced_Refactorings (Replace_Type);
+   end Refactoring_Replace_Type;
+
    --------------------
    -- Resolve_Lazily --
    --------------------
@@ -169,5 +270,20 @@ package body LSP.Ada_Client_Capabilities is
    begin
       return List.Contains ("detail") and then List.Contains ("documentation");
    end Resolve_Lazily;
+
+   -------------------------
+   -- Versioned_Documents --
+   -------------------------
+
+   function Versioned_Documents
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        documentChanges (workspaceEdit (Self.Value.capabilities.workspace));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end Versioned_Documents;
 
 end LSP.Ada_Client_Capabilities;
