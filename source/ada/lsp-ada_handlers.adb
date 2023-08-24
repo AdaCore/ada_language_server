@@ -22,6 +22,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;
 with GNATCOLL.Traces;
 
+with VSS.Characters.Latin;
 with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
@@ -56,6 +57,7 @@ with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Completions.Use_Clauses;
 with LSP.Ada_Contexts;
+with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Call_Hierarchy;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Locations;
@@ -2513,6 +2515,127 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Full_Response (Id, Response);
    end On_Full_Request;
+
+   ----------------------
+   -- On_Hover_Request --
+   ----------------------
+
+   overriding procedure On_Hover_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.HoverParams)
+   is
+
+      Response : LSP.Structures.Hover_Or_Null;
+
+      procedure Compute_Response;
+
+      ----------------------
+      -- Compute_Response --
+      ----------------------
+
+      procedure Compute_Response is
+         Context            : constant LSP.Ada_Context_Sets.Context_Access :=
+           Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+         --  For the Hover request, we're only interested in the "best"
+         --  response value, not in the list of values for all contexts
+
+         Defining_Name_Node : constant Libadalang.Analysis.Defining_Name :=
+           Self.Imprecise_Resolve_Name (Context.all, Value);
+         Decl               : constant Libadalang.Analysis.Basic_Decl :=
+           (if Defining_Name_Node.Is_Null
+            then Libadalang.Analysis.No_Basic_Decl
+            else Defining_Name_Node.P_Basic_Decl);
+         --  Associated basic declaration, if any
+
+         Decl_Text          : VSS.Strings.Virtual_String;
+         Qualifier_Text     : VSS.Strings.Virtual_String;
+         Comments_Text      : VSS.Strings.Virtual_String;
+         Location_Text      : VSS.Strings.Virtual_String;
+         Aspects_Text       : VSS.Strings.Virtual_String;
+
+      begin
+         if Decl.Is_Null or else Self.Is_Canceled.all then
+            return;
+         end if;
+
+         LSP.Ada_Documentation.Get_Tooltip_Text
+           (BD                 => Decl,
+            Style              => Context.Get_Documentation_Style,
+            Declaration_Text   => Decl_Text,
+            Qualifier_Text     => Qualifier_Text,
+            Location_Text      => Location_Text,
+            Documentation_Text => Comments_Text,
+            Aspects_Text       => Aspects_Text);
+
+         if Decl_Text.Is_Empty then
+            return;
+         end if;
+
+         Response := (Is_Null => False, others => <>);
+         Response.Value.contents := (Is_MarkupContent => False, others => <>);
+
+         --  Append the whole declaration text to the response
+
+         Response.Value.contents.MarkedString_Vector.Append
+           (LSP.Structures.MarkedString'
+              (Is_Virtual_String => False,
+               value             => Decl_Text,
+               language          => "ada"));
+
+         --  Append qualifier text if any
+
+         if not Qualifier_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => True,
+                  Virtual_String    => Qualifier_Text));
+         end if;
+
+         --  Append the declaration's location.
+         --
+         --  In addition, append the project's name if we are dealing with an
+         --  aggregate project.
+
+         Location_Text := LSP.Utils.Node_Location_Image (Decl);
+
+         if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
+            Location_Text.Append (VSS.Characters.Latin.Line_Feed);
+            Location_Text.Append ("As defined in project ");
+            Location_Text.Append (Context.Id);
+            Location_Text.Append (" (other projects skipped).");
+         end if;
+
+         Response.Value.contents.MarkedString_Vector.Append
+           (LSP.Structures.MarkedString'
+              (Is_Virtual_String => True,
+               Virtual_String    => Location_Text));
+
+         --  Append the comments associated with the basic declaration if any.
+
+         if not Comments_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => False,
+                  language          => "plaintext",
+                  value             => Comments_Text));
+         end if;
+
+         --  Append text of aspects
+
+         if not Aspects_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => False,
+                  value             => Aspects_Text,
+                  language          => "ada"));
+         end if;
+      end Compute_Response;
+
+   begin
+      Compute_Response;
+      Self.Sender.On_Hover_Response (Id, Response);
+   end On_Hover_Request;
 
    -------------------------------
    -- On_Implementation_Request --

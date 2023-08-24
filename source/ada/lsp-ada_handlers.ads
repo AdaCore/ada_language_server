@@ -258,6 +258,11 @@ private
 
    overriding procedure On_Exits_Notification (Self : in out Message_Handler);
 
+   overriding procedure On_Hover_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.HoverParams);
+
    overriding procedure On_References_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
