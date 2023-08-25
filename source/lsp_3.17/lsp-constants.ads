@@ -83,6 +83,10 @@ package LSP.Constants is
    function True return LSP.Structures.Boolean_Or_ReferenceOptions_Optional
      is (Is_Set => True, Value => True);
 
+   function True
+     return LSP.Structures.Boolean_Or_DocumentHighlightOptions_Optional
+      is (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
+
    function Empty
      return LSP.Structures.Position
        is (line => 0, character => 0);

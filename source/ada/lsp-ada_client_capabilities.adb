@@ -148,14 +148,15 @@ package body LSP.Ada_Client_Capabilities is
                        resolveProvider   => LSP.Constants.True,
                        others            => <>));
 
-         Result.callHierarchyProvider  := LSP.Constants.True;
-         Result.declarationProvider    := LSP.Constants.True;
-         Result.definitionProvider     := LSP.Constants.True;
-         Result.foldingRangeProvider   := LSP.Constants.True;
-         Result.referencesProvider     := LSP.Constants.True;
-         Result.hoverProvider          := (True, (True, True));
-         Result.implementationProvider := LSP.Constants.True;
-         Result.typeDefinitionProvider := LSP.Constants.True;
+         Result.callHierarchyProvider     := LSP.Constants.True;
+         Result.declarationProvider       := LSP.Constants.True;
+         Result.definitionProvider        := LSP.Constants.True;
+         Result.documentHighlightProvider := LSP.Constants.True;
+         Result.foldingRangeProvider      := LSP.Constants.True;
+         Result.referencesProvider        := LSP.Constants.True;
+         Result.hoverProvider             := (True, (True, True));
+         Result.implementationProvider    := LSP.Constants.True;
+         Result.typeDefinitionProvider    := LSP.Constants.True;
 
          Result.semanticTokensProvider :=
            (Is_Set => True,

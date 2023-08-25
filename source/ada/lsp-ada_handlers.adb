@@ -2439,6 +2439,122 @@ package body LSP.Ada_Handlers is
       Self.Log_Method_Out ("On_DidRenameFiles_Notification");
    end On_DidRenameFiles_Notification;
 
+   ----------------------------------
+   -- On_DocumentHighlight_Request --
+   ----------------------------------
+
+   overriding procedure On_DocumentHighlight_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentHighlightParams)
+   is
+      Response : LSP.Structures.DocumentHighlight_Vector_Or_Null;
+
+      procedure Compute_Response;
+
+      function Get_Highlight_Kind
+        (Node : Libadalang.Analysis.Ada_Node)
+         return LSP.Structures.DocumentHighlightKind_Optional;
+      --  Fetch highlight kind for given node
+
+      ----------------------
+      -- Compute_Response --
+      ----------------------
+
+      procedure Compute_Response is
+
+         use type LSP.Ada_Documents.Document_Access;
+
+         Context       : constant LSP.Ada_Context_Sets.Context_Access :=
+           Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+         Document      : constant LSP.Ada_Documents.Document_Access :=
+           Get_Open_Document (Self, Value.textDocument.uri);
+         File          : constant GNATCOLL.VFS.Virtual_File :=
+           Self.To_File (Value.textDocument.uri);
+         Defining_Name : constant Libadalang.Analysis.Defining_Name :=
+           Imprecise_Resolve_Name (Self, Context.all, Value);
+
+         procedure Append_To_Response
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean);
+         --  Called on each found reference. Used to append the reference to
+         --  the final result.
+
+         ------------------------
+         -- Append_To_Response --
+         ------------------------
+
+         procedure Append_To_Response
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean)
+         is
+            pragma Unreferenced (Kind);
+            pragma Unreferenced (Cancel);
+
+         begin
+            if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
+               LSP.Ada_Handlers.Locations.Append_Location
+                 (Result   => Response,
+                  Document => Document,
+                  File     => File,
+                  Node     => Node,
+                  Kind     => Get_Highlight_Kind (Node.As_Ada_Node));
+            end if;
+         end Append_To_Response;
+
+      begin
+         if Document = null
+           or Defining_Name.Is_Null
+           or Self.Is_Canceled.all
+         then
+            return;
+         end if;
+
+         --  Find all references will return all the references except the
+         --  declaration ...
+
+         Document.Find_All_References
+           (Context    => Context.all,
+            Definition => Defining_Name,
+            Callback   => Append_To_Response'Access);
+
+         --  ... add it manually
+
+         LSP.Ada_Handlers.Locations.Append_Location
+           (Result   => Response,
+            Document => Document,
+            File     => File,
+            Node     => Defining_Name,
+            Kind     => Get_Highlight_Kind (Defining_Name.As_Ada_Node));
+      end Compute_Response;
+
+      ------------------------
+      -- Get_Highlight_Kind --
+      ------------------------
+
+      function Get_Highlight_Kind
+        (Node : Libadalang.Analysis.Ada_Node)
+         return LSP.Structures.DocumentHighlightKind_Optional
+      is
+         Id : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Node);
+
+      begin
+         if Id.P_Is_Write_Reference then
+            return (Is_Set => True, Value => LSP.Enumerations.Write);
+
+         else
+            return (Is_Set => True, Value  => LSP.Enumerations.Read);
+         end if;
+      end Get_Highlight_Kind;
+
+   begin
+      Compute_Response;
+      Self.Sender.On_DocumentHighlight_Response (Id, Response);
+   end On_DocumentHighlight_Request;
+
    ---------------------------
    -- On_Exits_Notification --
    ---------------------------

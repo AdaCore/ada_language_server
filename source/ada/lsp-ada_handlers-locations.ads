@@ -14,7 +14,7 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
+
 --  This package provides routines to convert Libadalang locations to LSP
 --  locations. If there is the corresponding open document then it is used
 --  to do conversion. Otherwise we use Libadalang to get corresponding lines
@@ -60,5 +60,18 @@ package LSP.Ada_Handlers.Locations is
       Ignore : AlsReferenceKind_Array := Empty);
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
+
+   procedure Append_Location
+     (Result   : in out LSP.Structures.DocumentHighlight_Vector;
+      Document : not null access LSP.Ada_Documents.Document'Class;
+      File     : GNATCOLL.VFS.Virtual_File;
+      Node     : Libadalang.Analysis.Ada_Node'Class;
+      Kind     : LSP.Structures.DocumentHighlightKind_Optional);
+   --  The same for DocumentHighlight_Vector.
+   --  File is used to filter out the location not in the Document.
+   --  Note, File and Document must be same document.
+   --  XXX File parameter can be removed when whether Document can return
+   --  associated Virtual_File or Node can able to return URI of the enclosing
+   --  file.
 
 end LSP.Ada_Handlers.Locations;

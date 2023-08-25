@@ -39,6 +39,31 @@ package body LSP.Ada_Handlers.Locations is
       end if;
    end Append_Location;
 
+   ---------------------
+   -- Append_Location --
+   ---------------------
+
+   procedure Append_Location
+     (Result   : in out LSP.Structures.DocumentHighlight_Vector;
+      Document : not null access LSP.Ada_Documents.Document'Class;
+      File     : GNATCOLL.VFS.Virtual_File;
+      Node     : Libadalang.Analysis.Ada_Node'Class;
+      Kind     : LSP.Structures.DocumentHighlightKind_Optional)
+   is
+      use type GNATCOLL.VFS.Virtual_File;
+
+      Node_File : constant GNATCOLL.VFS.Virtual_File :=
+        GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
+
+   begin
+      if File = Node_File then
+         Result.Append
+           (LSP.Structures.DocumentHighlight'
+              (a_range => Document.To_LSP_Range (Node.Sloc_Range),
+               kind    => Kind));
+      end if;
+   end Append_Location;
+
    -----------------
    -- Get_Node_At --
    -----------------
