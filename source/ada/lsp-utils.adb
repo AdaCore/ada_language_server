@@ -24,7 +24,7 @@ with Libadalang.Sources;
 with Langkit_Support.Symbols;
 
 with VSS.Strings.Conversions;
-with VSS.Strings.Formatters.Integers;
+with VSS.Strings.Formatters.Generic_Modulars;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
 with Laltools.Common;
@@ -191,6 +191,14 @@ package body LSP.Utils is
      (Node : Libadalang.Analysis.Ada_Node'Class)
       return VSS.Strings.Virtual_String
    is
+      package Line_Number_Formatters is
+        new VSS.Strings.Formatters.Generic_Modulars
+          (Libadalang.Slocs.Line_Number);
+
+      package Column_Number_Formatters is
+        new VSS.Strings.Formatters.Generic_Modulars
+          (Libadalang.Slocs.Column_Number);
+
       File     : constant GNATCOLL.VFS.Virtual_File :=
         GNATCOLL.VFS.Create_From_UTF8 (Node.Unit.Get_Filename);
       Template : constant VSS.Strings.Templates.Virtual_String_Template :=
@@ -202,10 +210,8 @@ package body LSP.Utils is
           (VSS.Strings.Formatters.Strings.Image
              (VSS.Strings.Conversions.To_Virtual_String
                 (File.Display_Base_Name)),
-           VSS.Strings.Formatters.Integers.Image
-             (Integer (Node.Sloc_Range.Start_Line)),
-           VSS.Strings.Formatters.Integers.Image
-             (Integer (Node.Sloc_Range.Start_Column)));
+           Line_Number_Formatters.Image (Node.Sloc_Range.Start_Line),
+           Column_Number_Formatters.Image (Node.Sloc_Range.Start_Column));
    end Node_Location_Image;
 
    --------------
