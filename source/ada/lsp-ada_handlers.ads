@@ -368,6 +368,11 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CodeActionParams);
 
+   overriding procedure On_ExecuteCommand_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.ExecuteCommandParams);
+
    procedure Publish_Diagnostics
      (Self              : in out Message_Handler'Class;
       Document          : not null LSP.Ada_Documents.Document_Access;
