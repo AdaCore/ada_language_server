@@ -142,6 +142,9 @@ formatting might no succeed on incomplete/illegal code.
 
 * **Debugging**: some manual work is needed in order to debug Ada code. In particular, you will need a `launch.json` file that describes your debugging configuration. All the steps needed for debugging are described [here](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started#debug-hello_worldadb).
 
+### Bug Reporting
+
+You can use the VS Code `Issue Reporter` to report issues. Just click on the `Help -> Report Issue` menu, select `An extension` for the `File on` entry and `Language Support for Ada` for the extension name. Put as many information you can in the description, like steps to reproduce, stacktraces or system information (VS Code automatically includes it by default). This will create a GitHub issue in the [Ada Language Server](https://github.com/AdaCore/ada_language_server/) repository.
 
 
 ### Getting started
