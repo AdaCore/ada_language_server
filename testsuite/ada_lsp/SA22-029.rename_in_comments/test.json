@@ -31,30 +31,8 @@
                "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                         "access",
-                        "write",
-                        "call",
-                        "dispatching call", "parent", "child",
-                        "overriding"
-                     ],
-                     "hoverProvider": true,
-                     "definitionProvider": true,
                      "renameProvider": {},
-                     "referencesProvider": true,
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "documentSymbolProvider": true
+                     "textDocumentSync": 2
                   }
                }
             }
@@ -143,6 +121,21 @@
                "id": 2,
                "result": {
                   "changes": {
+                       "$URI{p1.adb}": [
+                        {
+                           "newText": "Print1",
+                           "range": {
+                              "start": {
+                                 "line": 7,
+                                 "character": 8
+                              },
+                              "end": {
+                                 "line": 7,
+                                 "character": 13
+                              }
+                           }
+                        }
+                     ],
                      "$URI{p.adb}": [
                         {
                            "newText": "Print1",
@@ -172,6 +165,19 @@
                         }
                      ],
                      "$URI{p.ads}": [
+                       {
+                         "range": {
+                           "start": {
+                             "line": 9,
+                             "character": 13
+                           },
+                           "end": {
+                             "line": 9,
+                             "character": 18
+                           }
+                         },
+                         "newText": "Print1"
+                       },
                        {
                          "range": {
                            "start": {
@@ -210,19 +216,6 @@
                            }
                          },
                          "newText": "-"
-                       },
-                       {
-                         "range": {
-                           "start": {
-                             "line": 9,
-                             "character": 13
-                           },
-                           "end": {
-                             "line": 9,
-                             "character": 18
-                           }
-                         },
-                         "newText": "Print1"
                        },
                        {
                          "range": {
@@ -263,21 +256,6 @@
                          },
                          "newText": "-"
                        }
-                     ],
-                       "$URI{p1.adb}": [
-                        {
-                           "newText": "Print1",
-                           "range": {
-                              "start": {
-                                 "line": 7,
-                                 "character": 8
-                              },
-                              "end": {
-                                 "line": 7,
-                                 "character": 13
-                              }
-                           }
-                        }
                      ]
                   }
                }

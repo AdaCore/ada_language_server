@@ -210,7 +210,6 @@
                "jsonrpc": "2.0",
                "id": "ada-4",
                "error": {
-                 "code": -32803,
                  "message": ""
                }
              }           
