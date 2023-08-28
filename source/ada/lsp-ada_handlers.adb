@@ -86,6 +86,7 @@ with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
+with LSP.Structures.LSPAny_Vectors;
 
 with LSP.Constants;
 with LSP.Utils;
@@ -1590,6 +1591,87 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Completion_Response (Id, Response);
    end On_Completion_Request;
+
+   -----------------------------------
+   -- On_Completion_Resolve_Request --
+   -----------------------------------
+
+   overriding procedure On_Completion_Resolve_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CompletionItem)
+   is
+      Context  : LSP.Ada_Context_Sets.Context_Access;
+      Node     : Libadalang.Analysis.Ada_Node;
+      C        : LSP.Structures.JSON_Event_Vectors.Cursor;
+      Location : LSP.Structures.Location;
+      Response : LSP.Structures.CompletionItem;
+
+   begin
+      --  Return immediately if we don't have data that allows us to compute
+      --  additional information for the given item.
+      --  This is the case when all the completion item's fields have already
+      --  been computed.
+      if Value.data.Is_Empty then
+         Self.Sender.On_Completion_Resolve_Response (Id, Value);
+      end if;
+
+      C := Value.data.First;
+      Location := LSP.Structures.LSPAny_Vectors.From_Any (C);
+      Context  := Self.Contexts.Get_Best_Context (Location.uri);
+      Node     := Get_Node_At
+        (Self, Context.all,
+         LSP.Structures.TextDocumentPositionParams'
+           (textDocument => (uri => Location.uri),
+            position     => Location.a_range.start));
+
+      --  Retrieve the Basic_Decl from the completion item's SLOC
+      while not Node.Is_Null
+        and then Node.Kind not in Libadalang.Common.Ada_Basic_Decl
+      loop
+         Node := Node.Parent;
+      end loop;
+
+      --  Compute the completion item's details
+      if not Node.Is_Null then
+         declare
+            use type VSS.Strings.Virtual_String;
+
+            BD           : constant Libadalang.Analysis.Basic_Decl :=
+              Node.As_Basic_Decl;
+            Qual_Text    : VSS.Strings.Virtual_String;
+            Loc_Text     : VSS.Strings.Virtual_String;
+            Doc_Text     : VSS.Strings.Virtual_String;
+            Decl_Text    : VSS.Strings.Virtual_String;
+            Aspects_Text : VSS.Strings.Virtual_String;
+
+         begin
+            LSP.Ada_Documentation.Get_Tooltip_Text
+              (BD                 => BD,
+               Style              => Self.Configuration.Documentation_Style,
+               Qualifier_Text     => Qual_Text,
+               Location_Text      => Loc_Text,
+               Documentation_Text => Doc_Text,
+               Declaration_Text   => Decl_Text,
+               Aspects_Text       => Aspects_Text);
+
+            Response.detail := Decl_Text;
+
+            if not Doc_Text.Is_Empty then
+               Loc_Text.Append (2 * VSS.Characters.Latin.Line_Feed);
+               Loc_Text.Append (Doc_Text);
+            end if;
+
+            Response.documentation :=
+              (Is_Set => True,
+               Value  => LSP.Structures.Virtual_String_Or_MarkupContent'
+                 (Is_Virtual_String => True,
+                  Virtual_String    => Loc_Text));
+         end;
+      end if;
+
+      Self.Sender.On_Completion_Resolve_Response (Id, Response);
+   end On_Completion_Resolve_Request;
 
    ----------------------------
    -- On_Declaration_Request --

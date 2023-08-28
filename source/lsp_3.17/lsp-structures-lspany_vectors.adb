@@ -5,6 +5,7 @@
 --
 
 with Interfaces;
+with LSP.Constants;
 
 package body LSP.Structures.LSPAny_Vectors is
 
@@ -49,7 +50,11 @@ package body LSP.Structures.LSPAny_Vectors is
      (Cursor : in out JSON_Event_Vectors.Cursor)
       return DocumentUri is
    begin
-      return (Element (Cursor).String_Value with null record);
+      if Has_Element (Cursor) then
+         return (Element (Cursor).String_Value with null record);
+      else
+         return LSP.Constants.Empty;
+      end if;
    end From_Any;
 
    function From_Any

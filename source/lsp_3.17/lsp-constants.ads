@@ -5,6 +5,7 @@
 --
 
 with VSS.JSON.Streams;
+with VSS.Strings;
 
 with LSP.Structures;
 
@@ -94,5 +95,9 @@ package LSP.Constants is
    function Empty
      return LSP.Structures.A_Range
        is (start => Empty, an_end => Empty);
+
+   function Empty
+     return LSP.Structures.DocumentUri
+       is ((VSS.Strings.Empty_Virtual_String with null record));
 
 end LSP.Constants;
