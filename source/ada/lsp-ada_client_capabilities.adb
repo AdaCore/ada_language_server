@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with VSS.Characters.Latin;
 with VSS.String_Vectors;
 
 with LSP.Constants;
@@ -130,6 +131,9 @@ package body LSP.Ada_Client_Capabilities is
       return LSP.Structures.ServerCapabilities
    is
       pragma Unreferenced (Self);
+
+      use type VSS.Strings.Virtual_String;
+
    begin
       return Result : LSP.Structures.ServerCapabilities do
          Result.textDocumentSync :=
@@ -156,6 +160,12 @@ package body LSP.Ada_Client_Capabilities is
          Result.referencesProvider        := LSP.Constants.True;
          Result.hoverProvider             := (True, (True, True));
          Result.implementationProvider    := LSP.Constants.True;
+         Result.signatureHelpProvider     :=
+           (Is_Set => True,
+            Value  =>
+              (triggerCharacters   => [",", "("],
+               retriggerCharacters => [1 * VSS.Characters.Latin.Backspace],
+               workDoneProgress    => <>));
          Result.typeDefinitionProvider    := LSP.Constants.True;
 
          Result.semanticTokensProvider :=

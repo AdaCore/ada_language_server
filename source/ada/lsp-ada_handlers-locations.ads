@@ -21,6 +21,7 @@
 --  and compute character offsets.
 
 with Libadalang.Analysis;
+with Libadalang.Common;
 
 with LSP.Ada_Contexts;
 
@@ -37,6 +38,10 @@ package LSP.Ada_Handlers.Locations is
       Context  : LSP.Ada_Contexts.Context;
       Value    : LSP.Structures.TextDocumentPositionParams'Class)
       return Libadalang.Analysis.Ada_Node;
+
+   function Start_Position
+     (Token : Libadalang.Common.Token_Reference)
+      return LSP.Structures.Position;
 
    type AlsReferenceKind is
      (Simple,

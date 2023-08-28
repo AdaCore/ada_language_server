@@ -116,6 +116,37 @@ package body LSP.Ada_Handlers.Locations is
       end;
    end Get_Node_At;
 
+   --------------------
+   -- Start_Position --
+   --------------------
+
+   function Start_Position
+     (Token : Libadalang.Common.Token_Reference)
+      return LSP.Structures.Position
+   is
+      Location : constant Libadalang.Slocs.Source_Location :=
+        Libadalang.Slocs.Start_Sloc
+          (Libadalang.Common.Sloc_Range (Libadalang.Common.Data (Token)));
+      Line     : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.To_Virtual_String
+          (Libadalang.Analysis.Unit
+             (Token).Get_Line (Positive (Location.Line)));
+
+      Cursor   : VSS.Strings.Character_Iterators.Character_Iterator :=
+        Line.Before_First_Character;
+
+   begin
+      return Result : LSP.Structures.Position :=
+               (line => Positive (Location.Line) - 1, character => 0)
+      do
+         for J in 1 .. Location.Column loop
+            exit when not Cursor.Forward;
+         end loop;
+
+         Result.character := Natural (Cursor.First_UTF16_Offset);
+      end return;
+   end Start_Position;
+
    ---------------------
    -- To_LSP_Location --
    ---------------------

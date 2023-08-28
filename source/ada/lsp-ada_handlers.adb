@@ -3388,6 +3388,131 @@ package body LSP.Ada_Handlers is
       Self.Sender.On_Shutdown_Response (Id, Result);
    end On_Shutdown_Request;
 
+   ------------------------------
+   -- On_SignatureHelp_Request --
+   ------------------------------
+
+   overriding procedure On_SignatureHelp_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SignatureHelpParams)
+   is
+      procedure Compute_Response;
+
+      Response : LSP.Structures.SignatureHelp_Or_Null (Is_Null => False);
+
+      ----------------------
+      -- Compute_Response --
+      ----------------------
+
+      procedure Compute_Response is
+         Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+           Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+         Document : constant LSP.Ada_Documents.Document_Access :=
+           Self.Get_Open_Document (Value.textDocument.uri);
+         Location : constant Langkit_Support.Slocs.Source_Location :=
+           Document.Get_Source_Location (Value.position);
+
+         Position : LSP.Structures.Position := Value.position;
+         Node     : Libadalang.Analysis.Ada_Node;
+
+      begin
+         --  Move the cursor to the previous character: this is more resilient
+         --  to invalid code.
+
+         if Position.character > 0 then
+            Position.character := @ - 1;
+         end if;
+
+         Node := Document.Get_Node_At (Context.all, Position);
+
+         declare
+            Name_Node : constant Libadalang.Analysis.Name :=
+              Laltools.Common.Get_Node_As_Name (Node);
+
+         begin
+            --  Is this a type cast?
+
+            if not Name_Node.Is_Null
+              and then not Name_Node.P_Name_Designated_Type.Is_Null
+            --  Does the cast make sense?
+            --   and then Active_Position = 0
+            --  Do we have the previous signatures?
+              and then Value.context.Is_Set
+              and then Value.context.Value.activeSignatureHelp.Is_Set
+            then
+               --  At this point, the user is writing a typecast in a previous
+               --  signature => keep showing the previous signatures.
+
+               Response.Value := Value.context.Value.activeSignatureHelp.Value;
+
+               return;
+            end if;
+         end;
+
+         --  Try to get signatures before the cursor location
+         --  i.e "Foo (1,|" => "Foo (1|,"
+
+         LSP.Ada_Completions.Parameters.Propose_Signatures
+           (Context         => Context,
+            Node            => Node,
+            Cursor          => Location,
+            Prev_Signatures => Value.context,
+            Res             => Response.Value);
+
+         --  Retry to get signature in the previous non whitespace token
+         --  i.e. "Foo (1, 2 + |" => "Foo (1, 2 +|"
+
+         if Response.Value.signatures.Is_Empty then
+            declare
+               use all type Libadalang.Common.Token_Kind;
+               use type Libadalang.Common.Token_Reference;
+
+               Token : Libadalang.Common.Token_Reference :=
+                 Document.Get_Token_At (Context.all, Position);
+
+            begin
+               if Token /= Libadalang.Common.No_Token
+                 and then Libadalang.Common.Kind
+                            (Libadalang.Common.Data (Token)) = Ada_Whitespace
+               then
+                  Token :=
+                    Libadalang.Common.Previous
+                      (Token, Exclude_Trivia => True);
+               end if;
+
+               Position := LSP.Ada_Handlers.Locations.Start_Position (Token);
+            end;
+
+            Node := Document.Get_Node_At (Context.all, Position);
+            LSP.Ada_Completions.Parameters.Propose_Signatures
+              (Context         => Context,
+               Node            => Node,
+               Cursor          => Location,
+               Prev_Signatures => Value.context,
+               Res             => Response.Value);
+         end if;
+
+         --  Retry to get signatures in the cursor position.
+         --  It handles the edge case of nested function closing
+         --  i.e. "Foo (Bar (1)|"
+
+         if Response.Value.signatures.Is_Empty then
+            Node := Document.Get_Node_At (Context.all, Value.position);
+            LSP.Ada_Completions.Parameters.Propose_Signatures
+              (Context         => Context,
+               Node            => Node,
+               Cursor          => Location,
+               Prev_Signatures => Value.context,
+               Res             => Response.Value);
+         end if;
+      end Compute_Response;
+
+   begin
+      Compute_Response;
+      Self.Sender.On_SignatureHelp_Response (Id, Response);
+   end On_SignatureHelp_Request;
+
    -----------------------------
    -- On_Tokens_Range_Request --
    -----------------------------

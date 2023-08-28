@@ -353,6 +353,11 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionParams);
 
+   overriding procedure On_SignatureHelp_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SignatureHelpParams);
+
    overriding procedure On_Tokens_Range_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
