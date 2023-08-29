@@ -166,7 +166,7 @@ check: all
 	set -e; \
         export PYTHON=$(PYTHON); \
         if [ `$(PYTHON) -c "import sys;print('e3' in sys.modules)"` = "True" ]; then\
-           (cd testsuite ; sh run.sh ) ; \
+           (cd testsuite ; sh run.sh $(test)) ; \
         else \
            for a in testsuite/*_lsp/*/*.json; do \
               echo $$a ; \

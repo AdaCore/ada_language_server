@@ -96,6 +96,14 @@ package LSP.Ada_Client_Capabilities is
    function Refactoring_Replace_Type
      (Self : Client_Capability'Class) return Boolean;
 
+   --  Code actions --
+
+   function Code_Action
+     (Self : Client_Capability'Class) return Boolean;
+
+   function Code_ActionLiteralSupport
+     (Self : Client_Capability'Class) return Boolean;
+
 private
 
    type Advanced_Refactorings is

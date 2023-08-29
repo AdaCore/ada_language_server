@@ -71,4 +71,8 @@ package LSP.Structures.Unwrap is
        return Boolean_Optional is
          (if X.Is_Set then X.Value.relatedInformation else (Is_Set => False));
 
+   function codeAction (X : TextDocumentClientCapabilities_Optional)
+     return CodeActionClientCapabilities_Optional is
+       (if X.Is_Set then X.Value.codeAction else (Is_Set => False));
+
 end LSP.Structures.Unwrap;

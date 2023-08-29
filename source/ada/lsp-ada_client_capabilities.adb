@@ -24,6 +24,38 @@ with LSP.Structures.Unwrap;
 
 package body LSP.Ada_Client_Capabilities is
 
+   -----------------
+   -- Code_Action --
+   -----------------
+
+   function Code_Action
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.CodeActionClientCapabilities_Optional :=
+        codeAction (Self.Value.capabilities.textDocument);
+   begin
+      return Result.Is_Set;
+   end Code_Action;
+
+   -------------------------------
+   -- Code_ActionLiteralSupport --
+   -------------------------------
+
+   function Code_ActionLiteralSupport
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.CodeActionClientCapabilities_Optional :=
+        codeAction (Self.Value.capabilities.textDocument);
+   begin
+      return (if Result.Is_Set
+              then Result.Value.codeActionLiteralSupport.Is_Set
+              else False);
+   end Code_ActionLiteralSupport;
+
    ----------------
    -- Initialize --
    ----------------
@@ -147,8 +179,6 @@ package body LSP.Ada_Client_Capabilities is
       Token_Modifiers          : LSP.Structures.Virtual_String_Vector)
       return LSP.Structures.ServerCapabilities
    is
-      pragma Unreferenced (Self);
-
       use type VSS.Strings.Virtual_String;
 
    begin
@@ -204,6 +234,25 @@ package body LSP.Ada_Client_Capabilities is
                     (tokenTypes     => Token_Types,
                      tokenModifiers => Token_Modifiers),
                   others  => <>)));
+
+         if Self.Code_Action
+           and then Self.Code_ActionLiteralSupport
+         then
+            Result.codeActionProvider :=
+              (Is_Set => True,
+               Value  =>
+                 (Is_Boolean        => False,
+                  CodeActionOptions =>
+                    (workDoneProgress => LSP.Constants.False,
+                     codeActionKinds  =>
+                       (LSP.Enumerations.QuickFix        => True,
+                        LSP.Enumerations.RefactorRewrite => True,
+                        others                           => False),
+                     resolveProvider  => LSP.Constants.False)));
+
+         else
+            Result.codeActionProvider := (Is_Set => True, others => <>);
+         end if;
       end return;
    end To_Server_Capabilities;
 
