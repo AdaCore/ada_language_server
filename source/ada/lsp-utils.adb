@@ -15,22 +15,36 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides some utility subprograms.
+with Ada.Strings.Unbounded;
+with System;
 
 with GNATCOLL.VFS;
 
 with Libadalang.Common;
+with Libadalang.Lexer;
 with Libadalang.Sources;
+with Langkit_Support.Diagnostics;
 with Langkit_Support.Symbols;
+with Langkit_Support.Token_Data_Handlers;
+with Pp.Actions;
 
+with VSS.Strings.Character_Iterators;
 with VSS.Strings.Formatters.Generic_Modulars;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
+with VSS.String_Vectors;
+with VSS.Unicode;
 with Laltools.Common;
 
+with LSP.Ada_Documents;
 with LSP.Constants;
 
 package body LSP.Utils is
+
+   function To_Unbounded_String
+     (Input : Standard.Utils.Char_Vectors.Char_Vector)
+       return Ada.Strings.Unbounded.Unbounded_String;
+   --  Convert Input to unbounded string.
 
    ------------------
    -- Canonicalize --
@@ -53,6 +67,233 @@ package body LSP.Utils is
          return VSS.Strings.Empty_Virtual_String;
       end if;
    end Canonicalize;
+
+   -------------------
+   -- Format_Vector --
+   -------------------
+
+   procedure Format_Vector
+     (Cmd       : Standard.Utils.Command_Lines.Command_Line;
+      Input     : Standard.Utils.Char_Vectors.Char_Vector;
+      Node      : Libadalang.Analysis.Ada_Node;
+      In_Sloc   : Langkit_Support.Slocs.Source_Location_Range;
+      Output    : out Standard.Utils.Char_Vectors.Char_Vector;
+      Out_Sloc  : out Langkit_Support.Slocs.Source_Location_Range;
+      Messages  : out Pp.Scanner.Source_Message_Vector)
+   is
+      use type Langkit_Support.Slocs.Source_Location_Range;
+
+      procedure Tokenize_Output;
+      --  Split Output document into tokens and store them into TDH
+
+      procedure Synchronize_Tokens
+        (In_Stop   : Libadalang.Common.Token_Reference;
+         Out_Stop  : out Langkit_Support.Token_Data_Handlers.Token_Index;
+         In_Start  : Libadalang.Common.Token_Reference;
+         Out_Start : Langkit_Support.Token_Data_Handlers.Token_Index;
+         Ok        : out Boolean);
+      --  Find a token in Output document that corresponds to Is_Stop token in
+      --  the Input document. Store token index into Out_Stop. To do this
+      --  start scanning both token chains starting from In_Start (for Input)
+      --  and Out_Start (for Output document). If no corresponding token found
+      --  return Ok = False.
+
+      function Lookup_Token
+        (Sloc : Langkit_Support.Slocs.Source_Location)
+         return Libadalang.Common.Token_Reference;
+      --  Like Node.Unit.Lookup_Token, but skip Trivia
+
+      TDH     : Langkit_Support.Token_Data_Handlers.Token_Data_Handler;
+      Diags   : Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector;
+      Symbols : Langkit_Support.Symbols.Symbol_Table :=
+        Langkit_Support.Symbols.Create_Symbol_Table;
+
+      ------------------
+      -- Lookup_Token --
+      ------------------
+
+      function Lookup_Token
+        (Sloc : Langkit_Support.Slocs.Source_Location)
+         return Libadalang.Common.Token_Reference
+      is
+         Result : Libadalang.Common.Token_Reference :=
+           Node.Unit.Lookup_Token (Sloc);
+
+      begin
+         if Libadalang.Common.Is_Trivia (Result) then
+            Result :=
+              Libadalang.Common.Previous (Result, Exclude_Trivia => True);
+         end if;
+
+         return Result;
+      end Lookup_Token;
+
+      ------------------------
+      -- Synchronize_Tokens --
+      ------------------------
+
+      procedure Synchronize_Tokens
+        (In_Stop   : Libadalang.Common.Token_Reference;
+         Out_Stop  : out Langkit_Support.Token_Data_Handlers.Token_Index;
+         In_Start  : Libadalang.Common.Token_Reference;
+         Out_Start : Langkit_Support.Token_Data_Handlers.Token_Index;
+         Ok        : out Boolean)
+      is
+         use type Libadalang.Common.Token_Reference;
+
+         procedure Find_Next_Token
+           (Kind  : Libadalang.Common.Token_Kind;
+            Index : in out Langkit_Support.Token_Data_Handlers.Token_Index;
+            Ok    : out Boolean);
+         --  Find nearest token of a given Kind in the Output document starting
+         --  from Index. Set Ok to False in no such token found and don't
+         --  update Index in this case.
+
+         ---------------------
+         -- Find_Next_Token --
+         ---------------------
+
+         procedure Find_Next_Token
+           (Kind  : Libadalang.Common.Token_Kind;
+            Index : in out Langkit_Support.Token_Data_Handlers.Token_Index;
+            Ok    : out Boolean)
+         is
+            use type Langkit_Support.Token_Data_Handlers.Token_Index;
+            use type Libadalang.Common.Token_Kind;
+
+            Max_Look_Ahead : constant := 4;  --  How far search for the token
+            Next_Kind      : Libadalang.Common.Token_Kind;
+
+         begin
+            Ok := False;
+
+            for J in Index + 1 .. Index + Max_Look_Ahead loop
+               Next_Kind := Libadalang.Common.To_Token_Kind
+                 (Langkit_Support.Token_Data_Handlers.Get_Token
+                    (TDH, J).Kind);
+
+               if Next_Kind = Kind then
+                  Ok := True;
+                  Index := J;
+                  exit;
+               end if;
+            end loop;
+         end Find_Next_Token;
+
+         Input : Libadalang.Common.Token_Reference;
+
+      begin
+         Input := In_Start;
+         Out_Stop := Out_Start;
+         Ok := True;  --  Now Out_Stop is synchronized with Input
+
+         while Input /= In_Stop loop
+            Input := Libadalang.Common.Next (Input, Exclude_Trivia => True);
+            Find_Next_Token
+              (Libadalang.Common.Kind (Libadalang.Common.Data (Input)),
+               Out_Stop,
+               Ok);
+         end loop;
+      end Synchronize_Tokens;
+
+      ---------------------
+      -- Tokenize_Output --
+      ---------------------
+
+      procedure Tokenize_Output is
+         Input : constant Libadalang.Lexer.Lexer_Input :=
+           (Kind     => Libadalang.Common.Bytes_Buffer,
+            Charset  => Ada.Strings.Unbounded.To_Unbounded_String ("utf-8"),
+            Read_BOM => False,
+            Bytes    => To_Unbounded_String (Output));
+
+      begin
+         Langkit_Support.Token_Data_Handlers.Initialize
+           (TDH, Symbols, System.Null_Address);
+
+         Libadalang.Lexer.Extract_Tokens
+           (Input,
+            TDH         => TDH,
+            Diagnostics => Diags,
+            With_Trivia => True);
+      end Tokenize_Output;
+
+      use type Langkit_Support.Slocs.Line_Number;
+
+      From       : Libadalang.Common.Token_Reference;
+      --  Nearest to range start token (in Input document)
+      To         : Libadalang.Common.Token_Reference;
+      --  Nearest to range end token (in Input document)
+      From_Index : Langkit_Support.Token_Data_Handlers.Token_Index;
+      --  Corresponding From-token in Output document
+      To_Index   : Langkit_Support.Token_Data_Handlers.Token_Index;
+      --  Corresponding To-token in Output document
+      Ignore     : Standard.Utils.Char_Vectors.Char_Subrange;
+      Ok         : Boolean;
+
+   begin
+      Pp.Actions.Format_Vector
+        (Cmd, Input, Node, Output, Messages);
+
+      if In_Sloc = Langkit_Support.Slocs.No_Source_Location_Range then
+         --  Return full range of Output
+
+         Out_Sloc := In_Sloc;
+         Langkit_Support.Symbols.Destroy (Symbols);
+
+         return;
+
+      elsif Node.Unit.Token_Count = 0 then  --  Ignore a cornercase for now
+         Out_Sloc := Langkit_Support.Slocs.No_Source_Location_Range;
+         Langkit_Support.Symbols.Destroy (Symbols);
+
+         return;
+      end if;
+
+      Tokenize_Output;  --  Fill TDH
+      From := Lookup_Token (Langkit_Support.Slocs.Start_Sloc (In_Sloc));
+      To := Lookup_Token (Langkit_Support.Slocs.End_Sloc (In_Sloc));
+
+      Synchronize_Tokens
+        (In_Stop   => From,
+         Out_Stop  => From_Index,
+         In_Start  => Node.Unit.First_Token,
+         Out_Start => Langkit_Support.Token_Data_Handlers.First_Token_Index,
+         Ok        => Ok);
+
+      if Ok then
+         Synchronize_Tokens
+           (In_Stop   => To,
+            Out_Stop  => To_Index,
+            In_Start  => From,
+            Out_Start => From_Index,
+            Ok        => Ok);
+      end if;
+
+      if Ok then
+         Out_Sloc.Start_Line :=
+           Langkit_Support.Token_Data_Handlers.Sloc_Start
+             (TDH, Langkit_Support.Token_Data_Handlers.Get_Token
+                (TDH, From_Index)).Line
+           + In_Sloc.Start_Line
+           - Libadalang.Common.Sloc_Range
+              (Libadalang.Common.Data (From)).Start_Line;
+
+         Out_Sloc.End_Line :=
+           Langkit_Support.Token_Data_Handlers.Sloc_End
+             (TDH, Langkit_Support.Token_Data_Handlers.Get_Token
+                (TDH, To_Index)).Line
+           + In_Sloc.End_Line
+           - Libadalang.Common.Sloc_Range
+              (Libadalang.Common.Data (To)).End_Line;
+
+         Out_Sloc.Start_Column := 1;
+         Out_Sloc.End_Column := 1;
+      end if;
+
+      Langkit_Support.Token_Data_Handlers.Free (TDH);
+      Langkit_Support.Symbols.Destroy (Symbols);
+   end Format_Vector;
 
    -------------------
    -- Get_Decl_Kind --
@@ -250,6 +491,83 @@ package body LSP.Utils is
            Column_Number_Formatters.Image (Node.Sloc_Range.Start_Column));
    end Node_Location_Image;
 
+   -------------------
+   -- Span_To_Slice --
+   -------------------
+
+   procedure Span_To_Slice
+     (Text  : VSS.Strings.Virtual_String;
+      Span  : LSP.Structures.A_Range;
+      Slice : out VSS.Strings.Virtual_String)
+   is
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+      Dummy : Boolean;
+      Lines : VSS.String_Vectors.Virtual_String_Vector;
+      Line  : VSS.Strings.Virtual_String;
+      Num   : Natural := Span.start.line + 1;
+
+   begin
+      Lines :=
+        Text.Split_Lines
+          (Terminators     => LSP.Ada_Documents.LSP_New_Line_Function_Set,
+           Keep_Terminator => True);
+      Line := Lines.Element (Num);
+
+      declare
+         J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.At_First_Character;
+         U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+           J1.First_UTF16_Offset;
+
+      begin
+         while VSS.Unicode.UTF16_Code_Unit_Offset (Span.start.character)
+                 /= J1.First_UTF16_Offset - U1
+           and then J1.Forward
+         loop
+            null;
+         end loop;
+
+         if Span.start.line /= Span.an_end.line then
+            Slice.Append
+              (Line.Slice (J1.Marker, Line.At_Last_Character.Marker));
+         end if;
+
+         loop
+            Num := Num + 1;
+
+            exit when Num > Span.start.line;
+
+            Slice.Append (Lines.Element (Num));
+         end loop;
+
+         Line := Lines.Element (Span.an_end.line + 1);
+
+         declare
+            J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
+              Line.At_First_Character;
+            U2 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+              J2.First_UTF16_Offset;
+         begin
+            while VSS.Unicode.UTF16_Code_Unit_Offset (Span.an_end.character)
+                    /= J2.First_UTF16_Offset - U2
+              and then J2.Forward
+            loop
+               null;
+            end loop;
+
+            Dummy := J2.Backward;
+
+            if Span.start.line /= Span.an_end.line then
+               Slice.Append (Line.Slice (Line.At_First_Character, J2));
+
+            else
+               Slice.Append (Line.Slice (J1, J2));
+            end if;
+         end;
+      end;
+   end Span_To_Slice;
+
    --------------
    -- To_Range --
    --------------
@@ -277,5 +595,20 @@ package body LSP.Utils is
    begin
       return Result;
    end To_Range;
+
+   -------------------------
+   -- To_Unbounded_String --
+   -------------------------
+
+   function To_Unbounded_String
+     (Input : Standard.Utils.Char_Vectors.Char_Vector)
+      return Ada.Strings.Unbounded.Unbounded_String is
+   begin
+      return Result : Ada.Strings.Unbounded.Unbounded_String do
+         for Char of Input loop
+            Ada.Strings.Unbounded.Append (Result, Char);
+         end loop;
+      end return;
+   end To_Unbounded_String;
 
 end LSP.Utils;

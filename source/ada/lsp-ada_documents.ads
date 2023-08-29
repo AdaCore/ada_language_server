@@ -42,6 +42,11 @@ package LSP.Ada_Documents is
 
    MAX_NB_DIAGNOSTICS : constant := 2;
 
+   LSP_New_Line_Function_Set : constant VSS.Strings.Line_Terminator_Set :=
+     (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
+      others => False);
+   --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
+
    type Document (Tracer : not null LSP.Tracers.Tracer_Access) is
      tagged limited private;
    --  An Ada document (file).
@@ -212,8 +217,7 @@ package LSP.Ada_Documents is
       Span     : LSP.Structures.A_Range;
       Cmd      : Pp.Command_Lines.Cmd_Line;
       Edit     : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector)
-      return Boolean;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector) return Boolean;
    --  Format document or its part defined in Span
 
    function Range_Formatting

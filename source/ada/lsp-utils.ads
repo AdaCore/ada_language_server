@@ -14,7 +14,7 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
+
 --  This package provides some utility subprograms.
 
 with Ada.Containers;
@@ -24,6 +24,9 @@ with VSS.Strings.Conversions;
 
 with Libadalang.Analysis;
 with Langkit_Support.Slocs;
+with Pp.Scanner;
+with Utils.Char_Vectors;
+with Utils.Command_Lines;
 
 with LSP.Enumerations;
 with LSP.Structures;
@@ -84,5 +87,21 @@ package LSP.Utils is
      (X : String)
       return LSP.Structures.DocumentUri is
      (VSS.Strings.Conversions.To_Virtual_String (X) with null record);
+
+   procedure Format_Vector
+     (Cmd      : Standard.Utils.Command_Lines.Command_Line;
+      Input    : Standard.Utils.Char_Vectors.Char_Vector;
+      Node     : Libadalang.Analysis.Ada_Node;
+      In_Sloc  : Langkit_Support.Slocs.Source_Location_Range;
+      Output   : out Standard.Utils.Char_Vectors.Char_Vector;
+      Out_Sloc : out Langkit_Support.Slocs.Source_Location_Range;
+      Messages : out Pp.Scanner.Source_Message_Vector);
+   --  A wrapper around Pp.Actions.Format_Vector that populates Out_Range,
+
+   procedure Span_To_Slice
+     (Text  : VSS.Strings.Virtual_String;
+      Span  : LSP.Structures.A_Range;
+      Slice : out VSS.Strings.Virtual_String);
+   --  Return a slice of the Text in Span range
 
 end LSP.Utils;

@@ -19,7 +19,10 @@ with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
+with GNAT.Strings;
+with GNATCOLL.Traces;
 with GNATCOLL.Utils;
+with GNATCOLL.VFS;
 
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
@@ -46,6 +49,7 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Id_Iterators;
+with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Predicates;
 with LSP.Utils;
@@ -56,10 +60,10 @@ package body LSP.Ada_Documents is
 
    package Utils renames Standard.Utils;
 
-   LSP_New_Line_Function_Set : constant VSS.Strings.Line_Terminator_Set :=
-     (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
-      others => False);
-   --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
+   Lal_PP_Output : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create
+       ("ALS.LAL_PP_OUTPUT_ON_FORMATTING", GNATCOLL.Traces.Off);
+   --  Logging lalpp output if On
 
    procedure Recompute_Indexes (Self : in out Document'Class);
    --  Recompute the line-to-offset indexes in Self
@@ -1036,14 +1040,157 @@ package body LSP.Ada_Documents is
    ----------------
 
    function Formatting
-     (Self     :     Document; Context : LSP.Ada_Contexts.Context;
-      Span     :     LSP.Structures.A_Range; Cmd : Pp.Command_Lines.Cmd_Line;
+     (Self     : Document;
+      Context  : LSP.Ada_Contexts.Context;
+      Span     : LSP.Structures.A_Range;
+      Cmd      : Pp.Command_Lines.Cmd_Line;
       Edit     : out LSP.Structures.TextEdit_Vector;
       Messages : out VSS.String_Vectors.Virtual_String_Vector) return Boolean
    is
+      use type Libadalang.Slocs.Source_Location_Range;
+      use type LSP.Structures.A_Range;
+
+      Sloc        : constant Libadalang.Slocs.Source_Location_Range :=
+        (if Span = LSP.Constants.Empty
+         then Libadalang.Slocs.No_Source_Location_Range
+         else Libadalang.Slocs.Make_Range
+                (Self.Get_Source_Location (Span.start),
+                 Self.Get_Source_Location (Span.an_end)));
+
+      Input       : Utils.Char_Vectors.Char_Vector;
+      Output      : Utils.Char_Vectors.Char_Vector;
+      Out_Span    : LSP.Structures.A_Range;
+      PP_Messages : Pp.Scanner.Source_Message_Vector;
+      Out_Sloc    : Libadalang.Slocs.Source_Location_Range;
+      S           : GNAT.Strings.String_Access;
+
    begin
-      pragma Compile_Time_Warning (Standard.True, "Formatting unimplemented");
-      return raise Program_Error with "Unimplemented function Formatting";
+      if Span /= LSP.Constants.Empty then
+         --  Align Span to line bounds
+
+         if Span.start.character /= 0 then
+            return Self.Formatting
+              (Context  => Context,
+               Span     => ((Span.start.line, 0), Span.an_end),
+               Cmd      => Cmd,
+               Edit     => Edit,
+               Messages => Messages);
+
+         elsif Span.an_end.character /= 0 then
+            return Self.Formatting
+              (Context  => Context,
+               Span     => (Span.start, (Span.an_end.line + 1, 0)),
+               Cmd      => Cmd,
+               Edit     => Edit,
+               Messages => Messages);
+         end if;
+      end if;
+
+      S := new String'(VSS.Strings.Conversions.To_UTF_8_String (Self.Text));
+      Input.Append (S.all);
+      GNAT.Strings.Free (S);
+
+      LSP.Utils.Format_Vector
+        (Cmd       => Cmd,
+         Input     => Input,
+         Node      => Self.Unit (Context).Root,
+         In_Sloc   => Sloc,
+         Output    => Output,
+         Out_Sloc  => Out_Sloc,
+         Messages  => PP_Messages);
+
+      --  Properly format the messages received from gnatpp, using the
+      --  the GNAT standard way for messages (i.e: <filename>:<sloc>: <msg>)
+
+      if not PP_Messages.Is_Empty then
+         declare
+            File     : constant GNATCOLL.VFS.Virtual_File :=
+              Context.URI_To_File (Self.URI);
+            Template : constant VSS.Strings.Templates.Virtual_String_Template :=
+              "{}:{}:{}: {}";
+
+         begin
+            for Error of PP_Messages loop
+               Messages.Append
+                 (Template.Format
+                    (VSS.Strings.Formatters.Strings.Image
+                         (VSS.Strings.Conversions.To_Virtual_String
+                              (File.Display_Base_Name)),
+                     VSS.Strings.Formatters.Integers.Image (Error.Sloc.Line),
+                     VSS.Strings.Formatters.Integers.Image (Error.Sloc.Col),
+                     VSS.Strings.Formatters.Strings.Image
+                       (VSS.Strings.Conversions.To_Virtual_String
+                            (String
+                                 (Utils.Char_Vectors.Char_Vectors.To_Array
+                                    (Error.Text))))));
+            end loop;
+
+            return False;
+         end;
+      end if;
+
+      S := new String'(Output.To_Array);
+
+      if Lal_PP_Output.Is_Active then
+         Lal_PP_Output.Trace (S.all);
+      end if;
+
+      if Span = LSP.Constants.Empty then
+         --  diff for the whole document
+
+         Diff
+           (Self,
+            VSS.Strings.Conversions.To_Virtual_String (S.all),
+            Edit => Edit);
+
+      elsif Out_Sloc = Libadalang.Slocs.No_Source_Location_Range then
+         --  Range formating fails. Do nothing, skip formating altogether
+
+         null;
+
+      else
+         --  diff for a part of the document
+
+         Out_Span := Self.To_LSP_Range (Out_Sloc);
+
+         --  Use line diff if the range is too wide
+
+         if Span.an_end.line - Span.start.line > 5 then
+            Diff
+              (Self,
+               VSS.Strings.Conversions.To_Virtual_String (S.all),
+               Span,
+               Out_Span,
+               Edit);
+
+         else
+            declare
+               Formatted : constant VSS.Strings.Virtual_String :=
+                 VSS.Strings.Conversions.To_Virtual_String (S.all);
+               Slice     : VSS.Strings.Virtual_String;
+
+            begin
+               LSP.Utils.Span_To_Slice (Formatted, Out_Span, Slice);
+
+               Diff_Symbols
+                 (Self,
+                  Span,
+                  Slice,
+                  Edit);
+            end;
+         end if;
+      end if;
+
+      GNAT.Strings.Free (S);
+
+      return True;
+
+   exception
+      when E : others =>
+         Lal_PP_Output.Trace (E);
+         GNAT.Strings.Free (S);
+
+         return False;
    end Formatting;
 
    --------------------

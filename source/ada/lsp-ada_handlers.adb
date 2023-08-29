@@ -26,6 +26,7 @@ with VSS.Characters.Latin;
 with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
+with VSS.String_Vectors;
 with VSS.JSON.Streams;
 
 with Libadalang.Analysis;
@@ -59,6 +60,7 @@ with LSP.Ada_Completions;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Handlers.Call_Hierarchy;
+with LSP.Ada_Handlers.Formatting;
 with LSP.Ada_Handlers.Invisibles;
 with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
@@ -2771,6 +2773,49 @@ package body LSP.Ada_Handlers is
                  message => "Document is not opened"));
       end if;
    end On_FoldingRange_Request;
+
+   ---------------------------
+   -- On_Formatting_Request --
+   ---------------------------
+
+   overriding procedure On_Formatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentFormattingParams)
+   is
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+      Error    : LSP.Errors.ResponseError;
+      Success  : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+
+   begin
+      LSP.Ada_Handlers.Formatting.Format
+        (Context.all,
+         Document,
+         LSP.Constants.Empty,
+         Value.options,
+         Success,
+         Response,
+         Messages,
+         Error);
+
+      if Success then
+         Self.Sender.On_Formatting_Response (Id, Response);
+
+         for Message of Messages loop
+            Self.Sender.On_ShowMessage_Notification
+              ((LSP.Enumerations.Info, Message));
+         end loop;
+
+      else
+         Self.Sender.On_Error_Response (Id, Error);
+      end if;
+   end On_Formatting_Request;
 
    ---------------------
    -- On_Full_Request --
