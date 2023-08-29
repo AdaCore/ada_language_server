@@ -59,7 +59,11 @@ package body LSP.Known_Requests is
      (Self  : in out Visitor;
       Value : LSP.Server_Requests.Server_Request'Class) is
    begin
-      Self.Parent.Map.Insert (Value.Id, Cast (Value'Unchecked_Access));
+      if Self.Parent.Removing then
+         Self.Parent.Map.Delete (Value.Id);
+      else
+         Self.Parent.Map.Insert (Value.Id, Cast (Value'Unchecked_Access));
+      end if;
    end On_Server_Request;
 
    ---------------------
@@ -70,6 +74,7 @@ package body LSP.Known_Requests is
      (Self    : in out Known_Request_Map;
       Message : in out LSP.Server_Messages.Server_Message'Class) is
    begin
+      Self.Removing := False;
       Message.Visit_Server_Message_Visitor (Self.Visitor);
    end Process_Message;
 
@@ -78,10 +83,10 @@ package body LSP.Known_Requests is
    --------------------
 
    procedure Remove_Request
-     (Self : in out Known_Request_Map;
-      Id   : LSP.Structures.Integer_Or_Virtual_String) is
+     (Self    : in out Known_Request_Map;
+      Message : LSP.Server_Messages.Server_Message'Class) is
    begin
-      Self.Map.Exclude (Id);
+      Self.Removing := True;
    end Remove_Request;
 
 end LSP.Known_Requests;

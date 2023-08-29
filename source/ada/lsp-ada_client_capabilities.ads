@@ -34,6 +34,7 @@ package LSP.Ada_Client_Capabilities is
    function To_Server_Capabilities
      (Self : Client_Capability'Class;
       Incremental_Text_Changes : Boolean;
+      Commands                 : LSP.Structures.Virtual_String_Vector;
       Token_Types              : LSP.Structures.Virtual_String_Vector;
       Token_Modifiers          : LSP.Structures.Virtual_String_Vector)
       return LSP.Structures.ServerCapabilities;

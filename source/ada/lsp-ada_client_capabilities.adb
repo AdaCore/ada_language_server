@@ -173,13 +173,27 @@ package body LSP.Ada_Client_Capabilities is
    ----------------------------
 
    function To_Server_Capabilities
-     (Self                     : Client_Capability'Class;
+     (Self : Client_Capability'Class;
       Incremental_Text_Changes : Boolean;
+      Commands                 : LSP.Structures.Virtual_String_Vector;
       Token_Types              : LSP.Structures.Virtual_String_Vector;
       Token_Modifiers          : LSP.Structures.Virtual_String_Vector)
       return LSP.Structures.ServerCapabilities
    is
       use type VSS.Strings.Virtual_String;
+
+      function Full_codeActionProvider
+        return LSP.Structures.Boolean_Or_CodeActionOptions_Optional is
+          (Is_Set => True,
+           Value  =>
+             (Is_Boolean        => False,
+              CodeActionOptions =>
+                (workDoneProgress => LSP.Constants.False,
+                 codeActionKinds  =>
+                   (LSP.Enumerations.QuickFix        => True,
+                    LSP.Enumerations.RefactorRewrite => True,
+                    others                           => False),
+                 resolveProvider  => LSP.Constants.False)));
 
    begin
       return Result : LSP.Structures.ServerCapabilities do
@@ -188,10 +202,18 @@ package body LSP.Ada_Client_Capabilities is
             Value  =>
               (Is_TextDocumentSyncOptions => False,
                TextDocumentSyncKind       =>
-                 (if Incremental_Text_Changes then
-                       LSP.Enumerations.Incremental
-                  else
-                     LSP.Enumerations.Full)));
+                 (if Incremental_Text_Changes then LSP.Enumerations.Incremental
+                  else LSP.Enumerations.Full)));
+
+         Result.callHierarchyProvider     := LSP.Constants.True;
+         Result.declarationProvider       := LSP.Constants.True;
+         Result.definitionProvider        := LSP.Constants.True;
+         Result.documentHighlightProvider := LSP.Constants.True;
+         Result.foldingRangeProvider      := LSP.Constants.True;
+         Result.hoverProvider             := LSP.Constants.True;
+         Result.implementationProvider    := LSP.Constants.True;
+         Result.referencesProvider        := LSP.Constants.True;
+         Result.typeDefinitionProvider    := LSP.Constants.True;
 
          Result.completionProvider :=
            (Is_Set => True,
@@ -199,21 +221,15 @@ package body LSP.Ada_Client_Capabilities is
                        resolveProvider   => LSP.Constants.True,
                        others            => <>));
 
-         Result.callHierarchyProvider     := LSP.Constants.True;
-         Result.declarationProvider       := LSP.Constants.True;
-         Result.definitionProvider        := LSP.Constants.True;
-         Result.documentHighlightProvider := LSP.Constants.True;
-         Result.foldingRangeProvider      := LSP.Constants.True;
-         Result.referencesProvider        := LSP.Constants.True;
-         Result.hoverProvider             := (True, (True, True));
-         Result.implementationProvider    := LSP.Constants.True;
-         Result.signatureHelpProvider     :=
+         Result.codeActionProvider :=
+           (if Self.Code_ActionLiteralSupport then Full_codeActionProvider
+            else LSP.Constants.True);
+
+         Result.executeCommandProvider :=
            (Is_Set => True,
             Value  =>
-              (triggerCharacters   => [",", "("],
-               retriggerCharacters => [1 * VSS.Characters.Latin.Backspace],
-               workDoneProgress    => <>));
-         Result.typeDefinitionProvider    := LSP.Constants.True;
+              (commands => Commands,
+               others   => <>));
 
          Result.renameProvider :=
            (Is_Set => True,
@@ -235,24 +251,13 @@ package body LSP.Ada_Client_Capabilities is
                      tokenModifiers => Token_Modifiers),
                   others  => <>)));
 
-         if Self.Code_Action
-           and then Self.Code_ActionLiteralSupport
-         then
-            Result.codeActionProvider :=
-              (Is_Set => True,
-               Value  =>
-                 (Is_Boolean        => False,
-                  CodeActionOptions =>
-                    (workDoneProgress => LSP.Constants.False,
-                     codeActionKinds  =>
-                       (LSP.Enumerations.QuickFix        => True,
-                        LSP.Enumerations.RefactorRewrite => True,
-                        others                           => False),
-                     resolveProvider  => LSP.Constants.False)));
+         Result.signatureHelpProvider :=
+           (Is_Set => True,
+            Value  =>
+              (triggerCharacters   => [",", "("],
+               retriggerCharacters => [1 * VSS.Characters.Latin.Backspace],
+               workDoneProgress    => <>));
 
-         else
-            Result.codeActionProvider := (Is_Set => True, others => <>);
-         end if;
       end return;
    end To_Server_Capabilities;
 

@@ -59,6 +59,18 @@ package LSP.Constants is
      return LSP.Structures.callHierarchyProvider_OfServerCapabilities_Optional
        is (Is_Set => True, Value => True);
 
+   function True return LSP.Structures.Boolean_Or_HoverOptions
+     is (Is_Boolean => True, Boolean => True);
+
+   function True return LSP.Structures.Boolean_Or_HoverOptions_Optional
+     is (Is_Set => True, Value => True);
+
+   function True return LSP.Structures.Boolean_Or_CodeActionOptions
+     is (Is_Boolean => True, Boolean => True);
+
+   function True return LSP.Structures.Boolean_Or_CodeActionOptions_Optional
+     is (Is_Set => True, Value => True);
+
    function True
      return LSP.Structures.typeDefinitionProvider_OfServerCapabilities
        is (Kind => LSP.Structures.Variant_1, Variant_1 => True);
@@ -144,5 +156,8 @@ package LSP.Constants is
 
    function RequestFailed return Integer
      is (LSPErrorCodes_Map (LSP.Enumerations.RequestFailed));
+
+   function RequestCancelled return Integer
+     is (LSPErrorCodes_Map (LSP.Enumerations.RequestCancelled));
 
 end LSP.Constants;

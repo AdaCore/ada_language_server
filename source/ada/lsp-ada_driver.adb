@@ -38,6 +38,8 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with LSP.Ada_Handlers;
+with LSP.Ada_Handlers.Suspend_Executions;
+with LSP.Commands;
 with LSP.GNATCOLL_Tracers;
 with LSP.Memory_Statistics;
 with LSP.Servers;
@@ -242,6 +244,9 @@ begin
       if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
          Server.Run (GPR_Handler'Unchecked_Access, Tracer'Unchecked_Access);
       else
+         LSP.Commands.Register
+           (LSP.Ada_Handlers.Suspend_Executions.Suspend_Execution'Tag);
+
          Server.Run (Ada_Handler'Unchecked_Access, Tracer'Unchecked_Access);
       end if;
    exception

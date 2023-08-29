@@ -3095,6 +3095,7 @@ package body LSP.Ada_Handlers is
 
       Response.capabilities := Self.Client.To_Server_Capabilities
         (Self.Incremental_Text_Changes,
+         LSP.Commands.All_Commands,
          Token_Types,
          Token_Motifiers);
 
@@ -3568,6 +3569,15 @@ package body LSP.Ada_Handlers is
    is
       package Canceled is new LSP.Generic_Cancel_Check (Value'Access, 127);
    begin
+      if Value.Canceled then
+         Self.Sender.On_Error_Response
+           (Value.Id,
+            (code    => LSP.Constants.RequestCancelled,
+             message => "Request was canceled"));
+
+         return;
+      end if;
+
       Self.Implemented := True;
       Self.Is_Canceled := Canceled.Has_Been_Canceled'Unrestricted_Access;
 

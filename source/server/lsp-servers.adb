@@ -31,6 +31,7 @@ with VSS.Text_Streams.Memory_UTF8_Output;
 with LSP.Client_Message_Writers;
 with LSP.Constants;
 with LSP.Errors;
+with LSP.Known_Requests;
 with LSP.Lifecycle_Checkers;
 with LSP.Server_Notification_Readers;
 with LSP.Server_Request_Readers;
@@ -41,9 +42,10 @@ package body LSP.Servers is
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
 
    procedure Process_One_Message
-     (Self        : in out Server'Class;
-      Checker     : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
-      EOF         : in out Boolean);
+     (Self    : in out Server'Class;
+      Checker : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
+      Map     : in out LSP.Known_Requests.Known_Request_Map;
+      EOF     : in out Boolean);
    --  Read data from stdin and create a message if there is enough data.
    --  Then put the message into Self.Input_Queue.
    --  Handle initialization logic by tracking 'initialize' request using
@@ -170,9 +172,10 @@ package body LSP.Servers is
    -------------------------
 
    procedure Process_One_Message
-     (Self        : in out Server'Class;
-      Checker     : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
-      EOF         : in out Boolean)
+     (Self    : in out Server'Class;
+      Checker : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
+      Map     : in out LSP.Known_Requests.Known_Request_Map;
+      EOF     : in out Boolean)
    is
       use type Ada.Streams.Stream_Element_Count;
 
@@ -472,6 +475,7 @@ package body LSP.Servers is
          if Ok then
             --  Now we have a message to process. Push it to the processing
             --  task
+            Map.Process_Message (Message.all);
             Self.Input_Queue.Enqueue (Message);
          end if;
 
@@ -636,9 +640,10 @@ package body LSP.Servers is
    ---------------------
 
    task body Input_Task_Type is
-      EOF         : Boolean := False;
-      Message     : Server_Message_Access;
-      Checker     : LSP.Lifecycle_Checkers.Lifecycle_Checker;
+      EOF     : Boolean := False;
+      Message : Server_Message_Access;
+      Map     : LSP.Known_Requests.Known_Request_Map;
+      Checker : LSP.Lifecycle_Checkers.Lifecycle_Checker;
    begin
       accept Start;
 
@@ -648,6 +653,7 @@ package body LSP.Servers is
             select
                --  Process all available outputs before acceptiong Stop
                Server.Destroy_Queue.Dequeue (Message);
+               Map.Remove_Request (Message.all);
                Free (Message);
 
             else
@@ -659,7 +665,7 @@ package body LSP.Servers is
             accept Stop;
             exit;
          else
-            Server.Process_One_Message (Checker, EOF);
+            Server.Process_One_Message (Checker, Map, EOF);
             --  This call can block reading from stream
 
             if EOF then
@@ -676,6 +682,7 @@ package body LSP.Servers is
       --  leaving this task.
       while Natural (Server.Destroy_Queue.Current_Use) > 0 loop
          Server.Destroy_Queue.Dequeue (Message);
+         Map.Remove_Request (Message.all);
          Free (Message);
       end loop;
 

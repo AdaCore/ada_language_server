@@ -38,8 +38,8 @@ package LSP.Known_Requests is
    --  request and mark it as canceled.
 
    procedure Remove_Request
-     (Self : in out Known_Request_Map;
-      Id   : LSP.Structures.Integer_Or_Virtual_String);
+     (Self    : in out Known_Request_Map;
+      Message : LSP.Server_Messages.Server_Message'Class);
    --  Remove request with given Id from the map
 
 private
@@ -81,10 +81,11 @@ private
       "="             => "=");
 
    type Known_Request_Map is tagged limited record
-      Visitor : LSP.Known_Requests.Visitor
+      Visitor  : LSP.Known_Requests.Visitor
         (Known_Request_Map'Unchecked_Access);
 
-      Map     : Request_Maps.Map;
+      Map      : Request_Maps.Map;
+      Removing : Boolean;
    end record;
 
 end LSP.Known_Requests;
