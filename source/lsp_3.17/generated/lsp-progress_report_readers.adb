@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 with Minimal_Perfect_Hash;
 with LSP.Inputs;
@@ -44,36 +46,36 @@ with LSP.Progress_Reports.ProgressEnd;
 package body LSP.Progress_Report_Readers is
    package Method_Map is new Minimal_Perfect_Hash
      (["callHierarchy/incomingCalls",
-       "callHierarchy/outgoingCalls",
-       "textDocument/codeAction",
-       "textDocument/codeLens",
-       "textDocument/colorPresentation",
-       "textDocument/completion",
-       "textDocument/declaration",
-       "textDocument/definition",
-       "textDocument/diagnostic",
-       "textDocument/documentColor",
-       "textDocument/documentHighlight",
-       "textDocument/documentLink",
-       "textDocument/documentSymbol",
-       "textDocument/foldingRange",
-       "textDocument/implementation",
-       "textDocument/inlayHint",
-       "textDocument/inlineValue",
-       "textDocument/moniker",
-       "textDocument/references",
-       "textDocument/selectionRange",
-       "textDocument/semanticTokens/full",
-       "textDocument/semanticTokens/full/delta",
-       "textDocument/semanticTokens/range",
-       "textDocument/typeDefinition",
-       "typeHierarchy/subtypes",
-       "typeHierarchy/supertypes",
-       "workspace/diagnostic",
-       "workspace/symbol",
-       "WorkDoneProgressBegin",
-       "WorkDoneProgressReport",
-       "WorkDoneProgressEnd"]);
+      "callHierarchy/outgoingCalls",
+      "textDocument/codeAction",
+      "textDocument/codeLens",
+      "textDocument/colorPresentation",
+      "textDocument/completion",
+      "textDocument/declaration",
+      "textDocument/definition",
+      "textDocument/diagnostic",
+      "textDocument/documentColor",
+      "textDocument/documentHighlight",
+      "textDocument/documentLink",
+      "textDocument/documentSymbol",
+      "textDocument/foldingRange",
+      "textDocument/implementation",
+      "textDocument/inlayHint",
+      "textDocument/inlineValue",
+      "textDocument/moniker",
+      "textDocument/references",
+      "textDocument/selectionRange",
+      "textDocument/semanticTokens/full",
+      "textDocument/semanticTokens/full/delta",
+      "textDocument/semanticTokens/range",
+      "textDocument/typeDefinition",
+      "typeHierarchy/subtypes",
+      "typeHierarchy/supertypes",
+      "workspace/diagnostic",
+      "workspace/symbol",
+      "WorkDoneProgressBegin",
+      "WorkDoneProgressReport",
+      "WorkDoneProgressEnd"]);
 
    procedure Initialize is
    begin

@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 package LSP.Client_Requests.Tokens_Refresh is
    pragma Preelaborate;

@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 with VSS.JSON.Pull_Readers;
 
@@ -109,6 +111,10 @@ package LSP.Inputs is
    procedure Read_WorkDoneProgressCancelParams
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.WorkDoneProgressCancelParams);
+
+   procedure Read_ProgressToken
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.ProgressToken);
 
    procedure Read_DidChangeWatchedFilesParams
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;

@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 pragma Ada_2022;
 with Interfaces;
@@ -260,10 +262,6 @@ package body LSP.Inputs is
    procedure Read_NotebookDocumentSyncClientCapabilities
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.NotebookDocumentSyncClientCapabilities);
-
-   procedure Read_ProgressToken
-     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Structures.ProgressToken);
 
    procedure Read_DiagnosticOptions
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -1276,11 +1274,11 @@ package body LSP.Inputs is
    package ClientCapabilities_Scope is
       package ClientCapabilities_Map is new Minimal_Perfect_Hash
         (["workspace",
-          "textDocument",
-          "notebookDocument",
-          "window",
-          "general",
-          "experimental"]);
+         "textDocument",
+         "notebookDocument",
+         "window",
+         "general",
+         "experimental"]);
 
    end ClientCapabilities_Scope;
 
@@ -1352,22 +1350,22 @@ package body LSP.Inputs is
    package InitializeParams_Scope is
       package InitializeParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "processId",
-          "clientInfo",
-          "locale",
-          "rootPath",
-          "rootUri",
-          "capabilities",
-          "initializationOptions",
-          "trace",
-          "workspaceFolders"]);
+         "processId",
+         "clientInfo",
+         "locale",
+         "rootPath",
+         "rootUri",
+         "capabilities",
+         "initializationOptions",
+         "trace",
+         "workspaceFolders"]);
 
       package trace_Of_InitializeParams_Scope is
          package trace_Of_InitializeParams_Map is new Minimal_Perfect_Hash
            (["off",
-             "messages",
-             "compact",
-             "verbose"]);
+            "messages",
+            "compact",
+            "verbose"]);
 
       end trace_Of_InitializeParams_Scope;
 
@@ -1690,10 +1688,10 @@ package body LSP.Inputs is
    package FoldingRangeClientCapabilities_Scope is
       package FoldingRangeClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "rangeLimit",
-          "lineFoldingOnly",
-          "foldingRangeKind",
-          "foldingRange"]);
+         "rangeLimit",
+         "lineFoldingOnly",
+         "foldingRangeKind",
+         "foldingRange"]);
 
       package foldingRange_OfFoldingRangeClientCapabilities_Scope is
          package foldingRange_OfFoldingRangeClientCapabilities_Map is new Minimal_Perfect_Hash
@@ -1861,9 +1859,9 @@ package body LSP.Inputs is
    package CreateFile_Scope is
       package CreateFile_Map is new Minimal_Perfect_Hash
         (["kind",
-          "annotationId",
-          "uri",
-          "options"]);
+         "annotationId",
+         "uri",
+         "options"]);
 
    end CreateFile_Scope;
 
@@ -1910,7 +1908,7 @@ package body LSP.Inputs is
    package CompletionContext_Scope is
       package CompletionContext_Map is new Minimal_Perfect_Hash
         (["triggerKind",
-          "triggerCharacter"]);
+         "triggerCharacter"]);
 
    end CompletionContext_Scope;
 
@@ -1968,10 +1966,10 @@ package body LSP.Inputs is
    package DocumentDiagnosticParams_Scope is
       package DocumentDiagnosticParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument",
-          "identifier",
-          "previousResultId"]);
+         "partialResultToken",
+         "textDocument",
+         "identifier",
+         "previousResultId"]);
 
    end DocumentDiagnosticParams_Scope;
 
@@ -2042,14 +2040,14 @@ package body LSP.Inputs is
 
    package CodeActionKind_Map is new Minimal_Perfect_Hash
      (["",
-       "quickfix",
-       "refactor",
-       "refactor.extract",
-       "refactor.inline",
-       "refactor.rewrite",
-       "source",
-       "source.organizeImports",
-       "source.fixAll"]);
+      "quickfix",
+      "refactor",
+      "refactor.extract",
+      "refactor.inline",
+      "refactor.rewrite",
+      "source",
+      "source.organizeImports",
+      "source.fixAll"]);
 
    procedure Read_CodeActionKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -2064,8 +2062,8 @@ package body LSP.Inputs is
    package RelatedUnchangedDocumentDiagnosticReport_Scope is
       package RelatedUnchangedDocumentDiagnosticReport_Map is new Minimal_Perfect_Hash
         (["kind",
-          "resultId",
-          "relatedDocuments"]);
+         "resultId",
+         "relatedDocuments"]);
 
    end RelatedUnchangedDocumentDiagnosticReport_Scope;
 
@@ -2128,7 +2126,7 @@ package body LSP.Inputs is
    package DidChangeWatchedFilesClientCapabilities_Scope is
       package DidChangeWatchedFilesClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "relativePatternSupport"]);
+         "relativePatternSupport"]);
 
    end DidChangeWatchedFilesClientCapabilities_Scope;
 
@@ -2170,28 +2168,28 @@ package body LSP.Inputs is
 
    package SemanticTokenTypes_Map is new Minimal_Perfect_Hash
      (["namespace",
-       "type",
-       "class",
-       "enum",
-       "interface",
-       "struct",
-       "typeParameter",
-       "parameter",
-       "variable",
-       "property",
-       "enumMember",
-       "event",
-       "function",
-       "method",
-       "macro",
-       "keyword",
-       "modifier",
-       "comment",
-       "string",
-       "number",
-       "regexp",
-       "operator",
-       "decorator"]);
+      "type",
+      "class",
+      "enum",
+      "interface",
+      "struct",
+      "typeParameter",
+      "parameter",
+      "variable",
+      "property",
+      "enumMember",
+      "event",
+      "function",
+      "method",
+      "macro",
+      "keyword",
+      "modifier",
+      "comment",
+      "string",
+      "number",
+      "regexp",
+      "operator",
+      "decorator"]);
 
    procedure Read_SemanticTokenTypes
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -2206,8 +2204,8 @@ package body LSP.Inputs is
    package AnnotatedTextEdit_Scope is
       package AnnotatedTextEdit_Map is new Minimal_Perfect_Hash
         (["range",
-          "newText",
-          "annotationId"]);
+         "newText",
+         "annotationId"]);
 
    end AnnotatedTextEdit_Scope;
 
@@ -2283,9 +2281,9 @@ package body LSP.Inputs is
    package SignatureInformation_Scope is
       package SignatureInformation_Map is new Minimal_Perfect_Hash
         (["label",
-          "documentation",
-          "parameters",
-          "activeParameter"]);
+         "documentation",
+         "parameters",
+         "activeParameter"]);
 
    end SignatureInformation_Scope;
 
@@ -2370,7 +2368,7 @@ package body LSP.Inputs is
    package SemanticTokens_Scope is
       package SemanticTokens_Map is new Minimal_Perfect_Hash
         (["resultId",
-          "data"]);
+         "data"]);
 
    end SemanticTokens_Scope;
 
@@ -2407,9 +2405,9 @@ package body LSP.Inputs is
    package InlineValueParams_Scope is
       package InlineValueParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "textDocument",
-          "range",
-          "context"]);
+         "textDocument",
+         "range",
+         "context"]);
 
    end InlineValueParams_Scope;
 
@@ -2522,15 +2520,15 @@ package body LSP.Inputs is
 
    package SemanticTokenModifiers_Map is new Minimal_Perfect_Hash
      (["declaration",
-       "definition",
-       "readonly",
-       "static",
-       "deprecated",
-       "abstract",
-       "async",
-       "modification",
-       "documentation",
-       "defaultLibrary"]);
+      "definition",
+      "readonly",
+      "static",
+      "deprecated",
+      "abstract",
+      "async",
+      "modification",
+      "documentation",
+      "defaultLibrary"]);
 
    procedure Read_SemanticTokenModifiers
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -2545,7 +2543,7 @@ package body LSP.Inputs is
    package ConfigurationItem_Scope is
       package ConfigurationItem_Map is new Minimal_Perfect_Hash
         (["scopeUri",
-          "section"]);
+         "section"]);
 
    end ConfigurationItem_Scope;
 
@@ -2664,7 +2662,7 @@ package body LSP.Inputs is
    package Declaration_Result_Scope is
       package Declaration_Result_Map is new Minimal_Perfect_Hash
         (["uri",
-          "range"]);
+         "range"]);
 
    end Declaration_Result_Scope;
 
@@ -2684,12 +2682,12 @@ package body LSP.Inputs is
          Handler.Mark;
          if Handler.Is_Null_Value then
             Value :=
-              (Kind   => LSP.Structures.Varian_3,
+              (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
             Value :=
-              (Kind   => LSP.Structures.Varian_2,
+              (Kind   => LSP.Structures.Variant_2,
                others => <>);
             while Handler.Is_Key_Name loop
                declare
@@ -2702,12 +2700,12 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  uri
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  range
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when others =>
@@ -2723,11 +2721,11 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_Declaration (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_DeclarationLink_Vector (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Read_Declaration (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_DeclarationLink_Vector (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                null;  --  #null_value
                Handler.Read_Next;
          end case;
@@ -2737,11 +2735,11 @@ package body LSP.Inputs is
    package Definition_Progress_Report_Scope is
       package Definition_Progress_Report_Map is new Minimal_Perfect_Hash
         (["uri",
-          "range",
-          "originSelectionRange",
-          "targetUri",
-          "targetRange",
-          "targetSelectionRange"]);
+         "range",
+         "originSelectionRange",
+         "targetUri",
+         "targetRange",
+         "targetSelectionRange"]);
 
    end Definition_Progress_Report_Scope;
 
@@ -2775,32 +2773,32 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  uri
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  range
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 3 =>  --  originSelectionRange
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 4 =>  --  targetUri
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 5 =>  --  targetRange
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 6 =>  --  targetSelectionRange
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -2816,10 +2814,10 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_Location_Vector (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_DefinitionLink_Vector (Handler, Value.Varian_2);
+            when LSP.Structures.Variant_1 =>
+               Read_Location_Vector (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_DefinitionLink_Vector (Handler, Value.Variant_2);
          end case;
       end;
    end Read_Definition_Progress_Report;
@@ -2827,8 +2825,8 @@ package body LSP.Inputs is
    package SemanticTokensParams_Scope is
       package SemanticTokensParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument"]);
+         "partialResultToken",
+         "textDocument"]);
 
    end SemanticTokensParams_Scope;
 
@@ -2928,11 +2926,11 @@ package body LSP.Inputs is
    package DocumentSymbol_Progress_Report_Scope is
       package DocumentSymbol_Progress_Report_Map is new Minimal_Perfect_Hash
         (["location",
-          "containerName",
-          "detail",
-          "range",
-          "selectionRange",
-          "children"]);
+         "containerName",
+         "detail",
+         "range",
+         "selectionRange",
+         "children"]);
 
    end DocumentSymbol_Progress_Report_Scope;
 
@@ -2966,32 +2964,32 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  location
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  containerName
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 3 =>  --  detail
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 4 =>  --  range
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 5 =>  --  selectionRange
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 6 =>  --  children
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -3007,10 +3005,10 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_SymbolInformation_Vector (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_DocumentSymbol_Vector (Handler, Value.Varian_2);
+            when LSP.Structures.Variant_1 =>
+               Read_SymbolInformation_Vector (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_DocumentSymbol_Vector (Handler, Value.Variant_2);
          end case;
       end;
    end Read_DocumentSymbol_Progress_Report;
@@ -3076,8 +3074,8 @@ package body LSP.Inputs is
    package NotebookDocumentFilter_Scope is
       package NotebookDocumentFilter_Map is new Minimal_Perfect_Hash
         (["notebookType",
-          "scheme",
-          "pattern"]);
+         "scheme",
+         "pattern"]);
 
    end NotebookDocumentFilter_Scope;
 
@@ -3119,9 +3117,9 @@ package body LSP.Inputs is
    package Color_Scope is
       package Color_Map is new Minimal_Perfect_Hash
         (["red",
-          "green",
-          "blue",
-          "alpha"]);
+         "green",
+         "blue",
+         "alpha"]);
 
    end Color_Scope;
 
@@ -3164,8 +3162,8 @@ package body LSP.Inputs is
    package FileOperationPattern_Scope is
       package FileOperationPattern_Map is new Minimal_Perfect_Hash
         (["glob",
-          "matches",
-          "options"]);
+         "matches",
+         "options"]);
 
    end FileOperationPattern_Scope;
 
@@ -3211,7 +3209,7 @@ package body LSP.Inputs is
    package LinkedEditingRanges_Scope is
       package LinkedEditingRanges_Map is new Minimal_Perfect_Hash
         (["ranges",
-          "wordPattern"]);
+         "wordPattern"]);
 
    end LinkedEditingRanges_Scope;
 
@@ -3293,40 +3291,40 @@ package body LSP.Inputs is
    package ServerCapabilities_Scope is
       package ServerCapabilities_Map is new Minimal_Perfect_Hash
         (["positionEncoding",
-          "textDocumentSync",
-          "notebookDocumentSync",
-          "completionProvider",
-          "hoverProvider",
-          "signatureHelpProvider",
-          "declarationProvider",
-          "definitionProvider",
-          "typeDefinitionProvider",
-          "implementationProvider",
-          "referencesProvider",
-          "documentHighlightProvider",
-          "documentSymbolProvider",
-          "codeActionProvider",
-          "codeLensProvider",
-          "documentLinkProvider",
-          "colorProvider",
-          "workspaceSymbolProvider",
-          "documentFormattingProvider",
-          "documentRangeFormattingProvider",
-          "documentOnTypeFormattingProvider",
-          "renameProvider",
-          "foldingRangeProvider",
-          "selectionRangeProvider",
-          "executeCommandProvider",
-          "callHierarchyProvider",
-          "linkedEditingRangeProvider",
-          "semanticTokensProvider",
-          "monikerProvider",
-          "typeHierarchyProvider",
-          "inlineValueProvider",
-          "inlayHintProvider",
-          "diagnosticProvider",
-          "workspace",
-          "experimental"]);
+         "textDocumentSync",
+         "notebookDocumentSync",
+         "completionProvider",
+         "hoverProvider",
+         "signatureHelpProvider",
+         "declarationProvider",
+         "definitionProvider",
+         "typeDefinitionProvider",
+         "implementationProvider",
+         "referencesProvider",
+         "documentHighlightProvider",
+         "documentSymbolProvider",
+         "codeActionProvider",
+         "codeLensProvider",
+         "documentLinkProvider",
+         "colorProvider",
+         "workspaceSymbolProvider",
+         "documentFormattingProvider",
+         "documentRangeFormattingProvider",
+         "documentOnTypeFormattingProvider",
+         "renameProvider",
+         "foldingRangeProvider",
+         "selectionRangeProvider",
+         "executeCommandProvider",
+         "callHierarchyProvider",
+         "linkedEditingRangeProvider",
+         "semanticTokensProvider",
+         "monikerProvider",
+         "typeHierarchyProvider",
+         "inlineValueProvider",
+         "inlayHintProvider",
+         "diagnosticProvider",
+         "workspace",
+         "experimental"]);
 
       package NotebookDocumentSyncOptions_Or_NotebookDocumentSyncRegistrationOptions_Scope
       is
@@ -3338,28 +3336,28 @@ package body LSP.Inputs is
       package implementationProvider_OfServerCapabilities_Scope is
          package implementationProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end implementationProvider_OfServerCapabilities_Scope;
 
       package typeHierarchyProvider_OfServerCapabilities_Scope is
          package typeHierarchyProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end typeHierarchyProvider_OfServerCapabilities_Scope;
 
       package DiagnosticOptions_Or_DiagnosticRegistrationOptions_Scope is
          package DiagnosticOptions_Or_DiagnosticRegistrationOptions_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end DiagnosticOptions_Or_DiagnosticRegistrationOptions_Scope;
 
       package inlayHintProvider_OfServerCapabilities_Scope is
          package inlayHintProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end inlayHintProvider_OfServerCapabilities_Scope;
 
@@ -3367,7 +3365,7 @@ package body LSP.Inputs is
       is
          package SemanticTokensOptions_Or_SemanticTokensRegistrationOptions_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end SemanticTokensOptions_Or_SemanticTokensRegistrationOptions_Scope;
 
@@ -3380,63 +3378,63 @@ package body LSP.Inputs is
       package selectionRangeProvider_OfServerCapabilities_Scope is
          package selectionRangeProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end selectionRangeProvider_OfServerCapabilities_Scope;
 
       package workspace_OfServerCapabilities_Scope is
          package workspace_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["workspaceFolders",
-             "fileOperations"]);
+            "fileOperations"]);
 
       end workspace_OfServerCapabilities_Scope;
 
       package declarationProvider_OfServerCapabilities_Scope is
          package declarationProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end declarationProvider_OfServerCapabilities_Scope;
 
       package callHierarchyProvider_OfServerCapabilities_Scope is
          package callHierarchyProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end callHierarchyProvider_OfServerCapabilities_Scope;
 
       package linkedEditingRangeProvider_OfServerCapabilities_Scope is
          package linkedEditingRangeProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end linkedEditingRangeProvider_OfServerCapabilities_Scope;
 
       package foldingRangeProvider_OfServerCapabilities_Scope is
          package foldingRangeProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end foldingRangeProvider_OfServerCapabilities_Scope;
 
       package typeDefinitionProvider_OfServerCapabilities_Scope is
          package typeDefinitionProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end typeDefinitionProvider_OfServerCapabilities_Scope;
 
       package inlineValueProvider_OfServerCapabilities_Scope is
          package inlineValueProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end inlineValueProvider_OfServerCapabilities_Scope;
 
       package colorProvider_OfServerCapabilities_Scope is
          package colorProvider_OfServerCapabilities_Map is new Minimal_Perfect_Hash
            (["documentSelector",
-             "id"]);
+            "id"]);
 
       end colorProvider_OfServerCapabilities_Scope;
 
@@ -3691,12 +3689,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -3711,12 +3709,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -3732,14 +3730,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_ImplementationOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_ImplementationOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_ImplementationRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_implementationProvider_OfServerCapabilities;
@@ -3762,12 +3760,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -3781,12 +3779,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -3802,14 +3800,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_TypeHierarchyOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_TypeHierarchyOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_TypeHierarchyRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_typeHierarchyProvider_OfServerCapabilities;
@@ -3895,12 +3893,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -3914,12 +3912,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -3935,13 +3933,13 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_InlayHintOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
-                  Read_InlayHintRegistrationOptions (Handler, Value.Varian_3);
+               when LSP.Structures.Variant_2 =>
+                  Read_InlayHintOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
+                  Read_InlayHintRegistrationOptions (Handler, Value.Variant_3);
             end case;
          end;
       end Read_inlayHintProvider_OfServerCapabilities;
@@ -4028,12 +4026,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4047,7 +4045,7 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4063,13 +4061,13 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_MonikerOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
-                  Read_MonikerRegistrationOptions (Handler, Value.Varian_3);
+               when LSP.Structures.Variant_2 =>
+                  Read_MonikerOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
+                  Read_MonikerRegistrationOptions (Handler, Value.Variant_3);
             end case;
          end;
       end Read_monikerProvider_OfServerCapabilities;
@@ -4115,12 +4113,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4135,12 +4133,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4156,14 +4154,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_SelectionRangeOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_SelectionRangeOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_SelectionRangeRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_selectionRangeProvider_OfServerCapabilities;
@@ -4269,12 +4267,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4288,12 +4286,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4309,14 +4307,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_DeclarationOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_DeclarationOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_DeclarationRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_declarationProvider_OfServerCapabilities;
@@ -4339,12 +4337,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4358,12 +4356,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4379,14 +4377,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_CallHierarchyOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_CallHierarchyOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_CallHierarchyRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_callHierarchyProvider_OfServerCapabilities;
@@ -4457,12 +4455,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4477,12 +4475,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4498,14 +4496,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_LinkedEditingRangeOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_LinkedEditingRangeOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_LinkedEditingRangeRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_linkedEditingRangeProvider_OfServerCapabilities;
@@ -4575,12 +4573,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4594,12 +4592,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4615,14 +4613,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_FoldingRangeOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_FoldingRangeOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_FoldingRangeRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_foldingRangeProvider_OfServerCapabilities;
@@ -4645,12 +4643,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4665,12 +4663,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4686,14 +4684,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_TypeDefinitionOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_TypeDefinitionOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_TypeDefinitionRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_typeDefinitionProvider_OfServerCapabilities;
@@ -4716,12 +4714,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4735,12 +4733,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4756,14 +4754,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_InlineValueOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_InlineValueOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_InlineValueRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_inlineValueProvider_OfServerCapabilities;
@@ -4785,12 +4783,12 @@ package body LSP.Inputs is
             Handler.Mark;
             if Handler.Is_Boolean_Value then
                Value :=
-                 (Kind   => LSP.Structures.Varian_1,
+                 (Kind   => LSP.Structures.Variant_1,
                   others => <>);
             elsif Handler.Is_Start_Object then
                Handler.Read_Next;
                Value :=
-                 (Kind   => LSP.Structures.Varian_2,
+                 (Kind   => LSP.Structures.Variant_2,
                   others => <>);
                while Handler.Is_Key_Name loop
                   declare
@@ -4803,12 +4801,12 @@ package body LSP.Inputs is
                      case Index is
                         when 1 =>  --  documentSelector
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when 2 =>  --  id
                            Value :=
-                             (Kind   => LSP.Structures.Varian_3,
+                             (Kind   => LSP.Structures.Variant_3,
                               others => <>);
                            exit;
                         when others =>
@@ -4824,14 +4822,14 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Value.Varian_1 := Handler.Boolean_Value;
+               when LSP.Structures.Variant_1 =>
+                  Value.Variant_1 := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when LSP.Structures.Varian_2 =>
-                  Read_DocumentColorOptions (Handler, Value.Varian_2);
-               when LSP.Structures.Varian_3 =>
+               when LSP.Structures.Variant_2 =>
+                  Read_DocumentColorOptions (Handler, Value.Variant_2);
+               when LSP.Structures.Variant_3 =>
                   Read_DocumentColorRegistrationOptions
-                    (Handler, Value.Varian_3);
+                    (Handler, Value.Variant_3);
             end case;
          end;
       end Read_colorProvider_OfServerCapabilities;
@@ -5214,8 +5212,8 @@ package body LSP.Inputs is
    package ImplementationRegistrationOptions_Scope is
       package ImplementationRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "id"]);
+         "workDoneProgress",
+         "id"]);
 
    end ImplementationRegistrationOptions_Scope;
 
@@ -5277,7 +5275,7 @@ package body LSP.Inputs is
    package LogTraceParams_Scope is
       package LogTraceParams_Map is new Minimal_Perfect_Hash
         (["message",
-          "verbose"]);
+         "verbose"]);
 
    end LogTraceParams_Scope;
 
@@ -5316,8 +5314,8 @@ package body LSP.Inputs is
    package FoldingRangeRegistrationOptions_Scope is
       package FoldingRangeRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "id"]);
+         "workDoneProgress",
+         "id"]);
 
    end FoldingRangeRegistrationOptions_Scope;
 
@@ -5379,7 +5377,7 @@ package body LSP.Inputs is
    package InlineValueContext_Scope is
       package InlineValueContext_Map is new Minimal_Perfect_Hash
         (["frameId",
-          "stoppedLocation"]);
+         "stoppedLocation"]);
 
    end InlineValueContext_Scope;
 
@@ -5499,10 +5497,10 @@ package body LSP.Inputs is
    package RenameFile_Scope is
       package RenameFile_Map is new Minimal_Perfect_Hash
         (["kind",
-          "annotationId",
-          "oldUri",
-          "newUri",
-          "options"]);
+         "annotationId",
+         "oldUri",
+         "newUri",
+         "options"]);
 
    end RenameFile_Scope;
 
@@ -5635,13 +5633,13 @@ package body LSP.Inputs is
    package CallHierarchyItem_Scope is
       package CallHierarchyItem_Map is new Minimal_Perfect_Hash
         (["name",
-          "kind",
-          "tags",
-          "detail",
-          "uri",
-          "range",
-          "selectionRange",
-          "data"]);
+         "kind",
+         "tags",
+         "detail",
+         "uri",
+         "range",
+         "selectionRange",
+         "data"]);
 
    end CallHierarchyItem_Scope;
 
@@ -5735,7 +5733,7 @@ package body LSP.Inputs is
    package RelativePattern_Scope is
       package RelativePattern_Map is new Minimal_Perfect_Hash
         (["baseUri",
-          "pattern"]);
+         "pattern"]);
 
    end RelativePattern_Scope;
 
@@ -5808,9 +5806,9 @@ package body LSP.Inputs is
    package WorkDoneProgressReport_Scope is
       package WorkDoneProgressReport_Map is new Minimal_Perfect_Hash
         (["kind",
-          "cancellable",
-          "message",
-          "percentage"]);
+         "cancellable",
+         "message",
+         "percentage"]);
 
    end WorkDoneProgressReport_Scope;
 
@@ -5929,35 +5927,35 @@ package body LSP.Inputs is
    package TextDocumentClientCapabilities_Scope is
       package TextDocumentClientCapabilities_Map is new Minimal_Perfect_Hash
         (["synchronization",
-          "completion",
-          "hover",
-          "signatureHelp",
-          "declaration",
-          "definition",
-          "typeDefinition",
-          "implementation",
-          "references",
-          "documentHighlight",
-          "documentSymbol",
-          "codeAction",
-          "codeLens",
-          "documentLink",
-          "colorProvider",
-          "formatting",
-          "rangeFormatting",
-          "onTypeFormatting",
-          "rename",
-          "foldingRange",
-          "selectionRange",
-          "publishDiagnostics",
-          "callHierarchy",
-          "semanticTokens",
-          "linkedEditingRange",
-          "moniker",
-          "typeHierarchy",
-          "inlineValue",
-          "inlayHint",
-          "diagnostic"]);
+         "completion",
+         "hover",
+         "signatureHelp",
+         "declaration",
+         "definition",
+         "typeDefinition",
+         "implementation",
+         "references",
+         "documentHighlight",
+         "documentSymbol",
+         "codeAction",
+         "codeLens",
+         "documentLink",
+         "colorProvider",
+         "formatting",
+         "rangeFormatting",
+         "onTypeFormatting",
+         "rename",
+         "foldingRange",
+         "selectionRange",
+         "publishDiagnostics",
+         "callHierarchy",
+         "semanticTokens",
+         "linkedEditingRange",
+         "moniker",
+         "typeHierarchy",
+         "inlineValue",
+         "inlayHint",
+         "diagnostic"]);
 
    end TextDocumentClientCapabilities_Scope;
 
@@ -6166,8 +6164,8 @@ package body LSP.Inputs is
    package WorkspaceSymbolParams_Scope is
       package WorkspaceSymbolParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "query"]);
+         "partialResultToken",
+         "query"]);
 
    end WorkspaceSymbolParams_Scope;
 
@@ -6287,8 +6285,8 @@ package body LSP.Inputs is
    package InsertReplaceEdit_Scope is
       package InsertReplaceEdit_Map is new Minimal_Perfect_Hash
         (["newText",
-          "insert",
-          "replace"]);
+         "insert",
+         "replace"]);
 
    end InsertReplaceEdit_Scope;
 
@@ -6327,7 +6325,7 @@ package body LSP.Inputs is
    package InitializeResult_Scope is
       package InitializeResult_Map is new Minimal_Perfect_Hash
         (["capabilities",
-          "serverInfo"]);
+         "serverInfo"]);
 
    end InitializeResult_Scope;
 
@@ -6366,8 +6364,8 @@ package body LSP.Inputs is
    package InlineValueVariableLookup_Scope is
       package InlineValueVariableLookup_Map is new Minimal_Perfect_Hash
         (["range",
-          "variableName",
-          "caseSensitiveLookup"]);
+         "variableName",
+         "caseSensitiveLookup"]);
 
    end InlineValueVariableLookup_Scope;
 
@@ -6407,7 +6405,7 @@ package body LSP.Inputs is
    package FileEvent_Scope is
       package FileEvent_Map is new Minimal_Perfect_Hash
         (["uri",
-          "type"]);
+         "type"]);
 
    end FileEvent_Scope;
 
@@ -6443,14 +6441,14 @@ package body LSP.Inputs is
    package SignatureHelpClientCapabilities_Scope is
       package SignatureHelpClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "signatureInformation",
-          "contextSupport"]);
+         "signatureInformation",
+         "contextSupport"]);
 
       package signatureInformation_OfSignatureHelpClientCapabilities_Scope is
          package signatureInformation_OfSignatureHelpClientCapabilities_Map is new Minimal_Perfect_Hash
            (["documentationFormat",
-             "parameterInformation",
-             "activeParameterSupport"]);
+            "parameterInformation",
+            "activeParameterSupport"]);
 
       end signatureInformation_OfSignatureHelpClientCapabilities_Scope;
 
@@ -6626,7 +6624,7 @@ package body LSP.Inputs is
    package NotebookDocumentSyncClientCapabilities_Scope is
       package NotebookDocumentSyncClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "executionSummarySupport"]);
+         "executionSummarySupport"]);
 
    end NotebookDocumentSyncClientCapabilities_Scope;
 
@@ -6694,9 +6692,9 @@ package body LSP.Inputs is
    package DiagnosticOptions_Scope is
       package DiagnosticOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "identifier",
-          "interFileDependencies",
-          "workspaceDiagnostics"]);
+         "identifier",
+         "interFileDependencies",
+         "workspaceDiagnostics"]);
 
    end DiagnosticOptions_Scope;
 
@@ -6743,8 +6741,8 @@ package body LSP.Inputs is
    package WindowClientCapabilities_Scope is
       package WindowClientCapabilities_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "showMessage",
-          "showDocument"]);
+         "showMessage",
+         "showDocument"]);
 
    end WindowClientCapabilities_Scope;
 
@@ -6793,14 +6791,14 @@ package body LSP.Inputs is
    package GeneralClientCapabilities_Scope is
       package GeneralClientCapabilities_Map is new Minimal_Perfect_Hash
         (["staleRequestSupport",
-          "regularExpressions",
-          "markdown",
-          "positionEncodings"]);
+         "regularExpressions",
+         "markdown",
+         "positionEncodings"]);
 
       package staleRequestSupport_OfGeneralClientCapabilities_Scope is
          package staleRequestSupport_OfGeneralClientCapabilities_Map is new Minimal_Perfect_Hash
            (["cancel",
-             "retryOnContentModified"]);
+            "retryOnContentModified"]);
 
       end staleRequestSupport_OfGeneralClientCapabilities_Scope;
 
@@ -6989,8 +6987,8 @@ package body LSP.Inputs is
    package SignatureHelp_Scope is
       package SignatureHelp_Map is new Minimal_Perfect_Hash
         (["signatures",
-          "activeSignature",
-          "activeParameter"]);
+         "activeSignature",
+         "activeParameter"]);
 
    end SignatureHelp_Scope;
 
@@ -7119,7 +7117,7 @@ package body LSP.Inputs is
    package DidOpenNotebookDocumentParams_Scope is
       package DidOpenNotebookDocumentParams_Map is new Minimal_Perfect_Hash
         (["notebookDocument",
-          "cellTextDocuments"]);
+         "cellTextDocuments"]);
 
    end DidOpenNotebookDocumentParams_Scope;
 
@@ -7211,8 +7209,8 @@ package body LSP.Inputs is
 
    package ResourceOperationKind_Map is new Minimal_Perfect_Hash
      (["create",
-       "rename",
-       "delete"]);
+      "rename",
+      "delete"]);
 
    procedure Read_ResourceOperationKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -7275,15 +7273,15 @@ package body LSP.Inputs is
    package PrepareRenameResult_Scope is
       package PrepareRenameResult_Map is new Minimal_Perfect_Hash
         (["start",
-          "end",
-          "range",
-          "placeholder",
-          "defaultBehavior"]);
+         "end",
+         "range",
+         "placeholder",
+         "defaultBehavior"]);
 
       package PrepareRenameResult_2_Scope is
          package PrepareRenameResult_2_Map is new Minimal_Perfect_Hash
            (["range",
-             "placeholder"]);
+            "placeholder"]);
 
       end PrepareRenameResult_2_Scope;
 
@@ -7385,27 +7383,27 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  start
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  end
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 3 =>  --  range
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 4 =>  --  placeholder
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 5 =>  --  defaultBehavior
                         Value :=
-                          (Kind   => LSP.Structures.Varian_3,
+                          (Kind   => LSP.Structures.Variant_3,
                            others => <>);
                         exit;
                      when others =>
@@ -7421,12 +7419,12 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_A_Range (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_PrepareRenameResult_2 (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
-               Read_PrepareRenameResult_3 (Handler, Value.Varian_3);
+            when LSP.Structures.Variant_1 =>
+               Read_A_Range (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_PrepareRenameResult_2 (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
+               Read_PrepareRenameResult_3 (Handler, Value.Variant_3);
          end case;
       end;
    end Read_PrepareRenameResult;
@@ -7434,8 +7432,8 @@ package body LSP.Inputs is
    package DocumentLinkParams_Scope is
       package DocumentLinkParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument"]);
+         "partialResultToken",
+         "textDocument"]);
 
    end DocumentLinkParams_Scope;
 
@@ -7478,7 +7476,7 @@ package body LSP.Inputs is
    package DocumentLinkClientCapabilities_Scope is
       package DocumentLinkClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "tooltipSupport"]);
+         "tooltipSupport"]);
 
    end DocumentLinkClientCapabilities_Scope;
 
@@ -7542,8 +7540,8 @@ package body LSP.Inputs is
    package CodeActionContext_Scope is
       package CodeActionContext_Map is new Minimal_Perfect_Hash
         (["diagnostics",
-          "only",
-          "triggerKind"]);
+         "only",
+         "triggerKind"]);
 
    end CodeActionContext_Scope;
 
@@ -7640,7 +7638,7 @@ package body LSP.Inputs is
    package DidChangeTextDocumentParams_Scope is
       package DidChangeTextDocumentParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "contentChanges"]);
+         "contentChanges"]);
 
    end DidChangeTextDocumentParams_Scope;
 
@@ -7677,9 +7675,9 @@ package body LSP.Inputs is
    package InlayHintRegistrationOptions_Scope is
       package InlayHintRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "resolveProvider",
-          "documentSelector",
-          "id"]);
+         "resolveProvider",
+         "documentSelector",
+         "id"]);
 
    end InlayHintRegistrationOptions_Scope;
 
@@ -7747,11 +7745,11 @@ package body LSP.Inputs is
    package Declaration_Progress_Report_Scope is
       package Declaration_Progress_Report_Map is new Minimal_Perfect_Hash
         (["uri",
-          "range",
-          "originSelectionRange",
-          "targetUri",
-          "targetRange",
-          "targetSelectionRange"]);
+         "range",
+         "originSelectionRange",
+         "targetUri",
+         "targetRange",
+         "targetSelectionRange"]);
 
    end Declaration_Progress_Report_Scope;
 
@@ -7785,32 +7783,32 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  uri
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  range
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 3 =>  --  originSelectionRange
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 4 =>  --  targetUri
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 5 =>  --  targetRange
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 6 =>  --  targetSelectionRange
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -7826,10 +7824,10 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_Location_Vector (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_DeclarationLink_Vector (Handler, Value.Varian_2);
+            when LSP.Structures.Variant_1 =>
+               Read_Location_Vector (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_DeclarationLink_Vector (Handler, Value.Variant_2);
          end case;
       end;
    end Read_Declaration_Progress_Report;
@@ -7922,7 +7920,7 @@ package body LSP.Inputs is
    package TextDocumentPositionParams_Scope is
       package TextDocumentPositionParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position"]);
+         "position"]);
 
    end TextDocumentPositionParams_Scope;
 
@@ -7957,7 +7955,7 @@ package body LSP.Inputs is
    package DidSaveTextDocumentParams_Scope is
       package DidSaveTextDocumentParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "text"]);
+         "text"]);
 
    end DidSaveTextDocumentParams_Scope;
 
@@ -7994,8 +7992,8 @@ package body LSP.Inputs is
    package CodeLensRegistrationOptions_Scope is
       package CodeLensRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "resolveProvider"]);
+         "workDoneProgress",
+         "resolveProvider"]);
 
    end CodeLensRegistrationOptions_Scope;
 
@@ -8059,7 +8057,7 @@ package body LSP.Inputs is
    package SelectionRange_Scope is
       package SelectionRange_Map is new Minimal_Perfect_Hash
         (["range",
-          "parent"]);
+         "parent"]);
 
    end SelectionRange_Scope;
 
@@ -8099,7 +8097,7 @@ package body LSP.Inputs is
    package NotebookCellTextDocumentFilter_Scope is
       package NotebookCellTextDocumentFilter_Map is new Minimal_Perfect_Hash
         (["notebook",
-          "language"]);
+         "language"]);
 
    end NotebookCellTextDocumentFilter_Scope;
 
@@ -8173,7 +8171,7 @@ package body LSP.Inputs is
    package ShowMessageParams_Scope is
       package ShowMessageParams_Map is new Minimal_Perfect_Hash
         (["type",
-          "message"]);
+         "message"]);
 
    end ShowMessageParams_Scope;
 
@@ -8210,7 +8208,7 @@ package body LSP.Inputs is
    package FileSystemWatcher_Scope is
       package FileSystemWatcher_Map is new Minimal_Perfect_Hash
         (["globPattern",
-          "kind"]);
+         "kind"]);
 
    end FileSystemWatcher_Scope;
 
@@ -8269,7 +8267,7 @@ package body LSP.Inputs is
    package NotebookDocumentSyncOptions_Scope is
       package NotebookDocumentSyncOptions_Map is new Minimal_Perfect_Hash
         (["notebookSelector",
-          "save"]);
+         "save"]);
 
       package cells_OfnotebookSelector_OfNotebookDocumentSyncOptions_Item_Item_Scope
       is
@@ -8281,7 +8279,7 @@ package body LSP.Inputs is
       package notebookSelector_OfNotebookDocumentSyncOptions_Item_Scope is
          package notebookSelector_OfNotebookDocumentSyncOptions_Item_Map is new Minimal_Perfect_Hash
            (["notebook",
-             "cells"]);
+            "cells"]);
 
       end notebookSelector_OfNotebookDocumentSyncOptions_Item_Scope;
 
@@ -8465,9 +8463,9 @@ package body LSP.Inputs is
    package CodeActionRegistrationOptions_Scope is
       package CodeActionRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "codeActionKinds",
-          "resolveProvider"]);
+         "workDoneProgress",
+         "codeActionKinds",
+         "resolveProvider"]);
 
    end CodeActionRegistrationOptions_Scope;
 
@@ -8533,8 +8531,8 @@ package body LSP.Inputs is
    package NotebookDocumentSyncRegistrationOptions_Scope is
       package NotebookDocumentSyncRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["notebookSelector",
-          "save",
-          "id"]);
+         "save",
+         "id"]);
 
       package cells_OfnotebookSelector_OfNotebookDocumentSyncOptions_Item_Item_Scope
       is
@@ -8546,7 +8544,7 @@ package body LSP.Inputs is
       package notebookSelector_OfNotebookDocumentSyncOptions_Item_Scope is
          package notebookSelector_OfNotebookDocumentSyncOptions_Item_Map is new Minimal_Perfect_Hash
            (["notebook",
-             "cells"]);
+            "cells"]);
 
       end notebookSelector_OfNotebookDocumentSyncOptions_Item_Scope;
 
@@ -8734,9 +8732,9 @@ package body LSP.Inputs is
    package WorkspaceUnchangedDocumentDiagnosticReport_Scope is
       package WorkspaceUnchangedDocumentDiagnosticReport_Map is new Minimal_Perfect_Hash
         (["kind",
-          "resultId",
-          "uri",
-          "version"]);
+         "resultId",
+         "uri",
+         "version"]);
 
    end WorkspaceUnchangedDocumentDiagnosticReport_Scope;
 
@@ -8779,10 +8777,10 @@ package body LSP.Inputs is
    package ReferenceParams_Scope is
       package ReferenceParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "partialResultToken",
-          "context"]);
+         "position",
+         "workDoneToken",
+         "partialResultToken",
+         "context"]);
 
    end ReferenceParams_Scope;
 
@@ -8829,7 +8827,7 @@ package body LSP.Inputs is
    package HoverClientCapabilities_Scope is
       package HoverClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "contentFormat"]);
+         "contentFormat"]);
 
    end HoverClientCapabilities_Scope;
 
@@ -8868,9 +8866,9 @@ package body LSP.Inputs is
    package RenameClientCapabilities_Scope is
       package RenameClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "prepareSupport",
-          "prepareSupportDefaultBehavior",
-          "honorsChangeAnnotations"]);
+         "prepareSupport",
+         "prepareSupportDefaultBehavior",
+         "honorsChangeAnnotations"]);
 
    end RenameClientCapabilities_Scope;
 
@@ -9061,9 +9059,9 @@ package body LSP.Inputs is
 
    package FailureHandlingKind_Map is new Minimal_Perfect_Hash
      (["abort",
-       "transactional",
-       "textOnlyTransactional",
-       "undo"]);
+      "transactional",
+      "textOnlyTransactional",
+      "undo"]);
 
    procedure Read_FailureHandlingKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -9078,11 +9076,11 @@ package body LSP.Inputs is
    package FileOperationOptions_Scope is
       package FileOperationOptions_Map is new Minimal_Perfect_Hash
         (["didCreate",
-          "willCreate",
-          "didRename",
-          "willRename",
-          "didDelete",
-          "willDelete"]);
+         "willCreate",
+         "didRename",
+         "willRename",
+         "didDelete",
+         "willDelete"]);
 
    end FileOperationOptions_Scope;
 
@@ -9181,9 +9179,9 @@ package body LSP.Inputs is
    package TypeDefinitionParams_Scope is
       package TypeDefinitionParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "partialResultToken"]);
+         "position",
+         "workDoneToken",
+         "partialResultToken"]);
 
    end TypeDefinitionParams_Scope;
 
@@ -9277,24 +9275,24 @@ package body LSP.Inputs is
    package CompletionClientCapabilities_Scope is
       package CompletionClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "completionItem",
-          "completionItemKind",
-          "insertTextMode",
-          "contextSupport",
-          "completionList"]);
+         "completionItem",
+         "completionItemKind",
+         "insertTextMode",
+         "contextSupport",
+         "completionList"]);
 
       package completionItem_OfCompletionClientCapabilities_Scope is
          package completionItem_OfCompletionClientCapabilities_Map is new Minimal_Perfect_Hash
            (["snippetSupport",
-             "commitCharactersSupport",
-             "documentationFormat",
-             "deprecatedSupport",
-             "preselectSupport",
-             "tagSupport",
-             "insertReplaceSupport",
-             "resolveSupport",
-             "insertTextModeSupport",
-             "labelDetailsSupport"]);
+            "commitCharactersSupport",
+            "documentationFormat",
+            "deprecatedSupport",
+            "preselectSupport",
+            "tagSupport",
+            "insertReplaceSupport",
+            "resolveSupport",
+            "insertTextModeSupport",
+            "labelDetailsSupport"]);
 
       end completionItem_OfCompletionClientCapabilities_Scope;
 
@@ -9695,7 +9693,7 @@ package body LSP.Inputs is
    package RenameOptions_Scope is
       package RenameOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "prepareProvider"]);
+         "prepareProvider"]);
 
    end RenameOptions_Scope;
 
@@ -9796,7 +9794,7 @@ package body LSP.Inputs is
    package DocumentHighlightRegistrationOptions_Scope is
       package DocumentHighlightRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress"]);
+         "workDoneProgress"]);
 
    end DocumentHighlightRegistrationOptions_Scope;
 
@@ -9879,8 +9877,8 @@ package body LSP.Inputs is
    package FullDocumentDiagnosticReport_Scope is
       package FullDocumentDiagnosticReport_Map is new Minimal_Perfect_Hash
         (["kind",
-          "resultId",
-          "items"]);
+         "resultId",
+         "items"]);
 
    end FullDocumentDiagnosticReport_Scope;
 
@@ -9919,9 +9917,9 @@ package body LSP.Inputs is
    package RenameParams_Scope is
       package RenameParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "textDocument",
-          "position",
-          "newName"]);
+         "textDocument",
+         "position",
+         "newName"]);
 
    end RenameParams_Scope;
 
@@ -9965,8 +9963,8 @@ package body LSP.Inputs is
    package DocumentSymbolRegistrationOptions_Scope is
       package DocumentSymbolRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "label"]);
+         "workDoneProgress",
+         "label"]);
 
    end DocumentSymbolRegistrationOptions_Scope;
 
@@ -10042,8 +10040,8 @@ package body LSP.Inputs is
    package DeclarationRegistrationOptions_Scope is
       package DeclarationRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "documentSelector",
-          "id"]);
+         "documentSelector",
+         "id"]);
 
    end DeclarationRegistrationOptions_Scope;
 
@@ -10105,16 +10103,16 @@ package body LSP.Inputs is
    package WorkspaceSymbol_Scope is
       package WorkspaceSymbol_Map is new Minimal_Perfect_Hash
         (["name",
-          "kind",
-          "tags",
-          "containerName",
-          "location",
-          "data"]);
+         "kind",
+         "tags",
+         "containerName",
+         "location",
+         "data"]);
 
       package Location_Or_Something_Scope is
          package Location_Or_Something_Map is new Minimal_Perfect_Hash
            (["range",
-             "uri"]);
+            "uri"]);
 
       end Location_Or_Something_Scope;
 
@@ -10242,7 +10240,7 @@ package body LSP.Inputs is
    package DeleteFileOptions_Scope is
       package DeleteFileOptions_Map is new Minimal_Perfect_Hash
         (["recursive",
-          "ignoreIfNotExists"]);
+         "ignoreIfNotExists"]);
 
    end DeleteFileOptions_Scope;
 
@@ -10295,8 +10293,8 @@ package body LSP.Inputs is
    package TypeHierarchyRegistrationOptions_Scope is
       package TypeHierarchyRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "id"]);
+         "workDoneProgress",
+         "id"]);
 
    end TypeHierarchyRegistrationOptions_Scope;
 
@@ -10375,8 +10373,8 @@ package body LSP.Inputs is
    package PrepareRenameParams_Scope is
       package PrepareRenameParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken"]);
+         "position",
+         "workDoneToken"]);
 
    end PrepareRenameParams_Scope;
 
@@ -10426,12 +10424,12 @@ package body LSP.Inputs is
    package CodeActionClientCapabilities_Scope is
       package CodeActionClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "codeActionLiteralSupport",
-          "isPreferredSupport",
-          "disabledSupport",
-          "dataSupport",
-          "resolveSupport",
-          "honorsChangeAnnotations"]);
+         "codeActionLiteralSupport",
+         "isPreferredSupport",
+         "disabledSupport",
+         "dataSupport",
+         "resolveSupport",
+         "honorsChangeAnnotations"]);
 
       package codeActionKind_OfcodeActionLiteralSupport_OfCodeActionClientCapabilities_Scope
       is
@@ -10586,8 +10584,8 @@ package body LSP.Inputs is
    package MarkdownClientCapabilities_Scope is
       package MarkdownClientCapabilities_Map is new Minimal_Perfect_Hash
         (["parser",
-          "version",
-          "allowedTags"]);
+         "version",
+         "allowedTags"]);
 
    end MarkdownClientCapabilities_Scope;
 
@@ -10680,9 +10678,9 @@ package body LSP.Inputs is
    package DefinitionParams_Scope is
       package DefinitionParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "partialResultToken"]);
+         "position",
+         "workDoneToken",
+         "partialResultToken"]);
 
    end DefinitionParams_Scope;
 
@@ -10727,7 +10725,7 @@ package body LSP.Inputs is
    package ImplementationClientCapabilities_Scope is
       package ImplementationClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "linkSupport"]);
+         "linkSupport"]);
 
    end ImplementationClientCapabilities_Scope;
 
@@ -10770,9 +10768,9 @@ package body LSP.Inputs is
    package TextDocumentItem_Scope is
       package TextDocumentItem_Map is new Minimal_Perfect_Hash
         (["uri",
-          "languageId",
-          "version",
-          "text"]);
+         "languageId",
+         "version",
+         "text"]);
 
    end TextDocumentItem_Scope;
 
@@ -10818,10 +10816,10 @@ package body LSP.Inputs is
    package ColorPresentationParams_Scope is
       package ColorPresentationParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument",
-          "color",
-          "range"]);
+         "partialResultToken",
+         "textDocument",
+         "color",
+         "range"]);
 
    end ColorPresentationParams_Scope;
 
@@ -10889,7 +10887,7 @@ package body LSP.Inputs is
    is
       package relatedDocuments_OfDocumentDiagnosticReportPartialResult_Item_Map is new Minimal_Perfect_Hash
         (["full",
-          "unchanged"]);
+         "unchanged"]);
 
    end relatedDocuments_OfDocumentDiagnosticReportPartialResult_Item_Scope;
 
@@ -11027,9 +11025,9 @@ package body LSP.Inputs is
    package DeleteFile_Scope is
       package DeleteFile_Map is new Minimal_Perfect_Hash
         (["kind",
-          "annotationId",
-          "uri",
-          "options"]);
+         "annotationId",
+         "uri",
+         "options"]);
 
    end DeleteFile_Scope;
 
@@ -11111,10 +11109,10 @@ package body LSP.Inputs is
    package NotebookDocument_Scope is
       package NotebookDocument_Map is new Minimal_Perfect_Hash
         (["uri",
-          "notebookType",
-          "version",
-          "metadata",
-          "cells"]);
+         "notebookType",
+         "version",
+         "metadata",
+         "cells"]);
 
    end NotebookDocument_Scope;
 
@@ -11162,9 +11160,9 @@ package body LSP.Inputs is
    package RelatedFullDocumentDiagnosticReport_Scope is
       package RelatedFullDocumentDiagnosticReport_Map is new Minimal_Perfect_Hash
         (["kind",
-          "resultId",
-          "items",
-          "relatedDocuments"]);
+         "resultId",
+         "items",
+         "relatedDocuments"]);
 
    end RelatedFullDocumentDiagnosticReport_Scope;
 
@@ -11264,7 +11262,7 @@ package body LSP.Inputs is
    package DocumentSymbolOptions_Scope is
       package DocumentSymbolOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "label"]);
+         "label"]);
 
    end DocumentSymbolOptions_Scope;
 
@@ -11305,11 +11303,11 @@ package body LSP.Inputs is
    package CompletionRegistrationOptions_Scope is
       package CompletionRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "triggerCharacters",
-          "allCommitCharacters",
-          "resolveProvider",
-          "completionItem"]);
+         "workDoneProgress",
+         "triggerCharacters",
+         "allCommitCharacters",
+         "resolveProvider",
+         "completionItem"]);
 
       package completionItem_OfCompletionOptions_Scope is
          package completionItem_OfCompletionOptions_Map is new Minimal_Perfect_Hash
@@ -11424,7 +11422,7 @@ package body LSP.Inputs is
    package InlayHintClientCapabilities_Scope is
       package InlayHintClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "resolveSupport"]);
+         "resolveSupport"]);
 
    end InlayHintClientCapabilities_Scope;
 
@@ -11500,10 +11498,10 @@ package body LSP.Inputs is
    package WorkspaceEditClientCapabilities_Scope is
       package WorkspaceEditClientCapabilities_Map is new Minimal_Perfect_Hash
         (["documentChanges",
-          "resourceOperations",
-          "failureHandling",
-          "normalizesLineEndings",
-          "changeAnnotationSupport"]);
+         "resourceOperations",
+         "failureHandling",
+         "normalizesLineEndings",
+         "changeAnnotationSupport"]);
 
       package changeAnnotationSupport_OfWorkspaceEditClientCapabilities_Scope
       is
@@ -11631,7 +11629,7 @@ package body LSP.Inputs is
    package WorkspaceSymbolOptions_Scope is
       package WorkspaceSymbolOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "resolveProvider"]);
+         "resolveProvider"]);
 
    end WorkspaceSymbolOptions_Scope;
 
@@ -11688,8 +11686,8 @@ package body LSP.Inputs is
    package ChangeAnnotation_Scope is
       package ChangeAnnotation_Map is new Minimal_Perfect_Hash
         (["label",
-          "needsConfirmation",
-          "description"]);
+         "needsConfirmation",
+         "description"]);
 
    end ChangeAnnotation_Scope;
 
@@ -11770,7 +11768,7 @@ package body LSP.Inputs is
    package VersionedTextDocumentIdentifier_Scope is
       package VersionedTextDocumentIdentifier_Map is new Minimal_Perfect_Hash
         (["uri",
-          "version"]);
+         "version"]);
 
    end VersionedTextDocumentIdentifier_Scope;
 
@@ -11808,7 +11806,7 @@ package body LSP.Inputs is
    package SemanticTokensDelta_Scope is
       package SemanticTokensDelta_Map is new Minimal_Perfect_Hash
         (["resultId",
-          "edits"]);
+         "edits"]);
 
    end SemanticTokensDelta_Scope;
 
@@ -11878,7 +11876,7 @@ package body LSP.Inputs is
    package ApplyWorkspaceEditParams_Scope is
       package ApplyWorkspaceEditParams_Map is new Minimal_Perfect_Hash
         (["label",
-          "edit"]);
+         "edit"]);
 
    end ApplyWorkspaceEditParams_Scope;
 
@@ -11915,9 +11913,9 @@ package body LSP.Inputs is
    package InlayHintLabelPart_Scope is
       package InlayHintLabelPart_Map is new Minimal_Perfect_Hash
         (["value",
-          "tooltip",
-          "location",
-          "command"]);
+         "tooltip",
+         "location",
+         "command"]);
 
    end InlayHintLabelPart_Scope;
 
@@ -12004,9 +12002,9 @@ package body LSP.Inputs is
    package LocationLink_Scope is
       package LocationLink_Map is new Minimal_Perfect_Hash
         (["originSelectionRange",
-          "targetUri",
-          "targetRange",
-          "targetSelectionRange"]);
+         "targetUri",
+         "targetRange",
+         "targetSelectionRange"]);
 
    end LocationLink_Scope;
 
@@ -12049,25 +12047,25 @@ package body LSP.Inputs is
    package CompletionList_Scope is
       package CompletionList_Map is new Minimal_Perfect_Hash
         (["isIncomplete",
-          "itemDefaults",
-          "items"]);
+         "itemDefaults",
+         "items"]);
 
       package itemDefaults_OfCompletionList_Scope is
          package itemDefaults_OfCompletionList_Map is new Minimal_Perfect_Hash
            (["commitCharacters",
-             "editRange",
-             "insertTextFormat",
-             "insertTextMode",
-             "data"]);
+            "editRange",
+            "insertTextFormat",
+            "insertTextMode",
+            "data"]);
 
       end itemDefaults_OfCompletionList_Scope;
 
       package Range_Or_Something_Scope is
          package Range_Or_Something_Map is new Minimal_Perfect_Hash
            (["start",
-             "end",
-             "insert",
-             "replace"]);
+            "end",
+            "insert",
+            "replace"]);
 
       end Range_Or_Something_Scope;
 
@@ -12250,11 +12248,11 @@ package body LSP.Inputs is
    package DiagnosticRegistrationOptions_Scope is
       package DiagnosticRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "identifier",
-          "interFileDependencies",
-          "workspaceDiagnostics",
-          "id"]);
+         "workDoneProgress",
+         "identifier",
+         "interFileDependencies",
+         "workspaceDiagnostics",
+         "id"]);
 
    end DiagnosticRegistrationOptions_Scope;
 
@@ -12336,13 +12334,13 @@ package body LSP.Inputs is
    package CodeAction_Scope is
       package CodeAction_Map is new Minimal_Perfect_Hash
         (["title",
-          "kind",
-          "diagnostics",
-          "isPreferred",
-          "disabled",
-          "edit",
-          "command",
-          "data"]);
+         "kind",
+         "diagnostics",
+         "isPreferred",
+         "disabled",
+         "edit",
+         "command",
+         "data"]);
 
       package disabled_OfCodeAction_Scope is
          package disabled_OfCodeAction_Map is new Minimal_Perfect_Hash
@@ -12456,9 +12454,9 @@ package body LSP.Inputs is
    package DeclarationParams_Scope is
       package DeclarationParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "partialResultToken"]);
+         "position",
+         "workDoneToken",
+         "partialResultToken"]);
 
    end DeclarationParams_Scope;
 
@@ -12503,9 +12501,9 @@ package body LSP.Inputs is
    package DocumentRangeFormattingParams_Scope is
       package DocumentRangeFormattingParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "textDocument",
-          "range",
-          "options"]);
+         "textDocument",
+         "range",
+         "options"]);
 
    end DocumentRangeFormattingParams_Scope;
 
@@ -12583,7 +12581,7 @@ package body LSP.Inputs is
    package DocumentOnTypeFormattingOptions_Scope is
       package DocumentOnTypeFormattingOptions_Map is new Minimal_Perfect_Hash
         (["firstTriggerCharacter",
-          "moreTriggerCharacter"]);
+         "moreTriggerCharacter"]);
 
    end DocumentOnTypeFormattingOptions_Scope;
 
@@ -12621,7 +12619,7 @@ package body LSP.Inputs is
    package WorkspaceSymbolRegistrationOptions_Scope is
       package WorkspaceSymbolRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "resolveProvider"]);
+         "resolveProvider"]);
 
    end WorkspaceSymbolRegistrationOptions_Scope;
 
@@ -12664,9 +12662,9 @@ package body LSP.Inputs is
    package MonikerParams_Scope is
       package MonikerParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "partialResultToken"]);
+         "position",
+         "workDoneToken",
+         "partialResultToken"]);
 
    end MonikerParams_Scope;
 
@@ -12711,13 +12709,13 @@ package body LSP.Inputs is
    package InlayHint_Scope is
       package InlayHint_Map is new Minimal_Perfect_Hash
         (["position",
-          "label",
-          "kind",
-          "textEdits",
-          "tooltip",
-          "paddingLeft",
-          "paddingRight",
-          "data"]);
+         "label",
+         "kind",
+         "textEdits",
+         "tooltip",
+         "paddingLeft",
+         "paddingRight",
+         "data"]);
 
    end InlayHint_Scope;
 
@@ -12869,7 +12867,7 @@ package body LSP.Inputs is
    package DocumentFormattingRegistrationOptions_Scope is
       package DocumentFormattingRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress"]);
+         "workDoneProgress"]);
 
    end DocumentFormattingRegistrationOptions_Scope;
 
@@ -12927,8 +12925,8 @@ package body LSP.Inputs is
    package ColorPresentation_Scope is
       package ColorPresentation_Map is new Minimal_Perfect_Hash
         (["label",
-          "textEdit",
-          "additionalTextEdits"]);
+         "textEdit",
+         "additionalTextEdits"]);
 
    end ColorPresentation_Scope;
 
@@ -13027,9 +13025,9 @@ package body LSP.Inputs is
    package SelectionRangeParams_Scope is
       package SelectionRangeParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument",
-          "positions"]);
+         "partialResultToken",
+         "textDocument",
+         "positions"]);
 
    end SelectionRangeParams_Scope;
 
@@ -13099,7 +13097,7 @@ package body LSP.Inputs is
    package Tokens_Delta_Result_Scope is
       package Tokens_Delta_Result_Map is new Minimal_Perfect_Hash
         (["data",
-          "edits"]);
+         "edits"]);
 
    end Tokens_Delta_Result_Scope;
 
@@ -13119,7 +13117,7 @@ package body LSP.Inputs is
          Handler.Mark;
          if Handler.Is_Null_Value then
             Value :=
-              (Kind   => LSP.Structures.Varian_3,
+              (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
@@ -13134,12 +13132,12 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  data
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  edits
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -13155,11 +13153,11 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_SemanticTokens (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_SemanticTokensDelta (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Read_SemanticTokens (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_SemanticTokensDelta (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                null;  --  #null_value
                Handler.Read_Next;
          end case;
@@ -13225,13 +13223,13 @@ package body LSP.Inputs is
    package TypeHierarchyItem_Scope is
       package TypeHierarchyItem_Map is new Minimal_Perfect_Hash
         (["name",
-          "kind",
-          "tags",
-          "detail",
-          "uri",
-          "range",
-          "selectionRange",
-          "data"]);
+         "kind",
+         "tags",
+         "detail",
+         "uri",
+         "range",
+         "selectionRange",
+         "data"]);
 
    end TypeHierarchyItem_Scope;
 
@@ -13290,7 +13288,7 @@ package body LSP.Inputs is
    package Location_Scope is
       package Location_Map is new Minimal_Perfect_Hash
         (["uri",
-          "range"]);
+         "range"]);
 
    end Location_Scope;
 
@@ -13326,8 +13324,8 @@ package body LSP.Inputs is
    package RenameRegistrationOptions_Scope is
       package RenameRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "prepareProvider"]);
+         "workDoneProgress",
+         "prepareProvider"]);
 
    end RenameRegistrationOptions_Scope;
 
@@ -13391,7 +13389,7 @@ package body LSP.Inputs is
    package ParameterInformation_Scope is
       package ParameterInformation_Map is new Minimal_Perfect_Hash
         (["label",
-          "documentation"]);
+         "documentation"]);
 
    end ParameterInformation_Scope;
 
@@ -13475,8 +13473,8 @@ package body LSP.Inputs is
 
    package PositionEncodingKind_Map is new Minimal_Perfect_Hash
      (["utf-8",
-       "utf-16",
-       "utf-32"]);
+      "utf-16",
+      "utf-32"]);
 
    procedure Read_PositionEncodingKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -13491,7 +13489,7 @@ package body LSP.Inputs is
    package Symbol_Progress_Report_Scope is
       package Symbol_Progress_Report_Map is new Minimal_Perfect_Hash
         (["deprecated",
-          "data"]);
+         "data"]);
 
    end Symbol_Progress_Report_Scope;
 
@@ -13525,12 +13523,12 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  deprecated
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  data
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -13546,10 +13544,10 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_SymbolInformation_Vector (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_WorkspaceSymbol_Vector (Handler, Value.Varian_2);
+            when LSP.Structures.Variant_1 =>
+               Read_SymbolInformation_Vector (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_WorkspaceSymbol_Vector (Handler, Value.Variant_2);
          end case;
       end;
    end Read_Symbol_Progress_Report;
@@ -13567,21 +13565,21 @@ package body LSP.Inputs is
    package An_InitializeParams_Scope is
       package An_InitializeParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "processId",
-          "clientInfo",
-          "locale",
-          "rootPath",
-          "rootUri",
-          "capabilities",
-          "initializationOptions",
-          "trace"]);
+         "processId",
+         "clientInfo",
+         "locale",
+         "rootPath",
+         "rootUri",
+         "capabilities",
+         "initializationOptions",
+         "trace"]);
 
       package trace_Of_InitializeParams_Scope is
          package trace_Of_InitializeParams_Map is new Minimal_Perfect_Hash
            (["off",
-             "messages",
-             "compact",
-             "verbose"]);
+            "messages",
+            "compact",
+            "verbose"]);
 
       end trace_Of_InitializeParams_Scope;
 
@@ -13702,8 +13700,8 @@ package body LSP.Inputs is
    package TypeHierarchySubtypesParams_Scope is
       package TypeHierarchySubtypesParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "item"]);
+         "partialResultToken",
+         "item"]);
 
    end TypeHierarchySubtypesParams_Scope;
 
@@ -13746,7 +13744,7 @@ package body LSP.Inputs is
    package FileOperationFilter_Scope is
       package FileOperationFilter_Map is new Minimal_Perfect_Hash
         (["scheme",
-          "pattern"]);
+         "pattern"]);
 
    end FileOperationFilter_Scope;
 
@@ -13783,8 +13781,8 @@ package body LSP.Inputs is
    package ApplyWorkspaceEditResult_Scope is
       package ApplyWorkspaceEditResult_Map is new Minimal_Perfect_Hash
         (["applied",
-          "failureReason",
-          "failedChange"]);
+         "failureReason",
+         "failedChange"]);
 
    end ApplyWorkspaceEditResult_Scope;
 
@@ -13861,8 +13859,8 @@ package body LSP.Inputs is
    package Completion_Result_Scope is
       package Completion_Result_Map is new Minimal_Perfect_Hash
         (["isIncomplete",
-          "itemDefaults",
-          "items"]);
+         "itemDefaults",
+         "items"]);
 
    end Completion_Result_Scope;
 
@@ -13882,12 +13880,12 @@ package body LSP.Inputs is
          Handler.Mark;
          if Handler.Is_Null_Value then
             Value :=
-              (Kind   => LSP.Structures.Varian_3,
+              (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
             Value :=
-              (Kind   => LSP.Structures.Varian_1,
+              (Kind   => LSP.Structures.Variant_1,
                others => <>);
             while Handler.Is_Key_Name loop
                declare
@@ -13900,17 +13898,17 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  isIncomplete
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 2 =>  --  itemDefaults
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 3 =>  --  items
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -13926,11 +13924,11 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_CompletionItem_Vector (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_CompletionList (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Read_CompletionItem_Vector (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_CompletionList (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                null;  --  #null_value
                Handler.Read_Next;
          end case;
@@ -13976,9 +13974,9 @@ package body LSP.Inputs is
    package InlineValue_Scope is
       package InlineValue_Map is new Minimal_Perfect_Hash
         (["text",
-          "variableName",
-          "caseSensitiveLookup",
-          "expression"]);
+         "variableName",
+         "caseSensitiveLookup",
+         "expression"]);
 
    end InlineValue_Scope;
 
@@ -14008,22 +14006,22 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  text
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  variableName
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 3 =>  --  caseSensitiveLookup
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 4 =>  --  expression
                         Value :=
-                          (Kind   => LSP.Structures.Varian_3,
+                          (Kind   => LSP.Structures.Variant_3,
                            others => <>);
                         exit;
                      when others =>
@@ -14039,12 +14037,13 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_InlineValueText (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_InlineValueVariableLookup (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
-               Read_InlineValueEvaluatableExpression (Handler, Value.Varian_3);
+            when LSP.Structures.Variant_1 =>
+               Read_InlineValueText (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_InlineValueVariableLookup (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
+               Read_InlineValueEvaluatableExpression
+                 (Handler, Value.Variant_3);
          end case;
       end;
    end Read_InlineValue;
@@ -14076,8 +14075,8 @@ package body LSP.Inputs is
 
    package MonikerKind_Map is new Minimal_Perfect_Hash
      (["import",
-       "export",
-       "local"]);
+      "export",
+      "local"]);
 
    procedure Read_MonikerKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -14146,8 +14145,8 @@ package body LSP.Inputs is
    package CallHierarchyOutgoingCallsParams_Scope is
       package CallHierarchyOutgoingCallsParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "item"]);
+         "partialResultToken",
+         "item"]);
 
    end CallHierarchyOutgoingCallsParams_Scope;
 
@@ -14211,7 +14210,7 @@ package body LSP.Inputs is
    package HoverRegistrationOptions_Scope is
       package HoverRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress"]);
+         "workDoneProgress"]);
 
    end HoverRegistrationOptions_Scope;
 
@@ -14279,9 +14278,9 @@ package body LSP.Inputs is
    package SemanticTokensDeltaParams_Scope is
       package SemanticTokensDeltaParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument",
-          "previousResultId"]);
+         "partialResultToken",
+         "textDocument",
+         "previousResultId"]);
 
    end SemanticTokensDeltaParams_Scope;
 
@@ -14360,7 +14359,7 @@ package body LSP.Inputs is
    package DefinitionRegistrationOptions_Scope is
       package DefinitionRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress"]);
+         "workDoneProgress"]);
 
    end DefinitionRegistrationOptions_Scope;
 
@@ -14418,7 +14417,7 @@ package body LSP.Inputs is
    package clientInfo_Of_InitializeParams_Scope is
       package clientInfo_Of_InitializeParams_Map is new Minimal_Perfect_Hash
         (["name",
-          "version"]);
+         "version"]);
 
    end clientInfo_Of_InitializeParams_Scope;
 
@@ -14456,8 +14455,8 @@ package body LSP.Inputs is
    package CodeLensParams_Scope is
       package CodeLensParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument"]);
+         "partialResultToken",
+         "textDocument"]);
 
    end CodeLensParams_Scope;
 
@@ -14522,7 +14521,7 @@ package body LSP.Inputs is
    package Symbol_Result_Scope is
       package Symbol_Result_Map is new Minimal_Perfect_Hash
         (["deprecated",
-          "data"]);
+         "data"]);
 
    end Symbol_Result_Scope;
 
@@ -14545,7 +14544,7 @@ package body LSP.Inputs is
          end if;
          if Handler.Is_Null_Value then
             Value :=
-              (Kind   => LSP.Structures.Varian_3,
+              (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
@@ -14560,12 +14559,12 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  deprecated
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  data
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -14581,11 +14580,11 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_SymbolInformation_Vector (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_WorkspaceSymbol_Vector (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Read_SymbolInformation_Vector (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_WorkspaceSymbol_Vector (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                null;  --  #null_value
                Handler.Read_Next;
          end case;
@@ -14595,7 +14594,7 @@ package body LSP.Inputs is
    package DiagnosticClientCapabilities_Scope is
       package DiagnosticClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "relatedDocumentSupport"]);
+         "relatedDocumentSupport"]);
 
    end DiagnosticClientCapabilities_Scope;
 
@@ -14638,7 +14637,7 @@ package body LSP.Inputs is
    package MonikerRegistrationOptions_Scope is
       package MonikerRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress"]);
+         "workDoneProgress"]);
 
    end MonikerRegistrationOptions_Scope;
 
@@ -14696,7 +14695,7 @@ package body LSP.Inputs is
    package ExecutionSummary_Scope is
       package ExecutionSummary_Map is new Minimal_Perfect_Hash
         (["executionOrder",
-          "success"]);
+         "success"]);
 
    end ExecutionSummary_Scope;
 
@@ -14737,8 +14736,8 @@ package body LSP.Inputs is
    package TypeHierarchySupertypesParams_Scope is
       package TypeHierarchySupertypesParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "item"]);
+         "partialResultToken",
+         "item"]);
 
    end TypeHierarchySupertypesParams_Scope;
 
@@ -14781,7 +14780,7 @@ package body LSP.Inputs is
    package PreviousResultId_Scope is
       package PreviousResultId_Map is new Minimal_Perfect_Hash
         (["uri",
-          "value"]);
+         "value"]);
 
    end PreviousResultId_Scope;
 
@@ -14818,8 +14817,8 @@ package body LSP.Inputs is
 
    package FoldingRangeKind_Map is new Minimal_Perfect_Hash
      (["comment",
-       "imports",
-       "region"]);
+      "imports",
+      "region"]);
 
    procedure Read_FoldingRangeKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -14834,8 +14833,8 @@ package body LSP.Inputs is
    package PublishDiagnosticsParams_Scope is
       package PublishDiagnosticsParams_Map is new Minimal_Perfect_Hash
         (["uri",
-          "version",
-          "diagnostics"]);
+         "version",
+         "diagnostics"]);
 
    end PublishDiagnosticsParams_Scope;
 
@@ -14971,7 +14970,7 @@ package body LSP.Inputs is
    package CallHierarchyIncomingCall_Scope is
       package CallHierarchyIncomingCall_Map is new Minimal_Perfect_Hash
         (["from",
-          "fromRanges"]);
+         "fromRanges"]);
 
    end CallHierarchyIncomingCall_Scope;
 
@@ -15032,7 +15031,7 @@ package body LSP.Inputs is
    package TextDocumentChangeRegistrationOptions_Scope is
       package TextDocumentChangeRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "syncKind"]);
+         "syncKind"]);
 
    end TextDocumentChangeRegistrationOptions_Scope;
 
@@ -15174,28 +15173,28 @@ package body LSP.Inputs is
    package NotebookDocumentChangeEvent_Scope is
       package NotebookDocumentChangeEvent_Map is new Minimal_Perfect_Hash
         (["metadata",
-          "cells"]);
+         "cells"]);
 
       package textContent_Ofcells_OfNotebookDocumentChangeEvent_Item_Scope is
          package textContent_Ofcells_OfNotebookDocumentChangeEvent_Item_Map is new Minimal_Perfect_Hash
            (["document",
-             "changes"]);
+            "changes"]);
 
       end textContent_Ofcells_OfNotebookDocumentChangeEvent_Item_Scope;
 
       package cells_OfNotebookDocumentChangeEvent_Scope is
          package cells_OfNotebookDocumentChangeEvent_Map is new Minimal_Perfect_Hash
            (["structure",
-             "data",
-             "textContent"]);
+            "data",
+            "textContent"]);
 
       end cells_OfNotebookDocumentChangeEvent_Scope;
 
       package structure_Ofcells_OfNotebookDocumentChangeEvent_Scope is
          package structure_Ofcells_OfNotebookDocumentChangeEvent_Map is new Minimal_Perfect_Hash
            (["array",
-             "didOpen",
-             "didClose"]);
+            "didOpen",
+            "didClose"]);
 
       end structure_Ofcells_OfNotebookDocumentChangeEvent_Scope;
 
@@ -15386,10 +15385,10 @@ package body LSP.Inputs is
    package FormattingOptions_Scope is
       package FormattingOptions_Map is new Minimal_Perfect_Hash
         (["tabSize",
-          "insertSpaces",
-          "trimTrailingWhitespace",
-          "insertFinalNewline",
-          "trimFinalNewlines"]);
+         "insertSpaces",
+         "trimTrailingWhitespace",
+         "insertFinalNewline",
+         "trimFinalNewlines"]);
 
    end FormattingOptions_Scope;
 
@@ -15565,8 +15564,8 @@ package body LSP.Inputs is
    package TypeDefinitionRegistrationOptions_Scope is
       package TypeDefinitionRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "id"]);
+         "workDoneProgress",
+         "id"]);
 
    end TypeDefinitionRegistrationOptions_Scope;
 
@@ -15628,7 +15627,7 @@ package body LSP.Inputs is
    package CodeLensOptions_Scope is
       package CodeLensOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "resolveProvider"]);
+         "resolveProvider"]);
 
    end CodeLensOptions_Scope;
 
@@ -15671,7 +15670,7 @@ package body LSP.Inputs is
    package FileRename_Scope is
       package FileRename_Map is new Minimal_Perfect_Hash
         (["oldUri",
-          "newUri"]);
+         "newUri"]);
 
    end FileRename_Scope;
 
@@ -15711,7 +15710,7 @@ package body LSP.Inputs is
    is
       package SemanticTokensPartialResult_Or_SemanticTokensDeltaPartialResult_Map is new Minimal_Perfect_Hash
         (["data",
-          "edits"]);
+         "edits"]);
 
    end SemanticTokensPartialResult_Or_SemanticTokensDeltaPartialResult_Scope;
 
@@ -15780,7 +15779,7 @@ package body LSP.Inputs is
    package DocumentDiagnosticReport_Scope is
       package DocumentDiagnosticReport_Map is new Minimal_Perfect_Hash
         (["full",
-          "unchanged"]);
+         "unchanged"]);
 
    end DocumentDiagnosticReport_Scope;
 
@@ -15884,9 +15883,9 @@ package body LSP.Inputs is
    package Moniker_Scope is
       package Moniker_Map is new Minimal_Perfect_Hash
         (["scheme",
-          "identifier",
-          "unique",
-          "kind"]);
+         "identifier",
+         "unique",
+         "kind"]);
 
    end Moniker_Scope;
 
@@ -15932,8 +15931,8 @@ package body LSP.Inputs is
    package ExecuteCommandParams_Scope is
       package ExecuteCommandParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "command",
-          "arguments"]);
+         "command",
+         "arguments"]);
 
    end ExecuteCommandParams_Scope;
 
@@ -15975,10 +15974,10 @@ package body LSP.Inputs is
    package WorkDoneProgressBegin_Scope is
       package WorkDoneProgressBegin_Map is new Minimal_Perfect_Hash
         (["kind",
-          "title",
-          "cancellable",
-          "message",
-          "percentage"]);
+         "title",
+         "cancellable",
+         "message",
+         "percentage"]);
 
    end WorkDoneProgressBegin_Scope;
 
@@ -16068,7 +16067,7 @@ package body LSP.Inputs is
    package DefinitionClientCapabilities_Scope is
       package DefinitionClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "linkSupport"]);
+         "linkSupport"]);
 
    end DefinitionClientCapabilities_Scope;
 
@@ -16111,9 +16110,9 @@ package body LSP.Inputs is
    package SignatureHelpRegistrationOptions_Scope is
       package SignatureHelpRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "triggerCharacters",
-          "retriggerCharacters"]);
+         "workDoneProgress",
+         "triggerCharacters",
+         "retriggerCharacters"]);
 
    end SignatureHelpRegistrationOptions_Scope;
 
@@ -16213,7 +16212,7 @@ package body LSP.Inputs is
    package MarkupContent_Scope is
       package MarkupContent_Map is new Minimal_Perfect_Hash
         (["kind",
-          "value"]);
+         "value"]);
 
    end MarkupContent_Scope;
 
@@ -16250,14 +16249,14 @@ package body LSP.Inputs is
    package WorkspaceEdit_Scope is
       package WorkspaceEdit_Map is new Minimal_Perfect_Hash
         (["changes",
-          "documentChanges",
-          "changeAnnotations"]);
+         "documentChanges",
+         "changeAnnotations"]);
 
       package documentChanges_OfWorkspaceEdit_Item_Scope is
          package documentChanges_OfWorkspaceEdit_Item_Map is new Minimal_Perfect_Hash
            (["create",
-             "rename",
-             "delete"]);
+            "rename",
+            "delete"]);
 
       end documentChanges_OfWorkspaceEdit_Item_Scope;
 
@@ -16364,8 +16363,8 @@ package body LSP.Inputs is
             Handler.Unmark;
 
             case Value.Kind is
-               when LSP.Structures.Varian_1 =>
-                  Read_TextDocumentEdit (Handler, Value.Varian_1);
+               when LSP.Structures.Variant_1 =>
+                  Read_TextDocumentEdit (Handler, Value.Variant_1);
                when LSP.Structures.create =>
                   Read_CreateFile (Handler, Value.create);
                when LSP.Structures.rename =>
@@ -16492,7 +16491,7 @@ package body LSP.Inputs is
    package DocumentHighlight_Scope is
       package DocumentHighlight_Map is new Minimal_Perfect_Hash
         (["range",
-          "kind"]);
+         "kind"]);
 
    end DocumentHighlight_Scope;
 
@@ -16584,8 +16583,8 @@ package body LSP.Inputs is
    package InlineValueRegistrationOptions_Scope is
       package InlineValueRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "documentSelector",
-          "id"]);
+         "documentSelector",
+         "id"]);
 
    end InlineValueRegistrationOptions_Scope;
 
@@ -16647,7 +16646,7 @@ package body LSP.Inputs is
    package VersionedNotebookDocumentIdentifier_Scope is
       package VersionedNotebookDocumentIdentifier_Map is new Minimal_Perfect_Hash
         (["version",
-          "uri"]);
+         "uri"]);
 
    end VersionedNotebookDocumentIdentifier_Scope;
 
@@ -16684,9 +16683,9 @@ package body LSP.Inputs is
    package BaseSymbolInformation_Scope is
       package BaseSymbolInformation_Map is new Minimal_Perfect_Hash
         (["name",
-          "kind",
-          "tags",
-          "containerName"]);
+         "kind",
+         "tags",
+         "containerName"]);
 
    end BaseSymbolInformation_Scope;
 
@@ -16729,8 +16728,8 @@ package body LSP.Inputs is
    package InlayHintParams_Scope is
       package InlayHintParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "textDocument",
-          "range"]);
+         "textDocument",
+         "range"]);
 
    end InlayHintParams_Scope;
 
@@ -16802,7 +16801,7 @@ package body LSP.Inputs is
    package TextEdit_Scope is
       package TextEdit_Map is new Minimal_Perfect_Hash
         (["range",
-          "newText"]);
+         "newText"]);
 
    end TextEdit_Scope;
 
@@ -16839,7 +16838,7 @@ package body LSP.Inputs is
    package DeclarationClientCapabilities_Scope is
       package DeclarationClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "linkSupport"]);
+         "linkSupport"]);
 
    end DeclarationClientCapabilities_Scope;
 
@@ -16882,8 +16881,8 @@ package body LSP.Inputs is
    package SignatureHelpOptions_Scope is
       package SignatureHelpOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "triggerCharacters",
-          "retriggerCharacters"]);
+         "triggerCharacters",
+         "retriggerCharacters"]);
 
    end SignatureHelpOptions_Scope;
 
@@ -16926,8 +16925,8 @@ package body LSP.Inputs is
    package SemanticTokensEdit_Scope is
       package SemanticTokensEdit_Map is new Minimal_Perfect_Hash
         (["start",
-          "deleteCount",
-          "data"]);
+         "deleteCount",
+         "data"]);
 
    end SemanticTokensEdit_Scope;
 
@@ -16967,9 +16966,9 @@ package body LSP.Inputs is
    package DocumentHighlightParams_Scope is
       package DocumentHighlightParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "partialResultToken"]);
+         "position",
+         "workDoneToken",
+         "partialResultToken"]);
 
    end DocumentHighlightParams_Scope;
 
@@ -17047,10 +17046,10 @@ package body LSP.Inputs is
    package WorkspaceFullDocumentDiagnosticReport_Scope is
       package WorkspaceFullDocumentDiagnosticReport_Map is new Minimal_Perfect_Hash
         (["kind",
-          "resultId",
-          "items",
-          "uri",
-          "version"]);
+         "resultId",
+         "items",
+         "uri",
+         "version"]);
 
    end WorkspaceFullDocumentDiagnosticReport_Scope;
 
@@ -17108,9 +17107,9 @@ package body LSP.Inputs is
    package SemanticTokensRangeParams_Scope is
       package SemanticTokensRangeParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument",
-          "range"]);
+         "partialResultToken",
+         "textDocument",
+         "range"]);
 
    end SemanticTokensRangeParams_Scope;
 
@@ -17155,11 +17154,11 @@ package body LSP.Inputs is
    package FoldingRange_Scope is
       package FoldingRange_Map is new Minimal_Perfect_Hash
         (["startLine",
-          "startCharacter",
-          "endLine",
-          "endCharacter",
-          "kind",
-          "collapsedText"]);
+         "startCharacter",
+         "endLine",
+         "endCharacter",
+         "kind",
+         "collapsedText"]);
 
    end FoldingRange_Scope;
 
@@ -17286,10 +17285,10 @@ package body LSP.Inputs is
    package CompletionParams_Scope is
       package CompletionParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "partialResultToken",
-          "context"]);
+         "position",
+         "workDoneToken",
+         "partialResultToken",
+         "context"]);
 
    end CompletionParams_Scope;
 
@@ -17339,8 +17338,8 @@ package body LSP.Inputs is
    package CallHierarchyIncomingCallsParams_Scope is
       package CallHierarchyIncomingCallsParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "item"]);
+         "partialResultToken",
+         "item"]);
 
    end CallHierarchyIncomingCallsParams_Scope;
 
@@ -17395,9 +17394,9 @@ package body LSP.Inputs is
    package WorkspaceSymbolClientCapabilities_Scope is
       package WorkspaceSymbolClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "symbolKind",
-          "tagSupport",
-          "resolveSupport"]);
+         "symbolKind",
+         "tagSupport",
+         "resolveSupport"]);
 
    end WorkspaceSymbolClientCapabilities_Scope;
 
@@ -17539,8 +17538,8 @@ package body LSP.Inputs is
    package SelectionRangeRegistrationOptions_Scope is
       package SelectionRangeRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "documentSelector",
-          "id"]);
+         "documentSelector",
+         "id"]);
 
    end SelectionRangeRegistrationOptions_Scope;
 
@@ -17602,7 +17601,7 @@ package body LSP.Inputs is
    package DidChangeNotebookDocumentParams_Scope is
       package DidChangeNotebookDocumentParams_Map is new Minimal_Perfect_Hash
         (["notebookDocument",
-          "change"]);
+         "change"]);
 
    end DidChangeNotebookDocumentParams_Scope;
 
@@ -17638,7 +17637,7 @@ package body LSP.Inputs is
    package RegularExpressionsClientCapabilities_Scope is
       package RegularExpressionsClientCapabilities_Map is new Minimal_Perfect_Hash
         (["engine",
-          "version"]);
+         "version"]);
 
    end RegularExpressionsClientCapabilities_Scope;
 
@@ -17677,7 +17676,7 @@ package body LSP.Inputs is
    package WorkspaceDocumentDiagnosticReport_Scope is
       package WorkspaceDocumentDiagnosticReport_Map is new Minimal_Perfect_Hash
         (["full",
-          "unchanged"]);
+         "unchanged"]);
 
    end WorkspaceDocumentDiagnosticReport_Scope;
 
@@ -17745,19 +17744,19 @@ package body LSP.Inputs is
    package WorkspaceClientCapabilities_Scope is
       package WorkspaceClientCapabilities_Map is new Minimal_Perfect_Hash
         (["applyEdit",
-          "workspaceEdit",
-          "didChangeConfiguration",
-          "didChangeWatchedFiles",
-          "symbol",
-          "executeCommand",
-          "workspaceFolders",
-          "configuration",
-          "semanticTokens",
-          "codeLens",
-          "fileOperations",
-          "inlineValue",
-          "inlayHint",
-          "diagnostics"]);
+         "workspaceEdit",
+         "didChangeConfiguration",
+         "didChangeWatchedFiles",
+         "symbol",
+         "executeCommand",
+         "workspaceFolders",
+         "configuration",
+         "semanticTokens",
+         "codeLens",
+         "fileOperations",
+         "inlineValue",
+         "inlayHint",
+         "diagnostics"]);
 
    end WorkspaceClientCapabilities_Scope;
 
@@ -17872,9 +17871,9 @@ package body LSP.Inputs is
    package WorkspaceDiagnosticParams_Scope is
       package WorkspaceDiagnosticParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "identifier",
-          "previousResultIds"]);
+         "partialResultToken",
+         "identifier",
+         "previousResultIds"]);
 
    end WorkspaceDiagnosticParams_Scope;
 
@@ -17957,7 +17956,7 @@ package body LSP.Inputs is
    package InlayHintOptions_Scope is
       package InlayHintOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "resolveProvider"]);
+         "resolveProvider"]);
 
    end InlayHintOptions_Scope;
 
@@ -18036,7 +18035,7 @@ package body LSP.Inputs is
    package WorkspaceFoldersChangeEvent_Scope is
       package WorkspaceFoldersChangeEvent_Map is new Minimal_Perfect_Hash
         (["added",
-          "removed"]);
+         "removed"]);
 
    end WorkspaceFoldersChangeEvent_Scope;
 
@@ -18071,7 +18070,7 @@ package body LSP.Inputs is
    package TypeDefinitionClientCapabilities_Scope is
       package TypeDefinitionClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "linkSupport"]);
+         "linkSupport"]);
 
    end TypeDefinitionClientCapabilities_Scope;
 
@@ -18114,7 +18113,7 @@ package body LSP.Inputs is
    package CreateFileOptions_Scope is
       package CreateFileOptions_Map is new Minimal_Perfect_Hash
         (["overwrite",
-          "ignoreIfExists"]);
+         "ignoreIfExists"]);
 
    end CreateFileOptions_Scope;
 
@@ -18157,7 +18156,7 @@ package body LSP.Inputs is
    package DiagnosticRelatedInformation_Scope is
       package DiagnosticRelatedInformation_Map is new Minimal_Perfect_Hash
         (["location",
-          "message"]);
+         "message"]);
 
    end DiagnosticRelatedInformation_Scope;
 
@@ -18216,7 +18215,7 @@ package body LSP.Inputs is
    package DidCloseNotebookDocumentParams_Scope is
       package DidCloseNotebookDocumentParams_Map is new Minimal_Perfect_Hash
         (["notebookDocument",
-          "cellTextDocuments"]);
+         "cellTextDocuments"]);
 
    end DidCloseNotebookDocumentParams_Scope;
 
@@ -18310,8 +18309,8 @@ package body LSP.Inputs is
    package DocumentColorRegistrationOptions_Scope is
       package DocumentColorRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "id"]);
+         "workDoneProgress",
+         "id"]);
 
    end DocumentColorRegistrationOptions_Scope;
 
@@ -18373,8 +18372,8 @@ package body LSP.Inputs is
    package CodeActionOptions_Scope is
       package CodeActionOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "codeActionKinds",
-          "resolveProvider"]);
+         "codeActionKinds",
+         "resolveProvider"]);
 
    end CodeActionOptions_Scope;
 
@@ -18429,9 +18428,9 @@ package body LSP.Inputs is
    package ShowDocumentParams_Scope is
       package ShowDocumentParams_Map is new Minimal_Perfect_Hash
         (["uri",
-          "external",
-          "takeFocus",
-          "selection"]);
+         "external",
+         "takeFocus",
+         "selection"]);
 
    end ShowDocumentParams_Scope;
 
@@ -18481,12 +18480,12 @@ package body LSP.Inputs is
    package Command_Or_CodeAction_Scope is
       package Command_Or_CodeAction_Map is new Minimal_Perfect_Hash
         (["arguments",
-          "kind",
-          "diagnostics",
-          "isPreferred",
-          "disabled",
-          "edit",
-          "data"]);
+         "kind",
+         "diagnostics",
+         "isPreferred",
+         "disabled",
+         "edit",
+         "data"]);
 
    end Command_Or_CodeAction_Scope;
 
@@ -18660,8 +18659,8 @@ package body LSP.Inputs is
    package DocumentFormattingParams_Scope is
       package DocumentFormattingParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "textDocument",
-          "options"]);
+         "textDocument",
+         "options"]);
 
    end DocumentFormattingParams_Scope;
 
@@ -18701,9 +18700,9 @@ package body LSP.Inputs is
    package SignatureHelpContext_Scope is
       package SignatureHelpContext_Map is new Minimal_Perfect_Hash
         (["triggerKind",
-          "triggerCharacter",
-          "isRetrigger",
-          "activeSignatureHelp"]);
+         "triggerCharacter",
+         "isRetrigger",
+         "activeSignatureHelp"]);
 
    end SignatureHelpContext_Scope;
 
@@ -18826,9 +18825,9 @@ package body LSP.Inputs is
    package DocumentOnTypeFormattingParams_Scope is
       package DocumentOnTypeFormattingParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "ch",
-          "options"]);
+         "position",
+         "ch",
+         "options"]);
 
    end DocumentOnTypeFormattingParams_Scope;
 
@@ -18869,7 +18868,7 @@ package body LSP.Inputs is
    package CallHierarchyOutgoingCall_Scope is
       package CallHierarchyOutgoingCall_Map is new Minimal_Perfect_Hash
         (["to",
-          "fromRanges"]);
+         "fromRanges"]);
 
    end CallHierarchyOutgoingCall_Scope;
 
@@ -18925,8 +18924,8 @@ package body LSP.Inputs is
    package TextDocumentContentChangeEvent_Scope is
       package TextDocumentContentChangeEvent_Map is new Minimal_Perfect_Hash
         (["range",
-          "rangeLength",
-          "text"]);
+         "rangeLength",
+         "text"]);
 
    end TextDocumentContentChangeEvent_Scope;
 
@@ -18972,8 +18971,8 @@ package body LSP.Inputs is
    package DocumentColorParams_Scope is
       package DocumentColorParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument"]);
+         "partialResultToken",
+         "textDocument"]);
 
    end DocumentColorParams_Scope;
 
@@ -19016,7 +19015,7 @@ package body LSP.Inputs is
    package WorkspaceFolder_Scope is
       package WorkspaceFolder_Map is new Minimal_Perfect_Hash
         (["uri",
-          "name"]);
+         "name"]);
 
    end WorkspaceFolder_Scope;
 
@@ -19053,7 +19052,7 @@ package body LSP.Inputs is
    package MarkedString_Scope is
       package MarkedString_Map is new Minimal_Perfect_Hash
         (["language",
-          "value"]);
+         "value"]);
 
    end MarkedString_Scope;
 
@@ -19109,9 +19108,9 @@ package body LSP.Inputs is
    package NotebookCell_Scope is
       package NotebookCell_Map is new Minimal_Perfect_Hash
         (["kind",
-          "document",
-          "metadata",
-          "executionSummary"]);
+         "document",
+         "metadata",
+         "executionSummary"]);
 
    end NotebookCell_Scope;
 
@@ -19158,9 +19157,9 @@ package body LSP.Inputs is
    package DocumentLink_Scope is
       package DocumentLink_Map is new Minimal_Perfect_Hash
         (["range",
-          "target",
-          "tooltip",
-          "data"]);
+         "target",
+         "tooltip",
+         "data"]);
 
    end DocumentLink_Scope;
 
@@ -19203,7 +19202,7 @@ package body LSP.Inputs is
    package WorkspaceFoldersServerCapabilities_Scope is
       package WorkspaceFoldersServerCapabilities_Map is new Minimal_Perfect_Hash
         (["supported",
-          "changeNotifications"]);
+         "changeNotifications"]);
 
    end WorkspaceFoldersServerCapabilities_Scope;
 
@@ -19275,7 +19274,7 @@ package body LSP.Inputs is
    package WorkDoneProgressEnd_Scope is
       package WorkDoneProgressEnd_Map is new Minimal_Perfect_Hash
         (["kind",
-          "message"]);
+         "message"]);
 
    end WorkDoneProgressEnd_Scope;
 
@@ -19312,11 +19311,11 @@ package body LSP.Inputs is
    package SemanticTokensRegistrationOptions_Scope is
       package SemanticTokensRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "legend",
-          "range",
-          "full",
-          "id"]);
+         "workDoneProgress",
+         "legend",
+         "range",
+         "full",
+         "id"]);
 
    end SemanticTokensRegistrationOptions_Scope;
 
@@ -19400,8 +19399,8 @@ package body LSP.Inputs is
    package CallHierarchyRegistrationOptions_Scope is
       package CallHierarchyRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "id"]);
+         "workDoneProgress",
+         "id"]);
 
    end CallHierarchyRegistrationOptions_Scope;
 
@@ -19499,8 +19498,8 @@ package body LSP.Inputs is
    package DocumentSymbolParams_Scope is
       package DocumentSymbolParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument"]);
+         "partialResultToken",
+         "textDocument"]);
 
    end DocumentSymbolParams_Scope;
 
@@ -19724,7 +19723,7 @@ package body LSP.Inputs is
 
    package FileOperationPatternKind_Map is new Minimal_Perfect_Hash
      (["file",
-       "folder"]);
+      "folder"]);
 
    procedure Read_FileOperationPatternKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -19739,7 +19738,7 @@ package body LSP.Inputs is
    package Unregistration_Scope is
       package Unregistration_Map is new Minimal_Perfect_Hash
         (["id",
-          "method"]);
+         "method"]);
 
    end Unregistration_Scope;
 
@@ -19814,8 +19813,8 @@ package body LSP.Inputs is
    package DocumentOnTypeFormattingRegistrationOptions_Scope is
       package DocumentOnTypeFormattingRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "firstTriggerCharacter",
-          "moreTriggerCharacter"]);
+         "firstTriggerCharacter",
+         "moreTriggerCharacter"]);
 
    end DocumentOnTypeFormattingRegistrationOptions_Scope;
 
@@ -20000,7 +19999,7 @@ package body LSP.Inputs is
    package ColorInformation_Scope is
       package ColorInformation_Map is new Minimal_Perfect_Hash
         (["range",
-          "color"]);
+         "color"]);
 
    end ColorInformation_Scope;
 
@@ -20035,7 +20034,7 @@ package body LSP.Inputs is
    package A_Range_Scope is
       package A_Range_Map is new Minimal_Perfect_Hash
         (["start",
-          "end"]);
+         "end"]);
 
    end A_Range_Scope;
 
@@ -20070,8 +20069,8 @@ package body LSP.Inputs is
    package ShowMessageRequestParams_Scope is
       package ShowMessageRequestParams_Map is new Minimal_Perfect_Hash
         (["type",
-          "message",
-          "actions"]);
+         "message",
+         "actions"]);
 
    end ShowMessageRequestParams_Scope;
 
@@ -20185,7 +20184,7 @@ package body LSP.Inputs is
    package InlineValueEvaluatableExpression_Scope is
       package InlineValueEvaluatableExpression_Map is new Minimal_Perfect_Hash
         (["range",
-          "expression"]);
+         "expression"]);
 
    end InlineValueEvaluatableExpression_Scope;
 
@@ -20252,8 +20251,8 @@ package body LSP.Inputs is
    package NotebookCellArrayChange_Scope is
       package NotebookCellArrayChange_Map is new Minimal_Perfect_Hash
         (["start",
-          "deleteCount",
-          "cells"]);
+         "deleteCount",
+         "cells"]);
 
    end NotebookCellArrayChange_Scope;
 
@@ -20293,8 +20292,8 @@ package body LSP.Inputs is
    package DocumentLinkRegistrationOptions_Scope is
       package DocumentLinkRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "resolveProvider"]);
+         "workDoneProgress",
+         "resolveProvider"]);
 
    end DocumentLinkRegistrationOptions_Scope;
 
@@ -20370,7 +20369,7 @@ package body LSP.Inputs is
    package LogMessageParams_Scope is
       package LogMessageParams_Map is new Minimal_Perfect_Hash
         (["type",
-          "message"]);
+         "message"]);
 
    end LogMessageParams_Scope;
 
@@ -20407,8 +20406,8 @@ package body LSP.Inputs is
    package CodeLens_Scope is
       package CodeLens_Map is new Minimal_Perfect_Hash
         (["range",
-          "command",
-          "data"]);
+         "command",
+         "data"]);
 
    end CodeLens_Scope;
 
@@ -20524,7 +20523,7 @@ package body LSP.Inputs is
    package ProgressParams_Scope is
       package ProgressParams_Map is new Minimal_Perfect_Hash
         (["token",
-          "value"]);
+         "value"]);
 
    end ProgressParams_Scope;
 
@@ -20559,7 +20558,7 @@ package body LSP.Inputs is
    package DocumentLinkOptions_Scope is
       package DocumentLinkOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "resolveProvider"]);
+         "resolveProvider"]);
 
    end DocumentLinkOptions_Scope;
 
@@ -20644,11 +20643,11 @@ package body LSP.Inputs is
    package DocumentSymbol_Result_Scope is
       package DocumentSymbol_Result_Map is new Minimal_Perfect_Hash
         (["location",
-          "containerName",
-          "detail",
-          "range",
-          "selectionRange",
-          "children"]);
+         "containerName",
+         "detail",
+         "range",
+         "selectionRange",
+         "children"]);
 
    end DocumentSymbol_Result_Scope;
 
@@ -20671,7 +20670,7 @@ package body LSP.Inputs is
          end if;
          if Handler.Is_Null_Value then
             Value :=
-              (Kind   => LSP.Structures.Varian_3,
+              (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
@@ -20686,32 +20685,32 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  location
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  containerName
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 3 =>  --  detail
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 4 =>  --  range
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 5 =>  --  selectionRange
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when 6 =>  --  children
                         Value :=
-                          (Kind   => LSP.Structures.Varian_2,
+                          (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
                      when others =>
@@ -20727,11 +20726,11 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_SymbolInformation_Vector (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_DocumentSymbol_Vector (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Read_SymbolInformation_Vector (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_DocumentSymbol_Vector (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                null;  --  #null_value
                Handler.Read_Next;
          end case;
@@ -20740,8 +20739,8 @@ package body LSP.Inputs is
 
    package TraceValues_Map is new Minimal_Perfect_Hash
      (["off",
-       "messages",
-       "verbose"]);
+      "messages",
+      "verbose"]);
 
    procedure Read_TraceValues
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -20756,8 +20755,8 @@ package body LSP.Inputs is
    package TypeHierarchyPrepareParams_Scope is
       package TypeHierarchyPrepareParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken"]);
+         "position",
+         "workDoneToken"]);
 
    end TypeHierarchyPrepareParams_Scope;
 
@@ -20797,11 +20796,11 @@ package body LSP.Inputs is
    package SymbolInformation_Scope is
       package SymbolInformation_Map is new Minimal_Perfect_Hash
         (["name",
-          "kind",
-          "tags",
-          "containerName",
-          "deprecated",
-          "location"]);
+         "kind",
+         "tags",
+         "containerName",
+         "deprecated",
+         "location"]);
 
    end SymbolInformation_Scope;
 
@@ -20852,7 +20851,7 @@ package body LSP.Inputs is
    package WillSaveTextDocumentParams_Scope is
       package WillSaveTextDocumentParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "reason"]);
+         "reason"]);
 
    end WillSaveTextDocumentParams_Scope;
 
@@ -20899,12 +20898,12 @@ package body LSP.Inputs is
    package FileOperationClientCapabilities_Scope is
       package FileOperationClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "didCreate",
-          "willCreate",
-          "didRename",
-          "willRename",
-          "didDelete",
-          "willDelete"]);
+         "didCreate",
+         "willCreate",
+         "didRename",
+         "willRename",
+         "didDelete",
+         "willDelete"]);
 
    end FileOperationClientCapabilities_Scope;
 
@@ -20977,7 +20976,7 @@ package body LSP.Inputs is
    package Definition_Result_Scope is
       package Definition_Result_Map is new Minimal_Perfect_Hash
         (["uri",
-          "range"]);
+         "range"]);
 
    end Definition_Result_Scope;
 
@@ -20997,12 +20996,12 @@ package body LSP.Inputs is
          Handler.Mark;
          if Handler.Is_Null_Value then
             Value :=
-              (Kind   => LSP.Structures.Varian_3,
+              (Kind   => LSP.Structures.Variant_3,
                others => <>);
          elsif Handler.Is_Start_Object then
             Handler.Read_Next;
             Value :=
-              (Kind   => LSP.Structures.Varian_2,
+              (Kind   => LSP.Structures.Variant_2,
                others => <>);
             while Handler.Is_Key_Name loop
                declare
@@ -21015,12 +21014,12 @@ package body LSP.Inputs is
                   case Index is
                      when 1 =>  --  uri
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when 2 =>  --  range
                         Value :=
-                          (Kind   => LSP.Structures.Varian_1,
+                          (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
                      when others =>
@@ -21036,11 +21035,11 @@ package body LSP.Inputs is
          Handler.Unmark;
 
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Read_Definition (Handler, Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Read_DefinitionLink_Vector (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Read_Definition (Handler, Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Read_DefinitionLink_Vector (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                null;  --  #null_value
                Handler.Read_Next;
          end case;
@@ -21086,7 +21085,7 @@ package body LSP.Inputs is
    package InlineValueText_Scope is
       package InlineValueText_Map is new Minimal_Perfect_Hash
         (["range",
-          "text"]);
+         "text"]);
 
    end InlineValueText_Scope;
 
@@ -21123,7 +21122,7 @@ package body LSP.Inputs is
    package UnchangedDocumentDiagnosticReport_Scope is
       package UnchangedDocumentDiagnosticReport_Map is new Minimal_Perfect_Hash
         (["kind",
-          "resultId"]);
+         "resultId"]);
 
    end UnchangedDocumentDiagnosticReport_Scope;
 
@@ -21170,8 +21169,8 @@ package body LSP.Inputs is
    package Registration_Scope is
       package Registration_Map is new Minimal_Perfect_Hash
         (["id",
-          "method",
-          "registerOptions"]);
+         "method",
+         "registerOptions"]);
 
    end Registration_Scope;
 
@@ -21212,30 +21211,30 @@ package body LSP.Inputs is
    package CompletionItem_Scope is
       package CompletionItem_Map is new Minimal_Perfect_Hash
         (["label",
-          "labelDetails",
-          "kind",
-          "tags",
-          "detail",
-          "documentation",
-          "deprecated",
-          "preselect",
-          "sortText",
-          "filterText",
-          "insertText",
-          "insertTextFormat",
-          "insertTextMode",
-          "textEdit",
-          "textEditText",
-          "additionalTextEdits",
-          "commitCharacters",
-          "command",
-          "data"]);
+         "labelDetails",
+         "kind",
+         "tags",
+         "detail",
+         "documentation",
+         "deprecated",
+         "preselect",
+         "sortText",
+         "filterText",
+         "insertText",
+         "insertTextFormat",
+         "insertTextMode",
+         "textEdit",
+         "textEditText",
+         "additionalTextEdits",
+         "commitCharacters",
+         "command",
+         "data"]);
 
       package TextEdit_Or_InsertReplaceEdit_Scope is
          package TextEdit_Or_InsertReplaceEdit_Map is new Minimal_Perfect_Hash
            (["range",
-             "insert",
-             "replace"]);
+            "insert",
+            "replace"]);
 
       end TextEdit_Or_InsertReplaceEdit_Scope;
 
@@ -21417,7 +21416,7 @@ package body LSP.Inputs is
    package DocumentRangeFormattingRegistrationOptions_Scope is
       package DocumentRangeFormattingRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress"]);
+         "workDoneProgress"]);
 
    end DocumentRangeFormattingRegistrationOptions_Scope;
 
@@ -21497,7 +21496,7 @@ package body LSP.Inputs is
    package RenameFileOptions_Scope is
       package RenameFileOptions_Map is new Minimal_Perfect_Hash
         (["overwrite",
-          "ignoreIfExists"]);
+         "ignoreIfExists"]);
 
    end RenameFileOptions_Scope;
 
@@ -21540,8 +21539,8 @@ package body LSP.Inputs is
    package HoverParams_Scope is
       package HoverParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken"]);
+         "position",
+         "workDoneToken"]);
 
    end HoverParams_Scope;
 
@@ -21581,13 +21580,13 @@ package body LSP.Inputs is
    package DocumentSymbol_Scope is
       package DocumentSymbol_Map is new Minimal_Perfect_Hash
         (["name",
-          "detail",
-          "kind",
-          "tags",
-          "deprecated",
-          "range",
-          "selectionRange",
-          "children"]);
+         "detail",
+         "kind",
+         "tags",
+         "deprecated",
+         "range",
+         "selectionRange",
+         "children"]);
 
    end DocumentSymbol_Scope;
 
@@ -21642,10 +21641,10 @@ package body LSP.Inputs is
    package DocumentSymbolClientCapabilities_Scope is
       package DocumentSymbolClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "symbolKind",
-          "hierarchicalDocumentSymbolSupport",
-          "tagSupport",
-          "labelSupport"]);
+         "symbolKind",
+         "hierarchicalDocumentSymbolSupport",
+         "tagSupport",
+         "labelSupport"]);
 
    end DocumentSymbolClientCapabilities_Scope;
 
@@ -21739,8 +21738,8 @@ package body LSP.Inputs is
    package LinkedEditingRangeRegistrationOptions_Scope is
       package LinkedEditingRangeRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress",
-          "id"]);
+         "workDoneProgress",
+         "id"]);
 
    end LinkedEditingRangeRegistrationOptions_Scope;
 
@@ -21802,19 +21801,19 @@ package body LSP.Inputs is
    package SemanticTokensClientCapabilities_Scope is
       package SemanticTokensClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "requests",
-          "tokenTypes",
-          "tokenModifiers",
-          "formats",
-          "overlappingTokenSupport",
-          "multilineTokenSupport",
-          "serverCancelSupport",
-          "augmentsSyntaxTokens"]);
+         "requests",
+         "tokenTypes",
+         "tokenModifiers",
+         "formats",
+         "overlappingTokenSupport",
+         "multilineTokenSupport",
+         "serverCancelSupport",
+         "augmentsSyntaxTokens"]);
 
       package requests_OfSemanticTokensClientCapabilities_Scope is
          package requests_OfSemanticTokensClientCapabilities_Map is new Minimal_Perfect_Hash
            (["range",
-             "full"]);
+            "full"]);
 
       end requests_OfSemanticTokensClientCapabilities_Scope;
 
@@ -21951,12 +21950,12 @@ package body LSP.Inputs is
    package Hover_Scope is
       package Hover_Map is new Minimal_Perfect_Hash
         (["contents",
-          "range"]);
+         "range"]);
 
       package MarkupContent_Or_MarkedString_Vector_Scope is
          package MarkupContent_Or_MarkedString_Vector_Map is new Minimal_Perfect_Hash
            (["kind",
-             "language"]);
+            "language"]);
 
       end MarkupContent_Or_MarkedString_Vector_Scope;
 
@@ -22096,7 +22095,7 @@ package body LSP.Inputs is
    package ResourceOperation_Scope is
       package ResourceOperation_Map is new Minimal_Perfect_Hash
         (["kind",
-          "annotationId"]);
+         "annotationId"]);
 
    end ResourceOperation_Scope;
 
@@ -22137,10 +22136,10 @@ package body LSP.Inputs is
    package PublishDiagnosticsClientCapabilities_Scope is
       package PublishDiagnosticsClientCapabilities_Map is new Minimal_Perfect_Hash
         (["relatedInformation",
-          "tagSupport",
-          "versionSupport",
-          "codeDescriptionSupport",
-          "dataSupport"]);
+         "tagSupport",
+         "versionSupport",
+         "codeDescriptionSupport",
+         "dataSupport"]);
 
       package tagSupport_OfPublishDiagnosticsClientCapabilities_Scope is
          package tagSupport_OfPublishDiagnosticsClientCapabilities_Map is new Minimal_Perfect_Hash
@@ -22261,9 +22260,9 @@ package body LSP.Inputs is
    package SemanticTokensOptions_Scope is
       package SemanticTokensOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "legend",
-          "range",
-          "full"]);
+         "legend",
+         "range",
+         "full"]);
 
    end SemanticTokensOptions_Scope;
 
@@ -22373,8 +22372,8 @@ package body LSP.Inputs is
    package FoldingRangeParams_Scope is
       package FoldingRangeParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument"]);
+         "partialResultToken",
+         "textDocument"]);
 
    end FoldingRangeParams_Scope;
 
@@ -22525,9 +22524,9 @@ package body LSP.Inputs is
    package SignatureHelpParams_Scope is
       package SignatureHelpParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "context"]);
+         "position",
+         "workDoneToken",
+         "context"]);
 
    end SignatureHelpParams_Scope;
 
@@ -22695,7 +22694,7 @@ package body LSP.Inputs is
    package Position_Scope is
       package Position_Map is new Minimal_Perfect_Hash
         (["line",
-          "character"]);
+         "character"]);
 
    end Position_Scope;
 
@@ -22733,7 +22732,7 @@ package body LSP.Inputs is
    package TextDocumentSaveRegistrationOptions_Scope is
       package TextDocumentSaveRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "includeText"]);
+         "includeText"]);
 
    end TextDocumentSaveRegistrationOptions_Scope;
 
@@ -22791,10 +22790,10 @@ package body LSP.Inputs is
    package CodeActionParams_Scope is
       package CodeActionParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
-          "partialResultToken",
-          "textDocument",
-          "range",
-          "context"]);
+         "partialResultToken",
+         "textDocument",
+         "range",
+         "context"]);
 
    end CodeActionParams_Scope;
 
@@ -22841,8 +22840,8 @@ package body LSP.Inputs is
    package Command_Scope is
       package Command_Map is new Minimal_Perfect_Hash
         (["title",
-          "command",
-          "arguments"]);
+         "command",
+         "arguments"]);
 
    end Command_Scope;
 
@@ -22883,8 +22882,8 @@ package body LSP.Inputs is
    package TextDocumentFilter_Scope is
       package TextDocumentFilter_Map is new Minimal_Perfect_Hash
         (["language",
-          "scheme",
-          "pattern"]);
+         "scheme",
+         "pattern"]);
 
    end TextDocumentFilter_Scope;
 
@@ -22959,7 +22958,7 @@ package body LSP.Inputs is
    package ExecuteCommandRegistrationOptions_Scope is
       package ExecuteCommandRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "commands"]);
+         "commands"]);
 
    end ExecuteCommandRegistrationOptions_Scope;
 
@@ -22997,10 +22996,10 @@ package body LSP.Inputs is
 
    package UniquenessLevel_Map is new Minimal_Perfect_Hash
      (["document",
-       "project",
-       "group",
-       "scheme",
-       "global"]);
+      "project",
+      "group",
+      "scheme",
+      "global"]);
 
    procedure Read_UniquenessLevel
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -23015,7 +23014,7 @@ package body LSP.Inputs is
    package TextDocumentEdit_Scope is
       package TextDocumentEdit_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "edits"]);
+         "edits"]);
 
       package TextEdit_Or_AnnotatedTextEdit_Scope is
          package TextEdit_Or_AnnotatedTextEdit_Map is new Minimal_Perfect_Hash
@@ -23144,7 +23143,7 @@ package body LSP.Inputs is
    package CompletionItemLabelDetails_Scope is
       package CompletionItemLabelDetails_Map is new Minimal_Perfect_Hash
         (["detail",
-          "description"]);
+         "description"]);
 
    end CompletionItemLabelDetails_Scope;
 
@@ -23183,10 +23182,10 @@ package body LSP.Inputs is
    package CompletionOptions_Scope is
       package CompletionOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "triggerCharacters",
-          "allCommitCharacters",
-          "resolveProvider",
-          "completionItem"]);
+         "triggerCharacters",
+         "allCommitCharacters",
+         "resolveProvider",
+         "completionItem"]);
 
       package completionItem_OfCompletionOptions_Scope is
          package completionItem_OfCompletionOptions_Map is new Minimal_Perfect_Hash
@@ -23280,14 +23279,14 @@ package body LSP.Inputs is
    package Diagnostic_Scope is
       package Diagnostic_Map is new Minimal_Perfect_Hash
         (["range",
-          "severity",
-          "code",
-          "codeDescription",
-          "source",
-          "message",
-          "tags",
-          "relatedInformation",
-          "data"]);
+         "severity",
+         "code",
+         "codeDescription",
+         "source",
+         "message",
+         "tags",
+         "relatedInformation",
+         "data"]);
 
    end Diagnostic_Scope;
 
@@ -23376,8 +23375,8 @@ package body LSP.Inputs is
    package LinkedEditingRangeParams_Scope is
       package LinkedEditingRangeParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken"]);
+         "position",
+         "workDoneToken"]);
 
    end LinkedEditingRangeParams_Scope;
 
@@ -23417,10 +23416,10 @@ package body LSP.Inputs is
    package TextDocumentSyncOptions_Scope is
       package TextDocumentSyncOptions_Map is new Minimal_Perfect_Hash
         (["openClose",
-          "change",
-          "willSave",
-          "willSaveWaitUntil",
-          "save"]);
+         "change",
+         "willSave",
+         "willSaveWaitUntil",
+         "save"]);
 
    end TextDocumentSyncOptions_Scope;
 
@@ -23506,9 +23505,9 @@ package body LSP.Inputs is
    package ImplementationParams_Scope is
       package ImplementationParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken",
-          "partialResultToken"]);
+         "position",
+         "workDoneToken",
+         "partialResultToken"]);
 
    end ImplementationParams_Scope;
 
@@ -23553,7 +23552,7 @@ package body LSP.Inputs is
    package OptionalVersionedTextDocumentIdentifier_Scope is
       package OptionalVersionedTextDocumentIdentifier_Map is new Minimal_Perfect_Hash
         (["uri",
-          "version"]);
+         "version"]);
 
    end OptionalVersionedTextDocumentIdentifier_Scope;
 
@@ -23589,7 +23588,7 @@ package body LSP.Inputs is
    package SemanticTokensLegend_Scope is
       package SemanticTokensLegend_Map is new Minimal_Perfect_Hash
         (["tokenTypes",
-          "tokenModifiers"]);
+         "tokenModifiers"]);
 
    end SemanticTokensLegend_Scope;
 
@@ -23647,7 +23646,7 @@ package body LSP.Inputs is
    package ExecuteCommandOptions_Scope is
       package ExecuteCommandOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress",
-          "commands"]);
+         "commands"]);
 
    end ExecuteCommandOptions_Scope;
 
@@ -23686,9 +23685,9 @@ package body LSP.Inputs is
    package TextDocumentSyncClientCapabilities_Scope is
       package TextDocumentSyncClientCapabilities_Map is new Minimal_Perfect_Hash
         (["dynamicRegistration",
-          "willSave",
-          "willSaveWaitUntil",
-          "didSave"]);
+         "willSave",
+         "willSaveWaitUntil",
+         "didSave"]);
 
    end TextDocumentSyncClientCapabilities_Scope;
 
@@ -23742,7 +23741,7 @@ package body LSP.Inputs is
 
    package MarkupKind_Map is new Minimal_Perfect_Hash
      (["plaintext",
-       "markdown"]);
+      "markdown"]);
 
    procedure Read_MarkupKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -23757,8 +23756,8 @@ package body LSP.Inputs is
    package CallHierarchyPrepareParams_Scope is
       package CallHierarchyPrepareParams_Map is new Minimal_Perfect_Hash
         (["textDocument",
-          "position",
-          "workDoneToken"]);
+         "position",
+         "workDoneToken"]);
 
    end CallHierarchyPrepareParams_Scope;
 
@@ -23808,7 +23807,7 @@ package body LSP.Inputs is
    package ReferenceRegistrationOptions_Scope is
       package ReferenceRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
-          "workDoneProgress"]);
+         "workDoneProgress"]);
 
    end ReferenceRegistrationOptions_Scope;
 

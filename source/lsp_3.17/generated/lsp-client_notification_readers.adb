@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 with Minimal_Perfect_Hash;
 with LSP.Inputs;
@@ -21,12 +23,12 @@ package body LSP.Client_Notification_Readers is
 
    package Method_Map is new Minimal_Perfect_Hash
      (["$/cancelRequest",
-       "$/logTrace",
-       "$/progress",
-       "telemetry/event",
-       "textDocument/publishDiagnostics",
-       "window/logMessage",
-       "window/showMessage"]);
+      "$/logTrace",
+      "$/progress",
+      "telemetry/event",
+      "textDocument/publishDiagnostics",
+      "window/logMessage",
+      "window/showMessage"]);
 
    procedure Initialize is
    begin

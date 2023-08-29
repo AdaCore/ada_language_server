@@ -3,6 +3,10 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
+
+with Interfaces;
 
 with LSP.Output_Tools;
 with LSP.Outputs;
@@ -162,7 +166,7 @@ package body LSP.Server_Response_Writers is
       Self.Output.Key_Name ("error");
       Self.Output.Start_Object;
       Self.Output.Key_Name ("code");
-      LSP.Outputs.Write_ErrorCodes (Self.Output.all, Value.code);
+      Self.Output.Integer_Value (Interfaces.Integer_64'Val (Value.code));
       Self.Output.Key_Name ("message");
       Self.Output.String_Value (Value.message);
       Self.Output.End_Object;

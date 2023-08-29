@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 with Minimal_Perfect_Hash;
 with LSP.Inputs;
@@ -27,18 +29,18 @@ package body LSP.Client_Request_Readers is
 
    package Method_Map is new Minimal_Perfect_Hash
      (["client/registerCapability",
-       "client/unregisterCapability",
-       "window/showDocument",
-       "window/showMessageRequest",
-       "window/workDoneProgress/create",
-       "workspace/applyEdit",
-       "workspace/codeLens/refresh",
-       "workspace/configuration",
-       "workspace/diagnostic/refresh",
-       "workspace/inlayHint/refresh",
-       "workspace/inlineValue/refresh",
-       "workspace/semanticTokens/refresh",
-       "workspace/workspaceFolders"]);
+      "client/unregisterCapability",
+      "window/showDocument",
+      "window/showMessageRequest",
+      "window/workDoneProgress/create",
+      "workspace/applyEdit",
+      "workspace/codeLens/refresh",
+      "workspace/configuration",
+      "workspace/diagnostic/refresh",
+      "workspace/inlayHint/refresh",
+      "workspace/inlineValue/refresh",
+      "workspace/semanticTokens/refresh",
+      "workspace/workspaceFolders"]);
 
    procedure Initialize is
    begin

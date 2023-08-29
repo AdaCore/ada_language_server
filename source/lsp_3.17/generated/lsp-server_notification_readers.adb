@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 with Minimal_Perfect_Hash;
 with LSP.Inputs;
@@ -35,26 +37,26 @@ package body LSP.Server_Notification_Readers is
 
    package Method_Map is new Minimal_Perfect_Hash
      (["$/cancelRequest",
-       "$/progress",
-       "$/setTrace",
-       "exit",
-       "initialized",
-       "notebookDocument/didChange",
-       "notebookDocument/didClose",
-       "notebookDocument/didOpen",
-       "notebookDocument/didSave",
-       "textDocument/didChange",
-       "textDocument/didClose",
-       "textDocument/didOpen",
-       "textDocument/didSave",
-       "textDocument/willSave",
-       "window/workDoneProgress/cancel",
-       "workspace/didChangeConfiguration",
-       "workspace/didChangeWatchedFiles",
-       "workspace/didChangeWorkspaceFolders",
-       "workspace/didCreateFiles",
-       "workspace/didDeleteFiles",
-       "workspace/didRenameFiles"]);
+      "$/progress",
+      "$/setTrace",
+      "exit",
+      "initialized",
+      "notebookDocument/didChange",
+      "notebookDocument/didClose",
+      "notebookDocument/didOpen",
+      "notebookDocument/didSave",
+      "textDocument/didChange",
+      "textDocument/didClose",
+      "textDocument/didOpen",
+      "textDocument/didSave",
+      "textDocument/willSave",
+      "window/workDoneProgress/cancel",
+      "workspace/didChangeConfiguration",
+      "workspace/didChangeWatchedFiles",
+      "workspace/didChangeWorkspaceFolders",
+      "workspace/didCreateFiles",
+      "workspace/didDeleteFiles",
+      "workspace/didRenameFiles"]);
 
    procedure Initialize is
    begin

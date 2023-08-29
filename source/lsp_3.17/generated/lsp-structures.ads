@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
@@ -410,7 +412,7 @@ package LSP.Structures is
    new TextEdit_Vector_Maps.Map with null record;
 
    type documentChanges_OfWorkspaceEdit_Item_Variant is
-     (Varian_1, create, rename, delete);
+     (Variant_1, create, rename, delete);
 
    type documentChanges_OfWorkspaceEdit_Item
      (Kind : documentChanges_OfWorkspaceEdit_Item_Variant :=
@@ -418,8 +420,8 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.TextDocumentEdit;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.TextDocumentEdit;
          when create =>
             create : LSP.Structures.CreateFile;
          when rename =>
@@ -6320,7 +6322,7 @@ package LSP.Structures is
    end record;
 
    type declarationProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type declarationProvider_OfServerCapabilities
      (Kind : declarationProvider_OfServerCapabilities_Variant :=
@@ -6328,12 +6330,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.DeclarationOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.DeclarationRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.DeclarationOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.DeclarationRegistrationOptions;
       end case;
    end record;
 
@@ -6368,7 +6370,7 @@ package LSP.Structures is
    end record;
 
    type typeDefinitionProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type typeDefinitionProvider_OfServerCapabilities
      (Kind : typeDefinitionProvider_OfServerCapabilities_Variant :=
@@ -6376,12 +6378,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.TypeDefinitionOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.TypeDefinitionRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.TypeDefinitionOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.TypeDefinitionRegistrationOptions;
       end case;
    end record;
 
@@ -6397,7 +6399,7 @@ package LSP.Structures is
    end record;
 
    type implementationProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type implementationProvider_OfServerCapabilities
      (Kind : implementationProvider_OfServerCapabilities_Variant :=
@@ -6405,12 +6407,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.ImplementationOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.ImplementationRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.ImplementationOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.ImplementationRegistrationOptions;
       end case;
    end record;
 
@@ -6506,7 +6508,7 @@ package LSP.Structures is
    end record;
 
    type colorProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type colorProvider_OfServerCapabilities
      (Kind : colorProvider_OfServerCapabilities_Variant :=
@@ -6514,12 +6516,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.DocumentColorOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.DocumentColorRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.DocumentColorOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.DocumentColorRegistrationOptions;
       end case;
    end record;
 
@@ -6619,7 +6621,7 @@ package LSP.Structures is
    end record;
 
    type foldingRangeProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type foldingRangeProvider_OfServerCapabilities
      (Kind : foldingRangeProvider_OfServerCapabilities_Variant :=
@@ -6627,12 +6629,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.FoldingRangeOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.FoldingRangeRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.FoldingRangeOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.FoldingRangeRegistrationOptions;
       end case;
    end record;
 
@@ -6648,7 +6650,7 @@ package LSP.Structures is
    end record;
 
    type selectionRangeProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type selectionRangeProvider_OfServerCapabilities
      (Kind : selectionRangeProvider_OfServerCapabilities_Variant :=
@@ -6656,12 +6658,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.SelectionRangeOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.SelectionRangeRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.SelectionRangeOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.SelectionRangeRegistrationOptions;
       end case;
    end record;
 
@@ -6677,7 +6679,7 @@ package LSP.Structures is
    end record;
 
    type callHierarchyProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type callHierarchyProvider_OfServerCapabilities
      (Kind : callHierarchyProvider_OfServerCapabilities_Variant :=
@@ -6685,12 +6687,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.CallHierarchyOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.CallHierarchyRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.CallHierarchyOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.CallHierarchyRegistrationOptions;
       end case;
    end record;
 
@@ -6706,7 +6708,7 @@ package LSP.Structures is
    end record;
 
    type linkedEditingRangeProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type linkedEditingRangeProvider_OfServerCapabilities
      (Kind : linkedEditingRangeProvider_OfServerCapabilities_Variant :=
@@ -6714,12 +6716,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.LinkedEditingRangeOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.LinkedEditingRangeRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.LinkedEditingRangeOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.LinkedEditingRangeRegistrationOptions;
       end case;
    end record;
 
@@ -6758,7 +6760,7 @@ package LSP.Structures is
    end record;
 
    type monikerProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type monikerProvider_OfServerCapabilities
      (Kind : monikerProvider_OfServerCapabilities_Variant :=
@@ -6766,12 +6768,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.MonikerOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.MonikerRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.MonikerOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.MonikerRegistrationOptions;
       end case;
    end record;
 
@@ -6787,7 +6789,7 @@ package LSP.Structures is
    end record;
 
    type typeHierarchyProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type typeHierarchyProvider_OfServerCapabilities
      (Kind : typeHierarchyProvider_OfServerCapabilities_Variant :=
@@ -6795,12 +6797,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.TypeHierarchyOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.TypeHierarchyRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.TypeHierarchyOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.TypeHierarchyRegistrationOptions;
       end case;
    end record;
 
@@ -6816,7 +6818,7 @@ package LSP.Structures is
    end record;
 
    type inlineValueProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type inlineValueProvider_OfServerCapabilities
      (Kind : inlineValueProvider_OfServerCapabilities_Variant :=
@@ -6824,12 +6826,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.InlineValueOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.InlineValueRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.InlineValueOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.InlineValueRegistrationOptions;
       end case;
    end record;
 
@@ -6845,7 +6847,7 @@ package LSP.Structures is
    end record;
 
    type inlayHintProvider_OfServerCapabilities_Variant is
-     (Varian_1, Varian_2, Varian_3);
+     (Variant_1, Variant_2, Variant_3);
 
    type inlayHintProvider_OfServerCapabilities
      (Kind : inlayHintProvider_OfServerCapabilities_Variant :=
@@ -6853,12 +6855,12 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : Standard.Boolean;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.InlayHintOptions;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.InlayHintRegistrationOptions;
+         when Variant_1 =>
+            Variant_1 : Standard.Boolean;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.InlayHintOptions;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.InlayHintRegistrationOptions;
       end case;
    end record;
 
@@ -8522,18 +8524,18 @@ package LSP.Structures is
    --
    --  @since 3.17.0
 
-   type InlineValue_Variant is (Varian_1, Varian_2, Varian_3);
+   type InlineValue_Variant is (Variant_1, Variant_2, Variant_3);
 
    type InlineValue (Kind : InlineValue_Variant := InlineValue_Variant'First)
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.InlineValueText;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.InlineValueVariableLookup;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.InlineValueEvaluatableExpression;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.InlineValueText;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.InlineValueVariableLookup;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.InlineValueEvaluatableExpression;
       end case;
    end record;
    --  Inline value information can be provided by different means: - directly
@@ -8556,19 +8558,19 @@ package LSP.Structures is
 
    end record;
 
-   type PrepareRenameResult_Variant is (Varian_1, Varian_2, Varian_3);
+   type PrepareRenameResult_Variant is (Variant_1, Variant_2, Variant_3);
 
    type PrepareRenameResult
      (Kind : PrepareRenameResult_Variant := PrepareRenameResult_Variant'First)
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.A_Range;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.PrepareRenameResult_2;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.PrepareRenameResult_3;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.A_Range;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.PrepareRenameResult_2;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.PrepareRenameResult_3;
       end case;
    end record;
 
@@ -8621,18 +8623,18 @@ package LSP.Structures is
    type ColorPresentation_Vector is
    new ColorPresentation_Vectors.Vector with null record;
 
-   type Completion_Result_Variant is (Varian_1, Varian_2, Varian_3);
+   type Completion_Result_Variant is (Variant_1, Variant_2, Variant_3);
 
    type Completion_Result
      (Kind : Completion_Result_Variant := Completion_Result_Variant'First) is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.CompletionItem_Vector;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.CompletionList;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.Null_Record;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.CompletionItem_Vector;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.CompletionList;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.Null_Record;
       end case;
    end record;
 
@@ -8642,22 +8644,22 @@ package LSP.Structures is
    type DeclarationLink_Vector is
    new DeclarationLink_Vectors.Vector with null record;
 
-   type Declaration_Result_Variant is (Varian_1, Varian_2, Varian_3);
+   type Declaration_Result_Variant is (Variant_1, Variant_2, Variant_3);
 
    type Declaration_Result
      (Kind : Declaration_Result_Variant := Declaration_Result_Variant'First) is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.Declaration;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.DeclarationLink_Vector;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.Null_Record;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.Declaration;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.DeclarationLink_Vector;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.Null_Record;
       end case;
    end record;
 
-   type Declaration_Progress_Report_Variant is (Varian_1, Varian_2);
+   type Declaration_Progress_Report_Variant is (Variant_1, Variant_2);
 
    type Declaration_Progress_Report
      (Kind : Declaration_Progress_Report_Variant :=
@@ -8665,10 +8667,10 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.Location_Vector;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.DeclarationLink_Vector;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.Location_Vector;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.DeclarationLink_Vector;
       end case;
    end record;
 
@@ -8678,22 +8680,22 @@ package LSP.Structures is
    type DefinitionLink_Vector is
    new DefinitionLink_Vectors.Vector with null record;
 
-   type Definition_Result_Variant is (Varian_1, Varian_2, Varian_3);
+   type Definition_Result_Variant is (Variant_1, Variant_2, Variant_3);
 
    type Definition_Result
      (Kind : Definition_Result_Variant := Definition_Result_Variant'First) is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.Definition;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.DefinitionLink_Vector;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.Null_Record;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.Definition;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.DefinitionLink_Vector;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.Null_Record;
       end case;
    end record;
 
-   type Definition_Progress_Report_Variant is (Varian_1, Varian_2);
+   type Definition_Progress_Report_Variant is (Variant_1, Variant_2);
 
    type Definition_Progress_Report
      (Kind : Definition_Progress_Report_Variant :=
@@ -8701,10 +8703,10 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.Location_Vector;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.DefinitionLink_Vector;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.Location_Vector;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.DefinitionLink_Vector;
       end case;
    end record;
 
@@ -8736,7 +8738,7 @@ package LSP.Structures is
    type SymbolInformation_Vector is
    new SymbolInformation_Vectors.Vector with null record;
 
-   type DocumentSymbol_Result_Variant is (Varian_1, Varian_2, Varian_3);
+   type DocumentSymbol_Result_Variant is (Variant_1, Variant_2, Variant_3);
 
    type DocumentSymbol_Result
      (Kind : DocumentSymbol_Result_Variant :=
@@ -8744,16 +8746,16 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.SymbolInformation_Vector;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.DocumentSymbol_Vector;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.Null_Record;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.SymbolInformation_Vector;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.DocumentSymbol_Vector;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.Null_Record;
       end case;
    end record;
 
-   type DocumentSymbol_Progress_Report_Variant is (Varian_1, Varian_2);
+   type DocumentSymbol_Progress_Report_Variant is (Variant_1, Variant_2);
 
    type DocumentSymbol_Progress_Report
      (Kind : DocumentSymbol_Progress_Report_Variant :=
@@ -8761,10 +8763,10 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.SymbolInformation_Vector;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.DocumentSymbol_Vector;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.SymbolInformation_Vector;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.DocumentSymbol_Vector;
       end case;
    end record;
 
@@ -8868,19 +8870,19 @@ package LSP.Structures is
       end case;
    end record;
 
-   type Tokens_Delta_Result_Variant is (Varian_1, Varian_2, Varian_3);
+   type Tokens_Delta_Result_Variant is (Variant_1, Variant_2, Variant_3);
 
    type Tokens_Delta_Result
      (Kind : Tokens_Delta_Result_Variant := Tokens_Delta_Result_Variant'First)
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.SemanticTokens;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.SemanticTokensDelta;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.Null_Record;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.SemanticTokens;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.SemanticTokensDelta;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.Null_Record;
       end case;
    end record;
 
@@ -8930,22 +8932,22 @@ package LSP.Structures is
    type WorkspaceSymbol_Vector is
    new WorkspaceSymbol_Vectors.Vector with null record;
 
-   type Symbol_Result_Variant is (Varian_1, Varian_2, Varian_3);
+   type Symbol_Result_Variant is (Variant_1, Variant_2, Variant_3);
 
    type Symbol_Result
      (Kind : Symbol_Result_Variant := Symbol_Result_Variant'First) is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.SymbolInformation_Vector;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.WorkspaceSymbol_Vector;
-         when Varian_3 =>
-            Varian_3 : LSP.Structures.Null_Record;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.SymbolInformation_Vector;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.WorkspaceSymbol_Vector;
+         when Variant_3 =>
+            Variant_3 : LSP.Structures.Null_Record;
       end case;
    end record;
 
-   type Symbol_Progress_Report_Variant is (Varian_1, Varian_2);
+   type Symbol_Progress_Report_Variant is (Variant_1, Variant_2);
 
    type Symbol_Progress_Report
      (Kind : Symbol_Progress_Report_Variant :=
@@ -8953,10 +8955,10 @@ package LSP.Structures is
    is
    record
       case Kind is
-         when Varian_1 =>
-            Varian_1 : LSP.Structures.SymbolInformation_Vector;
-         when Varian_2 =>
-            Varian_2 : LSP.Structures.WorkspaceSymbol_Vector;
+         when Variant_1 =>
+            Variant_1 : LSP.Structures.SymbolInformation_Vector;
+         when Variant_2 =>
+            Variant_2 : LSP.Structures.WorkspaceSymbol_Vector;
       end case;
    end record;
 

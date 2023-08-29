@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 with VSS.JSON.Content_Handlers;
 
@@ -111,6 +113,10 @@ package LSP.Outputs is
    procedure Write_WorkDoneProgressCancelParams
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.WorkDoneProgressCancelParams);
+
+   procedure Write_ProgressToken
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.ProgressToken);
 
    procedure Write_DidChangeWatchedFilesParams
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;

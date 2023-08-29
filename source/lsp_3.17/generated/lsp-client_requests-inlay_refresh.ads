@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 package LSP.Client_Requests.Inlay_Refresh is
    pragma Preelaborate;

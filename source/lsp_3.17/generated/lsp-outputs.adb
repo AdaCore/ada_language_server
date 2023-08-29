@@ -3,6 +3,8 @@
 --
 --  SPDX-License-Identifier: MIT
 --
+--  DON'T EDIT THIS FILE! It was generated from metaModel.json.
+--
 
 with Ada.Containers;
 with Interfaces;
@@ -258,10 +260,6 @@ package body LSP.Outputs is
    procedure Write_NotebookDocumentSyncClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.NotebookDocumentSyncClientCapabilities);
-
-   procedure Write_ProgressToken
-     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Value   : LSP.Structures.ProgressToken);
 
    procedure Write_DiagnosticOptions
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -2098,11 +2096,11 @@ package body LSP.Outputs is
       Value   : LSP.Structures.Declaration_Result) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_Declaration (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_DeclarationLink_Vector (Handler, Value.Varian_2);
-         when LSP.Structures.Varian_3 =>
+         when LSP.Structures.Variant_1 =>
+            Write_Declaration (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_DeclarationLink_Vector (Handler, Value.Variant_2);
+         when LSP.Structures.Variant_3 =>
             Handler.Null_Value;
       end case;
    end Write_Declaration_Result;
@@ -2112,10 +2110,10 @@ package body LSP.Outputs is
       Value   : LSP.Structures.Definition_Progress_Report) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_Location_Vector (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_DefinitionLink_Vector (Handler, Value.Varian_2);
+         when LSP.Structures.Variant_1 =>
+            Write_Location_Vector (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_DefinitionLink_Vector (Handler, Value.Variant_2);
       end case;
    end Write_Definition_Progress_Report;
 
@@ -2165,10 +2163,10 @@ package body LSP.Outputs is
       Value   : LSP.Structures.DocumentSymbol_Progress_Report) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_SymbolInformation_Vector (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_DocumentSymbol_Vector (Handler, Value.Varian_2);
+         when LSP.Structures.Variant_1 =>
+            Write_SymbolInformation_Vector (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_DocumentSymbol_Vector (Handler, Value.Variant_2);
       end case;
    end Write_DocumentSymbol_Progress_Report;
 
@@ -2464,13 +2462,13 @@ package body LSP.Outputs is
          Value : LSP.Structures.implementationProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_ImplementationOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_ImplementationOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                Write_ImplementationRegistrationOptions
-                 (Handler, Value.Varian_3);
+                 (Handler, Value.Variant_3);
          end case;
       end Write_implementationProvider_OfServerCapabilities;
 
@@ -2479,13 +2477,13 @@ package body LSP.Outputs is
          Value : LSP.Structures.typeHierarchyProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_TypeHierarchyOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_TypeHierarchyOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                Write_TypeHierarchyRegistrationOptions
-                 (Handler, Value.Varian_3);
+                 (Handler, Value.Variant_3);
          end case;
       end Write_typeHierarchyProvider_OfServerCapabilities;
 
@@ -2508,12 +2506,12 @@ package body LSP.Outputs is
          Value   : LSP.Structures.inlayHintProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_InlayHintOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
-               Write_InlayHintRegistrationOptions (Handler, Value.Varian_3);
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_InlayHintOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
+               Write_InlayHintRegistrationOptions (Handler, Value.Variant_3);
          end case;
       end Write_inlayHintProvider_OfServerCapabilities;
 
@@ -2537,12 +2535,12 @@ package body LSP.Outputs is
          Value   : LSP.Structures.monikerProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_MonikerOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
-               Write_MonikerRegistrationOptions (Handler, Value.Varian_3);
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_MonikerOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
+               Write_MonikerRegistrationOptions (Handler, Value.Variant_3);
          end case;
       end Write_monikerProvider_OfServerCapabilities;
 
@@ -2563,13 +2561,13 @@ package body LSP.Outputs is
          Value : LSP.Structures.selectionRangeProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_SelectionRangeOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_SelectionRangeOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                Write_SelectionRangeRegistrationOptions
-                 (Handler, Value.Varian_3);
+                 (Handler, Value.Variant_3);
          end case;
       end Write_selectionRangeProvider_OfServerCapabilities;
 
@@ -2620,12 +2618,12 @@ package body LSP.Outputs is
          Value   : LSP.Structures.declarationProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_DeclarationOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
-               Write_DeclarationRegistrationOptions (Handler, Value.Varian_3);
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_DeclarationOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
+               Write_DeclarationRegistrationOptions (Handler, Value.Variant_3);
          end case;
       end Write_declarationProvider_OfServerCapabilities;
 
@@ -2634,13 +2632,13 @@ package body LSP.Outputs is
          Value : LSP.Structures.callHierarchyProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_CallHierarchyOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_CallHierarchyOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                Write_CallHierarchyRegistrationOptions
-                 (Handler, Value.Varian_3);
+                 (Handler, Value.Variant_3);
          end case;
       end Write_callHierarchyProvider_OfServerCapabilities;
 
@@ -2678,13 +2676,13 @@ package body LSP.Outputs is
            .linkedEditingRangeProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_LinkedEditingRangeOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_LinkedEditingRangeOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                Write_LinkedEditingRangeRegistrationOptions
-                 (Handler, Value.Varian_3);
+                 (Handler, Value.Variant_3);
          end case;
       end Write_linkedEditingRangeProvider_OfServerCapabilities;
 
@@ -2718,12 +2716,13 @@ package body LSP.Outputs is
          Value   : LSP.Structures.foldingRangeProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_FoldingRangeOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
-               Write_FoldingRangeRegistrationOptions (Handler, Value.Varian_3);
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_FoldingRangeOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
+               Write_FoldingRangeRegistrationOptions
+                 (Handler, Value.Variant_3);
          end case;
       end Write_foldingRangeProvider_OfServerCapabilities;
 
@@ -2732,13 +2731,13 @@ package body LSP.Outputs is
          Value : LSP.Structures.typeDefinitionProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_TypeDefinitionOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_TypeDefinitionOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                Write_TypeDefinitionRegistrationOptions
-                 (Handler, Value.Varian_3);
+                 (Handler, Value.Variant_3);
          end case;
       end Write_typeDefinitionProvider_OfServerCapabilities;
 
@@ -2747,12 +2746,12 @@ package body LSP.Outputs is
          Value   : LSP.Structures.inlineValueProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_InlineValueOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
-               Write_InlineValueRegistrationOptions (Handler, Value.Varian_3);
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_InlineValueOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
+               Write_InlineValueRegistrationOptions (Handler, Value.Variant_3);
          end case;
       end Write_inlineValueProvider_OfServerCapabilities;
 
@@ -2761,13 +2760,13 @@ package body LSP.Outputs is
          Value   : LSP.Structures.colorProvider_OfServerCapabilities) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Handler.Boolean_Value (Value.Varian_1);
-            when LSP.Structures.Varian_2 =>
-               Write_DocumentColorOptions (Handler, Value.Varian_2);
-            when LSP.Structures.Varian_3 =>
+            when LSP.Structures.Variant_1 =>
+               Handler.Boolean_Value (Value.Variant_1);
+            when LSP.Structures.Variant_2 =>
+               Write_DocumentColorOptions (Handler, Value.Variant_2);
+            when LSP.Structures.Variant_3 =>
                Write_DocumentColorRegistrationOptions
-                 (Handler, Value.Varian_3);
+                 (Handler, Value.Variant_3);
          end case;
       end Write_colorProvider_OfServerCapabilities;
 
@@ -4027,12 +4026,12 @@ package body LSP.Outputs is
 
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_A_Range (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_PrepareRenameResult_2 (Handler, Value.Varian_2);
-         when LSP.Structures.Varian_3 =>
-            Write_PrepareRenameResult_3 (Handler, Value.Varian_3);
+         when LSP.Structures.Variant_1 =>
+            Write_A_Range (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_PrepareRenameResult_2 (Handler, Value.Variant_2);
+         when LSP.Structures.Variant_3 =>
+            Write_PrepareRenameResult_3 (Handler, Value.Variant_3);
       end case;
    end Write_PrepareRenameResult;
 
@@ -4179,10 +4178,10 @@ package body LSP.Outputs is
       Value   : LSP.Structures.Declaration_Progress_Report) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_Location_Vector (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_DeclarationLink_Vector (Handler, Value.Varian_2);
+         when LSP.Structures.Variant_1 =>
+            Write_Location_Vector (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_DeclarationLink_Vector (Handler, Value.Variant_2);
       end case;
    end Write_Declaration_Progress_Report;
 
@@ -6598,11 +6597,11 @@ package body LSP.Outputs is
       Value   : LSP.Structures.Tokens_Delta_Result) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_SemanticTokens (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_SemanticTokensDelta (Handler, Value.Varian_2);
-         when LSP.Structures.Varian_3 =>
+         when LSP.Structures.Variant_1 =>
+            Write_SemanticTokens (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_SemanticTokensDelta (Handler, Value.Variant_2);
+         when LSP.Structures.Variant_3 =>
             Handler.Null_Value;
       end case;
    end Write_Tokens_Delta_Result;
@@ -6779,10 +6778,10 @@ package body LSP.Outputs is
       Value   : LSP.Structures.Symbol_Progress_Report) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_SymbolInformation_Vector (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_WorkspaceSymbol_Vector (Handler, Value.Varian_2);
+         when LSP.Structures.Variant_1 =>
+            Write_SymbolInformation_Vector (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_WorkspaceSymbol_Vector (Handler, Value.Variant_2);
       end case;
    end Write_Symbol_Progress_Report;
 
@@ -6956,11 +6955,11 @@ package body LSP.Outputs is
       Value   : LSP.Structures.Completion_Result) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_CompletionItem_Vector (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_CompletionList (Handler, Value.Varian_2);
-         when LSP.Structures.Varian_3 =>
+         when LSP.Structures.Variant_1 =>
+            Write_CompletionItem_Vector (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_CompletionList (Handler, Value.Variant_2);
+         when LSP.Structures.Variant_3 =>
             Handler.Null_Value;
       end case;
    end Write_Completion_Result;
@@ -6982,12 +6981,12 @@ package body LSP.Outputs is
       Value   : LSP.Structures.InlineValue) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_InlineValueText (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_InlineValueVariableLookup (Handler, Value.Varian_2);
-         when LSP.Structures.Varian_3 =>
-            Write_InlineValueEvaluatableExpression (Handler, Value.Varian_3);
+         when LSP.Structures.Variant_1 =>
+            Write_InlineValueText (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_InlineValueVariableLookup (Handler, Value.Variant_2);
+         when LSP.Structures.Variant_3 =>
+            Write_InlineValueEvaluatableExpression (Handler, Value.Variant_3);
       end case;
    end Write_InlineValue;
 
@@ -7238,11 +7237,11 @@ package body LSP.Outputs is
       Value   : LSP.Structures.Symbol_Result) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_SymbolInformation_Vector (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_WorkspaceSymbol_Vector (Handler, Value.Varian_2);
-         when LSP.Structures.Varian_3 =>
+         when LSP.Structures.Variant_1 =>
+            Write_SymbolInformation_Vector (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_WorkspaceSymbol_Vector (Handler, Value.Variant_2);
+         when LSP.Structures.Variant_3 =>
             Handler.Null_Value;
       end case;
    end Write_Symbol_Result;
@@ -7942,8 +7941,8 @@ package body LSP.Outputs is
          Value   : LSP.Structures.documentChanges_OfWorkspaceEdit_Item) is
       begin
          case Value.Kind is
-            when LSP.Structures.Varian_1 =>
-               Write_TextDocumentEdit (Handler, Value.Varian_1);
+            when LSP.Structures.Variant_1 =>
+               Write_TextDocumentEdit (Handler, Value.Variant_1);
             when LSP.Structures.create =>
                Write_CreateFile (Handler, Value.create);
             when LSP.Structures.rename =>
@@ -9845,11 +9844,11 @@ package body LSP.Outputs is
       Value   : LSP.Structures.DocumentSymbol_Result) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_SymbolInformation_Vector (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_DocumentSymbol_Vector (Handler, Value.Varian_2);
-         when LSP.Structures.Varian_3 =>
+         when LSP.Structures.Variant_1 =>
+            Write_SymbolInformation_Vector (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_DocumentSymbol_Vector (Handler, Value.Variant_2);
+         when LSP.Structures.Variant_3 =>
             Handler.Null_Value;
       end case;
    end Write_DocumentSymbol_Result;
@@ -9974,11 +9973,11 @@ package body LSP.Outputs is
       Value   : LSP.Structures.Definition_Result) is
    begin
       case Value.Kind is
-         when LSP.Structures.Varian_1 =>
-            Write_Definition (Handler, Value.Varian_1);
-         when LSP.Structures.Varian_2 =>
-            Write_DefinitionLink_Vector (Handler, Value.Varian_2);
-         when LSP.Structures.Varian_3 =>
+         when LSP.Structures.Variant_1 =>
+            Write_Definition (Handler, Value.Variant_1);
+         when LSP.Structures.Variant_2 =>
+            Write_DefinitionLink_Vector (Handler, Value.Variant_2);
+         when LSP.Structures.Variant_3 =>
             Handler.Null_Value;
       end case;
    end Write_Definition_Result;
