@@ -1711,6 +1711,7 @@ package body LSP_Gen.Structures is
       end loop;
 
       Done (To_Reference ("ErrorCodes")).Is_Message := True;
+      Done (To_Reference ("ProgressToken")).Is_Message := True;
 
       Write_Private_Part;
       Put_Line ("end LSP.Structures;");

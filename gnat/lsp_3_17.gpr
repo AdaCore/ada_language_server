@@ -118,4 +118,16 @@ project LSP_3_17 is
 
       end case;
    end Naming;
+
+   package Pretty_Printer is
+      for Default_Switches ("ada") use
+        ("--no-align-modes",
+         "--no-separate-is",
+         "--comments-fill",
+         "--call-threshold=1",
+         "--par-threshold=2",
+         "--vertical-named-aggregates",
+         "--wide-character-encoding=8");
+   end Pretty_Printer;
+
 end LSP_3_17;

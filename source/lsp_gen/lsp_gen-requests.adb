@@ -186,7 +186,7 @@ package body LSP_Gen.Requests is
       Put_Line ("_Request_Readers is");
       New_Line;
 
-      Put_Line ("package Method_Map is new Minimal_Perfect_Hash ((");
+      Put_Line ("package Method_Map is new Minimal_Perfect_Hash ([");
       for J of Model.Requests loop
          if Model.Message_Direction (J) in From | From_Both then
             if First then
@@ -201,7 +201,7 @@ package body LSP_Gen.Requests is
          end if;
       end loop;
 
-      Put_Line ("));");
+      Put_Line ("]);");
       New_Line;
       Put_Line ("procedure Initialize is begin Method_Map.Initialize; end;");
       New_Line;

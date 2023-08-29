@@ -512,7 +512,7 @@ package body LSP_Gen.Inputs is
                Item : constant VSS.Strings.Virtual_String :=
                  Model.Get_Variant (List (J), J);
             begin
-               if not Item.Starts_With ("Varian") then
+               if not Item.Starts_With ("Variant") then
                   Variants.Append (Item);
                end if;
             end;
@@ -798,7 +798,7 @@ package body LSP_Gen.Inputs is
       if not Spec and Info.a_type.name = LSP_Gen.Entities.Enum.string then
          Put ("package ");
          Put_Id (Name);
-         Put ("_Map is new Minimal_Perfect_Hash ((");
+         Put ("_Map is new Minimal_Perfect_Hash ([");
 
          for J in 1 .. Info.values.Length loop
             if J > 1 then
@@ -809,7 +809,7 @@ package body LSP_Gen.Inputs is
             Put (Info.values (J).value.String);
             Put_Line ("""");
          end loop;
-         Put_Line ("));");
+         Put_Line ("]);");
          New_Line;
       end if;
 
@@ -1290,7 +1290,7 @@ package body LSP_Gen.Inputs is
          Put_Line ("_Scope is");
          Put ("package ");
          Put_Id (Name);
-         Put ("_Map is new Minimal_Perfect_Hash ((");
+         Put ("_Map is new Minimal_Perfect_Hash ([");
 
          for J in 1 .. Name_List.Length loop
             if J > 1 then
@@ -1301,7 +1301,7 @@ package body LSP_Gen.Inputs is
             Put (Name_List (J));
             Put_Line ("""");
          end loop;
-         Put_Line ("));");
+         Put_Line ("]);");
          New_Line;
 
          Write_Nested_Types_Maps (Model, Done, Name);
@@ -1833,12 +1833,12 @@ package body LSP_Gen.Inputs is
          Put_Line ("_Scope is");
          Put ("package ");
          Put_Id (Name);
-         Put ("_Map is new Minimal_Perfect_Hash ((");
+         Put ("_Map is new Minimal_Perfect_Hash ([");
       end Put_Prolog;
 
       procedure Put_Epilog (Name : VSS.Strings.Virtual_String) is
       begin
-         Put_Line ("));");
+         Put_Line ("]);");
          New_Line;
 
          Write_Nested_Types_Maps (Model, Done, Name);

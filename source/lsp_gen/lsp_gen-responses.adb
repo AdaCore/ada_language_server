@@ -200,7 +200,7 @@ package body LSP_Gen.Responses is
       Put_Line ("_Response_Readers is");
       New_Line;
 
-      Put_Line ("package Method_Map is new Minimal_Perfect_Hash ((");
+      Put_Line ("package Method_Map is new Minimal_Perfect_Hash ([");
       for J of Model.Requests loop
          if Model.Message_Direction (J) in From | From_Both then
             if First then
@@ -215,7 +215,7 @@ package body LSP_Gen.Responses is
          end if;
       end loop;
 
-      Put_Line ("));");
+      Put_Line ("]);");
       New_Line;
       Put_Line ("procedure Initialize is begin Method_Map.Initialize; end;");
       New_Line;
@@ -437,6 +437,8 @@ package body LSP_Gen.Responses is
 
       Put_Lines (Model.License_Header, "--  ");
       New_Line;
+      Put_Line ("with Interfaces;");
+      New_Line;
       Put_Line ("with LSP.Output_Tools;");
       Put_Line ("with LSP.Outputs;");
       New_Line;
@@ -493,7 +495,8 @@ package body LSP_Gen.Responses is
       Put_Line ("Self.Output.Key_Name (""error"");");
       Put_Line ("Self.Output.Start_Object;");
       Put_Line ("Self.Output.Key_Name (""code"");");
-      Put_Line ("LSP.Outputs.Write_ErrorCodes (Self.Output.all, Value.code);");
+      Put ("Self.Output.Integer_Value (Interfaces.Integer_64'Val");
+      Put_Line (" (Value.code));");
       Put_Line ("Self.Output.Key_Name (""message"");");
       Put_Line ("Self.Output.String_Value (Value.message);");
       Put_Line ("Self.Output.End_Object;");

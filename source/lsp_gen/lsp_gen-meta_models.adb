@@ -330,7 +330,7 @@ package body LSP_Gen.Meta_Models is
       end if;
 
       return
-        "Varian_" & VSS.Strings.To_Virtual_String (Image (2 .. Image'Last));
+        "Variant_" & VSS.Strings.To_Virtual_String (Image (2 .. Image'Last));
    end Get_Variant;
 
    ------------------
