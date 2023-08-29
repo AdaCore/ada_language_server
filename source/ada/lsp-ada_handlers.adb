@@ -3539,7 +3539,7 @@ package body LSP.Ada_Handlers is
       else
          Self.Sender.On_Error_Response
            (Id,
-            (code    => LSP.Constants.InternalError,  --  RequestFailed,
+            (code    => LSP.Constants.RequestFailed,
              message => <>));
       end if;
    end On_Rename_Request;

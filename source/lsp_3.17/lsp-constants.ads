@@ -142,4 +142,7 @@ package LSP.Constants is
    function InvalidParams return Integer
      is (ErrorCodes_Map (LSP.Enumerations.InvalidParams));
 
+   function RequestFailed return Integer
+     is (LSPErrorCodes_Map (LSP.Enumerations.RequestFailed));
+
 end LSP.Constants;
