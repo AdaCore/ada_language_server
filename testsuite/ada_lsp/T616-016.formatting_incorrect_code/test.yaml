@@ -1,4 +1,1 @@
 title: 'T616-016.formatting_incorrect_code'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']
