@@ -6,13 +6,11 @@
 
 with VSS.Strings;
 
-with LSP.Enumerations;
-
 package LSP.Errors is
    pragma Preelaborate;
 
    type ResponseError is record
-      code : LSP.Enumerations.ErrorCodes;
+      code : Integer;
       --  A number indicating the error type that occurred.
       message : VSS.Strings.Virtual_String;
       --  A string providing a short description of the error.

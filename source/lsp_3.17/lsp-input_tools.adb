@@ -156,7 +156,7 @@ package body LSP.Input_Tools is
 
    procedure Read_Progress_Report
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Token   : out LSP.Structures.Integer_Or_Virtual_String;
+      Token   : out LSP.Structures.ProgressToken;
       Value   : out Result_Type)
    is
       use type VSS.Strings.Virtual_String;
@@ -193,7 +193,7 @@ package body LSP.Input_Tools is
                         Handler.Read_Next;
 
                         if Field = "token" then
-                           LSP.Inputs.Read_Integer_Or_Virtual_String
+                           LSP.Inputs.Read_ProgressToken
                              (Handler, Token);
                         elsif Field = "value" then
                            Read_Progress_Report (Handler, Value);

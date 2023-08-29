@@ -44,10 +44,10 @@ package body LSP.Ada_Handlers.Renaming is
           (X.Kind);
    begin
       case X.Kind is
-         when LSP.Structures.Varian_1 =>
-            Result := @ + X.Varian_1.textDocument.uri.Get_Hash;
+         when LSP.Structures.Variant_1 =>
+            Result := @ + X.Variant_1.textDocument.uri.Get_Hash;
 
-            for Item of X.Varian_1.edits loop
+            for Item of X.Variant_1.edits loop
                case Item.Is_TextEdit is
                   when True =>
                      Result := @ + Ada.Containers.Hash_Type'Mod
@@ -164,13 +164,13 @@ package body LSP.Ada_Handlers.Renaming is
 
          else
 
-            URI := Item.Varian_1.textDocument.uri;
+            URI := Item.Variant_1.textDocument.uri;
 
             if not Result.changes.Contains (URI) then
                Result.changes.Insert (URI, LSP.Structures.Empty);
             end if;
 
-            for X of Item.Varian_1.edits loop
+            for X of Item.Variant_1.edits loop
                Result.changes (URI).Append (X.TextEdit);
             end loop;
          end if;
@@ -315,8 +315,8 @@ package body LSP.Ada_Handlers.Renaming is
 
          if not Set.Is_Empty then
             declare
-               Item : File_Edit (LSP.Structures.Varian_1);
-               Edit : LSP.Structures.TextDocumentEdit renames Item.Varian_1;
+               Item : File_Edit (LSP.Structures.Variant_1);
+               Edit : LSP.Structures.TextDocumentEdit renames Item.Variant_1;
             begin
                Edit := To_Edit (File_Name, Set);
                Append (Item);
@@ -334,8 +334,8 @@ package body LSP.Ada_Handlers.Renaming is
          Text_Edits_Cursor : Text_Edit_Ordered_Maps.Cursor :=
            Context_Edits.Text_Edits.First;
 
-         Item : File_Edit (LSP.Structures.Varian_1);
-         Edit : LSP.Structures.TextDocumentEdit renames Item.Varian_1;
+         Item : File_Edit (LSP.Structures.Variant_1);
+         Edit : LSP.Structures.TextDocumentEdit renames Item.Variant_1;
       begin
          Text_Edits_Cursor := Context_Edits.Text_Edits.First;
 
@@ -464,8 +464,8 @@ package body LSP.Ada_Handlers.Renaming is
 
                Set : constant LAL_Refactor.Text_Edit_Ordered_Set := [Change];
 
-               Item : File_Edit (LSP.Structures.Varian_1);
-               Edit : LSP.Structures.TextDocumentEdit renames Item.Varian_1;
+               Item : File_Edit (LSP.Structures.Variant_1);
+               Edit : LSP.Structures.TextDocumentEdit renames Item.Variant_1;
             begin
                Append (Create);
                Edit := To_Edit (File, Set);

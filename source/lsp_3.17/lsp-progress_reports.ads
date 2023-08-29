@@ -14,7 +14,7 @@ package LSP.Progress_Reports is
 
    type Progress_Report is abstract limited
      new LSP.Client_Messages.Client_Message with record
-      Token : LSP.Structures.Integer_Or_Virtual_String;
+      Token : LSP.Structures.ProgressToken;
    end record;
 
    procedure Visit_Receiver

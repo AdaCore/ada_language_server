@@ -22,26 +22,6 @@ with VSS.Strings.Templates;
 
 package body LSP.Ada_Indexing is
 
-   function From_ProgressToken
-     (Item : LSP.Structures.ProgressToken)
-      return LSP.Structures.Integer_Or_Virtual_String;
-
-   ------------------------
-   -- From_ProgressToken --
-   ------------------------
-
-   function From_ProgressToken
-     (Item : LSP.Structures.ProgressToken)
-      return LSP.Structures.Integer_Or_Virtual_String is
-   begin
-      if Item.Is_Integer then
-         return (True, Item.Integer);
-
-      else
-         return (False, Item.Virtual_String);
-      end if;
-   end From_ProgressToken;
-
    -----------------
    -- Index_Files --
    -----------------
@@ -72,7 +52,7 @@ package body LSP.Ada_Indexing is
          Self.Progress_Report_Sent := Current;
 
          Self.Server.On_ProgressReport_Work_Done
-           (From_ProgressToken (Self.Indexing_Token),
+           (Self.Indexing_Token,
             (percentage => (True, (Files_Indexed * 100) / Total_Files),
              message    =>
                Message_Template.Format
@@ -84,7 +64,7 @@ package body LSP.Ada_Indexing is
    begin
       if Self.Total_Files_Indexed = 0 then
          Self.Server.On_ProgressBegin_Work_Done
-           (From_ProgressToken (Self.Indexing_Token),
+           (Self.Indexing_Token,
             (title => "Indexing", percentage => (True, 0), others => <>));
       end if;
 
@@ -130,7 +110,7 @@ package body LSP.Ada_Indexing is
          --  Indexing done.
 
          Self.Server.On_ProgressEnd_Work_Done
-           (From_ProgressToken (Self.Indexing_Token), (message => <>));
+           (Self.Indexing_Token, (message => <>));
 
          return;
       end if;

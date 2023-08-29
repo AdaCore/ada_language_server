@@ -18,6 +18,7 @@
 with VSS.Strings.Conversions;
 
 with LSP.Ada_Documents; use LSP.Ada_Documents;
+with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Structures;    use LSP.Structures;
 with LSP.Utils;
@@ -106,7 +107,7 @@ package body LSP.Ada_Handlers.Refactor is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Enumerations.UnknownErrorCode,
+              (code    => LSP.Constants.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
                  (Error_Msg)));
 
@@ -172,7 +173,7 @@ package body LSP.Ada_Handlers.Refactor is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Enumerations.UnknownErrorCode,
+              (code    => LSP.Constants.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
                  (Error_Msg)));
    end Execute;

@@ -76,7 +76,7 @@ package LSP.Input_Tools is
 
    procedure Read_Progress_Report
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Token   : out LSP.Structures.Integer_Or_Virtual_String;
+      Token   : out LSP.Structures.ProgressToken;
       Value   : out Result_Type);
 
 end LSP.Input_Tools;

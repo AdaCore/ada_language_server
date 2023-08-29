@@ -31,6 +31,6 @@ package LSP.Output_Tools is
 
    procedure Write_Start_Progress_Report
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Token   : LSP.Structures.Integer_Or_Virtual_String);
+      Token   : LSP.Structures.ProgressToken);
 
 end LSP.Output_Tools;

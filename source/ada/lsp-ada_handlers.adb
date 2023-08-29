@@ -1305,14 +1305,14 @@ package body LSP.Ada_Handlers is
                           newText => "project Default is end Default;"));
                   Insert : LSP.Structures.
                     documentChanges_OfWorkspaceEdit_Item :=
-                    (LSP.Structures.Varian_1,
+                    (LSP.Structures.Variant_1,
                      (textDocument => (uri => URI, others => <>),
                       edits        => <>));
 
                   Item   : LSP.Structures.CodeAction;
                   Edit   : LSP.Structures.WorkspaceEdit;
                begin
-                  Insert.Varian_1.edits.Append (Text);
+                  Insert.Variant_1.edits.Append (Text);
                   Edit.documentChanges.Append (Create);
                   Edit.documentChanges.Append (Insert);
                   Item :=
@@ -1557,9 +1557,9 @@ package body LSP.Ada_Handlers is
       Node  : Libadalang.Analysis.Ada_Node;
 
       Response : LSP.Structures.Completion_Result
-        (Kind => LSP.Structures.Varian_2);
+        (Kind => LSP.Structures.Variant_2);
    begin
-      Response.Varian_2.isIncomplete := False;
+      Response.Variant_2.isIncomplete := False;
 
       Document.Get_Completion_Node
         (Context  => Context.all,
@@ -1575,7 +1575,7 @@ package body LSP.Ada_Handlers is
          Token     => Token,
          Node      => Node,
          Names     => Names,
-         Result    => Response.Varian_2);
+         Result    => Response.Variant_2);
 
       LSP.Ada_Completions.Write_Completions
         (Context                  => Context.all,
@@ -1586,7 +1586,7 @@ package body LSP.Ada_Handlers is
          Named_Notation_Threshold =>
            Self.Configuration.Named_Notation_Threshold,
          Compute_Doc_And_Details  => Compute_Doc_And_Details,
-         Result                   => Response.Varian_2.items);
+         Result                   => Response.Variant_2.items);
 
       Self.Sender.On_Completion_Response (Id, Response);
    end On_Completion_Request;
@@ -1689,8 +1689,8 @@ package body LSP.Ada_Handlers is
       --  Utility function, appends to Vector all results of the
       --  declaration requests found in context C.
 
-      Response   : LSP.Structures.Declaration_Result (LSP.Structures.Varian_1);
-      Vector     : LSP.Structures.Location_Vector renames Response.Varian_1;
+      Response   : LSP.Structures.Declaration_Result (LSP.Structures.Variant_1);
+      Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
 
       Display_Method_Policy : constant
         LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
@@ -1841,8 +1841,8 @@ package body LSP.Ada_Handlers is
       Trace      : constant GNATCOLL.Traces.Trace_Handle :=
         LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
 
-      Response   : LSP.Structures.Definition_Result (LSP.Structures.Varian_1);
-      Vector     : LSP.Structures.Location_Vector renames Response.Varian_1;
+      Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
+      Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
 
       Imprecise  : Boolean := False;
 
@@ -2666,7 +2666,7 @@ package body LSP.Ada_Handlers is
 
       if Tag = Ada.Tags.No_Tag then
          Self.Sender.On_Error_Response
-           (Id, (code    => LSP.Enumerations.InternalError,
+           (Id, (code    => LSP.Constants.InternalError,
                  message => "Unknown command"));
          return;
       end if;
@@ -2733,7 +2733,7 @@ package body LSP.Ada_Handlers is
 
       else
          Self.Sender.On_Error_Response
-           (Id, (code => LSP.Enumerations.InternalError,
+           (Id, (code => LSP.Constants.InternalError,
                  message => "Document is not opened"));
       end if;
    end On_FoldingRange_Request;
@@ -2901,9 +2901,9 @@ package body LSP.Ada_Handlers is
       Trace : constant GNATCOLL.Traces.Trace_Handle :=
         LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
 
-      Response : LSP.Structures.Definition_Result (LSP.Structures.Varian_1);
+      Response : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
 
-      Vector : LSP.Structures.Location_Vector renames Response.Varian_1;
+      Vector : LSP.Structures.Location_Vector renames Response.Variant_1;
 
       Display_Method_Ancestry_Policy : constant
         LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
@@ -3258,7 +3258,7 @@ package body LSP.Ada_Handlers is
         and then not Imprecise
       then
          --  Success only if the node is a name and can be resolved precisely
-         Response.Value.Varian_1 := Self.To_LSP_Location (Name_Node).a_range;
+         Response.Value.Variant_1 := Self.To_LSP_Location (Name_Node).a_range;
 
       end if;
 
@@ -3539,7 +3539,7 @@ package body LSP.Ada_Handlers is
       else
          Self.Sender.On_Error_Response
            (Id,
-            (code    => LSP.Enumerations.InternalError,  --  RequestFailed,
+            (code    => LSP.Constants.InternalError,  --  RequestFailed,
              message => <>));
       end if;
    end On_Rename_Request;
@@ -3576,7 +3576,7 @@ package body LSP.Ada_Handlers is
       if not Self.Implemented then
          Self.Sender.On_Error_Response
            (Value.Id,
-            (code    => LSP.Enumerations.MethodNotFound,
+            (code    => LSP.Constants.MethodNotFound,
              message => "Not implemented"));
       end if;
 
@@ -3594,7 +3594,7 @@ package body LSP.Ada_Handlers is
 
             Self.Sender.On_Error_Response
               (Value.Id,
-               (code    => LSP.Enumerations.InternalError,
+               (code    => LSP.Constants.InternalError,
                 message => Message));
 
          end;
@@ -3780,8 +3780,8 @@ package body LSP.Ada_Handlers is
       Value : LSP.Structures.TypeDefinitionParams)
    is
 
-      Response   : LSP.Structures.Definition_Result (LSP.Structures.Varian_1);
-      Vector     : LSP.Structures.Location_Vector renames Response.Varian_1;
+      Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
+      Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
       Imprecise  : Boolean := False;
 
       procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
@@ -3940,8 +3940,8 @@ package body LSP.Ada_Handlers is
 
                   WE.documentChanges.Append
                     (documentChanges_OfWorkspaceEdit_Item'(
-                     (Kind     => Varian_1,
-                      Varian_1 => TextDocumentEdit'
+                     (Kind     => Variant_1,
+                      Variant_1 => TextDocumentEdit'
                         (textDocument => Self.Get_Open_Document_Version
                            (File_URI),
                          edits        => Annotaded_Edits))));
@@ -3990,8 +3990,8 @@ package body LSP.Ada_Handlers is
 
                   WE.documentChanges.Append
                     (documentChanges_OfWorkspaceEdit_Item'(
-                     (Kind     => Varian_1,
-                      Varian_1 => TextDocumentEdit'
+                     (Kind     => Variant_1,
+                      Variant_1 => TextDocumentEdit'
                         (edits => Annotaded_Edits,
                          others => <>))));
                end;

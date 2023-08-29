@@ -69,7 +69,7 @@ package body LSP.Output_Tools is
 
    procedure Write_Start_Progress_Report
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Token   : LSP.Structures.Integer_Or_Virtual_String) is
+      Token   : LSP.Structures.ProgressToken) is
    begin
       Handler.Start_Object;
       Handler.Key_Name ("jsonrpc");
@@ -79,7 +79,7 @@ package body LSP.Output_Tools is
       Handler.Key_Name ("params");
       Handler.Start_Object;
       Handler.Key_Name ("token");
-      LSP.Outputs.Write_Integer_Or_Virtual_String (Handler, Token);
+      LSP.Outputs.Write_ProgressToken (Handler, Token);
       Handler.Key_Name ("value");
    end Write_Start_Progress_Report;
 

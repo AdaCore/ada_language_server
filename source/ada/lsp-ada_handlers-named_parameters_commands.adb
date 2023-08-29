@@ -25,6 +25,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with LSP.Ada_Contexts;
+with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
@@ -182,7 +183,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Edit.newText := Name & " => ";
 
          if Self.Versioned_Documents then
-            Edits.documentChanges (1).Varian_1.edits.Append
+            Edits.documentChanges (1).Variant_1.edits.Append
               (LSP.Structures.TextEdit_Or_AnnotatedTextEdit'
                  (Is_TextEdit => False, AnnotatedTextEdit => Edit));
          else
@@ -224,8 +225,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Edits.documentChanges.Append
            (documentChanges_OfWorkspaceEdit_Item'
               (Kind     =>
-                   documentChanges_OfWorkspaceEdit_Item_Variant'(Varian_1),
-               Varian_1 =>
+                   documentChanges_OfWorkspaceEdit_Item_Variant'(Variant_1),
+               Variant_1 =>
                  (textDocument =>
                       (uri      => Version.uri,
                        version  => (Is_Null => False,
@@ -243,7 +244,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Enumerations.InvalidRequest,
+              (code    => LSP.Constants.InvalidRequest,
                message => "This is not a valid position to name parameters."));
          return;
       end if;
@@ -260,7 +261,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Enumerations.InvalidRequest,
+              (code    => LSP.Constants.InvalidRequest,
                message =>
                  "Could not resolve this call expression precisely."));
          return;
@@ -290,7 +291,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Enumerations.UnknownErrorCode,
+              (code    => LSP.Constants.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
                  (Ada.Exceptions.Exception_Information (E))));
    end Execute;
