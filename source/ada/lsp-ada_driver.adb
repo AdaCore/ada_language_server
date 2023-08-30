@@ -38,6 +38,7 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with LSP.Ada_Handlers;
+with LSP.Ada_Handlers.Other_File_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.Commands;
 with LSP.GNATCOLL_Tracers;
@@ -52,6 +53,21 @@ with LSP.Stdio_Streams;
 procedure LSP.Ada_Driver is
 
    use type VSS.Strings.Virtual_String;
+
+   procedure Register_Commands;
+   --  Register all known commands
+
+   -----------------------
+   -- Register_Commands --
+   -----------------------
+
+   procedure Register_Commands is
+   begin
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Other_File_Commands.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Suspend_Executions.Suspend_Execution'Tag);
+   end Register_Commands;
 
    Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
    --  Main trace for the LSP.
@@ -244,8 +260,7 @@ begin
       if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
          Server.Run (GPR_Handler'Unchecked_Access, Tracer'Unchecked_Access);
       else
-         LSP.Commands.Register
-           (LSP.Ada_Handlers.Suspend_Executions.Suspend_Execution'Tag);
+         Register_Commands;
 
          Server.Run (Ada_Handler'Unchecked_Access, Tracer'Unchecked_Access);
       end if;

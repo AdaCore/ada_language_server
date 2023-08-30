@@ -15,15 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
+with VSS.JSON.Streams;
 
 with GNATCOLL.Tribooleans;
 
 with GPR2.Project.Source;
+with GPR2.Path_Name;
 
-with LSP.Messages.Client_Requests;
-
-with VSS.Strings.Conversions;
+with LSP.Constants;
+with LSP.Servers;
 
 package body LSP.Ada_Handlers.Other_File_Commands is
 
@@ -32,29 +32,40 @@ package body LSP.Ada_Handlers.Other_File_Commands is
    ------------
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class) return Command
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+      return Command
    is
+      use type VSS.Strings.Virtual_String;
+      use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
+
+      Index : Natural := Any.First_Index;
    begin
       return V : Command do
-         pragma Assert (JS.R.Is_Start_Object);
-         JS.R.Read_Next;
 
-         while not JS.R.Is_End_Object loop
-            pragma Assert (JS.R.Is_Key_Name);
-            declare
-               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
-            begin
-               JS.R.Read_Next;
+         if Index < Any.Last_Index
+           and then Any (Index).Kind = Start_Array
+         then
+            Index := Index + 1;
 
-               if Key = "uri" then
-                  LSP.Types.Read_LSP_URI (JS, V.URI);
-               else
-                  JS.Skip_Value;
+            if Index < Any.Last_Index
+              and then Any (Index).Kind = Start_Object
+            then
+               Index := Index + 1;
+
+               if Index < Any.Last_Index
+                 and then Any (Index).Kind = Key_Name
+                 and then Any (Index).Key_Name = "uri"
+               then
+                  Index := Index + 1;
+
+                  if Index < Any.Last_Index
+                    and then Any (Index).Kind = String_Value
+                  then
+                     V.URI := (Any (Index).String_Value with null record);
+                  end if;
                end if;
-            end;
-         end loop;
-         JS.R.Read_Next;
+            end if;
+         end if;
       end return;
    end Create;
 
@@ -64,13 +75,12 @@ package body LSP.Ada_Handlers.Other_File_Commands is
 
    overriding procedure Execute
      (Self    : Command;
-      Handler : not null access LSP.Server_Notification_Receivers
-        .Server_Notification_Receiver'
-        Class;
-      Client : not null access LSP.Client_Message_Receivers
-        .Client_Message_Receiver'
-        Class;
-      Error : in out LSP.Errors.Optional_ResponseError)
+      Handler : not null access
+        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
+      Sender  : not null access LSP.Client_Message_Receivers.
+        Client_Message_Receiver'Class;
+      Id      : LSP.Structures.Integer_Or_Virtual_String;
+      Error   : in out LSP.Errors.ResponseError_Optional)
    is
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
@@ -123,17 +133,18 @@ package body LSP.Ada_Handlers.Other_File_Commands is
          return File;
       end Other_File;
 
-      URI : constant LSP.Messages.DocumentUri :=
-        Message_Handler.From_File (Other_File);
+      URI : constant LSP.Structures.DocumentUri :=
+        Message_Handler.To_URI (Other_File.Display_Full_Name);
 
-      Message : constant LSP.Messages.Client_Requests.ShowDocument_Request :=
-        (params =>
-           (uri       => URI,
-            takeFocus => LSP.Types.True,
-            others    => <>),
-         others => <>);
+      Message : constant LSP.Structures.ShowDocumentParams :=
+        (uri       => (VSS.Strings.Virtual_String (URI) with null record),
+         takeFocus => LSP.Constants.True,
+         others    => <>);
+
+      New_Id : constant LSP.Structures.Integer_Or_Virtual_String :=
+        Message_Handler.Server.Allocate_Request_Id;
    begin
-      Client.On_ShowDocument_Request (Message);
+      Sender.On_ShowDocument_Request (New_Id, Message);
    end Execute;
 
    ----------------
@@ -141,26 +152,11 @@ package body LSP.Ada_Handlers.Other_File_Commands is
    ----------------
 
    procedure Initialize
-     (Self : in out Command'Class; URI : LSP.Messages.DocumentUri)
+     (Self : in out Command'Class;
+      URI  : LSP.Structures.DocumentUri)
    is
    begin
       Self.URI := URI;
    end Initialize;
-
-   -------------------
-   -- Write_Command --
-   -------------------
-
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class; V : Command)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      JS.Key ("uri");
-      LSP.Types.Write_LSP_URI (S, V.URI);
-      JS.End_Object;
-   end Write_Command;
 
 end LSP.Ada_Handlers.Other_File_Commands;
