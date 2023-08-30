@@ -72,6 +72,10 @@ package LSP.Ada_Client_Capabilities is
      (Self : Client_Capability'Class) return Boolean;
    --  Returns capabilities.textDocument.publishDiagnostics.relatedInformation
 
+   function Hierarchical_Symbol
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns textDocument.documentSymbol.hierarchicalDocumentSymbolSupport
+
    --  Resource 0perations --
 
    function Resource_Create_Supported

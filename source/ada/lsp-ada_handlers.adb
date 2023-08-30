@@ -78,6 +78,7 @@ with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Renaming;
+with LSP.Ada_Handlers.Symbols;
 with LSP.Commands;
 with LSP.Constants;
 with LSP.Diagnostic_Sources;
@@ -85,6 +86,7 @@ with LSP.Enumerations;
 with LSP.Errors;
 with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
+with LSP.Search;
 with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
 with LSP.Structures.LSPAny_Vectors;
@@ -2638,6 +2640,38 @@ package body LSP.Ada_Handlers is
       Compute_Response;
       Self.Sender.On_DocumentHighlight_Response (Id, Response);
    end On_DocumentHighlight_Request;
+
+   -------------------------------
+   -- On_DocumentSymbol_Request --
+   -------------------------------
+
+   overriding procedure On_DocumentSymbol_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentSymbolParams)
+   is
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Context.Get_AU (Self.To_File (Value.textDocument.uri));
+
+      Response : LSP.Structures.DocumentSymbol_Result;
+      Dummy    : LSP.Search.Search_Pattern'Class :=
+        LSP.Search.Build ("", Kind => LSP.Search.Start_Word_Text);
+   begin
+      if Self.Client.Hierarchical_Symbol then
+         Response := (Kind => LSP.Structures.Variant_2, Variant_2 => <>);
+
+         LSP.Ada_Handlers.Symbols.Hierarchical_Document_Symbols
+           (Self, Unit, Dummy, Response.Variant_2);
+      else
+         LSP.Ada_Handlers.Symbols.Flat_Document_Symbols
+           (Self, Unit, Dummy, Response);
+      end if;
+
+      Self.Sender.On_DocumentSymbol_Response (Id, Response);
+   end On_DocumentSymbol_Request;
 
    -------------------------------
    -- On_ExecuteCommand_Request --

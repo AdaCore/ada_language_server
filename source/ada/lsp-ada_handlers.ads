@@ -261,6 +261,11 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentHighlightParams);
 
+   overriding procedure On_DocumentSymbol_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentSymbolParams);
+
    overriding procedure On_Exits_Notification (Self : in out Message_Handler);
 
    overriding procedure On_Hover_Request

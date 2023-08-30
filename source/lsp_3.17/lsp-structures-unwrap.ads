@@ -75,4 +75,14 @@ package LSP.Structures.Unwrap is
      return CodeActionClientCapabilities_Optional is
        (if X.Is_Set then X.Value.codeAction else (Is_Set => False));
 
+   function documentSymbol (X : TextDocumentClientCapabilities_Optional)
+     return DocumentSymbolClientCapabilities_Optional is
+       (if X.Is_Set then X.Value.documentSymbol else (Is_Set => False));
+
+   function hierarchicalDocumentSymbolSupport
+     (X : DocumentSymbolClientCapabilities_Optional)
+       return Boolean_Optional is
+         (if X.Is_Set then X.Value.hierarchicalDocumentSymbolSupport
+          else (Is_Set => False));
+
 end LSP.Structures.Unwrap;

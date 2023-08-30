@@ -56,6 +56,23 @@ package body LSP.Ada_Client_Capabilities is
               else False);
    end Code_ActionLiteralSupport;
 
+   -------------------------
+   -- Hierarchical_Symbol --
+   -------------------------
+
+   function Hierarchical_Symbol
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        hierarchicalDocumentSymbolSupport
+          (documentSymbol
+             (Self.Value.capabilities.textDocument));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end Hierarchical_Symbol;
+
    ----------------
    -- Initialize --
    ----------------
@@ -209,6 +226,7 @@ package body LSP.Ada_Client_Capabilities is
          Result.declarationProvider       := LSP.Constants.True;
          Result.definitionProvider        := LSP.Constants.True;
          Result.documentHighlightProvider := LSP.Constants.True;
+         Result.documentSymbolProvider    := LSP.Constants.True;
          Result.foldingRangeProvider      := LSP.Constants.True;
          Result.hoverProvider             := LSP.Constants.True;
          Result.implementationProvider    := LSP.Constants.True;
