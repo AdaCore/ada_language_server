@@ -81,29 +81,7 @@
                                  "("
                              ],
                              "resolveProvider": true
-                         },
-                         "hoverProvider": true,
-                         "declarationProvider": true,
-                         "definitionProvider": true,
-                         "typeDefinitionProvider": true,
-                         "implementationProvider": true,
-                         "referencesProvider": true,
-                         "codeActionProvider": {
-                         },
-                         "renameProvider": {
-                         },
-                         "foldingRangeProvider": true,
-                         "executeCommandProvider": {},
-                         "alsReferenceKinds": [
-                             "reference",
-                         "access",
-                             "write",
-                             "call",
-                             "dispatching call",
-                             "parent",
-                             "child",
-                             "overriding"
-                         ]
+                         }
                      }
                  }
              }
@@ -201,9 +179,7 @@
                        "kind": 14,
                        "preselect": true,
                        "sortText": "Add;",
-                       "insertText": "Add;",
-                       "additionalTextEdits": [
-                       ]
+                       "insertText": "Add;"
                      }
                   ]
                }
@@ -259,9 +235,7 @@
                        "kind": 14,
                        "preselect": true,
                        "sortText": "Add;",
-                       "insertText": "Add;",
-                       "additionalTextEdits": [
-                       ]
+                       "insertText": "Add;"
                      }
                   ]
                }

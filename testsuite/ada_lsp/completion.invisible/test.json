@@ -160,9 +160,7 @@
                         "detail": "function Invisible_Function (X, Y : Integer) return Integer",
                         "documentation": "at aaa.ads (4:4)",
                         "sortText": "~100&1Invisible_Function",
-                        "insertText": "Invisible_Function",
-                        "additionalTextEdits": [
-                        ]
+                        "insertText": "Invisible_Function"
                      }
                   ]
                }
@@ -313,9 +311,7 @@
                         "detail": "function Invisible_Function (X, Y : Integer) return Integer",
                         "documentation": "at aaa.ads (4:4)",
                         "sortText": "~100&1Invisible_Function",
-                        "insertText": "Invisible_Function",
-                        "additionalTextEdits": [
-                        ]
+                        "insertText": "Invisible_Function"
                      }
                   ]
                }

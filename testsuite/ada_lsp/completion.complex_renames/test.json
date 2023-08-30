@@ -80,29 +80,7 @@
                                  "'",
                                  "("
                              ]
-                         },
-                         "hoverProvider": true,
-                         "declarationProvider": true,
-                         "definitionProvider": true,
-                         "typeDefinitionProvider": true,
-                         "implementationProvider": true,
-                         "referencesProvider": true,
-                         "codeActionProvider": {
-                         },
-                         "renameProvider": {
-                         },
-                         "foldingRangeProvider": true,
-                         "executeCommandProvider": {},
-                         "alsReferenceKinds": [
-                             "reference",
-                         "access",
-                             "write",
-                             "call",
-                             "dispatching call",
-                             "parent",
-                             "child",
-                             "overriding"
-                         ]
+                         }
                      }
                  }
              }
@@ -196,7 +174,6 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "additionalTextEdits": [],
                         "kind": 3,
                         "documentation": "at parent-children.ads (7:4)",
                         "detail": "procedure Do_Someting (D : Children.Child)",

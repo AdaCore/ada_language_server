@@ -221,8 +221,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "T;",
-                        "insertText": "T;",
-                        "additionalTextEdits": []
+                        "insertText": "T;"
                      }
                   ]
                }
@@ -255,8 +254,7 @@
                   "preselect": true,
                   "sortText": "T;",
                   "insertText": "T;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -292,8 +290,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "T;",
-                        "insertText": "T;",
-                        "additionalTextEdits": []
+                        "insertText": "T;"
                      }
                   ]
                }
@@ -326,8 +323,7 @@
                   "preselect": true,
                   "sortText": "T;",
                   "insertText": "T;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -363,8 +359,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Start;",
-                        "insertText": "Start;",
-                        "additionalTextEdits": []
+                        "insertText": "Start;"
                      }
                   ]
                }
@@ -397,8 +392,7 @@
                   "preselect": true,
                   "sortText": "Start;",
                   "insertText": "Start;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -434,8 +428,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Start;",
-                        "insertText": "Start;",
-                        "additionalTextEdits": []
+                        "insertText": "Start;"
                      }
                   ]
                }
@@ -468,8 +461,7 @@
                   "preselect": true,
                   "sortText": "Start;",
                   "insertText": "Start;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -505,8 +497,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "select;",
-                        "insertText": "select;",
-                        "additionalTextEdits": []
+                        "insertText": "select;"
                      }
                   ]
                }
@@ -539,8 +530,7 @@
                   "preselect": true,
                   "sortText": "select;",
                   "insertText": "select;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -576,8 +566,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "select;",
-                        "insertText": "select;",
-                        "additionalTextEdits": []
+                        "insertText": "select;"
                      }
                   ]
                }
@@ -610,8 +599,7 @@
                   "preselect": true,
                   "sortText": "select;",
                   "insertText": "select;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -647,8 +635,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "T;",
-                        "insertText": "T;",
-                        "additionalTextEdits": []
+                        "insertText": "T;"
                      }
                   ]
                }
@@ -681,8 +668,7 @@
                   "preselect": true,
                   "sortText": "T;",
                   "insertText": "T;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -718,8 +704,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "T;",
-                        "insertText": "T;",
-                        "additionalTextEdits": []
+                        "insertText": "T;"
                      }
                   ]
                }
@@ -752,8 +737,7 @@
                   "preselect": true,
                   "sortText": "T;",
                   "insertText": "T;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -789,8 +773,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "return;",
-                        "insertText": "return;",
-                        "additionalTextEdits": []
+                        "insertText": "return;"
                      }
                   ]
                }
@@ -823,8 +806,7 @@
                   "preselect": true,
                   "sortText": "return;",
                   "insertText": "return;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -860,8 +842,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "return;",
-                        "insertText": "return;",
-                        "additionalTextEdits": []
+                        "insertText": "return;"
                      }
                   ]
                }
@@ -894,8 +875,7 @@
                   "preselect": true,
                   "sortText": "return;",
                   "insertText": "return;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -931,8 +911,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "\"+\";",
-                        "insertText": "\"+\";",
-                        "additionalTextEdits": []
+                        "insertText": "\"+\";"
                      }
                   ]
                }
@@ -965,8 +944,7 @@
                   "preselect": true,
                   "sortText": "\"+\";",
                   "insertText": "\"+\";",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1002,8 +980,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "\"+\";",
-                        "insertText": "\"+\";",
-                        "additionalTextEdits": []
+                        "insertText": "\"+\";"
                      }
                   ]
                }
@@ -1036,8 +1013,7 @@
                   "preselect": true,
                   "sortText": "\"+\";",
                   "insertText": "\"+\";",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1073,8 +1049,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Pkg;",
-                        "insertText": "Pkg;",
-                        "additionalTextEdits": []
+                        "insertText": "Pkg;"
                      }
                   ]
                }
@@ -1107,8 +1082,7 @@
                   "preselect": true,
                   "sortText": "Pkg;",
                   "insertText": "Pkg;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1144,8 +1118,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Pkg;",
-                        "insertText": "Pkg;",
-                        "additionalTextEdits": []
+                        "insertText": "Pkg;"
                      }
                   ]
                }
@@ -1178,8 +1151,7 @@
                   "preselect": true,
                   "sortText": "Pkg;",
                   "insertText": "Pkg;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1215,8 +1187,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GP;",
-                        "insertText": "GP;",
-                        "additionalTextEdits": []
+                        "insertText": "GP;"
                      }
                   ]
                }
@@ -1249,8 +1220,7 @@
                   "preselect": true,
                   "sortText": "GP;",
                   "insertText": "GP;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1286,8 +1256,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GP;",
-                        "insertText": "GP;",
-                        "additionalTextEdits": []
+                        "insertText": "GP;"
                      }
                   ]
                }
@@ -1320,8 +1289,7 @@
                   "preselect": true,
                   "sortText": "GP;",
                   "insertText": "GP;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1357,8 +1325,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GF;",
-                        "insertText": "GF;",
-                        "additionalTextEdits": []
+                        "insertText": "GF;"
                      }
                   ]
                }
@@ -1391,8 +1358,7 @@
                   "preselect": true,
                   "sortText": "GF;",
                   "insertText": "GF;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1428,8 +1394,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GF;",
-                        "insertText": "GF;",
-                        "additionalTextEdits": []
+                        "insertText": "GF;"
                      }
                   ]
                }
@@ -1462,8 +1427,7 @@
                   "preselect": true,
                   "sortText": "GF;",
                   "insertText": "GF;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1499,8 +1463,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GP;",
-                        "insertText": "GP;",
-                        "additionalTextEdits": []
+                        "insertText": "GP;"
                      }
                   ]
                }
@@ -1533,8 +1496,7 @@
                   "preselect": true,
                   "sortText": "GP;",
                   "insertText": "GP;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1570,8 +1532,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GP;",
-                        "insertText": "GP;",
-                        "additionalTextEdits": []
+                        "insertText": "GP;"
                      }
                   ]
                }
@@ -1604,8 +1565,7 @@
                   "preselect": true,
                   "sortText": "GP;",
                   "insertText": "GP;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1641,8 +1601,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "PO;",
-                        "insertText": "PO;",
-                        "additionalTextEdits": []
+                        "insertText": "PO;"
                      }
                   ]
                }
@@ -1675,8 +1634,7 @@
                   "preselect": true,
                   "sortText": "PO;",
                   "insertText": "PO;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1712,8 +1670,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "PO;",
-                        "insertText": "PO;",
-                        "additionalTextEdits": []
+                        "insertText": "PO;"
                      }
                   ]
                }
@@ -1746,8 +1703,7 @@
                   "preselect": true,
                   "sortText": "PO;",
                   "insertText": "PO;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1783,8 +1739,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "E;",
-                        "insertText": "E;",
-                        "additionalTextEdits": []
+                        "insertText": "E;"
                      }
                   ]
                }
@@ -1817,8 +1772,7 @@
                   "preselect": true,
                   "sortText": "E;",
                   "insertText": "E;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1854,8 +1808,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "E;",
-                        "insertText": "E;",
-                        "additionalTextEdits": []
+                        "insertText": "E;"
                      }
                   ]
                }
@@ -1888,8 +1841,7 @@
                   "preselect": true,
                   "sortText": "E;",
                   "insertText": "E;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1925,8 +1877,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "PO;",
-                        "insertText": "PO;",
-                        "additionalTextEdits": []
+                        "insertText": "PO;"
                      }
                   ]
                }
@@ -1959,8 +1910,7 @@
                   "preselect": true,
                   "sortText": "PO;",
                   "insertText": "PO;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -1996,8 +1946,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "PO;",
-                        "insertText": "PO;",
-                        "additionalTextEdits": []
+                        "insertText": "PO;"
                      }
                   ]
                }
@@ -2030,8 +1979,7 @@
                   "preselect": true,
                   "sortText": "PO;",
                   "insertText": "PO;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2067,8 +2015,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;",
-                        "additionalTextEdits": []
+                        "insertText": "record;"
                      }
                   ]
                }
@@ -2101,8 +2048,7 @@
                   "preselect": true,
                   "sortText": "record;",
                   "insertText": "record;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2138,8 +2084,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;",
-                        "additionalTextEdits": []
+                        "insertText": "record;"
                      }
                   ]
                }
@@ -2172,8 +2117,7 @@
                   "preselect": true,
                   "sortText": "record;",
                   "insertText": "record;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2209,8 +2153,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;",
-                        "additionalTextEdits": []
+                        "insertText": "record;"
                      }
                   ]
                }
@@ -2243,8 +2186,7 @@
                   "preselect": true,
                   "sortText": "record;",
                   "insertText": "record;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2280,8 +2222,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;",
-                        "additionalTextEdits": []
+                        "insertText": "record;"
                      }
                   ]
                }
@@ -2314,8 +2255,7 @@
                   "preselect": true,
                   "sortText": "record;",
                   "insertText": "record;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2351,8 +2291,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "case;",
-                        "insertText": "case;",
-                        "additionalTextEdits": []
+                        "insertText": "case;"
                      }
                   ]
                }
@@ -2385,8 +2324,7 @@
                   "preselect": true,
                   "sortText": "case;",
                   "insertText": "case;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2422,8 +2360,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "case;",
-                        "insertText": "case;",
-                        "additionalTextEdits": []
+                        "insertText": "case;"
                      }
                   ]
                }
@@ -2456,8 +2393,7 @@
                   "preselect": true,
                   "sortText": "case;",
                   "insertText": "case;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2493,8 +2429,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;",
-                        "additionalTextEdits": []
+                        "insertText": "record;"
                      }
                   ]
                }
@@ -2527,8 +2462,7 @@
                   "preselect": true,
                   "sortText": "record;",
                   "insertText": "record;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2564,8 +2498,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "record;",
-                        "insertText": "record;",
-                        "additionalTextEdits": []
+                        "insertText": "record;"
                      }
                   ]
                }
@@ -2598,8 +2531,7 @@
                   "preselect": true,
                   "sortText": "record;",
                   "insertText": "record;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2635,8 +2567,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "select;",
-                        "insertText": "select;",
-                        "additionalTextEdits": []
+                        "insertText": "select;"
                      }
                   ]
                }
@@ -2669,8 +2600,7 @@
                   "preselect": true,
                   "sortText": "select;",
                   "insertText": "select;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2706,8 +2636,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "select;",
-                        "insertText": "select;",
-                        "additionalTextEdits": []
+                        "insertText": "select;"
                      }
                   ]
                }
@@ -2740,8 +2669,7 @@
                   "preselect": true,
                   "sortText": "select;",
                   "insertText": "select;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2777,8 +2705,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Blk;",
-                        "insertText": "Blk;",
-                        "additionalTextEdits": []
+                        "insertText": "Blk;"
                      }
                   ]
                }
@@ -2811,8 +2738,7 @@
                   "preselect": true,
                   "sortText": "Blk;",
                   "insertText": "Blk;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2848,8 +2774,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "Blk;",
-                        "insertText": "Blk;",
-                        "additionalTextEdits": []
+                        "insertText": "Blk;"
                      }
                   ]
                }
@@ -2882,8 +2807,7 @@
                   "preselect": true,
                   "sortText": "Blk;",
                   "insertText": "Blk;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2919,8 +2843,7 @@
                         "kind": 14,
                         "preselect": false,
                         "sortText": "end;",
-                        "insertText": "end;",
-                        "additionalTextEdits": []
+                        "insertText": "end;"
                      }
                   ]
                }
@@ -2953,8 +2876,7 @@
                   "preselect": false,
                   "sortText": "end;",
                   "insertText": "end;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -2990,8 +2912,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "loop;",
-                        "insertText": "loop;",
-                        "additionalTextEdits": []
+                        "insertText": "loop;"
                      }
                   ]
                }
@@ -3024,8 +2945,7 @@
                   "preselect": true,
                   "sortText": "loop;",
                   "insertText": "loop;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -3061,8 +2981,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "loop;",
-                        "insertText": "loop;",
-                        "additionalTextEdits": []
+                        "insertText": "loop;"
                      }
                   ]
                }
@@ -3095,8 +3014,7 @@
                   "preselect": true,
                   "sortText": "loop;",
                   "insertText": "loop;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -3132,8 +3050,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "if;",
-                        "insertText": "if;",
-                        "additionalTextEdits": []
+                        "insertText": "if;"
                      }
                   ]
                }
@@ -3166,8 +3083,7 @@
                   "preselect": true,
                   "sortText": "if;",
                   "insertText": "if;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -3203,8 +3119,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "if;",
-                        "insertText": "if;",
-                        "additionalTextEdits": []
+                        "insertText": "if;"
                      }
                   ]
                }
@@ -3237,8 +3152,7 @@
                   "preselect": true,
                   "sortText": "if;",
                   "insertText": "if;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -3274,8 +3188,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "case;",
-                        "insertText": "case;",
-                        "additionalTextEdits": []
+                        "insertText": "case;"
                      }
                   ]
                }
@@ -3308,8 +3221,7 @@
                   "preselect": true,
                   "sortText": "case;",
                   "insertText": "case;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -3345,8 +3257,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "case;",
-                        "insertText": "case;",
-                        "additionalTextEdits": []
+                        "insertText": "case;"
                      }
                   ]
                }
@@ -3379,8 +3290,7 @@
                   "preselect": true,
                   "sortText": "case;",
                   "insertText": "case;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -3416,8 +3326,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GNAT.Main;",
-                        "insertText": "GNAT.Main;",
-                        "additionalTextEdits": []
+                        "insertText": "GNAT.Main;"
                      }
                   ]
                }
@@ -3450,8 +3359,7 @@
                   "preselect": true,
                   "sortText": "GNAT.Main;",
                   "insertText": "GNAT.Main;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -3487,8 +3395,7 @@
                         "kind": 14,
                         "preselect": true,
                         "sortText": "GNAT.Main;",
-                        "insertText": "GNAT.Main;",
-                        "additionalTextEdits": []
+                        "insertText": "GNAT.Main;"
                      }
                   ]
                }
@@ -3521,8 +3428,7 @@
                   "preselect": true,
                   "sortText": "GNAT.Main;",
                   "insertText": "GNAT.Main;",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]

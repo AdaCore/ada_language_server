@@ -1,4 +1,1 @@
 title: 'testsuite/ada_lsp/completion.param.non_basic_calls'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

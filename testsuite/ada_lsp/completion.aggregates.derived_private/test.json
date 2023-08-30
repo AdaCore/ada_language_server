@@ -174,7 +174,6 @@
                         "sortText": "+0",
                         "insertText": "Base_Rec with Disc => ${1:Integer}, D => ${2:Integer}, X => ${3:Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "documentation": "at main.adb (23:4)"
                      },
                      {
@@ -182,24 +181,21 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "Disc => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "D",
                         "kind": 5,
                         "sortText": "+2",
                         "insertText": "D => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "X",
                         "kind": 5,
                         "sortText": "+3",
                         "insertText": "X => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }

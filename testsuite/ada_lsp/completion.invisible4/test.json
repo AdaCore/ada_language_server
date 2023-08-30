@@ -148,8 +148,7 @@
                         "kind": 9,
                         "detail": "package Pkg_1.Child",
                         "documentation": "at pkg_1-child.ads (3:1)",
-                        "sortText": "100&1Child",
-                        "additionalTextEdits": []
+                        "sortText": "100&1Child"
                      },
                      {
                         "label": "Child2 (invisible)",
@@ -157,9 +156,7 @@
                         "detail": "package Pkg_1.Child2",
                         "documentation": "at pkg_1-child2.ads (1:1)",
                         "sortText": "~100&2Child2",
-                        "insertText": "Child2",
-                        "additionalTextEdits": [
-                        ]
+                        "insertText": "Child2"
                       }
                   ]
                }

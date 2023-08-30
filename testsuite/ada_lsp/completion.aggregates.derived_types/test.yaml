@@ -1,4 +1,1 @@
 title: 'completion.aggregates.derived_types'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']
