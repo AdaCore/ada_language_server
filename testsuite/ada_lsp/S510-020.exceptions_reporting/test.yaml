@@ -1,4 +1,1 @@
 title: 'S510-020.exceptions_reporting'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

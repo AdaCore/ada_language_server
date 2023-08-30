@@ -1,4 +1,1 @@
 title: 'S516-013.no_file'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

@@ -1,4 +1,1 @@
 title: 'D803-003.xrefs.generics_go_to_body'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']
