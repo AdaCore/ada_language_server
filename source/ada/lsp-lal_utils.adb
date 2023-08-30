@@ -659,20 +659,6 @@ package body LSP.Lal_Utils is
       return Token_Kind = Libadalang.Common.Ada_End;
    end Is_End_Token;
 
-   ------------------
-   -- Is_Synthetic --
-   ------------------
-
-   function Is_Synthetic
-     (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean
-   is
-      Std  : constant String := "__standard";
-      File : constant String := Node.Unit.Get_Filename;
-   begin
-      return File'Length >= Std'Length
-        and then File (File'Last - Std'Length + 1 .. File'Last) = Std;
-   end Is_Synthetic;
-
    -----------------------
    -- Skip_Dotted_Names --
    -----------------------

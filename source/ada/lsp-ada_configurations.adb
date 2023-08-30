@@ -19,6 +19,8 @@ pragma Ada_2022;
 
 with Ada.Containers.Generic_Anonymous_Array_Sort;
 
+with GNATCOLL.Traces;
+
 with VSS.Strings.Conversions;
 with VSS.JSON.Streams;
 
@@ -34,6 +36,20 @@ package body LSP.Ada_Configurations is
 
    function "+" (X : VSS.Strings.Virtual_String'Class) return String renames
      VSS.Strings.Conversions.To_UTF_8_String;
+
+   ALS_COMPLETION_FORMATTING : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create
+       ("ALS.COMPLETION.FORMATTING", Default => GNATCOLL.Traces.On);
+   --  Used in Completion_Formatting/LSP.Ada_Completions.Pretty_Print_Snippet
+
+   ---------------------------
+   -- Completion_Formatting --
+   ---------------------------
+
+   function Completion_Formatting return Boolean is
+   begin
+      return ALS_COMPLETION_FORMATTING.Is_Active;
+   end Completion_Formatting;
 
    ---------------
    -- Read_JSON --

@@ -97,6 +97,9 @@ package LSP.Ada_Configurations is
    function Display_Method_Ancestry_Policy (Self : Configuration'Class)
      return DisplayMethodAncestryOnNavigationPolicy;
 
+   function Completion_Formatting return Boolean;
+   --  Used in LSP.Ada_Completions.Pretty_Print_Snippet
+
 private
 
    type Configuration is tagged limited record

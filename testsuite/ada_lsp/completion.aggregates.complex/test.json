@@ -71,7 +71,6 @@
                   "id": 1,
                   "result": {
                       "capabilities": {
-                          "textDocumentSync": 2,
                           "completionProvider": {
                               "triggerCharacters": [
                                   ".",
@@ -80,29 +79,7 @@
                                   "("
                               ],
                               "resolveProvider": true
-                          },
-                          "hoverProvider": true,
-                          "declarationProvider": true,
-                          "definitionProvider": true,
-                          "typeDefinitionProvider": true,
-                          "implementationProvider": true,
-                          "referencesProvider": true,
-                          "codeActionProvider": {
-                          },
-                          "renameProvider": {
-                          },
-                          "foldingRangeProvider": true,
-                          "executeCommandProvider": {},
-                          "alsReferenceKinds": [
-                              "reference",
-                              "access",
-                              "write",
-                              "call",
-                              "dispatching call",
-                              "parent",
-                              "child",
-                              "overriding"
-                          ]
+                          }
                       }
                   }
               }
@@ -217,7 +194,6 @@
                         "sortText": "+00",
                         "insertText": "-6, ${2:A : Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "documentation": "at foo.adb (2:4)"
                      },
                      {
@@ -226,7 +202,7 @@
                         "sortText": "+01",
                         "insertText": "X => -6",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "X => "
                      },
                      {
                         "label": "A",
@@ -234,7 +210,7 @@
                         "sortText": "+02",
                         "insertText": "A => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "A => "
                      },
                      {
                         "label": "Aggregate when X => -5 | -4",
@@ -243,7 +219,6 @@
                         "sortText": "+03",
                         "insertText": "${1:X : -5 | -4}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "documentation": "at foo.adb (2:4)"
                      },
                      {
@@ -252,7 +227,7 @@
                         "sortText": "+04",
                         "insertText": "X => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "X => "
                      },
                      {
                         "label": "B",
@@ -260,7 +235,7 @@
                         "sortText": "+05",
                         "insertText": "B => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "B => "
                      },
                      {
                         "label": "Aggregate when X => -3 .. -1",
@@ -269,7 +244,6 @@
                         "sortText": "+06",
                         "insertText": "${1:X : -3 .. -1}, ${2:C : Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "documentation": "at foo.adb (2:4)"
                      },
                      {
@@ -278,7 +252,7 @@
                         "sortText": "+07",
                         "insertText": "X => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "X => "
                      },
                      {
                         "label": "C",
@@ -286,7 +260,7 @@
                         "sortText": "+08",
                         "insertText": "C => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "C => "
                      },
                      {
                         "label": "Aggregate when X => Natural",
@@ -295,7 +269,6 @@
                         "sortText": "+09",
                         "insertText": "${1:X : Natural}, ${2:D : Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "documentation": "at foo.adb (2:4)"
                      },
                      {
@@ -304,7 +277,7 @@
                         "sortText": "+10",
                         "insertText": "X => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "X => "
                      },
                      {
                         "label": "D",
@@ -312,7 +285,7 @@
                         "sortText": "+11",
                         "insertText": "D => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "D => "
                      },
                      {
                         "label": "Aggregate when X => others",
@@ -321,7 +294,6 @@
                         "sortText": "+12",
                         "insertText": "${1:X : others}, ${2:E : Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "documentation": "at foo.adb (2:4)"
                      },
                      {
@@ -330,7 +302,7 @@
                         "sortText": "+13",
                         "insertText": "X => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "X => "
                      },
                      {
                         "label": "E",
@@ -338,7 +310,7 @@
                         "sortText": "+14",
                         "insertText": "E => ",
                         "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "documentation": "E => "
                      }
                   ]
                }

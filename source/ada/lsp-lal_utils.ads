@@ -114,19 +114,6 @@ package LSP.Lal_Utils is
      with Pre => (if Versioned_Documents then Document_Provider /= null);
    --  Converts an Edit_Map into a WorkspaceEdit
 
-<<<<<<< Updated upstream
-   function To_Workspace_Edit
-     (Edits               : LAL_Refactor.Refactoring_Edits;
-      Resource_Operations : LSP.Messages.Optional_ResourceOperationKindSet :=
-        LSP.Messages.Optional_ResourceOperationKindSet'(Is_Set => False);
-      Versioned_Documents : Boolean := False;
-      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class :=
-        null;
-      Rename              : Boolean := False)
-      return LSP.Messages.WorkspaceEdit;
-   --  Converts a Refactoring_Edits into a WorkspaceEdit. The Rename flag
-   --  controls if files that are supposed to be deleted, are renamed instead.
-=======
    ---------------
    -- Called_By --
    ---------------
@@ -176,7 +163,6 @@ package LSP.Lal_Utils is
    --  Convert the given Node and the given references to it to the
    --  corresponding CallHierarchyItem and its associated spans, which contains
    --  the references. This should be used for the callHierarchy requests.
->>>>>>> Stashed changes
 
    function Containing_Entity
      (Ref       : Ada_Node;
@@ -214,10 +200,5 @@ package LSP.Lal_Utils is
    function Skip_Dotted_Names
      (Node : Libadalang.Analysis.Ada_Node) return Libadalang.Analysis.Ada_Node;
    --  While Node.Kind is the Dotted_Name go up.
-
-   function Is_Synthetic
-     (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean;
-   --  Check if Node is in a synthetic file (like "__standard").
-   --  TODO: Replace this with LAL property as it will be available.
 
 end LSP.Lal_Utils;

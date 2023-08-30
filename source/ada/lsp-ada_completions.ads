@@ -25,6 +25,8 @@ with Langkit_Support.Text;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
+with VSS.Strings;
+
 limited with LSP.Ada_Contexts;
 limited with LSP.Ada_Documents;
 limited with LSP.Ada_Completions.Filters;
@@ -114,7 +116,7 @@ package LSP.Ada_Completions is
 
    procedure Pretty_Print_Snippet
      (Context : LSP.Ada_Contexts.Context;
-      Prefix  : String;
+      Prefix  : VSS.Strings.Virtual_String;
       Offset  : Natural;
       Span    : LSP.Structures.A_Range;
       Rule    : Libadalang.Common.Grammar_Rule;

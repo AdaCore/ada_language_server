@@ -43,11 +43,13 @@ with VSS.Unicode;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Ada_Contexts;
+with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Id_Iterators;
 with LSP.Enumerations;
 with LSP.Predicates;
 with LSP.Utils;
+with LSP.Structures.LSPAny_Vectors;
 
 package body LSP.Ada_Documents is
    pragma Warnings (Off);
@@ -2087,15 +2089,60 @@ package body LSP.Ada_Documents is
    ---------------------------------------
 
    procedure Set_Completion_Item_Documentation
-     (Context : LSP.Ada_Contexts.Context; BD : Libadalang.Analysis.Basic_Decl;
+     (Context                 : LSP.Ada_Contexts.Context;
+      BD                      : Libadalang.Analysis.Basic_Decl;
       Item                    : in out LSP.Structures.CompletionItem;
-      Compute_Doc_And_Details :        Boolean)
+      Compute_Doc_And_Details : Boolean)
    is
    begin
-      pragma Compile_Time_Warning
-        (Standard.True, "Set_Completion_Item_Documentation unimplemented");
-      raise Program_Error
-        with "Unimplemented procedure Set_Completion_Item_Documentation";
+      --  Compute the 'documentation' and 'detail' fields immediately if
+      --  requested (i.e: when the client does not support lazy computation
+      --  for these fields or if we are dealing with predefined types).
+      if Compute_Doc_And_Details or else LSP.Utils.Is_Synthetic (BD) then
+         declare
+            Qual_Text    : VSS.Strings.Virtual_String;
+            Decl_Text    : VSS.Strings.Virtual_String;
+            Loc_Text     : VSS.Strings.Virtual_String;
+            Doc_Text     : VSS.Strings.Virtual_String;
+            Aspects_Text : VSS.Strings.Virtual_String;
+
+         begin
+            LSP.Ada_Documentation.Get_Tooltip_Text
+              (BD                 => BD,
+               Style              => Context.Get_Documentation_Style,
+               Declaration_Text   => Decl_Text,
+               Qualifier_Text     => Qual_Text,
+               Location_Text      => Loc_Text,
+               Documentation_Text => Doc_Text,
+               Aspects_Text       => Aspects_Text);
+
+            Item.detail := Decl_Text;
+
+            if not Doc_Text.Is_Empty then
+               Loc_Text.Append
+                 (VSS.Strings.To_Virtual_String
+                    ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
+
+               Loc_Text.Append (Doc_Text);
+            end if;
+
+            Item.documentation :=
+              (Is_Set => True,
+               Value  => LSP.Structures.Virtual_String_Or_MarkupContent'
+                 (Is_Virtual_String => True,
+                  Virtual_String    => Loc_Text));
+         end;
+
+      else
+         --  Set node's location to the 'data' field of the completion item, so
+         --  that we can retrieve it in the completionItem/resolve handler.
+         LSP.Structures.LSPAny_Vectors.To_Any
+           (LSP.Structures.Location'
+              (uri     => LSP.Utils.To_DocumentUri (BD.Unit.Get_Filename),
+               a_range => LSP.Utils.To_Range (BD.Sloc_Range),
+               others  => <>),
+            Item.data);
+      end if;
    end Set_Completion_Item_Documentation;
 
    ---------------------

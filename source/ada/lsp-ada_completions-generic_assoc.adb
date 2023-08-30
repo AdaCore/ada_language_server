@@ -380,8 +380,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                        Self.Compute_Doc_And_Details);
                   Pretty_Print_Snippet
                     (Context => Self.Context.all,
-                     Prefix  =>
-                       VSS.Strings.Conversions.To_UTF_8_String (Prefix),
+                     Prefix  => Prefix,
                      --  "column = offset - 1"
                      Offset  => Integer (Column) - 1,
                      Span    => Prefix_Span,

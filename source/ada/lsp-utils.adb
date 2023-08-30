@@ -23,7 +23,6 @@ with Libadalang.Common;
 with Libadalang.Sources;
 with Langkit_Support.Symbols;
 
-with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Generic_Modulars;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
@@ -182,6 +181,24 @@ package body LSP.Utils is
    begin
       return Get_Location (Node.Unit, Node.Sloc_Range);
    end Get_Node_Location;
+
+   ------------------
+   -- Is_Synthetic --
+   ------------------
+
+   function Is_Synthetic
+     (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean
+   is
+      use type Libadalang.Analysis.Analysis_Unit;
+
+      Std : constant Libadalang.Analysis.Analysis_Unit := Node.Unit;
+
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Node.P_Standard_Unit;
+   begin
+
+      return Std = Unit;
+   end Is_Synthetic;
 
    ----------
    -- Hash --
