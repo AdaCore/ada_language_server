@@ -1,7 +1,5 @@
 lsp-ada_handlers-alire.adb
 lsp-ada_handlers-alire.ads
-lsp-ada_handlers-project_reload_commands.adb
-lsp-ada_handlers-project_reload_commands.ads
 lsp-client_side_file_monitors.adb
 lsp-client_side_file_monitors.ads
 lsp-common.adb

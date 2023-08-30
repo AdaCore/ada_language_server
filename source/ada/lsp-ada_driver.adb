@@ -38,7 +38,22 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with LSP.Ada_Handlers;
+with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Other_File_Commands;
+with LSP.Ada_Handlers.Project_Reload_Commands;
+with LSP.Ada_Handlers.Refactor.Add_Parameter;
+with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+with LSP.Ada_Handlers.Refactor.Imports_Commands;
+with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
+with LSP.Ada_Handlers.Refactor.Move_Parameter;
+with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor.Remove_Parameter;
+with LSP.Ada_Handlers.Refactor.Replace_Type;
+with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
+with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.Commands;
 with LSP.GNATCOLL_Tracers;
@@ -67,6 +82,39 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Other_File_Commands.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Suspend_Executions.Suspend_Execution'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Project_Reload_Commands.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Imports_Commands.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Suppress_Seperate.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Extract_Subprogram.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Introduce_Parameter.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Replace_Type.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command'Tag);
+
+      --  Refactoring - Change Subprogram Signature Commands
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Add_Parameter.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Remove_Parameter.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Move_Parameter.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Change_Parameter_Mode.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Change_Parameters_Type.Command'Tag);
+      LSP.Commands.Register
+        (LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value.
+           Command'Tag);
    end Register_Commands;
 
    Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);

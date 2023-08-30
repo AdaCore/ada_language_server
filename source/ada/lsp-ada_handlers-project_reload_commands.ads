@@ -17,12 +17,9 @@
 --
 --  Implementation of the command to reload current project.
 
-with Ada.Streams;
-
 with LSP.Client_Message_Receivers;
 with LSP.Commands;
 with LSP.Errors;
-with LSP.JSON_Streams;
 
 package LSP.Ada_Handlers.Project_Reload_Commands is
 
@@ -33,22 +30,18 @@ private
    type Command is new LSP.Commands.Command with null record;
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
+     (Any : not null access LSP.Structures.LSPAny_Vector)
        return Command;
 
    overriding procedure Execute
      (Self    : Command;
       Handler : not null access
         LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Client  : not null access
-        LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Error  : in out LSP.Errors.Optional_ResponseError);
+      Sender  : not null access LSP.Client_Message_Receivers.
+        Client_Message_Receiver'Class;
+      Id      : LSP.Structures.Integer_Or_Virtual_String;
+      Error   : in out LSP.Errors.ResponseError_Optional);
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Command);
-
-   for Command'Write use Write_Command;
    for Command'External_Tag use "als-reload-project";
 
 end LSP.Ada_Handlers.Project_Reload_Commands;
