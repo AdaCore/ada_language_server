@@ -124,12 +124,6 @@ package LSP.Ada_Completions is
    --  If Result is a snippet then generate a textEdit over span using GNATpp.
    --  Rule must match the content of "Prefix & Result.insertText.Value"
 
-   generic
-      with function Has_Been_Canceled return Boolean;
-   procedure Generic_Write_Symbols
-     (Names  : Completion_Maps.Map;
-      Result : in out LSP.Structures.DocumentSymbol_Vector);
-
    type Completion_Provider_Access is access all
      LSP.Ada_Completions.Completion_Provider'Class;
 

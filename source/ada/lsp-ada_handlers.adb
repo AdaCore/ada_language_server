@@ -3829,6 +3829,145 @@ package body LSP.Ada_Handlers is
       Self.Sender.On_SignatureHelp_Response (Id, Response);
    end On_SignatureHelp_Request;
 
+   -----------------------
+   -- On_Symbol_Request --
+   -----------------------
+
+   overriding procedure On_Symbol_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.WorkspaceSymbolParams)
+   is
+      use type Ada.Containers.Count_Type;
+      use type LSP.Search.Search_Kind;
+      use type VSS.Strings.Character_Count;
+
+      procedure Send_Partial_Response;
+
+      procedure On_Inaccessible_Name
+        (File : GNATCOLL.VFS.Virtual_File;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean);
+
+      Names : LSP.Ada_Completions.Completion_Maps.Map;
+
+      --------------------------
+      -- On_Inaccessible_Name --
+      --------------------------
+
+      procedure On_Inaccessible_Name
+        (File : GNATCOLL.VFS.Virtual_File;
+         Name : Libadalang.Analysis.Defining_Name;
+         Stop : in out Boolean) is
+      begin
+         --  Skip all names in open documents, because they could have
+         --  stale references. Then skip already provided results.
+         if not Self.Open_Documents.Contains (File)
+           and then not Names.Contains (Name)
+         then
+            Names.Insert
+              (Name,
+               (Is_Dot_Call  => False,
+                Is_Visible   => False,
+                Use_Snippets => False,
+                Pos          => <>,
+                Weight       => <>));
+         end if;
+
+         Stop := Self.Is_Canceled.all;
+      end On_Inaccessible_Name;
+
+      Partial_Response_Sended : Boolean := False;
+
+      ---------------------------
+      -- Send_Partial_Response --
+      ---------------------------
+
+      procedure Send_Partial_Response is
+         P : LSP.Structures.Symbol_Progress_Report (LSP.Structures.Variant_1);
+         V : LSP.Structures.SymbolInformation_Vector renames
+           P.Variant_1;
+      begin
+         if Self.Is_Canceled.all then
+            return;
+         end if;
+
+         LSP.Ada_Handlers.Symbols.Write_Symbols (Self, Names, V);
+         Names.Clear;
+
+         Self.Sender.On_Symbol_Partial_Result
+           (Token => Value.partialResultToken.Value,
+            Value => P);
+
+         Partial_Response_Sended := True;
+      end Send_Partial_Response;
+
+      Response : LSP.Structures.Symbol_Result (LSP.Structures.Variant_1);
+
+      Pattern : constant LSP.Search.Search_Pattern'Class := LSP.Search.Build
+        (Pattern        => Value.query,
+         Kind           => LSP.Search.Start_Word_Text);
+
+   begin
+      if Pattern.Get_Kind /= LSP.Search.Start_Word_Text
+        and then Pattern.Get_Canonical_Pattern.Character_Length < 2
+      then
+         --  Do not process too small pattern because
+         --  this produces a huge response that is useless
+         --  and costs a while.
+
+         Self.Sender.On_Symbol_Response (Id, Response);
+         return;
+      end if;
+
+      for Context of Self.Contexts.Each_Context loop
+         Context.Get_Any_Symbol
+           (Pattern     => Pattern,
+            Only_Public => False,
+            Callback    => On_Inaccessible_Name'Access);
+
+         exit when Self.Is_Canceled.all;
+
+         if Value.partialResultToken.Is_Set
+           and then Names.Length > 100
+         then
+            Send_Partial_Response;
+         end if;
+      end loop;
+
+      for Doc of Self.Open_Documents loop
+         declare
+            Context : constant LSP.Ada_Context_Sets.Context_Access :=
+              Self.Contexts.Get_Best_Context (Doc.URI);
+         begin
+            Doc.Get_Any_Symbol
+              (Context.all,
+               Pattern,
+               Ada.Containers.Count_Type'Last,
+               False,
+               Self.Is_Canceled,
+               Names);
+         end;
+
+         exit when Self.Is_Canceled.all;
+
+         if Value.partialResultToken.Is_Set
+           and then Names.Length > 100
+         then
+            Send_Partial_Response;
+         end if;
+      end loop;
+
+      if Partial_Response_Sended then
+         Send_Partial_Response;
+      else
+         LSP.Ada_Handlers.Symbols.Write_Symbols
+           (Self, Names, Response.Variant_1);
+      end if;
+
+      Self.Sender.On_Symbol_Response (Id, Response);
+   end On_Symbol_Request;
+
    -----------------------------
    -- On_Tokens_Range_Request --
    -----------------------------

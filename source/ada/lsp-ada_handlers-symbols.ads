@@ -16,6 +16,8 @@
 ------------------------------------------------------------------------------
 
 with Libadalang.Analysis;
+
+with LSP.Ada_Completions;
 with LSP.Search;
 
 package LSP.Ada_Handlers.Symbols is
@@ -31,5 +33,10 @@ package LSP.Ada_Handlers.Symbols is
       Unit    : Libadalang.Analysis.Analysis_Unit;
       Pattern : LSP.Search.Search_Pattern'Class;
       Result  : in out LSP.Structures.DocumentSymbol_Vector);
+
+   procedure Write_Symbols
+     (Self   : in out Message_Handler'Class;
+      Names  : LSP.Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Structures.SymbolInformation_Vector);
 
 end LSP.Ada_Handlers.Symbols;

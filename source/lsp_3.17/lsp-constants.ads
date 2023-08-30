@@ -86,6 +86,13 @@ package LSP.Constants is
      return LSP.Structures.typeDefinitionProvider_OfServerCapabilities_Optional
        is (Is_Set => True, Value => True);
 
+   function True return LSP.Structures.Boolean_Or_WorkspaceSymbolOptions
+     is (Is_Boolean => True, Boolean => True);
+
+   function True
+     return LSP.Structures.Boolean_Or_WorkspaceSymbolOptions_Optional
+       is (Is_Set => True, Value => True);
+
    function True return LSP.Structures.Boolean_Or_Something
      is (Is_Boolean => True, Boolean => True);
 

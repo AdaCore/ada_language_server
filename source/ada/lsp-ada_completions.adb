@@ -73,11 +73,11 @@ package body LSP.Ada_Completions is
    function Is_Full_Sloc_Equal
      (Left, Right : Libadalang.Analysis.Defining_Name) return Boolean
    is
+      use type Libadalang.Analysis.Analysis_Unit;
+      use type Langkit_Support.Slocs.Source_Location_Range;
    begin
-      pragma Compile_Time_Warning
-        (Standard.True, "Is_Full_Sloc_Equal unimplemented");
-      return
-        raise Program_Error with "Unimplemented function Is_Full_Sloc_Equal";
+      return Left.Sloc_Range = Right.Sloc_Range
+        and then Left.Unit = Right.Unit;
    end Is_Full_Sloc_Equal;
 
    -----------------------
@@ -491,20 +491,5 @@ package body LSP.Ada_Completions is
          end;
       end if;
    end Pretty_Print_Snippet;
-
-   ---------------------------
-   -- Generic_Write_Symbols --
-   ---------------------------
-
-   procedure Generic_Write_Symbols
-     (Names  :        Completion_Maps.Map;
-      Result : in out LSP.Structures.DocumentSymbol_Vector)
-   is
-   begin
-      pragma Assert (not Has_Been_Canceled);
-      pragma Compile_Time_Warning
-        (Standard.True, "Generic_Write_Symbols unimplemented");
-      raise Program_Error with "Unimplemented procedure Generic_Write_Symbols";
-   end Generic_Write_Symbols;
 
 end LSP.Ada_Completions;

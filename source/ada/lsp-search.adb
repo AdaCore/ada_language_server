@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with LSP.Search.Start_Word;
+with LSP.Utils;
 
 package body LSP.Search is
 
@@ -66,9 +67,9 @@ package body LSP.Search is
      (Self : Search_Pattern) return VSS.Strings.Virtual_String is
    begin
       if Self.Case_Sensitive then
-         raise Program_Error with "Unimplemented";  --  FIXME
-      else
          return Self.Text;
+      else
+         return LSP.Utils.Canonicalize (Self.Text);
       end if;
    end Get_Canonical_Pattern;
 

@@ -391,4 +391,41 @@ package body LSP.Ada_Handlers.Symbols is
       Walk (Root, 0, Result);
    end Hierarchical_Document_Symbols;
 
+   -------------------
+   -- Write_Symbols --
+   -------------------
+
+   procedure Write_Symbols
+     (Self   : in out Message_Handler'Class;
+      Names  : LSP.Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Structures.SymbolInformation_Vector) is
+   begin
+      for Cursor in Names.Iterate loop
+         declare
+            Name : constant Libadalang.Analysis.Defining_Name :=
+              LSP.Ada_Completions.Completion_Maps.Key (Cursor);
+            Node : Libadalang.Analysis.Ada_Node := Name.As_Ada_Node;
+         begin
+            while not Node.Is_Null and then
+              Node.Kind not in Libadalang.Common.Ada_Basic_Decl
+            loop
+               Node := Node.Parent;
+            end loop;
+
+            if not Node.Is_Null then
+               Result.Append
+                 (LSP.Structures.SymbolInformation'
+                    (name     => VSS.Strings.To_Virtual_String (Name.Text),
+                     kind     => LSP.Utils.Get_Decl_Kind
+                                  (Node.As_Basic_Decl),
+                     location => Locations.To_LSP_Location
+                                  (Self, Name),
+                     tags          => LSP.Constants.Empty,
+                     deprecated    => (Is_Set => False),
+                     containerName => <>));
+            end if;
+         end;
+      end loop;
+   end Write_Symbols;
+
 end LSP.Ada_Handlers.Symbols;

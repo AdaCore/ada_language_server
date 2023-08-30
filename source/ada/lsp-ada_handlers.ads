@@ -403,6 +403,11 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionItem);
 
+   overriding procedure On_Symbol_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.WorkspaceSymbolParams);
+
    procedure Publish_Diagnostics
      (Self              : in out Message_Handler'Class;
       Document          : not null LSP.Ada_Documents.Document_Access;

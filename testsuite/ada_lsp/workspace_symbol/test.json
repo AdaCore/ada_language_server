@@ -78,6 +78,7 @@
             "wait":[{
                 "id": "wsSymbol",
                 "result": [
+                    "<HAS>",
                     {
                         "name": "Test1",
                         "kind": 12,
