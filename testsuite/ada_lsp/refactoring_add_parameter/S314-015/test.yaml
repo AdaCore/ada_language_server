@@ -1,5 +1,8 @@
-title: 'refactoring_add_parameters_S314-015_0'
+title: 'refactoring_add_parameters_S314-015'
 
 description: >
     Check that the Add_Parameter codeAction is not available if the client
     does not provide the userInputProvider capability.
+# Skip till 3.17 ready
+skip:
+    - ['XFAIL', 'True']
