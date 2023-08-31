@@ -43,7 +43,6 @@
                         "codeActionLiteralSupport": {
                            "codeActionKind": {
                               "valueSet": [
-                                 "<HAS>",
                                  "refactor",
                                  "refactor.extract",
                                  "refactor.inline",
@@ -110,7 +109,7 @@
          "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
+                    "id": 1,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -182,24 +181,22 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-sort_dependencies",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "uri": "$URI{main_package.ads}",
-                                 "range": {
-                                    "start": {
-                                       "line": 3,
-                                       "character": 15
-                                    },
-                                    "end": {
-                                       "line": 3,
-                                       "character": 15
-                                    }
-                                 }
-                              }
-                           }
-                        ]
+                        "arguments": {
+                           "context": "Default",
+                           "where": {
+                              "uri": "$URI{main_package.ads}",
+                              "range": {
+                                 "start": {
+                                    "line": 3,
+                                    "character": 15
+                                 },
+                                 "end": {
+                                    "line": 3,
+                                    "character": 15
+                                  }
+                               }
+                            }
+                        }
                      }
                   }
                ]
@@ -215,24 +212,22 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-sort_dependencies",
-               "arguments": [
-                  {
-                     "context": "Default",
-                     "where": {
-                        "uri": "$URI{main_package.ads}",
-                        "range": {
-                           "start": {
-                              "line": 3,
-                              "character": 15
-                           },
-                           "end": {
-                              "line": 3,
-                              "character": 15
-                           }
+               "arguments": {
+                  "context": "Default",
+                  "where": {
+                     "uri": "$URI{main_package.ads}",
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 15
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 15
                         }
                      }
                   }
-               ]
+               }
             }
          },
          "wait": [

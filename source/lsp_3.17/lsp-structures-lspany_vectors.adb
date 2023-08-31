@@ -85,7 +85,6 @@ package body LSP.Structures.LSPAny_Vectors is
          end;
          Next (Cursor);
       end loop;
-      Next (Cursor);
 
       return Result;
    end From_Any;
@@ -121,7 +120,6 @@ package body LSP.Structures.LSPAny_Vectors is
          end;
          Next (Cursor);
       end loop;
-      Next (Cursor);
 
       return Result;
    end From_Any;
@@ -157,7 +155,6 @@ package body LSP.Structures.LSPAny_Vectors is
          end;
          Next (Cursor);
       end loop;
-      Next (Cursor);
 
       return Result;
    end From_Any;
@@ -193,7 +190,6 @@ package body LSP.Structures.LSPAny_Vectors is
          end;
          Next (Cursor);
       end loop;
-      Next (Cursor);
 
       return Result;
    end From_Any;
@@ -230,7 +226,6 @@ package body LSP.Structures.LSPAny_Vectors is
 
          Next (Cursor);
       end loop;
-      Next (Cursor);
 
       return Result;
    end From_Any;
@@ -250,7 +245,6 @@ package body LSP.Structures.LSPAny_Vectors is
          Result.Append (Element (Cursor).String_Value);
          Next (Cursor);
       end loop;
-      Next (Cursor);
 
       return Result;
    end From_Any;
@@ -282,6 +276,10 @@ package body LSP.Structures.LSPAny_Vectors is
 
          Next (Cursor);
       end loop;
+
+      if Element (Cursor).Kind = Key_Name then
+         Previous (Cursor);
+      end if;
    end Skip_Value;
 
    ------------

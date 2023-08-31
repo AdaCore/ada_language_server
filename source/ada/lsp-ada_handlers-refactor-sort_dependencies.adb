@@ -110,6 +110,7 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
             Next (C);
          end loop;
+         Next (C);
       end return;
    end Create;
 
@@ -135,7 +136,6 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
-
       Analysis_Unit    : constant Libadalang.Analysis.Analysis_Unit :=
         Context.LAL_Context.Get_From_File
           (VSS.Strings.Conversions.To_UTF_8_String (Self.Where.uri));
@@ -149,7 +149,6 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
       Sorter : constant Dependencies_Sorter :=
         Create_Dependencies_Sorter (Compilation_Unit);
-
    begin
       Edits := Sorter.Refactor (null);
    end Refactor;
