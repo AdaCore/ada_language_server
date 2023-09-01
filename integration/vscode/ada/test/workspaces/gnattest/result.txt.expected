@@ -1,0 +1,7 @@
+speed1.ads:12:4: error: corresponding test FAILED: Test not implemented. (speed1-controller_test_data-controller_tests.adb:44)
+speed1.ads:13:4: error: corresponding test FAILED: Test not implemented. (speed1-controller_test_data-controller_tests.adb:65)
+speed2.ads:10:4: error: corresponding test FAILED: Test not implemented. (speed2-auto_controller_test_data-auto_controller_tests.adb:44)
+speed2.ads:12:4: error: corresponding test FAILED: Test not implemented. (speed2-auto_controller_test_data-auto_controller_tests.adb:65)
+speed2.ads:16:4: error: corresponding test FAILED: Test not implemented. (speed2-auto_controller_test_data-auto_controller_tests.adb:86)
+speed1.ads:12:4: inherited at speed2.ads:20:4: error: corresponding test FAILED: Test not implemented. (speed1-controller_test_data-controller_tests.adb:44)
+6 tests run: 0 passed; 6 failed; 0 crashed.

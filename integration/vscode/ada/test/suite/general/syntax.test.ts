@@ -1,26 +1,14 @@
 import * as assert from 'assert';
-import { contextClients } from '../../src/extension';
-import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../../src/alsProtocolExtensions';
-import { before, suite, test } from 'mocha';
-import * as vscode from 'vscode';
+import { contextClients } from '../../../src/extension';
+import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../../../src/alsProtocolExtensions';
+import { suite, test } from 'mocha';
+import { activate } from '../utils';
 
-suite('Syntax Check Test Suite', () => {
-    before(() => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        vscode.window.showInformationMessage('Start all tests.');
+suite('Syntax Check Test Suite', function () {
+    this.beforeAll(async () => {
+        await activate();
     });
     suite('Grammer Rules Tests', () => {
-        // Checking the extension is activated before running the tests.
-        before(async () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const ext: vscode.Extension<any> | undefined =
-                vscode.extensions.getExtension('AdaCore.ada');
-            if (ext !== undefined) {
-                if (!ext.isActive) {
-                    await ext.activate();
-                }
-            }
-        });
         // the test function
         async function testRule(
             rule: AdaGrammarRule,
