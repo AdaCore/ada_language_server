@@ -4145,9 +4145,8 @@ package body LSP.Ada_Handlers is
                Text_Edits.Append (To_TextEdit (Edit));
             end loop;
 
-            File_URI := To_DocumentUri
-              (VSS.Strings.Conversions.To_Virtual_String
-                 (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor)));
+            File_URI :=
+              Self.To_URI (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor));
 
             --  If `workspace.workspaceEdit.documentChanges` client capability
             --  was true, then use `TextDocumentEdit[]` instead of

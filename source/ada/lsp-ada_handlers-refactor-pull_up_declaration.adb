@@ -134,9 +134,11 @@ package body LSP.Ada_Handlers.Refactor.Pull_Up_Declaration is
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
 
+      File : constant GNATCOLL.VFS.Virtual_File :=
+        Message_Handler.To_File (Self.Where.uri);
+
       Unit : constant Analysis_Unit :=
-        Context.LAL_Context.Get_From_File
-          (VSS.Strings.Conversions.To_UTF_8_String (Self.Where.uri));
+        Context.LAL_Context.Get_From_File (File.Display_Full_Name);
 
       Declaration_SLOC : constant Source_Location :=
         (Langkit_Support.Slocs.Line_Number
