@@ -10,7 +10,7 @@ project Default is
 
     package Builder is
       for Executable ("gnatpp.adb") use "gnatpp";
-      for Executable ("test.adb") use "gnattest";
+      for Executable ("test.adb") use "test";
    end Builder;
 
 end Default;

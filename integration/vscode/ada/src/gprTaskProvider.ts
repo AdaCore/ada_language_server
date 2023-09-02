@@ -51,11 +51,7 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
         return this.glsTasks;
     }
 
-    async resolveTask(
-        task: vscode.Task,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _token: vscode.CancellationToken
-    ): Promise<vscode.Task | undefined> {
+    async resolveTask(task: vscode.Task): Promise<vscode.Task | undefined> {
         const definition = task.definition;
         // Make sure that this looks like a execute task by checking that there is a projectFile.
         if (definition.type == GprTaskProvider.gprTaskType) {
@@ -199,7 +195,7 @@ function getMainBuildArgs(projectFile?: string, mainFile?: string): string[] {
  * @param args - the list of arguments
  * @returns a string
  */
-function fullCommand(command: string, args: string[]) {
+export function fullCommand(command: string, args: string[]) {
     let cmd: string = command + ' ';
     for (const arg of args) {
         cmd += arg.replace(/^\s+|\s+$/g, '') + ' ';

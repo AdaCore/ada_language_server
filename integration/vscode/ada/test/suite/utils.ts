@@ -1,6 +1,10 @@
-import assert from 'assert';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
 import * as vscode from 'vscode';
+import assert from 'assert';
+import { env } from 'process';
+import path, { resolve } from 'path';
+import Mocha, { MochaOptions } from 'mocha';
+import { Glob, GlobOptionsWithFileTypesUnset } from 'glob';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 /**
  * This function compares some actual output to an expected referenced stored in
@@ -34,4 +38,77 @@ export function assertEqualToFileContent(actual: string, expectedUri: vscode.Uri
  */
 export function update(): boolean {
     return process.env.MOCHA_ALS_UPDATE ? true : false;
+}
+
+/**
+ * This function queries the VS Code API for the Ada extension and waits until
+ * it is activated.
+ */
+export async function activate(): Promise<void> {
+    const ext = vscode.extensions.getExtension('AdaCore.ada');
+    if (ext !== undefined) {
+        if (!ext.isActive) {
+            await ext.activate();
+        }
+    }
+}
+
+export function runMochaTestsuite(suiteName: string, suiteDirectory: string) {
+    const mochaOptions: MochaOptions = {
+        ui: 'bdd',
+        color: true,
+    };
+
+    if (process.env.MOCHA_REPORTER) {
+        // If a reporter was specified externally, use it. For example, the CI
+        // environment could set this to 'mocha-junit-reporter' to produce JUnit
+        // results.
+        mochaOptions.reporter = process.env.MOCHA_REPORTER;
+        const mochaFile = process.env.MOCHA_RESULTS_DIR
+            ? path.join(`${process.env.MOCHA_RESULTS_DIR}`, `${suiteName}.xml`)
+            : `${suiteName}.xml`;
+        mochaOptions.reporterOptions = {
+            mochaFile,
+        };
+    }
+
+    if (!mochaOptions.reporterOptions) {
+        mochaOptions.reporterOptions = {
+            maxDiffSize: 0,
+        };
+    }
+
+    // Create the mocha test
+    const mocha = new Mocha(mochaOptions);
+
+    return new Promise<void>((c, e) => {
+        const globOptions: GlobOptionsWithFileTypesUnset = { cwd: suiteDirectory };
+        const glob = new Glob('**/*.test.js', globOptions);
+        for (const file of glob) {
+            mocha.addFile(resolve(suiteDirectory, file));
+        }
+        try {
+            // This variable is set in the launch configuration (launch.json) of
+            // the VS Code workspace to allow debugging without triggering test
+            // timeouts.
+            if (env['MOCHA_TIMEOUT']) {
+                mocha.timeout(env['MOCHA_TIMEOUT']);
+            }
+
+            if (env['MOCHA_GREP']) {
+                mocha.grep(env['MOCHA_GREP']);
+            }
+
+            // Run the mocha test
+            mocha.run((failures) => {
+                if (failures > 0) {
+                    e(new Error(`${failures} tests failed.`));
+                } else {
+                    c();
+                }
+            });
+        } catch (err) {
+            e(err);
+        }
+    });
 }
