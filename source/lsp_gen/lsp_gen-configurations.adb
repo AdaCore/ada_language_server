@@ -128,6 +128,9 @@ package body LSP_Gen.Configurations is
 
          if Method = "license header" then
             Read_License_Header (Reader);
+         elsif Method = "protocol extension" then
+            Self.Extension := Reader.String_Value;
+            Reader.Read_Next;
          else
             Read_Method (Reader, Method);
          end if;
