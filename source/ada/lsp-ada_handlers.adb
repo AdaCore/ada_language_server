@@ -98,14 +98,13 @@ package body LSP.Ada_Handlers is
 
    pragma Style_Checks ("o");  --  check subprogram bodies in alphabetical ordr
 
-   subtype AlsReferenceKind_Array is
-     LSP.Ada_Handlers.Locations.AlsReferenceKind_Array;
+   subtype AlsReferenceKind_Array is LSP.Structures.AlsReferenceKind_Set;
 
    function Is_Parent return AlsReferenceKind_Array is
-     ([LSP.Ada_Handlers.Locations.Parent => True, others => False]);
+     ([LSP.Enumerations.parent => True, others => False]);
 
    function Is_Child return AlsReferenceKind_Array is
-     ([LSP.Ada_Handlers.Locations.Child => True, others => False]);
+     ([LSP.Enumerations.child => True, others => False]);
 
    function Contexts_For_URI
      (Self : access Message_Handler;
@@ -144,7 +143,8 @@ package body LSP.Ada_Handlers is
 
    function To_LSP_Location
      (Self : in out Message_Handler'Class;
-      Node : Libadalang.Analysis.Ada_Node'Class)
+      Node : Libadalang.Analysis.Ada_Node'Class;
+      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location
         renames LSP.Ada_Handlers.Locations.To_LSP_Location;
 
@@ -159,7 +159,7 @@ package body LSP.Ada_Handlers is
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
-      Ignore : AlsReferenceKind_Array := LSP.Ada_Handlers.Locations.Empty)
+      Kinds  : AlsReferenceKind_Array := LSP.Constants.Empty)
         renames LSP.Ada_Handlers.Locations.Append_Location;
 
    function Imprecise_Resolve_Name
@@ -576,7 +576,8 @@ package body LSP.Ada_Handlers is
                   Commands_Vector => Result,
                   Where           =>
                     (uri     => Value.textDocument.uri,
-                     a_range => Value.a_range));
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
 
                Found := True;
             end if;
@@ -614,7 +615,8 @@ package body LSP.Ada_Handlers is
                   Commands_Vector => Result,
                   Where           =>
                     (uri     => Value.textDocument.uri,
-                     a_range => Value.a_range),
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty),
                   Syntax_Rules    => Syntax_Rules);
 
                Found := True;
@@ -659,7 +661,8 @@ package body LSP.Ada_Handlers is
                         Commands_Vector => Result,
                         Where           =>
                           (Value.textDocument.uri,
-                           Value.a_range),
+                           Value.a_range,
+                           LSP.Constants.Empty),
                         Subprogram_Kind => Ada_Subp_Kind_Procedure);
                   end if;
 
@@ -669,7 +672,8 @@ package body LSP.Ada_Handlers is
                         Commands_Vector => Result,
                         Where           =>
                           (Value.textDocument.uri,
-                           Value.a_range),
+                           Value.a_range,
+                           LSP.Constants.Empty),
                         Subprogram_Kind => Ada_Subp_Kind_Function);
                   end if;
 
@@ -859,7 +863,8 @@ package body LSP.Ada_Handlers is
                   Commands_Vector => Result,
                   Where           =>
                     (uri     => Value.textDocument.uri,
-                     a_range => Value.a_range));
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
 
                Found := True;
             end if;
@@ -974,7 +979,8 @@ package body LSP.Ada_Handlers is
                   Commands_Vector             => Result,
                   Where                       =>
                     (uri     => Value.textDocument.uri,
-                     a_range => Value.a_range));
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
 
                Found := True;
             end if;
@@ -1005,7 +1011,8 @@ package body LSP.Ada_Handlers is
                   Commands_Vector => Result,
                   Where           =>
                     (Value.textDocument.uri,
-                     Value.a_range));
+                     Value.a_range,
+                     LSP.Constants.Empty));
 
                Found := True;
             end if;
@@ -1037,7 +1044,8 @@ package body LSP.Ada_Handlers is
                   Commands_Vector => Result,
                   Where           =>
                     (uri     => Value.textDocument.uri,
-                     a_range => Value.a_range));
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
 
                Found := True;
             end if;
@@ -1102,7 +1110,8 @@ package body LSP.Ada_Handlers is
                      Commands_Vector             => Result,
                      Where                       =>
                        (Value.textDocument.uri,
-                        Value.a_range),
+                        Value.a_range,
+                        LSP.Constants.Empty),
                      Requires_Full_Specification =>
                        Requires_Full_Specification);
 
@@ -2817,35 +2826,6 @@ package body LSP.Ada_Handlers is
       end if;
    end On_Formatting_Request;
 
-   ---------------------
-   -- On_Full_Request --
-   ---------------------
-
-   overriding procedure On_Full_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.SemanticTokensParams)
-   is
-      use type LSP.Ada_Documents.Document_Access;
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Get_Open_Document (Value.textDocument.uri);
-
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
-
-      Result   : LSP.Structures.Natural_Vector renames
-        Response.Value.data;
-   begin
-      if Document /= null then
-         Result := Document.Get_Tokens (Context.all, Self.Highlighter);
-      end if;
-
-      Self.Sender.On_Full_Response (Id, Response);
-   end On_Full_Request;
-
    ----------------------
    -- On_Hover_Request --
    ----------------------
@@ -3045,7 +3025,7 @@ package body LSP.Ada_Handlers is
          --  First list the bodies of this definition
          Update_Response
            (Laltools.Common.List_Bodies_Of (Definition, Trace, Imprecise),
-            LSP.Ada_Handlers.Locations.Empty);
+            LSP.Constants.Empty);
 
          --  Then list the bodies of the parent implementations
          Decl := Definition.P_Basic_Decl;
@@ -3354,7 +3334,7 @@ package body LSP.Ada_Handlers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ReferenceParams)
    is
-      use all type LSP.Ada_Handlers.Locations.AlsReferenceKind;
+      use all type LSP.Enumerations.AlsReferenceKind;
 
       Response   : LSP.Structures.Location_Vector_Or_Null;
       Imprecise  : Boolean := False;
@@ -3389,14 +3369,14 @@ package body LSP.Ada_Handlers is
          Result : AlsReferenceKind_Array := [others => False];
       begin
          begin
-            Result (Write) := Id.P_Is_Write_Reference;
+            Result (write) := Id.P_Is_Write_Reference;
          exception
             when E : Libadalang.Common.Property_Error =>
                Self.Tracer.Trace_Exception (E);
          end;
 
          begin
-            Result (Access_Ref) :=
+            Result (an_access) :=
               Laltools.Common.Is_Access_Ref (Id.As_Ada_Node);
          exception
             when E : Libadalang.Common.Property_Error =>
@@ -3404,14 +3384,14 @@ package body LSP.Ada_Handlers is
          end;
 
          begin
-            Result (Static_Call) := Id.P_Is_Static_Call;
+            Result (call) := Id.P_Is_Static_Call;
          exception
             when E : Libadalang.Common.Property_Error =>
                Self.Tracer.Trace_Exception (E);
          end;
 
          begin
-            Result (Dispatching_Call) :=
+            Result (dispatching_call) :=
               Id.P_Is_Dispatching_Call;
          exception
             when E : Libadalang.Common.Property_Error =>
@@ -3419,19 +3399,19 @@ package body LSP.Ada_Handlers is
          end;
 
          begin
-            Result (Child) :=
+            Result (child) :=
               Laltools.Common.Is_Type_Derivation (Id.As_Ada_Node);
          exception
             when E : Libadalang.Common.Property_Error =>
                Self.Tracer.Trace_Exception (E);
          end;
 
-         Result (Overriding_Decl) := Is_Overriding_Decl;
+         Result (an_overriding) := Is_Overriding_Decl;
 
          --  If the result has not any set flags at this point, flag it as a
          --  simple reference.
          if Result = [Result'Range => False] then
-            Result (Simple) := True;
+            Result (reference) := True;
          end if;
 
          --  Apply additional kinds
@@ -3487,7 +3467,7 @@ package body LSP.Ada_Handlers is
             if not Decl.Is_Null
               and then Libadalang.Analysis.Kind (Decl) = Ada_Enum_Literal_Decl
             then
-               Additional_Kinds (Simple) := True;
+               Additional_Kinds (reference) := True;
             end if;
 
             --  Find all the references
@@ -3968,6 +3948,35 @@ package body LSP.Ada_Handlers is
       Self.Sender.On_Symbol_Response (Id, Response);
    end On_Symbol_Request;
 
+   ----------------------------
+   -- On_Tokens_Full_Request --
+   ----------------------------
+
+   overriding procedure On_Tokens_Full_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensParams)
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
+
+      Result   : LSP.Structures.Natural_Vector renames
+        Response.Value.data;
+   begin
+      if Document /= null then
+         Result := Document.Get_Tokens (Context.all, Self.Highlighter);
+      end if;
+
+      Self.Sender.On_Tokens_Full_Response (Id, Response);
+   end On_Tokens_Full_Request;
+
    -----------------------------
    -- On_Tokens_Range_Request --
    -----------------------------
@@ -3995,7 +4004,7 @@ package body LSP.Ada_Handlers is
            (Context.all, Self.Highlighter, Value.a_range);
       end if;
 
-      Self.Sender.On_Full_Response (Id, Response);
+      Self.Sender.On_Tokens_Full_Response (Id, Response);
    end On_Tokens_Range_Request;
 
    -------------------------------

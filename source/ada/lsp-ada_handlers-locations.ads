@@ -25,12 +25,14 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with LSP.Ada_Contexts;
+with LSP.Constants;
 
 package LSP.Ada_Handlers.Locations is
 
    function To_LSP_Location
      (Self : in out Message_Handler'Class;
-      Node : Libadalang.Analysis.Ada_Node'Class)
+      Node : Libadalang.Analysis.Ada_Node'Class;
+      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location;
    --  Convert LAL's Node to a LSP location
 
@@ -38,7 +40,8 @@ package LSP.Ada_Handlers.Locations is
      (Self    : in out Message_Handler'Class;
       Context : LSP.Ada_Contexts.Context;
       File    : String;
-      Sloc    : Langkit_Support.Slocs.Source_Location_Range)
+      Sloc    : Langkit_Support.Slocs.Source_Location_Range;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location;
 
    function Get_Node_At
@@ -51,26 +54,11 @@ package LSP.Ada_Handlers.Locations is
      (Token : Libadalang.Common.Token_Reference)
       return LSP.Structures.Position;
 
-   type AlsReferenceKind is
-     (Simple,
-      Access_Ref,
-      Write,
-      Static_Call,
-      Dispatching_Call,
-      Parent,
-      Child,
-      Overriding_Decl);
-   --  This should be part of the protocol
-
-   type AlsReferenceKind_Array is array (AlsReferenceKind) of Boolean;
-
-   function Empty return AlsReferenceKind_Array is ([others => False]);
-
    procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
-      Ignore : AlsReferenceKind_Array := Empty);
+      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
 

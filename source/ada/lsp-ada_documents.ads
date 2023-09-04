@@ -32,8 +32,9 @@ with Pp.Command_Lines;
 
 limited with LSP.Ada_Contexts;
 with LSP.Ada_Completions;
-with LSP.Diagnostic_Sources;
 with LSP.Ada_Highlighters;
+with LSP.Constants;
+with LSP.Diagnostic_Sources;
 with LSP.Search;
 with LSP.Structures;
 with LSP.Tracers;
@@ -89,7 +90,8 @@ package LSP.Ada_Documents is
 
    function To_LSP_Location
      (Self    : Document;
-      Segment : Langkit_Support.Slocs.Source_Location_Range)
+      Segment : Langkit_Support.Slocs.Source_Location_Range;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location;
    --  Convert LAL's Source_Location_Range and document's uri to a LSP location
 

@@ -259,7 +259,7 @@ package body LSP.Unimplemented_Handlers is
    -- On_Full_Request --
    ---------------------
 
-   overriding procedure On_Full_Request
+   overriding procedure On_Tokens_Full_Request
      (Self  : in out Unimplemented_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokensParams)
@@ -267,7 +267,7 @@ package body LSP.Unimplemented_Handlers is
    begin
       Self.Implemented := False;
 
-   end On_Full_Request;
+   end On_Tokens_Full_Request;
 
    ----------------------
    -- On_Hover_Request --

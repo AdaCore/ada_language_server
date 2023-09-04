@@ -411,7 +411,8 @@ package body LSP.Utils is
            (VSS.Strings.Conversions.To_Virtual_String
                 (URIs.Conversions.From_File (Unit.Get_Filename))
             with null record),
-         a_range => To_Range (Span));
+         a_range => To_Range (Span),
+         alsKind => LSP.Constants.Empty);
    end Get_Location;
 
    -----------------------

@@ -35,10 +35,10 @@ package body LSP.Ada_Handlers.Locations is
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
       Node   : Libadalang.Analysis.Ada_Node'Class;
-      Ignore : AlsReferenceKind_Array := Empty) is
+      Kinds : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
    begin
       if not Node.Is_Synthetic then
-         Result.Append (To_LSP_Location (Self, Node));
+         Result.Append (To_LSP_Location (Self, Node, Kinds));
       end if;
    end Append_Location;
 
@@ -158,7 +158,8 @@ package body LSP.Ada_Handlers.Locations is
      (Self    : in out Message_Handler'Class;
       Context : LSP.Ada_Contexts.Context;
       File    : String;
-      Sloc    : Langkit_Support.Slocs.Source_Location_Range)
+      Sloc    : Langkit_Support.Slocs.Source_Location_Range;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location
    is
       use type LSP.Ada_Documents.Document_Access;
@@ -173,12 +174,13 @@ package body LSP.Ada_Handlers.Locations is
 
    begin
       if Doc /= null then
-         return Doc.To_LSP_Location (Sloc);
+         return Doc.To_LSP_Location (Sloc, Kinds);
       else
          return
            (uri     => URI,
             a_range => To_LSP_Range
-              (Context.Get_AU (GNATCOLL.VFS.Create_From_UTF8 (File)), Sloc));
+              (Context.Get_AU (GNATCOLL.VFS.Create_From_UTF8 (File)), Sloc),
+            alsKind => Kinds);
       end if;
    end To_LSP_Location;
 
@@ -188,7 +190,8 @@ package body LSP.Ada_Handlers.Locations is
 
    function To_LSP_Location
      (Self : in out Message_Handler'Class;
-      Node : Libadalang.Analysis.Ada_Node'Class)
+      Node : Libadalang.Analysis.Ada_Node'Class;
+      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
         return LSP.Structures.Location
    is
       use type LSP.Ada_Documents.Document_Access;
@@ -206,12 +209,13 @@ package body LSP.Ada_Handlers.Locations is
 
    begin
       if Doc /= null then
-         return Doc.To_LSP_Location (Sloc);
+         return Doc.To_LSP_Location (Sloc, Kind);
 
       else
          return
            (uri => URI,
-            a_range => To_LSP_Range (Node.Unit, Sloc));
+            a_range => To_LSP_Range (Node.Unit, Sloc),
+            alsKind => Kind);
 
       end if;
    end To_LSP_Location;

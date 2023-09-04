@@ -208,7 +208,7 @@ package LSP.Unimplemented_Handlers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SelectionRangeParams);
 
-   overriding procedure On_Full_Request
+   overriding procedure On_Tokens_Full_Request
      (Self  : in out Unimplemented_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokensParams);

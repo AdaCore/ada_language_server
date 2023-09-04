@@ -131,6 +131,9 @@ package LSP.Constants is
 
    function Empty return LSP.Structures.SymbolTag_Set is [others => False];
 
+   function Empty return LSP.Structures.AlsReferenceKind_Set is
+     [others => False];
+
    function Error return LSP.Structures.DiagnosticSeverity_Optional
      is (Is_Set => True, Value => LSP.Enumerations.Error);
 

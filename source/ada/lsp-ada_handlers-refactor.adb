@@ -77,7 +77,8 @@ package body LSP.Ada_Handlers.Refactor is
               (LSP.Structures.DiagnosticRelatedInformation'(
                location => LSP.Structures.Location'
                  (uri     => To_DocumentUri (Problem.Filename),
-                  a_range => LSP.Utils.To_Range (Problem.Location)),
+                  a_range => LSP.Utils.To_Range (Problem.Location),
+                  alsKind => LSP.Constants.Empty),
                message  => VSS.Strings.Conversions.To_Virtual_String
                  (Problem.Info)));
 

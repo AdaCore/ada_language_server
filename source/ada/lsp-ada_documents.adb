@@ -49,7 +49,6 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Id_Iterators;
-with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Predicates;
 with LSP.Utils;
@@ -2340,10 +2339,13 @@ package body LSP.Ada_Documents is
    ---------------------
 
    function To_LSP_Location
-     (Self : Document; Segment : Langkit_Support.Slocs.Source_Location_Range)
+     (Self    : Document;
+      Segment : Langkit_Support.Slocs.Source_Location_Range;
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location
         is (uri     => Self.URI,
-            a_range => Self.To_LSP_Range (Segment));
+            a_range => Self.To_LSP_Range (Segment),
+            alsKind => Kinds);
 
    ------------------
    -- To_LSP_Range --
