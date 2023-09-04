@@ -1,0 +1,80 @@
+{
+    "enumerations": [
+        {
+            "name": "AlsReferenceKind",
+            "type": {
+                "kind": "base",
+                "name": "string"
+            },
+            "values": [
+                {
+                    "name": "reference",
+                    "value": "reference"
+                },
+                {
+                    "name": "access",
+                    "value": "access"
+                },
+                {
+                    "name": "write",
+                    "value": "write"
+                },
+                {
+                    "name": "call",
+                    "value": "call"
+                },
+                {
+                    "name": "dispatching_call",
+                    "value": "dispatching call"
+                },
+                {
+                    "name": "parent",
+                    "value": "parent"
+                },
+                {
+                    "name": "child",
+                    "value": "child"
+                },
+                {
+                    "name": "overriding",
+                    "value": "overriding"
+                }
+            ]
+        }
+    ],
+    "structures": [
+        {
+            "name": "Location",
+            "properties": [
+                {
+                    "name": "alsKind",
+                    "type": {
+                        "kind": "array",
+                        "element": {
+                            "kind": "reference",
+                            "name": "AlsReferenceKind"
+                        }
+                    },
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "name": "ServerCapabilities",
+            "properties": [
+                {
+                    "name": "alsReferenceKinds",
+                    "type": {
+                        "kind": "array",
+                        "element": {
+                            "kind": "reference",
+                            "name": "AlsReferenceKind"
+                        }
+                    },
+                    "optional": true,
+                    "documentation": "List of reference kind supported by the server."
+                }
+            ]
+        }
+    ]
+}

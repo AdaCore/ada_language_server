@@ -10,6 +10,9 @@
         ""
     ],
 
+    //  LSP patch file name for ALS extensions
+    "protocol extension": "../../doc/metaModel.patch.json",
+
     //  Notification
 
     "$/cancelRequest": {
@@ -154,7 +157,10 @@
     // "textDocument/references"
     // "textDocument/rename"
     // "textDocument/selectionRange"
-    // "textDocument/semanticTokens/full"
+    "textDocument/semanticTokens/full": {
+        "from": "client",
+        "name": "Tokens_Full"
+    },
     "textDocument/semanticTokens/full/delta": {
         "from": "client",
         "name": "Tokens_Delta"
