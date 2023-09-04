@@ -340,7 +340,7 @@
          },
          "wait": [
             {
-               "id": 4,
+               "id": 6,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {
@@ -510,9 +510,8 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-remove-parameters",
-                        "arguments":
-                        {
-                           "context": "Default",
+                        "arguments": {
+                           "context": "default",
                            "where": {
                               "textDocument": {
                                  "uri": "$URI{main.adb}"
@@ -542,7 +541,7 @@
                "command": "als-refactor-remove-parameters",
                "arguments":
                {
-                  "context": "Default",
+                  "context": "default",
                   "where": {
                      "textDocument": {
                         "uri": "$URI{main.adb}"
@@ -559,7 +558,7 @@
          },
          "wait": [
             {
-               "id": 5,
+               "id": 11,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {
@@ -849,7 +848,7 @@
                         "command": "als-refactor-remove-parameters",
                         "arguments":
                         {
-                           "context": "Default",
+                           "context": "default",
                            "where": {
                               "textDocument": {
                                  "uri": "$URI{main.adb}"
@@ -879,7 +878,7 @@
                "command": "als-refactor-remove-parameters",
                "arguments":
                {
-                  "context": "Default",
+                  "context": "default",
                   "where": {
                      "textDocument": {
                         "uri": "$URI{main.adb}"
@@ -896,7 +895,7 @@
          },
          "wait": [
             {
-               "id": 6,
+               "id": 21,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {

@@ -36,43 +36,12 @@
                     "result": {
                         "capabilities": {
                             "textDocumentSync": 2,
-                            "completionProvider": {
-                                "triggerCharacters": [
-                                    ".",
-                                    ",",
-                                    "'",
-                                    "("
-                                ],
-                                "resolveProvider": true
-                            },
-                            "hoverProvider": true,
-                            "declarationProvider": true,
-                            "definitionProvider": true,
-                            "typeDefinitionProvider": true,
-                            "implementationProvider": true,
-                            "referencesProvider": true,
-                            "codeActionProvider": {},
-                            "documentFormattingProvider": true,
-                            "renameProvider": {},
-                            "foldingRangeProvider": true,
                             "executeCommandProvider": {
                                 "commands": [
                                     "<HAS>",
                                     "als-refactor-imports"
                                 ]
-                            },
-                            "workspaceSymbolProvider": true,
-                            "alsShowDepsProvider": true,
-                            "alsReferenceKinds": [
-                                "reference",
-                                "access",
-                                "write",
-                                "call",
-                                "dispatching call",
-                                "parent",
-                                "child",
-                                "overriding"
-                            ]
+                            }
                         }
                     }
                 }
@@ -106,7 +75,7 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
+                    "id": 1,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -179,22 +148,20 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-imports",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "textDocument": {
-                                                "uri": "$URI{main.adb}"
-                                            },
-                                            "position": {
-                                                "line": 2,
-                                                "character": 3
-                                            }
-                                        },
-                                        "with_clause": "A",
-                                        "prefix": "A."
-                                    }
-                                ]
+                                "arguments": {
+                                     "context": "Default",
+                                     "where": {
+                                         "textDocument": {
+                                             "uri": "$URI{main.adb}"
+                                         },
+                                         "position": {
+                                             "line": 2,
+                                             "character": 3
+                                         }
+                                     },
+                                     "with_clause": "A",
+                                     "prefix": "A."
+                                 }
                             }
                         },
                         {
@@ -203,22 +170,20 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-imports",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "textDocument": {
-                                                "uri": "$URI{main.adb}"
-                                            },
-                                            "position": {
-                                                "line": 2,
-                                                "character": 3
-                                            }
-                                        },
-                                        "with_clause": "A",
-                                        "prefix": "A.B."
-                                    }
-                                ]
+                                "arguments": {
+                                     "context": "Default",
+                                     "where": {
+                                         "textDocument": {
+                                             "uri": "$URI{main.adb}"
+                                         },
+                                         "position": {
+                                             "line": 2,
+                                             "character": 3
+                                         }
+                                     },
+                                     "with_clause": "A",
+                                     "prefix": "A.B."
+                                 }
                             }
                         },
                         {
@@ -227,22 +192,20 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-imports",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "textDocument": {
-                                                "uri": "$URI{main.adb}"
-                                            },
-                                            "position": {
-                                                "line": 2,
-                                                "character": 3
-                                            }
-                                        },
-                                        "with_clause": "E",
-                                        "prefix": "E."
-                                    }
-                                ]
+                                "arguments": {
+                                     "context": "Default",
+                                     "where": {
+                                         "textDocument": {
+                                             "uri": "$URI{main.adb}"
+                                         },
+                                         "position": {
+                                             "line": 2,
+                                             "character": 3
+                                         }
+                                     },
+                                     "with_clause": "E",
+                                     "prefix": "E."
+                                 }
                             }
                         },
                         {
@@ -251,22 +214,20 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-imports",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "textDocument": {
-                                                "uri": "$URI{main.adb}"
-                                            },
-                                            "position": {
-                                                "line": 2,
-                                                "character": 3
-                                            }
-                                        },
-                                        "with_clause": "E",
-                                        "prefix": "E.B."
-                                    }
-                                ]
+                                "arguments": {
+                                     "context": "Default",
+                                     "where": {
+                                         "textDocument": {
+                                             "uri": "$URI{main.adb}"
+                                         },
+                                         "position": {
+                                             "line": 2,
+                                             "character": 3
+                                         }
+                                     },
+                                     "with_clause": "E",
+                                     "prefix": "E.B."
+                                 }
                             }
                         }
                     ]
@@ -282,22 +243,20 @@
                 "method": "workspace/executeCommand",
                 "params": {
                     "command": "als-refactor-imports",
-                    "arguments": [
-                        {
-                            "context": "Default",
-                            "where": {
-                                "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                },
-                                "position": {
-                                    "line": 2,
-                                    "character": 3
-                                }
-                            },
-                            "with_clause": "A",
-                            "prefix": "A.B."
-                        }
-                    ]
+                    "arguments": {
+                         "context": "Default",
+                         "where": {
+                             "textDocument": {
+                                 "uri": "$URI{main.adb}"
+                             },
+                             "position": {
+                                 "line": 2,
+                                 "character": 3
+                             }
+                         },
+                         "with_clause": "A",
+                         "prefix": "A.B."
+                     }
                 }
             },
             "wait": [

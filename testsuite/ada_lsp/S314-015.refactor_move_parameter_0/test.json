@@ -178,22 +178,6 @@
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
                            "<HAS>",
@@ -204,26 +188,12 @@
                      "renameProvider": {
                         "prepareProvider": true
                      },
-                     "foldingRangeProvider": true,
                      "executeCommandProvider": {
                         "commands": [
                            "<HAS>",
                            "als-refactor-move-parameter"
                         ]
-                     },
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ]
+                     }
                   }
                }
             }
@@ -264,7 +234,7 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 3,
+               "id": 1,
                "method": "window/workDoneProgress/create",
                "params": {
                   "token": "<ANY>"
@@ -326,22 +296,20 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-move-parameter",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
+                        "arguments": {
+                           "context": "default",
+                           "where": {
+                              "textDocument": {
+                                 "uri": "$URI{main.adb}"
                               },
-                              "parameter_index": 1,
-                              "direction": "forward"
-                           }
-                        ]
+                              "position": {
+                                 "line": 1,
+                                 "character": 14
+                              }
+                           },
+                           "parameter_index": 1,
+                           "direction": "forward"
+                        }
                      }
                   }
                ]
@@ -357,27 +325,25 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-move-parameter",
-               "arguments": [
-                  {
-                     "context": "Default",
-                     "where": {
-                        "textDocument": {
-                           "uri": "$URI{main.adb}"
-                        },
-                        "position": {
-                           "line": 1,
-                           "character": 14
-                        }
+               "arguments": {
+                  "context": "default",
+                  "where": {
+                     "textDocument": {
+                        "uri": "$URI{main.adb}"
                      },
-                     "parameter_index": 1,
-                     "direction": "forward"
-                  }
-               ]
+                     "position": {
+                        "line": 1,
+                        "character": 14
+                     }
+                  },
+                  "parameter_index": 1,
+                  "direction": "forward"
+               }
             }
          },
          "wait": [
             {
-               "id": 4,
+               "id": 6,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {
@@ -612,22 +578,20 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-move-parameter",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
+                        "arguments": {
+                           "context": "default",
+                           "where": {
+                              "textDocument": {
+                                 "uri": "$URI{main.adb}"
                               },
-                              "parameter_index": 2,
-                              "direction": "backward"
-                           }
-                        ]
+                              "position": {
+                                 "line": 1,
+                                 "character": 14
+                              }
+                           },
+                           "parameter_index": 2,
+                           "direction": "backward"
+                        }
                      }
                   },
                   {
@@ -636,22 +600,20 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-move-parameter",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
+                        "arguments": {
+                           "context": "default",
+                           "where": {
+                              "textDocument": {
+                                 "uri": "$URI{main.adb}"
                               },
-                              "parameter_index": 2,
-                              "direction": "forward"
-                           }
-                        ]
+                              "position": {
+                                 "line": 1,
+                                 "character": 14
+                              }
+                           },
+                           "parameter_index": 2,
+                           "direction": "forward"
+                        }
                      }
                   }
                ]
@@ -667,27 +629,25 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-move-parameter",
-               "arguments": [
-                  {
-                     "context": "Default",
-                     "where": {
-                        "textDocument": {
-                           "uri": "$URI{main.adb}"
-                        },
-                        "position": {
-                           "line": 1,
-                           "character": 14
-                        }
+               "arguments": {
+                  "context": "default",
+                  "where": {
+                     "textDocument": {
+                        "uri": "$URI{main.adb}"
                      },
-                     "parameter_index": 2,
-                     "direction": "backward"
-                  }
-               ]
+                     "position": {
+                        "line": 1,
+                        "character": 14
+                     }
+                  },
+                  "parameter_index": 2,
+                  "direction": "backward"
+               }
             }
          },
          "wait": [
             {
-               "id": 5,
+               "id": 15,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {

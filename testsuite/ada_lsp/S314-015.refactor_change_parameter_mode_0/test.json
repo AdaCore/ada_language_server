@@ -178,52 +178,21 @@
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
                      "codeActionProvider": {
                         "codeActionKinds": [
-			   "<HAS>",
+                           "<HAS>",
                            "refactor.rewrite"
                         ]
                      },
-                     "documentFormattingProvider": true,
                      "renameProvider": {
                         "prepareProvider": true
                      },
-                     "foldingRangeProvider": true,
                      "executeCommandProvider": {
                         "commands": [
                            "<HAS>",
                            "als-refactor-change-parameter-mode"
                         ]
-                     },
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ]
+                     }
                   }
                }
             }
@@ -264,7 +233,7 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 3,
+               "id": 1,
                "method": "window/workDoneProgress/create",
                "params": {
                   "token": "<ANY>"
@@ -326,23 +295,21 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
+                        "arguments": {
+                           "context": "default",
+                           "where": {
+                              "textDocument": {
+                                 "uri": "$URI{main.adb}"
                               },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "in"
-                           }
-                        ]
+                              "position": {
+                                 "line": 1,
+                                 "character": 14
+                              }
+                           },
+                           "first_parameter": 1,
+                           "last_parameter": 1,
+                           "new_mode": "in"
+                        }
                      }
                   },
                   {
@@ -351,23 +318,21 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
+                        "arguments": {
+                           "context": "default",
+                           "where": {
+                              "textDocument": {
+                                 "uri": "$URI{main.adb}"
                               },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "out"
-                           }
-                        ]
+                              "position": {
+                                 "line": 1,
+                                 "character": 14
+                              }
+                           },
+                           "first_parameter": 1,
+                           "last_parameter": 1,
+                           "new_mode": "out"
+                        }
                      }
                   },
                   {
@@ -376,23 +341,21 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-change-parameter-mode",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 1,
-                                    "character": 14
-                                 }
+                        "arguments": {
+                           "context": "default",
+                           "where": {
+                              "textDocument": {
+                                 "uri": "$URI{main.adb}"
                               },
-                              "first_parameter": 1,
-                              "last_parameter": 1,
-                              "new_mode": "in out"
-                           }
-                        ]
+                              "position": {
+                                 "line": 1,
+                                 "character": 14
+                              }
+                           },
+                           "first_parameter": 1,
+                           "last_parameter": 1,
+                           "new_mode": "in out"
+                        }
                      }
                   }
                ]
@@ -408,28 +371,26 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-change-parameter-mode",
-               "arguments": [
-                  {
-                     "context": "Default",
-                     "where": {
-                        "textDocument": {
-                           "uri": "$URI{main.adb}"
-                        },
-                        "position": {
-                           "line": 1,
-                           "character": 14
-                        }
+               "arguments": {
+                  "context": "default",
+                  "where": {
+                     "textDocument": {
+                        "uri": "$URI{main.adb}"
                      },
-                     "first_parameter": 1,
-                     "last_parameter": 1,
-                     "new_mode": "in"
-                  }
-               ]
+                     "position": {
+                        "line": 1,
+                        "character": 14
+                     }
+                  },
+                  "first_parameter": 1,
+                  "last_parameter": 1,
+                  "new_mode": "in"
+               }
             }
          },
          "wait": [
             {
-               "id": 4,
+               "id": 7,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {

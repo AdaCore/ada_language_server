@@ -86,7 +86,7 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 2,
+               "id": 1,
                "method": "window/workDoneProgress/create",
                "params": {
                   "token": "<ANY>"
@@ -220,22 +220,20 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-imports",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{foo.adb}"
-                                 },
-                                 "position": {
-                                    "line": 8,
-                                    "character": 28
-                                 }
+                        "arguments": {
+                           "context": "Default",
+                           "where": {
+                              "textDocument": {
+                                 "uri": "$URI{foo.adb}"
                               },
-                              "with_clause": "Bar",
-                              "prefix": "Bar."
-                           }
-                        ]
+                              "position": {
+                                 "line": 8,
+                                 "character": 28
+                              }
+                           },
+                           "with_clause": "Bar",
+                           "prefix": "Bar."
+                        }
                      }
                   }
                ]
@@ -250,8 +248,8 @@
             "id": "ada-11",
             "method": "workspace/executeCommand",
             "params": {
-               "arguments": [
-                  {
+               "command": "als-refactor-imports",
+               "arguments": {
                      "context": "Default",
                      "where": {
                         "textDocument": {
@@ -265,13 +263,11 @@
                      "with_clause": "Bar",
                      "prefix": "Bar."
                   }
-               ],
-               "command": "als-refactor-imports"
             }
          },
          "wait": [
             {
-               "id": 3,
+               "id": "ada-11",
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {
@@ -435,22 +431,20 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-imports",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{foo.adb}"
-                                 },
-                                 "position": {
-                                    "line": 9,
-                                    "character": 20
-                                 }
+                        "arguments": {
+                           "context": "Default",
+                           "where": {
+                              "textDocument": {
+                                 "uri": "$URI{foo.adb}"
                               },
-                              "with_clause": "",
-                              "prefix": "Nested."
-                           }
-                        ]
+                              "position": {
+                                 "line": 9,
+                                 "character": 20
+                              }
+                           },
+                           "with_clause": "",
+                           "prefix": "Nested."
+                        }
                      }
                   }
                ]
@@ -465,28 +459,26 @@
             "id": "ada-19",
             "method": "workspace/executeCommand",
             "params": {
-               "arguments": [
-                  {
-                     "context": "Default",
-                     "where": {
-                        "textDocument": {
-                           "uri": "$URI{foo.adb}"
-                        },
-                        "position": {
-                           "line": 9,
-                           "character": 20
-                        }
+               "command": "als-refactor-imports",
+               "arguments": {
+                  "context": "Default",
+                  "where": {
+                     "textDocument": {
+                        "uri": "$URI{foo.adb}"
                      },
-                     "with_clause": "",
-                     "prefix": "Nested."
-                  }
-               ],
-               "command": "als-refactor-imports"
+                     "position": {
+                        "line": 9,
+                        "character": 20
+                     }
+                  },
+                  "with_clause": "",
+                  "prefix": "Nested."
+               }
             }
          },
          "wait": [
             {
-               "id": 4,
+               "id": "ada-19",
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {

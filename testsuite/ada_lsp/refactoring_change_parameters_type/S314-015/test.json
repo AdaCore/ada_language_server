@@ -43,7 +43,6 @@
                                 "codeActionLiteralSupport": {
                                     "codeActionKind": {
                                         "valueSet": [
-                                            "<HAS>",
                                             "refactor",
                                             "refactor.extract",
                                             "refactor.inline",
@@ -78,8 +77,7 @@
                                     "<HAS>",
                                     "als-refactor-change_parameters_type"
                                 ]
-                            },
-                            "alsCheckSyntaxProvider": true
+                            }
                         }
                     }
                 }
@@ -120,7 +118,7 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
+                    "id": 1,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -183,29 +181,27 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-change_parameters_type",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "uri": "$URI{main.adb}",
-                                            "range": {
-                                                "start": {
-                                                    "line": 1,
-                                                    "character": 18
-                                                },
-                                                "end": {
-                                                    "line": 1,
-                                                    "character": 22
-                                                }
-                                            }
-                                        },
-                                        "newParametersType": "",
-                                        "syntaxRules": [
-                                            "SUBTYPE_INDICATION_RULE",
-                                            "ANONYMOUS_TYPE_RULE"
-                                        ]
-                                    }
-                                ]
+                                "arguments": {
+                                     "context": "Default",
+                                     "where": {
+                                         "uri": "$URI{main.adb}",
+                                         "range": {
+                                             "start": {
+                                                 "line": 1,
+                                                 "character": 18
+                                             },
+                                             "end": {
+                                                 "line": 1,
+                                                 "character": 22
+                                             }
+                                         }
+                                     },
+                                     "newParametersType": "",
+                                     "syntaxRules": [
+                                         "SUBTYPE_INDICATION_RULE",
+                                         "ANONYMOUS_TYPE_RULE"
+                                     ]
+                                 }
                             }
                         }
                     ]
@@ -221,29 +217,27 @@
                 "method": "workspace/executeCommand",
                 "params": {
                     "command": "als-refactor-change_parameters_type",
-                    "arguments": [
-                        {
-                            "context": "Default",
-                            "where": {
-                                "uri": "$URI{main.adb}",
-                                "range": {
-                                    "start": {
-                                        "line": 1,
-                                        "character": 18
-                                    },
-                                    "end": {
-                                        "line": 1,
-                                        "character": 22
-                                    }
-                                }
-                            },
-                            "newParametersType": "Integer",
-                            "syntaxRules": [
-                                "SUBTYPE_INDICATION_RULE",
-                                "ANONYMOUS_TYPE_RULE"
-                            ]
-                        }
-                    ]
+                    "arguments": {
+                         "context": "Default",
+                         "where": {
+                             "uri": "$URI{main.adb}",
+                             "range": {
+                                 "start": {
+                                     "line": 1,
+                                     "character": 18
+                                 },
+                                 "end": {
+                                     "line": 1,
+                                     "character": 22
+                                 }
+                             }
+                         },
+                         "newParametersType": "Integer",
+                         "syntaxRules": [
+                             "SUBTYPE_INDICATION_RULE",
+                             "ANONYMOUS_TYPE_RULE"
+                         ]
+                     }
                 }
             },
             "wait": [

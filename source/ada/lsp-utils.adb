@@ -38,6 +38,7 @@ with Laltools.Common;
 
 with LSP.Ada_Documents;
 with LSP.Constants;
+with URIs;
 
 package body LSP.Utils is
 
@@ -408,7 +409,8 @@ package body LSP.Utils is
       return
         (uri     =>
            (VSS.Strings.Conversions.To_Virtual_String
-                (Unit.Get_Filename) with null record),
+                (URIs.Conversions.From_File (Unit.Get_Filename))
+            with null record),
          a_range => To_Range (Span));
    end Get_Location;
 

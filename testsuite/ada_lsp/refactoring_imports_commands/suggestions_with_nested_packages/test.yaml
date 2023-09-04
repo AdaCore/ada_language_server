@@ -1,4 +1,1 @@
-title: 'refactor_imports_commands'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']
+title: 'refactoring_imports_commands/suggestions_with_nested_packages'
