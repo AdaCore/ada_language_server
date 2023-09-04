@@ -214,6 +214,8 @@ package body LSP.Ada_Client_Capabilities is
 
    begin
       return Result : LSP.Structures.ServerCapabilities do
+         Result.alsReferenceKinds := (others => True);
+
          Result.textDocumentSync :=
            (Is_Set => True,
             Value  =>

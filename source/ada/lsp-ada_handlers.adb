@@ -2987,7 +2987,7 @@ package body LSP.Ada_Handlers is
 
          procedure Update_Response
            (Bodies : Laltools.Common.Bodies_List.List;
-            Ignore : AlsReferenceKind_Array);
+            Kinds  : AlsReferenceKind_Array);
          --  Utility function to update response with the bodies
 
          ---------------------
@@ -2996,11 +2996,11 @@ package body LSP.Ada_Handlers is
 
          procedure Update_Response
            (Bodies : Laltools.Common.Bodies_List.List;
-            Ignore : AlsReferenceKind_Array)
+            Kinds  : AlsReferenceKind_Array)
          is
          begin
             for E of Bodies loop
-               Self.Append_Location (Vector, E);
+               Self.Append_Location (Vector, E, Kinds);
             end loop;
          end Update_Response;
 
