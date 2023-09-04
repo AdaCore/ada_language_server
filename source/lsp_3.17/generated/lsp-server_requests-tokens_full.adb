@@ -6,14 +6,14 @@
 --  DON'T EDIT THIS FILE! It was generated from metaModel.json.
 --
 
-package body LSP.Server_Requests.Full is
+package body LSP.Server_Requests.Tokens_Full is
 
    overriding procedure Visit_Server_Receiver
      (Self  : Request;
       Value : in out LSP.Server_Request_Receivers.Server_Request_Receiver'
         Class) is
    begin
-      Value.On_Full_Request (Self.Id, Self.Params);
+      Value.On_Tokens_Full_Request (Self.Id, Self.Params);
    end Visit_Server_Receiver;
 
-end LSP.Server_Requests.Full;
+end LSP.Server_Requests.Tokens_Full;

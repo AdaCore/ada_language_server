@@ -217,13 +217,13 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.RelativePattern);
 
-   procedure Write_tagSupport_OfWorkspaceSymbolClientCapabilities
-     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Value   : LSP.Structures.tagSupport_OfWorkspaceSymbolClientCapabilities);
-
    procedure Write_ReferenceOptions
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.ReferenceOptions);
+
+   procedure Write_tagSupport_OfWorkspaceSymbolClientCapabilities
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.tagSupport_OfWorkspaceSymbolClientCapabilities);
 
    procedure Write_TextDocumentClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -457,6 +457,10 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.DeclarationRegistrationOptions);
 
+   procedure Write_TypeHierarchyRegistrationOptions
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.TypeHierarchyRegistrationOptions);
+
    procedure Write_DeleteFileOptions
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.DeleteFileOptions);
@@ -464,10 +468,6 @@ package body LSP.Outputs is
    procedure Write_WatchKind
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.WatchKind);
-
-   procedure Write_TypeHierarchyRegistrationOptions
-     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Value   : LSP.Structures.TypeHierarchyRegistrationOptions);
 
    procedure Write_DiagnosticSeverity
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -915,6 +915,10 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.CreateFileOptions);
 
+   procedure Write_AlsReferenceKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.AlsReferenceKind);
+
    procedure Write_DiagnosticRelatedInformation
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.DiagnosticRelatedInformation);
@@ -1255,6 +1259,10 @@ package body LSP.Outputs is
    procedure Write_MarkupKind
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.MarkupKind);
+
+   procedure Write_AlsReferenceKind_Set
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.AlsReferenceKind_Set);
 
    procedure Write_LSPErrorCodes
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -2963,6 +2971,10 @@ package body LSP.Outputs is
          Handler.Key_Name ("experimental");
          Write_T (Handler, Value.experimental.Value);
       end if;
+      if (for some Item of Value.alsReferenceKinds => Item) then
+         Handler.Key_Name ("alsReferenceKinds");
+         Write_AlsReferenceKind_Set (Handler, Value.alsReferenceKinds);
+      end if;
       Handler.End_Object;
    end Write_ServerCapabilities;
 
@@ -3324,16 +3336,6 @@ package body LSP.Outputs is
       Handler.End_Object;
    end Write_WorkDoneProgressReport;
 
-   procedure Write_tagSupport_OfWorkspaceSymbolClientCapabilities
-     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Value : LSP.Structures.tagSupport_OfWorkspaceSymbolClientCapabilities) is
-   begin
-      Handler.Start_Object;
-      Handler.Key_Name ("valueSet");
-      Write_SymbolTag_Set (Handler, Value.valueSet);
-      Handler.End_Object;
-   end Write_tagSupport_OfWorkspaceSymbolClientCapabilities;
-
    procedure Write_ReferenceOptions
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.ReferenceOptions) is
@@ -3345,6 +3347,16 @@ package body LSP.Outputs is
       end if;
       Handler.End_Object;
    end Write_ReferenceOptions;
+
+   procedure Write_tagSupport_OfWorkspaceSymbolClientCapabilities
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value : LSP.Structures.tagSupport_OfWorkspaceSymbolClientCapabilities) is
+   begin
+      Handler.Start_Object;
+      Handler.Key_Name ("valueSet");
+      Write_SymbolTag_Set (Handler, Value.valueSet);
+      Handler.End_Object;
+   end Write_tagSupport_OfWorkspaceSymbolClientCapabilities;
 
    procedure Write_TextDocumentClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -5306,36 +5318,6 @@ package body LSP.Outputs is
       Handler.End_Object;
    end Write_WorkspaceSymbol;
 
-   procedure Write_DeleteFileOptions
-     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Value   : LSP.Structures.DeleteFileOptions) is
-   begin
-      Handler.Start_Object;
-      if Value.recursive.Is_Set then
-         Handler.Key_Name ("recursive");
-         Handler.Boolean_Value (Value.recursive.Value);
-      end if;
-      if Value.ignoreIfNotExists.Is_Set then
-         Handler.Key_Name ("ignoreIfNotExists");
-         Handler.Boolean_Value (Value.ignoreIfNotExists.Value);
-      end if;
-      Handler.End_Object;
-   end Write_DeleteFileOptions;
-
-   procedure Write_WatchKind
-     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Value   : LSP.Enumerations.WatchKind) is
-   begin
-      case Value is
-         when LSP.Enumerations.Create =>
-            Handler.Integer_Value (1);
-         when LSP.Enumerations.Change =>
-            Handler.Integer_Value (2);
-         when LSP.Enumerations.Delete =>
-            Handler.Integer_Value (4);
-      end case;
-   end Write_WatchKind;
-
    procedure Write_TypeHierarchyRegistrationOptions
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.TypeHierarchyRegistrationOptions) is
@@ -5368,6 +5350,36 @@ package body LSP.Outputs is
       end if;
       Handler.End_Object;
    end Write_TypeHierarchyRegistrationOptions;
+
+   procedure Write_DeleteFileOptions
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.DeleteFileOptions) is
+   begin
+      Handler.Start_Object;
+      if Value.recursive.Is_Set then
+         Handler.Key_Name ("recursive");
+         Handler.Boolean_Value (Value.recursive.Value);
+      end if;
+      if Value.ignoreIfNotExists.Is_Set then
+         Handler.Key_Name ("ignoreIfNotExists");
+         Handler.Boolean_Value (Value.ignoreIfNotExists.Value);
+      end if;
+      Handler.End_Object;
+   end Write_DeleteFileOptions;
+
+   procedure Write_WatchKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.WatchKind) is
+   begin
+      case Value is
+         when LSP.Enumerations.Create =>
+            Handler.Integer_Value (1);
+         when LSP.Enumerations.Change =>
+            Handler.Integer_Value (2);
+         when LSP.Enumerations.Delete =>
+            Handler.Integer_Value (4);
+      end case;
+   end Write_WatchKind;
 
    procedure Write_DiagnosticSeverity
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -6677,6 +6689,10 @@ package body LSP.Outputs is
       Handler.String_Value (Value.uri);
       Handler.Key_Name ("range");
       Write_A_Range (Handler, Value.a_range);
+      if (for some Item of Value.alsKind => Item) then
+         Handler.Key_Name ("alsKind");
+         Write_AlsReferenceKind_Set (Handler, Value.alsKind);
+      end if;
       Handler.End_Object;
    end Write_Location;
 
@@ -8714,6 +8730,30 @@ package body LSP.Outputs is
       end if;
       Handler.End_Object;
    end Write_CreateFileOptions;
+
+   procedure Write_AlsReferenceKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.AlsReferenceKind) is
+   begin
+      case Value is
+         when LSP.Enumerations.reference =>
+            Handler.String_Value ("reference");
+         when LSP.Enumerations.an_access =>
+            Handler.String_Value ("access");
+         when LSP.Enumerations.write =>
+            Handler.String_Value ("write");
+         when LSP.Enumerations.call =>
+            Handler.String_Value ("call");
+         when LSP.Enumerations.dispatching_call =>
+            Handler.String_Value ("dispatching call");
+         when LSP.Enumerations.parent =>
+            Handler.String_Value ("parent");
+         when LSP.Enumerations.child =>
+            Handler.String_Value ("child");
+         when LSP.Enumerations.an_overriding =>
+            Handler.String_Value ("overriding");
+      end case;
+   end Write_AlsReferenceKind;
 
    procedure Write_DiagnosticRelatedInformation
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -11188,6 +11228,23 @@ package body LSP.Outputs is
             Handler.String_Value ("markdown");
       end case;
    end Write_MarkupKind;
+
+   procedure Write_AlsReferenceKind_Set
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.AlsReferenceKind_Set) is
+   begin
+      Handler.Start_Array;
+      declare
+         Set : LSP.Structures.AlsReferenceKind_Set renames Value;
+      begin
+         for Value in Set'Range loop
+            if Set (Value) then
+               Write_AlsReferenceKind (Handler, Value);
+            end if;
+         end loop;
+      end;
+      Handler.End_Array;
+   end Write_AlsReferenceKind_Set;
 
    procedure Write_CallHierarchyPrepareParams
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;

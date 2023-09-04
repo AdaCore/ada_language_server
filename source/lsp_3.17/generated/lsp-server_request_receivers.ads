@@ -326,7 +326,7 @@ package LSP.Server_Request_Receivers is
    --  response is of type [SelectionRange[]](#SelectionRange[]) or a Thenable
    --  that resolves to such.
 
-   procedure On_Full_Request
+   procedure On_Tokens_Full_Request
      (Self  : in out Server_Request_Receiver;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokensParams) is null;

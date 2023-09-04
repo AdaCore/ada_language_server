@@ -31,7 +31,7 @@ with LSP.Progress_Reports.InlineValue;
 with LSP.Progress_Reports.Moniker;
 with LSP.Progress_Reports.References;
 with LSP.Progress_Reports.SelectionRange;
-with LSP.Progress_Reports.Full;
+with LSP.Progress_Reports.Tokens_Full;
 with LSP.Progress_Reports.Tokens_Delta;
 with LSP.Progress_Reports.Tokens_Range;
 with LSP.Progress_Reports.TypeDefinition;
@@ -155,7 +155,7 @@ package body LSP.Progress_Report_Readers is
      (LSP.Structures.SelectionRange_Vector,
       LSP.Inputs.Read_SelectionRange_Vector);
 
-   procedure Read_Full is new LSP.Input_Tools.Read_Progress_Report
+   procedure Read_Tokens_Full is new LSP.Input_Tools.Read_Progress_Report
      (LSP.Structures.SemanticTokensPartialResult,
       LSP.Inputs.Read_SemanticTokensPartialResult);
 
@@ -317,8 +317,8 @@ package body LSP.Progress_Report_Readers is
             end return;
 
          when 21 =>  --  textDocument/semanticTokens/full
-            return Result : LSP.Progress_Reports.Full.Partial_Result do
-               Read_Full (Input, Result.Token, Result.Params);
+            return Result : LSP.Progress_Reports.Tokens_Full.Partial_Result do
+               Read_Tokens_Full (Input, Result.Token, Result.Params);
             end return;
 
          when 22 =>  --  textDocument/semanticTokens/full/delta

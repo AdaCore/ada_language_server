@@ -286,7 +286,7 @@ package LSP.Client_Message_Factories is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SelectionRange_Vector_Or_Null);
 
-   overriding procedure On_Full_Response
+   overriding procedure On_Tokens_Full_Response
      (Self  : in out Client_Message_Factory;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokens_Or_Null);
@@ -461,7 +461,7 @@ package LSP.Client_Message_Factories is
       Token : LSP.Structures.ProgressToken;
       Value : LSP.Structures.SelectionRange_Vector);
 
-   overriding procedure On_Full_Partial_Result
+   overriding procedure On_Tokens_Full_Partial_Result
      (Self  : in out Client_Message_Factory;
       Token : LSP.Structures.ProgressToken;
       Value : LSP.Structures.SemanticTokensPartialResult);

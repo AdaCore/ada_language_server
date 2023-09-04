@@ -199,7 +199,7 @@ package LSP.Client_Response_Writers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SelectionRange_Vector_Or_Null);
 
-   overriding procedure On_Full_Response
+   overriding procedure On_Tokens_Full_Response
      (Self  : in out Client_Response_Writer;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokens_Or_Null);

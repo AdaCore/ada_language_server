@@ -117,7 +117,7 @@ package LSP.Progress_Report_Writers is
       Token : LSP.Structures.ProgressToken;
       Value : LSP.Structures.SelectionRange_Vector);
 
-   overriding procedure On_Full_Partial_Result
+   overriding procedure On_Tokens_Full_Partial_Result
      (Self  : in out Progress_Report_Writer;
       Token : LSP.Structures.ProgressToken;
       Value : LSP.Structures.SemanticTokensPartialResult);

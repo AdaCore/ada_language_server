@@ -8,7 +8,7 @@
 
 with LSP.Structures;
 
-package LSP.Progress_Reports.Full is
+package LSP.Progress_Reports.Tokens_Full is
    pragma Preelaborate;
 
    type Partial_Result is new LSP.Progress_Reports.Progress_Report with record
@@ -20,4 +20,4 @@ package LSP.Progress_Reports.Full is
       Value : in out LSP.Progress_Report_Receivers.Progress_Report_Receiver'
         Class);
 
-end LSP.Progress_Reports.Full;
+end LSP.Progress_Reports.Tokens_Full;

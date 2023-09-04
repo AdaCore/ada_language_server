@@ -2966,10 +2966,15 @@ package LSP.Structures is
       end case;
    end record;
 
+   type AlsReferenceKind_Set is array (AlsReferenceKind) of Boolean with
+     Pack, Default_Component_Value => False;
+
    type Location is record
       uri : LSP.Structures.DocumentUri;
 
       a_range : LSP.Structures.A_Range;
+
+      alsKind : LSP.Structures.AlsReferenceKind_Set;
 
    end record;
    --  Represents a location inside a resource, such as a line inside a text
@@ -7058,6 +7063,9 @@ package LSP.Structures is
 
       experimental : T_Optional;
       --  Experimental server capabilities.
+
+      alsReferenceKinds : LSP.Structures.AlsReferenceKind_Set;
+      --  List of reference kind supported by the server.
 
    end record;
    --  Defines the capabilities provided by a language server.

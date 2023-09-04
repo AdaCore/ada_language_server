@@ -218,14 +218,14 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.RelativePattern);
 
+   procedure Read_ReferenceOptions
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.ReferenceOptions);
+
    procedure Read_tagSupport_OfWorkspaceSymbolClientCapabilities
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures
         .tagSupport_OfWorkspaceSymbolClientCapabilities);
-
-   procedure Read_ReferenceOptions
-     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Structures.ReferenceOptions);
 
    procedure Read_TextDocumentClientCapabilities
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -460,6 +460,10 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.DeclarationRegistrationOptions);
 
+   procedure Read_TypeHierarchyRegistrationOptions
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.TypeHierarchyRegistrationOptions);
+
    procedure Read_DeleteFileOptions
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.DeleteFileOptions);
@@ -467,10 +471,6 @@ package body LSP.Inputs is
    procedure Read_WatchKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.WatchKind);
-
-   procedure Read_TypeHierarchyRegistrationOptions
-     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Structures.TypeHierarchyRegistrationOptions);
 
    procedure Read_DiagnosticSeverity
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -918,6 +918,10 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.CreateFileOptions);
 
+   procedure Read_AlsReferenceKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.AlsReferenceKind);
+
    procedure Read_DiagnosticRelatedInformation
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.DiagnosticRelatedInformation);
@@ -1258,6 +1262,10 @@ package body LSP.Inputs is
    procedure Read_MarkupKind
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.MarkupKind);
+
+   procedure Read_AlsReferenceKind_Set
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.AlsReferenceKind_Set);
 
    procedure Read_LSPErrorCodes
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -2662,7 +2670,8 @@ package body LSP.Inputs is
    package Declaration_Result_Scope is
       package Declaration_Result_Map is new Minimal_Perfect_Hash
         (["uri",
-         "range"]);
+         "range",
+         "alsKind"]);
 
    end Declaration_Result_Scope;
 
@@ -2708,6 +2717,11 @@ package body LSP.Inputs is
                           (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
+                     when 3 =>  --  alsKind
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
                      when others =>
                         Handler.Skip_Current_Value;
                   end case;
@@ -2736,6 +2750,7 @@ package body LSP.Inputs is
       package Definition_Progress_Report_Map is new Minimal_Perfect_Hash
         (["uri",
          "range",
+         "alsKind",
          "originSelectionRange",
          "targetUri",
          "targetRange",
@@ -2781,22 +2796,27 @@ package body LSP.Inputs is
                           (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
-                     when 3 =>  --  originSelectionRange
+                     when 3 =>  --  alsKind
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 4 =>  --  originSelectionRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 4 =>  --  targetUri
+                     when 5 =>  --  targetUri
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 5 =>  --  targetRange
+                     when 6 =>  --  targetRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 6 =>  --  targetSelectionRange
+                     when 7 =>  --  targetSelectionRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
@@ -3324,7 +3344,8 @@ package body LSP.Inputs is
          "inlayHintProvider",
          "diagnosticProvider",
          "workspace",
-         "experimental"]);
+         "experimental",
+         "alsReferenceKinds"]);
 
       package NotebookDocumentSyncOptions_Or_NotebookDocumentSyncRegistrationOptions_Scope
       is
@@ -5099,6 +5120,8 @@ package body LSP.Inputs is
                     (Is_Set => True,
                      Value  => <>);
                   Read_T (Handler, Value.experimental.Value);
+               when 36 =>  --  alsReferenceKinds
+                  Read_AlsReferenceKind_Set (Handler, Value.alsReferenceKinds);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -5855,39 +5878,6 @@ package body LSP.Inputs is
       Handler.Read_Next;
    end Read_WorkDoneProgressReport;
 
-   package tagSupport_OfWorkspaceSymbolClientCapabilities_Scope is
-      package tagSupport_OfWorkspaceSymbolClientCapabilities_Map is new Minimal_Perfect_Hash
-        (["valueSet"]);
-
-   end tagSupport_OfWorkspaceSymbolClientCapabilities_Scope;
-
-   procedure Read_tagSupport_OfWorkspaceSymbolClientCapabilities
-     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Structures
-        .tagSupport_OfWorkspaceSymbolClientCapabilities) is
-   begin
-      pragma Assert (Handler.Is_Start_Object);
-      Handler.Read_Next;
-
-      while Handler.Is_Key_Name loop
-         declare
-            use tagSupport_OfWorkspaceSymbolClientCapabilities_Scope;
-            Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
-         begin
-            Handler.Read_Next;
-            case tagSupport_OfWorkspaceSymbolClientCapabilities_Map.Get_Index
-              (Key) is
-               when 1 =>  --  valueSet
-                  Read_SymbolTag_Set (Handler, Value.valueSet);
-               when others =>
-                  Handler.Skip_Current_Value;
-            end case;
-         end;
-      end loop;
-
-      Handler.Read_Next;
-   end Read_tagSupport_OfWorkspaceSymbolClientCapabilities;
-
    package ReferenceOptions_Scope is
       package ReferenceOptions_Map is new Minimal_Perfect_Hash
         (["workDoneProgress"]);
@@ -5923,6 +5913,39 @@ package body LSP.Inputs is
 
       Handler.Read_Next;
    end Read_ReferenceOptions;
+
+   package tagSupport_OfWorkspaceSymbolClientCapabilities_Scope is
+      package tagSupport_OfWorkspaceSymbolClientCapabilities_Map is new Minimal_Perfect_Hash
+        (["valueSet"]);
+
+   end tagSupport_OfWorkspaceSymbolClientCapabilities_Scope;
+
+   procedure Read_tagSupport_OfWorkspaceSymbolClientCapabilities
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures
+        .tagSupport_OfWorkspaceSymbolClientCapabilities) is
+   begin
+      pragma Assert (Handler.Is_Start_Object);
+      Handler.Read_Next;
+
+      while Handler.Is_Key_Name loop
+         declare
+            use tagSupport_OfWorkspaceSymbolClientCapabilities_Scope;
+            Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
+         begin
+            Handler.Read_Next;
+            case tagSupport_OfWorkspaceSymbolClientCapabilities_Map.Get_Index
+              (Key) is
+               when 1 =>  --  valueSet
+                  Read_SymbolTag_Set (Handler, Value.valueSet);
+               when others =>
+                  Handler.Skip_Current_Value;
+            end case;
+         end;
+      end loop;
+
+      Handler.Read_Next;
+   end Read_tagSupport_OfWorkspaceSymbolClientCapabilities;
 
    package TextDocumentClientCapabilities_Scope is
       package TextDocumentClientCapabilities_Map is new Minimal_Perfect_Hash
@@ -7746,6 +7769,7 @@ package body LSP.Inputs is
       package Declaration_Progress_Report_Map is new Minimal_Perfect_Hash
         (["uri",
          "range",
+         "alsKind",
          "originSelectionRange",
          "targetUri",
          "targetRange",
@@ -7791,22 +7815,27 @@ package body LSP.Inputs is
                           (Kind   => LSP.Structures.Variant_1,
                            others => <>);
                         exit;
-                     when 3 =>  --  originSelectionRange
+                     when 3 =>  --  alsKind
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 4 =>  --  originSelectionRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 4 =>  --  targetUri
+                     when 5 =>  --  targetUri
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 5 =>  --  targetRange
+                     when 6 =>  --  targetRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
                         exit;
-                     when 6 =>  --  targetSelectionRange
+                     when 7 =>  --  targetSelectionRange
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
@@ -10112,6 +10141,7 @@ package body LSP.Inputs is
       package Location_Or_Something_Scope is
          package Location_Or_Something_Map is new Minimal_Perfect_Hash
            (["range",
+            "alsKind",
             "uri"]);
 
       end Location_Or_Something_Scope;
@@ -10160,6 +10190,11 @@ package body LSP.Inputs is
                              (Is_Location => True,
                               others      => <>);
                            exit;
+                        when 2 =>  --  alsKind
+                           Value :=
+                             (Is_Location => True,
+                              others      => <>);
+                           exit;
                         when others =>
                            Handler.Skip_Current_Value;
                      end case;
@@ -10186,7 +10221,7 @@ package body LSP.Inputs is
                      begin
                         Handler.Read_Next;
                         case Location_Or_Something_Map.Get_Index (Key) is
-                           when 2 =>  --  uri
+                           when 3 =>  --  uri
                               Value.uri :=
                                 (Handler.String_Value with null record);
                               Handler.Read_Next;
@@ -10236,59 +10271,6 @@ package body LSP.Inputs is
 
       Handler.Read_Next;
    end Read_WorkspaceSymbol;
-
-   package DeleteFileOptions_Scope is
-      package DeleteFileOptions_Map is new Minimal_Perfect_Hash
-        (["recursive",
-         "ignoreIfNotExists"]);
-
-   end DeleteFileOptions_Scope;
-
-   procedure Read_DeleteFileOptions
-     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Structures.DeleteFileOptions) is
-      use DeleteFileOptions_Scope;
-   begin
-      pragma Assert (Handler.Is_Start_Object);
-      Handler.Read_Next;
-
-      while not Handler.Is_End_Object loop
-         pragma Assert (Handler.Is_Key_Name);
-         declare
-            Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
-         begin
-            Handler.Read_Next;
-            case DeleteFileOptions_Map.Get_Index (Key) is
-               when 1 =>  --  recursive
-                  Value.recursive       :=
-                    (Is_Set => True,
-                     Value  => <>);
-                  Value.recursive.Value := Handler.Boolean_Value;
-                  Handler.Read_Next;
-               when 2 =>  --  ignoreIfNotExists
-                  Value.ignoreIfNotExists       :=
-                    (Is_Set => True,
-                     Value  => <>);
-                  Value.ignoreIfNotExists.Value := Handler.Boolean_Value;
-                  Handler.Read_Next;
-               when others =>
-                  Handler.Skip_Current_Value;
-            end case;
-         end;
-      end loop;
-
-      Handler.Read_Next;
-   end Read_DeleteFileOptions;
-
-   procedure Read_WatchKind
-     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Enumerations.WatchKind) is
-   begin
-      Value :=
-        LSP.Enumerations.WatchKind'Val
-          (Handler.Number_Value.Integer_Value - 1);
-      Handler.Read_Next;
-   end Read_WatchKind;
 
    package TypeHierarchyRegistrationOptions_Scope is
       package TypeHierarchyRegistrationOptions_Map is new Minimal_Perfect_Hash
@@ -10352,6 +10334,59 @@ package body LSP.Inputs is
 
       Handler.Read_Next;
    end Read_TypeHierarchyRegistrationOptions;
+
+   package DeleteFileOptions_Scope is
+      package DeleteFileOptions_Map is new Minimal_Perfect_Hash
+        (["recursive",
+         "ignoreIfNotExists"]);
+
+   end DeleteFileOptions_Scope;
+
+   procedure Read_DeleteFileOptions
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.DeleteFileOptions) is
+      use DeleteFileOptions_Scope;
+   begin
+      pragma Assert (Handler.Is_Start_Object);
+      Handler.Read_Next;
+
+      while not Handler.Is_End_Object loop
+         pragma Assert (Handler.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
+         begin
+            Handler.Read_Next;
+            case DeleteFileOptions_Map.Get_Index (Key) is
+               when 1 =>  --  recursive
+                  Value.recursive       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.recursive.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 2 =>  --  ignoreIfNotExists
+                  Value.ignoreIfNotExists       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.ignoreIfNotExists.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when others =>
+                  Handler.Skip_Current_Value;
+            end case;
+         end;
+      end loop;
+
+      Handler.Read_Next;
+   end Read_DeleteFileOptions;
+
+   procedure Read_WatchKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.WatchKind) is
+   begin
+      Value :=
+        LSP.Enumerations.WatchKind'Val
+          (Handler.Number_Value.Integer_Value - 1);
+      Handler.Read_Next;
+   end Read_WatchKind;
 
    procedure Read_DiagnosticSeverity
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -13288,7 +13323,8 @@ package body LSP.Inputs is
    package Location_Scope is
       package Location_Map is new Minimal_Perfect_Hash
         (["uri",
-         "range"]);
+         "range",
+         "alsKind"]);
 
    end Location_Scope;
 
@@ -13312,6 +13348,8 @@ package body LSP.Inputs is
                   Handler.Read_Next;
                when 2 =>  --  range
                   Read_A_Range (Handler, Value.a_range);
+               when 3 =>  --  alsKind
+                  Read_AlsReferenceKind_Set (Handler, Value.alsKind);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -18153,6 +18191,26 @@ package body LSP.Inputs is
       Handler.Read_Next;
    end Read_CreateFileOptions;
 
+   package AlsReferenceKind_Map is new Minimal_Perfect_Hash
+     (["reference",
+      "access",
+      "write",
+      "call",
+      "dispatching call",
+      "parent",
+      "child",
+      "overriding"]);
+
+   procedure Read_AlsReferenceKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.AlsReferenceKind) is
+   begin
+      Value :=
+        LSP.Enumerations.AlsReferenceKind'Val
+          (AlsReferenceKind_Map.Get_Index (Handler.String_Value) - 1);
+      Handler.Read_Next;
+   end Read_AlsReferenceKind;
+
    package DiagnosticRelatedInformation_Scope is
       package DiagnosticRelatedInformation_Map is new Minimal_Perfect_Hash
         (["location",
@@ -20976,7 +21034,8 @@ package body LSP.Inputs is
    package Definition_Result_Scope is
       package Definition_Result_Map is new Minimal_Perfect_Hash
         (["uri",
-         "range"]);
+         "range",
+         "alsKind"]);
 
    end Definition_Result_Scope;
 
@@ -21018,6 +21077,11 @@ package body LSP.Inputs is
                            others => <>);
                         exit;
                      when 2 =>  --  range
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_1,
+                           others => <>);
+                        exit;
+                     when 3 =>  --  alsKind
                         Value :=
                           (Kind   => LSP.Structures.Variant_1,
                            others => <>);
@@ -23752,6 +23816,27 @@ package body LSP.Inputs is
           (MarkupKind_Map.Get_Index (Handler.String_Value) - 1);
       Handler.Read_Next;
    end Read_MarkupKind;
+
+   procedure Read_AlsReferenceKind_Set
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.AlsReferenceKind_Set) is
+   begin
+      pragma Assert (Handler.Is_Start_Array);
+      Handler.Read_Next;
+
+      declare
+         Set   : LSP.Structures.AlsReferenceKind_Set renames Value;
+         Value : LSP.Enumerations.AlsReferenceKind;
+      begin
+         Set := (others => False);
+         while not Handler.Is_End_Array loop
+            Read_AlsReferenceKind (Handler, Value);
+            Set (Value) := True;
+         end loop;
+      end;
+
+      Handler.Read_Next;
+   end Read_AlsReferenceKind_Set;
 
    package CallHierarchyPrepareParams_Scope is
       package CallHierarchyPrepareParams_Map is new Minimal_Perfect_Hash

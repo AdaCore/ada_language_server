@@ -198,7 +198,7 @@ package LSP.Progress_Report_Receivers is
    --  response is of type [SelectionRange[]](#SelectionRange[]) or a Thenable
    --  that resolves to such.
 
-   procedure On_Full_Partial_Result
+   procedure On_Tokens_Full_Partial_Result
      (Self  : in out Progress_Report_Receiver;
       Token : LSP.Structures.ProgressToken;
       Value : LSP.Structures.SemanticTokensPartialResult) is null;

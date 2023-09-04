@@ -415,7 +415,7 @@ package body LSP.Client_Response_Writers is
       Self.Output.End_Object;
    end On_SelectionRange_Response;
 
-   overriding procedure On_Full_Response
+   overriding procedure On_Tokens_Full_Response
      (Self  : in out Client_Response_Writer;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokens_Or_Null) is
@@ -424,7 +424,7 @@ package body LSP.Client_Response_Writers is
       Self.Output.Key_Name ("result");
       LSP.Outputs.Write_SemanticTokens_Or_Null (Self.Output.all, Value);
       Self.Output.End_Object;
-   end On_Full_Response;
+   end On_Tokens_Full_Response;
 
    overriding procedure On_Tokens_Delta_Response
      (Self  : in out Client_Response_Writer;

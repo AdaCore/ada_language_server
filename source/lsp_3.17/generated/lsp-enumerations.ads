@@ -9,6 +9,10 @@
 package LSP.Enumerations is
    pragma Preelaborate;
 
+   type AlsReferenceKind is
+     (reference, an_access, write, call, dispatching_call, parent, child,
+      an_overriding);
+
    type CodeActionKind is
      (Empty, QuickFix, Refactor, RefactorExtract, RefactorInline,
       RefactorRewrite, Source, SourceOrganizeImports, SourceFixAll);

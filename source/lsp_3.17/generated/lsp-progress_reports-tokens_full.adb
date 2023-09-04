@@ -6,14 +6,14 @@
 --  DON'T EDIT THIS FILE! It was generated from metaModel.json.
 --
 
-package body LSP.Progress_Reports.Full is
+package body LSP.Progress_Reports.Tokens_Full is
 
    overriding procedure Visit_Receiver
      (Self  : Partial_Result;
       Value : in out LSP.Progress_Report_Receivers.Progress_Report_Receiver'
         Class) is
    begin
-      Value.On_Full_Partial_Result (Self.Token, Self.Params);
+      Value.On_Tokens_Full_Partial_Result (Self.Token, Self.Params);
    end Visit_Receiver;
 
-end LSP.Progress_Reports.Full;
+end LSP.Progress_Reports.Tokens_Full;

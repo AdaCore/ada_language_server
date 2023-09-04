@@ -47,7 +47,7 @@ with LSP.Client_Responses.RangeFormatting;
 with LSP.Client_Responses.References;
 with LSP.Client_Responses.Rename;
 with LSP.Client_Responses.SelectionRange;
-with LSP.Client_Responses.Full;
+with LSP.Client_Responses.Tokens_Full;
 with LSP.Client_Responses.Tokens_Delta;
 with LSP.Client_Responses.Tokens_Range;
 with LSP.Client_Responses.SignatureHelp;
@@ -255,7 +255,7 @@ package body LSP.Client_Response_Readers is
      (LSP.Structures.SelectionRange_Vector_Or_Null,
       LSP.Inputs.Read_SelectionRange_Vector_Or_Null);
 
-   procedure Read_Full is new LSP.Input_Tools.Read_Response
+   procedure Read_Tokens_Full is new LSP.Input_Tools.Read_Response
      (LSP.Structures.SemanticTokens_Or_Null,
       LSP.Inputs.Read_SemanticTokens_Or_Null);
 
@@ -501,8 +501,8 @@ package body LSP.Client_Response_Readers is
             end return;
 
          when 37 =>  --  textDocument/semanticTokens/full
-            return Result : LSP.Client_Responses.Full.Response do
-               Read_Full (Input, Result.Id, Result.Result);
+            return Result : LSP.Client_Responses.Tokens_Full.Response do
+               Read_Tokens_Full (Input, Result.Id, Result.Result);
             end return;
 
          when 38 =>  --  textDocument/semanticTokens/full/delta

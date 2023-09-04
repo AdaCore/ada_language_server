@@ -8,7 +8,7 @@
 
 with LSP.Structures;
 
-package LSP.Server_Requests.Full is
+package LSP.Server_Requests.Tokens_Full is
    pragma Preelaborate;
 
    type Request is new LSP.Server_Requests.Server_Request with record
@@ -20,4 +20,4 @@ package LSP.Server_Requests.Full is
       Value : in out LSP.Server_Request_Receivers.Server_Request_Receiver'
         Class);
 
-end LSP.Server_Requests.Full;
+end LSP.Server_Requests.Tokens_Full;

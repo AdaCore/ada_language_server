@@ -196,7 +196,7 @@ package LSP.Server_Request_Writers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SelectionRangeParams);
 
-   overriding procedure On_Full_Request
+   overriding procedure On_Tokens_Full_Request
      (Self  : in out Server_Request_Writer;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokensParams);

@@ -6,14 +6,18 @@
 --  DON'T EDIT THIS FILE! It was generated from metaModel.json.
 --
 
-package body LSP.Client_Responses.Full is
+with LSP.Structures;
+
+package LSP.Client_Responses.Tokens_Full is
+   pragma Preelaborate;
+
+   type Response is new LSP.Client_Responses.Client_Response with record
+      Result : LSP.Structures.SemanticTokens_Or_Null;
+   end record;
 
    overriding procedure Visit_Client_Receiver
      (Self  : Response;
       Value : in out LSP.Client_Response_Receivers.Client_Response_Receiver'
-        Class) is
-   begin
-      Value.On_Full_Response (Self.Id, Self.Result);
-   end Visit_Client_Receiver;
+        Class);
 
-end LSP.Client_Responses.Full;
+end LSP.Client_Responses.Tokens_Full;

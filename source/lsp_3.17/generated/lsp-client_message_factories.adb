@@ -61,7 +61,7 @@ with LSP.Client_Responses.RangeFormatting;
 with LSP.Client_Responses.References;
 with LSP.Client_Responses.Rename;
 with LSP.Client_Responses.SelectionRange;
-with LSP.Client_Responses.Full;
+with LSP.Client_Responses.Tokens_Full;
 with LSP.Client_Responses.Tokens_Delta;
 with LSP.Client_Responses.Tokens_Range;
 with LSP.Client_Responses.SignatureHelp;
@@ -96,7 +96,7 @@ with LSP.Progress_Reports.InlineValue;
 with LSP.Progress_Reports.Moniker;
 with LSP.Progress_Reports.References;
 with LSP.Progress_Reports.SelectionRange;
-with LSP.Progress_Reports.Full;
+with LSP.Progress_Reports.Tokens_Full;
 with LSP.Progress_Reports.Tokens_Delta;
 with LSP.Progress_Reports.Tokens_Range;
 with LSP.Progress_Reports.TypeDefinition;
@@ -686,16 +686,16 @@ package body LSP.Client_Message_Factories is
             Result => Value));
    end On_SelectionRange_Response;
 
-   overriding procedure On_Full_Response
+   overriding procedure On_Tokens_Full_Response
      (Self  : in out Client_Message_Factory;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokens_Or_Null) is
    begin
       Client_Message_Factory'Class (Self).On_Message
-        (new LSP.Client_Responses.Full.Response'
+        (new LSP.Client_Responses.Tokens_Full.Response'
            (Id     => Id,
             Result => Value));
-   end On_Full_Response;
+   end On_Tokens_Full_Response;
 
    overriding procedure On_Tokens_Delta_Response
      (Self  : in out Client_Message_Factory;
@@ -1071,16 +1071,16 @@ package body LSP.Client_Message_Factories is
             Params => Value));
    end On_SelectionRange_Partial_Result;
 
-   overriding procedure On_Full_Partial_Result
+   overriding procedure On_Tokens_Full_Partial_Result
      (Self  : in out Client_Message_Factory;
       Token : LSP.Structures.ProgressToken;
       Value : LSP.Structures.SemanticTokensPartialResult) is
    begin
       Client_Message_Factory'Class (Self).On_Message
-        (new LSP.Progress_Reports.Full.Partial_Result'
+        (new LSP.Progress_Reports.Tokens_Full.Partial_Result'
            (Token  => Token,
             Params => Value));
-   end On_Full_Partial_Result;
+   end On_Tokens_Full_Partial_Result;
 
    overriding procedure On_Tokens_Delta_Partial_Result
      (Self  : in out Client_Message_Factory;

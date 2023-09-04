@@ -235,7 +235,7 @@ package body LSP.Progress_Report_Writers is
       Self.Output.End_Object;
    end On_SelectionRange_Partial_Result;
 
-   overriding procedure On_Full_Partial_Result
+   overriding procedure On_Tokens_Full_Partial_Result
      (Self  : in out Progress_Report_Writer;
       Token : LSP.Structures.ProgressToken;
       Value : LSP.Structures.SemanticTokensPartialResult) is
@@ -244,7 +244,7 @@ package body LSP.Progress_Report_Writers is
       LSP.Outputs.Write_SemanticTokensPartialResult (Self.Output.all, Value);
       Self.Output.End_Object;
       Self.Output.End_Object;
-   end On_Full_Partial_Result;
+   end On_Tokens_Full_Partial_Result;
 
    overriding procedure On_Tokens_Delta_Partial_Result
      (Self  : in out Progress_Report_Writer;

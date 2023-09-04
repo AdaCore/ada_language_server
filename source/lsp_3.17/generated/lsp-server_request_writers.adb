@@ -441,7 +441,7 @@ package body LSP.Server_Request_Writers is
       Self.Output.End_Object;
    end On_SelectionRange_Request;
 
-   overriding procedure On_Full_Request
+   overriding procedure On_Tokens_Full_Request
      (Self  : in out Server_Request_Writer;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokensParams) is
@@ -451,7 +451,7 @@ package body LSP.Server_Request_Writers is
       Self.Output.Key_Name ("params");
       LSP.Outputs.Write_SemanticTokensParams (Self.Output.all, Value);
       Self.Output.End_Object;
-   end On_Full_Request;
+   end On_Tokens_Full_Request;
 
    overriding procedure On_Tokens_Delta_Request
      (Self  : in out Server_Request_Writer;
