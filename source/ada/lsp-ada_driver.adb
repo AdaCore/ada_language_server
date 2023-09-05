@@ -300,6 +300,8 @@ begin
    begin
       Ada_Handler.Initialize
         (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active);
+      GPR_Handler.Initialize
+        (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active);
    end;
 
    Server.Initialize (Stream'Unchecked_Access);

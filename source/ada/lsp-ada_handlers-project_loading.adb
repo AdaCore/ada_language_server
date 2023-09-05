@@ -159,7 +159,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       if not Self.Client.Root.Is_Empty then
          declare
             Files : GNATCOLL.VFS.File_Array_Access :=
-              Root (Self).Dir.Read_Dir (GNATCOLL.VFS.Files_Only);
+              Root (Self).Read_Dir (GNATCOLL.VFS.Files_Only);
          begin
             for X of Files.all loop
                if X.Has_Suffix (".gpr") then

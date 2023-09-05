@@ -297,7 +297,7 @@
                         "title": "",
                         "command": "als-refactor-move-parameter",
                         "arguments": [{
-                           "context": "default",
+                           "context": "Default",
                            "where": {
                               "textDocument": {
                                  "uri": "$URI{main.adb}"
@@ -326,7 +326,7 @@
             "params": {
                "command": "als-refactor-move-parameter",
                "arguments": [{
-                  "context": "default",
+                  "context": "Default",
                   "where": {
                      "textDocument": {
                         "uri": "$URI{main.adb}"
@@ -579,7 +579,7 @@
                         "title": "",
                         "command": "als-refactor-move-parameter",
                         "arguments": [{
-                           "context": "default",
+                           "context": "Default",
                            "where": {
                               "textDocument": {
                                  "uri": "$URI{main.adb}"
@@ -601,7 +601,7 @@
                         "title": "",
                         "command": "als-refactor-move-parameter",
                         "arguments": [{
-                           "context": "default",
+                           "context": "Default",
                            "where": {
                               "textDocument": {
                                  "uri": "$URI{main.adb}"
@@ -630,7 +630,7 @@
             "params": {
                "command": "als-refactor-move-parameter",
                "arguments": [{
-                  "context": "default",
+                  "context": "Default",
                   "where": {
                      "textDocument": {
                         "uri": "$URI{main.adb}"
