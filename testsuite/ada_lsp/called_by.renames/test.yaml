@@ -1,4 +1,1 @@
 title: 'called_by.renames'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

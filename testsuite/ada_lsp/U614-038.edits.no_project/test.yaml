@@ -1,4 +1,1 @@
 title: 'U614-038.edits.no_project'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

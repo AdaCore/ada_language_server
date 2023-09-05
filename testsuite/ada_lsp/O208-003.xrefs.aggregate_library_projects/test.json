@@ -175,7 +175,7 @@
          "wait": [
             {
                "id": 4,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -189,7 +189,6 @@
                      },
                      "uri": "$URI{srclib/sublib.adb}"
                   }
-               ]
             }
          ]
       }
