@@ -3,6 +3,10 @@ ROOTDIR=$(shell pwd)
 
 # ALS version
 VERSION ?=
+
+# ALS build date
+BUILD_DATE ?=
+
 # Location of home dir for tests
 export ALS_HOME=$(ROOTDIR)/testsuite
 
@@ -91,7 +95,7 @@ all: coverage-instrument
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
-		-XVERSION=$(VERSION)
+		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE)
 	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(VERSION)
@@ -111,7 +115,7 @@ ifneq ($(COVERAGE),)
 	# Remove artifacts from previous instrumentations, so that stale units that
 	# are not overriden by new ones don't get in our way.
 	rm -rf .obj/*/gnatcov-instr
-	$(COVERAGE_INSTR) -XVERSION=$(VERSION) \
+	$(COVERAGE_INSTR) -XVERSION=$(VERSION) XBUILD_DATE=$(BUILD_DATE) \
 		-Pgnat/lsp_server.gpr --projects lsp_server --projects lsp
 	$(COVERAGE_INSTR) -Pgnat/tester.gpr --projects lsp
 	$(COVERAGE_INSTR) -Pgnat/codec_test.gpr --projects lsp
