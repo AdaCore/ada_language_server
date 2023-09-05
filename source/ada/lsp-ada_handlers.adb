@@ -3302,7 +3302,7 @@ package body LSP.Ada_Handlers is
       Trace : constant GNATCOLL.Traces.Trace_Handle :=
         LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
 
-      Response : LSP.Structures.PrepareRenameResult_Or_Null (Is_Null => False);
+      Response : LSP.Structures.PrepareRenameResult_Or_Null;
 
       Context : constant LSP.Ada_Context_Sets.Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
@@ -3329,8 +3329,11 @@ package body LSP.Ada_Handlers is
         and then not Imprecise
       then
          --  Success only if the node is a name and can be resolved precisely
-         Response.Value.Variant_1 := Self.To_LSP_Location (Name_Node).a_range;
-
+         Response :=
+           (Is_Null => False,
+            Value   =>
+              (Kind      => LSP.Structures.Variant_1,
+               Variant_1 => Self.To_LSP_Location (Name_Node).a_range));
       end if;
 
       Self.Sender.On_PrepareRename_Response (Id, Response);
