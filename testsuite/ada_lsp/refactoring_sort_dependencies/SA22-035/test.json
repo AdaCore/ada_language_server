@@ -181,7 +181,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-sort_dependencies",
-                        "arguments": {
+                        "arguments": [{
                            "context": "Default",
                            "where": {
                               "uri": "$URI{main_package.ads}",
@@ -196,7 +196,7 @@
                                   }
                                }
                             }
-                        }
+                        }]
                      }
                   }
                ]
@@ -212,7 +212,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-sort_dependencies",
-               "arguments": {
+               "arguments": [{
                   "context": "Default",
                   "where": {
                      "uri": "$URI{main_package.ads}",
@@ -227,7 +227,7 @@
                         }
                      }
                   }
-               }
+               }]
             }
          },
          "wait": [

@@ -191,9 +191,11 @@ package body LSP.Ada_Handlers.Refactor.Change_Parameters_Type is
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
+      File            : constant GNATCOLL.VFS.Virtual_File :=
+        Message_Handler.To_File (Self.Where.uri);
 
-      Unit : constant Analysis_Unit := Context.LAL_Context.Get_From_File
-        (VSS.Strings.Conversions.To_UTF_8_String (Self.Where.uri));
+      Unit : constant Analysis_Unit :=
+      Unit : constant Analysis_Unit := Context.Get_AU (File);
 
       Parameters_SLOC_Range : constant Source_Location_Range :=
         (Langkit_Support.Slocs.Line_Number

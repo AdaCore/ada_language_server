@@ -135,6 +135,6 @@ private
    function Root (Self : Client_Capability'Class)
      return VSS.Strings.Virtual_String is (Self.Root);
 
-   procedure Parse_Experimental (Self : Client_Capability'Class);
+   procedure Parse_Experimental (Self : in out Client_Capability'Class);
 
 end LSP.Ada_Client_Capabilities;

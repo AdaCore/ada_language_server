@@ -134,13 +134,14 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
       use LAL_Refactor;
       use LAL_Refactor.Sort_Dependencies;
 
-      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
+      Message_Handler  : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
-      Context         : LSP.Ada_Contexts.Context renames
+      Context          : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
+      File             : constant GNATCOLL.VFS.Virtual_File :=
+        Message_Handler.To_File (Self.Where.uri);
       Analysis_Unit    : constant Libadalang.Analysis.Analysis_Unit :=
-        Context.LAL_Context.Get_From_File
-          (VSS.Strings.Conversions.To_UTF_8_String (Self.Where.uri));
+        Context.Get_AU (File);
       Sloc             : constant Source_Location :=
         (Langkit_Support.Slocs.Line_Number
            (Self.Where.a_range.start.line) + 1,

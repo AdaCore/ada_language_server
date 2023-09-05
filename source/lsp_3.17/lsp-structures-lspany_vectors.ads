@@ -7,6 +7,7 @@
 with VSS.String_Vectors;
 
 package LSP.Structures.LSPAny_Vectors is
+   pragma Preelaborate;
 
    procedure To_Any
      (Value  : Integer;

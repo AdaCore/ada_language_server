@@ -16,11 +16,15 @@
 ------------------------------------------------------------------------------
 
 with VSS.Characters.Latin;
+with VSS.JSON.Streams;
 with VSS.String_Vectors;
+with VSS.Strings.Conversions;
 
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Structures.Unwrap;
+
+with LSP.Structures.LSPAny_Vectors;
 
 package body LSP.Ada_Client_Capabilities is
 
@@ -101,13 +105,51 @@ package body LSP.Ada_Client_Capabilities is
    -- Parse_Experimental --
    ------------------------
 
-   procedure Parse_Experimental (Self : Client_Capability'Class) is
+   procedure Parse_Experimental (Self : in out Client_Capability'Class) is
+      use VSS.JSON.Streams;
+      use VSS.Strings;
+      use LSP.Structures.JSON_Event_Vectors;
+      use LSP.Structures.LSPAny_Vectors;
+
+      C : Cursor := Self.Value.capabilities.experimental.First;
    begin
-      if Self.Value.capabilities.experimental.Is_Empty then
+      if not Has_Element (C) then
          return;
       end if;
 
-      --  FIXME: Implement parsing
+      pragma Assert (Element (C).Kind = Start_Object);
+      Next (C);
+
+      while Has_Element (C)
+        and then Element (C).Kind /= End_Object
+      loop
+         pragma Assert (Element (C).Kind = Key_Name);
+         declare
+            Key : constant Virtual_String := Element (C).Key_Name;
+         begin
+            Next (C);
+
+            if Key = "advanced_refactorings" then
+               pragma Assert (Element (C).Kind = Start_Array);
+               Next (C);
+
+               while Has_Element (C)
+                 and then Element (C).Kind /= End_Array
+               loop
+                  pragma Assert (Element (C).Kind = String_Value);
+                  Self.Advanced_Refactorings
+                    (Advanced_Refactorings'Value
+                       (VSS.Strings.Conversions.To_UTF_8_String
+                            (Element (C).String_Value))) := True;
+                  Next (C);
+               end loop;
+            else
+               Skip_Value (C);
+            end if;
+         end;
+
+         Next (C);
+      end loop;
    end Parse_Experimental;
 
    -------------------------------
