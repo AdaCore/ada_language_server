@@ -1,4 +1,1 @@
 title: 'W103-015_GitHub-1086'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']
