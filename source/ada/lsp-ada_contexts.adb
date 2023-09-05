@@ -41,6 +41,7 @@ with Langkit_Support.Text;
 
 with URIs;
 with LSP.Ada_Id_Iterators;
+with LSP.Ada_Projects;
 
 package body LSP.Ada_Contexts is
 
@@ -666,32 +667,18 @@ package body LSP.Ada_Contexts is
       --------------------------
 
       procedure Pretty_Printer_Setup is
-
-         use type GPR2.Package_Id;
-         use type GPR2.Optional_Attribute_Id;
-
-         Pretty_Printer_Id : constant GPR2.Package_Id := +"pretty_printer";
-
-         package Pretty_Printer is
-            Switches         : constant GPR2.Q_Attribute_Id :=
-              (Pretty_Printer_Id, +"switches");
-         end Pretty_Printer;
-
-         Ada_Index : constant GPR2.Project.Attribute_Index.Object :=
-           GPR2.Project.Attribute_Index.Create
-             (GPR2.Ada_Language);
-
          Validated : GNAT.Strings.String_List_Access;
          Index     : Integer := 0;
          Attribute : GPR2.Project.Attribute.Object;
          Values    : GPR2.Containers.Value_List;
+
       begin
 
          --  Initialize an gnatpp command line object
 
          if Root.Check_Attribute
-           (Name   => Pretty_Printer.Switches,
-            Index  => Ada_Index,
+           (Name   => LSP.Ada_Projects.Pretty_Printer.Switches,
+            Index  => LSP.Ada_Projects.Pretty_Printer.Ada_Index,
             Result => Attribute)
          then
 
