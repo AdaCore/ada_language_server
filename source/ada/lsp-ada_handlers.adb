@@ -100,6 +100,13 @@ package body LSP.Ada_Handlers is
 
    subtype AlsReferenceKind_Array is LSP.Structures.AlsReferenceKind_Set;
 
+   Partial_Gnatpp_Trace : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create
+       (Unit_Name => "ALS.PARTIAL_GNATPP",
+        Default   => GNATCOLL.Traces.On);
+   --  Trace to enable/disable using partial Gnatpp in the rangeFormatting
+   --  request.
+
    function Is_Parent return AlsReferenceKind_Array is
      ([LSP.Enumerations.parent => True, others => False]);
 
@@ -3328,6 +3335,61 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_PrepareRename_Response (Id, Response);
    end On_PrepareRename_Request;
+
+   --------------------------------
+   -- On_RangeFormatting_Request --
+   --------------------------------
+
+   overriding procedure On_RangeFormatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentRangeFormattingParams)
+   is
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+      Error    : LSP.Errors.ResponseError;
+      Success  : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+
+   begin
+      if Partial_Gnatpp_Trace.Is_Active then
+         LSP.Ada_Handlers.Formatting.Range_Format
+           (Context.all,
+            Document,
+            Value.a_range,
+            Value.options,
+            Success,
+            Response,
+            Error);
+
+      else
+         LSP.Ada_Handlers.Formatting.Format
+           (Context.all,
+            Document,
+            Value.a_range,
+            Value.options,
+            Success,
+            Response,
+            Messages,
+            Error);
+      end if;
+
+      if Success then
+         Self.Sender.On_RangeFormatting_Response (Id, Response);
+
+         for Message of Messages loop
+            Self.Sender.On_ShowMessage_Notification
+              ((LSP.Enumerations.Info, Message));
+         end loop;
+
+      else
+         Self.Sender.On_Error_Response (Id, Error);
+      end if;
+   end On_RangeFormatting_Request;
 
    ---------------------------
    -- On_References_Request --

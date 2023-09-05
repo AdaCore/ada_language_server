@@ -36,4 +36,14 @@ private package LSP.Ada_Handlers.Formatting is
       Error    : out LSP.Errors.ResponseError);
    --  Format the text of the given document in the given range (span).
 
+   procedure Range_Format
+     (Context  : LSP.Ada_Contexts.Context;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Structures.A_Range;
+      Options  : LSP.Structures.FormattingOptions;
+      Success  : out Boolean;
+      Response : out LSP.Structures.TextEdit_Vector;
+      Error    : out LSP.Errors.ResponseError);
+   --  Format the text of the given document in the given range (span).
+
 end LSP.Ada_Handlers.Formatting;

@@ -119,6 +119,10 @@ package LSP.Constants is
      return LSP.Structures.Boolean_Or_DocumentFormattingOptions_Optional
       is (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
 
+   function True
+     return LSP.Structures.Boolean_Or_DocumentRangeFormattingOptions_Optional
+      is (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
+
    function Empty return LSP.Structures.Position
       is (line => 0, character => 0);
 

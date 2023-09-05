@@ -81,6 +81,52 @@ package body LSP.Ada_Handlers.Formatting is
       end if;
    end Format;
 
+   ------------------
+   -- Range_Format --
+   ------------------
+
+   procedure Range_Format
+     (Context  : LSP.Ada_Contexts.Context;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Structures.A_Range;
+      Options  : LSP.Structures.FormattingOptions;
+      Success  : out Boolean;
+      Response : out LSP.Structures.TextEdit_Vector;
+      Error    : out LSP.Errors.ResponseError)
+   is
+      PP_Options : Utils.Command_Lines.Command_Line := Context.Get_PP_Options;
+      Messages   : VSS.String_Vectors.Virtual_String_Vector;
+
+   begin
+      if Document.Has_Diagnostics (Context) then
+         Success := False;
+         Error   :=
+           (code    => LSP.Constants.InternalError,
+            message => "Syntactically incorrect code can't be formatted");
+
+         return;
+      end if;
+
+      --  Take into account the options set by the request only if the
+      --  corresponding GPR switches are not explicitly set.
+
+      Update_Pp_Formatting_Options
+        (Pp_Options => PP_Options, LSP_Options => Options);
+
+      Success := Document.Range_Formatting
+        (Context    => Context,
+         Span       => Span,
+         PP_Options => PP_Options,
+         Edit       => Response,
+         Messages   => Messages);
+
+      if not Success then
+         Error :=
+           (code    => LSP.Constants.InternalError,
+            message => Messages.Join (' '));
+      end if;
+   end Range_Format;
+
    ----------------------------------
    -- Update_Pp_Formatting_Options --
    ----------------------------------

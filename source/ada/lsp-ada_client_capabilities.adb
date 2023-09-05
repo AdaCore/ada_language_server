@@ -266,18 +266,19 @@ package body LSP.Ada_Client_Capabilities is
                  (if Incremental_Text_Changes then LSP.Enumerations.Incremental
                   else LSP.Enumerations.Full)));
 
-         Result.callHierarchyProvider      := LSP.Constants.True;
-         Result.declarationProvider        := LSP.Constants.True;
-         Result.definitionProvider         := LSP.Constants.True;
-         Result.documentFormattingProvider := LSP.Constants.True;
-         Result.documentHighlightProvider  := LSP.Constants.True;
-         Result.documentSymbolProvider     := LSP.Constants.True;
-         Result.foldingRangeProvider       := LSP.Constants.True;
-         Result.hoverProvider              := LSP.Constants.True;
-         Result.implementationProvider     := LSP.Constants.True;
-         Result.referencesProvider         := LSP.Constants.True;
-         Result.typeDefinitionProvider     := LSP.Constants.True;
-         Result.workspaceSymbolProvider    := LSP.Constants.True;
+         Result.callHierarchyProvider           := LSP.Constants.True;
+         Result.declarationProvider             := LSP.Constants.True;
+         Result.definitionProvider              := LSP.Constants.True;
+         Result.documentFormattingProvider      := LSP.Constants.True;
+         Result.documentHighlightProvider       := LSP.Constants.True;
+         Result.documentRangeFormattingProvider := LSP.Constants.True;
+         Result.documentSymbolProvider          := LSP.Constants.True;
+         Result.foldingRangeProvider            := LSP.Constants.True;
+         Result.hoverProvider                   := LSP.Constants.True;
+         Result.implementationProvider          := LSP.Constants.True;
+         Result.referencesProvider              := LSP.Constants.True;
+         Result.typeDefinitionProvider          := LSP.Constants.True;
+         Result.workspaceSymbolProvider         := LSP.Constants.True;
 
          Result.completionProvider :=
            (Is_Set => True,
