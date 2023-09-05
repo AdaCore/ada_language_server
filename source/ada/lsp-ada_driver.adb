@@ -243,7 +243,8 @@ begin
    VSS.Command_Line.Process;  --  Will exit if errors or help requested.
 
    if VSS.Command_Line.Is_Specified (Version_Option) then
-      Ada.Text_IO.Put_Line ("ALS version: " & $VERSION);
+      Ada.Text_IO.Put_Line
+         ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");
       GNAT.OS_Lib.OS_Exit (0);
    end if;
 
@@ -316,7 +317,7 @@ begin
       end;
    end if;
 
-   Server_Trace.Trace ("ALS version: " & $VERSION);
+   Server_Trace.Trace ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");
 
    Server_Trace.Trace ("Initializing server ...");
 
