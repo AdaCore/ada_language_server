@@ -139,6 +139,8 @@ package body LSP.Ada_Handlers.Refactor.Remove_Parameter is
       C : Cursor := Any.First;
    begin
       return Self : Command do
+         pragma Assert (Element (C).Kind = Start_Array);
+         Next (C);
          pragma Assert (Element (C).Kind = Start_Object);
          Next (C);
 
@@ -253,6 +255,7 @@ package body LSP.Ada_Handlers.Refactor.Remove_Parameter is
 
       Result : LSP.Structures.LSPAny_Vector;
    begin
+      Result.Append (JSON_Stream_Element'(Kind => Start_Array));
       Result.Append (JSON_Stream_Element'(Kind => Start_Object));
 
       --  "context"
@@ -272,6 +275,7 @@ package body LSP.Ada_Handlers.Refactor.Remove_Parameter is
       To_Any (Self.Last_Parameter, Result);
 
       Result.Append (JSON_Stream_Element'(Kind => End_Object));
+      Result.Append (JSON_Stream_Element'(Kind => End_Array));
 
       return Result;
    end Write_Command;

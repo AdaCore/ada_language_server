@@ -189,7 +189,7 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-introduce-parameter",
-                                "arguments": {
+                                "arguments": [{
                                      "context_id": "Default",
                                      "where": {
                                          "uri": "$URI{main.adb}",
@@ -204,7 +204,7 @@
                                              }
                                          }
                                      }
-                                 }
+                                 }]
                             }
                         }
                     ]
@@ -220,7 +220,7 @@
                 "method": "workspace/executeCommand",
                 "params": {
                     "command": "als-refactor-introduce-parameter",
-                    "arguments": {
+                    "arguments": [{
                          "context_id": "Default",
                          "where": {
                              "uri": "$URI{main.adb}",
@@ -235,7 +235,7 @@
                                  }
                              }
                          }
-                     }
+                     }]
                 }
             },
             "wait": [

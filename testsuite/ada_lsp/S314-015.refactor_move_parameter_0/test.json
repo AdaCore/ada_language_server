@@ -296,7 +296,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-move-parameter",
-                        "arguments": {
+                        "arguments": [{
                            "context": "default",
                            "where": {
                               "textDocument": {
@@ -309,7 +309,7 @@
                            },
                            "parameter_index": 1,
                            "direction": "forward"
-                        }
+                        }]
                      }
                   }
                ]
@@ -325,7 +325,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-move-parameter",
-               "arguments": {
+               "arguments": [{
                   "context": "default",
                   "where": {
                      "textDocument": {
@@ -338,7 +338,7 @@
                   },
                   "parameter_index": 1,
                   "direction": "forward"
-               }
+               }]
             }
          },
          "wait": [
@@ -578,7 +578,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-move-parameter",
-                        "arguments": {
+                        "arguments": [{
                            "context": "default",
                            "where": {
                               "textDocument": {
@@ -591,7 +591,7 @@
                            },
                            "parameter_index": 2,
                            "direction": "backward"
-                        }
+                        }]
                      }
                   },
                   {
@@ -600,7 +600,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-move-parameter",
-                        "arguments": {
+                        "arguments": [{
                            "context": "default",
                            "where": {
                               "textDocument": {
@@ -613,7 +613,7 @@
                            },
                            "parameter_index": 2,
                            "direction": "forward"
-                        }
+                        }]
                      }
                   }
                ]
@@ -629,7 +629,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-move-parameter",
-               "arguments": {
+               "arguments": [{
                   "context": "default",
                   "where": {
                      "textDocument": {
@@ -642,7 +642,7 @@
                   },
                   "parameter_index": 2,
                   "direction": "backward"
-               }
+               }]
             }
          },
          "wait": [

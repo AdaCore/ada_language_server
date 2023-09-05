@@ -17,8 +17,8 @@
 
 with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 
-with Libadalang.Analysis; use Libadalang.Analysis;
-with Libadalang.Common; use Libadalang.Common;
+with Libadalang.Analysis;   use Libadalang.Analysis;
+with Libadalang.Common;     use Libadalang.Common;
 
 with LAL_Refactor; use LAL_Refactor;
 with LAL_Refactor.Extract_Subprogram;
@@ -95,6 +95,8 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
       C : Cursor := Any.First;
    begin
       return Self : Command do
+         pragma Assert (Element (C).Kind = Start_Array);
+         Next (C);
          pragma Assert (Element (C).Kind = Start_Object);
          Next (C);
 
@@ -205,6 +207,7 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
       Result : LSP.Structures.LSPAny_Vector;
    begin
+      Result.Append (JSON_Stream_Element'(Kind => Start_Array));
       Result.Append (JSON_Stream_Element'(Kind => Start_Object));
 
       --  "context_id"
@@ -223,6 +226,7 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
          Result);
 
       Result.Append (JSON_Stream_Element'(Kind => End_Object));
+      Result.Append (JSON_Stream_Element'(Kind => End_Array));
 
       return Result;
    end Write_Command;

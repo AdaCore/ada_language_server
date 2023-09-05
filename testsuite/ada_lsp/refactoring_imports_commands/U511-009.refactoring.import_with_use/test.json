@@ -220,7 +220,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-imports",
-                        "arguments": {
+                        "arguments": [{
                            "context": "Default",
                            "where": {
                               "textDocument": {
@@ -233,7 +233,7 @@
                            },
                            "with_clause": "Bar",
                            "prefix": "Bar."
-                        }
+                        }]
                      }
                   }
                ]
@@ -249,7 +249,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-imports",
-               "arguments": {
+               "arguments": [{
                      "context": "Default",
                      "where": {
                         "textDocument": {
@@ -262,7 +262,7 @@
                      },
                      "with_clause": "Bar",
                      "prefix": "Bar."
-                  }
+                  }]
             }
          },
          "wait": [
@@ -431,7 +431,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-imports",
-                        "arguments": {
+                        "arguments": [{
                            "context": "Default",
                            "where": {
                               "textDocument": {
@@ -444,7 +444,7 @@
                            },
                            "with_clause": "",
                            "prefix": "Nested."
-                        }
+                        }]
                      }
                   }
                ]
@@ -460,7 +460,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-imports",
-               "arguments": {
+               "arguments": [{
                   "context": "Default",
                   "where": {
                      "textDocument": {
@@ -473,7 +473,7 @@
                   },
                   "with_clause": "",
                   "prefix": "Nested."
-               }
+               }]
             }
          },
          "wait": [

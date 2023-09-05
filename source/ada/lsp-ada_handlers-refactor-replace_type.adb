@@ -85,6 +85,8 @@ package body LSP.Ada_Handlers.Refactor.Replace_Type is
       C : Cursor := Any.First;
    begin
       return Self : Command do
+         pragma Assert (Element (C).Kind = Start_Array);
+         Next (C);
          pragma Assert (Element (C).Kind = Start_Object);
          Next (C);
 
@@ -183,6 +185,7 @@ package body LSP.Ada_Handlers.Refactor.Replace_Type is
 
       Result : LSP.Structures.LSPAny_Vector;
    begin
+      Result.Append (JSON_Stream_Element'(Kind => Start_Array));
       Result.Append (JSON_Stream_Element'(Kind => Start_Object));
 
       --  "context_id"
@@ -198,6 +201,7 @@ package body LSP.Ada_Handlers.Refactor.Replace_Type is
       To_Any (Self.New_Type, Result);
 
       Result.Append (JSON_Stream_Element'(Kind => End_Object));
+      Result.Append (JSON_Stream_Element'(Kind => End_Array));
 
       return Result;
    end Write_Command;

@@ -295,7 +295,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-change-parameter-mode",
-                        "arguments": {
+                        "arguments": [{
                            "context": "default",
                            "where": {
                               "textDocument": {
@@ -309,7 +309,7 @@
                            "first_parameter": 1,
                            "last_parameter": 1,
                            "new_mode": "in"
-                        }
+                        }]
                      }
                   },
                   {
@@ -318,7 +318,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-change-parameter-mode",
-                        "arguments": {
+                        "arguments": [{
                            "context": "default",
                            "where": {
                               "textDocument": {
@@ -332,7 +332,7 @@
                            "first_parameter": 1,
                            "last_parameter": 1,
                            "new_mode": "out"
-                        }
+                        }]
                      }
                   },
                   {
@@ -341,7 +341,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-change-parameter-mode",
-                        "arguments": {
+                        "arguments": [{
                            "context": "default",
                            "where": {
                               "textDocument": {
@@ -355,7 +355,7 @@
                            "first_parameter": 1,
                            "last_parameter": 1,
                            "new_mode": "in out"
-                        }
+                        }]
                      }
                   }
                ]
@@ -371,7 +371,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-change-parameter-mode",
-               "arguments": {
+               "arguments": [{
                   "context": "default",
                   "where": {
                      "textDocument": {
@@ -385,7 +385,7 @@
                   "first_parameter": 1,
                   "last_parameter": 1,
                   "new_mode": "in"
-               }
+               }]
             }
          },
          "wait": [

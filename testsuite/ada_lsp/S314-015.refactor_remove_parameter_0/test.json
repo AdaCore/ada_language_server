@@ -292,7 +292,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-remove-parameters",
-                        "arguments": {
+                        "arguments": [{
                            "context": "default",
                            "where": {
                               "textDocument": {
@@ -305,7 +305,7 @@
                            },
                            "first_parameter": 1,
                            "last_parameter": 1
-                        }
+                        }]
                      }
                   }
                ]
@@ -321,7 +321,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-remove-parameters",
-               "arguments":
+               "arguments": [
                {
                   "context": "default",
                   "where": {
@@ -335,7 +335,7 @@
                   },
                   "first_parameter": 1,
                   "last_parameter": 1
-               }
+               }]
             }
          },
          "wait": [
@@ -510,7 +510,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-remove-parameters",
-                        "arguments": {
+                        "arguments": [{
                            "context": "default",
                            "where": {
                               "textDocument": {
@@ -523,7 +523,7 @@
                            },
                            "first_parameter": 1,
                            "last_parameter": 1
-                        }
+                        }]
                      }
                   }
                ]
@@ -539,7 +539,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-remove-parameters",
-               "arguments":
+               "arguments": [
                {
                   "context": "default",
                   "where": {
@@ -553,7 +553,7 @@
                   },
                   "first_parameter": 1,
                   "last_parameter": 1
-               }
+               }]
             }
          },
          "wait": [
@@ -846,7 +846,7 @@
                      "command": {
                         "title": "",
                         "command": "als-refactor-remove-parameters",
-                        "arguments":
+                        "arguments": [
                         {
                            "context": "default",
                            "where": {
@@ -860,7 +860,7 @@
                            },
                            "first_parameter": 1,
                            "last_parameter": 1
-                        }
+                        }]
                      }
                   }
                ]
@@ -876,7 +876,7 @@
             "method": "workspace/executeCommand",
             "params": {
                "command": "als-refactor-remove-parameters",
-               "arguments":
+               "arguments": [
                {
                   "context": "default",
                   "where": {
@@ -890,7 +890,7 @@
                   },
                   "first_parameter": 1,
                   "last_parameter": 1
-               }
+               }]
             }
          },
          "wait": [
