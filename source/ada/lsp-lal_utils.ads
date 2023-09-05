@@ -74,10 +74,6 @@ package LSP.Lal_Utils is
    --  associated Virtual_File or Node can able to return URI of the enclosing
    --  file.
 
-   procedure Sort_And_Remove_Duplicates
-     (Result : in out LSP.Messages.Location_Vector);
-   --  Sort Result and remove duplicates from it.
-
    function Get_Token_Span
      (Token : Libadalang.Common.Token_Reference)
       return LSP.Messages.Span;

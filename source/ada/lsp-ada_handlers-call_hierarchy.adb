@@ -22,7 +22,6 @@ with Libadalang.Common;
 with Laltools.Common;
 with Laltools.Call_Hierarchy;
 
-with LSP.Ada_Handlers.Locations;
 with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Utils;
 
@@ -70,7 +69,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
    procedure Find_Incoming_Calls
      (Self        : in out Message_Handler;
       Response    : in out LSP.Structures.CallHierarchyIncomingCall_Vector;
-      Filter      : in out File_Span_Sets.Set;
+      Filter      : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
       Context     : LSP.Ada_Contexts.Context;
       Definition  : Libadalang.Analysis.Defining_Name)
    is
@@ -207,7 +206,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
    procedure Find_Outgoing_Calls
      (Self        : in out Message_Handler;
       Response    : in out LSP.Structures.CallHierarchyOutgoingCall_Vector;
-      Filter      : in out File_Span_Sets.Set;
+      Filter      : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
       Definition  : Libadalang.Analysis.Defining_Name)
    is
       use Laltools.Common.References_By_Subprogram;
@@ -339,16 +338,5 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          end;
       end loop;
    end Find_Outgoing_Calls;
-
-   ----------
-   -- Hash --
-   ----------
-
-   function Hash
-     (Value : LSP.Structures.Location) return Ada.Containers.Hash_Type is
-      use type Ada.Containers.Hash_Type;
-   begin
-      return Value.uri.Get_Hash + LSP.Utils.Hash (Value.a_range);
-   end Hash;
 
 end LSP.Ada_Handlers.Call_Hierarchy;

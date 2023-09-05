@@ -1,4 +1,1 @@
 title: 'find_all_refs_defining_names'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

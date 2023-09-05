@@ -15,8 +15,12 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with VSS.Strings.Conversions;
+with VSS.Characters;
+with VSS.String_Vectors;
 with VSS.Strings.Character_Iterators;
+with VSS.Strings.Conversions;
+
+with LSP.Utils;
 
 with URIs;
 
@@ -34,11 +38,20 @@ package body LSP.Ada_Handlers.Locations is
    procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
       Node   : Libadalang.Analysis.Ada_Node'Class;
-      Kinds : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
+      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
    begin
       if not Node.Is_Synthetic then
-         Result.Append (To_LSP_Location (Self, Node, Kinds));
+         declare
+            Value : constant LSP.Structures.Location :=
+              To_LSP_Location (Self, Node, Kinds);
+         begin
+            if not Filter.Contains (Value) then
+               Result.Append (Value);
+               Filter.Insert (Value);
+            end if;
+         end;
       end if;
    end Append_Location;
 
@@ -118,6 +131,123 @@ package body LSP.Ada_Handlers.Locations is
          return Unit.Root.Lookup (Sloc);
       end;
    end Get_Node_At;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash
+     (Value : LSP.Structures.Location) return Ada.Containers.Hash_Type is
+      use type Ada.Containers.Hash_Type;
+   begin
+      return Value.uri.Get_Hash + LSP.Utils.Hash (Value.a_range);
+   end Hash;
+
+   ----------
+   -- Sort --
+   ----------
+
+   procedure Sort (Result : in out LSP.Structures.Location_Vector) is
+
+      function Less
+        (Left, Right : LSP.Structures.DocumentUri) return Boolean;
+      --  Comparison function for URIs, return True if Left < Right
+
+      function "<" (Left, Right : LSP.Structures.Location) return Boolean is
+        (Less (Left.uri, Right.uri) or else
+           (LSP.Structures."=" (Left.uri, Right.uri)
+              and then
+                (Left.a_range.start.line < Right.a_range.start.line
+                 or else
+                   (Left.a_range.start.line = Right.a_range.start.line
+                    and then Left.a_range.start.character <
+                      Right.a_range.start.character))));
+
+      ----------
+      -- Less --
+      ----------
+
+      function Less
+        (Left, Right : LSP.Structures.DocumentUri) return Boolean
+      is
+         use type VSS.Strings.Virtual_String;
+         use type VSS.Characters.Virtual_Character;
+
+         function Last_Component
+           (X : LSP.Structures.DocumentUri) return VSS.Strings.Virtual_String;
+         --  Return the last component of the URI
+
+         function Last_Component
+           (X : LSP.Structures.DocumentUri) return VSS.Strings.Virtual_String
+         is
+            List : constant VSS.String_Vectors.Virtual_String_Vector :=
+              X.Split ('/');
+         begin
+            return List (List.Length);
+         end Last_Component;
+
+         L_File : constant VSS.Strings.Virtual_String := Last_Component (Left);
+
+         R_File : constant VSS.Strings.Virtual_String :=
+           Last_Component (Right);
+
+         L_Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           L_File.Before_First_Character;
+
+         R_Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           R_File.Before_First_Character;
+
+         L : VSS.Characters.Virtual_Character'Base;
+         R : VSS.Characters.Virtual_Character'Base;
+
+         L_Spec : Boolean := False;
+         --  Prev L is `s` and R is `b`
+         R_Spec : Boolean := False;
+         --  Prev L is `b` and R is `s`
+
+      begin
+         if L_File = R_File then
+            --  for the same last component, compare full pathes
+            return LSP.Structures."<" (Left, Right);
+         end if;
+
+         --  Compare the filenames
+         while L_Cursor.Forward (L) and R_Cursor.Forward (R) loop
+
+            if L_Spec or R_Spec then
+               --  Prev L /= R in non-endigng position
+               return R_Spec;
+            elsif L = R then
+               null;  --  Skip equal characters
+            elsif L = '-' and R = '.' then
+               --  Return "pack.adb" before "pack-child.adb"
+               return False;
+            elsif L = '.' and R = '-' then
+               --  Other side
+               return True;
+            elsif L = 's' and R = 'b' then
+               L_Spec := True;  --  Special case to check at the end
+            elsif L = 'b' and R = 's' then
+               R_Spec := True;  --  Special case to check at the end
+            else
+               return L < R;
+            end if;
+         end loop;
+
+         if not L_Cursor.Has_Element and not R_Cursor.Has_Element then
+            --   Return ".ads" before ".adb"
+            return L_Spec;
+         else
+            return R_Cursor.Has_Element;
+         end if;
+      end Less;
+
+      package Sorting is new
+        LSP.Structures.Location_Vectors.Generic_Sorting;
+
+   begin
+      Sorting.Sort (LSP.Structures.Location_Vectors.Vector (Result));
+   end Sort;
 
    --------------------
    -- Start_Position --

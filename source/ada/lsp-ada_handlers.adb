@@ -158,6 +158,7 @@ package body LSP.Ada_Handlers is
    procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kinds  : AlsReferenceKind_Array := LSP.Constants.Empty)
         renames LSP.Ada_Handlers.Locations.Append_Location;
@@ -1704,6 +1705,7 @@ package body LSP.Ada_Handlers is
 
       Response   : LSP.Structures.Declaration_Result (LSP.Structures.Variant_1);
       Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
+      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
       Display_Method_Policy : constant
         LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
@@ -1788,10 +1790,10 @@ package body LSP.Ada_Handlers is
 
          if not Prev_Part.Is_Null then
             --  We have found previous part, return it.
-            Self.Append_Location (Vector, Prev_Part);
+            Self.Append_Location (Vector, Filter, Prev_Part);
          elsif not Definition.Is_Null then
             --  No previous part, return definition itself.
-            Self.Append_Location (Vector, Definition);
+            Self.Append_Location (Vector, Filter, Definition);
          end if;
 
          if not Decl_For_Find_Overrides.Is_Null then
@@ -1808,12 +1810,12 @@ package body LSP.Ada_Handlers is
             begin
                for Subp of Bases loop
                   Self.Append_Location
-                    (Vector, Subp.P_Defining_Name, Is_Parent);
+                    (Vector, Filter, Subp.P_Defining_Name, Is_Parent);
                end loop;
 
                for Subp of Overridings loop
                   Self.Append_Location
-                    (Vector, Subp.P_Defining_Name, Is_Child);
+                    (Vector, Filter, Subp.P_Defining_Name, Is_Child);
                end loop;
             end;
          end if;
@@ -1833,7 +1835,7 @@ package body LSP.Ada_Handlers is
          exit when Self.Is_Canceled.all;
       end loop;
 
-      --  Sort_And_Remove_Duplicates (Response.result.Locations);
+      Locations.Sort (Vector);
 
       Self.Sender.On_Declaration_Response (Id, Response);
    end On_Declaration_Request;
@@ -1856,6 +1858,7 @@ package body LSP.Ada_Handlers is
 
       Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
       Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
+      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
       Imprecise  : Boolean := False;
 
@@ -1898,7 +1901,7 @@ package body LSP.Ada_Handlers is
                Imprecise => Imprecise);
 
             if not Definition.Is_Null then
-               Self.Append_Location (Vector, Definition);
+               Self.Append_Location (Vector, Filter, Definition);
 
                if Display_Method_Ancestry_Policy
                   in Usage_And_Abstract_Only | Always
@@ -1948,7 +1951,7 @@ package body LSP.Ada_Handlers is
             end if;
 
             if not Other_Part.Is_Null then
-               Self.Append_Location (Vector, Other_Part);
+               Self.Append_Location (Vector, Filter, Other_Part);
 
             else
                --  We were on a defining name, but did not manage to find
@@ -1962,7 +1965,7 @@ package body LSP.Ada_Handlers is
                   --  We have found a result using the imprecise heuristics.
                   --  We'll warn the user and send the result.
                   Imprecise := True;
-                  Self.Append_Location (Vector, Manual_Fallback);
+                  Self.Append_Location (Vector, Filter, Manual_Fallback);
                end if;
             end if;
          end if;
@@ -1981,12 +1984,12 @@ package body LSP.Ada_Handlers is
             begin
                for Subp of Bases loop
                   Self.Append_Location
-                    (Vector, Subp.P_Defining_Name, Is_Parent);
+                    (Vector, Filter, Subp.P_Defining_Name, Is_Parent);
                end loop;
 
                for Subp of Overridings loop
                   Self.Append_Location
-                    (Vector, Subp.P_Defining_Name, Is_Child);
+                    (Vector, Filter, Subp.P_Defining_Name, Is_Child);
                end loop;
             end;
          end if;
@@ -1994,7 +1997,7 @@ package body LSP.Ada_Handlers is
          if not Entry_Decl_Node.Is_Null then
             for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
                Self.Append_Location
-                 (Vector, Accept_Node.F_Body_Decl.F_Name);
+                 (Vector, Filter, Accept_Node.F_Body_Decl.F_Name);
             end loop;
          end if;
       end Resolve_In_Context;
@@ -2013,7 +2016,7 @@ package body LSP.Ada_Handlers is
          exit when Self.Is_Canceled.all;
       end loop;
 
-      --  Sort_And_Remove_Duplicates (Vector);
+      Locations.Sort (Vector);
 
       Self.Sender.On_Definition_Response (Id, Response);
    end On_Definition_Request;
@@ -2963,6 +2966,7 @@ package body LSP.Ada_Handlers is
       Response : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
 
       Vector : LSP.Structures.Location_Vector renames Response.Variant_1;
+      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
       Display_Method_Ancestry_Policy : constant
         LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
@@ -3000,7 +3004,7 @@ package body LSP.Ada_Handlers is
          is
          begin
             for E of Bodies loop
-               Self.Append_Location (Vector, E, Kinds);
+               Self.Append_Location (Vector, Filter, E, Kinds);
             end loop;
          end Update_Response;
 
@@ -3069,7 +3073,7 @@ package body LSP.Ada_Handlers is
          exit when Self.Is_Canceled.all;
       end loop;
 
-      --  Sort_And_Remove_Duplicates (Response.result.Locations);
+      Locations.Sort (Vector);
 
       Self.Sender.On_Implementation_Response (Id, Response);
    end On_Implementation_Request;
@@ -3098,7 +3102,7 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.start);
 
-      Filter : Call_Hierarchy.File_Span_Sets.Set;
+      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
       ---------------------
       -- Process_Context --
@@ -3185,7 +3189,7 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.start);
 
-      Filter : Call_Hierarchy.File_Span_Sets.Set;
+      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
       ---------------------
       -- Process_Context --
@@ -3338,6 +3342,7 @@ package body LSP.Ada_Handlers is
 
       Response   : LSP.Structures.Location_Vector_Or_Null;
       Imprecise  : Boolean := False;
+      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
       Additional_Kinds : AlsReferenceKind_Array :=
         [others => False];
@@ -3441,6 +3446,7 @@ package body LSP.Ada_Handlers is
 
                Self.Append_Location
                  (Response,
+                  Filter,
                   Node,
                   Get_Reference_Kind (Node));
             end if;
@@ -3477,6 +3483,7 @@ package body LSP.Ada_Handlers is
             for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
                Self.Append_Location
                  (Response,
+                  Filter,
                   Subp.P_Defining_Name,
                   Get_Reference_Kind
                     (Definition,
@@ -3486,6 +3493,7 @@ package body LSP.Ada_Handlers is
             if Value.context.includeDeclaration then
                Self.Append_Location
                  (Response,
+                  Filter,
                   Definition,
                   Get_Reference_Kind (Definition));
             end if;
@@ -3499,7 +3507,7 @@ package body LSP.Ada_Handlers is
          exit when Self.Is_Canceled.all;
       end loop;
 
-      --  Sort_And_Remove_Duplicates (Response.result);
+      Locations.Sort (Response);
 
       Self.Sender.On_References_Response (Id, Response);
    end On_References_Request;
@@ -4019,6 +4027,7 @@ package body LSP.Ada_Handlers is
 
       Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
       Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
+      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
       Imprecise  : Boolean := False;
 
       procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
@@ -4071,7 +4080,7 @@ package body LSP.Ada_Handlers is
          end if;
 
          if not Definition.Is_Null then
-            Self.Append_Location (Vector, Definition);
+            Self.Append_Location (Vector, Filter, Definition);
          end if;
       end Resolve_In_Context;
 

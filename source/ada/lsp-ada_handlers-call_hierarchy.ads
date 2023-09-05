@@ -18,22 +18,14 @@
 with Libadalang.Analysis;
 
 with LSP.Ada_Contexts;
+with LSP.Ada_Handlers.Locations;
 
 package LSP.Ada_Handlers.Call_Hierarchy is
-
-   function Hash
-     (Value : LSP.Structures.Location) return Ada.Containers.Hash_Type;
-
-   package File_Span_Sets is new Ada.Containers.Hashed_Sets
-     (Element_Type        => LSP.Structures.Location,
-      Hash                => Hash,
-      Equivalent_Elements => LSP.Structures."=",
-      "="                 => LSP.Structures."=");
 
    procedure Find_Incoming_Calls
      (Self        : in out Message_Handler;
       Response    : in out LSP.Structures.CallHierarchyIncomingCall_Vector;
-      Filter      : in out File_Span_Sets.Set;
+      Filter      : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
       Context     : LSP.Ada_Contexts.Context;
       Definition  : Libadalang.Analysis.Defining_Name)
           with Pre => Definition.P_Basic_Decl.P_Is_Subprogram;
@@ -44,7 +36,7 @@ package LSP.Ada_Handlers.Call_Hierarchy is
    procedure Find_Outgoing_Calls
      (Self        : in out Message_Handler;
       Response    : in out LSP.Structures.CallHierarchyOutgoingCall_Vector;
-      Filter      : in out File_Span_Sets.Set;
+      Filter      : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
       Definition  : Libadalang.Analysis.Defining_Name)
           with Pre => Definition.P_Basic_Decl.P_Is_Subprogram;
    --  Return the list of all the calls made in the subprogram pointed at by
