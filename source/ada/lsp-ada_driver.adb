@@ -44,7 +44,7 @@ with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Other_File_Commands;
 with LSP.Ada_Handlers.Project_Reload_Commands;
-with LSP.Ada_Handlers.Refactor.Imports_Commands;
+with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Handlers.Refactor.Add_Parameter;
 with LSP.Ada_Handlers.Refactor.Remove_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
@@ -148,7 +148,7 @@ procedure LSP.Ada_Driver is
       LSP.Commands.Register
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
       LSP.Commands.Register
-        (LSP.Ada_Handlers.Refactor.Imports_Commands.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Auto_Import.Command'Tag);
       LSP.Commands.Register
         (LSP.Ada_Handlers.Refactor.Suppress_Seperate.Command'Tag);
       LSP.Commands.Register
@@ -243,7 +243,8 @@ begin
    VSS.Command_Line.Process;  --  Will exit if errors or help requested.
 
    if VSS.Command_Line.Is_Specified (Version_Option) then
-      Ada.Text_IO.Put_Line ("ALS version: " & $VERSION);
+      Ada.Text_IO.Put_Line
+         ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");
       GNAT.OS_Lib.OS_Exit (0);
    end if;
 
@@ -316,7 +317,7 @@ begin
       end;
    end if;
 
-   Server_Trace.Trace ("ALS version: " & $VERSION);
+   Server_Trace.Trace ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");
 
    Server_Trace.Trace ("Initializing server ...");
 

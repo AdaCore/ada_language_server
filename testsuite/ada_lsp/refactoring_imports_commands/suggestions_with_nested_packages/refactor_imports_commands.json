@@ -1,357 +1,346 @@
 [
-    {
-        "comment": [
-            "This test checks if imports (with clause + prefix) are being suggested to unresolved names."
-        ]
-    },
-    {
-        "start": {
-            "cmd": [
-                "${ALS}"
-            ]
-        }
-    },
-    {
-        "send": {
-            "request": {
-                "params": {
-                    "processId": 13950,
-                    "capabilities": {
-                        "workspace": {
-                            "workspaceEdit": {
-                               "documentChanges": true
-                            },
-                            "applyEdit": false
-                        }
-                    },
-                    "rootUri": "$URI{.}"
-                },
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize"
+   {
+      "comment": [
+         "This test checks if imports (with clause + prefix) are being suggested to unresolved names."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 13950,
+               "capabilities": {
+                  "workspace": {
+                     "workspaceEdit": {
+                        "documentChanges": true
+                     },
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
             },
-            "wait": [
-                {
-                    "id": 1,
-                    "result": {
-                        "capabilities": {
-                            "textDocumentSync": 2,
-                            "completionProvider": {
-                                "triggerCharacters": [
-                                    ".",
-                                    ",",
-                                    "'",
-                                    "("
-                                ],
-                                "resolveProvider": true
-                            },
-                            "hoverProvider": true,
-                            "declarationProvider": true,
-                            "definitionProvider": true,
-                            "typeDefinitionProvider": true,
-                            "implementationProvider": true,
-                            "referencesProvider": true,
-                            "codeActionProvider": {},
-                            "documentFormattingProvider": true,
-                            "renameProvider": {},
-                            "foldingRangeProvider": true,
-                            "executeCommandProvider": {
-                                "commands": [
-                                    "<HAS>",
-                                    "als-refactor-imports"
-                                ]
-                            },
-                            "workspaceSymbolProvider": true,
-                            "alsShowDepsProvider": true,
-                            "alsReferenceKinds": [
-                                "reference",
-                                "access",
-                                "write",
-                                "call",
-                                "dispatching call",
-                                "parent",
-                                "child",
-                                "overriding"
-                            ]
-                        }
-                    }
-                }
-            ]
-        }
-    },
-    {
-        "send": {
-            "request": {
-                "jsonrpc": "2.0",
-                "method": "initialized"
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "codeActionProvider": {},
+                     "documentFormattingProvider": true,
+                     "renameProvider": {},
+                     "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-auto-import"]
+                     },
+                     "workspaceSymbolProvider": true,
+                     "alsShowDepsProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child",
+                        "overriding"
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
             },
-            "wait": []
-        }
-    },
-    {
-        "send": {
-            "request": {
-                "params": {
-                    "settings": {
-                        "ada": {
-                            "projectFile": "default.gpr",
-                            "scenarioVariables": {},
-                            "defaultCharset": "ISO-8859-1"
-                        }
-                    }
-                },
-                "jsonrpc": "2.0",
-                "method": "workspace/didChangeConfiguration"
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration"
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 2,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
             },
-            "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "id": 2,
-                    "method": "window/workDoneProgress/create",
-                    "params": {
-                        "token": "<ANY>"
-                    }
-                },
-                {
-                    "jsonrpc": "2.0",
-                    "method": "$/progress",
-                    "params": {
-                        "token": "<ANY>",
-                        "value": {
-                            "kind": "end"
-                        }
-                    }
-                }
-            ]
-        }
-    },
-    {
-        "send": {
-            "request": {
-                "params": {
-                    "textDocument": {
-                        "text": "procedure Main is\nbegin\n   Subprogram;\nend Main;",
-                        "version": 0,
-                        "uri": "$URI{main.adb}",
-                        "languageId": "Ada"
-                    }
-                },
-                "jsonrpc": "2.0",
-                "method": "textDocument/didOpen"
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "procedure Main is\nbegin\n   Subprogram;\nend Main;",
+                  "version": 0,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada"
+               }
             },
-            "wait": [
-            ]
-        }
-    },
-    {
-        "send": {
-            "request": {
-                "jsonrpc": "2.0",
-                "id": 2,
-                "method": "textDocument/codeAction",
-                "params": {
-                    "textDocument": {
-                        "uri": "$URI{main.adb}"
-                    },
-                    "range": {
-                        "start": {
-                            "line": 2,
-                            "character": 3
-                        },
-                        "end": {
-                            "line": 2,
-                            "character": 3
-                        }
-                    },
-                    "context": {
-                        "diagnostics": []
-                    }
-                }
-            },
-            "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "id": 2,
-                    "result": [
-                        {
-                            "title": "Add 'with' clause for A and prefix the object with A.",
-                            "kind": "refactor.rewrite",
-                            "command": {
-                                "title": "",
-                                "command": "als-refactor-imports",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "textDocument": {
-                                                "uri": "$URI{main.adb}"
-                                            },
-                                            "position": {
-                                                "line": 2,
-                                                "character": 3
-                                            }
-                                        },
-                                        "with_clause": "A",
-                                        "prefix": "A."
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "title": "Add 'with' clause for A and prefix the object with A.B.",
-                            "kind": "refactor.rewrite",
-                            "command": {
-                                "title": "",
-                                "command": "als-refactor-imports",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "textDocument": {
-                                                "uri": "$URI{main.adb}"
-                                            },
-                                            "position": {
-                                                "line": 2,
-                                                "character": 3
-                                            }
-                                        },
-                                        "with_clause": "A",
-                                        "prefix": "A.B."
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "title": "Add 'with' clause for E and prefix the object with E.",
-                            "kind": "refactor.rewrite",
-                            "command": {
-                                "title": "",
-                                "command": "als-refactor-imports",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "textDocument": {
-                                                "uri": "$URI{main.adb}"
-                                            },
-                                            "position": {
-                                                "line": 2,
-                                                "character": 3
-                                            }
-                                        },
-                                        "with_clause": "E",
-                                        "prefix": "E."
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "title": "Add 'with' clause for E and prefix the object with E.B.",
-                            "kind": "refactor.rewrite",
-                            "command": {
-                                "title": "",
-                                "command": "als-refactor-imports",
-                                "arguments": [
-                                    {
-                                        "context": "Default",
-                                        "where": {
-                                            "textDocument": {
-                                                "uri": "$URI{main.adb}"
-                                            },
-                                            "position": {
-                                                "line": 2,
-                                                "character": 3
-                                            }
-                                        },
-                                        "with_clause": "E",
-                                        "prefix": "E.B."
-                                    }
-                                ]
-                            }
-                        }
-                    ]
-                }
-            ]
-        }
-    },
-    {
-        "send": {
-            "request": {
-                "jsonrpc": "2.0",
-                "id": 3,
-                "method": "workspace/executeCommand",
-                "params": {
-                    "command": "als-refactor-imports",
-                    "arguments": [
-                        {
-                            "context": "Default",
-                            "where": {
-                                "textDocument": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 2,
+                     "character": 3
+                  },
+                  "end": {
+                     "line": 2,
+                     "character": 3
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 2,
+               "result": [
+                  {
+                     "title": "Qualify with A",
+                     "kind": "quickfix",
+                     "command": {
+                        "title": "",
+                        "command": "als-auto-import",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
-                                },
-                                "position": {
+                                 },
+                                 "position": {
                                     "line": 2,
                                     "character": 3
-                                }
-                            },
-                            "with_clause": "A",
-                            "prefix": "A.B."
+                                 }
+                              },
+                              "import": "A",
+                              "qualifier": "A"
+                           }
+                        ]
+                     }
+                  },
+                  {
+                     "title": "Qualify with A.B",
+                     "kind": "quickfix",
+                     "command": {
+                        "title": "",
+                        "command": "als-auto-import",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                 },
+                                 "position": {
+                                    "line": 2,
+                                    "character": 3
+                                 }
+                              },
+                              "import": "A",
+                              "qualifier": "A.B"
+                           }
+                        ]
+                     }
+                  },
+                  {
+                     "title": "Qualify with E",
+                     "kind": "quickfix",
+                     "command": {
+                        "title": "",
+                        "command": "als-auto-import",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                 },
+                                 "position": {
+                                    "line": 2,
+                                    "character": 3
+                                 }
+                              },
+                              "import": "E",
+                              "qualifier": "E"
+                           }
+                        ]
+                     }
+                  },
+                  {
+                     "title": "Qualify with E.B",
+                     "kind": "quickfix",
+                     "command": {
+                        "title": "",
+                        "command": "als-auto-import",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{main.adb}"
+                                 },
+                                 "position": {
+                                    "line": 2,
+                                    "character": 3
+                                 }
+                              },
+                              "import": "E",
+                              "qualifier": "E.B"
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-auto-import",
+               "arguments": [
+                  {
+                     "context": "Default",
+                     "where": {
+                        "textDocument": {
+                           "uri": "$URI{main.adb}"
+                        },
+                        "position": {
+                           "line": 2,
+                           "character": 3
                         }
-                    ]
-                }
-            },
-            "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "id": 3,
-                    "method": "workspace/applyEdit",
-                    "params": {
-                        "edit": {
-                            "documentChanges": [
-                                {
-                                    "textDocument": {
-                                        "uri": "$URI{main.adb}",
-                                        "version": 1
+                     },
+                     "with_clause": "A",
+                     "prefix": "A.B."
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 3,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "uri": "$URI{main.adb}",
+                              "version": 1
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
                                     },
-                                    "edits": [
-                                        {
-                                            "range": {
-                                                "start": {
-                                                    "line": 0,
-                                                    "character": 0
-                                                },
-                                                "end": {
-                                                    "line": 0,
-                                                    "character": 0
-                                                }
-                                            },
-                                            "newText": "with A;\n"
-                                        },
-                                        {
-                                            "range": {
-                                                "start": {
-                                                    "line": 2,
-                                                    "character": 3
-                                                },
-                                                "end": {
-                                                    "line": 2,
-                                                    "character": 3
-                                                }
-                                            },
-                                            "newText": "A.B."
-                                        }
-                                    ]
-                                }
-                            ]
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 },
+                                 "newText": "with ;\n"
+                              },
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 3
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 3
+                                    }
+                                 },
+                                 "newText": ""
+                              }
+                           ]
                         }
-                    }
-                }
-            ]
-        }
-    },
-    {
-        "stop": {
-            "exit_code": 0
-        }
-    }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
 ]

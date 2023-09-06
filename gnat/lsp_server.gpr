@@ -29,6 +29,8 @@ project LSP_Server is
 
    VERSION := external ("VERSION", "latest");
 
+   BUILD_DATE := external ("BUILD_DATE", "unknown");
+
    type Library_Kind is ("static", "static-pic", "relocatable");
    Library_Type : Library_Kind := external("ALS_LIBRARY_TYPE",
                                   external("LIBRARY_TYPE", "relocatable"));
@@ -50,7 +52,8 @@ project LSP_Server is
    package Compiler is
       for Default_Switches ("Ada") use LSP.Compiler'Default_Switches ("Ada");
       for Switches ("lsp-ada_driver.adb") use
-        LSP.Compiler'Default_Switches ("Ada") & ("-gnateDVERSION=""" & VERSION & """");
+        LSP.Compiler'Default_Switches ("Ada") &
+        ("-gnateDVERSION=""" & VERSION & """", "-gnateDBUILD_DATE=""" & BUILD_DATE & """");
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
       for Local_Configuration_Pragmas use "gnat.adc";
    end Compiler;
