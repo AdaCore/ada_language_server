@@ -307,6 +307,9 @@ package body LSP.Ada_Configurations is
       Reload := Reload or else
         Variables_Names /= Self.Variables_Names or else
         Variables_Values /= Self.Variables_Values;
+
+      Self.Variables_Names := Variables_Names;
+      Self.Variables_Values := Variables_Values;
    end Read_JSON;
 
 end LSP.Ada_Configurations;
