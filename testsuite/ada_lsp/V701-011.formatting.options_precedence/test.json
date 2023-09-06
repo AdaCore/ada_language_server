@@ -80,49 +80,7 @@
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
-                     },
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "documentRangeFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                        "commands": [
-                           "<HAS>",
-                           "als-named-parameters"]
-                     },
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "<HAS>",
-                        "reference"],
-                     "alsCheckSyntaxProvider": true
+                     "documentFormattingProvider": true
                   }
                }
             }
