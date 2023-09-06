@@ -2269,6 +2269,10 @@ package body LSP.Ada_Handlers is
             Context.Flush_Document (File);
          end loop;
 
+         --  Clean diagnostics up on closing document
+         Self.Clean_Diagnostics
+           (LSP.Ada_Documents.Document_Access (Document));
+
          Free (Document);
 
       else
@@ -2280,10 +2284,6 @@ package body LSP.Ada_Handlers is
             & "with uri: ");
          Self.Tracer.Trace_Text (URI);
       end if;
-
-      --  Clean diagnostics up on closing document
-      Self.Clean_Diagnostics
-        (LSP.Ada_Documents.Document_Access (Document));
    end On_DidClose_Notification;
 
    ------------------------------------

@@ -1,4 +1,1 @@
 title: 'publish_diag'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']
