@@ -15,11 +15,14 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "vss_common";
 with "vss_text";
 with "vss_json";
 
 project LSP_3_17 is
+
+   type OS_API_Kind is ("unix", "osx", "Windows_NT");
+   OS_API : OS_API_Kind :=
+     external ("LSP_OS", external ("OS", "unix"));
 
    type Any_Build_Mode is (
       "prod",
@@ -107,7 +110,7 @@ project LSP_3_17 is
    end Compiler;
 
    package Naming is
-      case VSS_Common.OS_API is
+      case OS_API is
          when "Windows_NT" =>
             for Implementation ("LSP.Stdio_Streams.Initialize")
               use "lsp-stdio_streams-init_windows.adb";
