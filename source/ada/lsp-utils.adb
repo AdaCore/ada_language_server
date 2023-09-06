@@ -515,7 +515,7 @@ package body LSP.Utils is
         Text.Split_Lines
           (Terminators     => LSP.Ada_Documents.LSP_New_Line_Function_Set,
            Keep_Terminator => True);
-      Line := Lines.Element (Num);
+      Line := Lines (Num);
 
       declare
          J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
@@ -532,8 +532,7 @@ package body LSP.Utils is
          end loop;
 
          if Span.start.line /= Span.an_end.line then
-            Slice.Append
-              (Line.Slice (J1.Marker, Line.At_Last_Character.Marker));
+            Slice.Append (Line.Slice (J1.Marker, Line.At_Last_Character));
          end if;
 
          loop
@@ -541,10 +540,10 @@ package body LSP.Utils is
 
             exit when Num > Span.an_end.line;
 
-            Slice.Append (Lines.Element (Num));
+            Slice.Append (Lines (Num));
          end loop;
 
-         Line := Lines.Element (Span.an_end.line + 1);
+         Line := Lines (Span.an_end.line + 1);
 
          declare
             J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
