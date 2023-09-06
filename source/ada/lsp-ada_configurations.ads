@@ -100,6 +100,9 @@ package LSP.Ada_Configurations is
    function Completion_Formatting return Boolean;
    --  Used in LSP.Ada_Completions.Pretty_Print_Snippet
 
+   function Partial_GNATPP return Boolean;
+   --  Whether partial GNATPP is enabled.
+
 private
 
    type Configuration is tagged limited record

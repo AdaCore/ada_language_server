@@ -101,13 +101,6 @@ package body LSP.Ada_Handlers is
 
    subtype AlsReferenceKind_Array is LSP.Structures.AlsReferenceKind_Set;
 
-   Partial_Gnatpp_Trace : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create
-       (Unit_Name => "ALS.PARTIAL_GNATPP",
-        Default   => GNATCOLL.Traces.On);
-   --  Trace to enable/disable using partial Gnatpp in the rangeFormatting
-   --  request.
-
    function Is_Parent return AlsReferenceKind_Array is
      ([LSP.Enumerations.parent => True, others => False]);
 
@@ -3357,7 +3350,7 @@ package body LSP.Ada_Handlers is
       Messages : VSS.String_Vectors.Virtual_String_Vector;
 
    begin
-      if Partial_Gnatpp_Trace.Is_Active then
+      if LSP.Ada_Configurations.Partial_GNATPP then
          LSP.Ada_Handlers.Formatting.Range_Format
            (Context.all,
             Document,
