@@ -539,7 +539,7 @@ package body LSP.Utils is
          loop
             Num := Num + 1;
 
-            exit when Num > Span.start.line;
+            exit when Num > Span.an_end.line;
 
             Slice.Append (Lines.Element (Num));
          end loop;
