@@ -105,7 +105,8 @@ package body LSP.Ada_Completions is
    -----------------------
 
    procedure Write_Completions
-     (Context                  : LSP.Ada_Contexts.Context;
+     (Handler                  : in out LSP.Ada_Handlers.Message_Handler;
+      Context                  : LSP.Ada_Contexts.Context;
       Document                 : LSP.Ada_Documents.Document;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
@@ -154,8 +155,8 @@ package body LSP.Ada_Completions is
 
                if Append then
                   Result.Append
-                    (LSP.Ada_Documents.Compute_Completion_Item
-                       (Document                 => Document,
+                    (Document.Compute_Completion_Item
+                       (Handler                  => Handler,
                         Context                  => Context,
                         Sloc                     => Sloc,
                         Node                     => Node,

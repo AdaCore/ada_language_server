@@ -20,7 +20,6 @@
 with Ada.Containers;
 
 with VSS.Strings;
-with VSS.Strings.Conversions;
 
 with Libadalang.Analysis;
 with Langkit_Support.Slocs;
@@ -82,11 +81,6 @@ package LSP.Utils is
    function Is_Synthetic
      (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean;
    --  Check if Node is in a synthetic file (like "__standard").
-
-   function To_DocumentUri
-     (X : String)
-      return LSP.Structures.DocumentUri is
-     (VSS.Strings.Conversions.To_Virtual_String (X) with null record);
 
    procedure Format_Vector
      (Cmd      : Standard.Utils.Command_Lines.Command_Line;

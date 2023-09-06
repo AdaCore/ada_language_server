@@ -31,6 +31,7 @@ with Laltools.Partial_GNATPP;
 with Pp.Command_Lines;
 
 limited with LSP.Ada_Contexts;
+limited with LSP.Ada_Handlers;
 with LSP.Ada_Completions;
 with LSP.Ada_Highlighters;
 with LSP.Constants;
@@ -275,6 +276,7 @@ package LSP.Ada_Documents is
 
    function Compute_Completion_Item
      (Document                 : LSP.Ada_Documents.Document;
+      Handler                  : in out LSP.Ada_Handlers.Message_Handler;
       Context                  : LSP.Ada_Contexts.Context;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
@@ -304,7 +306,8 @@ package LSP.Ada_Documents is
    --  Completions_Count is the total number of completion items.
 
    procedure Set_Completion_Item_Documentation
-     (Context                 : LSP.Ada_Contexts.Context;
+     (Handler                 : in out LSP.Ada_Handlers.Message_Handler;
+      Context                 : LSP.Ada_Contexts.Context;
       BD                      : Libadalang.Analysis.Basic_Decl;
       Item                    : in out LSP.Structures.CompletionItem;
       Compute_Doc_And_Details : Boolean);

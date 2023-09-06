@@ -18,12 +18,16 @@
 with GNATCOLL.Utils;
 with GNATCOLL.Traces;
 with Laltools.Common;
-with LSP.Ada_Documents;
 with LSP.Ada_Documentation;
+with LSP.Ada_Documents;
 with LSP.Enumerations;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
 with VSS.Unicode;
+
+pragma Warnings (Off, "is not referenced");
+with LSP.Ada_Handlers;  --  to be able to write `Self.Handler.all`
+pragma Warnings (On, "is not referenced");
 
 package body LSP.Ada_Completions.Generic_Assoc is
 
@@ -372,12 +376,15 @@ package body LSP.Ada_Completions.Generic_Assoc is
                   Item.insertText.Append (Whitespace_Prefix);
                   Item.insertText.Append (Params_Snippet);
                   Item.kind := (True, LSP.Enumerations.Snippet);
+
                   LSP.Ada_Documents.Set_Completion_Item_Documentation
-                    (Context                 => Self.Context.all,
+                    (Handler                 => Self.Handler.all,
+                     Context                 => Self.Context.all,
                      BD                      => Decl,
                      Item                    => Item,
                      Compute_Doc_And_Details =>
                        Self.Compute_Doc_And_Details);
+
                   Pretty_Print_Snippet
                     (Context => Self.Context.all,
                      Prefix  => Prefix,

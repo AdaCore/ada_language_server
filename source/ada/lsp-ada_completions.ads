@@ -29,6 +29,7 @@ with VSS.Strings;
 
 limited with LSP.Ada_Contexts;
 limited with LSP.Ada_Documents;
+limited with LSP.Ada_Handlers;
 limited with LSP.Ada_Completions.Filters;
 
 with LSP.Structures;
@@ -98,7 +99,8 @@ package LSP.Ada_Completions is
    --  The Filter could be used to quick check common completion contexts.
 
    procedure Write_Completions
-     (Context                  : LSP.Ada_Contexts.Context;
+     (Handler                  : in out LSP.Ada_Handlers.Message_Handler;
+      Context                  : LSP.Ada_Contexts.Context;
       Document                 : LSP.Ada_Documents.Document;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;

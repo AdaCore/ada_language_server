@@ -18,12 +18,15 @@
 
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
+limited with LSP.Ada_Handlers;
 
 package LSP.Ada_Completions.Parameters is
 
    type Parameter_Completion_Provider
-     (Context                  : not null LSP.Ada_Context_Sets.Context_Access;
-      Document                 : LSP.Ada_Documents.Document_Access;
+     (Context  : not null LSP.Ada_Context_Sets.Context_Access;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler;
+      Document : LSP.Ada_Documents.Document_Access;
+
       Named_Notation_Threshold : Natural;
       Compute_Doc_And_Details  : Boolean)
    is new Completion_Provider with null record;

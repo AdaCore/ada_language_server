@@ -1554,7 +1554,8 @@ package body LSP.Ada_Handlers is
         (Self'Access, Context);
       P7 : aliased
         LSP.Ada_Completions.Parameters.Parameter_Completion_Provider
-          (Context                  => Context,
+          (Handler                  => Self'Unchecked_Access,
+           Context                  => Context,
            Document                 => Document,
            Compute_Doc_And_Details  => Compute_Doc_And_Details,
            Named_Notation_Threshold =>
@@ -1599,7 +1600,8 @@ package body LSP.Ada_Handlers is
          Result    => Response.Variant_2);
 
       LSP.Ada_Completions.Write_Completions
-        (Context                  => Context.all,
+        (Handler                  => Self,
+         Context                  => Context.all,
          Document                 => Document.all,
          Sloc                     => Sloc,
          Node                     => Node,
@@ -1625,7 +1627,7 @@ package body LSP.Ada_Handlers is
       Node     : Libadalang.Analysis.Ada_Node;
       C        : LSP.Structures.JSON_Event_Vectors.Cursor;
       Location : LSP.Structures.Location;
-      Response : LSP.Structures.CompletionItem;
+      Response : LSP.Structures.CompletionItem := Value;
 
    begin
       --  Return immediately if we don't have data that allows us to compute

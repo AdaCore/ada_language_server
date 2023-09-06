@@ -53,6 +53,7 @@ with LSP.Enumerations;
 with LSP.Predicates;
 with LSP.Utils;
 with LSP.Structures.LSPAny_Vectors;
+with LSP.Ada_Handlers.Locations;
 
 package body LSP.Ada_Documents is
    pragma Warnings (Off);
@@ -214,6 +215,7 @@ package body LSP.Ada_Documents is
 
    function Compute_Completion_Item
      (Document                 : LSP.Ada_Documents.Document;
+      Handler                  : in out LSP.Ada_Handlers.Message_Handler;
       Context                  : LSP.Ada_Contexts.Context;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
@@ -226,7 +228,8 @@ package body LSP.Ada_Documents is
       Is_Visible               : Boolean;
       Pos                      : Integer;
       Weight                   : Ada_Completions.Completion_Item_Weight_Type;
-      Completions_Count        : Natural) return LSP.Structures.CompletionItem
+      Completions_Count        : Natural)
+      return LSP.Structures.CompletionItem
    is
 
       package Weight_Formatters renames VSS.Strings.Formatters.Integers;
@@ -282,7 +285,8 @@ package body LSP.Ada_Documents is
       Item.sortText := Get_Sort_Text (Label);
 
       Set_Completion_Item_Documentation
-        (Context                 => Context,
+        (Handler                 => Handler,
+         Context                 => Context,
          BD                      => BD,
          Item                    => Item,
          Compute_Doc_And_Details => Compute_Doc_And_Details);
@@ -2235,7 +2239,8 @@ package body LSP.Ada_Documents is
    ---------------------------------------
 
    procedure Set_Completion_Item_Documentation
-     (Context                 : LSP.Ada_Contexts.Context;
+     (Handler                 : in out LSP.Ada_Handlers.Message_Handler;
+      Context                 : LSP.Ada_Contexts.Context;
       BD                      : Libadalang.Analysis.Basic_Decl;
       Item                    : in out LSP.Structures.CompletionItem;
       Compute_Doc_And_Details : Boolean)
@@ -2283,10 +2288,7 @@ package body LSP.Ada_Documents is
          --  Set node's location to the 'data' field of the completion item, so
          --  that we can retrieve it in the completionItem/resolve handler.
          LSP.Structures.LSPAny_Vectors.To_Any
-           (LSP.Structures.Location'
-              (uri     => LSP.Utils.To_DocumentUri (BD.Unit.Get_Filename),
-               a_range => LSP.Utils.To_Range (BD.Sloc_Range),
-               others  => <>),
+           (LSP.Ada_Handlers.Locations.To_LSP_Location (Handler, BD),
             Item.data);
       end if;
    end Set_Completion_Item_Documentation;
