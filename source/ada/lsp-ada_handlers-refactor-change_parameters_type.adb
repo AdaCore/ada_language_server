@@ -194,7 +194,6 @@ package body LSP.Ada_Handlers.Refactor.Change_Parameters_Type is
       File            : constant GNATCOLL.VFS.Virtual_File :=
         Message_Handler.To_File (Self.Where.uri);
 
-      Unit : constant Analysis_Unit :=
       Unit : constant Analysis_Unit := Context.Get_AU (File);
 
       Parameters_SLOC_Range : constant Source_Location_Range :=
