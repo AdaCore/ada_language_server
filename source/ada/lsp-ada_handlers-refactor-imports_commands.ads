@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020-2023, AdaCore                     --
+--                     Copyright (C) 2020-2020, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,18 +22,18 @@ with Ada.Streams;
 with VSS.Strings;
 
 with LAL_Refactor;
-with LAL_Refactor.Auto_Import;
+with LAL_Refactor.Refactor_Imports;
 
 with LSP.Client_Message_Receivers;
 with LSP.JSON_Streams;
 
-package LSP.Ada_Handlers.Refactor.Auto_Import is
+package LSP.Ada_Handlers.Refactor.Imports_Commands is
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with private;
 
    overriding function Name (Self : Command) return String
    is
-      ("Auto Import");
+      ("Imports Command");
 
    procedure Initialize
      (Self         : in out Command'Class;
@@ -48,16 +48,17 @@ package LSP.Ada_Handlers.Refactor.Auto_Import is
       Context           : Context_Access;
       Where             : LSP.Messages.Location;
       Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
-      Suggestion        : LAL_Refactor.Auto_Import.Import_Type);
+      Suggestion        : LAL_Refactor.Refactor_Imports.Import_Suggestion);
    --  Initializes Command based on Suggestion and appends it to
    --  Commands_Vector.
 
 private
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with record
-      Context    : VSS.Strings.Virtual_String;
-      Where      : LSP.Messages.TextDocumentPositionParams;
-      Suggestion : LAL_Refactor.Auto_Import.Import_Type;
+      Context      : VSS.Strings.Virtual_String;
+      Where        : LSP.Messages.TextDocumentPositionParams;
+      With_Clause  : VSS.Strings.Virtual_String;
+      Prefix       : VSS.Strings.Virtual_String;
    end record;
 
    overriding function Create
@@ -86,6 +87,6 @@ private
    --  converted in a WorkspaceEdit.
 
    for Command'Write use Write_Command;
-   for Command'External_Tag use "als-auto-import";
+   for Command'External_Tag use "als-refactor-imports";
 
-end LSP.Ada_Handlers.Refactor.Auto_Import;
+end LSP.Ada_Handlers.Refactor.Imports_Commands;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020-2023, AdaCore                     --
+--                     Copyright (C) 2020-2022, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,18 +16,22 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.UTF_Encoding;
+with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Wide_Unbounded;
 
 with Langkit_Support.Text;
 
 with Libadalang.Analysis;
+with Libadalang.Common;
 
-with LSP.Commands;
+with Laltools.Common;
+
 with LSP.Messages;
 
 with VSS.Strings.Conversions;
+with LSP.Commands;
 
-package body LSP.Ada_Handlers.Refactor.Auto_Import is
+package body LSP.Ada_Handlers.Refactor.Imports_Commands is
 
    ----------------
    -- Initialize --
@@ -42,11 +46,8 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
    begin
       Self.Context := Context.Id;
       Self.Where := Where;
-      Self.Suggestion :=
-        (Import    =>
-           VSS.Strings.Conversions.To_Unbounded_Wide_Wide_String (With_Clause),
-         Qualifier =>
-           VSS.Strings.Conversions.To_Unbounded_Wide_Wide_String (Prefix));
+      Self.With_Clause := With_Clause;
+      Self.Prefix := Prefix;
    end Initialize;
 
    ------------
@@ -73,25 +74,10 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
                   LSP.Types.Read_String (JS, V.Context);
                elsif Key = "where" then
                   LSP.Messages.TextDocumentPositionParams'Read (JS, V.Where);
-               elsif Key = "import" then
-                  declare
-                     Import : VSS.Strings.Virtual_String;
-                  begin
-                     LSP.Types.Read_String (JS, Import);
-                     V.Suggestion.Import :=
-                       VSS.Strings.Conversions.To_Unbounded_Wide_Wide_String
-                         (Import);
-                  end;
-
-               elsif Key = "qualifier" then
-                  declare
-                     Qualififer : VSS.Strings.Virtual_String;
-                  begin
-                     LSP.Types.Read_String (JS, Qualififer);
-                     V.Suggestion.Qualifier :=
-                       VSS.Strings.Conversions.To_Unbounded_Wide_Wide_String
-                         (Qualififer);
-                  end;
+               elsif Key = "with_clause" then
+                  LSP.Types.Read_String (JS, V.With_Clause);
+               elsif Key = "prefix" then
+                  LSP.Types.Read_String (JS, V.Prefix);
                else
                   JS.Skip_Value;
                end if;
@@ -110,13 +96,13 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
       Context           : Context_Access;
       Where             : LSP.Messages.Location;
       Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
-      Suggestion        : LAL_Refactor.Auto_Import.Import_Type)
+      Suggestion        : LAL_Refactor.Refactor_Imports.Import_Suggestion)
    is
       Pointer : LSP.Commands.Command_Pointer;
       Item    : LSP.Messages.CodeAction;
 
       function Create_Suggestion_Title
-        (Suggestion : LAL_Refactor.Auto_Import.Import_Type)
+        (Suggestion : LAL_Refactor.Refactor_Imports.Import_Suggestion)
          return VSS.Strings.Virtual_String;
       --  Creates the suggestion text that will be shown by the client to
       --  to the developer. The text is costumized based on the need of
@@ -126,17 +112,42 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
       -- Create_Suggestions_Title --
       ------------------------------
       function Create_Suggestion_Title
-        (Suggestion : LAL_Refactor.Auto_Import.Import_Type)
+        (Suggestion : LAL_Refactor.Refactor_Imports.Import_Suggestion)
          return VSS.Strings.Virtual_String
       is
-         use Ada.Strings.Wide_Wide_Unbounded;
+         Title : Ada.Strings.Wide_Wide_Unbounded.
+           Unbounded_Wide_Wide_String
+             := Ada.Strings.Wide_Wide_Unbounded.
+               Null_Unbounded_Wide_Wide_String;
+         use type Ada.Strings.Wide_Wide_Unbounded.
+           Unbounded_Wide_Wide_String;
 
-         Title : constant Langkit_Support.Text.Unbounded_Text_Type :=
-           "Qualify with " & Suggestion.Qualifier;
       begin
-         return
-           VSS.Strings.To_Virtual_String
-             (Langkit_Support.Text.To_Text (Title));
+         if Suggestion.With_Clause_Text /= "" then
+            if Suggestion.Prefix_Text /= "" then
+               --  Add with clause and prefix
+               Title :=
+                 Title
+                 & "Add 'with' clause for "
+                 & Suggestion.With_Clause_Text
+                 & " and prefix the object with "
+                 & Suggestion.Prefix_Text;
+
+            else
+               --  Add with clause and leave the prefix as it is
+               Title :=
+                 Title
+                 & "Add 'with' clause for "
+                 & Suggestion.With_Clause_Text;
+            end if;
+         else
+            --  Only add prefix
+
+            Title := Title & "Prefix the object with "
+              & Suggestion.Prefix_Text;
+         end if;
+         return VSS.Strings.To_Virtual_String
+           (Langkit_Support.Text.To_Text (Title));
       end Create_Suggestion_Title;
 
    begin
@@ -146,15 +157,15 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
                          Where.span.first),
          With_Clause =>
            VSS.Strings.Conversions.To_Virtual_String
-             (Suggestion.Import),
+             (Suggestion.With_Clause_Text),
          Prefix      =>
            VSS.Strings.Conversions.To_Virtual_String
-             (Suggestion.Qualifier));
+             (Suggestion.Prefix_Text));
       Pointer.Set (Self);
       Item :=
         (title       => Create_Suggestion_Title (Suggestion),
          kind        => (Is_Set => True,
-                         Value  => LSP.Messages.QuickFix),
+                         Value  => LSP.Messages.RefactorRewrite),
          diagnostics => (Is_Set => False),
          disabled    => (Is_Set => False),
          edit        => (Is_Set => False),
@@ -177,20 +188,119 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
       Document : LSP.Ada_Documents.Document_Access)
       return LAL_Refactor.Refactoring_Edits
    is
+      use Langkit_Support.Text;
       use Libadalang.Analysis;
-      use LAL_Refactor.Auto_Import;
+      use Libadalang.Common;
+      use Libadalang.Slocs;
+      use LAL_Refactor;
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
 
-      Name : constant Libadalang.Analysis.Name :=
-        Document.Get_Node_At (Context, Self.Where.position).As_Name;
+      Node : Ada_Node :=
+        Document.Get_Node_At (Context, Self.Where.position);
 
-      function Units return Analysis_Unit_Array is ([]);
+      Edits :  LAL_Refactor.Refactoring_Edits;
 
    begin
-      return
-        Create_Auto_Importer
-          (Name,
-           Self.Suggestion)
-          .Refactor (Units'Access);
+      --  Add prefix
+
+      if not Self.Prefix.Is_Empty
+        and then Node.Kind in Ada_Identifier
+      then
+         --  If this is a DottedName them remove the current prefix and replace
+         --  it by the suggested one. Otherwise, just add the prepend the
+         --  prefix
+
+         while Node.Parent.Kind in Ada_Dotted_Name_Range loop
+            Node := Node.Parent;
+         end loop;
+
+         if Node.Kind in Ada_Dotted_Name_Range then
+            Node := Node.As_Dotted_Name.F_Suffix.As_Ada_Node;
+         end if;
+
+         if Node.Parent.Kind = Ada_Dotted_Name then
+            --  Node.Parent is the full Dotted Name: this includes the
+            --  current prefixes and the identifier. Using this SLOC instead
+            --  of only the current prefixes SLOC is better since this covers
+            --  cases when the Dotted Name is splitted in multiple lines.
+
+            Safe_Insert
+              (Edits     => Edits.Text_Edits,
+               File_Name => Node.Unit.Get_Filename,
+               Edit      =>
+                 Text_Edit'
+                   (Location =>
+                      Make_Range
+                        (Start_Sloc
+                           (Node.Parent.As_Dotted_Name.F_Prefix.Sloc_Range),
+                         Start_Sloc (Node.Sloc_Range)),
+                    Text     =>
+                      Ada.Strings.Unbounded.To_Unbounded_String
+                        (To_UTF8 (To_Wide_Wide_String (Self.Prefix)))));
+
+         else
+            Safe_Insert
+              (Edits     => Edits.Text_Edits,
+               File_Name => Node.Unit.Get_Filename,
+               Edit      =>
+                 Text_Edit'
+                   (Location =>
+                      Make_Range
+                        (Start_Sloc (Node.Sloc_Range),
+                         Start_Sloc (Node.Sloc_Range)),
+                    Text     =>
+                      Ada.Strings.Unbounded.To_Unbounded_String
+                        (To_UTF8 (To_Wide_Wide_String (Self.Prefix)))));
+         end if;
+      end if;
+
+      --  Add with clause
+
+      if not Self.With_Clause.Is_Empty then
+         declare
+            Last : Boolean;
+            S    : constant Libadalang.Slocs.Source_Location :=
+              Laltools.Common.Get_Insert_With_Location
+                (Node      => Laltools.Common.Get_Compilation_Unit (Node),
+                 Pack_Name =>
+                   VSS.Strings.Conversions.To_Wide_Wide_String
+                     (Self.With_Clause),
+                 Last      => Last);
+         begin
+            if S /= Libadalang.Slocs.No_Source_Location then
+               if Last then
+                  Safe_Insert
+                    (Edits     => Edits.Text_Edits,
+                     File_Name => Node.Unit.Get_Filename,
+                     Edit      =>
+                       Text_Edit'
+                         (Location => Make_Range (S, S),
+                          Text     =>
+                            Ada.Strings.Unbounded.To_Unbounded_String
+                              (To_UTF8 (To_Wide_Wide_String
+                               (Document.Line_Terminator
+                               & "with " & Self.With_Clause & ";")))));
+
+               else
+                  Safe_Insert
+                    (Edits     => Edits.Text_Edits,
+                     File_Name => Node.Unit.Get_Filename,
+                     Edit      =>
+                       Text_Edit'
+                         (Location => Make_Range (S, S),
+                          Text     =>
+                            Ada.Strings.Unbounded.To_Unbounded_String
+                              (To_UTF8 (To_Wide_Wide_String
+                               ("with " & Self.With_Clause & ";"
+                                  & Document.Line_Terminator)))));
+               end if;
+
+            end if;
+         end;
+      end if;
+
+      return Edits;
    end Command_To_Refactoring_Edits;
 
    --------------
@@ -235,15 +345,11 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
       LSP.Types.Write_String (S, V.Context);
       JS.Key ("where");
       LSP.Messages.TextDocumentPositionParams'Write (S, V.Where);
-      JS.Key ("import");
-      LSP.Types.Write_String
-        (S,
-         VSS.Strings.Conversions.To_Virtual_String (V.Suggestion.Import));
-      JS.Key ("qualifier");
-      LSP.Types.Write_String
-        (S,
-         VSS.Strings.Conversions.To_Virtual_String (V.Suggestion.Qualifier));
+      JS.Key ("with_clause");
+      LSP.Types.Write_String (S, V.With_Clause);
+      JS.Key ("prefix");
+      LSP.Types.Write_String (S, V.Prefix);
       JS.End_Object;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor.Auto_Import;
+end LSP.Ada_Handlers.Refactor.Imports_Commands;
