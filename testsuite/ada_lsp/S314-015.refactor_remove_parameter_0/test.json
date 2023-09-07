@@ -340,7 +340,7 @@
          },
          "wait": [
             {
-               "id": 6,
+               "id": 2,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {
@@ -558,7 +558,7 @@
          },
          "wait": [
             {
-               "id": 11,
+               "id": 3,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {
@@ -895,7 +895,7 @@
          },
          "wait": [
             {
-               "id": 21,
+               "id": 4,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {

@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Strings.Unbounded;
 with Ada.Tags.Generic_Dispatching_Constructor;
 with Ada.Unchecked_Deallocation;
 
@@ -1305,12 +1306,11 @@ package body LSP.Ada_Handlers is
                   Title  : constant VSS.Strings.Virtual_String :=
                     "Create a default project file (default.gpr)";
                   URI    : constant LSP.Structures.DocumentUri :=
-                    To_DocumentUri
-                      (VSS.Strings.Conversions.To_Virtual_String
-                         (GNATCOLL.VFS.Create_From_UTF8
+                    Self.To_URI
+                      (GNATCOLL.VFS.Create_From_UTF8
                          (VSS.Strings.Conversions.To_UTF_8_String
                             (Self.Client.Root)).Join
-                              ("default.gpr").Display_Full_Name));
+                              ("default.gpr").Display_Full_Name);
 
                   Create : constant LSP.Structures.
                     documentChanges_OfWorkspaceEdit_Item :=
@@ -2168,8 +2168,7 @@ package body LSP.Ada_Handlers is
       -- Process_Created_File --
       --------------------------
 
-      procedure Process_Created_File
-      is
+      procedure Process_Created_File is
          use VSS.Strings.Conversions;
 
          Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
@@ -2358,20 +2357,14 @@ package body LSP.Ada_Handlers is
 
       for File of Value.files loop
          declare
-            Deleted_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (To_DocumentUri (File.uri));
+            Deleted_URI : constant LSP.Structures.DocumentUri :=
+              To_DocumentUri (File.uri);
 
-            function Has_File
-              (Context : LSP.Ada_Contexts.Context)
-               return Boolean
-            is (Context.Is_Part_Of_Project (To_DocumentUri (File.uri)));
-            --  Return True if Old_File is a source of the project held by
-            --  Context.
+            Deleted_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (Deleted_URI);
 
          begin
-            for Context of Self.Contexts.Each_Context
-              (Has_File'Unrestricted_Access)
-            loop
+            for Context of Self.Contexts_For_File (Deleted_File) loop
                Context.Exclude_File (Deleted_File);
                Context.Index_File (Deleted_File);
 
@@ -2481,23 +2474,16 @@ package body LSP.Ada_Handlers is
          declare
             use VSS.Strings.Conversions;
 
-            Old_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (To_DocumentUri (File_Rename.oldUri));
+            Old_URI : constant LSP.Structures.DocumentUri :=
+              To_DocumentUri (File_Rename.oldUri);
 
-            function Has_File
-              (Context : LSP.Ada_Contexts.Context)
-               return Boolean
-            is (Context.Is_Part_Of_Project
-                (To_DocumentUri (File_Rename.oldUri)));
-            --  Return True if Old_File is a source of the project held by
-            --  Context.
+            Old_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (Old_URI);
 
             URI_Contexts : Context_Lists.List;
 
          begin
-            for Context of Self.Contexts.Each_Context
-              (Has_File'Unrestricted_Access)
-            loop
+            for Context of Self.Contexts_For_File (Old_File) loop
                URI_Contexts.Append (Context);
                Context.Exclude_File (Old_File);
                Context.Index_File (Old_File);
@@ -2507,8 +2493,7 @@ package body LSP.Ada_Handlers is
                   & " from context " & To_UTF_8_String (Context.Id));
             end loop;
 
-            URIs_Contexts.Insert
-              (To_DocumentUri (File_Rename.oldUri), URI_Contexts);
+            URIs_Contexts.Insert (Old_URI, URI_Contexts);
          end;
       end loop;
 
@@ -2522,22 +2507,30 @@ package body LSP.Ada_Handlers is
             use VSS.Strings.Conversions;
             use type LSP.Ada_Documents.Document_Access;
 
+            New_URI : constant LSP.Structures.DocumentUri :=
+              To_DocumentUri (File_Rename.newUri);
+
+            Old_URI : constant LSP.Structures.DocumentUri :=
+              To_DocumentUri (File_Rename.oldUri);
+
             New_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (To_DocumentUri (File_Rename.newUri));
+              Self.To_File (New_URI);
+
             Document : constant LSP.Ada_Documents.Document_Access :=
-              Get_Open_Document (Self, To_DocumentUri (File_Rename.newUri));
+              Get_Open_Document (Self, New_URI);
+
             Is_Document_Open : constant Boolean := Document /= null;
 
          begin
-            for Context of URIs_Contexts.Constant_Reference
-              (To_DocumentUri (File_Rename.oldUri))
-            loop
+            for Context of URIs_Contexts (Old_URI) loop
                Context.Include_File (New_File);
+
                if Is_Document_Open then
                   Context.Index_Document (Document.all);
                else
                   Context.Index_File (New_File);
                end if;
+
                Self.Tracer.Trace
                  ("Included " & New_File.Display_Base_Name & " in context "
                   & To_UTF_8_String (Context.Id));
@@ -2729,13 +2722,16 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
+         New_Id : constant LSP.Structures.Integer_Or_Virtual_String :=
+           Self.Server.Allocate_Request_Id;
+
          Command : constant LSP.Commands.Command'Class :=
            Create_Command (Tag, Value.arguments'Unrestricted_Access);
       begin
          Command.Execute
            (Handler => Self'Access,
             Sender  => Self.Sender,
-            Id      => Id,
+            Id      => New_Id,
             Error   => Error);
 
          if Error.Is_Set then
@@ -4209,8 +4205,6 @@ package body LSP.Ada_Handlers is
 
       Text_Edits_Cursor     : Text_Edit_Ordered_Maps.Cursor :=
         Edits.Text_Edits.First;
-      File_Deletions_Cursor : Unbounded_String_Ordered_Sets.Cursor :=
-        Edits.File_Deletions.First;
 
       function To_TextEdit
         (E : LAL_Refactor.Text_Edit)
@@ -4282,8 +4276,8 @@ package body LSP.Ada_Handlers is
                  (documentChanges_OfWorkspaceEdit_Item'(
                   (Kind   => create,
                    create => CreateFile'
-                     (uri    => To_DocumentUri
-                        (VSS.Strings.Conversions.To_Virtual_String
+                     (uri    => Self.To_URI
+                        (Ada.Strings.Unbounded.To_String
                              (File_Creation.Filepath)),
                       others => <>))));
 
@@ -4312,29 +4306,33 @@ package body LSP.Ada_Handlers is
 
          --  File deletions
 
-         if Self.Client.Versioned_Documents
-           and then Self.Client.Resource_Delete_Supported
-         then
-            while Unbounded_String_Ordered_Sets.Has_Element
-              (File_Deletions_Cursor)
-            loop
-               File_URI := To_DocumentUri
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (Unbounded_String_Ordered_Sets.Element
-                         (File_Deletions_Cursor)));
+         if Self.Client.Versioned_Documents then
+            for Item of Edits.File_Deletions loop
+               File_URI := Self.To_URI
+                 (Ada.Strings.Unbounded.To_String (Item));
 
-               WE.documentChanges.Append
-                 (documentChanges_OfWorkspaceEdit_Item'(
-                  (Kind   => LSP.Structures.rename,
-                   rename => RenameFile'
-                     (oldUri       => File_URI,
-                      newUri       =>
-                        (if Rename
-                         then File_URI & ".bak"
-                         else File_URI),
-                      others => <>))));
+               if Rename and then Self.Client.Resource_Rename_Supported then
 
-               Unbounded_String_Ordered_Sets.Next (File_Deletions_Cursor);
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'(
+                     (Kind   => LSP.Structures.rename,
+                      rename => LSP.Structures.RenameFile'
+                        (oldUri => File_URI,
+                         newUri => File_URI & ".bak",
+                         others => <>))));
+
+               elsif not Rename
+                 and then Self.Client.Resource_Delete_Supported
+               then
+
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'(
+                     (Kind   => LSP.Structures.delete,
+                      delete => LSP.Structures.DeleteFile'
+                        (uri    => File_URI,
+                         others => <>))));
+
+               end if;
             end loop;
          end if;
 
@@ -4347,12 +4345,12 @@ package body LSP.Ada_Handlers is
                WE.documentChanges.Append
                  (documentChanges_OfWorkspaceEdit_Item'(
                   (Kind   => LSP.Structures.rename,
-                   rename => RenameFile'
-                     (oldUri => To_DocumentUri
-                        (VSS.Strings.Conversions.To_Virtual_String
+                   rename => LSP.Structures.RenameFile'
+                     (oldUri => Self.To_URI
+                        (Ada.Strings.Unbounded.To_String
                              (File_Rename.Filepath)),
-                      newUri => To_DocumentUri
-                        (VSS.Strings.Conversions.To_Virtual_String
+                      newUri => Self.To_URI
+                        (Ada.Strings.Unbounded.To_String
                              (File_Rename.New_Name)),
                       others => <>))));
             end loop;

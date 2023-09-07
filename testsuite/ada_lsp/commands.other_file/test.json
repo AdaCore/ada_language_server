@@ -84,7 +84,6 @@
             "wait":[
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
                     "method": "window/showDocument",
                     "params": {
                         "uri": "$URI{aaa.adb}",
@@ -116,7 +115,6 @@
             "wait":[
                 {
                     "jsonrpc": "2.0",
-                    "id": 3,
                     "method": "window/showDocument",
                     "params": {
                         "uri": "$URI{aaa.ads}",

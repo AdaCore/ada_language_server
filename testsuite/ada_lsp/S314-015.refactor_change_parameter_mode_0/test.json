@@ -390,7 +390,7 @@
          },
          "wait": [
             {
-               "id": 7,
+               "id": 2,
                "method": "workspace/applyEdit",
                "params": {
                   "edit": {

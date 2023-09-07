@@ -180,7 +180,7 @@
                      ]
                   }
                },
-               "id": 2,
+               "id": 1,
                "jsonrpc": "2.0",
                "method": "workspace/applyEdit"
             },
@@ -276,7 +276,7 @@
                      ]
                   }
                },
-               "id": 3,
+               "id": 2,
                "method": "workspace/applyEdit"
             },
             {
