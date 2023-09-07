@@ -81,29 +81,7 @@
                                   "'",
                                   "("
                               ]
-                          },
-                          "hoverProvider": true,
-                          "declarationProvider": true,
-                          "definitionProvider": true,
-                          "typeDefinitionProvider": true,
-                          "implementationProvider": true,
-                          "referencesProvider": true,
-                          "codeActionProvider": {
-                          },
-                          "renameProvider": {
-                          },
-                          "foldingRangeProvider": true,
-                          "executeCommandProvider": {},
-                          "alsReferenceKinds": [
-                              "reference",
-                              "access",
-                              "write",
-                              "call",
-                              "dispatching call",
-                              "parent",
-                              "child",
-                              "overriding"
-                          ]
+                          }
                       }
                   }
               }
@@ -203,17 +181,13 @@
                            "detail": "procedure Do_Nothing (Obj : My_Int; A :Integer)",
                            "documentation": "at bar.ads (7:4)",
                            "insertText": "Do_Nothing (${1:Obj : My_Int}, ${2:A : Integer})$0",
-                           "insertTextFormat": 2,
-                           "additionalTextEdits": [
-                           ]
+                           "insertTextFormat": 2
                        },
                        {
                            "label": "My_Int",
                            "kind": 7,
                            "detail": "type My_Int is tagged record\n   A : Integer;\nend record;",
-                           "documentation": "at bar.ads (3:4)",
-                           "additionalTextEdits": [
-                           ]
+                           "documentation": "at bar.ads (3:4)"
                        }
                    ]
                }

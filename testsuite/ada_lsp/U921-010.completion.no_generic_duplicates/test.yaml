@@ -1,4 +1,1 @@
 title: 'U921-010.completion.no_generic_duplicates'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

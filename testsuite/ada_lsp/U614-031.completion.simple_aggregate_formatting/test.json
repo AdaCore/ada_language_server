@@ -172,7 +172,6 @@
                            },
                            "newText": "My_Record'\n                        (I => ${1:Integer},\n                         J => ${2:Integer},\n                         F => ${3:Float})$0"
                         },
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{src/foo.adb}",
                            "range": {
@@ -193,8 +192,7 @@
                         "documentation": "I => ",
                         "sortText": "+1",
                         "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "J",
@@ -202,8 +200,7 @@
                         "documentation": "J => ",
                         "sortText": "+2",
                         "insertText": "J => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "F",
@@ -211,8 +208,7 @@
                         "documentation": "F => ",
                         "sortText": "+3",
                         "insertText": "F => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -326,7 +322,6 @@
                            },
                            "newText": "(I => ${1:Integer},\n                       J => ${2:Integer},\n                       F => ${3:Float})$0"
                         },
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{src/foo.adb}",
                            "range": {
@@ -347,8 +342,7 @@
                         "documentation": "I => ",
                         "sortText": "+1",
                         "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "J",
@@ -356,8 +350,7 @@
                         "documentation": "J => ",
                         "sortText": "+2",
                         "insertText": "J => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "F",
@@ -365,8 +358,7 @@
                         "documentation": "F => ",
                         "sortText": "+3",
                         "insertText": "F => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }

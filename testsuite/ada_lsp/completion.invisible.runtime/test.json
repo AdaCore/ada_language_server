@@ -88,41 +88,7 @@
                            "("
                         ],
                         "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
-                     },
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ]
+                     }
                   }
                }
             }
@@ -215,8 +181,7 @@
                         "documentation": "at a-decima.ads (38:1)\n\nThe compiler makes a number of assumptions based on the following five\nconstants (e.g. there is an assumption that decimal values can always\nbe represented in 128-bit signed binary form), so code modifications are\nrequired to increase these constants.",
                         "sortText": "~100&08Decimal",
                         "filterText": "Decimal",
-                        "insertText": "Decimal",
-                        "additionalTextEdits": []
+                        "insertText": "Decimal"
                      }
                   ]
                }

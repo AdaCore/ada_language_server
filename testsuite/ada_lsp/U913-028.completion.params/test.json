@@ -168,7 +168,6 @@
                         "sortText": "+0",
                         "insertText": "${1:I : Integer}, ${2:F : Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -188,16 +187,14 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "F",
                         "kind": 5,
                         "sortText": "+2",
                         "insertText": "F => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Bar",
@@ -205,7 +202,6 @@
                         "sortText": "+3",
                         "insertText": "${1:I : Integer}, ${2:J : Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -225,16 +221,14 @@
                         "kind": 5,
                         "sortText": "+4",
                         "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "J",
                         "kind": 5,
                         "sortText": "+5",
                         "insertText": "J => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -263,9 +257,8 @@
                   "label": "F",
                   "kind": 1,
                   "insertText": "F => ",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
-               }
+                  "insertTextFormat": 1
+              }
             }
          ]
       }
@@ -418,7 +411,6 @@
                         "sortText": "+0",
                         "insertText": "I => ${1:Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -438,8 +430,7 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -457,8 +448,7 @@
                "label": "I",
                "kind": 1,
                "insertText": "I => ",
-               "insertTextFormat": 1,
-               "additionalTextEdits": []
+               "insertTextFormat": 1
             }
          },
          "wait": [
@@ -468,8 +458,7 @@
                   "label": "I",
                   "kind": 1,
                   "insertText": "I => ",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -485,8 +474,7 @@
                "label": "Params of Bar",
                "kind": 15,
                "insertText": "I => $1)$0",
-               "insertTextFormat": 2,
-               "additionalTextEdits": []
+               "insertTextFormat": 2
             }
          },
          "wait": [
@@ -496,8 +484,7 @@
                   "label": "Params of Bar",
                   "kind": 15,
                   "insertText": "I => $1)$0",
-                  "insertTextFormat": 2,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 2
                }
             }
          ]

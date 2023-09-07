@@ -1,4 +1,1 @@
 title: 'completion.subp_params_dotted_names'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']
