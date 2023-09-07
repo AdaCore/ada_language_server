@@ -45,7 +45,7 @@ private
    type Command is new LSP.Commands.Command with record
       Context             : VSS.Strings.Virtual_String;
       Where               : LSP.Structures.TextDocumentPositionParams;
-      Versioned_Documents : Boolean;
+      Versioned_Documents : Boolean := True;
    end record;
 
    overriding function Create

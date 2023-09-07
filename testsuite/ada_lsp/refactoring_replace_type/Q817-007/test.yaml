@@ -1,4 +1,1 @@
 title: 'refactoring_replace_type/Q817-007'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

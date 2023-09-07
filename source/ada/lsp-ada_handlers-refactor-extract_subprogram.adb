@@ -152,10 +152,10 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
-      Unit               : constant Analysis_Unit :=
-        Context.LAL_Context.Get_From_File
-          (VSS.Strings.Conversions.To_UTF_8_String
-             (Self.Section_To_Extract_SLOC.uri));
+      File            : constant GNATCOLL.VFS.Virtual_File :=
+        Message_Handler.To_File (Self.Section_To_Extract_SLOC.uri);
+
+      Unit               : constant Analysis_Unit := Context.Get_AU (File);
       Section_To_Extract : constant Source_Location_Range :=
         (Langkit_Support.Slocs.Line_Number
            (Self.Section_To_Extract_SLOC.a_range.start.line) + 1,
