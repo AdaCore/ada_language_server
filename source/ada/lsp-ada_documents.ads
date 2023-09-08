@@ -147,7 +147,7 @@ package LSP.Ada_Documents is
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Line    : Positive)
-      return Natural;
+      return VSS.Strings.Character_Count;
    --  Estimates the indention a line should have
 
    function Get_Node_At

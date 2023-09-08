@@ -20,7 +20,6 @@ with VSS.Strings;
 with LSP.Structures;
 
 package LSP.Ada_Client_Capabilities is
-   pragma Preelaborate;
 
    type Client_Capability is tagged limited private;
    --  This type holds client initialization response and provides handy

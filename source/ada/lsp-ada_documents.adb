@@ -1803,11 +1803,12 @@ package body LSP.Ada_Documents is
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Line    : Positive)
-      return Natural
+      return VSS.Strings.Character_Count
    is
-     (Laltools.Partial_GNATPP.Estimate_Indentation
-        (Self.Unit (Context),
-         Self.Get_Source_Location ((Line, 1)).Line));
+     (VSS.Strings.Character_Count
+        (Laltools.Partial_GNATPP.Estimate_Indentation
+             (Self.Unit (Context),
+              Self.Get_Source_Location ((Line, 1)).Line)));
 
    -----------------
    -- Get_Node_At --

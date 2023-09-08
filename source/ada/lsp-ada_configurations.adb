@@ -49,6 +49,13 @@ package body LSP.Ada_Configurations is
    --  Trace to enable/disable using partial Gnatpp in the rangeFormatting
    --  request.
 
+   On_Type_Formatting_Trace : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create
+       (Unit_Name => "ALS.ON_TYPE_FORMATTING",
+        Default   => GNATCOLL.Traces.On);
+   --  Trace to enable/disable ALS from providing the
+   --  documentOnTypeFormattingProvider capability.
+
    ---------------------------
    -- Completion_Formatting --
    ---------------------------
@@ -57,6 +64,15 @@ package body LSP.Ada_Configurations is
    begin
       return ALS_COMPLETION_FORMATTING.Is_Active;
    end Completion_Formatting;
+
+   ------------------------
+   -- On_Type_Formatting --
+   ------------------------
+
+   function On_Type_Formatting return Boolean is
+   begin
+      return On_Type_Formatting_Trace.Is_Active;
+   end On_Type_Formatting;
 
    ---------------
    -- Read_JSON --
@@ -69,7 +85,6 @@ package body LSP.Ada_Configurations is
    is
       use all type VSS.JSON.JSON_Number_Kind;
       use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
-      use type VSS.Strings.Virtual_String;
       use type VSS.String_Vectors.Virtual_String_Vector;
 
       Index            : Positive := JSON.First_Index;

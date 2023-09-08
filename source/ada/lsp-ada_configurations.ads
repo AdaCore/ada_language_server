@@ -17,6 +17,7 @@
 
 with GNATdoc.Comments.Options;
 
+private with VSS.Characters.Latin;
 with VSS.Strings;
 with VSS.String_Vectors;
 
@@ -103,7 +104,15 @@ package LSP.Ada_Configurations is
    function Partial_GNATPP return Boolean;
    --  Whether partial GNATPP is enabled.
 
+   function On_Type_Formatting return Boolean;
+   --  Whether onTypeFormatting is enabled.
+
+   function On_Type_Formatting_Settings
+     return LSP.Structures.DocumentOnTypeFormattingOptions;
+
 private
+
+   use type VSS.Strings.Virtual_String;
 
    type Configuration is tagged limited record
       Project_File             : VSS.Strings.Virtual_String;
@@ -186,5 +195,10 @@ private
    function Display_Method_Ancestry_Policy (Self : Configuration'Class)
      return DisplayMethodAncestryOnNavigationPolicy is
        (Self.Method_Ancestry_Policy);
+
+   function On_Type_Formatting_Settings
+     return LSP.Structures.DocumentOnTypeFormattingOptions is
+     (firstTriggerCharacter => 1 * VSS.Characters.Latin.Line_Feed,
+      moreTriggerCharacter  => <>);
 
 end LSP.Ada_Configurations;

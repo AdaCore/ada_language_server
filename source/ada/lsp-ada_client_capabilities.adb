@@ -20,6 +20,7 @@ with VSS.JSON.Streams;
 with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 
+with LSP.Ada_Configurations;
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Structures.Unwrap;
@@ -289,6 +290,12 @@ package body LSP.Ada_Client_Capabilities is
          Result.codeActionProvider :=
            (if Self.Code_ActionLiteralSupport then Full_codeActionProvider
             else LSP.Constants.True);
+
+         Result.documentOnTypeFormattingProvider :=
+           (if LSP.Ada_Configurations.On_Type_Formatting
+            then (Is_Set => True,
+                  Value  => LSP.Ada_Configurations.On_Type_Formatting_Settings)
+            else (Is_Set => False));
 
          Result.executeCommandProvider :=
            (Is_Set => True,
