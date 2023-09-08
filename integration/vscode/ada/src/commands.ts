@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
-import { getEnclosingSymbol } from './gnatTaskProvider';
-import { mainLogChannel } from './extension';
 import { ContextClients } from './clients';
 import { AdaDebugConfigProvider } from './debugConfigProvider';
+import { mainLogChannel } from './extension';
+import { getEnclosingSymbol } from './gnatTaskProvider';
 
 export function registerCommands(
     context: vscode.ExtensionContext,
@@ -29,9 +29,12 @@ export function registerCommands(
             clients.gprClient.outputChannel.show()
         )
     );
+
+    // This is a hidden command that gets called in the default debug
+    // configuration snippet that gets offered in the launch.json file.
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.initDebugFile', async () => {
-            const p = await debug.initDebugCmd();
+        vscode.commands.registerCommand('ada.askForProgram', async () => {
+            const p = await debug.askForProgram();
             return p;
         })
     );

@@ -20,13 +20,13 @@ import * as process from 'process';
 import * as vscode from 'vscode';
 
 import { LanguageClient, Middleware } from 'vscode-languageclient/node';
-import { ContextClients } from './clients';
-import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
+import { alsCommandExecutor } from './alsExecuteCommand';
+import { ContextClients } from './clients';
 import { registerCommands } from './commands';
-import { initializeTestView } from './gnattest';
-import { getEvaluatedCustomEnv, assertSupportedEnvironments } from './helpers';
 import { initializeDebugging } from './debugConfigProvider';
+import { initializeTestView } from './gnattest';
+import { assertSupportedEnvironments, getEvaluatedCustomEnv } from './helpers';
 
 const ADA_CONTEXT = 'ADA_PROJECT_CONTEXT';
 export let contextClients: ContextClients;
@@ -78,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     await Promise.all([contextClients.adaClient.onReady(), contextClients.gprClient.onReady()]);
 
-    const adaDebugConfigProvider = await initializeDebugging(context, contextClients);
+    const adaDebugConfigProvider = initializeDebugging(context, contextClients);
 
     registerCommands(context, contextClients, adaDebugConfigProvider);
 

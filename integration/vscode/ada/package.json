@@ -508,11 +508,6 @@
                 "command": "ada.showGprLSOutput",
                 "title": "Ada: Show GPR Language Server Output",
                 "when": "ADA_PROJECT_CONTEXT"
-            },
-            {
-                "command": "ada.initDebugFile",
-                "title": "Ada: Debug File",
-                "when": "ADA_PROJECT_CONTEXT"
             }
         ],
         "keybindings": [
@@ -589,7 +584,7 @@
         ],
         "debuggers": [
             {
-                "type": "cppdbg",
+                "type": "ada",
                 "label": "Ada",
                 "languages": [
                     "ada",
@@ -599,64 +594,22 @@
                 "when": "ADA_PROJECT_CONTEXT",
                 "configurationSnippets": [
                     {
-                        "label": "Ada Debugger Launch",
+                        "label": "Ada: Debugger Launch",
                         "description": "Launch configuration for Ada debugging.",
                         "body": {
                             "type": "cppdbg",
                             "request": "launch",
-                            "name": "Ada Debugger Launch",
-                            "program": "your-executable-path",
+                            "name": "Ada: Debugger Launch",
+                            "program": "^\"\\${workspaceFolder}/\\${command:ada.askForProgram}\"",
                             "args": [],
-                            "cwd": "${workspaceFolder}",
+                            "cwd": "^\"\\${workspaceFolder}\"",
                             "stopAtEntry": false,
-                            "preLaunchTask": "your-prelaunch-task"
+                            "preLaunchTask": "ada: Build current project"
                         }
                     }
                 ],
-                "configurationAttributes": {
-                    "launch": {
-                        "required": [
-                            "program"
-                        ],
-                        "properties": [
-                            {
-                                "program": {
-                                    "type": "string",
-                                    "description": "Path to program executable.",
-                                    "default": "${command:AskForProgram}"
-                                },
-                                "cwd": {
-                                    "type": "string",
-                                    "description": "The working directory of the target.",
-                                    "default": "${workspaceRoot}"
-                                },
-                                "stopAtEntry": {
-                                    "type": "boolean",
-                                    "description": "If true, the debugger should stop at the entrypoint of the target.",
-                                    "default": false
-                                },
-                                "args": {
-                                    "description": "Arguments passed to the program entrypoint",
-                                    "items": {
-                                        "type": "string"
-                                    },
-                                    "type": [
-                                        "array",
-                                        "string"
-                                    ],
-                                    "default": []
-                                },
-                                "preLaunchTask": {
-                                    "type": "string",
-                                    "description": "The build task to launch before debugging",
-                                    "default": "ada: Build current project"
-                                }
-                            }
-                        ]
-                    }
-                },
                 "variables": {
-                    "AskForProgram": "ada.initDebugFile"
+                    "AskForProgram": "ada.askForProgram"
                 }
             }
         ]

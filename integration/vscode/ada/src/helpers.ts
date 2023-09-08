@@ -106,18 +106,6 @@ export function substituteVariables(str: string, recursive = false): string {
     return str;
 }
 
-/**
- * Extract the name of a file from a path
- *
- * ei: from '/user/folder/src/main.adb' returns 'main.adb'
- *
- * @param path - string path to a file
- * @returns the full name of a file
- */
-export function fileNameFromPath(path: string) {
-    return path.replace(/^.*[\\/]/, '');
-}
-
 /*
     Environment setting helper functions
 */

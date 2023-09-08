@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { ContextClients } from './clients';
 import { getExecutables, getMains } from './helpers';
 
@@ -26,72 +26,62 @@ interface AdaConfig extends vscode.DebugConfiguration {
  * @param clients - the language clients
  * @returns the debug configuration provider
  */
-export async function initializeDebugging(ctx: vscode.ExtensionContext, clients: ContextClients) {
+export function initializeDebugging(ctx: vscode.ExtensionContext, clients: ContextClients) {
+    // Instantiate a DebugConfigProvider for Ada and register it.
     const provider = new AdaDebugConfigProvider(clients);
-    ctx.subscriptions.push(
-        vscode.debug.registerDebugConfigurationProvider(
-            AdaDebugConfigProvider.adaConfigType,
-            provider
-        )
-    );
 
-    const workspaceConfig = vscode.workspace.getConfiguration();
-    const configurations: vscode.DebugConfiguration[] =
-        (workspaceConfig.get('launch.configurations') as vscode.DebugConfiguration[]) || [];
+    // This provider is registered for the 'ada' debugger type. It means that
+    // it is triggered either when a configuration with type 'ada' is launched,
+    // or when the applicable context of the 'ada' debugger type is enabled
+    // (see package.json/debuggers).
+    //
+    // However concretely we never define debug configurations of the type
+    // 'ada'. All the provided configurations use the type 'cppdbg'. This means
+    // that once a 'cppdbg' is declared in the launch.json file, this provider
+    // is no longer called since it is not registered for the type 'cppdbg'.
+    // Moreover, it is somewhat discouraged to register it for the type
+    // 'cppdbg' since that type is provided by another extension.
+    ctx.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('ada', provider));
 
-    let status = false;
-    for (const config of configurations) {
-        if (config.name == 'Debug Ada') {
-            status = true;
-            break;
-        }
-    }
+    // TODO it is also possible to register another provider with trigger kind
+    // 'Dynamic', however the role of such a provider is unclear. In practical
+    // experiments it ends up never being called. The above provider is enough
+    // to make it possible to launch debug sessions without a launch.json.
 
-    if (!status) {
-        const initialDebugConfiguration = initializeConfig(undefined, '${command:AskForProgram}');
-
-        configurations.push(initialDebugConfiguration);
-
-        await workspaceConfig.update(
-            'launch.configurations',
-            configurations,
-            vscode.ConfigurationTarget.Workspace
-        );
-    }
     return provider;
 }
 /**
- * Initialize the GDB debug configuration for an executable,
- * either program or command must be specified
+ * Initialize a debug configuration based on 'cppdbg' for the given executable
+ * if specified. Otherwise the program field includes
+ * ${command:ada.askForProgram} to prompt the User for an executable to debug.
+ *
  * @param program - the executable to debug (optional)
- * @param command - the command to collect the program to debug (optional)
  * @returns an AdaConfig
  */
-function initializeConfig(program?: string, command?: string): AdaConfig {
-    // Get the executable name from the relative path
+function initializeConfig(program?: string): AdaConfig {
+    // TODO it would be nice if this and the package.json configuration snippet
+    // were the same.
     const config: AdaConfig = {
         type: 'cppdbg',
-        name: 'Ada Config',
+        name: 'Ada: Debugger Launch',
         request: 'launch',
         targetArchitecture: process.arch,
         cwd: '${workspaceFolder}',
-        program: 'Ada executable to debug',
+        program: '${workspaceFolder}/${command:ada.askForProgram}',
         stopAtEntry: false,
         externalConsole: false,
         args: [],
         MIMode: 'gdb',
-        // preLaunchTask: 'gpr: Build Executable for File ' + main_name,
         preLaunchTask: 'ada: Build current project',
         setupCommands: setupCmd,
     };
-    if (command) {
-        config.name = 'Debug Ada';
-        config.program = command;
-    } else if (program) {
+
+    if (program) {
         const name = path.basename(program);
-        config.name = 'Debug executable ' + name;
+        config.name = 'Ada: Debug executable - ' + name;
         config.program = program;
     }
+
     return config;
 }
 
@@ -102,19 +92,23 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
     constructor(clients: ContextClients) {
         this.clients = clients;
     }
-    // Provider
+
     async provideDebugConfigurations(
         folder: vscode.WorkspaceFolder | undefined,
         _token?: vscode.CancellationToken | undefined
     ): Promise<vscode.DebugConfiguration[]> {
-        // provide a non-existent debug/launch configuration
-        const config: vscode.DebugConfiguration[] = [];
+        // This method is called when no launch.json exists. The provider
+        // should return a set of configurations to initialize the launch.json
+        // file with.
+        const configs: vscode.DebugConfiguration[] = [];
+
         if (_token?.isCancellationRequested) {
-            return [];
+            return Promise.reject('Cancelled');
         }
+
         if (folder != undefined) {
+            // Offer a list of known Mains from the project
             const execs = await getExecutables(this.clients.adaClient);
-            // Show the option for the user to choose the executable
             const quickpick = execs.map((e) => ({
                 label: vscode.workspace.asRelativePath(e),
                 description: 'Generate the associated configuration',
@@ -123,13 +117,19 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
                 placeHolder: 'Select a program to debug',
             });
             if (selectedProgram) {
-                const configuration = initializeConfig(selectedProgram.label);
-                config.push(configuration);
+                // The cppdbg debug configuration exepects the executable to be
+                // a full path rather than a path relative to the specified
+                // cwd. That is why we include ${workspaceFolder}.
+                const configuration = initializeConfig(
+                    `\${workspaceFolder}/${selectedProgram.label}`
+                );
+                configs.push(configuration);
+            } else {
+                return Promise.reject('Cancelled');
             }
-            return config;
-        } else {
-            return config;
         }
+
+        return configs;
     }
 
     async resolveDebugConfiguration(
@@ -137,13 +137,28 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
         debugConfiguration: vscode.DebugConfiguration,
         _token?: vscode.CancellationToken | undefined
     ): Promise<vscode.DebugConfiguration | undefined> {
-        // resolve a incompleted debug/launch configuration
+        // This method is called when a debug session is being started. The
+        // debug configuration either comes from the launch.json file, or is
+        // empty when no launch.json exists.
+
         if (_token?.isCancellationRequested) {
             return undefined;
         }
+
         if (debugConfiguration.request == 'launch') {
+            // When the given debug configuration has its fields set, it means
+            // that the debug configuration is coming from a launch.json file
+            // and we don't want to alter it. Concretely this never occurs
+            // because we register this provider for the debugger type 'ada'
+            // which we never create in launch.json files. Instead we always
+            // create 'cppdbg' configurations which never go through this
+            // provider.
             return debugConfiguration;
         }
+
+        // We are operating without a launch.json. So we try to determine the
+        // program to debug dynamically. If the current editor matches one of
+        // the Mains of the project, then debug the corresponding executable.
         const file = vscode.window.activeTextEditor?.document.uri.path;
         if (file != undefined) {
             const mains = await getMains(this.clients.adaClient);
@@ -154,33 +169,44 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
                     return config;
                 }
             }
-            const quickpick = mains.map((e) => ({
-                label: vscode.workspace.asRelativePath(e),
-                description: 'Run & Debug',
-                main: e,
-            }));
-            const selectedProgram = await vscode.window.showQuickPick(quickpick, {
-                placeHolder: 'Select a main file',
-            });
-            if (selectedProgram) {
-                const index = mains.indexOf(selectedProgram.main);
-                const configuration = initializeConfig(execs[index]);
-                return configuration;
-            }
         }
+
+        // There is no current file or it matches no known Main of the project,
+        // so we offer all Main in a QuickPicker for the user to choose from.
+        const quickpick = execs.map((e) => ({
+            label: vscode.workspace.asRelativePath(e),
+            description: 'Run & Debug',
+            fullPath: e,
+        }));
+        const selectedProgram = await vscode.window.showQuickPick(quickpick, {
+            placeHolder: 'Select an executable to debug',
+        });
+        if (selectedProgram) {
+            // This is an in-memory configuration that will not be stored. It's
+            // okay to use the full path directly instead of using
+            // ${workspaceFolder}.
+            const configuration = initializeConfig(selectedProgram.fullPath);
+            return configuration;
+        }
+
         return undefined;
     }
 
     /**
-     * Resolves the program path fron the 'Debug Ada' default configuration
-     * @returns the executable path to debug
+     * Consults the project for a list of Mains. If only one is defined, it is
+     * returned immediately. If multiple ones are defines, a QuickPicker is
+     * given to the User to choose and executable to debug or to specify in a
+     * debug configuration.
+     *
+     * @returns the path of the executable to debug relative to the workspace
      */
-    async initDebugCmd(): Promise<string | undefined> {
+    async askForProgram(): Promise<string | undefined> {
         const file = vscode.window.activeTextEditor?.document.uri.path;
         const mains = await getMains(this.clients.adaClient);
         const execs = await getExecutables(this.clients.adaClient);
 
-        if (mains.length == 1) return execs[0];
+        if (execs.length == 1) return vscode.workspace.asRelativePath(execs[0]);
+
         if (file != undefined) {
             for (let i = 0; i < mains.length; i++) {
                 if (file == mains[i]) {
@@ -198,8 +224,9 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
         });
         if (selectedProgram) {
             const index = mains.indexOf(selectedProgram.main);
-            return execs[index];
+            return vscode.workspace.asRelativePath(execs[index]);
         }
+
         return undefined;
     }
 }
