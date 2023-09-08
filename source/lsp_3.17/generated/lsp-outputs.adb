@@ -779,6 +779,10 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.Moniker);
 
+   procedure Write_AlsDisplayMethodAncestryOnNavigationPolicy
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy);
+
    procedure Write_DiagnosticWorkspaceClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.DiagnosticWorkspaceClientCapabilities);
@@ -802,6 +806,10 @@ package body LSP.Outputs is
    procedure Write_WorkspaceEdit
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.WorkspaceEdit);
+
+   procedure Write_AlsVisibility
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.AlsVisibility);
 
    procedure Write_DocumentHighlight
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -1155,6 +1163,10 @@ package body LSP.Outputs is
    procedure Write_InlineValueWorkspaceClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.InlineValueWorkspaceClientCapabilities);
+
+   procedure Write_AlsSearchKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.AlsSearchKind);
 
    procedure Write_ResourceOperation
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -5557,6 +5569,11 @@ package body LSP.Outputs is
          Handler.Key_Name ("partialResultToken");
          Write_ProgressToken (Handler, Value.partialResultToken.Value);
       end if;
+      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+         Handler.Key_Name ("alsDisplayMethodAncestryOnNavigation");
+         Write_AlsDisplayMethodAncestryOnNavigationPolicy
+           (Handler, Value.alsDisplayMethodAncestryOnNavigation.Value);
+      end if;
       Handler.End_Object;
    end Write_DefinitionParams;
 
@@ -6335,6 +6352,11 @@ package body LSP.Outputs is
       if Value.partialResultToken.Is_Set then
          Handler.Key_Name ("partialResultToken");
          Write_ProgressToken (Handler, Value.partialResultToken.Value);
+      end if;
+      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+         Handler.Key_Name ("alsDisplayMethodAncestryOnNavigation");
+         Write_AlsDisplayMethodAncestryOnNavigationPolicy
+           (Handler, Value.alsDisplayMethodAncestryOnNavigation.Value);
       end if;
       Handler.End_Object;
    end Write_DeclarationParams;
@@ -7193,6 +7215,18 @@ package body LSP.Outputs is
       Handler.End_Object;
    end Write_DefinitionRegistrationOptions;
 
+   procedure Write_AlsCheckSyntaxResult
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.AlsCheckSyntaxResult) is
+   begin
+      Handler.Start_Object;
+      if not Value.diagnostic.Is_Null then
+         Handler.Key_Name ("diagnostic");
+         Handler.String_Value (Value.diagnostic);
+      end if;
+      Handler.End_Object;
+   end Write_AlsCheckSyntaxResult;
+
    procedure Write_clientInfo_Of_InitializeParams
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.clientInfo_Of_InitializeParams) is
@@ -7828,6 +7862,22 @@ package body LSP.Outputs is
       Handler.End_Object;
    end Write_WorkDoneProgressBegin;
 
+   procedure Write_AlsDisplayMethodAncestryOnNavigationPolicy
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy) is
+   begin
+      case Value is
+         when LSP.Enumerations.Never =>
+            Handler.String_Value ("Never");
+         when LSP.Enumerations.Usage_And_Abstract_Only =>
+            Handler.String_Value ("Usage_And_Abstract_Only");
+         when LSP.Enumerations.Definition_Only =>
+            Handler.String_Value ("Definition_Only");
+         when LSP.Enumerations.Always =>
+            Handler.String_Value ("Always");
+      end case;
+   end Write_AlsDisplayMethodAncestryOnNavigationPolicy;
+
    procedure Write_DiagnosticWorkspaceClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.DiagnosticWorkspaceClientCapabilities) is
@@ -8031,6 +8081,20 @@ package body LSP.Outputs is
       end if;
       Handler.End_Object;
    end Write_WorkspaceEdit;
+
+   procedure Write_AlsVisibility
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.AlsVisibility) is
+   begin
+      case Value is
+         when LSP.Enumerations.Als_Public =>
+            Handler.Integer_Value (1);
+         when LSP.Enumerations.Als_Protected =>
+            Handler.Integer_Value (2);
+         when LSP.Enumerations.Als_Private =>
+            Handler.Integer_Value (3);
+      end case;
+   end Write_AlsVisibility;
 
    procedure Write_DocumentHighlight
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -9395,6 +9459,22 @@ package body LSP.Outputs is
       end if;
       Handler.Key_Name ("textDocument");
       Write_TextDocumentIdentifier (Handler, Value.textDocument);
+      if Value.case_sensitive.Is_Set then
+         Handler.Key_Name ("case_sensitive");
+         Handler.Boolean_Value (Value.case_sensitive.Value);
+      end if;
+      if Value.whole_word.Is_Set then
+         Handler.Key_Name ("whole_word");
+         Handler.Boolean_Value (Value.whole_word.Value);
+      end if;
+      if Value.negate.Is_Set then
+         Handler.Key_Name ("negate");
+         Handler.Boolean_Value (Value.negate.Value);
+      end if;
+      if Value.kind.Is_Set then
+         Handler.Key_Name ("kind");
+         Write_AlsSearchKind (Handler, Value.kind.Value);
+      end if;
       Handler.End_Object;
    end Write_DocumentSymbolParams;
 
@@ -10068,6 +10148,18 @@ package body LSP.Outputs is
       end case;
    end Write_SymbolTag;
 
+   procedure Write_AlsCheckSyntaxParams
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.AlsCheckSyntaxParams) is
+   begin
+      Handler.Start_Object;
+      Handler.Key_Name ("input");
+      Handler.String_Value (Value.input);
+      Handler.Key_Name ("rules");
+      Write_Virtual_String_Vector (Handler, Value.rules);
+      Handler.End_Object;
+   end Write_AlsCheckSyntaxParams;
+
    procedure Write_Registration
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.Registration) is
@@ -10284,6 +10376,18 @@ package body LSP.Outputs is
          Handler.Key_Name ("children");
          Write_DocumentSymbol_Vector (Handler, Value.children);
       end if;
+      if Value.alsIsDeclaration.Is_Set then
+         Handler.Key_Name ("alsIsDeclaration");
+         Handler.Boolean_Value (Value.alsIsDeclaration.Value);
+      end if;
+      if Value.alsIsAdaProcedure.Is_Set then
+         Handler.Key_Name ("alsIsAdaProcedure");
+         Handler.Boolean_Value (Value.alsIsAdaProcedure.Value);
+      end if;
+      if Value.alsVisibility.Is_Set then
+         Handler.Key_Name ("alsVisibility");
+         Write_AlsVisibility (Handler, Value.alsVisibility.Value);
+      end if;
       Handler.End_Object;
    end Write_DocumentSymbol;
 
@@ -10494,6 +10598,24 @@ package body LSP.Outputs is
       end if;
       Handler.End_Object;
    end Write_InlineValueWorkspaceClientCapabilities;
+
+   procedure Write_AlsSearchKind
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Enumerations.AlsSearchKind) is
+   begin
+      case Value is
+         when LSP.Enumerations.Full_Text =>
+            Handler.Integer_Value (1);
+         when LSP.Enumerations.Regexp =>
+            Handler.Integer_Value (2);
+         when LSP.Enumerations.Fuzzy =>
+            Handler.Integer_Value (3);
+         when LSP.Enumerations.Approximate =>
+            Handler.Integer_Value (4);
+         when LSP.Enumerations.Start_Word_Text =>
+            Handler.Integer_Value (5);
+      end case;
+   end Write_AlsSearchKind;
 
    procedure Write_ResourceOperation
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -11140,6 +11262,11 @@ package body LSP.Outputs is
       if Value.partialResultToken.Is_Set then
          Handler.Key_Name ("partialResultToken");
          Write_ProgressToken (Handler, Value.partialResultToken.Value);
+      end if;
+      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+         Handler.Key_Name ("alsDisplayMethodAncestryOnNavigation");
+         Write_AlsDisplayMethodAncestryOnNavigationPolicy
+           (Handler, Value.alsDisplayMethodAncestryOnNavigation.Value);
       end if;
       Handler.End_Object;
    end Write_ImplementationParams;

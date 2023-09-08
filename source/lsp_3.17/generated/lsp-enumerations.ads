@@ -9,9 +9,17 @@
 package LSP.Enumerations is
    pragma Preelaborate;
 
+   type AlsDisplayMethodAncestryOnNavigationPolicy is
+     (Never, Usage_And_Abstract_Only, Definition_Only, Always);
+
    type AlsReferenceKind is
      (reference, an_access, write, call, dispatching_call, parent, child,
       an_overriding);
+
+   type AlsSearchKind is
+     (Full_Text, Regexp, Fuzzy, Approximate, Start_Word_Text);
+
+   type AlsVisibility is (Als_Public, Als_Protected, Als_Private);
 
    type CodeActionKind is
      (Empty, QuickFix, Refactor, RefactorExtract, RefactorInline,

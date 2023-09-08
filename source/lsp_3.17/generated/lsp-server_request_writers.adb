@@ -11,6 +11,18 @@ with LSP.Outputs;
 
 package body LSP.Server_Request_Writers is
 
+   overriding procedure On_AlsCheckSyntax_Request
+     (Self  : in out Server_Request_Writer;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxParams) is
+   begin
+      LSP.Output_Tools.Write_Start_Request
+        (Self.Output.all, "$/alsCheckSyntax", Id);
+      Self.Output.Key_Name ("params");
+      LSP.Outputs.Write_AlsCheckSyntaxParams (Self.Output.all, Value);
+      Self.Output.End_Object;
+   end On_AlsCheckSyntax_Request;
+
    overriding procedure On_IncomingCalls_Request
      (Self  : in out Server_Request_Writer;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

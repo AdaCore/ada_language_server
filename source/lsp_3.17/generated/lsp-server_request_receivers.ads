@@ -13,6 +13,12 @@ package LSP.Server_Request_Receivers is
 
    type Server_Request_Receiver is limited interface;
 
+   procedure On_AlsCheckSyntax_Request
+     (Self  : in out Server_Request_Receiver;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxParams) is null;
+   --  query if a given input has a valid syntax according to a set of rules.
+
    procedure On_IncomingCalls_Request
      (Self  : in out Server_Request_Receiver;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

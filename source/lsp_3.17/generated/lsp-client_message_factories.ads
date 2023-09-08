@@ -106,6 +106,11 @@ package LSP.Client_Message_Factories is
      (Self : in out Client_Message_Factory;
       Id   : LSP.Structures.Integer_Or_Virtual_String);
 
+   overriding procedure On_AlsCheckSyntax_Response
+     (Self  : in out Client_Message_Factory;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxResult);
+
    overriding procedure On_IncomingCalls_Response
      (Self  : in out Client_Message_Factory;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

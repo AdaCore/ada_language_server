@@ -19,6 +19,11 @@ package LSP.Client_Response_Writers is
      (Output : access VSS.JSON.Content_Handlers.JSON_Content_Handler'Class) is
    new LSP.Client_Response_Receivers.Client_Response_Receiver with null record;
 
+   overriding procedure On_AlsCheckSyntax_Response
+     (Self  : in out Client_Response_Writer;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxResult);
+
    overriding procedure On_IncomingCalls_Response
      (Self  : in out Client_Response_Writer;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

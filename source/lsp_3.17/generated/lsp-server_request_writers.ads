@@ -17,6 +17,11 @@ package LSP.Server_Request_Writers is
      (Output : access VSS.JSON.Content_Handlers.JSON_Content_Handler'Class) is
    new LSP.Server_Request_Receivers.Server_Request_Receiver with null record;
 
+   overriding procedure On_AlsCheckSyntax_Request
+     (Self  : in out Server_Request_Writer;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxParams);
+
    overriding procedure On_IncomingCalls_Request
      (Self  : in out Server_Request_Writer;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

@@ -13,6 +13,17 @@ with LSP.Outputs;
 
 package body LSP.Client_Response_Writers is
 
+   overriding procedure On_AlsCheckSyntax_Response
+     (Self  : in out Client_Response_Writer;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxResult) is
+   begin
+      LSP.Output_Tools.Write_Start_Response (Self.Output.all, Id);
+      Self.Output.Key_Name ("result");
+      LSP.Outputs.Write_AlsCheckSyntaxResult (Self.Output.all, Value);
+      Self.Output.End_Object;
+   end On_AlsCheckSyntax_Response;
+
    overriding procedure On_IncomingCalls_Response
      (Self  : in out Client_Response_Writer;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

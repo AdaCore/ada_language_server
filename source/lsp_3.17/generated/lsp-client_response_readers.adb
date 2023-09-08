@@ -11,6 +11,7 @@ with LSP.Inputs;
 with LSP.Input_Tools;
 with LSP.Structures;
 
+with LSP.Client_Responses.AlsCheckSyntax;
 with LSP.Client_Responses.IncomingCalls;
 with LSP.Client_Responses.OutgoingCalls;
 with LSP.Client_Responses.Code_Action_Resolve;
@@ -66,7 +67,8 @@ with LSP.Client_Responses.Symbol_Resolve;
 package body LSP.Client_Response_Readers is
 
    package Method_Map is new Minimal_Perfect_Hash
-     (["callHierarchy/incomingCalls",
+     (["$/alsCheckSyntax",
+      "callHierarchy/incomingCalls",
       "callHierarchy/outgoingCalls",
       "codeAction/resolve",
       "codeLens/resolve",
@@ -122,6 +124,10 @@ package body LSP.Client_Response_Readers is
    begin
       Method_Map.Initialize;
    end Initialize;
+
+   procedure Read_AlsCheckSyntax is new LSP.Input_Tools.Read_Response
+     (LSP.Structures.AlsCheckSyntaxResult,
+      LSP.Inputs.Read_AlsCheckSyntaxResult);
 
    procedure Read_IncomingCalls is new LSP.Input_Tools.Read_Response
      (LSP.Structures.CallHierarchyIncomingCall_Vector_Or_Null,
@@ -317,261 +323,266 @@ package body LSP.Client_Response_Readers is
       Index : constant Natural := Method_Map.Get_Index (Method);
    begin
       case Index is
-         when 1 =>  --  callHierarchy/incomingCalls
+         when 1 =>  --  $/alsCheckSyntax
+            return Result : LSP.Client_Responses.AlsCheckSyntax.Response do
+               Read_AlsCheckSyntax (Input, Result.Id, Result.Result);
+            end return;
+
+         when 2 =>  --  callHierarchy/incomingCalls
             return Result : LSP.Client_Responses.IncomingCalls.Response do
                Read_IncomingCalls (Input, Result.Id, Result.Result);
             end return;
 
-         when 2 =>  --  callHierarchy/outgoingCalls
+         when 3 =>  --  callHierarchy/outgoingCalls
             return Result : LSP.Client_Responses.OutgoingCalls.Response do
                Read_OutgoingCalls (Input, Result.Id, Result.Result);
             end return;
 
-         when 3 =>  --  codeAction/resolve
+         when 4 =>  --  codeAction/resolve
             return
               Result : LSP.Client_Responses.Code_Action_Resolve.Response do
                Read_Code_Action_Resolve (Input, Result.Id, Result.Result);
             end return;
 
-         when 4 =>  --  codeLens/resolve
+         when 5 =>  --  codeLens/resolve
             return Result : LSP.Client_Responses.Code_Lens_Resolve.Response do
                Read_Code_Lens_Resolve (Input, Result.Id, Result.Result);
             end return;
 
-         when 5 =>  --  completionItem/resolve
+         when 6 =>  --  completionItem/resolve
             return Result : LSP.Client_Responses.Completion_Resolve.Response do
                Read_Completion_Resolve (Input, Result.Id, Result.Result);
             end return;
 
-         when 6 =>  --  documentLink/resolve
+         when 7 =>  --  documentLink/resolve
             return Result : LSP.Client_Responses.Link_Resolve.Response do
                Read_Link_Resolve (Input, Result.Id, Result.Result);
             end return;
 
-         when 7 =>  --  initialize
+         when 8 =>  --  initialize
             return Result : LSP.Client_Responses.Initialize.Response do
                Read_Initialize (Input, Result.Id, Result.Result);
             end return;
 
-         when 8 =>  --  inlayHint/resolve
+         when 9 =>  --  inlayHint/resolve
             return Result : LSP.Client_Responses.Inlay_Resolve.Response do
                Read_Inlay_Resolve (Input, Result.Id, Result.Result);
             end return;
 
-         when 9 =>  --  shutdown
+         when 10 =>  --  shutdown
             return Result : LSP.Client_Responses.Shutdown.Response do
                Read_Shutdown (Input, Result.Id, Result.Result);
             end return;
 
-         when 10 =>  --  textDocument/codeAction
+         when 11 =>  --  textDocument/codeAction
             return Result : LSP.Client_Responses.CodeAction.Response do
                Read_CodeAction (Input, Result.Id, Result.Result);
             end return;
 
-         when 11 =>  --  textDocument/codeLens
+         when 12 =>  --  textDocument/codeLens
             return Result : LSP.Client_Responses.CodeLens.Response do
                Read_CodeLens (Input, Result.Id, Result.Result);
             end return;
 
-         when 12 =>  --  textDocument/colorPresentation
+         when 13 =>  --  textDocument/colorPresentation
             return Result : LSP.Client_Responses.ColorPresentation.Response do
                Read_ColorPresentation (Input, Result.Id, Result.Result);
             end return;
 
-         when 13 =>  --  textDocument/completion
+         when 14 =>  --  textDocument/completion
             return Result : LSP.Client_Responses.Completion.Response do
                Read_Completion (Input, Result.Id, Result.Result);
             end return;
 
-         when 14 =>  --  textDocument/declaration
+         when 15 =>  --  textDocument/declaration
             return Result : LSP.Client_Responses.Declaration.Response do
                Read_Declaration (Input, Result.Id, Result.Result);
             end return;
 
-         when 15 =>  --  textDocument/definition
+         when 16 =>  --  textDocument/definition
             return Result : LSP.Client_Responses.Definition.Response do
                Read_Definition (Input, Result.Id, Result.Result);
             end return;
 
-         when 16 =>  --  textDocument/diagnostic
+         when 17 =>  --  textDocument/diagnostic
             return Result : LSP.Client_Responses.Diagnostic.Response do
                Read_Diagnostic (Input, Result.Id, Result.Result);
             end return;
 
-         when 17 =>  --  textDocument/documentColor
+         when 18 =>  --  textDocument/documentColor
             return Result : LSP.Client_Responses.DocumentColor.Response do
                Read_DocumentColor (Input, Result.Id, Result.Result);
             end return;
 
-         when 18 =>  --  textDocument/documentHighlight
+         when 19 =>  --  textDocument/documentHighlight
             return Result : LSP.Client_Responses.DocumentHighlight.Response do
                Read_DocumentHighlight (Input, Result.Id, Result.Result);
             end return;
 
-         when 19 =>  --  textDocument/documentLink
+         when 20 =>  --  textDocument/documentLink
             return Result : LSP.Client_Responses.DocumentLink.Response do
                Read_DocumentLink (Input, Result.Id, Result.Result);
             end return;
 
-         when 20 =>  --  textDocument/documentSymbol
+         when 21 =>  --  textDocument/documentSymbol
             return Result : LSP.Client_Responses.DocumentSymbol.Response do
                Read_DocumentSymbol (Input, Result.Id, Result.Result);
             end return;
 
-         when 21 =>  --  textDocument/foldingRange
+         when 22 =>  --  textDocument/foldingRange
             return Result : LSP.Client_Responses.FoldingRange.Response do
                Read_FoldingRange (Input, Result.Id, Result.Result);
             end return;
 
-         when 22 =>  --  textDocument/formatting
+         when 23 =>  --  textDocument/formatting
             return Result : LSP.Client_Responses.Formatting.Response do
                Read_Formatting (Input, Result.Id, Result.Result);
             end return;
 
-         when 23 =>  --  textDocument/hover
+         when 24 =>  --  textDocument/hover
             return Result : LSP.Client_Responses.Hover.Response do
                Read_Hover (Input, Result.Id, Result.Result);
             end return;
 
-         when 24 =>  --  textDocument/implementation
+         when 25 =>  --  textDocument/implementation
             return Result : LSP.Client_Responses.Implementation.Response do
                Read_Implementation (Input, Result.Id, Result.Result);
             end return;
 
-         when 25 =>  --  textDocument/inlayHint
+         when 26 =>  --  textDocument/inlayHint
             return Result : LSP.Client_Responses.InlayHint.Response do
                Read_InlayHint (Input, Result.Id, Result.Result);
             end return;
 
-         when 26 =>  --  textDocument/inlineValue
+         when 27 =>  --  textDocument/inlineValue
             return Result : LSP.Client_Responses.InlineValue.Response do
                Read_InlineValue (Input, Result.Id, Result.Result);
             end return;
 
-         when 27 =>  --  textDocument/linkedEditingRange
+         when 28 =>  --  textDocument/linkedEditingRange
             return Result : LSP.Client_Responses.LinkedEditingRange.Response do
                Read_LinkedEditingRange (Input, Result.Id, Result.Result);
             end return;
 
-         when 28 =>  --  textDocument/moniker
+         when 29 =>  --  textDocument/moniker
             return Result : LSP.Client_Responses.Moniker.Response do
                Read_Moniker (Input, Result.Id, Result.Result);
             end return;
 
-         when 29 =>  --  textDocument/onTypeFormatting
+         when 30 =>  --  textDocument/onTypeFormatting
             return Result : LSP.Client_Responses.OnTypeFormatting.Response do
                Read_OnTypeFormatting (Input, Result.Id, Result.Result);
             end return;
 
-         when 30 =>  --  textDocument/prepareCallHierarchy
+         when 31 =>  --  textDocument/prepareCallHierarchy
             return
               Result : LSP.Client_Responses.PrepareCallHierarchy.Response do
                Read_PrepareCallHierarchy (Input, Result.Id, Result.Result);
             end return;
 
-         when 31 =>  --  textDocument/prepareRename
+         when 32 =>  --  textDocument/prepareRename
             return Result : LSP.Client_Responses.PrepareRename.Response do
                Read_PrepareRename (Input, Result.Id, Result.Result);
             end return;
 
-         when 32 =>  --  textDocument/prepareTypeHierarchy
+         when 33 =>  --  textDocument/prepareTypeHierarchy
             return
               Result : LSP.Client_Responses.PrepareTypeHierarchy.Response do
                Read_PrepareTypeHierarchy (Input, Result.Id, Result.Result);
             end return;
 
-         when 33 =>  --  textDocument/rangeFormatting
+         when 34 =>  --  textDocument/rangeFormatting
             return Result : LSP.Client_Responses.RangeFormatting.Response do
                Read_RangeFormatting (Input, Result.Id, Result.Result);
             end return;
 
-         when 34 =>  --  textDocument/references
+         when 35 =>  --  textDocument/references
             return Result : LSP.Client_Responses.References.Response do
                Read_References (Input, Result.Id, Result.Result);
             end return;
 
-         when 35 =>  --  textDocument/rename
+         when 36 =>  --  textDocument/rename
             return Result : LSP.Client_Responses.Rename.Response do
                Read_Rename (Input, Result.Id, Result.Result);
             end return;
 
-         when 36 =>  --  textDocument/selectionRange
+         when 37 =>  --  textDocument/selectionRange
             return Result : LSP.Client_Responses.SelectionRange.Response do
                Read_SelectionRange (Input, Result.Id, Result.Result);
             end return;
 
-         when 37 =>  --  textDocument/semanticTokens/full
+         when 38 =>  --  textDocument/semanticTokens/full
             return Result : LSP.Client_Responses.Tokens_Full.Response do
                Read_Tokens_Full (Input, Result.Id, Result.Result);
             end return;
 
-         when 38 =>  --  textDocument/semanticTokens/full/delta
+         when 39 =>  --  textDocument/semanticTokens/full/delta
             return Result : LSP.Client_Responses.Tokens_Delta.Response do
                Read_Tokens_Delta (Input, Result.Id, Result.Result);
             end return;
 
-         when 39 =>  --  textDocument/semanticTokens/range
+         when 40 =>  --  textDocument/semanticTokens/range
             return Result : LSP.Client_Responses.Tokens_Range.Response do
                Read_Tokens_Range (Input, Result.Id, Result.Result);
             end return;
 
-         when 40 =>  --  textDocument/signatureHelp
+         when 41 =>  --  textDocument/signatureHelp
             return Result : LSP.Client_Responses.SignatureHelp.Response do
                Read_SignatureHelp (Input, Result.Id, Result.Result);
             end return;
 
-         when 41 =>  --  textDocument/typeDefinition
+         when 42 =>  --  textDocument/typeDefinition
             return Result : LSP.Client_Responses.TypeDefinition.Response do
                Read_TypeDefinition (Input, Result.Id, Result.Result);
             end return;
 
-         when 42 =>  --  textDocument/willSaveWaitUntil
+         when 43 =>  --  textDocument/willSaveWaitUntil
             return Result : LSP.Client_Responses.WillSaveWaitUntil.Response do
                Read_WillSaveWaitUntil (Input, Result.Id, Result.Result);
             end return;
 
-         when 43 =>  --  typeHierarchy/subtypes
+         when 44 =>  --  typeHierarchy/subtypes
             return Result : LSP.Client_Responses.Subtypes.Response do
                Read_Subtypes (Input, Result.Id, Result.Result);
             end return;
 
-         when 44 =>  --  typeHierarchy/supertypes
+         when 45 =>  --  typeHierarchy/supertypes
             return Result : LSP.Client_Responses.Supertypes.Response do
                Read_Supertypes (Input, Result.Id, Result.Result);
             end return;
 
-         when 45 =>  --  workspace/diagnostic
+         when 46 =>  --  workspace/diagnostic
             return
               Result : LSP.Client_Responses.Workspace_Diagnostic.Response do
                Read_Workspace_Diagnostic (Input, Result.Id, Result.Result);
             end return;
 
-         when 46 =>  --  workspace/executeCommand
+         when 47 =>  --  workspace/executeCommand
             return Result : LSP.Client_Responses.ExecuteCommand.Response do
                Read_ExecuteCommand (Input, Result.Id, Result.Result);
             end return;
 
-         when 47 =>  --  workspace/symbol
+         when 48 =>  --  workspace/symbol
             return Result : LSP.Client_Responses.Symbol.Response do
                Read_Symbol (Input, Result.Id, Result.Result);
             end return;
 
-         when 48 =>  --  workspace/willCreateFiles
+         when 49 =>  --  workspace/willCreateFiles
             return Result : LSP.Client_Responses.WillCreateFiles.Response do
                Read_WillCreateFiles (Input, Result.Id, Result.Result);
             end return;
 
-         when 49 =>  --  workspace/willDeleteFiles
+         when 50 =>  --  workspace/willDeleteFiles
             return Result : LSP.Client_Responses.WillDeleteFiles.Response do
                Read_WillDeleteFiles (Input, Result.Id, Result.Result);
             end return;
 
-         when 50 =>  --  workspace/willRenameFiles
+         when 51 =>  --  workspace/willRenameFiles
             return Result : LSP.Client_Responses.WillRenameFiles.Response do
                Read_WillRenameFiles (Input, Result.Id, Result.Result);
             end return;
 
-         when 51 =>  --  workspaceSymbol/resolve
+         when 52 =>  --  workspaceSymbol/resolve
             return Result : LSP.Client_Responses.Symbol_Resolve.Response do
                Read_Symbol_Resolve (Input, Result.Id, Result.Result);
             end return;

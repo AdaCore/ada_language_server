@@ -25,6 +25,7 @@ with LSP.Client_Requests.Inlay_Refresh;
 with LSP.Client_Requests.Inline_Refresh;
 with LSP.Client_Requests.Tokens_Refresh;
 with LSP.Client_Requests.WorkspaceFolders;
+with LSP.Client_Responses.AlsCheckSyntax;
 with LSP.Client_Responses.IncomingCalls;
 with LSP.Client_Responses.OutgoingCalls;
 with LSP.Client_Responses.Code_Action_Resolve;
@@ -289,6 +290,17 @@ package body LSP.Client_Message_Factories is
       Client_Message_Factory'Class (Self).On_Message
         (new LSP.Client_Requests.WorkspaceFolders.Request'(Id => Id));
    end On_WorkspaceFolders_Request;
+
+   overriding procedure On_AlsCheckSyntax_Response
+     (Self  : in out Client_Message_Factory;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxResult) is
+   begin
+      Client_Message_Factory'Class (Self).On_Message
+        (new LSP.Client_Responses.AlsCheckSyntax.Response'
+           (Id     => Id,
+            Result => Value));
+   end On_AlsCheckSyntax_Response;
 
    overriding procedure On_IncomingCalls_Response
      (Self  : in out Client_Message_Factory;

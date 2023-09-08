@@ -316,6 +316,10 @@ package LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.DidChangeWorkspaceFoldersParams);
 
+   procedure Read_AlsCheckSyntaxResult
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.AlsCheckSyntaxResult);
+
    procedure Read_CodeLensParams
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.CodeLensParams);
@@ -536,6 +540,10 @@ package LSP.Inputs is
    procedure Read_Definition_Result
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.Definition_Result);
+
+   procedure Read_AlsCheckSyntaxParams
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.AlsCheckSyntaxParams);
 
    procedure Read_CompletionItem
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;

@@ -110,6 +110,21 @@ package LSP.Structures is
       return LSP.Structures.ProgressToken_Optional is abstract;
    --  An optional token that a server can use to report work done progress.
 
+   type AlsCheckSyntaxParams is record
+      input : LSP.Structures.Virtual_String;
+      --  Text to check syntax.
+
+      rules : LSP.Structures.Virtual_String_Vector;
+      --  Libadalang `Ada_Node_Kind_Type` values.
+
+   end record;
+
+   type AlsCheckSyntaxResult is record
+      diagnostic : Virtual_String_Optional;
+      --  Diagnostic from check syntax.
+
+   end record;
+
    type Position is record
       line : Natural;
       --  Line position in a document (zero-based).
@@ -3971,6 +3986,17 @@ package LSP.Structures is
      (Self : DeclarationOptions) return Boolean_Optional is
      (Self.workDoneProgress);
 
+   type AlsDisplayMethodAncestryOnNavigationPolicy_Optional
+     (Is_Set : Boolean := False) is
+   record
+      case Is_Set is
+         when False =>
+            null;
+         when True =>
+            Value : AlsDisplayMethodAncestryOnNavigationPolicy;
+      end case;
+   end record;
+
    type DeclarationParams is
    new TextDocumentPositionParams and WorkDoneProgressParams and
      PartialResultParams with record
@@ -3980,6 +4006,9 @@ package LSP.Structures is
       partialResultToken : ProgressToken_Optional;
       --  An optional token that a server can use to report partial results
       --  (e.g. streaming) to the client.
+
+      alsDisplayMethodAncestryOnNavigation : AlsDisplayMethodAncestryOnNavigationPolicy_Optional;
+      --  whether or now we should list overriding/overridden subprograms.
 
    end record;
 
@@ -4023,6 +4052,9 @@ package LSP.Structures is
       partialResultToken : ProgressToken_Optional;
       --  An optional token that a server can use to report partial results
       --  (e.g. streaming) to the client.
+
+      alsDisplayMethodAncestryOnNavigation : AlsDisplayMethodAncestryOnNavigationPolicy_Optional;
+      --  whether or now we should list overriding/overridden subprograms.
 
    end record;
    --  Parameters for a [DefinitionRequest](#DefinitionRequest).
@@ -5076,6 +5108,15 @@ package LSP.Structures is
    --  Registration options for a
    --  [DocumentRangeFormattingRequest](#DocumentRangeFormattingRequest).
 
+   type AlsVisibility_Optional (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when False =>
+            null;
+         when True =>
+            Value : AlsVisibility;
+      end case;
+   end record;
+
    type DocumentSymbol_Vector is tagged private with
      Variable_Indexing => Get_DocumentSymbol_Variable_Reference,
      Constant_Indexing => Get_DocumentSymbol_Constant_Reference;
@@ -5116,6 +5157,12 @@ package LSP.Structures is
       children : LSP.Structures.DocumentSymbol_Vector;
       --  Children of this symbol, e.g. properties of a class.
 
+      alsIsDeclaration : Boolean_Optional;
+
+      alsIsAdaProcedure : Boolean_Optional;
+
+      alsVisibility : AlsVisibility_Optional;
+
    end record;
    --  Represents programming constructs like variables, classes, interfaces
    --  etc. that appear in a document. Document symbols can be hierarchical
@@ -5138,6 +5185,15 @@ package LSP.Structures is
      (Self : DocumentSymbolOptions) return Boolean_Optional is
      (Self.workDoneProgress);
 
+   type AlsSearchKind_Optional (Is_Set : Boolean := False) is record
+      case Is_Set is
+         when False =>
+            null;
+         when True =>
+            Value : AlsSearchKind;
+      end case;
+   end record;
+
    type DocumentSymbolParams is
    new WorkDoneProgressParams and PartialResultParams with record
       workDoneToken : ProgressToken_Optional;
@@ -5149,6 +5205,17 @@ package LSP.Structures is
 
       textDocument : LSP.Structures.TextDocumentIdentifier;
       --  The text document.
+
+      case_sensitive : Boolean_Optional;
+      --  To take letters' case into account.
+
+      whole_word : Boolean_Optional;
+      --  To match the whole word instead of a part of it.
+
+      negate : Boolean_Optional;
+      --  To invert matching.
+
+      kind : AlsSearchKind_Optional;
 
    end record;
    --  Parameters for a [DocumentSymbolRequest](#DocumentSymbolRequest).
@@ -5531,6 +5598,9 @@ package LSP.Structures is
       partialResultToken : ProgressToken_Optional;
       --  An optional token that a server can use to report partial results
       --  (e.g. streaming) to the client.
+
+      alsDisplayMethodAncestryOnNavigation : AlsDisplayMethodAncestryOnNavigationPolicy_Optional;
+      --  whether or now we should list overriding/overridden subprograms.
 
    end record;
 

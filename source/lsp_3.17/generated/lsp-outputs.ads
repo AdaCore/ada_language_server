@@ -318,6 +318,10 @@ package LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.DidChangeWorkspaceFoldersParams);
 
+   procedure Write_AlsCheckSyntaxResult
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.AlsCheckSyntaxResult);
+
    procedure Write_CodeLensParams
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.CodeLensParams);
@@ -538,6 +542,10 @@ package LSP.Outputs is
    procedure Write_Definition_Result
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.Definition_Result);
+
+   procedure Write_AlsCheckSyntaxParams
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.AlsCheckSyntaxParams);
 
    procedure Write_CompletionItem
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;

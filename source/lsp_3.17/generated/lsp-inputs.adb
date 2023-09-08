@@ -782,6 +782,10 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.Moniker);
 
+   procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value : out LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy);
+
    procedure Read_DiagnosticWorkspaceClientCapabilities
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.DiagnosticWorkspaceClientCapabilities);
@@ -805,6 +809,10 @@ package body LSP.Inputs is
    procedure Read_WorkspaceEdit
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.WorkspaceEdit);
+
+   procedure Read_AlsVisibility
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.AlsVisibility);
 
    procedure Read_DocumentHighlight
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -1158,6 +1166,10 @@ package body LSP.Inputs is
    procedure Read_InlineValueWorkspaceClientCapabilities
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.InlineValueWorkspaceClientCapabilities);
+
+   procedure Read_AlsSearchKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.AlsSearchKind);
 
    procedure Read_ResourceOperation
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -2950,7 +2962,10 @@ package body LSP.Inputs is
          "detail",
          "range",
          "selectionRange",
-         "children"]);
+         "children",
+         "alsIsDeclaration",
+         "alsIsAdaProcedure",
+         "alsVisibility"]);
 
    end DocumentSymbol_Progress_Report_Scope;
 
@@ -3008,6 +3023,21 @@ package body LSP.Inputs is
                            others => <>);
                         exit;
                      when 6 =>  --  children
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 7 =>  --  alsIsDeclaration
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 8 =>  --  alsIsAdaProcedure
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 9 =>  --  alsVisibility
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
@@ -10715,7 +10745,8 @@ package body LSP.Inputs is
         (["textDocument",
          "position",
          "workDoneToken",
-         "partialResultToken"]);
+         "partialResultToken",
+         "alsDisplayMethodAncestryOnNavigation"]);
 
    end DefinitionParams_Scope;
 
@@ -10748,6 +10779,13 @@ package body LSP.Inputs is
                     (Is_Set => True,
                      Value  => <>);
                   Read_ProgressToken (Handler, Value.partialResultToken.Value);
+               when 5 =>  --  alsDisplayMethodAncestryOnNavigation
+                  Value.alsDisplayMethodAncestryOnNavigation :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Read_AlsDisplayMethodAncestryOnNavigationPolicy
+                    (Handler,
+                     Value.alsDisplayMethodAncestryOnNavigation.Value);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -12491,7 +12529,8 @@ package body LSP.Inputs is
         (["textDocument",
          "position",
          "workDoneToken",
-         "partialResultToken"]);
+         "partialResultToken",
+         "alsDisplayMethodAncestryOnNavigation"]);
 
    end DeclarationParams_Scope;
 
@@ -12524,6 +12563,13 @@ package body LSP.Inputs is
                     (Is_Set => True,
                      Value  => <>);
                   Read_ProgressToken (Handler, Value.partialResultToken.Value);
+               when 5 =>  --  alsDisplayMethodAncestryOnNavigation
+                  Value.alsDisplayMethodAncestryOnNavigation :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Read_AlsDisplayMethodAncestryOnNavigationPolicy
+                    (Handler,
+                     Value.alsDisplayMethodAncestryOnNavigation.Value);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -14452,6 +14498,40 @@ package body LSP.Inputs is
       Handler.Read_Next;
    end Read_DefinitionRegistrationOptions;
 
+   package AlsCheckSyntaxResult_Scope is
+      package AlsCheckSyntaxResult_Map is new Minimal_Perfect_Hash
+        (["diagnostic"]);
+
+   end AlsCheckSyntaxResult_Scope;
+
+   procedure Read_AlsCheckSyntaxResult
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.AlsCheckSyntaxResult) is
+      use AlsCheckSyntaxResult_Scope;
+   begin
+      pragma Assert (Handler.Is_Start_Object);
+      Handler.Read_Next;
+
+      while not Handler.Is_End_Object loop
+         pragma Assert (Handler.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
+         begin
+            Handler.Read_Next;
+            case AlsCheckSyntaxResult_Map.Get_Index (Key) is
+               when 1 =>  --  diagnostic
+                  Value.diagnostic.Clear;
+                  Value.diagnostic.Append (Handler.String_Value);
+                  Handler.Read_Next;
+               when others =>
+                  Handler.Skip_Current_Value;
+            end case;
+         end;
+      end loop;
+
+      Handler.Read_Next;
+   end Read_AlsCheckSyntaxResult;
+
    package clientInfo_Of_InitializeParams_Scope is
       package clientInfo_Of_InitializeParams_Map is new Minimal_Perfect_Hash
         (["name",
@@ -16066,6 +16146,25 @@ package body LSP.Inputs is
       Handler.Read_Next;
    end Read_WorkDoneProgressBegin;
 
+   package AlsDisplayMethodAncestryOnNavigationPolicy_Map is new Minimal_Perfect_Hash
+     (["Never",
+      "Usage_And_Abstract_Only",
+      "Definition_Only",
+      "Always"]);
+
+   procedure Read_AlsDisplayMethodAncestryOnNavigationPolicy
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations
+        .AlsDisplayMethodAncestryOnNavigationPolicy) is
+   begin
+      Value :=
+        LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy'Val
+          (AlsDisplayMethodAncestryOnNavigationPolicy_Map.Get_Index
+             (Handler.String_Value) -
+           1);
+      Handler.Read_Next;
+   end Read_AlsDisplayMethodAncestryOnNavigationPolicy;
+
    package DiagnosticWorkspaceClientCapabilities_Scope is
       package DiagnosticWorkspaceClientCapabilities_Map is new Minimal_Perfect_Hash
         (["refreshSupport"]);
@@ -16525,6 +16624,16 @@ package body LSP.Inputs is
 
       Handler.Read_Next;
    end Read_WorkspaceEdit;
+
+   procedure Read_AlsVisibility
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.AlsVisibility) is
+   begin
+      Value :=
+        LSP.Enumerations.AlsVisibility'Val
+          (Handler.Number_Value.Integer_Value - 1);
+      Handler.Read_Next;
+   end Read_AlsVisibility;
 
    package DocumentHighlight_Scope is
       package DocumentHighlight_Map is new Minimal_Perfect_Hash
@@ -19557,7 +19666,11 @@ package body LSP.Inputs is
       package DocumentSymbolParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
          "partialResultToken",
-         "textDocument"]);
+         "textDocument",
+         "case_sensitive",
+         "whole_word",
+         "negate",
+         "kind"]);
 
    end DocumentSymbolParams_Scope;
 
@@ -19588,6 +19701,29 @@ package body LSP.Inputs is
                   Read_ProgressToken (Handler, Value.partialResultToken.Value);
                when 3 =>  --  textDocument
                   Read_TextDocumentIdentifier (Handler, Value.textDocument);
+               when 4 =>  --  case_sensitive
+                  Value.case_sensitive       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.case_sensitive.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 5 =>  --  whole_word
+                  Value.whole_word       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.whole_word.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 6 =>  --  negate
+                  Value.negate       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.negate.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 7 =>  --  kind
+                  Value.kind :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Read_AlsSearchKind (Handler, Value.kind.Value);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -20705,7 +20841,10 @@ package body LSP.Inputs is
          "detail",
          "range",
          "selectionRange",
-         "children"]);
+         "children",
+         "alsIsDeclaration",
+         "alsIsAdaProcedure",
+         "alsVisibility"]);
 
    end DocumentSymbol_Result_Scope;
 
@@ -20767,6 +20906,21 @@ package body LSP.Inputs is
                            others => <>);
                         exit;
                      when 6 =>  --  children
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 7 =>  --  alsIsDeclaration
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 8 =>  --  alsIsAdaProcedure
+                        Value :=
+                          (Kind   => LSP.Structures.Variant_2,
+                           others => <>);
+                        exit;
+                     when 9 =>  --  alsVisibility
                         Value :=
                           (Kind   => LSP.Structures.Variant_2,
                            others => <>);
@@ -21230,6 +21384,43 @@ package body LSP.Inputs is
       Handler.Read_Next;
    end Read_SymbolTag;
 
+   package AlsCheckSyntaxParams_Scope is
+      package AlsCheckSyntaxParams_Map is new Minimal_Perfect_Hash
+        (["input",
+         "rules"]);
+
+   end AlsCheckSyntaxParams_Scope;
+
+   procedure Read_AlsCheckSyntaxParams
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.AlsCheckSyntaxParams) is
+      use AlsCheckSyntaxParams_Scope;
+   begin
+      pragma Assert (Handler.Is_Start_Object);
+      Handler.Read_Next;
+
+      while not Handler.Is_End_Object loop
+         pragma Assert (Handler.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
+         begin
+            Handler.Read_Next;
+            case AlsCheckSyntaxParams_Map.Get_Index (Key) is
+               when 1 =>  --  input
+                  Value.input.Clear;
+                  Value.input.Append (Handler.String_Value);
+                  Handler.Read_Next;
+               when 2 =>  --  rules
+                  Read_Virtual_String_Vector (Handler, Value.rules);
+               when others =>
+                  Handler.Skip_Current_Value;
+            end case;
+         end;
+      end loop;
+
+      Handler.Read_Next;
+   end Read_AlsCheckSyntaxParams;
+
    package Registration_Scope is
       package Registration_Map is new Minimal_Perfect_Hash
         (["id",
@@ -21650,7 +21841,10 @@ package body LSP.Inputs is
          "deprecated",
          "range",
          "selectionRange",
-         "children"]);
+         "children",
+         "alsIsDeclaration",
+         "alsIsAdaProcedure",
+         "alsVisibility"]);
 
    end DocumentSymbol_Scope;
 
@@ -21693,6 +21887,23 @@ package body LSP.Inputs is
                   Read_A_Range (Handler, Value.selectionRange);
                when 8 =>  --  children
                   Read_DocumentSymbol_Vector (Handler, Value.children);
+               when 9 =>  --  alsIsDeclaration
+                  Value.alsIsDeclaration       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.alsIsDeclaration.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 10 =>  --  alsIsAdaProcedure
+                  Value.alsIsAdaProcedure       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.alsIsAdaProcedure.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 11 =>  --  alsVisibility
+                  Value.alsVisibility :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Read_AlsVisibility (Handler, Value.alsVisibility.Value);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -22155,6 +22366,16 @@ package body LSP.Inputs is
 
       Handler.Read_Next;
    end Read_InlineValueWorkspaceClientCapabilities;
+
+   procedure Read_AlsSearchKind
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Enumerations.AlsSearchKind) is
+   begin
+      Value :=
+        LSP.Enumerations.AlsSearchKind'Val
+          (Handler.Number_Value.Integer_Value - 1);
+      Handler.Read_Next;
+   end Read_AlsSearchKind;
 
    package ResourceOperation_Scope is
       package ResourceOperation_Map is new Minimal_Perfect_Hash
@@ -23571,7 +23792,8 @@ package body LSP.Inputs is
         (["textDocument",
          "position",
          "workDoneToken",
-         "partialResultToken"]);
+         "partialResultToken",
+         "alsDisplayMethodAncestryOnNavigation"]);
 
    end ImplementationParams_Scope;
 
@@ -23604,6 +23826,13 @@ package body LSP.Inputs is
                     (Is_Set => True,
                      Value  => <>);
                   Read_ProgressToken (Handler, Value.partialResultToken.Value);
+               when 5 =>  --  alsDisplayMethodAncestryOnNavigation
+                  Value.alsDisplayMethodAncestryOnNavigation :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Read_AlsDisplayMethodAncestryOnNavigationPolicy
+                    (Handler,
+                     Value.alsDisplayMethodAncestryOnNavigation.Value);
                when others =>
                   Handler.Skip_Current_Value;
             end case;

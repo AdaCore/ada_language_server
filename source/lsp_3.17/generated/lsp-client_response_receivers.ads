@@ -14,6 +14,12 @@ package LSP.Client_Response_Receivers is
 
    type Client_Response_Receiver is limited interface;
 
+   procedure On_AlsCheckSyntax_Response
+     (Self  : in out Client_Response_Receiver;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxResult) is null;
+   --  query if a given input has a valid syntax according to a set of rules.
+
    procedure On_IncomingCalls_Response
      (Self  : in out Client_Response_Receiver;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
