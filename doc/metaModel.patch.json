@@ -56,6 +56,35 @@
             ]
         },
         {
+            "name": "AlsSearchKind",
+            "type": {
+                "kind": "base",
+                "name": "integer"
+            },
+            "values": [
+                {
+                    "name": "Full_Text",
+                    "value": 1
+                },
+                {
+                    "name": "Regexp",
+                    "value": 2
+                },
+                {
+                    "name": "Fuzzy",
+                    "value": 3
+                },
+                {
+                    "name": "Approximate",
+                    "value": 4
+                },
+                {
+                    "name": "Start_Word_Text",
+                    "value": 5
+                }
+            ]
+        },
+        {
             "name": "AlsVisibility",
             "type": {
                 "kind": "base",
@@ -140,6 +169,46 @@
                     "type": {
                         "kind": "reference",
                         "name": "AlsVisibility"
+                    },
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "name": "DocumentSymbolParams",
+            "properties": [
+                {
+                    "name": "case_sensitive",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To take letters' case into account."
+                },
+                {
+                    "name": "whole_word",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To match the whole word instead of a part of it."
+                },
+                {
+                    "name": "negate",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To invert matching."
+                },
+                {
+                    "name": "kind",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsSearchKind"
                     },
                     "optional": true
                 }
