@@ -54,6 +54,27 @@
                     "value": "overriding"
                 }
             ]
+        },
+        {
+            "name": "AlsVisibility",
+            "type": {
+                "kind": "base",
+                "name": "integer"
+            },
+            "values": [
+                {
+                    "name": "Als_Public",
+                    "value": 1
+                },
+                {
+                    "name": "Als_Protected",
+                    "value": 2
+                },
+                {
+                    "name": "Als_Private",
+                    "value": 3
+                }
+            ]
         }
     ],
     "structures": [
@@ -92,6 +113,35 @@
                     },
                     "optional": true,
                     "documentation": "Diagnostic from check syntax."
+                }
+            ]
+        },
+        {
+            "name": "DocumentSymbol",
+            "properties": [
+                {
+                    "name": "alsIsDeclaration",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true
+                },
+                {
+                    "name": "alsIsAdaProcedure",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true
+                },
+                {
+                    "name": "alsVisibility",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsVisibility"
+                    },
+                    "optional": true
                 }
             ]
         },

@@ -318,7 +318,11 @@ package body LSP.Ada_Handlers.Symbols is
                                    (Self, Node).a_range,
                                  selectionRange => Locations.To_LSP_Location
                                    (Self, Name).a_range,
-                                 children       => Children);
+                                 children       => Children,
+                                 alsIsDeclaration => LSP.Constants.True,
+                                 alsIsAdaProcedure => LSP.Constants.True,
+                                 alsVisibility     =>
+                                   (True, LSP.Enumerations.Als_Private));
                            begin
                               Vector.Append (Item);
                            end;
@@ -346,7 +350,8 @@ package body LSP.Ada_Handlers.Symbols is
                           (Self, Node).a_range,
                         selectionRange => Locations.To_LSP_Location
                           (Self, Name).a_range,
-                        children       => Empty);
+                        children       => Empty,
+                                 others => <>);
                   begin
                      Vector.Append (Item);
                   end;
@@ -372,7 +377,8 @@ package body LSP.Ada_Handlers.Symbols is
                     (Self, Node).a_range,
                   selectionRange => Locations.To_LSP_Location
                     (Self, Name).a_range,
-                  children       => Empty);
+                  children       => Empty,
+                  others         => <>);
             begin
                if Nested_Level <= 1 then
                   Vector.Append (Item);
