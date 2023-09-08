@@ -1,4 +1,18 @@
 {
+    "requests": [
+        {
+            "method": "$/alsCheckSyntax",
+            "result": {
+                "kind": "reference",
+                "name": "AlsCheckSyntaxResult"
+            },
+            "params": {
+                "kind": "reference",
+                "name": "AlsCheckSyntaxParams"
+            },
+            "documentation": "query if a given input has a valid syntax according to a set of rules."
+        }
+    ],
     "enumerations": [
         {
             "name": "AlsReferenceKind",
@@ -43,6 +57,44 @@
         }
     ],
     "structures": [
+        {
+            "name": "AlsCheckSyntaxParams",
+            "properties": [
+                {
+                    "name": "input",
+                    "type": {
+                        "kind": "base",
+                        "name": "string"
+                    },
+                    "documentation": "Text to check syntax."
+                },
+                {
+                    "name": "rules",
+                    "type":                             {
+                        "kind": "array",
+                        "element": {
+                            "kind": "base",
+                            "name": "string"
+                        }
+                    },
+                    "documentation": "Libadalang `Ada_Node_Kind_Type` values."
+                }
+            ]
+        },
+        {
+            "name": "AlsCheckSyntaxResult",
+            "properties": [
+                {
+                    "name": "diagnostic",
+                    "type": {
+                        "kind": "base",
+                        "name": "string"
+                    },
+                    "optional": true,
+                    "documentation": "Diagnostic from check syntax."
+                }
+            ]
+        },
         {
             "name": "Location",
             "properties": [

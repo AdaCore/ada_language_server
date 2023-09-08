@@ -17,6 +17,18 @@
 
 package body LSP.Unimplemented_Handlers is
 
+   -------------------------------
+   -- On_AlsCheckSyntax_Request --
+   -------------------------------
+
+   overriding procedure On_AlsCheckSyntax_Request
+     (Self  : in out Unimplemented_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxParams) is
+   begin
+      Self.Implemented := False;
+   end On_AlsCheckSyntax_Request;
+
    ------------------------------------
    -- On_Code_Action_Resolve_Request --
    ------------------------------------
