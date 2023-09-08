@@ -15,6 +15,31 @@
     ],
     "enumerations": [
         {
+            "name": "AlsDisplayMethodAncestryOnNavigationPolicy",
+            "type": {
+                "kind": "base",
+                "name": "string"
+            },
+            "values": [
+                {
+                    "name": "Never",
+                    "value": "Never"
+                },
+                {
+                    "name": "Usage_And_Abstract_Only",
+                    "value": "Usage_And_Abstract_Only"
+                },
+                {
+                    "name": "Definition_Only",
+                    "value": "Definition_Only"
+                },
+                {
+                    "name": "Always",
+                    "value": "Always"
+                }
+            ]
+        },
+        {
             "name": "AlsReferenceKind",
             "type": {
                 "kind": "base",
@@ -142,6 +167,48 @@
                     },
                     "optional": true,
                     "documentation": "Diagnostic from check syntax."
+                }
+            ]
+        },
+        {
+            "name": "DeclarationParams",
+            "properties": [
+                {
+                    "name": "alsDisplayMethodAncestryOnNavigation",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsDisplayMethodAncestryOnNavigationPolicy"
+                    },
+                    "optional": true,
+                    "documentation": "whether or now we should list overriding/overridden subprograms."
+                }
+            ]
+        },
+        {
+            "name": "DefinitionParams",
+            "properties": [
+                {
+                    "name": "alsDisplayMethodAncestryOnNavigation",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsDisplayMethodAncestryOnNavigationPolicy"
+                    },
+                    "optional": true,
+                    "documentation": "whether or now we should list overriding/overridden subprograms."
+                }
+            ]
+        },
+        {
+            "name": "ImplementationParams",
+            "properties": [
+                {
+                    "name": "alsDisplayMethodAncestryOnNavigation",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsDisplayMethodAncestryOnNavigationPolicy"
+                    },
+                    "optional": true,
+                    "documentation": "whether or now we should list overriding/overridden subprograms."
                 }
             ]
         },
