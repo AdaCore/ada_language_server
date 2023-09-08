@@ -33,8 +33,8 @@ export function registerCommands(
     // This is a hidden command that gets called in the default debug
     // configuration snippet that gets offered in the launch.json file.
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.askForProgram', async () => {
-            const p = await debug.askForProgram();
+        vscode.commands.registerCommand('ada.getOrAskForProgram', async () => {
+            const p = await debug.getOrAskForProgram();
             return p;
         })
     );

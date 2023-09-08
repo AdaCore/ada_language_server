@@ -2,6 +2,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ContextClients } from './clients';
 import { getExecutables, getMains } from './helpers';
+import assert from 'assert';
+import { exec } from 'child_process';
 
 /**
  * Ada Configuration for a debug session
@@ -53,7 +55,7 @@ export function initializeDebugging(ctx: vscode.ExtensionContext, clients: Conte
 /**
  * Initialize a debug configuration based on 'cppdbg' for the given executable
  * if specified. Otherwise the program field includes
- * ${command:ada.askForProgram} to prompt the User for an executable to debug.
+ * ${command:ada.getOrAskForProgram} to prompt the User for an executable to debug.
  *
  * @param program - the executable to debug (optional)
  * @returns an AdaConfig
@@ -67,7 +69,7 @@ function initializeConfig(program?: string): AdaConfig {
         request: 'launch',
         targetArchitecture: process.arch,
         cwd: '${workspaceFolder}',
-        program: '${workspaceFolder}/${command:ada.askForProgram}',
+        program: '${workspaceFolder}/${command:ada.getOrAskForProgram}',
         stopAtEntry: false,
         externalConsole: false,
         args: [],
@@ -108,20 +110,33 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
 
         if (folder != undefined) {
             // Offer a list of known Mains from the project
+            const mains = await getMains(this.clients.adaClient);
             const execs = await getExecutables(this.clients.adaClient);
-            const quickpick = execs.map((e) => ({
-                label: vscode.workspace.asRelativePath(e),
-                description: 'Generate the associated configuration',
-            }));
+            assert(
+                execs.length == mains.length,
+                `The ALS returned mains.length = ${mains.length} and ` +
+                    `execs.length = ${execs.length}` +
+                    `when they should be equal`
+            );
+            const quickpick = [];
+            for (let i = 0; i < mains.length; i++) {
+                const exec = execs[i];
+                const main = mains[i];
+                quickpick.push({
+                    label: vscode.workspace.asRelativePath(main),
+                    description: 'Generate the associated launch configuration',
+                    execPath: vscode.workspace.asRelativePath(exec),
+                });
+            }
             const selectedProgram = await vscode.window.showQuickPick(quickpick, {
-                placeHolder: 'Select a program to debug',
+                placeHolder: 'Select a main to create a launch configuration',
             });
             if (selectedProgram) {
                 // The cppdbg debug configuration exepects the executable to be
                 // a full path rather than a path relative to the specified
                 // cwd. That is why we include ${workspaceFolder}.
                 const configuration = initializeConfig(
-                    `\${workspaceFolder}/${selectedProgram.label}`
+                    `\${workspaceFolder}/${selectedProgram.execPath}`
                 );
                 configs.push(configuration);
             } else {
@@ -156,75 +171,73 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
             return debugConfiguration;
         }
 
-        // We are operating without a launch.json. So we try to determine the
-        // program to debug dynamically. If the current editor matches one of
-        // the Mains of the project, then debug the corresponding executable.
-        const file = vscode.window.activeTextEditor?.document.uri.path;
-        if (file != undefined) {
-            const mains = await getMains(this.clients.adaClient);
-            const execs = await getExecutables(this.clients.adaClient);
-            for (let i = 0; i < mains.length; i++) {
-                if (file == mains[i]) {
-                    const config = initializeConfig(execs[i]);
-                    return config;
-                }
-            }
-        }
+        const exec = await this.getOrAskForProgram();
 
-        // There is no current file or it matches no known Main of the project,
-        // so we offer all Main in a QuickPicker for the user to choose from.
-        const quickpick = execs.map((e) => ({
-            label: vscode.workspace.asRelativePath(e),
-            description: 'Run & Debug',
-            fullPath: e,
-        }));
-        const selectedProgram = await vscode.window.showQuickPick(quickpick, {
-            placeHolder: 'Select an executable to debug',
-        });
-        if (selectedProgram) {
-            // This is an in-memory configuration that will not be stored. It's
-            // okay to use the full path directly instead of using
-            // ${workspaceFolder}.
-            const configuration = initializeConfig(selectedProgram.fullPath);
-            return configuration;
+        if (exec) {
+            return initializeConfig(`\${workspaceFolder}/${exec}`);
         }
 
         return undefined;
     }
 
     /**
-     * Consults the project for a list of Mains. If only one is defined, it is
-     * returned immediately. If multiple ones are defines, a QuickPicker is
-     * given to the User to choose and executable to debug or to specify in a
-     * debug configuration.
+     * Get an executable based on the project and the current open file.
      *
-     * @returns the path of the executable to debug relative to the workspace
+     * If the project only defines one main, it is returned immediately.
+     *
+     * If the project defines multiple mains, and if the current open file
+     * matches one of the mains, the corresponding executable is returned.
+     *
+     * Otherwise, the list of mains is offered to the user as a QuickPicker to
+     * choose a main file. The executable corresponding to the selected main
+     * file is returned.
+     *
+     * Note that paths are returned relative to the workspace.
+     *
+     * @returns the path of the executable to debug *relative to the workspace*,
+     * or *undefined* if no selection was made.
      */
-    async askForProgram(): Promise<string | undefined> {
-        const file = vscode.window.activeTextEditor?.document.uri.path;
+    async getOrAskForProgram(): Promise<string | undefined> {
         const mains = await getMains(this.clients.adaClient);
         const execs = await getExecutables(this.clients.adaClient);
 
+        assert(
+            execs.length == mains.length,
+            `The ALS returned mains.length = ${mains.length} and ` +
+                `execs.length = ${execs.length}` +
+                `when they should be equal`
+        );
+
         if (execs.length == 1) return vscode.workspace.asRelativePath(execs[0]);
 
+        // Check if the current file matches one of the mains of the project. If
+        // so, use it.
+        const file = vscode.window.activeTextEditor?.document.uri.path;
         if (file != undefined) {
             for (let i = 0; i < mains.length; i++) {
                 if (file == mains[i]) {
-                    return execs[i];
+                    return vscode.workspace.asRelativePath(execs[i]);
                 }
             }
         }
-        const quickpick = mains.map((e) => ({
-            label: vscode.workspace.asRelativePath(e),
-            description: 'Run & Debug',
-            main: e,
-        }));
+
+        // There is no current file or it matches no known Main of the project,
+        // so we offer all Mains in a QuickPicker for the user to choose from.
+        const quickpick = [];
+        for (let i = 0; i < mains.length; i++) {
+            const exec = execs[i];
+            const main = mains[i];
+            quickpick.push({
+                label: vscode.workspace.asRelativePath(main),
+                description: 'Select for debugging',
+                execRelPath: vscode.workspace.asRelativePath(exec),
+            });
+        }
         const selectedProgram = await vscode.window.showQuickPick(quickpick, {
-            placeHolder: 'Select a main file',
+            placeHolder: 'Select a main file to debug',
         });
         if (selectedProgram) {
-            const index = mains.indexOf(selectedProgram.main);
-            return vscode.workspace.asRelativePath(execs[index]);
+            return selectedProgram.execRelPath;
         }
 
         return undefined;

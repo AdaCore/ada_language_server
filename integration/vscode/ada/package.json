@@ -600,7 +600,7 @@
                             "type": "cppdbg",
                             "request": "launch",
                             "name": "Ada: Debugger Launch",
-                            "program": "^\"\\${workspaceFolder}/\\${command:ada.askForProgram}\"",
+                            "program": "^\"\\${workspaceFolder}/\\${command:ada.getOrAskForProgram}\"",
                             "args": [],
                             "cwd": "^\"\\${workspaceFolder}\"",
                             "stopAtEntry": false,
@@ -609,7 +609,7 @@
                     }
                 ],
                 "variables": {
-                    "AskForProgram": "ada.askForProgram"
+                    "AskForProgram": "ada.getOrAskForProgram"
                 }
             }
         ]
