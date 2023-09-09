@@ -210,7 +210,7 @@
                      {
                         "label": "Primitive",
                         "kind": 3,
-                        "sortText": "100&2Primitive",
+                        "sortText": "100&00002Primitive",
                         "insertText": "Primitive (${1:Obj : Parent})$0",
                         "insertTextFormat": 2,
                         "data": {

@@ -209,7 +209,7 @@
                         "kind": 7,
                         "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                         "documentation": "at __standard (4:3)",
-                        "sortText": "0&2Integer"
+                        "sortText": "00&00002Integer"
                      }
                   ]
                }
@@ -228,7 +228,7 @@
                "kind": 7,
                "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                "documentation": "at __standard (4:3)",
-               "sortText": "000&2Integer",
+               "sortText": "00&00002Integer",
                "additionalTextEdits": []
             }
          },
@@ -240,7 +240,7 @@
                   "kind": 7,
                   "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                   "documentation": "at __standard (4:3)",
-                  "sortText": "000&2Integer"
+                  "sortText": "00&00002Integer"
                }
             }
          ]

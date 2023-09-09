@@ -155,7 +155,7 @@
                      {
                         "label": "Select_Some",
                         "kind": 3,
-                        "sortText": "100&2Select_Some",
+                        "sortText": "100&00002Select_Some",
                         "data": {
                            "uri": "$URI{test.ads}",
                            "range": {
@@ -186,7 +186,7 @@
                "label": "Select_Some",
                "insertTextFormat": 1,
                "kind": 3,
-               "sortText": "100&1Select_Some",
+               "sortText": "100&00001Select_Some",
                "data": {
                   "uri": "$URI{test.ads}",
                   "range": {
@@ -210,7 +210,7 @@
                   "kind": 3,
                   "detail": "procedure Select_Some",
                   "documentation": "at test.ads (3:4)\n\nThis a very useful comment.",
-                  "sortText": "100&1Select_Some",
+                  "sortText": "100&00001Select_Some",
                   "insertTextFormat": 1,
                   "data": {
                      "uri": "$URI{test.ads}",

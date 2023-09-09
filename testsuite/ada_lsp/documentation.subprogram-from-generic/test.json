@@ -157,7 +157,7 @@
                      {
                         "label": "Do_Nothing",
                         "kind": 3,
-                        "sortText": "25&1Do_Nothing",
+                        "sortText": "25&00001Do_Nothing",
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -187,7 +187,7 @@
             "params": {
                "label": "Do_Nothing",
                "kind": 3,
-               "sortText": "25&1Do_Nothing",
+               "sortText": "25&00001Do_Nothing",
                "data": {
                   "uri": "$URI{foo.adb}",
                   "range": {
@@ -211,7 +211,7 @@
                   "kind": 3,
                   "detail": "procedure Do_Nothing",
                   "documentation": "at foo.adb (5:7)\n\nIt doesn't do anything, but test documentation extraction.",
-                  "sortText": "25&1Do_Nothing",
+                  "sortText": "25&00001Do_Nothing",
                   "data": {
                      "uri": "$URI{foo.adb}",
                      "range": {

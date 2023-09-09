@@ -124,7 +124,7 @@
                      {
                         "label": "A",
                         "kind": 5,
-                        "sortText": "0&1A",
+                        "sortText": "00&00001A",
                         "data": {
                            "uri": "$URI{bar.ads}",
                            "range": {
@@ -142,7 +142,7 @@
                      {
                         "label": "Do_Nothing",
                         "kind": 3,
-                        "sortText": "25&2Do_Nothing",
+                        "sortText": "25&00002Do_Nothing",
                         "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
                         "data": {
@@ -223,7 +223,7 @@
                      {
                         "label": "A",
                         "kind": 5,
-                        "sortText": "0&1A",
+                        "sortText": "00&00001A",
                         "data": {
                            "uri": "$URI{bar.ads}",
                            "range": {
@@ -241,7 +241,7 @@
                      {
                         "label": "Do_Nothing",
                         "kind": 3,
-                        "sortText": "25&2Do_Nothing",
+                        "sortText": "25&00002Do_Nothing",
                         "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
                         "data": {
@@ -322,7 +322,7 @@
                      {
                         "label": "Do_Nothing",
                         "kind": 3,
-                        "sortText": "100&1Do_Nothing",
+                        "sortText": "100&00001Do_Nothing",
                         "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
                         "data": {
