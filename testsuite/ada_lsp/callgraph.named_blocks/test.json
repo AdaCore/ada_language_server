@@ -79,40 +79,12 @@
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
                      "hoverProvider": true,
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
                      "documentHighlightProvider": true,
                      "documentSymbolProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "renameProvider": {},
+                     "codeActionProvider": true,
                      "foldingRangeProvider": true,
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ]
+                     "callHierarchyProvider": true
                   }
                }
             }
@@ -193,7 +165,6 @@
                "result": [
                   {
                      "name": "P1",
-                     "detail": "",
                      "kind": 12,
                      "range": {
                         "start": {
@@ -221,7 +192,6 @@
                      "children": [
                         {
                            "name": "A",
-                           "detail": "",
                            "kind": 12,
                            "range": {
                               "start": {
@@ -245,12 +215,10 @@
                            },
                            "alsIsDeclaration": false,
                            "alsIsAdaProcedure": true,
-                           "alsVisibility": 1,
-                           "children": []
+                           "alsVisibility": 1
                         },
                         {
                            "name": "B",
-                           "detail": "",
                            "kind": 12,
                            "range": {
                               "start": {
@@ -274,8 +242,7 @@
                            },
                            "alsIsDeclaration": false,
                            "alsIsAdaProcedure": true,
-                           "alsVisibility": 1,
-                           "children": []
+                           "alsVisibility": 1
                         }
                      ]
                   }
@@ -387,7 +354,7 @@
          "wait": [
             {
                "id": "ada-5",
-               "result": []
+               "result": null
             }
          ]
       }
@@ -411,7 +378,7 @@
          "wait": [
             {
                "id": "ada-6",
-               "result": []
+               "result": null
             }
          ]
       }
@@ -476,7 +443,7 @@
          "wait": [
             {
                "id": "ada-8",
-               "result": []
+               "result": null
             }
          ]
       }

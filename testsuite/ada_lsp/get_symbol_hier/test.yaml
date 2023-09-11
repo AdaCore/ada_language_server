@@ -1,4 +1,1 @@
 title: 'get_symbol_hier'
-# Skip till 3.17 ready
-skip:
-    - ['XFAIL', 'True']

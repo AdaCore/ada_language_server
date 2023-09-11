@@ -37,6 +37,13 @@ package body LSP.Ada_Handlers.Symbols is
       return VSS.Strings.Virtual_String;
    --  Return the profile of Node.
 
+   function Is_Declaration (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Structures.Boolean_Optional;
+
+   function Get_Visibility
+     (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Structures.AlsVisibility_Optional;
+
    ---------------------------
    -- Flat_Document_Symbols --
    ---------------------------
@@ -226,6 +233,26 @@ package body LSP.Ada_Handlers.Symbols is
       end case;
    end Get_Profile;
 
+   --------------------
+   -- Get_Visibility --
+   --------------------
+
+   function Get_Visibility
+     (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Structures.AlsVisibility_Optional
+   is
+      use Libadalang.Common;
+   begin
+      for Parent of Node.Parents loop
+         if Parent.Kind = Ada_Private_Part then
+            return (True, LSP.Enumerations.Als_Private);
+         elsif Parent.Kind in Ada_Protected_Body | Ada_Protected_Def then
+            return (True, LSP.Enumerations.Als_Protected);
+         end if;
+      end loop;
+      return (True, LSP.Enumerations.Als_Public);
+   end Get_Visibility;
+
    -----------------------------------
    -- Hierarchical_Document_Symbols --
    -----------------------------------
@@ -319,10 +346,11 @@ package body LSP.Ada_Handlers.Symbols is
                                  selectionRange => Locations.To_LSP_Location
                                    (Self, Name).a_range,
                                  children       => Children,
-                                 alsIsDeclaration => LSP.Constants.True,
-                                 alsIsAdaProcedure => LSP.Constants.True,
-                                 alsVisibility     =>
-                                   (True, LSP.Enumerations.Als_Private));
+                                 alsIsDeclaration => Is_Declaration (Decl),
+                                 alsIsAdaProcedure =>
+                                   (if Is_Function then (Is_Set => False)
+                                    else (True, True)),
+                                 alsVisibility     => Get_Visibility (Decl));
                            begin
                               Vector.Append (Item);
                            end;
@@ -396,6 +424,44 @@ package body LSP.Ada_Handlers.Symbols is
    begin
       Walk (Root, 0, Result);
    end Hierarchical_Document_Symbols;
+
+   --------------------
+   -- Is_Declaration --
+   --------------------
+
+   function Is_Declaration (Node : Libadalang.Analysis.Basic_Decl)
+      return LSP.Structures.Boolean_Optional
+    is
+      use Libadalang.Common;
+   begin
+      return
+        (case Node.Kind is
+         when Ada_Base_Package_Decl |
+             Ada_Generic_Package_Decl |
+             Ada_Generic_Package_Instantiation |
+             Ada_Generic_Package_Renaming_Decl |
+             Ada_Package_Renaming_Decl |
+             Ada_Abstract_Subp_Decl |
+             Ada_Formal_Subp_Decl |
+             Ada_Subp_Decl |
+             Ada_Subp_Renaming_Decl |
+             Ada_Generic_Subp_Instantiation |
+             Ada_Generic_Subp_Renaming_Decl |
+             Ada_Generic_Subp_Decl |
+             Ada_Null_Subp_Decl |
+             Ada_Expr_Function |
+             Ada_Protected_Type_Decl |
+             Ada_Single_Protected_Decl |
+             Ada_Entry_Decl |
+             Ada_Type_Decl |
+             Ada_Single_Task_Decl |
+             Ada_Task_Type_Decl =>
+
+               (Is_Set => True, Value => True),
+
+            when others =>
+               (Is_Set => True, Value => False));
+   end Is_Declaration;
 
    -------------------
    -- Write_Symbols --
