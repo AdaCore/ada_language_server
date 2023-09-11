@@ -31,8 +31,8 @@ package body LSP.Ada_Configurations is
         VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).To_Lowercase];
 
    Display_Method_Values : constant VSS.String_Vectors.Virtual_String_Vector :=
-     [for Item in DisplayMethodAncestryOnNavigationPolicy =>
-        VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).To_Lowercase];
+     [for Item in LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy
+        => VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).To_Lowercase];
 
    function "+" (X : VSS.Strings.Virtual_String'Class) return String renames
      VSS.Strings.Conversions.To_UTF_8_String;
@@ -195,8 +195,8 @@ package body LSP.Ada_Configurations is
                 (JSON (Index).String_Value)
             then
                Self.Method_Ancestry_Policy :=
-                 DisplayMethodAncestryOnNavigationPolicy'Value
-                   (+JSON (Index).String_Value);
+                 LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy
+                   'Value (+JSON (Index).String_Value);
 
             elsif Name = "followSymlinks"
               and then JSON (Index).Kind = Boolean_Value

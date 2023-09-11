@@ -1768,8 +1768,7 @@ package body LSP.Ada_Handlers is
       Value : LSP.Structures.DeclarationParams)
    is
       use Libadalang.Analysis;
-      use all type LSP.Ada_Configurations.
-        DisplayMethodAncestryOnNavigationPolicy;
+      use all type LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy;
 
       procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
       --  Utility function, appends to Vector all results of the
@@ -1780,8 +1779,10 @@ package body LSP.Ada_Handlers is
       Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
       Display_Method_Policy : constant
-        LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
-          Self.Configuration.Display_Method_Ancestry_Policy;
+        LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
+          (if Value.alsDisplayMethodAncestryOnNavigation.Is_Set
+           then Value.alsDisplayMethodAncestryOnNavigation.Value
+           else Self.Configuration.Display_Method_Ancestry_Policy);
 
       ------------------------
       -- Resolve_In_Context --
@@ -1922,8 +1923,7 @@ package body LSP.Ada_Handlers is
       Value : LSP.Structures.DefinitionParams)
    is
       use Libadalang.Analysis;
-      use all type LSP.Ada_Configurations.
-        DisplayMethodAncestryOnNavigationPolicy;
+      use all type LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy;
 
       Trace      : constant GNATCOLL.Traces.Trace_Handle :=
         LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
@@ -1934,9 +1934,11 @@ package body LSP.Ada_Handlers is
 
       Imprecise  : Boolean := False;
 
-      Display_Method_Ancestry_Policy : constant
-        LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
-          Self.Configuration.Display_Method_Ancestry_Policy;
+      Display_Method_Policy : constant
+        LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
+          (if Value.alsDisplayMethodAncestryOnNavigation.Is_Set
+           then Value.alsDisplayMethodAncestryOnNavigation.Value
+           else Self.Configuration.Display_Method_Ancestry_Policy);
 
       procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
       --  Utility function, appends to Vector all results of the
@@ -1975,7 +1977,7 @@ package body LSP.Ada_Handlers is
             if not Definition.Is_Null then
                Self.Append_Location (Vector, Filter, Definition);
 
-               if Display_Method_Ancestry_Policy
+               if Display_Method_Policy
                   in Usage_And_Abstract_Only | Always
                then
                   Decl_For_Find_Overrides := Definition.P_Basic_Decl;
@@ -1988,9 +1990,9 @@ package body LSP.Ada_Handlers is
 
             --  Search for overriding subprograms only if we are on an
             --  abstract subprogram.
-            if Display_Method_Ancestry_Policy /= Never
+            if Display_Method_Policy /= Never
               and then
-                (Display_Method_Ancestry_Policy /= Usage_And_Abstract_Only
+                (Display_Method_Policy /= Usage_And_Abstract_Only
                   or else Definition_Node.Kind in Ada_Abstract_Subp_Decl_Range)
             then
                Decl_For_Find_Overrides := Definition_Node;
@@ -3036,9 +3038,11 @@ package body LSP.Ada_Handlers is
       Vector : LSP.Structures.Location_Vector renames Response.Variant_1;
       Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
-      Display_Method_Ancestry_Policy : constant
-        LSP.Ada_Configurations.DisplayMethodAncestryOnNavigationPolicy :=
-          Self.Configuration.Display_Method_Ancestry_Policy;
+      Display_Method_Policy : constant
+        LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
+          (if Value.alsDisplayMethodAncestryOnNavigation.Is_Set
+           then Value.alsDisplayMethodAncestryOnNavigation.Value
+           else Self.Configuration.Display_Method_Ancestry_Policy);
 
       procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
       --  Utility function to gather results on one context
@@ -3049,8 +3053,8 @@ package body LSP.Ada_Handlers is
 
       procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
 
-         use all type LSP.Ada_Configurations.
-           DisplayMethodAncestryOnNavigationPolicy;
+         use all type LSP.Enumerations
+           .AlsDisplayMethodAncestryOnNavigationPolicy;
 
          use Libadalang.Common;
 
@@ -3104,9 +3108,9 @@ package body LSP.Ada_Handlers is
 
          --  Display overriding/overridden subprograms depending on the
          --  displayMethodAncestryOnNavigation flag.
-         if Display_Method_Ancestry_Policy in Definition_Only | Always
+         if Display_Method_Policy in Definition_Only | Always
            or else
-             (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
+             (Display_Method_Policy = Usage_And_Abstract_Only
                      and then Decl.Kind in Ada_Abstract_Subp_Decl_Range)
          then
             for Subp of C.Find_All_Base_Declarations (Decl, Imprecise)

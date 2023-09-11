@@ -21,6 +21,7 @@ private with VSS.Characters.Latin;
 with VSS.Strings;
 with VSS.String_Vectors;
 
+with LSP.Enumerations;
 with LSP.Structures;
 
 package LSP.Ada_Configurations is
@@ -92,11 +93,8 @@ package LSP.Ada_Configurations is
      (Self : Configuration'Class) return Variable_List;
    --  Scenario variables, if provided by the user on Configuration/Init
 
-   type DisplayMethodAncestryOnNavigationPolicy is
-     (Never, Usage_And_Abstract_Only, Definition_Only, Always);
-
    function Display_Method_Ancestry_Policy (Self : Configuration'Class)
-     return DisplayMethodAncestryOnNavigationPolicy;
+     return LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy;
 
    function Completion_Formatting return Boolean;
    --  Used in LSP.Ada_Completions.Pretty_Print_Snippet
@@ -132,8 +130,9 @@ private
       Documentation_Style      : GNATdoc.Comments.Options.Documentation_Style
         := GNATdoc.Comments.Options.GNAT;
 
-      Method_Ancestry_Policy   : DisplayMethodAncestryOnNavigationPolicy :=
-        Usage_And_Abstract_Only;
+      Method_Ancestry_Policy   :
+        LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
+          LSP.Enumerations.Usage_And_Abstract_Only;
 
       Variables_Names          : VSS.String_Vectors.Virtual_String_Vector;
       Variables_Values         : VSS.String_Vectors.Virtual_String_Vector;
@@ -193,7 +192,7 @@ private
        (Self.Documentation_Style);
 
    function Display_Method_Ancestry_Policy (Self : Configuration'Class)
-     return DisplayMethodAncestryOnNavigationPolicy is
+     return LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy is
        (Self.Method_Ancestry_Policy);
 
    function On_Type_Formatting_Settings
