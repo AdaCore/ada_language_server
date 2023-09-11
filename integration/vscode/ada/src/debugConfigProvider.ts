@@ -1,5 +1,4 @@
 import assert from 'assert';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { contextClients } from './extension';
 import { getExecutables, getMains, getProjectFile } from './helpers';
@@ -55,12 +54,14 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
  * Initialize a debug configuration based on 'cppdbg' for the given executable
  * if specified. Otherwise the program field includes
  * $\{command:ada.getOrAskForProgram\} to prompt the User for an executable to
- * debug.
+ * debug. If `main` is specified, it is simply used in the name of the launch
+ * configuration.
  *
  * @param program - the executable to debug (optional)
+ * @param main - the main source file to be displayed in the configuration label (optional)
  * @returns an AdaConfig
  */
-function initializeConfig(program?: string): AdaConfig {
+function initializeConfig(program?: string, main?: string): AdaConfig {
     // TODO it would be nice if this and the package.json configuration snippet
     // were the same.
     const config: AdaConfig = {
@@ -79,9 +80,13 @@ function initializeConfig(program?: string): AdaConfig {
     };
 
     if (program) {
-        const name = path.basename(program);
-        config.name = 'Ada: Debug executable - ' + name;
         config.program = program;
+        const name = program.replace('${workspaceFolder}/', '');
+        config.name = `Ada: Debug executable - ${name}`;
+    }
+
+    if (main) {
+        config.name = `Ada: Debug main - ${main}`;
     }
 
     return config;
@@ -122,18 +127,42 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
                     quickpick.push({
                         label: vscode.workspace.asRelativePath(main),
                         description: 'Generate the associated launch configuration',
-                        execPath: vscode.workspace.asRelativePath(exec),
+                        execRelPath: vscode.workspace.asRelativePath(exec),
                     });
                 }
+
+                const generateAll = {
+                    label: 'All of the above',
+                    description: 'Generate launch configurations for each Main file of the project',
+                    execRelPath: '',
+                };
+                if (mains.length > 1) {
+                    quickpick.push(generateAll);
+                }
+
                 const selectedProgram = await vscode.window.showQuickPick(quickpick, {
-                    placeHolder: 'Select a main to create a launch configuration',
+                    placeHolder: 'Select a main file to create a launch configuration',
                 });
-                if (selectedProgram) {
+
+                if (selectedProgram == generateAll) {
+                    void vscode.window.showInformationMessage('Hello');
+                    for (let i = 0; i < mains.length; i++) {
+                        const main = mains[i];
+                        const exec = execs[i];
+                        configs.push(
+                            initializeConfig(
+                                `\${workspaceFolder}/${vscode.workspace.asRelativePath(exec)}`,
+                                vscode.workspace.asRelativePath(main)
+                            )
+                        );
+                    }
+                } else if (selectedProgram) {
                     // The cppdbg debug configuration exepects the executable to be
                     // a full path rather than a path relative to the specified
                     // cwd. That is why we include ${workspaceFolder}.
                     const configuration = initializeConfig(
-                        `\${workspaceFolder}/${selectedProgram.execPath}`
+                        `\${workspaceFolder}/${selectedProgram.execRelPath}`,
+                        selectedProgram.label
                     );
                     configs.push(configuration);
                 } else {
@@ -220,7 +249,7 @@ const setupCmd = [
  * @returns the path of the executable to debug *relative to the workspace*,
  * or *undefined* if no selection was made.
  */
-async function getOrAskForProgram(): Promise<string | undefined> {
+export async function getOrAskForProgram(): Promise<string | undefined> {
     const mains = await getMains(contextClients.adaClient);
     const execs = await getExecutables(contextClients.adaClient);
 

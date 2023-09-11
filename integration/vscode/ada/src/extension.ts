@@ -78,9 +78,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     await Promise.all([contextClients.adaClient.onReady(), contextClients.gprClient.onReady()]);
 
-    const adaDebugConfigProvider = initializeDebugging(context);
+    initializeDebugging(context);
 
-    registerCommands(context, contextClients, adaDebugConfigProvider);
+    registerCommands(context, contextClients);
 
     mainLogChannel.appendLine('Started Ada extension');
 }

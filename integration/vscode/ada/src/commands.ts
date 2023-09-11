@@ -1,15 +1,11 @@
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
 import { ContextClients } from './clients';
-import { AdaDebugConfigProvider } from './debugConfigProvider';
+import { getOrAskForProgram } from './debugConfigProvider';
 import { mainLogChannel } from './extension';
 import { getEnclosingSymbol } from './gnatTaskProvider';
 
-export function registerCommands(
-    context: vscode.ExtensionContext,
-    clients: ContextClients,
-    debug: AdaDebugConfigProvider
-) {
+export function registerCommands(context: vscode.ExtensionContext, clients: ContextClients) {
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.otherFile', clients.otherFileHandler)
     );
@@ -34,7 +30,7 @@ export function registerCommands(
     // configuration snippet that gets offered in the launch.json file.
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.getOrAskForProgram', async () => {
-            const p = await debug.getOrAskForProgram();
+            const p = await getOrAskForProgram();
             return p;
         })
     );
