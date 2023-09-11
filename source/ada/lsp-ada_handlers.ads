@@ -246,6 +246,11 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Server_Requests.Server_Request'Class);
 
+   overriding procedure On_AlsCheckSyntax_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxParams);
+
    overriding procedure On_Declaration_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

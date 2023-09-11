@@ -17,6 +17,7 @@
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
+with Ada.Strings.UTF_Encoding;
 with Ada.Tags.Generic_Dispatching_Constructor;
 with Ada.Unchecked_Deallocation;
 
@@ -441,6 +442,74 @@ package body LSP.Ada_Handlers is
    begin
       Self.Tracer.Trace ("Out Message_Handler " & Name);
    end Log_Method_Out;
+
+   -------------------------------
+   -- On_AlsCheckSyntax_Request --
+   -------------------------------
+
+   overriding procedure On_AlsCheckSyntax_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxParams)
+   is
+
+      function "+"
+        (Item : VSS.Strings.Virtual_String'Class)
+         return Ada.Strings.UTF_Encoding.UTF_8_String
+         renames VSS.Strings.Conversions.To_UTF_8_String;
+
+      function "+"
+        (Item : VSS.Strings.Virtual_String'Class)
+         return Ada.Strings.Unbounded.Unbounded_String
+         renames VSS.Strings.Conversions.To_Unbounded_UTF_8_String;
+
+      Response : LSP.Structures.AlsCheckSyntaxResult;
+
+      Invalid_Rule_Error_Message : constant VSS.Strings.Virtual_String :=
+        "Error parsing the grammar rules for the syntax check";
+
+      Rules : Laltools.Common.Grammar_Rule_Vector;
+
+   begin
+      --  The input cannot be empty and only needs to be valid against one of
+      --  the rules.
+
+      if Value.rules.Length = 0 then
+         --  We need at least one rule in order to validate the input
+
+         Self.Sender.On_Error_Response
+           (Id, (LSP.Constants.InvalidParams, "Rule list is empty"));
+
+         return;
+      elsif Value.input.Is_Empty then
+
+         Response.diagnostic := "Invalid Syntax";
+         Self.Sender.On_AlsCheckSyntax_Response (Id, Response);
+
+         return;
+      end if;
+
+      for Rule of Value.rules loop
+         begin
+            --  A Constraint_Error can be raised here is an invalid rule is
+            --  received in the request parameters.
+            Rules.Append (Libadalang.Common.Grammar_Rule'Value (+Rule));
+         exception
+            when Constraint_Error =>
+               Self.Sender.On_Error_Response
+                 (Id,
+                  (LSP.Constants.InvalidParams, Invalid_Rule_Error_Message));
+
+               return;
+         end;
+      end loop;
+
+      if not Laltools.Common.Validate_Syntax (+Value.input, Rules) then
+         Response.diagnostic := "Invalid Syntax";
+      end if;
+
+      Self.Sender.On_AlsCheckSyntax_Response (Id, Response);
+   end On_AlsCheckSyntax_Request;
 
    ---------------------------
    -- On_CodeAction_Request --
