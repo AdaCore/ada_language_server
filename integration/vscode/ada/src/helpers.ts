@@ -198,14 +198,18 @@ type ExecutablesResponse = {
 };
 
 /**
- * Get the project file from the configuration or if not, the language server
+ * Get the project file from the workspace configuration if available, or from
+ * the ALS if not.
+ *
  * @param client - the client to send the request to
  * @returns a string contains the path of the project file
  */
 export async function getProjectFile(client: LanguageClient): Promise<string> {
-    const config: string | undefined = vscode.workspace.getConfiguration('ada').get('projectFile');
-    if (config != undefined && config != '') {
-        return config;
+    const configValue: string | undefined = vscode.workspace
+        .getConfiguration('ada')
+        .get('projectFile');
+    if (configValue != undefined && configValue != '') {
+        return configValue;
     } else {
         const result: ProjectFileResponse = await client.sendRequest('$/glsProjectFile');
         return result.projectFile;

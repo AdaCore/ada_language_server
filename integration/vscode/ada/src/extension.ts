@@ -78,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     await Promise.all([contextClients.adaClient.onReady(), contextClients.gprClient.onReady()]);
 
-    const adaDebugConfigProvider = initializeDebugging(context, contextClients);
+    const adaDebugConfigProvider = initializeDebugging(context);
 
     registerCommands(context, contextClients, adaDebugConfigProvider);
 
