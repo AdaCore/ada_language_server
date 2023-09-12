@@ -3533,6 +3533,22 @@ package body LSP.Outputs is
       end if;
       Handler.Key_Name ("query");
       Handler.String_Value (Value.query);
+      if Value.case_sensitive.Is_Set then
+         Handler.Key_Name ("case_sensitive");
+         Handler.Boolean_Value (Value.case_sensitive.Value);
+      end if;
+      if Value.whole_word.Is_Set then
+         Handler.Key_Name ("whole_word");
+         Handler.Boolean_Value (Value.whole_word.Value);
+      end if;
+      if Value.negate.Is_Set then
+         Handler.Key_Name ("negate");
+         Handler.Boolean_Value (Value.negate.Value);
+      end if;
+      if Value.kind.Is_Set then
+         Handler.Key_Name ("kind");
+         Write_AlsSearchKind (Handler, Value.kind.Value);
+      end if;
       Handler.End_Object;
    end Write_WorkspaceSymbolParams;
 
@@ -9459,6 +9475,10 @@ package body LSP.Outputs is
       end if;
       Handler.Key_Name ("textDocument");
       Write_TextDocumentIdentifier (Handler, Value.textDocument);
+      if not Value.query.Is_Null then
+         Handler.Key_Name ("query");
+         Handler.String_Value (Value.query);
+      end if;
       if Value.case_sensitive.Is_Set then
          Handler.Key_Name ("case_sensitive");
          Handler.Boolean_Value (Value.case_sensitive.Value);

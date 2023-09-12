@@ -5206,6 +5206,10 @@ package LSP.Structures is
       textDocument : LSP.Structures.TextDocumentIdentifier;
       --  The text document.
 
+      query : Virtual_String_Optional;
+      --  A query string to filter symbols by. Clients may send an empty string
+      --  here to request all symbols.
+
       case_sensitive : Boolean_Optional;
       --  To take letters' case into account.
 
@@ -8527,6 +8531,17 @@ package LSP.Structures is
       query : LSP.Structures.Virtual_String;
       --  A query string to filter symbols by. Clients may send an empty string
       --  here to request all symbols.
+
+      case_sensitive : Boolean_Optional;
+      --  To take letters' case into account.
+
+      whole_word : Boolean_Optional;
+      --  To match the whole word instead of a part of it.
+
+      negate : Boolean_Optional;
+      --  To invert matching.
+
+      kind : AlsSearchKind_Optional;
 
    end record;
    --  The parameters of a [WorkspaceSymbolRequest](#WorkspaceSymbolRequest).

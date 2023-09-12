@@ -6218,7 +6218,11 @@ package body LSP.Inputs is
       package WorkspaceSymbolParams_Map is new Minimal_Perfect_Hash
         (["workDoneToken",
          "partialResultToken",
-         "query"]);
+         "query",
+         "case_sensitive",
+         "whole_word",
+         "negate",
+         "kind"]);
 
    end WorkspaceSymbolParams_Scope;
 
@@ -6251,6 +6255,29 @@ package body LSP.Inputs is
                   Value.query.Clear;
                   Value.query.Append (Handler.String_Value);
                   Handler.Read_Next;
+               when 4 =>  --  case_sensitive
+                  Value.case_sensitive       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.case_sensitive.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 5 =>  --  whole_word
+                  Value.whole_word       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.whole_word.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 6 =>  --  negate
+                  Value.negate       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.negate.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 7 =>  --  kind
+                  Value.kind :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Read_AlsSearchKind (Handler, Value.kind.Value);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -19667,6 +19694,7 @@ package body LSP.Inputs is
         (["workDoneToken",
          "partialResultToken",
          "textDocument",
+         "query",
          "case_sensitive",
          "whole_word",
          "negate",
@@ -19701,25 +19729,29 @@ package body LSP.Inputs is
                   Read_ProgressToken (Handler, Value.partialResultToken.Value);
                when 3 =>  --  textDocument
                   Read_TextDocumentIdentifier (Handler, Value.textDocument);
-               when 4 =>  --  case_sensitive
+               when 4 =>  --  query
+                  Value.query.Clear;
+                  Value.query.Append (Handler.String_Value);
+                  Handler.Read_Next;
+               when 5 =>  --  case_sensitive
                   Value.case_sensitive       :=
                     (Is_Set => True,
                      Value  => <>);
                   Value.case_sensitive.Value := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when 5 =>  --  whole_word
+               when 6 =>  --  whole_word
                   Value.whole_word       :=
                     (Is_Set => True,
                      Value  => <>);
                   Value.whole_word.Value := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when 6 =>  --  negate
+               when 7 =>  --  negate
                   Value.negate       :=
                     (Is_Set => True,
                      Value  => <>);
                   Value.negate.Value := Handler.Boolean_Value;
                   Handler.Read_Next;
-               when 7 =>  --  kind
+               when 8 =>  --  kind
                   Value.kind :=
                     (Is_Set => True,
                      Value  => <>);
