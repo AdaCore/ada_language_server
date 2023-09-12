@@ -22,7 +22,8 @@
         "workspaceContains:*/*.gpr",
         "workspaceContains:*.ad[bs]",
         "workspaceContains:*/*.ad[bs]",
-        "workspaceContains:alire.toml"
+        "workspaceContains:alire.toml",
+        "onDebugDynamicConfigurations:ada"
     ],
     "main": "./out/src/extension",
     "icon": "icons/ada.png",
