@@ -210,7 +210,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

@@ -246,7 +246,6 @@
    {
       "send": {
          "request": {
-            "params": null,
             "jsonrpc": "2.0",
             "method": "exit"
          },
