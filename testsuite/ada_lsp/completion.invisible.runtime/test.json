@@ -179,7 +179,7 @@
                         "kind": 9,
                         "detail": "package Ada.Decimal",
                         "documentation": "at a-decima.ads (38:1)\n\nThe compiler makes a number of assumptions based on the following five\nconstants (e.g. there is an assumption that decimal values can always\nbe represented in 128-bit signed binary form), so code modifications are\nrequired to increase these constants.",
-                        "sortText": "~100&08Decimal",
+                        "sortText": "~100&00008Decimal",
                         "filterText": "Decimal",
                         "insertText": "Decimal"
                      }

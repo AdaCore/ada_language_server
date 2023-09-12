@@ -76,7 +76,7 @@
                     }
                 }
             },
-            "wait":{
+            "wait": [{
                 "id": "defname-1",
                 "result":{
                     "uri": "$URI{link/aaa.ads}",
@@ -91,7 +91,7 @@
                         }
                     }
                 }
-            }
+            }]
         }
     },  {
         "send": {

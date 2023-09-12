@@ -1,5 +1,3 @@
 title: 'project_symlinks'
 skip:
     - ['SKIP', 'env.build.os.name == "windows"']
-    # Skip till 3.17 ready
-    - ['XFAIL', 'True']
