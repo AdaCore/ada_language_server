@@ -33,6 +33,10 @@ package LSP.Ada_Configurations is
       JSON   : LSP.Structures.LSPAny;
       Reload : out Boolean);
 
+   procedure Read_File
+     (Self : in out Configuration'Class;
+      File : VSS.Strings.Virtual_String);
+
    function Project_File
      (Self : Configuration'Class) return VSS.Strings.Virtual_String;
    --  The project file, if provided by the user on Configuration/Init

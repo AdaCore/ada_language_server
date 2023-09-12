@@ -299,9 +299,12 @@ begin
       --  Trace to activate the support for incremental text changes.
    begin
       Ada_Handler.Initialize
-        (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active);
+        (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active,
+         Config_File => VSS.Command_Line.Value (Config_File_Option));
+
       GPR_Handler.Initialize
-        (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active);
+        (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active,
+         Config_File => VSS.Command_Line.Value (Config_File_Option));
    end;
 
    Server.Initialize (Stream'Unchecked_Access);

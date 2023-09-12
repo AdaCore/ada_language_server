@@ -63,11 +63,14 @@ package LSP.Ada_Handlers is
 
    procedure Initialize
      (Self : in out Message_Handler'Class;
-      Incremental_Text_Changes : Boolean);
+      Incremental_Text_Changes : Boolean;
+      Config_File : VSS.Strings.Virtual_String);
    --  Initialize the message handler and configure it.
    --
    --  Incremental_Text_Changes - activate the support for incremental text
    --  changes.
+   --
+   --  Config_File - custom configuration file, if present
 
    function Contexts_For_File
      (Self : access Message_Handler;

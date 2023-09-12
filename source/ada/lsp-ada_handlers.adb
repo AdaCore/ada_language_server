@@ -392,9 +392,35 @@ package body LSP.Ada_Handlers is
 
    procedure Initialize
      (Self : in out Message_Handler'Class;
-      Incremental_Text_Changes : Boolean) is
+      Incremental_Text_Changes : Boolean;
+      Config_File              : VSS.Strings.Virtual_String)
+   is
+      function Directory (File : VSS.Strings.Virtual_String)
+        return VSS.Strings.Virtual_String;
+
+      ---------------
+      -- Directory --
+      ---------------
+
+      function Directory (File : VSS.Strings.Virtual_String)
+        return VSS.Strings.Virtual_String is
+
+         Value : constant GNATCOLL.VFS.Virtual_File :=
+           GNATCOLL.VFS.Create_From_UTF8
+             (VSS.Strings.Conversions.To_UTF_8_String (File));
+      begin
+         return VSS.Strings.Conversions.To_Virtual_String
+           (Value.Dir.Display_Full_Name);
+      end Directory;
+
    begin
       Self.Incremental_Text_Changes := Incremental_Text_Changes;
+
+      if not Config_File.Is_Empty then
+         Self.Configuration.Read_File (Config_File);
+         Self.Client.Set_Root_If_Empty (Directory (Config_File));
+         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
+      end if;
    end Initialize;
 
    ----------------------
