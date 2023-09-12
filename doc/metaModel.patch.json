@@ -245,6 +245,15 @@
             "name": "DocumentSymbolParams",
             "properties": [
                 {
+                    "name": "query",
+                    "type": {
+                        "kind": "base",
+                        "name": "string"
+                    },
+                    "optional": true,
+                    "documentation": "A query string to filter symbols by. Clients may send an empty\nstring here to request all symbols."
+                },
+                {
                     "name": "case_sensitive",
                     "type": {
                         "kind": "base",
@@ -311,6 +320,46 @@
                     },
                     "optional": true,
                     "documentation": "List of reference kind supported by the server."
+                }
+            ]
+        },
+        {
+            "name": "WorkspaceSymbolParams",
+            "properties": [
+                {
+                    "name": "case_sensitive",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To take letters' case into account."
+                },
+                {
+                    "name": "whole_word",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To match the whole word instead of a part of it."
+                },
+                {
+                    "name": "negate",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To invert matching."
+                },
+                {
+                    "name": "kind",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsSearchKind"
+                    },
+                    "optional": true
                 }
             ]
         }
