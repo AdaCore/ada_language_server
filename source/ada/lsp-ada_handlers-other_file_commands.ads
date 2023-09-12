@@ -17,13 +17,12 @@
 --
 --  Implementation of the command to switch from .adb to .ads file and back.
 
-with LSP.Client_Message_Receivers;
-with LSP.Commands;
+with LSP.Ada_Commands;
 with LSP.Errors;
 
 package LSP.Ada_Handlers.Other_File_Commands is
 
-   type Command is new LSP.Commands.Command with private;
+   type Command is new LSP.Ada_Commands.Command with private;
 
    procedure Initialize
      (Self : in out Command'Class;
@@ -31,7 +30,7 @@ package LSP.Ada_Handlers.Other_File_Commands is
 
 private
 
-   type Command is new LSP.Commands.Command with record
+   type Command is new LSP.Ada_Commands.Command with record
       URI : LSP.Structures.DocumentUri;
    end record;
 
@@ -41,11 +40,7 @@ private
 
    overriding procedure Execute
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Sender  : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
-      Id      : LSP.Structures.Integer_Or_Virtual_String;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Error   : in out LSP.Errors.ResponseError_Optional);
 
    for Command'External_Tag use "als-other-file";

@@ -247,10 +247,7 @@ package body LSP.Ada_Handlers.Refactor.Change_Parameter_Mode is
    overriding
    procedure Refactor
      (Self    : Command;
-      Handler : not null access LSP.Server_Notification_Receivers.
-        Server_Notification_Receiver'Class;
-      Client : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Edits   : out LAL_Refactor.Refactoring_Edits)
    is
       use LAL_Refactor;

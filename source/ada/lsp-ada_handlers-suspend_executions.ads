@@ -17,16 +17,15 @@
 --
 --  Implementation of the command to suspend execution for debugging purposes.
 
-with LSP.Client_Message_Receivers;
-with LSP.Commands;
+with LSP.Ada_Commands;
 with LSP.Errors;
 
 package LSP.Ada_Handlers.Suspend_Executions is
 
-   type Suspend_Execution is new LSP.Commands.Command with private;
+   type Suspend_Execution is new LSP.Ada_Commands.Command with private;
 
 private
-   type Suspend_Execution is new LSP.Commands.Command with record
+   type Suspend_Execution is new LSP.Ada_Commands.Command with record
       Input_Queue_Length : Natural;
    end record;
 
@@ -36,11 +35,7 @@ private
 
    overriding procedure Execute
      (Self    : Suspend_Execution;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Sender  : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
-      Id      : LSP.Structures.Integer_Or_Virtual_String;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Error   : in out LSP.Errors.ResponseError_Optional);
 
    for Suspend_Execution'External_Tag use "als-suspend-execution";

@@ -29,10 +29,9 @@ with VSS.String_Vectors;
 with LSP.Structures;
 with LSP.Errors;
 
-limited with LSP.Client_Message_Receivers;
-limited with LSP.Server_Notification_Receivers;
+limited with LSP.Ada_Handlers;
 
-package LSP.Commands is
+package LSP.Ada_Commands is
 
    type Command is abstract tagged null record;
    type Command_Access is access all Command'Class with Storage_Size => 0;
@@ -43,14 +42,9 @@ package LSP.Commands is
 
    procedure Execute
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Sender  : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
-      Id      : LSP.Structures.Integer_Or_Virtual_String;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Error   : in out LSP.Errors.ResponseError_Optional) is abstract;
    --  Execute given command and return Error is something went wrong.
-   --  Use Client object to send requests and notifications to the client.
    --  Commands are executed on the server side only.
    --  The Handler is the access to the message handler executing the command.
 
@@ -60,4 +54,4 @@ package LSP.Commands is
    function All_Commands return VSS.String_Vectors.Virtual_String_Vector;
    --  Return all registered command names.
 
-end LSP.Commands;
+end LSP.Ada_Commands;

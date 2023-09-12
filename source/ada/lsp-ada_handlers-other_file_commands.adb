@@ -75,18 +75,11 @@ package body LSP.Ada_Handlers.Other_File_Commands is
 
    overriding procedure Execute
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Sender  : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
-      Id      : LSP.Structures.Integer_Or_Virtual_String;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Error   : in out LSP.Errors.ResponseError_Optional)
    is
-      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
-        LSP.Ada_Handlers.Message_Handler (Handler.all);
-
       File : constant GNATCOLL.VFS.Virtual_File :=
-        Message_Handler.To_File (Self.URI);
+        Handler.To_File (Self.URI);
 
       function Other_File return GNATCOLL.VFS.Virtual_File;
 
@@ -97,7 +90,7 @@ package body LSP.Ada_Handlers.Other_File_Commands is
       function Other_File return GNATCOLL.VFS.Virtual_File is
          F : constant GPR2.Path_Name.Object := GPR2.Path_Name.Create (File);
       begin
-         for V in Message_Handler.Project_Tree.Iterate
+         for V in Handler.Project_Tree.Iterate
            (Status => (GPR2.Project.S_Externally_Built =>
                            GNATCOLL.Tribooleans.Indeterminate))
          loop
@@ -115,10 +108,10 @@ package body LSP.Ada_Handlers.Other_File_Commands is
             end;
          end loop;
 
-         if Message_Handler.Project_Tree.Has_Runtime_Project then
+         if Handler.Project_Tree.Has_Runtime_Project then
             declare
                Source     : constant GPR2.Project.Source.Object :=
-                               Message_Handler.Project_Tree.Runtime_Project.
+                               Handler.Project_Tree.Runtime_Project.
                                  Source (F);
                Other_Part : GPR2.Project.Source.Source_Part;
             begin
@@ -134,7 +127,7 @@ package body LSP.Ada_Handlers.Other_File_Commands is
       end Other_File;
 
       URI : constant LSP.Structures.DocumentUri :=
-        Message_Handler.To_URI (Other_File.Display_Full_Name);
+        Handler.To_URI (Other_File.Display_Full_Name);
 
       Message : constant LSP.Structures.ShowDocumentParams :=
         (uri       => (VSS.Strings.Virtual_String (URI) with null record),
@@ -142,9 +135,9 @@ package body LSP.Ada_Handlers.Other_File_Commands is
          others    => <>);
 
       New_Id : constant LSP.Structures.Integer_Or_Virtual_String :=
-        Message_Handler.Server.Allocate_Request_Id;
+        Handler.Server.Allocate_Request_Id;
    begin
-      Sender.On_ShowDocument_Request (New_Id, Message);
+      Handler.Sender.On_ShowDocument_Request (New_Id, Message);
    end Execute;
 
    ----------------

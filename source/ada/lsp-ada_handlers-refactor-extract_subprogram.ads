@@ -20,7 +20,6 @@
 with Libadalang.Common;
 
 with LSP.Ada_Contexts;
-with LSP.Client_Message_Receivers;
 
 with VSS.Strings;
 
@@ -57,10 +56,7 @@ private
    overriding
    procedure Refactor
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Client  : not null access
-        LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Edits   : out LAL_Refactor.Refactoring_Edits);
    --  Executes Self by computing the necessary refactorings
 

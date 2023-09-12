@@ -27,6 +27,7 @@ with Libadalang.Common;
 with LSP.Ada_Contexts;
 with LSP.Constants;
 with LSP.Enumerations;
+with LSP.Servers;
 with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
 
@@ -146,12 +147,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
    overriding procedure Execute
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Client  : not null access
-        LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Id     : LSP.Structures.Integer_Or_Virtual_String;
-      Error  : in out LSP.Errors.ResponseError_Optional)
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Error   : in out LSP.Errors.ResponseError_Optional)
    is
       use LSP.Structures;
 
@@ -287,7 +284,8 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Index := Index - 1;
       end loop;
 
-      Client.On_ApplyEdit_Request (Id, Apply);
+      Handler.Sender.On_ApplyEdit_Request
+        (Handler.Server.Allocate_Request_Id, Apply);
    exception
       when E : others =>
          Error :=

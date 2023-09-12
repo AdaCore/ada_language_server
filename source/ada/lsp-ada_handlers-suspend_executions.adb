@@ -73,17 +73,10 @@ package body LSP.Ada_Handlers.Suspend_Executions is
 
    overriding procedure Execute
      (Self    : Suspend_Execution;
-      Handler : not null access LSP.Server_Notification_Receivers
-                 .Server_Notification_Receiver'Class;
-      Sender  : not null access LSP.Client_Message_Receivers
-                 .Client_Message_Receiver'Class;
-      Id      : LSP.Structures.Integer_Or_Virtual_String;
-      Error   : in out LSP.Errors.ResponseError_Optional)
-   is
-      Server : not null access LSP.Servers.Server'Class renames
-        Message_Handler'Class (Handler.all).Server;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Error   : in out LSP.Errors.ResponseError_Optional) is
    begin
-      while Server.Input_Queue_Length < Self.Input_Queue_Length loop
+      while Handler.Server.Input_Queue_Length < Self.Input_Queue_Length loop
          delay 0.1;
       end loop;
    end Execute;

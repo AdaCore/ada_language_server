@@ -19,36 +19,28 @@
 
 with LAL_Refactor;
 
-with LSP.Client_Message_Receivers;
-with LSP.Commands;
+with LSP.Ada_Commands;
 with LSP.Errors;
 
 package LSP.Ada_Handlers.Refactor is
 
-   type Command is abstract new LSP.Commands.Command with private;
+   type Command is abstract new LSP.Ada_Commands.Command with private;
 
    function Name (Self : Command) return String is abstract;
 
    overriding procedure Execute
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Sender  : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
-      Id      : LSP.Structures.Integer_Or_Virtual_String;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Error   : in out LSP.Errors.ResponseError_Optional);
 
    procedure Refactor
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Sender  : not null access LSP.Client_Message_Receivers
-        .Client_Message_Receiver'Class;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Edits   : out LAL_Refactor.Refactoring_Edits) is abstract;
    --  Abstract procedure used to compute the refactoring edits.
 
 private
 
-   type Command is abstract new LSP.Commands.Command with null record;
+   type Command is abstract new LSP.Ada_Commands.Command with null record;
 
 end LSP.Ada_Handlers.Refactor;

@@ -20,14 +20,11 @@ with VSS.Strings.Conversions;
 with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Constants;
 with LSP.Enumerations;
+with LSP.Servers;
 with LSP.Structures;    use LSP.Structures;
 with LSP.Utils;
 
 package body LSP.Ada_Handlers.Refactor is
-
-   function To_DocumentUri (X : String)
-     return LSP.Structures.DocumentUri is
-     (VSS.Strings.Conversions.To_Virtual_String (X) with null record);
 
    -------------
    -- Execute --
@@ -35,11 +32,7 @@ package body LSP.Ada_Handlers.Refactor is
 
    overriding procedure Execute
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Sender  : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
-      Id      : LSP.Structures.Integer_Or_Virtual_String;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Error   : in out LSP.Errors.ResponseError_Optional)
    is
       use LAL_Refactor;
@@ -76,7 +69,7 @@ package body LSP.Ada_Handlers.Refactor is
          Diagnostic.relatedInformation.Append
               (LSP.Structures.DiagnosticRelatedInformation'(
                location => LSP.Structures.Location'
-                 (uri     => To_DocumentUri (Problem.Filename),
+                 (uri     => Handler.To_URI (Problem.Filename),
                   a_range => LSP.Utils.To_Range (Problem.Location),
                   alsKind => LSP.Constants.Empty),
                message  => VSS.Strings.Conversions.To_Virtual_String
@@ -90,8 +83,6 @@ package body LSP.Ada_Handlers.Refactor is
       Error_Msg       : constant String := "Failed to execute the "
         & Name
         & " refactoring.";
-      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
-        LSP.Ada_Handlers.Message_Handler (Handler.all);
       Apply           : LSP.Structures.ApplyWorkspaceEditParams;
       Workspace_Edits : LSP.Structures.WorkspaceEdit renames Apply.edit;
       Label           : Virtual_String_Optional renames Apply.label;
@@ -99,7 +90,6 @@ package body LSP.Ada_Handlers.Refactor is
    begin
       LSP.Ada_Handlers.Refactor.Command'Class (Self).Refactor
         (Handler => Handler,
-         Sender  => Sender,
          Edits   => Edits);
 
       --  The refactoring failed to compute edits: send an error response
@@ -117,29 +107,29 @@ package body LSP.Ada_Handlers.Refactor is
             declare
                Diagnostic  : LSP.Structures.Diagnostic;
                Diagnostics : LSP.Structures.Diagnostic_Vector;
-               URI         : LSP.Structures.DocumentUri := To_DocumentUri ("");
+               URI         : LSP.Structures.DocumentUri := "";
                Document    : Document_Access;
                Idx         : Integer := 1;
             begin
                for Problem of Edits.Diagnostics loop
                   Document := Get_Open_Document
-                    (Self  => Message_Handler,
-                     URI   => To_DocumentUri (Problem.Filename),
+                    (Self  => Handler.all,
+                     URI   => Handler.To_URI (Problem.Filename),
                      Force => False);
 
                   --  Publish any processed diagnostic when switching to a
                   --  different file.
                   if not Diagnostics.Is_Empty
-                    and then URI /= To_DocumentUri (Problem.Filename)
+                    and then URI /= Handler.To_URI (Problem.Filename)
                   then
                      Publish_Diagnostics
-                       (Self              => Message_Handler,
+                       (Self              => Handler.all,
                         Document          => Document,
                         Other_Diagnostics => Diagnostics,
                         Force             => True);
                   end if;
 
-                  URI := To_DocumentUri (Problem.Filename);
+                  URI := Handler.To_URI (Problem.Filename);
                   Diagnostic := To_LSP_Diagnostic (Problem, Error_Msg);
                   Diagnostics.Append (Diagnostic);
 
@@ -147,7 +137,7 @@ package body LSP.Ada_Handlers.Refactor is
                   --  publish all the LSP diagnostics we have.
                   if Idx = Integer (Edits.Diagnostics.Length) then
                      Publish_Diagnostics
-                       (Self              => Message_Handler,
+                       (Self              => Handler.all,
                         Document          => Document,
                         Other_Diagnostics => Diagnostics,
                         Force             => True);
@@ -160,17 +150,18 @@ package body LSP.Ada_Handlers.Refactor is
       else
          --  Apply the computed refactoring edits
          Workspace_Edits := To_Workspace_Edit
-           (Self   => Message_Handler,
+           (Self   => Handler.all,
             Edits  => Edits,
             Rename => True);
          Label := VSS.Strings.Conversions.To_Virtual_String (Name);
 
-         Sender.On_ApplyEdit_Request (Id, Apply);
+         Handler.Sender.On_ApplyEdit_Request
+           (Handler.Server.Allocate_Request_Id, Apply);
       end if;
 
    exception
       when E : others =>
-         Message_Handler.Tracer.Trace_Exception (E);
+         Handler.Tracer.Trace_Exception (E);
          Error :=
            (Is_Set => True,
             Value  =>

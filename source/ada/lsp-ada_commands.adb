@@ -17,7 +17,7 @@
 
 with VSS.Strings.Conversions;
 
-package body LSP.Commands is
+package body LSP.Ada_Commands is
 
    Command_Name_List : VSS.String_Vectors.Virtual_String_Vector;
 
@@ -43,4 +43,4 @@ package body LSP.Commands is
       return Command_Name_List;
    end All_Commands;
 
-end LSP.Commands;
+end LSP.Ada_Commands;

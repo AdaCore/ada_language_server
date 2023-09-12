@@ -84,7 +84,7 @@ with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Renaming;
 with LSP.Ada_Handlers.Symbols;
-with LSP.Commands;
+with LSP.Ada_Commands;
 with LSP.Constants;
 with LSP.Diagnostic_Sources;
 with LSP.Enumerations;
@@ -2770,9 +2770,9 @@ package body LSP.Ada_Handlers is
    -------------------------------
 
    function Create_Command is new Ada.Tags.Generic_Dispatching_Constructor
-     (T           => LSP.Commands.Command,
+     (T           => LSP.Ada_Commands.Command,
       Parameters  => LSP.Structures.LSPAny_Vector,
-      Constructor => LSP.Commands.Create);
+      Constructor => LSP.Ada_Commands.Create);
 
    overriding procedure On_ExecuteCommand_Request
      (Self  : in out Message_Handler;
@@ -2798,16 +2798,11 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         New_Id : constant LSP.Structures.Integer_Or_Virtual_String :=
-           Self.Server.Allocate_Request_Id;
-
-         Command : constant LSP.Commands.Command'Class :=
+         Command : constant LSP.Ada_Commands.Command'Class :=
            Create_Command (Tag, Value.arguments'Unrestricted_Access);
       begin
          Command.Execute
            (Handler => Self'Access,
-            Sender  => Self.Sender,
-            Id      => New_Id,
             Error   => Error);
 
          if Error.Is_Set then
@@ -3241,7 +3236,7 @@ package body LSP.Ada_Handlers is
 
       Response.capabilities := Self.Client.To_Server_Capabilities
         (Self.Incremental_Text_Changes,
-         LSP.Commands.All_Commands,
+         LSP.Ada_Commands.All_Commands,
          Token_Types,
          Token_Motifiers);
 
