@@ -10,16 +10,6 @@ lsp-fuzz_decorators.adb
 lsp-fuzz_decorators.ads
 lsp-lal_utils.adb
 lsp-lal_utils.ads
-lsp-search-approximate.adb
-lsp-search-approximate.ads
-lsp-search-empty.adb
-lsp-search-empty.ads
-lsp-search-full_text.adb
-lsp-search-full_text.ads
-lsp-search-fuzzy.adb
-lsp-search-fuzzy.ads
-lsp-search-regexp.adb
-lsp-search-regexp.ads
 lsp-file_monitors.ads
 lsp-message_loggers.adb
 lsp-message_loggers.ads

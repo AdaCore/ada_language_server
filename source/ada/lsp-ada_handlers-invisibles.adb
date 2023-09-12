@@ -19,6 +19,7 @@ with GNATCOLL.VFS;
 
 with VSS.Strings;
 
+with LSP.Enumerations;
 with LSP.Search;
 with LSP.Utils;
 
@@ -136,7 +137,7 @@ package body LSP.Ada_Handlers.Invisibles is
                     Case_Sensitive => False,
                     Whole_Word     => False,
                     Negate         => False,
-                    Kind           => LSP.Search.Start_Word_Text);
+                    Kind           => LSP.Enumerations.Start_Word_Text);
             begin
                Self.Context.Get_Any_Symbol
                  (Pattern     => Pattern,

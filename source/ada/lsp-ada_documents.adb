@@ -1321,9 +1321,9 @@ package body LSP.Ada_Documents is
       --  matches lowercased pattern as is.
       Use_Celling : constant Boolean :=
         not Pattern.Get_Negate
-        and then ((Pattern.Get_Kind = LSP.Search.Full_Text
+        and then ((Pattern.Get_Kind = LSP.Enumerations.Full_Text
                    and then Pattern.Get_Whole_Word)
-                  or else Pattern.Get_Kind = LSP.Search.Start_Word_Text);
+                  or else Pattern.Get_Kind = LSP.Enumerations.Start_Word_Text);
 
    begin
       if Self.Refresh_Symbol_Cache then

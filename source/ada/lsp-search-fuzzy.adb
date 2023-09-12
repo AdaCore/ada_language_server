@@ -38,7 +38,7 @@ package body LSP.Search.Fuzzy is
          Case_Sensitive => Case_Sensitive,
          Whole_Word     => Whole_Word,
          Negate         => Negate,
-         Kind           => LSP.Messages.Fuzzy);
+         Kind           => LSP.Enumerations.Fuzzy);
    end Build;
 
    -----------

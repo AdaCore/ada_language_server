@@ -35,7 +35,7 @@ package body LSP.Search.Start_Word is
          Case_Sensitive => Case_Sensitive,
          Negate         => Negate,
          Whole_Word     => Whole_Word,
-         Kind           => Start_Word_Text);
+         Kind           => LSP.Enumerations.Start_Word_Text);
    end Build;
 
    --------------

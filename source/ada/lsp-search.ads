@@ -19,10 +19,11 @@ with Ada.Finalization;
 
 with VSS.Strings;
 
+with LSP.Enumerations;
+
 package LSP.Search is
 
-   type Search_Kind is
-     (Full_Text, Regexp, Fuzzy, Approximate, Start_Word_Text);
+   subtype Search_Kind is LSP.Enumerations.AlsSearchKind;
    --  A Full_Text match searches the pattern exactly in the contents.
    --
    --  A Start_Word_Text works like a Full_Text but tested word should mutch
@@ -61,7 +62,7 @@ package LSP.Search is
       Case_Sensitive : Boolean := False;
       Whole_Word     : Boolean := False;
       Negate         : Boolean := False;
-      Kind           : Search_Kind := Full_Text)
+      Kind           : Search_Kind := LSP.Enumerations.Full_Text)
       return Search_Pattern'Class;
    --  Create a new search matcher.
    --  It can be shared among multiple search providers, since it does not
@@ -102,7 +103,7 @@ private
       Text           : VSS.Strings.Virtual_String;
       Case_Sensitive : Boolean     := False;
       Whole_Word     : Boolean     := False;
-      Kind           : Search_Kind := Full_Text;
+      Kind           : Search_Kind := LSP.Enumerations.Full_Text;
       Negate         : Boolean     := False;
    end record;
 

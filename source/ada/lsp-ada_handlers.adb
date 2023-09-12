@@ -2731,6 +2731,8 @@ package body LSP.Ada_Handlers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentSymbolParams)
    is
+      use type LSP.Structures.Boolean_Optional;
+
       Context  : constant LSP.Ada_Context_Sets.Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
@@ -2738,17 +2740,26 @@ package body LSP.Ada_Handlers is
         Context.Get_AU (Self.To_File (Value.textDocument.uri));
 
       Response : LSP.Structures.DocumentSymbol_Result;
-      Dummy    : LSP.Search.Search_Pattern'Class :=
-        LSP.Search.Build ("", Kind => LSP.Search.Start_Word_Text);
+
+      Pattern  : constant LSP.Search.Search_Pattern'Class :=
+        LSP.Search.Build
+          (Pattern        => Value.query,
+           Case_Sensitive => Value.case_sensitive = LSP.Constants.True,
+           Whole_Word     => Value.whole_word = LSP.Constants.True,
+           Negate         => Value.negate = LSP.Constants.True,
+           Kind           =>
+             (if Value.kind.Is_Set
+              then Value.kind.Value
+              else LSP.Enumerations.Start_Word_Text));
    begin
       if Self.Client.Hierarchical_Symbol then
          Response := (Kind => LSP.Structures.Variant_2, Variant_2 => <>);
 
          LSP.Ada_Handlers.Symbols.Hierarchical_Document_Symbols
-           (Self, Unit, Dummy, Response.Variant_2);
+           (Self, Unit, Pattern, Response.Variant_2);
       else
          LSP.Ada_Handlers.Symbols.Flat_Document_Symbols
-           (Self, Unit, Dummy, Response);
+           (Self, Unit, Pattern, Response);
       end if;
 
       Self.Sender.On_DocumentSymbol_Response (Id, Response);
@@ -4265,14 +4276,23 @@ package body LSP.Ada_Handlers is
          Partial_Response_Sended := True;
       end Send_Partial_Response;
 
+      use type LSP.Structures.Boolean_Optional;
+
+      Pattern  : constant LSP.Search.Search_Pattern'Class :=
+        LSP.Search.Build
+          (Pattern        => Value.query,
+           Case_Sensitive => Value.case_sensitive = LSP.Constants.True,
+           Whole_Word     => Value.whole_word = LSP.Constants.True,
+           Negate         => Value.negate = LSP.Constants.True,
+           Kind           =>
+             (if Value.kind.Is_Set
+              then Value.kind.Value
+              else LSP.Enumerations.Start_Word_Text));
+
       Response : LSP.Structures.Symbol_Result (LSP.Structures.Variant_1);
 
-      Pattern : constant LSP.Search.Search_Pattern'Class := LSP.Search.Build
-        (Pattern        => Value.query,
-         Kind           => LSP.Search.Start_Word_Text);
-
    begin
-      if Pattern.Get_Kind /= LSP.Search.Start_Word_Text
+      if Pattern.Get_Kind /= LSP.Enumerations.Start_Word_Text
         and then Pattern.Get_Canonical_Pattern.Character_Length < 2
       then
          --  Do not process too small pattern because

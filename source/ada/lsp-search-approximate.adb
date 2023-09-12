@@ -76,7 +76,7 @@ package body LSP.Search.Approximate is
          Text           => Pattern,
          Case_Sensitive => Case_Sensitive,
          Whole_Word     => Whole_Word,
-         Kind           => LSP.Messages.Approximate,
+         Kind           => LSP.Enumerations.Approximate,
          Negate         => Negate,
          Pattern        => Mask,
          Max_Errors     =>
