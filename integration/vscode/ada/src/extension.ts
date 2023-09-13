@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
@@ -19,15 +20,15 @@ import * as process from 'process';
 import * as vscode from 'vscode';
 
 import { LanguageClient, Middleware } from 'vscode-languageclient/node';
-import { ContextClients } from './clients';
-import { alsCommandExecutor } from './alsExecuteCommand';
 import { ALSClientFeatures } from './alsClientFeatures';
-import { RegisterCommands } from './commands';
+import { alsCommandExecutor } from './alsExecuteCommand';
+import { ContextClients } from './clients';
+import { registerCommands } from './commands';
+import { initializeDebugging } from './debugConfigProvider';
 import { initializeTestView } from './gnattest';
-import { getEvaluatedCustomEnv, assertSupportedEnvironments } from './helpers';
+import { assertSupportedEnvironments, getEvaluatedCustomEnv } from './helpers';
 
 const ADA_CONTEXT = 'ADA_PROJECT_CONTEXT';
-
 export let contextClients: ContextClients;
 export let mainLogChannel: vscode.OutputChannel;
 
@@ -71,11 +72,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, true);
 
-    RegisterCommands(context, contextClients);
-
     await checkSrcDirectories(contextClients.adaClient);
 
     await initializeTestView(context, contextClients);
+
+    await Promise.all([contextClients.adaClient.onReady(), contextClients.gprClient.onReady()]);
+
+    initializeDebugging(context);
+
+    registerCommands(context, contextClients);
+
+    mainLogChannel.appendLine('Started Ada extension');
 }
 
 export async function deactivate() {

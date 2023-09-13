@@ -189,17 +189,59 @@ type ObjDirResponse = {
     objectDir: string;
 };
 
+type MainsResponse = {
+    mains: string[];
+};
+
+type ExecutablesResponse = {
+    executables: string[];
+};
+
+/**
+ * Get the project file from the workspace configuration if available, or from
+ * the ALS if not.
+ *
+ * @param client - the client to send the request to
+ * @returns a string contains the path of the project file
+ */
 export async function getProjectFile(client: LanguageClient): Promise<string> {
-    const config: string | undefined = vscode.workspace.getConfiguration('ada').get('projectFile');
-    if (config != undefined && config != '') {
-        return config;
+    const configValue: string | undefined = vscode.workspace
+        .getConfiguration('ada')
+        .get('projectFile');
+    if (configValue != undefined && configValue != '') {
+        return configValue;
     } else {
         const result: ProjectFileResponse = await client.sendRequest('$/glsProjectFile');
         return result.projectFile;
     }
 }
 
+/**
+ * Get the Object Directory path
+ * @param client - the client to send the request to
+ * @returns a string path
+ */
 export async function getObjectDir(client: LanguageClient): Promise<string> {
     const result: ObjDirResponse = await client.sendRequest('$/glsObjectDir');
     return result.objectDir;
+}
+
+/**
+ * Get the mains in the project
+ * @param client - the client to send the request to
+ * @returns a vector of string paths
+ */
+export async function getMains(client: LanguageClient): Promise<string[]> {
+    const result: MainsResponse = await client.sendRequest('$/glsMains');
+    return result.mains;
+}
+
+/**
+ * Get the executables in the project
+ * @param client - the client to send the request to
+ * @returns a vector of string paths
+ */
+export async function getExecutables(client: LanguageClient): Promise<string[]> {
+    const result: ExecutablesResponse = await client.sendRequest('$/glsExecutables');
+    return result.executables;
 }
