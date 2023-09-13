@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
@@ -34,7 +33,7 @@ with Utils.Char_Vectors;
 with Libadalang.Iterators;
 with Libadalang.Sources;
 
-with VSS.Characters;
+with VSS.Characters.Latin;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
 with VSS.Strings.Cursors;
@@ -2018,16 +2017,20 @@ package body LSP.Ada_Documents is
    function Line_Terminator
      (Self : Document'Class) return VSS.Strings.Virtual_String
    is
-      (if Self.Line_Terminator.Is_Empty then
-         --  Document has no line terminator yet, return LF as most used
-         --
-         --  Should it be platform specific? CRLF for Windows, CR for Mac?
+      use type VSS.Strings.Virtual_String;
 
-          VSS.Strings.To_Virtual_String
-             ((1 => Ada.Characters.Wide_Wide_Latin_1.LF))
+   begin
+      return
+        (if Self.Line_Terminator.Is_Empty then
+            --  Document has no line terminator yet, return LF as most used
+            --
+            --  Should it be platform specific? CRLF for Windows, CR for Mac?
 
-      else
-         Self.Line_Terminator);
+            1 * VSS.Characters.Latin.Line_Feed
+
+         else
+            Self.Line_Terminator);
+   end Line_Terminator;
 
    ----------------------
    -- Range_Formatting --
@@ -2246,6 +2249,8 @@ package body LSP.Ada_Documents is
       Item                    : in out LSP.Structures.CompletionItem;
       Compute_Doc_And_Details : Boolean)
    is
+      use type VSS.Strings.Virtual_String;
+
    begin
       --  Compute the 'documentation' and 'detail' fields immediately if
       --  requested (i.e: when the client does not support lazy computation
@@ -2271,10 +2276,7 @@ package body LSP.Ada_Documents is
             Item.detail := Decl_Text;
 
             if not Doc_Text.Is_Empty then
-               Loc_Text.Append
-                 (VSS.Strings.To_Virtual_String
-                    ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
-
+               Loc_Text.Append (2 * VSS.Characters.Latin.Line_Feed);
                Loc_Text.Append (Doc_Text);
             end if;
 

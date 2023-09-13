@@ -15,8 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Wide_Wide_Latin_1;
-
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
@@ -31,6 +29,7 @@ with GPR2.Project.Tree.View_Builder;
 
 with Libadalang.Preprocessing;
 
+with VSS.Characters.Latin;
 with VSS.Strings.Conversions;
 with VSS.String_Vectors;
 
@@ -46,9 +45,6 @@ with LSP.Structures;
 with URIs;
 
 package body LSP.Ada_Handlers.Project_Loading is
-
-   Line_Feed : constant Wide_Wide_Character :=
-     Ada.Characters.Wide_Wide_Latin_1.LF;
 
    Runtime_Indexing : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.RUNTIME_INDEXING",
@@ -129,8 +125,11 @@ package body LSP.Ada_Handlers.Project_Loading is
    ---------------------------
 
    procedure Ensure_Project_Loaded (Self : in out Message_Handler'Class) is
+      use type VSS.Strings.Virtual_String;
+
       GPRs_Found   : Natural := 0;
       Project_File : VSS.Strings.Virtual_String;
+
    begin
       if not Self.Contexts.Is_Empty then
          --  Rely on the fact that there is at least one context initialized
@@ -196,10 +195,11 @@ package body LSP.Ada_Handlers.Project_Loading is
 
          Self.Sender.On_ShowMessage_Notification
            ((a_type  => LSP.Enumerations.Error,
-             message => VSS.Strings.To_Virtual_String
-               ("More than one .gpr found." & Line_Feed &
-                  "Note: you can configure a project " &
-                  " through the ada.projectFile setting.")));
+             message =>
+               "More than one .gpr found."
+                  & VSS.Characters.Latin.Line_Feed
+                  & "Note: you can configure a project "
+                  & " through the ada.projectFile setting."));
 
          Load_Implicit_Project (Self, Multiple_Projects_Found);
       end if;
