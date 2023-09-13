@@ -205,15 +205,8 @@ type ExecutablesResponse = {
  * @returns a string contains the path of the project file
  */
 export async function getProjectFile(client: LanguageClient): Promise<string> {
-    const configValue: string | undefined = vscode.workspace
-        .getConfiguration('ada')
-        .get('projectFile');
-    if (configValue != undefined && configValue != '') {
-        return configValue;
-    } else {
-        const result: ProjectFileResponse = await client.sendRequest('$/glsProjectFile');
-        return result.projectFile;
-    }
+    const result: ProjectFileResponse = await client.sendRequest('$/glsProjectFile');
+    return result.projectFile;
 }
 
 /**

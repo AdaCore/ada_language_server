@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as assert from 'assert';
+import * as path from 'path';
 import { suite, test } from 'mocha';
 import { contextClients } from '../../../src/extension';
 import { activate } from '../utils';
@@ -43,7 +44,7 @@ suite('GPR Tasks Provider', function () {
     test('Tasks resolving', async () => {
         const prov = new GprTaskProvider(contextClients.adaClient);
         const task = new vscode.Task(
-            { type: 'gpr', main: 'src/program.adb' },
+            { type: 'gpr', main: path.join('src', 'program.adb') },
             'build main',
             'tasks'
         );
@@ -51,7 +52,11 @@ suite('GPR Tasks Provider', function () {
         if (workspace == undefined) {
             throw new Error('No workspace found');
         }
-        const expectedCmd = `gprbuild -d -P ${workspace}/default.gpr src/program.adb `;
+        const expectedCmd =
+            'gprbuild -d -P ' +
+            path.join(workspace, 'default.gpr') +
+            ' ' +
+            path.join('src', 'program.adb ');
         const resolved = await prov.resolveTask(task);
         assert.notStrictEqual(resolved, undefined);
         if (resolved != undefined && resolved.execution) {
