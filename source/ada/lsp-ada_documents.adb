@@ -2455,9 +2455,6 @@ package body LSP.Ada_Documents is
                             (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
                         Insert_Text.Append (':');
                         Insert_Text.Append
-                          (LSP.Lal_Utils.To_Virtual_String (Id.Text));
-                        Insert_Text.Append (" : ");
-                        Insert_Text.Append
                           ((if Mode /= ""
                              then LSP.Lal_Utils.To_Virtual_String (Mode & " ")
                              else ""));
