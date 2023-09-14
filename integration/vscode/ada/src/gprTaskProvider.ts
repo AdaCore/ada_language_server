@@ -17,15 +17,7 @@
 
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
-import { getProjectFile } from './helpers';
-
-export type GlsMainResult = {
-    mains: string[];
-};
-
-export type GlsExecutableResult = {
-    executables: string[];
-};
+import { getMains, getExecutables, getProjectFile } from './helpers';
 
 export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
     private readonly client: LanguageClient;
@@ -41,12 +33,10 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
     async provideTasks(): Promise<vscode.Task[] | undefined> {
         if (!this.glsTasks) {
             const project_file = await getProjectFile(this.client);
-            const mains_result: GlsMainResult = await this.client.sendRequest('$/glsMains');
-            this.glsTasks = getBuildTasks(project_file, mains_result.mains);
-            const execs: GlsExecutableResult = await this.client.sendRequest('$/glsExecutables');
-            this.glsTasks = this.glsTasks.concat(
-                getBuildAndRunTasks(project_file, mains_result.mains, execs.executables)
-            );
+            const mains: string[] = await getMains(this.client);
+            this.glsTasks = getBuildTasks(project_file, mains);
+            const execs: string[] = await getExecutables(this.client);
+            this.glsTasks = this.glsTasks.concat(getBuildAndRunTasks(project_file, mains, execs));
         }
         return this.glsTasks;
     }

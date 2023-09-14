@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
-import { getEnclosingSymbol } from './gnatTaskProvider';
-import { mainLogChannel } from './extension';
 import { ContextClients } from './clients';
+import { getOrAskForProgram } from './debugConfigProvider';
+import { mainLogChannel } from './extension';
+import { getEnclosingSymbol } from './gnatTaskProvider';
 
-export function RegisterCommands(context: vscode.ExtensionContext, clients: ContextClients) {
+export function registerCommands(context: vscode.ExtensionContext, clients: ContextClients) {
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.otherFile', clients.otherFileHandler)
     );
@@ -23,6 +24,15 @@ export function RegisterCommands(context: vscode.ExtensionContext, clients: Cont
         vscode.commands.registerCommand('ada.showGprLSOutput', () =>
             clients.gprClient.outputChannel.show()
         )
+    );
+
+    // This is a hidden command that gets called in the default debug
+    // configuration snippet that gets offered in the launch.json file.
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.getOrAskForProgram', async () => {
+            const p = await getOrAskForProgram();
+            return p;
+        })
     );
 }
 /**
