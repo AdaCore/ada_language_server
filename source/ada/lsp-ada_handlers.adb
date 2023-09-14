@@ -89,6 +89,7 @@ with LSP.Constants;
 with LSP.Diagnostic_Sources;
 with LSP.Enumerations;
 with LSP.Errors;
+with LSP.Formatters.Texts;
 with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Search;
@@ -3959,16 +3960,16 @@ package body LSP.Ada_Handlers is
 
             if not Errors.Is_Empty then
                declare
-                  Template : VSS.Strings.Templates.Virtual_String_Template :=
-                    "Can't rename identifier '{}'";
-
-                  Message : constant VSS.Strings.Virtual_String :=
+                  Template    : constant
+                    VSS.Strings.Templates.Virtual_String_Template :=
+                      "Can't rename identifier '{}'";
+                  Message     : constant VSS.Strings.Virtual_String :=
                     Template.Format
-                      (VSS.Strings.Formatters.Strings.Image
-                         (VSS.Strings.To_Virtual_String (Name_Node.Text)));
+                      (LSP.Formatters.Texts.Image (Name_Node.Text));
 
                   Diag_Params : LSP.Structures.PublishDiagnosticsParams;
                   Diagnostic  : LSP.Structures.Diagnostic;
+
                begin
                   Diagnostic.a_range :=
                     Self.To_LSP_Location (Name_Node).a_range;

@@ -20,7 +20,6 @@ with Ada.Unchecked_Deallocation;
 
 with GNAT.Strings;
 with GNATCOLL.Traces;
-with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 
 with Langkit_Support.Symbols;
@@ -47,13 +46,14 @@ with LSP.Ada_Completions.Filters;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
+with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Id_Iterators;
 with LSP.Enumerations;
 with LSP.Formatters.File_Names;
+with LSP.Formatters.Texts;
 with LSP.Predicates;
-with LSP.Utils;
 with LSP.Structures.LSPAny_Vectors;
-with LSP.Ada_Handlers.Locations;
+with LSP.Utils;
 
 package body LSP.Ada_Documents is
    pragma Warnings (Off);
@@ -347,50 +347,41 @@ package body LSP.Ada_Documents is
             for Param of Params loop
                for Id of Param.F_Ids loop
                   declare
-                     Mode : constant Langkit_Support.Text.Text_Type :=
+                     Mode      : constant Langkit_Support.Text.Text_Type :=
                        Param.F_Mode.Text;
+                     Mode_Text : constant Langkit_Support.Text.Text_Type :=
+                       (if Mode /= "" then Mode & " " else "");
+
+                     Named_Template      : constant
+                       VSS.Strings.Templates.Virtual_String_Template :=
+                         "{} => ${{{}:{} : {}{}}, ";
+                     Positional_Template : constant
+                       VSS.Strings.Templates.Virtual_String_Template :=
+                         "${{{}:{} : {}{}}, ";
+                     Text                : VSS.Strings.Virtual_String;
 
                   begin
                      if Use_Named_Notation then
-                        Insert_Text.Append
-                          (VSS.Strings.To_Virtual_String (Id.Text));
-                        Insert_Text.Append (" => ");
-                        Insert_Text.Append ("${");
-                        Insert_Text.Append
-                          (VSS.Strings.Conversions.To_Virtual_String
-                            (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
-                        Insert_Text.Append (':');
-                        Insert_Text.Append
-                          (VSS.Strings.To_Virtual_String (Id.Text));
-                        Insert_Text.Append (" : ");
-                        Insert_Text.Append
-                          ((if Mode /= ""
-                             then VSS.Strings.To_Virtual_String (Mode & " ")
-                             else ""));
-                        Insert_Text.Append
-                          (VSS.Strings.To_Virtual_String
-                             (Param.F_Type_Expr.Text));
-                        Insert_Text.Append ("}, ");
+                        Text :=
+                          Named_Template.Format
+                            (LSP.Formatters.Texts.Image (Id.Text),
+                             VSS.Strings.Formatters.Integers.Image (Idx),
+                             LSP.Formatters.Texts.Image (Id.Text),
+                             LSP.Formatters.Texts.Image (Mode_Text),
+                             LSP.Formatters.Texts.Image
+                               (Param.F_Type_Expr.Text));
 
                      else
-                        Insert_Text.Append ("${");
-                        Insert_Text.Append
-                          (VSS.Strings.Conversions.To_Virtual_String
-                             (GNATCOLL.Utils.Image (Idx, Min_Width => 1)));
-                        Insert_Text.Append (':');
-                        Insert_Text.Append
-                          (VSS.Strings.To_Virtual_String (Id.Text));
-                        Insert_Text.Append (" : ");
-                        Insert_Text.Append
-                          ((if Mode /= ""
-                             then VSS.Strings.To_Virtual_String (Mode & " ")
-                             else ""));
-                        Insert_Text.Append
-                          (VSS.Strings.To_Virtual_String
-                             (Param.F_Type_Expr.Text));
-                        Insert_Text.Append ("}, ");
+                        Text :=
+                          Positional_Template.Format
+                            (VSS.Strings.Formatters.Integers.Image (Idx),
+                             LSP.Formatters.Texts.Image (Id.Text),
+                             LSP.Formatters.Texts.Image (Mode_Text),
+                             LSP.Formatters.Texts.Image
+                               (Param.F_Type_Expr.Text));
                      end if;
 
+                     Insert_Text.Append (Text);
                      Idx := Idx + 1;
                   end;
                end loop;
