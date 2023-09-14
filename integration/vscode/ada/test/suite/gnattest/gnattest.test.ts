@@ -5,7 +5,7 @@ import * as cp from 'child_process';
 import { suite, test } from 'mocha';
 import * as gnattest from '../../../src/gnattest';
 import { contextClients } from '../../../src/extension';
-import { getProjectFile } from '../../../src/helpers';
+import { getObjectDir, getProjectFile } from '../../../src/helpers';
 import { activate, assertEqualToFileContent } from '../utils';
 
 suite('GNATtest Integration Tests', function () {
@@ -40,7 +40,7 @@ suite('GNATtest Integration Tests', function () {
     test('Expected Tests discovered', async () => {
         const root = await gnattest.discoverTests(
             gnattest.controller,
-            path.join('obj', 'gnattest')
+            path.join(await getObjectDir(contextClients.adaClient), 'gnattest')
         );
         assert.notStrictEqual(root, undefined);
         const tests = gnattest.gatherChildTestItems(gnattest.controller.items);
