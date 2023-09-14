@@ -5,7 +5,7 @@ import * as cp from 'child_process';
 import { suite, test } from 'mocha';
 import * as gnattest from '../../../src/gnattest';
 import { contextClients } from '../../../src/extension';
-import { getProjectFile } from '../../../src/helpers';
+import { getObjectDir, getProjectFile } from '../../../src/helpers';
 import { activate, assertEqualToFileContent } from '../utils';
 
 suite('GNATtest Integration Tests', function () {
@@ -14,20 +14,14 @@ suite('GNATtest Integration Tests', function () {
     });
     test('Generate Tests', async () => {
         await contextClients.adaClient.onReady();
-        const projectFile = vscode.workspace.asRelativePath(
-            await getProjectFile(contextClients.adaClient)
-        );
-        if (vscode.workspace.workspaceFolders) {
-            const fpath = path.join(vscode.workspace.workspaceFolders[0].uri.path, projectFile);
-            cp.execSync('gnattest -P ' + fpath, { timeout: 60000 });
-        } else {
-            throw new Error('No workspace folder found for the specified URI');
-        }
+        const projectFile = await getProjectFile(contextClients.adaClient);
+        // Generate tests and redirect the stderr to stdout if command failed
+        cp.execSync('gnattest -P ' + projectFile + ' 2>&1', { timeout: 60000 });
     });
     test('Build & Run the tests', () => {
         if (vscode.workspace.workspaceFolders) {
             const ext: string = process.platform == 'win32' ? '.exe' : '';
-            const cwd = vscode.workspace.workspaceFolders[0].uri.path;
+            const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
             cp.execSync(
                 'gprbuild -P ' + path.join(cwd, 'obj', 'gnattest', 'harness', 'test_driver.gpr'),
@@ -46,7 +40,7 @@ suite('GNATtest Integration Tests', function () {
     test('Expected Tests discovered', async () => {
         const root = await gnattest.discoverTests(
             gnattest.controller,
-            path.join('obj', 'gnattest')
+            path.join(await getObjectDir(contextClients.adaClient), 'gnattest')
         );
         assert.notStrictEqual(root, undefined);
         const tests = gnattest.gatherChildTestItems(gnattest.controller.items);
@@ -57,7 +51,7 @@ suite('GNATtest Integration Tests', function () {
     });
     test('Read & Parse & compare the results', async () => {
         if (vscode.workspace.workspaceFolders) {
-            const cwd = vscode.workspace.workspaceFolders[0].uri.path;
+            const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
             const resultPath = path.join(cwd, 'obj', 'gnattest', 'result.txt');
             const result = await gnattest.readResultFile(resultPath);
             assert.notStrictEqual(

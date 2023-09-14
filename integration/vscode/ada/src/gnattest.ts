@@ -78,8 +78,8 @@ export async function initializeTestView(
 */
 function startTestRun(
     controller: vscode.TestController,
-    projectFile: string,
-    gnattestPath: string
+    projectFileFullPath: string,
+    gnattestFullPath: string
 ) {
     // terminal ID to seperate between each run
     let terminal_id = 0;
@@ -91,12 +91,12 @@ function startTestRun(
             const tests = gatherChildTestItems(controller.items);
             const terminal_name = 'Test_terminal_' + terminal_id.toString();
             // Run all tests handler
-            handleRunAll(tests, run, terminal_name, gnattestPath);
+            handleRunAll(tests, run, terminal_name, gnattestFullPath);
             terminal_id++;
             // Parse the results when the terminal is closed
             vscode.window.onDidCloseTerminal(async (terminal) => {
                 if (terminal.name == terminal_name) {
-                    const file = await readResultFile(path.join(gnattestPath, 'result.txt'));
+                    const file = await readResultFile(path.join(gnattestFullPath, 'result.txt'));
                     if (file != undefined) {
                         parseResults(tests, run, file);
                     }
@@ -110,12 +110,12 @@ function startTestRun(
             // create a temporary terminal to execute the command lines then close it.
             const terminalName = 'Test_terminal_' + terminal_id.toString();
             // test unit run handler
-            handleUnitRun(tests, run, terminalName, gnattestPath);
+            handleUnitRun(tests, run, terminalName, gnattestFullPath);
             terminal_id++;
             // Parse the results when the terminal is closed
             vscode.window.onDidCloseTerminal(async (terminal) => {
                 if (terminal.name == terminalName) {
-                    const file = await readResultFile(path.join(gnattestPath, 'result.txt'));
+                    const file = await readResultFile(path.join(gnattestFullPath, 'result.txt'));
                     if (file != undefined) {
                         parseResults(tests, run, file);
                     }
@@ -135,7 +135,7 @@ function startTestRun(
     // Tests Configuration Handler to Generates Tests for a Project.
     testRunProfile.configureHandler = () => {
         const terminal = vscode.window.createTerminal('Test Terminal');
-        terminal.sendText('gnattest -P ' + projectFile);
+        terminal.sendText('gnattest -P ' + projectFileFullPath);
         terminal.sendText('exit');
     };
     // Refresh Button to re discover the tests on the project.
@@ -143,7 +143,7 @@ function startTestRun(
         controller.items.forEach((item) => {
             controller.items.delete(item.id);
         });
-        await discoverTests(controller, gnattestPath);
+        await discoverTests(controller, gnattestFullPath);
     };
 }
 
@@ -240,7 +240,7 @@ export function getParentTestSourceName(item: vscode.TestItem) {
 */
 export async function readResultFile(resultPath: string) {
     if (vscode.workspace.workspaceFolders !== undefined) {
-        if (pathExists(resultPath)) {
+        if (pathIsReadable(resultPath)) {
             const file = await vscode.workspace.fs.readFile(vscode.Uri.file(resultPath));
             return file.toString();
         }
@@ -293,14 +293,12 @@ export function parseResults(
 /*
     Return the tests structure stored in gnattest.xml file
 */
-export async function readXMLfile(harnessPath: string): Promise<string | undefined> {
+export async function readXMLfile(harnessFullPath: string): Promise<string | undefined> {
     if (vscode.workspace.workspaceFolders !== undefined) {
-        const mainPath = vscode.workspace.workspaceFolders[0].uri.path;
-        const fullHarnessPath = path.join(mainPath, harnessPath);
         let file;
-        if (pathExists(fullHarnessPath)) {
+        if (pathIsReadable(harnessFullPath)) {
             file = await vscode.workspace.fs.readFile(
-                vscode.Uri.file(path.join(fullHarnessPath, 'gnattest.xml'))
+                vscode.Uri.file(path.join(harnessFullPath, 'gnattest.xml'))
             );
         }
         return file?.toString().replace(/>\s+</g, '><').trim();
@@ -311,10 +309,10 @@ export async function readXMLfile(harnessPath: string): Promise<string | undefin
 /*
     Discover tests by parsing the xml input
 */
-export async function discoverTests(controller: vscode.TestController, gnattestPath: string) {
+export async function discoverTests(controller: vscode.TestController, gnattestFullPath: string) {
     if (vscode.workspace.workspaceFolders !== undefined) {
-        const mainPath = vscode.workspace.workspaceFolders[0].uri.path;
-        const file = await readXMLfile(path.join(gnattestPath, 'harness'));
+        const mainPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        const file = await readXMLfile(path.join(gnattestFullPath, 'harness'));
         const options = {
             ignoreAttributes: false,
             attributeNamePrefix: '@_',
@@ -423,10 +421,11 @@ function findFile(name: string, directory: string): string {
     return '';
 }
 
-/*
-    Checking if a path/file exists
-*/
-export function pathExists(p: string): boolean {
+/**
+ * @param p - path to file or directory
+ * @returns true if the path exists and access rights allow reading it, otherwise false
+ */
+export function pathIsReadable(p: string): boolean {
     try {
         fs.accessSync(p);
     } catch (err) {

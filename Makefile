@@ -10,12 +10,21 @@ BUILD_DATE ?=
 # Location of home dir for tests
 export ALS_HOME=$(ROOTDIR)/testsuite
 
+# Exectuable extension
+ifeq ($(OS),)
+  # Not Windows
+  EXE=""
+else
+  # Windows
+  EXE=.exe
+endif
+
 # Command to run for tests
-export ALS=$(ROOTDIR)/.obj/server/ada_language_server
+export ALS=$(ROOTDIR)/.obj/server/ada_language_server$(EXE)
 
 # Tester files
-TESTER=$(ROOTDIR)/.obj/tester/tester-run
-CODEC_TEST=.obj/codec_test/codec_test
+TESTER=$(ROOTDIR)/.obj/tester/tester-run$(EXE)
+CODEC_TEST=.obj/codec_test/codec_test$(EXE)
 
 # Env variable to set for update VS Code test references
 MOCHA_ALS_UPDATE=
@@ -156,7 +165,6 @@ endif
 
 vscode-test:
 	# Run the VS Code integration testsuite.
-	echo $(GPR_PROJECT_PATH)
 	MOCHA_ALS_UPDATE=$(MOCHA_ALS_UPDATE) cd integration/vscode/ada; LD_LIBRARY_PATH= npm run test
 
 vscode-package:

@@ -635,14 +635,14 @@
         "vscode-tmgrammar-test": "0.1.1"
     },
     "scripts": {
-        "check-licenses": "npx license-checker-rseidelsohn --summary --onlyAllow '0BSD;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BlueOak-1.0.0;CC0-1.0;GPL-3.0;GPL-3.0-or-later;ISC;MIT;Python-2.0;Zlib'",
+        "check-licenses": "npx license-checker-rseidelsohn --summary --onlyAllow \"0BSD;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BlueOak-1.0.0;CC0-1.0;GPL-3.0;GPL-3.0-or-later;ISC;MIT;Python-2.0;Zlib\"",
         "vscode:prepublish": "npm run esbuild-base -- --minify",
         "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/src/extension.js --external:vscode --format=cjs --platform=node",
         "compile": "node ./node_modules/typescript/bin/tsc",
         "watch": "node ./node_modules/typescript/bin/tsc -watch",
         "pretest": "npm run compile",
-        "lint": "eslint './src/**/*.{js,ts,tsx}' --quiet --fix",
-        "cilint": "eslint './src/**/*.{js,ts,tsx}'",
+        "lint": "eslint \"./src/**/*.{js,ts,tsx}\" --quiet --fix",
+        "cilint": "eslint \"./src/**/*.{js,ts,tsx}\"",
         "test": "node ./out/test/runTest.js"
     },
     "dependencies": {
