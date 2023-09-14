@@ -49,6 +49,7 @@ with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Id_Iterators;
 with LSP.Enumerations;
+with LSP.Formatters.File_Names;
 with LSP.Predicates;
 with LSP.Utils;
 with LSP.Structures.LSPAny_Vectors;
@@ -1115,9 +1116,7 @@ package body LSP.Ada_Documents is
             for Error of PP_Messages loop
                Messages.Append
                  (Template.Format
-                    (VSS.Strings.Formatters.Strings.Image
-                         (VSS.Strings.Conversions.To_Virtual_String
-                              (File.Display_Base_Name)),
+                    (LSP.Formatters.File_Names.Image (File),
                      VSS.Strings.Formatters.Integers.Image (Error.Sloc.Line),
                      VSS.Strings.Formatters.Integers.Image (Error.Sloc.Col),
                      VSS.Strings.Formatters.Strings.Image

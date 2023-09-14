@@ -31,7 +31,6 @@ with Pp.Actions;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Generic_Modulars;
-with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
 with VSS.String_Vectors;
 with VSS.Unicode;
@@ -39,6 +38,7 @@ with Laltools.Common;
 
 with LSP.Ada_Documents;
 with LSP.Constants;
+with LSP.Formatters.File_Names;
 with URIs;
 
 package body LSP.Utils is
@@ -488,9 +488,7 @@ package body LSP.Utils is
    begin
       return
         Template.Format
-          (VSS.Strings.Formatters.Strings.Image
-             (VSS.Strings.Conversions.To_Virtual_String
-                (File.Display_Base_Name)),
+          (LSP.Formatters.File_Names.Image (File),
            Line_Number_Formatters.Image (Node.Sloc_Range.Start_Line),
            Column_Number_Formatters.Image (Node.Sloc_Range.Start_Column));
    end Node_Location_Image;
