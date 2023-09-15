@@ -17,6 +17,9 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
  * @param expectedUri - path to the file containing the expected output
  */
 export function assertEqualToFileContent(actual: string, expectedUri: vscode.Uri) {
+    // Normalize the actual string
+    actual = normalizeLineEndings(actual);
+
     if (update()) {
         writeFileSync(expectedUri.fsPath, actual);
     } else {
@@ -25,8 +28,13 @@ export function assertEqualToFileContent(actual: string, expectedUri: vscode.Uri
         }
 
         const expected: string = readFileSync(expectedUri.fsPath, 'utf-8');
+
         assert.strictEqual(actual, expected);
     }
+}
+
+export function normalizeLineEndings(str: string, lineEnding = '\n'): string {
+    return str.replace(/\r?\n/g, lineEnding);
 }
 
 /**
