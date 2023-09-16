@@ -58,6 +58,7 @@ with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.GNATCOLL_Tracers;
 with LSP.Memory_Statistics;
+with LSP.Predefined_Completion;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -286,7 +287,8 @@ begin
 
    if not VSS.Command_Line.Is_Specified (Language_GPR_Option) then
       --  Load predefined completion items
-      pragma Assert (not VSS.Command_Line.Is_Specified (Language_GPR_Option));
+      LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
+      Register_Commands;
    end if;
 
    Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Error);
