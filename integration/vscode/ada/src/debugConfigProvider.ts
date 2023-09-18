@@ -43,6 +43,31 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
     // 'cppdbg' since that type is provided by another extension.
     ctx.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('ada', provider));
 
+    ctx.subscriptions.push(
+        vscode.debug.registerDebugConfigurationProvider(
+            'ada',
+            {
+                async provideDebugConfigurations(
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    _folder: vscode.WorkspaceFolder | undefined
+                ): Promise<vscode.DebugConfiguration[]> {
+                    const quickpick = await createQuickPickItems('Build & Debug');
+
+                    const configs: vscode.DebugConfiguration[] = quickpick.map((i) => {
+                        assert(i.adaMain);
+                        return initializeConfig(i.adaMain.execFullPath, i.adaMain.mainRelPath());
+                    });
+
+                    return configs;
+                },
+            },
+            // The 'Dynamic' trigger type only works if the package.json lists
+            // "onDebugDynamicConfigurations:ada" as part of the
+            // activationEvents.
+            vscode.DebugConfigurationProviderTriggerKind.Dynamic
+        )
+    );
+
     // TODO it is also possible to register another provider with trigger kind
     // 'Dynamic', however the role of such a provider is unclear. In practical
     // experiments it ends up never being called. The above provider is enough
@@ -59,18 +84,27 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
  *
  * @param program - the executable to debug (optional)
  * @param main - the main source file to be displayed in the configuration label (optional)
+ * @param name - the full name of the configuration (optional). If provided,
+ * this name shortcircuits the automatic naming based on the 'main' or the
+ * 'program' parameter.
  * @returns an AdaConfig
  */
-function initializeConfig(program?: string, main?: string): AdaConfig {
+function initializeConfig(program?: string, main?: string, name?: string): AdaConfig {
     // TODO it would be nice if this and the package.json configuration snippet
     // were the same.
     const config: AdaConfig = {
         type: 'cppdbg',
-        name: 'Ada: Debugger Launch',
+        name:
+            name ??
+            (main
+                ? `Ada: Debug main - ${main}`
+                : program
+                ? `Ada: Debug executable - ${program.replace('${workspaceFolder}/', '')}`
+                : 'Ada: Debugger Launch'),
         request: 'launch',
         targetArchitecture: process.arch,
         cwd: '${workspaceFolder}',
-        program: '${workspaceFolder}/${command:ada.getOrAskForProgram}',
+        program: program ?? '${workspaceFolder}/${command:ada.getOrAskForProgram}',
         stopAtEntry: false,
         externalConsole: false,
         args: [],
@@ -78,16 +112,6 @@ function initializeConfig(program?: string, main?: string): AdaConfig {
         preLaunchTask: 'ada: Build current project',
         setupCommands: setupCmd,
     };
-
-    if (program) {
-        config.program = program;
-        const name = program.replace('${workspaceFolder}/', '');
-        config.name = `Ada: Debug executable - ${name}`;
-    }
-
-    if (main) {
-        config.name = `Ada: Debug main - ${main}`;
-    }
 
     return config;
 }
@@ -110,66 +134,47 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
 
         if (folder != undefined) {
             // Offer a list of known Mains from the project
-            const mains = await getMains(contextClients.adaClient);
-            const execs = await getExecutables(contextClients.adaClient);
-            assert(
-                execs.length == mains.length,
-                `The ALS returned mains.length = ${mains.length} and ` +
-                    `execs.length = ${execs.length}` +
-                    `when they should be equal`
-            );
+            const itemDescription = 'Generate the associated launch configuration';
+            const quickpick = await createQuickPickItems(itemDescription);
 
-            if (mains.length > 0) {
-                const quickpick = [];
-                for (let i = 0; i < mains.length; i++) {
-                    const exec = execs[i];
-                    const main = mains[i];
-                    quickpick.push({
-                        label: vscode.workspace.asRelativePath(main),
-                        description: 'Generate the associated launch configuration',
-                        execRelPath: vscode.workspace.asRelativePath(exec),
-                    });
-                }
+            const generateAll: QuickPickAdaMain = {
+                label: 'All of the above',
+                description: 'Generate launch configurations for each Main file of the project',
+                adaMain: undefined,
+            };
+            if (quickpick.length > 1) {
+                quickpick.push(generateAll);
+            }
 
-                const generateAll = {
-                    label: 'All of the above',
-                    description: 'Generate launch configurations for each Main file of the project',
-                    execRelPath: '',
-                };
-                if (mains.length > 1) {
-                    quickpick.push(generateAll);
-                }
+            const selectedProgram = await vscode.window.showQuickPick(quickpick, {
+                placeHolder: 'Select a main file to create a launch configuration',
+            });
 
-                const selectedProgram = await vscode.window.showQuickPick(quickpick, {
-                    placeHolder: 'Select a main file to create a launch configuration',
-                });
-
-                if (selectedProgram == generateAll) {
-                    void vscode.window.showInformationMessage('Hello');
-                    for (let i = 0; i < mains.length; i++) {
-                        const main = mains[i];
-                        const exec = execs[i];
+            if (selectedProgram == generateAll) {
+                for (let i = 0; i < quickpick.length; i++) {
+                    const item = quickpick[i];
+                    if (item != generateAll) {
+                        assert(item.adaMain);
                         configs.push(
                             initializeConfig(
-                                `\${workspaceFolder}/${vscode.workspace.asRelativePath(exec)}`,
-                                vscode.workspace.asRelativePath(main)
+                                `\${workspaceFolder}/${item.adaMain.execRelPath()}`,
+                                item.adaMain.mainRelPath()
                             )
                         );
                     }
-                } else if (selectedProgram) {
-                    // The cppdbg debug configuration exepects the executable to be
-                    // a full path rather than a path relative to the specified
-                    // cwd. That is why we include ${workspaceFolder}.
-                    const configuration = initializeConfig(
-                        `\${workspaceFolder}/${selectedProgram.execRelPath}`,
-                        selectedProgram.label
-                    );
-                    configs.push(configuration);
-                } else {
-                    return Promise.reject('Cancelled');
                 }
+            } else if (selectedProgram) {
+                assert(selectedProgram.adaMain);
+
+                // The cppdbg debug configuration exepects the executable to be
+                // a full path rather than a path relative to the specified
+                // cwd. That is why we include ${workspaceFolder}.
+                const configuration = initializeConfig(
+                    `\${workspaceFolder}/${selectedProgram.adaMain.execRelPath()}`,
+                    selectedProgram.label
+                );
+                configs.push(configuration);
             } else {
-                void warnAboutNoMains();
                 return Promise.reject('Cancelled');
             }
         }
@@ -183,8 +188,9 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
         _token?: vscode.CancellationToken | undefined
     ): Promise<vscode.DebugConfiguration | undefined> {
         // This method is called when a debug session is being started. The
-        // debug configuration either comes from the launch.json file, or is
-        // empty when no launch.json exists.
+        // debug configuration either comes from the launch.json file, or from
+        // the dynamic configuration provider or is empty when the "Debug: Start
+        // Debugging" command is used with no launch.json exists.
 
         if (_token?.isCancellationRequested) {
             return undefined;
@@ -193,18 +199,24 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
         if (debugConfiguration.request == 'launch') {
             // When the given debug configuration has its fields set, it means
             // that the debug configuration is coming from a launch.json file
-            // and we don't want to alter it. Concretely this never occurs
-            // because we register this provider for the debugger type 'ada'
-            // which we never create in launch.json files. Instead we always
-            // create 'cppdbg' configurations which never go through this
-            // provider.
+            // or from the dynamic configuration provider.
+            //
+            // Concretely this never occurs because we register this provider
+            // for the debugger type 'ada' which we never create neither in
+            // launch.json files nor in the dynamic configuration provider.
+            // Instead we always create 'cppdbg' configurations which never go
+            // through this provider.
+            //
+            // In the future we may want to use the 'ada' configuration type to
+            // intercept it here and create a corresponding 'cppdbg'
+            // configuration on the fly.
             return debugConfiguration;
-        }
+        } else {
+            const exec = await getOrAskForProgram();
 
-        const exec = await getOrAskForProgram();
-
-        if (exec) {
-            return initializeConfig(`\${workspaceFolder}/${exec}`);
+            if (exec) {
+                return initializeConfig(`\${workspaceFolder}/${exec}`);
+            }
         }
 
         return undefined;
@@ -233,6 +245,109 @@ const setupCmd = [
 ];
 
 /**
+ * A class that represents an Ada main entry point. It encapsulate both the
+ * source file path and the executable file path.
+ */
+class AdaMain {
+    mainFullPath: string;
+    execFullPath: string;
+    constructor(mainFullPath: string, execFullPath: string) {
+        this.mainFullPath = mainFullPath;
+        this.execFullPath = execFullPath;
+    }
+
+    /**
+     * @returns path of the main source file relative to the workspace
+     */
+    mainRelPath(): string {
+        return vscode.workspace.asRelativePath(this.mainFullPath);
+    }
+
+    /**
+     * @returns path of the executable file relative to the workspace
+     */
+    execRelPath(): string {
+        return vscode.workspace.asRelativePath(this.execFullPath);
+    }
+}
+
+/**
+ * @returns The list of Mains defined for the current project as an array of AdaMains.
+ */
+async function getAdaMains(): Promise<AdaMain[]> {
+    const mains = await getMains(contextClients.adaClient);
+    const execs = await getExecutables(contextClients.adaClient);
+    assert(
+        execs.length == mains.length,
+        `The ALS returned mains.length = ${mains.length} and ` +
+            `execs.length = ${execs.length}` +
+            `when they should be equal`
+    );
+
+    const result: AdaMain[] = [];
+    for (let i = 0; i < mains.length; i++) {
+        result.push(new AdaMain(mains[i], execs[i]));
+    }
+
+    return result;
+}
+
+type QuickPickAdaMain = {
+    label: string;
+    description: string;
+    adaMain?: AdaMain;
+};
+
+/**
+ *
+ * @param itemDescription - description to use for each item
+ * @param mains - optional list of AdaMains if known on the caller site,
+ * otherwise it will be computed by the call
+ * @returns a list of objects to use with a QuickPicker, one per Main declared in the project.
+ */
+async function createQuickPickItems(
+    itemDescription: string,
+    mains?: AdaMain[]
+): Promise<QuickPickAdaMain[]> {
+    mains = mains ?? (await getAdaMains());
+
+    await assertProjectHasMains();
+
+    return mains.map((main) => ({
+        label: vscode.workspace.asRelativePath(main.mainFullPath),
+        description: itemDescription,
+        adaMain: main,
+    }));
+}
+
+/**
+ *
+ * @param mains - list of AdaMains if available at the caller site, otherwise it
+ * will be computed by the call
+ * @returns a rejected Promise if the project does not define Mains.
+ */
+async function assertProjectHasMains(mains?: AdaMain[]) {
+    mains = mains ?? (await getAdaMains());
+
+    if (mains.length == 0) {
+        const msg =
+            `The Ada project '${await getProjectFile(
+                contextClients.adaClient
+            )}' does not define a 'Main' attribute. ` + 'Debugging is not possible without it.';
+
+        // Display a warning message
+        void vscode.window.showWarningMessage(msg);
+
+        // When this function is called through the command
+        // ada.getOrAskForProgram, the following message is also displayed in a
+        // dialog message.
+        return Promise.reject(msg);
+    }
+
+    return undefined;
+}
+
+/**
  * Get an executable based on the project and the current open file.
  *
  * If the project only defines one main, it is returned immediately.
@@ -246,62 +361,56 @@ const setupCmd = [
  *
  * Note that paths are returned relative to the workspace.
  *
+ * @param mains - a list of AdaMains if available at the caller site, otherwise
+ * it is computed by the call.
  * @returns the path of the executable to debug *relative to the workspace*,
  * or *undefined* if no selection was made.
  */
-export async function getOrAskForProgram(): Promise<string | undefined> {
-    const mains = await getMains(contextClients.adaClient);
-    const execs = await getExecutables(contextClients.adaClient);
+export async function getOrAskForProgram(mains?: AdaMain[]): Promise<string | undefined> {
+    // Compute list of mains if not provided by the caller
+    mains = mains ?? (await getAdaMains());
 
-    assert(
-        execs.length == mains.length,
-        `The ALS returned mains.length = ${mains.length} and ` +
-            `execs.length = ${execs.length}` +
-            `when they should be equal`
-    );
+    await assertProjectHasMains(mains);
 
-    if (execs.length == 1) return vscode.workspace.asRelativePath(execs[0]);
+    if (mains.length == 1) return mains[0].execRelPath();
 
     // Check if the current file matches one of the mains of the project. If
     // so, use it.
-    const file = vscode.window.activeTextEditor?.document.uri.path;
-    if (file != undefined) {
-        for (let i = 0; i < mains.length; i++) {
-            if (file == mains[i]) {
-                return vscode.workspace.asRelativePath(execs[i]);
-            }
+    const currentFile = vscode.window.activeTextEditor?.document.uri.path;
+    if (currentFile != undefined) {
+        const adaMain = await getAdaMainForSourceFile(currentFile, mains);
+        if (adaMain) {
+            return adaMain.execRelPath();
         }
     }
 
-    if (mains.length > 0) {
-        // There is no current file or it matches no known Main of the project,
-        // so we offer all Mains in a QuickPicker for the user to choose from.
-        const quickpick = [];
-        for (let i = 0; i < mains.length; i++) {
-            const exec = execs[i];
-            const main = mains[i];
-            quickpick.push({
-                label: vscode.workspace.asRelativePath(main),
-                description: 'Select for debugging',
-                execRelPath: vscode.workspace.asRelativePath(exec),
-            });
-        }
-        const selectedProgram = await vscode.window.showQuickPick(quickpick, {
-            placeHolder: 'Select a main file to debug',
-        });
-        if (selectedProgram) {
-            return selectedProgram.execRelPath;
-        }
-    } else {
-        void warnAboutNoMains();
+    // There is no current file or it matches no known Main of the project, so
+    // we offer all Mains in a QuickPicker for the user to choose from.
+    const quickpick = await createQuickPickItems('Select for debugging', mains);
+    const selectedProgram = await vscode.window.showQuickPick(quickpick, {
+        placeHolder: 'Select a main file to debug',
+    });
+    if (selectedProgram) {
+        return selectedProgram.adaMain?.execRelPath();
     }
 
     return undefined;
 }
-async function warnAboutNoMains() {
-    void vscode.window.showWarningMessage(
-        `Your Ada project file '${await getProjectFile(
-            contextClients.adaClient
-        )}' does not define a 'Main' attribute. ` + 'Debugging is not possible without it.'
-    );
+
+/**
+ *
+ * @param srcPath - a source file to lookup the corresponding Main declaration
+ * @param mains - a list of AdaMains if available at the call site, otherwise it
+ * will be computed by the call
+ * @returns the AdaMain corresponding to the given source file path, or
+ * *undefined* if the source file does not match one of the Mains declared in
+ * the project.
+ */
+async function getAdaMainForSourceFile(
+    srcPath: string,
+    mains?: AdaMain[]
+): Promise<AdaMain | undefined> {
+    mains = mains ?? (await getAdaMains());
+
+    return mains.find((val) => srcPath == val.mainFullPath);
 }
