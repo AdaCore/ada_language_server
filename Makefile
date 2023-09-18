@@ -7,17 +7,23 @@ VERSION ?=
 # ALS build date
 BUILD_DATE ?=
 
+# Define platform-specific variables
+ifeq ($(OS),Windows_NT)
+   PYTHON=python.exe
+   EXE=.exe
+else
+   UNAME_S := $(shell uname -s)
+   ifeq ($(UNAME_S),Linux)
+      OS=unix
+   else ifeq ($(UNAME_S),Darwin)
+      OS=osx
+   endif
+   PYTHON=python3
+   EXE=
+endif
+
 # Location of home dir for tests
 export ALS_HOME=$(ROOTDIR)/testsuite
-
-# Exectuable extension
-ifeq ($(OS),)
-  # Not Windows
-  EXE=""
-else
-  # Windows
-  EXE=.exe
-endif
 
 # Command to run for tests
 export ALS=$(ROOTDIR)/.obj/server/ada_language_server$(EXE)
@@ -64,21 +70,6 @@ else
    NODE_PLATFORM=$(shell node -e "console.log(process.platform)")
 endif
 
-# Target platform as nodejs reports it
-ifeq ($(OS),Windows_NT)
-   PYTHON=python.exe
-   EXE=.exe
-else
-   UNAME_S := $(shell uname -s)
-   ifeq ($(UNAME_S),Linux)
-      OS=unix
-   else ifeq ($(UNAME_S),Darwin)
-      OS=osx
-   endif
-   PYTHON=python3
-   EXE=
-endif
-
 VSCE=npx vsce
 
 LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)	\
@@ -110,7 +101,7 @@ all: coverage-instrument
 		-XVERSION=$(VERSION)
 ifdef NODE
 	mkdir -p integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
-	cp -f $(ALS)$(EXE) integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
+	cp -f $(ALS) integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
 endif
 
 generate:
