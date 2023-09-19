@@ -8,13 +8,12 @@
 
 with Ada.Containers;
 with Interfaces;
+with VSS.Strings;
 with LSP.Output_Tools;
 
 package body LSP.Outputs is
 
    pragma Warnings (Off, "is not referenced");
-   use type Interfaces.Integer_64;
-
    use type Ada.Containers.Count_Type;
 
    procedure Write_ClientCapabilities
@@ -1575,15 +1574,9 @@ package body LSP.Outputs is
          Value   : LSP.Structures.FoldingRangeKind_Set) is
       begin
          Handler.Start_Array;
-         declare
-            Set : LSP.Structures.FoldingRangeKind_Set renames Value;
-         begin
-            for Value in Set'Range loop
-               if Set (Value) then
-                  Write_FoldingRangeKind (Handler, Value);
-               end if;
-            end loop;
-         end;
+         for J in Value.First_Index .. Value.Last_Index loop
+            Write_FoldingRangeKind (Handler, Value (J));
+         end loop;
          Handler.End_Array;
       end Write_FoldingRangeKind_Set;
 
@@ -1593,7 +1586,7 @@ package body LSP.Outputs is
            .foldingRangeKind_OfFoldingRangeClientCapabilities) is
       begin
          Handler.Start_Object;
-         if (for some Item of Value.valueSet => Item) then
+         if not Value.valueSet.Is_Empty then
             Handler.Key_Name ("valueSet");
             Write_FoldingRangeKind_Set (Handler, Value.valueSet);
          end if;
@@ -1713,26 +1706,7 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.CodeActionKind) is
    begin
-      case Value is
-         when LSP.Enumerations.Empty =>
-            Handler.String_Value ("");
-         when LSP.Enumerations.QuickFix =>
-            Handler.String_Value ("quickfix");
-         when LSP.Enumerations.Refactor =>
-            Handler.String_Value ("refactor");
-         when LSP.Enumerations.RefactorExtract =>
-            Handler.String_Value ("refactor.extract");
-         when LSP.Enumerations.RefactorInline =>
-            Handler.String_Value ("refactor.inline");
-         when LSP.Enumerations.RefactorRewrite =>
-            Handler.String_Value ("refactor.rewrite");
-         when LSP.Enumerations.Source =>
-            Handler.String_Value ("source");
-         when LSP.Enumerations.SourceOrganizeImports =>
-            Handler.String_Value ("source.organizeImports");
-         when LSP.Enumerations.SourceFixAll =>
-            Handler.String_Value ("source.fixAll");
-      end case;
+      Handler.String_Value (VSS.Strings.Virtual_String (Value));
    end Write_CodeActionKind;
 
    procedure Write_RelatedUnchangedDocumentDiagnosticReport
@@ -3805,15 +3779,9 @@ package body LSP.Outputs is
          Value   : LSP.Structures.PositionEncodingKind_Set) is
       begin
          Handler.Start_Array;
-         declare
-            Set : LSP.Structures.PositionEncodingKind_Set renames Value;
-         begin
-            for Value in Set'Range loop
-               if Set (Value) then
-                  Write_PositionEncodingKind (Handler, Value);
-               end if;
-            end loop;
-         end;
+         for J in Value.First_Index .. Value.Last_Index loop
+            Write_PositionEncodingKind (Handler, Value (J));
+         end loop;
          Handler.End_Array;
       end Write_PositionEncodingKind_Set;
 
@@ -3846,7 +3814,7 @@ package body LSP.Outputs is
          Handler.Key_Name ("markdown");
          Write_MarkdownClientCapabilities (Handler, Value.markdown.Value);
       end if;
-      if (for some Item of Value.positionEncodings => Item) then
+      if not Value.positionEncodings.Is_Empty then
          Handler.Key_Name ("positionEncodings");
          Write_PositionEncodingKind_Set (Handler, Value.positionEncodings);
       end if;
@@ -4127,7 +4095,7 @@ package body LSP.Outputs is
       Handler.Start_Object;
       Handler.Key_Name ("diagnostics");
       Write_Diagnostic_Vector (Handler, Value.diagnostics);
-      if (for some Item of Value.only => Item) then
+      if not Value.only.Is_Empty then
          Handler.Key_Name ("only");
          Write_CodeActionKind_Set (Handler, Value.only);
       end if;
@@ -4397,15 +4365,9 @@ package body LSP.Outputs is
       Value   : LSP.Structures.CodeActionKind_Set) is
    begin
       Handler.Start_Array;
-      declare
-         Set : LSP.Structures.CodeActionKind_Set renames Value;
-      begin
-         for Value in Set'Range loop
-            if Set (Value) then
-               Write_CodeActionKind (Handler, Value);
-            end if;
-         end loop;
-      end;
+      for J in Value.First_Index .. Value.Last_Index loop
+         Write_CodeActionKind (Handler, Value (J));
+      end loop;
       Handler.End_Array;
    end Write_CodeActionKind_Set;
 
@@ -4526,7 +4488,7 @@ package body LSP.Outputs is
          Handler.Key_Name ("workDoneProgress");
          Handler.Boolean_Value (Value.workDoneProgress.Value);
       end if;
-      if (for some Item of Value.codeActionKinds => Item) then
+      if not Value.codeActionKinds.Is_Empty then
          Handler.Key_Name ("codeActionKinds");
          Write_CodeActionKind_Set (Handler, Value.codeActionKinds);
       end if;
@@ -5399,14 +5361,7 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.WatchKind) is
    begin
-      case Value is
-         when LSP.Enumerations.Create =>
-            Handler.Integer_Value (1);
-         when LSP.Enumerations.Change =>
-            Handler.Integer_Value (2);
-         when LSP.Enumerations.Delete =>
-            Handler.Integer_Value (4);
-      end case;
+      Handler.Integer_Value (LSP.Enumerations.WatchKind'Pos (Value));
    end Write_WatchKind;
 
    procedure Write_DiagnosticSeverity
@@ -5651,30 +5606,7 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.ErrorCodes) is
    begin
-      case Value is
-         when LSP.Enumerations.ParseError =>
-            Handler.Integer_Value (-32_700);
-         when LSP.Enumerations.InvalidRequest =>
-            Handler.Integer_Value (-32_600);
-         when LSP.Enumerations.MethodNotFound =>
-            Handler.Integer_Value (-32_601);
-         when LSP.Enumerations.InvalidParams =>
-            Handler.Integer_Value (-32_602);
-         when LSP.Enumerations.InternalError =>
-            Handler.Integer_Value (-32_603);
-         when LSP.Enumerations.jsonrpcReservedErrorRangeStart =>
-            Handler.Integer_Value (-32_099);
-         when LSP.Enumerations.serverErrorStart =>
-            Handler.Integer_Value (-32_099);
-         when LSP.Enumerations.ServerNotInitialized =>
-            Handler.Integer_Value (-32_002);
-         when LSP.Enumerations.UnknownErrorCode =>
-            Handler.Integer_Value (-32_001);
-         when LSP.Enumerations.jsonrpcReservedErrorRangeEnd =>
-            Handler.Integer_Value (-32_000);
-         when LSP.Enumerations.serverErrorEnd =>
-            Handler.Integer_Value (-32_000);
-      end case;
+      Handler.Integer_Value (LSP.Enumerations.ErrorCodes'Pos (Value));
    end Write_ErrorCodes;
 
    procedure Write_InsertTextFormat
@@ -6817,14 +6749,7 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.PositionEncodingKind) is
    begin
-      case Value is
-         when LSP.Enumerations.UTF8 =>
-            Handler.String_Value ("utf-8");
-         when LSP.Enumerations.UTF16 =>
-            Handler.String_Value ("utf-16");
-         when LSP.Enumerations.UTF32 =>
-            Handler.String_Value ("utf-32");
-      end case;
+      Handler.String_Value (VSS.Strings.Virtual_String (Value));
    end Write_PositionEncodingKind;
 
    procedure Write_Symbol_Progress_Report
@@ -7405,14 +7330,7 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.FoldingRangeKind) is
    begin
-      case Value is
-         when LSP.Enumerations.Comment =>
-            Handler.String_Value ("comment");
-         when LSP.Enumerations.Imports =>
-            Handler.String_Value ("imports");
-         when LSP.Enumerations.Region =>
-            Handler.String_Value ("region");
-      end case;
+      Handler.String_Value (VSS.Strings.Virtual_String (Value));
    end Write_FoldingRangeKind;
 
    procedure Write_PublishDiagnosticsParams
@@ -8947,7 +8865,7 @@ package body LSP.Outputs is
          Handler.Key_Name ("workDoneProgress");
          Handler.Boolean_Value (Value.workDoneProgress.Value);
       end if;
-      if (for some Item of Value.codeActionKinds => Item) then
+      if not Value.codeActionKinds.Is_Empty then
          Handler.Key_Name ("codeActionKinds");
          Write_CodeActionKind_Set (Handler, Value.codeActionKinds);
       end if;
@@ -11413,20 +11331,7 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Enumerations.LSPErrorCodes) is
    begin
-      case Value is
-         when LSP.Enumerations.lspReservedErrorRangeStart =>
-            Handler.Integer_Value (-32_899);
-         when LSP.Enumerations.RequestFailed =>
-            Handler.Integer_Value (-32_803);
-         when LSP.Enumerations.ServerCancelled =>
-            Handler.Integer_Value (-32_802);
-         when LSP.Enumerations.ContentModified =>
-            Handler.Integer_Value (-32_801);
-         when LSP.Enumerations.RequestCancelled =>
-            Handler.Integer_Value (-32_800);
-         when LSP.Enumerations.lspReservedErrorRangeEnd =>
-            Handler.Integer_Value (-32_800);
-      end case;
+      Handler.Integer_Value (LSP.Enumerations.LSPErrorCodes'Pos (Value));
    end Write_LSPErrorCodes;
 
    procedure Write_ReferenceRegistrationOptions

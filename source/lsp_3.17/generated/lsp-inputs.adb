@@ -1787,10 +1787,10 @@ package body LSP.Inputs is
             Set   : LSP.Structures.FoldingRangeKind_Set renames Value;
             Value : LSP.Enumerations.FoldingRangeKind;
          begin
-            Set := (others => False);
+            Set.Clear;
             while not Handler.Is_End_Array loop
                Read_FoldingRangeKind (Handler, Value);
-               Set (Value) := True;
+               Set.Append (Value);
             end loop;
          end;
 
@@ -2073,9 +2073,7 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.CodeActionKind) is
    begin
-      Value :=
-        LSP.Enumerations.CodeActionKind'Val
-          (CodeActionKind_Map.Get_Index (Handler.String_Value) - 1);
+      Value := (Handler.String_Value with null record);
       Handler.Read_Next;
    end Read_CodeActionKind;
 
@@ -6908,10 +6906,10 @@ package body LSP.Inputs is
             Set   : LSP.Structures.PositionEncodingKind_Set renames Value;
             Value : LSP.Enumerations.PositionEncodingKind;
          begin
-            Set := (others => False);
+            Set.Clear;
             while not Handler.Is_End_Array loop
                Read_PositionEncodingKind (Handler, Value);
-               Set (Value) := True;
+               Set.Append (Value);
             end loop;
          end;
 
@@ -8340,10 +8338,10 @@ package body LSP.Inputs is
          Set   : LSP.Structures.CodeActionKind_Set renames Value;
          Value : LSP.Enumerations.CodeActionKind;
       begin
-         Set := (others => False);
+         Set.Clear;
          while not Handler.Is_End_Array loop
             Read_CodeActionKind (Handler, Value);
-            Set (Value) := True;
+            Set.Append (Value);
          end loop;
       end;
 
@@ -10439,9 +10437,7 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.WatchKind) is
    begin
-      Value :=
-        LSP.Enumerations.WatchKind'Val
-          (Handler.Number_Value.Integer_Value - 1);
+      Value := LSP.Enumerations.WatchKind (Handler.Number_Value.Integer_Value);
       Handler.Read_Next;
    end Read_WatchKind;
 
@@ -10968,8 +10964,7 @@ package body LSP.Inputs is
       Value   : out LSP.Enumerations.ErrorCodes) is
    begin
       Value :=
-        LSP.Enumerations.ErrorCodes'Val
-          (Handler.Number_Value.Integer_Value + 32_700);
+        LSP.Enumerations.ErrorCodes (Handler.Number_Value.Integer_Value);
       Handler.Read_Next;
    end Read_ErrorCodes;
 
@@ -13591,9 +13586,7 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.PositionEncodingKind) is
    begin
-      Value :=
-        LSP.Enumerations.PositionEncodingKind'Val
-          (PositionEncodingKind_Map.Get_Index (Handler.String_Value) - 1);
+      Value := (Handler.String_Value with null record);
       Handler.Read_Next;
    end Read_PositionEncodingKind;
 
@@ -14969,9 +14962,7 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Enumerations.FoldingRangeKind) is
    begin
-      Value :=
-        LSP.Enumerations.FoldingRangeKind'Val
-          (FoldingRangeKind_Map.Get_Index (Handler.String_Value) - 1);
+      Value := (Handler.String_Value with null record);
       Handler.Read_Next;
    end Read_FoldingRangeKind;
 
@@ -24145,8 +24136,7 @@ package body LSP.Inputs is
       Value   : out LSP.Enumerations.LSPErrorCodes) is
    begin
       Value :=
-        LSP.Enumerations.LSPErrorCodes'Val
-          (Handler.Number_Value.Integer_Value + 32_899);
+        LSP.Enumerations.LSPErrorCodes (Handler.Number_Value.Integer_Value);
       Handler.Read_Next;
    end Read_LSPErrorCodes;
 

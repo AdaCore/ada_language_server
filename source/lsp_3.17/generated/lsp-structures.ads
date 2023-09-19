@@ -1545,9 +1545,11 @@ package LSP.Structures is
       end case;
    end record;
 
+   package PositionEncodingKind_Vectors is new Ada.Containers.Vectors
+     (Positive, PositionEncodingKind, "=");
+
    type PositionEncodingKind_Set is
-     array (PositionEncodingKind) of Boolean with
-     Pack, Default_Component_Value => False;
+   new PositionEncodingKind_Vectors.Vector with null record;
 
    type GeneralClientCapabilities is record
       staleRequestSupport : staleRequestSupport_OfGeneralClientCapabilities_Optional;
@@ -1832,8 +1834,11 @@ package LSP.Structures is
       end case;
    end record;
 
-   type CodeActionKind_Set is array (CodeActionKind) of Boolean with
-     Pack, Default_Component_Value => False;
+   package CodeActionKind_Vectors is new Ada.Containers.Vectors
+     (Positive, CodeActionKind, "=");
+
+   type CodeActionKind_Set is
+   new CodeActionKind_Vectors.Vector with null record;
 
    type codeActionKind_OfcodeActionLiteralSupport_OfCodeActionClientCapabilities is
    record
@@ -2135,8 +2140,11 @@ package LSP.Structures is
       end case;
    end record;
 
-   type FoldingRangeKind_Set is array (FoldingRangeKind) of Boolean with
-     Pack, Default_Component_Value => False;
+   package FoldingRangeKind_Vectors is new Ada.Containers.Vectors
+     (Positive, FoldingRangeKind, "=");
+
+   type FoldingRangeKind_Set is
+   new FoldingRangeKind_Vectors.Vector with null record;
 
    type foldingRangeKind_OfFoldingRangeClientCapabilities is record
       valueSet : LSP.Structures.FoldingRangeKind_Set;

@@ -6,6 +6,8 @@
 --  DON'T EDIT THIS FILE! It was generated from metaModel.json.
 --
 
+with VSS.Strings;
+
 package LSP.Enumerations is
    pragma Preelaborate;
 
@@ -21,21 +23,19 @@ package LSP.Enumerations is
 
    type AlsVisibility is (Als_Public, Als_Protected, Als_Private);
 
-   type CodeActionKind is
-     (Empty, QuickFix, Refactor, RefactorExtract, RefactorInline,
-      RefactorRewrite, Source, SourceOrganizeImports, SourceFixAll);
+   type CodeActionKind is new VSS.Strings.Virtual_String with null record;
    --  A set of predefined code action kinds
-   --
-   --  @value Empty
+
+   function Empty return CodeActionKind is ("");
    --  Empty kind.
-   --
-   --  @value QuickFix
+
+   function QuickFix return CodeActionKind is ("quickfix");
    --  Base kind for quickfix actions: 'quickfix'
-   --
-   --  @value Refactor
+
+   function Refactor return CodeActionKind is ("refactor");
    --  Base kind for refactoring actions: 'refactor'
-   --
-   --  @value RefactorExtract
+
+   function RefactorExtract return CodeActionKind is ("refactor.extract");
    --  Base kind for refactoring extraction actions: 'refactor.extract'
    --
    --  Example extract actions:
@@ -44,8 +44,8 @@ package LSP.Enumerations is
    --  - Extract function
    --  - Extract variable
    --  - Extract interface from class - ...
-   --
-   --  @value RefactorInline
+
+   function RefactorInline return CodeActionKind is ("refactor.inline");
    --  Base kind for refactoring inline actions: 'refactor.inline'
    --
    --  Example inline actions:
@@ -54,25 +54,26 @@ package LSP.Enumerations is
    --  - Inline variable
    --  - Inline constant
    --  - ...
-   --
-   --  @value RefactorRewrite
+
+   function RefactorRewrite return CodeActionKind is ("refactor.rewrite");
    --  Base kind for refactoring rewrite actions: 'refactor.rewrite'
    --
    --  Example rewrite actions:
    --
    --  - Convert JavaScript function to class - Add or remove parameter -
    --  Encapsulate field - Make method static - Move method to base class - ...
-   --
-   --  @value Source
+
+   function Source return CodeActionKind is ("source");
    --  Base kind for source actions: `source`
    --
    --  Source code actions apply to the entire file.
-   --
-   --  @value SourceOrganizeImports
+
+   function SourceOrganizeImports return CodeActionKind is
+     ("source.organizeImports");
    --  Base kind for an organize imports source action:
    --  `source.organizeImports`
-   --
-   --  @value SourceFixAll
+
+   function SourceFixAll return CodeActionKind is ("source.fixAll");
    --  Base kind for auto-fix source actions: `source.fixAll`.
    --
    --  Fix all actions automatically fix errors that have a clear fix that
@@ -170,34 +171,43 @@ package LSP.Enumerations is
    --  @value Write
    --  Write-access of a symbol, like writing to a variable.
 
-   type ErrorCodes is
-     (ParseError, InvalidRequest, MethodNotFound, InvalidParams, InternalError,
-      jsonrpcReservedErrorRangeStart, serverErrorStart, ServerNotInitialized,
-      UnknownErrorCode, jsonrpcReservedErrorRangeEnd, serverErrorEnd);
+   type ErrorCodes is new Integer;
    --  Predefined error codes.
-   --
-   --  @value jsonrpcReservedErrorRangeStart
+
+   function ParseError return ErrorCodes is (-32_700);
+
+   function InvalidRequest return ErrorCodes is (-32_600);
+
+   function MethodNotFound return ErrorCodes is (-32_601);
+
+   function InvalidParams return ErrorCodes is (-32_602);
+
+   function InternalError return ErrorCodes is (-32_603);
+
+   function jsonrpcReservedErrorRangeStart return ErrorCodes is (-32_099);
    --  This is the start range of JSON RPC reserved error codes. It doesn't
    --  denote a real error code. No application error codes should be defined
    --  between the start and end range. For backwards compatibility the
    --  `ServerNotInitialized` and the `UnknownErrorCode` are left in the range.
    --
    --  @since 3.16.0
-   --
-   --  @value serverErrorStart
+
+   function serverErrorStart return ErrorCodes is (-32_099);
    --  @deprecated use jsonrpcReservedErrorRangeStart */
-   --
-   --  @value ServerNotInitialized
+
+   function ServerNotInitialized return ErrorCodes is (-32_002);
    --  Error code indicating that a server received a notification or request
    --  before the server has received the `initialize` request.
-   --
-   --  @value jsonrpcReservedErrorRangeEnd
+
+   function UnknownErrorCode return ErrorCodes is (-32_001);
+
+   function jsonrpcReservedErrorRangeEnd return ErrorCodes is (-32_000);
    --  This is the end range of JSON RPC reserved error codes. It doesn't
    --  denote a real error code.
    --
    --  @since 3.16.0
-   --
-   --  @value serverErrorEnd
+
+   function serverErrorEnd return ErrorCodes is (-32_000);
    --  @deprecated use jsonrpcReservedErrorRangeEnd */
 
    type FailureHandlingKind is
@@ -245,16 +255,16 @@ package LSP.Enumerations is
    --  @value folder
    --  The pattern matches a folder only.
 
-   type FoldingRangeKind is (Comment, Imports, Region);
+   type FoldingRangeKind is new VSS.Strings.Virtual_String with null record;
    --  A set of predefined range kinds.
-   --
-   --  @value Comment
+
+   function Comment return FoldingRangeKind is ("comment");
    --  Folding range for a comment
-   --
-   --  @value Imports
+
+   function Imports return FoldingRangeKind is ("imports");
    --  Folding range for an import or include
-   --
-   --  @value Region
+
+   function Region return FoldingRangeKind is ("region");
    --  Folding range for a region (e.g. `#region`)
 
    type InlayHintKind is (A_Type, Parameter);
@@ -307,30 +317,28 @@ package LSP.Enumerations is
    --  line completion item is indented using 2 tabs and all following lines
    --  inserted will be indented using 2 tabs as well.
 
-   type LSPErrorCodes is
-     (lspReservedErrorRangeStart, RequestFailed, ServerCancelled,
-      ContentModified, RequestCancelled, lspReservedErrorRangeEnd);
-   --
-   --  @value lspReservedErrorRangeStart
+   type LSPErrorCodes is new Integer;
+
+   function lspReservedErrorRangeStart return LSPErrorCodes is (-32_899);
    --  This is the start range of LSP reserved error codes. It doesn't denote a
    --  real error code.
    --
    --  @since 3.16.0
-   --
-   --  @value RequestFailed
+
+   function RequestFailed return LSPErrorCodes is (-32_803);
    --  A request failed but it was syntactically correct, e.g the method
    --  name was known and the parameters were valid. The error message
    --  should contain human readable information about why the request failed.
    --
    --  @since 3.17.0
-   --
-   --  @value ServerCancelled
+
+   function ServerCancelled return LSPErrorCodes is (-32_802);
    --  The server cancelled the request. This error code should only be used
    --  for requests that explicitly support being server cancellable.
    --
    --  @since 3.17.0
-   --
-   --  @value ContentModified
+
+   function ContentModified return LSPErrorCodes is (-32_801);
    --  The server detected that the content of a document got modified outside
    --  normal conditions. A server should NOT send this error code if it
    --  detects a content change in it unprocessed messages. The result
@@ -338,11 +346,11 @@ package LSP.Enumerations is
    --
    --  If a client decides that a result is not of any use anymore the client
    --  should cancel the request.
-   --
-   --  @value RequestCancelled
+
+   function RequestCancelled return LSPErrorCodes is (-32_800);
    --  The client has canceled a request and a server as detected the cancel.
-   --
-   --  @value lspReservedErrorRangeEnd
+
+   function lspReservedErrorRangeEnd return LSPErrorCodes is (-32_800);
    --  This is the end range of LSP reserved error codes. It doesn't denote a
    --  real error code.
    --
@@ -402,20 +410,21 @@ package LSP.Enumerations is
    --  @value Code
    --  A code-cell is source code.
 
-   type PositionEncodingKind is (UTF8, UTF16, UTF32);
+   type PositionEncodingKind is
+   new VSS.Strings.Virtual_String with null record;
    --  A set of predefined position encoding kinds.
    --
    --  @since 3.17.0
-   --
-   --  @value UTF8
+
+   function UTF8 return PositionEncodingKind is ("utf-8");
    --  Character offsets count UTF-8 code units.
-   --
-   --  @value UTF16
+
+   function UTF16 return PositionEncodingKind is ("utf-16");
    --  Character offsets count UTF-16 code units.
    --
    --  This is the default and must always be supported by servers
-   --
-   --  @value UTF32
+
+   function UTF32 return PositionEncodingKind is ("utf-32");
    --  Character offsets count UTF-32 code units.
    --
    --  Implementation note: these are the same as Unicode code points, so
@@ -556,15 +565,15 @@ package LSP.Enumerations is
    --  @value global
    --  The moniker is globally unique
 
-   type WatchKind is (Create, Change, Delete);
-   --
-   --  @value Create
+   type WatchKind is mod 2**16;
+
+   function Create return WatchKind is (1);
    --  Interested in create events.
-   --
-   --  @value Change
+
+   function Change return WatchKind is (2);
    --  Interested in change events
-   --
-   --  @value Delete
+
+   function Delete return WatchKind is (4);
    --  Interested in delete events
 
 end LSP.Enumerations;
