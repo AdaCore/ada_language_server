@@ -505,7 +505,7 @@ package body LSP.Ada_Handlers is
          --  We need at least one rule in order to validate the input
 
          Self.Sender.On_Error_Response
-           (Id, (LSP.Constants.InvalidParams, "Rule list is empty"));
+           (Id, (LSP.Enumerations.InvalidParams, "Rule list is empty"));
 
          return;
       elsif Value.input.Is_Empty then
@@ -525,7 +525,8 @@ package body LSP.Ada_Handlers is
             when Constraint_Error =>
                Self.Sender.On_Error_Response
                  (Id,
-                  (LSP.Constants.InvalidParams, Invalid_Rule_Error_Message));
+                  (LSP.Enumerations.InvalidParams,
+                   Invalid_Rule_Error_Message));
 
                return;
          end;
@@ -2819,7 +2820,7 @@ package body LSP.Ada_Handlers is
 
       if Tag = Ada.Tags.No_Tag then
          Self.Sender.On_Error_Response
-           (Id, (code    => LSP.Constants.InternalError,
+           (Id, (code    => LSP.Enumerations.InternalError,
                  message => "Unknown command"));
          return;
       end if;
@@ -2884,7 +2885,7 @@ package body LSP.Ada_Handlers is
 
       else
          Self.Sender.On_Error_Response
-           (Id, (code => LSP.Constants.InternalError,
+           (Id, (code => LSP.Enumerations.InternalError,
                  message => "Document is not opened"));
       end if;
    end On_FoldingRange_Request;
@@ -4061,7 +4062,7 @@ package body LSP.Ada_Handlers is
       if not Self.Implemented then
          Self.Sender.On_Error_Response
            (Value.Id,
-            (code    => LSP.Constants.MethodNotFound,
+            (code    => LSP.Enumerations.MethodNotFound,
              message => "Not implemented"));
       end if;
 
@@ -4079,7 +4080,7 @@ package body LSP.Ada_Handlers is
 
             Self.Sender.On_Error_Response
               (Value.Id,
-               (code    => LSP.Constants.InternalError,
+               (code    => LSP.Enumerations.InternalError,
                 message => Message));
 
          end;

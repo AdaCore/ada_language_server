@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+pragma Ada_2022;
+
 with VSS.Characters.Latin;
 with VSS.JSON.Streams;
 with VSS.String_Vectors;
@@ -242,6 +244,11 @@ package body LSP.Ada_Client_Capabilities is
    is
       use type VSS.Strings.Virtual_String;
 
+      function Supported_Code_Action_Kinds
+        return LSP.Structures.CodeActionKind_Vectors.Vector is
+          [LSP.Enumerations.QuickFix,
+           LSP.Enumerations.RefactorRewrite];
+
       function Full_codeActionProvider
         return LSP.Structures.Boolean_Or_CodeActionOptions_Optional is
           (Is_Set => True,
@@ -249,10 +256,8 @@ package body LSP.Ada_Client_Capabilities is
              (Is_Boolean        => False,
               CodeActionOptions =>
                 (workDoneProgress => LSP.Constants.False,
-                 codeActionKinds  =>
-                   (LSP.Enumerations.QuickFix        => True,
-                    LSP.Enumerations.RefactorRewrite => True,
-                    others                           => False),
+                 codeActionKinds  => (Supported_Code_Action_Kinds
+                                        with null record),
                  resolveProvider  => LSP.Constants.False)));
 
    begin

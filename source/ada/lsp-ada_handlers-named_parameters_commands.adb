@@ -25,7 +25,6 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with LSP.Ada_Contexts;
-with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Servers;
 with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
@@ -243,7 +242,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Constants.InvalidRequest,
+              (code    => LSP.Enumerations.InvalidRequest,
                message => "This is not a valid position to name parameters."));
          return;
       end if;
@@ -260,7 +259,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Constants.InvalidRequest,
+              (code    => LSP.Enumerations.InvalidRequest,
                message =>
                  "Could not resolve this call expression precisely."));
          return;
@@ -291,7 +290,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Constants.UnknownErrorCode,
+              (code    => LSP.Enumerations.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
                  (Ada.Exceptions.Exception_Information (E))));
    end Execute;

@@ -20,7 +20,7 @@ with GNATCOLL.Traces;
 with Pp.Command_Lines;
 with Utils.Command_Lines;
 
-with LSP.Constants;
+with LSP.Enumerations;
 
 package body LSP.Ada_Handlers.Formatting is
 
@@ -54,7 +54,7 @@ package body LSP.Ada_Handlers.Formatting is
       if Document.Has_Diagnostics (Context) then
          Success := False;
          Error   :=
-           (code => LSP.Constants.InternalError,
+           (code => LSP.Enumerations.InternalError,
             message => "Incorrect code can't be formatted");
 
          return;
@@ -75,7 +75,7 @@ package body LSP.Ada_Handlers.Formatting is
 
       if not Success then
          Error :=
-           (code    => LSP.Constants.InternalError,
+           (code    => LSP.Enumerations.InternalError,
             message => Messages.Join (' '));
          Messages.Clear;
       end if;
@@ -101,7 +101,7 @@ package body LSP.Ada_Handlers.Formatting is
       if Document.Has_Diagnostics (Context) then
          Success := False;
          Error   :=
-           (code    => LSP.Constants.InternalError,
+           (code    => LSP.Enumerations.InternalError,
             message => "Syntactically incorrect code can't be formatted");
 
          return;
@@ -122,7 +122,7 @@ package body LSP.Ada_Handlers.Formatting is
 
       if not Success then
          Error :=
-           (code    => LSP.Constants.InternalError,
+           (code    => LSP.Enumerations.InternalError,
             message => Messages.Join (' '));
       end if;
    end Range_Format;

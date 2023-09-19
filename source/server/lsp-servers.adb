@@ -29,7 +29,7 @@ with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
 
 with LSP.Client_Message_Writers;
-with LSP.Constants;
+with LSP.Enumerations;
 with LSP.Errors;
 with LSP.Known_Requests;
 with LSP.Lifecycle_Checkers;
@@ -62,8 +62,8 @@ package body LSP.Servers is
       Message    : VSS.Strings.Virtual_String;
       Request    : VSS.Stream_Element_Vectors.Stream_Element_Vector;
       Request_Id : LSP.Structures.Integer_Or_Virtual_String;
-      Code       : Integer :=
-        LSP.Constants.InternalError);
+      Code       : LSP.Enumerations.ErrorCodes :=
+        LSP.Enumerations.InternalError);
    --  Send a response representing the exception to the client. This
    --  should be called whenever an exception occurred while processing
    --  a request.
@@ -412,7 +412,7 @@ package body LSP.Servers is
                   Self.Tracer.Trace (Vector);
                   Self.On_Error_Response
                     (Request_Id,
-                     (code    => LSP.Constants.InvalidParams,
+                     (code    => LSP.Enumerations.InvalidParams,
                       message => "Unable to decode request."));
 
                   return;
@@ -423,7 +423,7 @@ package body LSP.Servers is
                     (Self, UR, "Unknown method.",
                      Vector,
                      Request_Id,
-                     LSP.Constants.MethodNotFound);
+                     LSP.Enumerations.MethodNotFound);
                   return;
 
                when E : others =>
@@ -433,7 +433,7 @@ package body LSP.Servers is
                     (Self, E, "Request decoding fails:",
                      Vector,
                      Request_Id,
-                     LSP.Constants.InvalidParams);
+                     LSP.Enumerations.InvalidParams);
                   return;
             end;
 
@@ -600,8 +600,8 @@ package body LSP.Servers is
       Message    : VSS.Strings.Virtual_String;
       Request    : VSS.Stream_Element_Vectors.Stream_Element_Vector;
       Request_Id : LSP.Structures.Integer_Or_Virtual_String;
-      Code       : Integer :=
-        LSP.Constants.InternalError) is
+      Code       : LSP.Enumerations.ErrorCodes :=
+        LSP.Enumerations.InternalError) is
    begin
       Self.Tracer.Trace_Exception (E, Message);
       Self.Tracer.Trace (Request);

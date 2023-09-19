@@ -98,7 +98,7 @@ package body LSP.Ada_Handlers.Refactor is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Constants.UnknownErrorCode,
+              (code    => LSP.Enumerations.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
                  (Error_Msg)));
 
@@ -165,7 +165,7 @@ package body LSP.Ada_Handlers.Refactor is
          Error :=
            (Is_Set => True,
             Value  =>
-              (code    => LSP.Constants.UnknownErrorCode,
+              (code    => LSP.Enumerations.UnknownErrorCode,
                message => VSS.Strings.Conversions.To_Virtual_String
                  (Error_Msg)));
    end Execute;

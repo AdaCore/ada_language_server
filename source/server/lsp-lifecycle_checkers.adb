@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Constants;
+with LSP.Enumerations;
 
 package body LSP.Lifecycle_Checkers is
 
@@ -45,7 +45,7 @@ package body LSP.Lifecycle_Checkers is
          Client.On_Error_Response
            (Id    => Self.Request_Id.Value,
             Value =>
-              (code    => LSP.Constants.ServerNotInitialized,
+              (code    => LSP.Enumerations.ServerNotInitialized,
                message => "No initialize request has been received"));
       end if;
    end Check_Message;
