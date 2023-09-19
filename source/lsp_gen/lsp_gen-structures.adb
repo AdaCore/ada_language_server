@@ -76,9 +76,10 @@ package body LSP_Gen.Structures is
       Done   : Dependency_Map);
    procedure Write_Optional_Type (Name : VSS.Strings.Virtual_String);
    procedure Write_Vector_Type
-     (Model : LSP_Gen.Meta_Models.Meta_Model;
-      Name  : VSS.Strings.Virtual_String;
-      Item  : VSS.Strings.Virtual_String);
+     (Model    : LSP_Gen.Meta_Models.Meta_Model;
+      Name     : VSS.Strings.Virtual_String;
+      Element  : LSP_Gen.Entities.AType;
+      Fallback : VSS.Strings.Virtual_String);
    procedure Write_Enumeration
      (Name : VSS.Strings.Virtual_String;
       List : LSP_Gen.Entities.AType_Vector);
@@ -1010,19 +1011,12 @@ package body LSP_Gen.Structures is
                   null;
             end case;
          when an_array =>
-            declare
-               Element : constant VSS.Strings.Virtual_String :=
-                 Short_Name
-                   (Model,
-                    Item.Union.an_array.element.Value,
-                    Fallback & "_Item");
-            begin
-               if Name /= "LSPAny_Vector"
-                 and Name /= "Virtual_String_Vector"
-               then
-                  Write_Vector_Type (Model, Name, Element);
-               end if;
-            end;
+            if Name /= "LSPAny_Vector"
+              and Name /= "Virtual_String_Vector"
+            then
+               Write_Vector_Type
+                 (Model, Name, Item.Union.an_array.element.Value, Fallback);
+            end if;
          when map =>
             declare
                Element : constant VSS.Strings.Virtual_String := Short_Name
@@ -1775,11 +1769,16 @@ package body LSP_Gen.Structures is
    -----------------------
 
    procedure Write_Vector_Type
-     (Model : LSP_Gen.Meta_Models.Meta_Model;
-      Name  : VSS.Strings.Virtual_String;
-      Item  : VSS.Strings.Virtual_String)
+     (Model    : LSP_Gen.Meta_Models.Meta_Model;
+      Name     : VSS.Strings.Virtual_String;
+      Element  : LSP_Gen.Entities.AType;
+      Fallback : VSS.Strings.Virtual_String)
    is
-      pragma Unreferenced (Model);
+      Item : constant VSS.Strings.Virtual_String :=
+        Short_Name
+          (Model,
+           Element,
+           Fallback & "_Item");
    begin
       if Name = "DocumentSymbol_Vector" or Name = "SelectionRange_Vector" then
          declare
@@ -1797,6 +1796,17 @@ package body LSP_Gen.Structures is
             New_Line;
             return;
          end;
+
+      elsif Element.Union.Kind = reference
+        and then Model.Is_Custom_Enumeration (Element.Union.reference.name)
+      then
+         --  array of enum that supports custom values.
+         --
+         --  For string-based enumeration do nothing and create ordinary
+         --  vector of enum (strings). Current LSP doesn't have non-string
+         --  "custom" enums in arrays.
+         null;
+
       elsif Name.Ends_With ("_Set") then
          --  It looks like any enum array in LSP is a set. Let's define them
          --  as sets.

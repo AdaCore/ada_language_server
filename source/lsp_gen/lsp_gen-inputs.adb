@@ -817,6 +817,22 @@ package body LSP_Gen.Inputs is
 
       if Spec then
          Put_Line (";");
+      elsif Info.supportsCustomValues then
+         Put_Line (" is");
+         Put_Line ("begin");
+
+         case Info.a_type.name is
+            when LSP_Gen.Entities.Enum.string =>
+               Put_Line ("Value := (Handler.String_Value with null record);");
+
+            when others =>
+               Put ("Value := LSP.Enumerations.");
+               Put_Id (Name);
+               Put_Line (" (Handler.Number_Value.Integer_Value);");
+         end case;
+
+         Put_Line ("Handler.Read_Next;");
+         Put_Line ("end;");
       else
          Put_Line (" is");
          Put_Line ("begin");
@@ -1562,6 +1578,9 @@ package body LSP_Gen.Inputs is
    is
       use all type LSP_Gen.Mappings.Or_Mapping_Kind;
 
+      function Array_Element return LSP_Gen.Entities.AType is
+        (Tipe.Union.an_array.element.Value);
+
    begin
       if Name = "LSPArray" then
          return;  --  TBD
@@ -1636,7 +1655,12 @@ package body LSP_Gen.Inputs is
                Put_Line (";");
                Put_Line ("begin");
 
-               if Name.Ends_With ("_Set") then
+               if Name.Ends_With ("_Set")
+                 and then
+                   (Array_Element.Union.Kind /= reference
+                     or else not Model.Is_Custom_Enumeration
+                       (Array_Element.Union.reference.name))
+               then
                   Put_Line ("Set := (others => False);");
                   Put_Line ("   while not Handler.Is_End_Array loop");
                   Write_Call (Done, Tipe.Union.an_array.element.Value, "");

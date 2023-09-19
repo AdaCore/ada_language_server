@@ -442,6 +442,19 @@ package body LSP_Gen.Meta_Models is
       end case;
    end Is_Base_Type;
 
+   ---------------------------
+   -- Is_Custom_Enumeration --
+   ---------------------------
+
+   function Is_Custom_Enumeration
+     (Self : Meta_Model'Class;
+      Name : VSS.Strings.Virtual_String) return Boolean is
+   begin
+      return Self.Is_Enumeration (Name) and then
+        Self.Model.enumerations (Self.Index (Name).Position)
+          .supportsCustomValues;
+   end Is_Custom_Enumeration;
+
    --------------------
    -- Is_Enumeration --
    --------------------

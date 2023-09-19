@@ -21,6 +21,65 @@ with LSP_Gen.Puts; use LSP_Gen.Puts;
 package body LSP_Gen.Enumerations is
 
    procedure Write_Type (Enum : LSP_Gen.Entities.Enumeration);
+   procedure Write_Pseudo_Enum (Enum : LSP_Gen.Entities.Enumeration);
+   --  When enumeration supports custom values we can't use enumeration type,
+   --  so instead create new string or integer types and set of functions
+   --  for corresponding literals.
+
+   -----------------------
+   -- Write_Pseudo_Enum --
+   -----------------------
+
+   procedure Write_Pseudo_Enum (Enum : LSP_Gen.Entities.Enumeration) is
+      Last : constant Positive := Enum.values.Length;
+   begin
+      Put ("type ");
+      Put_Id (Enum.name);
+      Put_Line (" is ");
+
+      case Enum.a_type.name is
+         when LSP_Gen.Entities.Enum.string =>
+            Put_Line ("new VSS.Strings.Virtual_String with null record");
+         when LSP_Gen.Entities.Enum.integer =>
+            Put_Line ("new Integer");
+         when LSP_Gen.Entities.Enum.uinteger =>
+            Put_Line ("mod 2 ** 16");
+      end case;
+
+      Put_Line (";");
+      Put_Lines (Enum.documentation.Split_Lines, "   --  ");
+
+      for J in 1 .. Last loop
+         declare
+            Item : constant LSP_Gen.Entities.EnumerationEntry :=
+              Enum.values (J);
+         begin
+            New_Line;
+            Put ("function ");
+            Put_Id (Item.name);
+            Put (" return ");
+            Put_Id (Enum.name);
+            Put (" is (");
+
+            case Item.value.Is_String is
+               when True =>
+                  Put ("""");
+                  Put (Item.value.String);
+                  Put ("""");
+               when False =>
+                  Put (Item.value.Integer);
+            end case;
+
+            Put_Line (");");
+
+            if not Item.documentation.Is_Empty then
+               Put_Lines (Item.documentation.Split_Lines, "  --  ");
+            end if;
+         end;
+      end loop;
+
+      New_Line;
+   end Write_Pseudo_Enum;
 
    ----------------
    -- Write_Type --
@@ -43,8 +102,6 @@ package body LSP_Gen.Enumerations is
             if J /= Last then
                Put (", ");
             end if;
-
---            Put_Lines (Item.documentation.Split_Lines, "  --  ");
          end;
       end loop;
 
@@ -77,11 +134,22 @@ package body LSP_Gen.Enumerations is
    begin
       Put_Lines (Model.License_Header, "--  ");
       New_Line;
+      Put_Line ("with VSS.Strings;");
+      New_Line;
       Put_Line ("package LSP.Enumerations is");
       Put_Line ("   pragma Preelaborate;"); New_Line;
 
       for Name of Model.Enumerations loop
-         Write_Type (Model.Enumeration (Name));
+         declare
+            Enum : constant LSP_Gen.Entities.Enumeration :=
+              Model.Enumeration (Name);
+         begin
+            if Enum.supportsCustomValues then
+               Write_Pseudo_Enum (Enum);
+            else
+               Write_Type (Enum);
+            end if;
+         end;
       end loop;
 
       Put_Line ("end LSP.Enumerations;");
