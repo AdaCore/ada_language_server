@@ -63,6 +63,23 @@ package body LSP.Ada_Client_Capabilities is
               else False);
    end Code_ActionLiteralSupport;
 
+   -----------------------------------------------
+   -- didChangeWatchedFiles_dynamicRegistration --
+   -----------------------------------------------
+
+   function didChangeWatchedFiles_dynamicRegistration
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        dynamicRegistration
+          (didChangeWatchedFiles
+             (Self.Value.capabilities.workspace));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end didChangeWatchedFiles_dynamicRegistration;
+
    -------------------------
    -- Hierarchical_Symbol --
    -------------------------

@@ -75,6 +75,8 @@ package LSP.Ada_Client_Capabilities is
      (Self : Client_Capability'Class) return Boolean;
    --  Returns textDocument.documentSymbol.hierarchicalDocumentSymbolSupport
 
+   function didChangeWatchedFiles_dynamicRegistration
+     (Self : Client_Capability'Class) return Boolean;
    --  Resource 0perations --
 
    function Resource_Create_Supported

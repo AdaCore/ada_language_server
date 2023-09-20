@@ -33,9 +33,6 @@
                      "didChangeConfiguration": {
                         "dynamicRegistration": true
                      },
-                     "didChangeWatchedFiles": {
-                        "dynamicRegistration": true
-                     },
                      "executeCommand": {
                         "dynamicRegistration": true
                      },

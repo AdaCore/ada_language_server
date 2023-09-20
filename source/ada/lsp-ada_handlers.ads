@@ -34,6 +34,7 @@ with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
 with LSP.Ada_Highlighters;
 with LSP.Client_Message_Receivers;
+with LSP.File_Monitors;
 with LSP.Server_Message_Visitors;
 with LSP.Server_Notification_Receivers;
 with LSP.Server_Notifications;
@@ -62,9 +63,9 @@ package LSP.Ada_Handlers is
    with private;
 
    procedure Initialize
-     (Self : in out Message_Handler'Class;
+     (Self : access Message_Handler'Class;
       Incremental_Text_Changes : Boolean;
-      Config_File : VSS.Strings.Virtual_String);
+      Config_File              : VSS.Strings.Virtual_String);
    --  Initialize the message handler and configure it.
    --
    --  Incremental_Text_Changes - activate the support for incremental text
@@ -218,6 +219,9 @@ private
       Token_Id       : Integer := 0;
       --  An ever-increasing number used to generate unique progress tokens
 
+      File_Monitor    : LSP.File_Monitors.File_Monitor_Access;
+      --  Filesystem monitoring
+
       ----------------------
       -- Project handling --
       ----------------------
@@ -353,6 +357,10 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeConfigurationParams);
 
+   overriding procedure On_DidChangeWatchedFiles_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeWatchedFilesParams);
+
    overriding procedure On_DidOpen_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidOpenTextDocumentParams);
@@ -461,5 +469,14 @@ private
       return LSP.Structures.WorkspaceEdit;
    --  Converts a Refactoring_Edits into a WorkspaceEdit. The Rename flag
    --  controls if files that are supposed to be deleted, are renamed instead.
+
+   function Contexts_For_URI
+     (Self : access Message_Handler;
+      URI  : LSP.Structures.DocumentUri)
+      return LSP.Ada_Context_Sets.Context_Lists.List;
+   --  Return a list of contexts that are suitable for the given File/URI:
+   --  a list of all contexts where the file is known to be part of the
+   --  project tree, or is a runtime file for this project. If the file
+   --  is not known to any project, return an empty list.
 
 end LSP.Ada_Handlers;

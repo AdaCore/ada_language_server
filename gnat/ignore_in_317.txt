@@ -1,7 +1,5 @@
 lsp-ada_handlers-alire.adb
 lsp-ada_handlers-alire.ads
-lsp-client_side_file_monitors.adb
-lsp-client_side_file_monitors.ads
 lsp-common.adb
 lsp-common.ads
 lsp-error_decorators.adb
@@ -10,7 +8,6 @@ lsp-fuzz_decorators.adb
 lsp-fuzz_decorators.ads
 lsp-lal_utils.adb
 lsp-lal_utils.ads
-lsp-file_monitors.ads
 lsp-message_loggers.adb
 lsp-message_loggers.ads
 lsp-server_backends.ads
@@ -18,6 +15,4 @@ lsp-servers-decode_notification.adb
 lsp-servers-decode_notification.ads
 lsp-servers-decode_request.adb
 lsp-servers-decode_request.ads
-lsp-servers-fs_watch.adb
-lsp-servers-fs_watch.ads
 lsp-servers-handle_request.ads

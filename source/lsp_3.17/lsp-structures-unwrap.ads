@@ -85,4 +85,13 @@ package LSP.Structures.Unwrap is
          (if X.Is_Set then X.Value.hierarchicalDocumentSymbolSupport
           else (Is_Set => False));
 
+   function didChangeWatchedFiles (X : WorkspaceClientCapabilities_Optional)
+     return DidChangeWatchedFilesClientCapabilities_Optional is
+       (if X.Is_Set then X.Value.didChangeWatchedFiles else (Is_Set => False));
+
+   function dynamicRegistration
+     (X : DidChangeWatchedFilesClientCapabilities_Optional)
+       return Boolean_Optional is
+         (if X.Is_Set then X.Value.dynamicRegistration else (Is_Set => False));
+
 end LSP.Structures.Unwrap;

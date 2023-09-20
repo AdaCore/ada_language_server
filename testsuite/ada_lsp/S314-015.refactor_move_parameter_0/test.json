@@ -39,9 +39,6 @@
                      "didChangeConfiguration": {
                         "dynamicRegistration": true
                      },
-                     "didChangeWatchedFiles": {
-                        "dynamicRegistration": true
-                     },
                      "symbol": {},
                      "codeLens": {
                         "refreshSupport": true

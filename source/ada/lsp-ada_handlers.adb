@@ -85,6 +85,7 @@ with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Renaming;
 with LSP.Ada_Handlers.Symbols;
 with LSP.Ada_Commands;
+with LSP.Client_Side_File_Monitors;
 with LSP.Constants;
 with LSP.Diagnostic_Sources;
 with LSP.Enumerations;
@@ -95,6 +96,7 @@ with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Search;
 with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
+with LSP.Servers.FS_Watch;
 with LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
 
@@ -109,15 +111,6 @@ package body LSP.Ada_Handlers is
 
    function Is_Child return AlsReferenceKind_Array is
      ([LSP.Enumerations.child => True, others => False]);
-
-   function Contexts_For_URI
-     (Self : access Message_Handler;
-      URI  : LSP.Structures.DocumentUri)
-      return LSP.Ada_Context_Sets.Context_Lists.List;
-   --  Return a list of contexts that are suitable for the given File/URI:
-   --  a list of all contexts where the file is known to be part of the
-   --  project tree, or is a runtime file for this project. If the file
-   --  is not known to any project, return an empty list.
 
    procedure Clean_Diagnostics
      (Self     : in out Message_Handler'Class;
@@ -392,7 +385,7 @@ package body LSP.Ada_Handlers is
    ----------------
 
    procedure Initialize
-     (Self : in out Message_Handler'Class;
+     (Self                     : access Message_Handler'Class;
       Incremental_Text_Changes : Boolean;
       Config_File              : VSS.Strings.Virtual_String)
    is
@@ -416,11 +409,13 @@ package body LSP.Ada_Handlers is
 
    begin
       Self.Incremental_Text_Changes := Incremental_Text_Changes;
+      Self.File_Monitor :=
+        new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
 
       if not Config_File.Is_Empty then
          Self.Configuration.Read_File (Config_File);
          Self.Client.Set_Root_If_Empty (Directory (Config_File));
-         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
+         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self.all);
       end if;
    end Initialize;
 
@@ -2238,6 +2233,130 @@ package body LSP.Ada_Handlers is
       end if;
    end On_DidChangeConfiguration_Notification;
 
+   -------------------------------------------
+   -- On_DidChangeWatchedFiles_Notification --
+   -------------------------------------------
+
+   overriding procedure On_DidChangeWatchedFiles_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeWatchedFilesParams)
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI  : LSP.Structures.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File;
+
+      procedure Process_Created_File;
+      --  Processes a created file
+
+      procedure Process_Deleted_File;
+      --  Processes a deleted file
+
+      procedure Process_Changed_File;
+      --  Processes a changed file
+
+      --------------------------
+      -- Process_Changed_File --
+      --------------------------
+
+      procedure Process_Changed_File is
+      begin
+         if Self.Get_Open_Document (URI) = null then
+            --  If there is no document, reindex the file for each
+            --  context where it is relevant.
+            File := Self.To_File (URI);
+
+            for C of Self.Contexts_For_File (File) loop
+               C.Index_File (File);
+            end loop;
+         end if;
+      end Process_Changed_File;
+
+      --------------------------
+      -- Process_Created_File --
+      --------------------------
+
+      procedure Process_Created_File
+      is
+         use VSS.Strings.Conversions;
+
+         Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
+           Self.Contexts_For_File (File);
+
+         function Has_Dir
+           (Context : LSP.Ada_Contexts.Context)
+            return Boolean
+         is (Context.List_Source_Directories.Contains (File.Dir));
+         --  Return True if File is in a source directory of the project held
+         --  by Context.
+
+      begin
+         --  If the file was created by the client, then the DidCreateFiles
+         --  notification might have been received from it. In that case,
+         --  Contexts wont be empty, and all we need to do is check if
+         --  there's an open document. If there is, it takes precedence over
+         --  the filesystem.
+         --  If Contexts is empty, then we need to check if is a new source
+         --  that needs to be added. For instance, a source that was moved
+         --  to the the project source directories.
+
+         if Contexts.Is_Empty then
+            for Context of Self.Contexts.Each_Context
+              (Has_Dir'Unrestricted_Access)
+            loop
+               Context.Include_File (File);
+               Context.Index_File (File);
+
+               Self.Tracer.Trace
+                 ("Included " & File.Display_Base_Name
+                  & " in context " & To_UTF_8_String (Context.Id));
+            end loop;
+
+         else
+            if Self.Get_Open_Document (URI) = null then
+               for Context of Contexts loop
+                  Context.Index_File (File);
+               end loop;
+            end if;
+         end if;
+      end Process_Created_File;
+
+      ---------------------------
+      -- Process_Deleted_Files --
+      ---------------------------
+
+      procedure Process_Deleted_File is
+      begin
+         if Self.Get_Open_Document (URI) = null then
+            --  If there is no document, remove from the sources list
+            --  and reindex the file for each context where it is
+            --  relevant.
+            File := Self.To_File (URI);
+
+            for C of Self.Contexts_For_File (File) loop
+               C.Exclude_File (File);
+               C.Index_File (File);
+            end loop;
+         end if;
+      end Process_Deleted_File;
+
+   begin
+      --  Look through each change, filtering non Ada source files
+      for Change of Value.changes loop
+         URI := Change.uri;
+         File := Self.To_File (URI);
+
+         case Change.a_type is
+            when LSP.Enumerations.Created =>
+               Process_Created_File;
+            when LSP.Enumerations.Deleted =>
+               Process_Deleted_File;
+            when LSP.Enumerations.Changed =>
+               Process_Changed_File;
+         end case;
+      end loop;
+   end On_DidChangeWatchedFiles_Notification;
+
    -----------------------------------------------
    -- On_DidChangeWorkspaceFolders_Notification --
    -----------------------------------------------
@@ -3253,6 +3372,10 @@ package body LSP.Ada_Handlers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InitializeParams)
    is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (LSP.File_Monitors.File_Monitor'Class,
+         LSP.File_Monitors.File_Monitor_Access);
+
       Response : LSP.Structures.InitializeResult;
       Token_Types     : LSP.Structures.Virtual_String_Vector;
       Token_Motifiers : LSP.Structures.Virtual_String_Vector;
@@ -3267,6 +3390,14 @@ package body LSP.Ada_Handlers is
          LSP.Ada_Commands.All_Commands,
          Token_Types,
          Token_Motifiers);
+
+      if Self.Client.didChangeWatchedFiles_dynamicRegistration then
+         Free (Self.File_Monitor);
+
+         Self.File_Monitor :=
+           new LSP.Client_Side_File_Monitors.File_Monitor
+             (Self'Unchecked_Access);
+      end if;
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;

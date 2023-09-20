@@ -15,10 +15,13 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with VSS.JSON.Streams;
 with VSS.Strings.Conversions;
 
-with LSP.Messages.Client_Requests;
-with LSP.Types;
+with LSP.Enumerations;
+with LSP.Servers;
+with LSP.Structures.LSPAny_Vectors;
+with LSP.Utils;
 
 package body LSP.Client_Side_File_Monitors is
 
@@ -33,46 +36,75 @@ package body LSP.Client_Side_File_Monitors is
      (Self        : access File_Monitor;
       Directories : GNATCOLL.VFS.File_Array)
    is
-      Request      : LSP.Messages.Client_Requests.RegisterCapability_Request;
-      Registration : LSP.Messages.Registration :=
-        ((id     => <>,
-          method => method,
-          registerOptions =>
-            (Kind => LSP.Types.Did_Change_Watched_Files_Registration_Option,
-             others => <>)));
+      use type LSP.Enumerations.WatchKind;
 
+      Create_Change_Delete : constant LSP.Enumerations.WatchKind :=
+        LSP.Enumerations.Create +
+        LSP.Enumerations.Change +
+        LSP.Enumerations.Delete;
+
+      Request_Id   : constant LSP.Structures.Integer_Or_Virtual_String :=
+        Self.Handler.Server.Allocate_Request_Id;
+
+      Request      : LSP.Structures.RegistrationParams;
+
+      Registration : LSP.Structures.Registration :=
+        (id     => <>,
+         method => method,
+         registerOptions => <>);
+
+      Options : LSP.Structures.LSPAny_Optional renames
+        Registration.registerOptions;
+      --  JSON: { watchers: FileSystemWatcher[]; }
    begin
       Self.Stop_Monitoring_Directories;
       --  Construct a registration id
-      Self.Registration_Id :=
-        VSS.Strings.To_Virtual_String
-          ("fm" & Integer'Wide_Wide_Image (-Self.Last_Id));
-      Self.Last_Id := Self.Last_Id + 1;
+      Self.Registration_Id := LSP.Utils.Image (Request_Id);
       Registration.id := Self.Registration_Id;
+
+      Options.Append
+        (VSS.JSON.Streams.JSON_Stream_Element'
+           (Kind => VSS.JSON.Streams.Start_Object));
+
+      Options.Append
+        (VSS.JSON.Streams.JSON_Stream_Element'
+           (Kind => VSS.JSON.Streams.Key_Name,
+            Key_Name => "watchers"));
+
+      Options.Append
+        (VSS.JSON.Streams.JSON_Stream_Element'
+           (Kind => VSS.JSON.Streams.Start_Array));
 
       for Dir of Directories loop
          declare
-            use type VSS.Strings.Virtual_String;
+            Full_Name : constant String := Dir.Display_Full_Name;
 
-            Full_Name : constant GNATCOLL.VFS.Filesystem_String :=
-              Dir.Full_Name;
+            Pattern : constant LSP.Structures.Pattern :=
+              (VSS.Strings.Conversions.To_Virtual_String (Full_Name & '*')
+                 with null record);
 
-            Glob : constant VSS.Strings.Virtual_String :=
-              VSS.Strings.Conversions.To_Virtual_String (String (Full_Name))
-              & "*";
+            Glob : constant LSP.Structures.GlobPattern :=
+              (Is_Pattern => True, Pattern => Pattern);
 
-            Watcher   : constant LSP.Messages.FileSystemWatcher :=
-              (kind => (LSP.Messages.WatchKind => True),
+            Watcher : constant LSP.Structures.FileSystemWatcher :=
+              (kind => (Is_Set => True, Value => Create_Change_Delete),
                globPattern => Glob);
 
          begin
-            Registration.registerOptions.DidChangeWatchedFiles.watchers.Append
-              (Watcher);
+            LSP.Structures.LSPAny_Vectors.To_Any (Watcher, Options);
          end;
       end loop;
 
-      Request.params.registrations.Append (Registration);
-      Self.Client.On_RegisterCapability_Request (Request);
+      Options.Append
+        (VSS.JSON.Streams.JSON_Stream_Element'
+           (Kind => VSS.JSON.Streams.End_Array));
+
+      Options.Append
+        (VSS.JSON.Streams.JSON_Stream_Element'
+           (Kind => VSS.JSON.Streams.End_Object));
+
+      Request.registrations.Append (Registration);
+      Self.Handler.Server.On_RegisterCapability_Request (Request_Id, Request);
    end Monitor_Directories;
 
    ---------------------------------
@@ -82,15 +114,20 @@ package body LSP.Client_Side_File_Monitors is
    overriding procedure Stop_Monitoring_Directories
      (Self : access File_Monitor)
    is
-      Request : LSP.Messages.Client_Requests.UnregisterCapability_Request;
-      Unregistration : constant LSP.Messages.Unregistration :=
+      Request_Id   : constant LSP.Structures.Integer_Or_Virtual_String :=
+        Self.Handler.Server.Allocate_Request_Id;
+
+      Request : LSP.Structures.UnregistrationParams;
+
+      Unregistration : constant LSP.Structures.Unregistration :=
         ((id     => Self.Registration_Id,
           method => method));
 
    begin
       if not Self.Registration_Id.Is_Empty then
-         Request.params.unregisterations.Append (Unregistration);
-         Self.Client.On_UnregisterCapability_Request (Request);
+         Request.unregisterations.Append (Unregistration);
+         Self.Handler.Server.On_UnregisterCapability_Request
+           (Request_Id, Request);
          Self.Registration_Id := VSS.Strings.Empty_Virtual_String;
       end if;
    end Stop_Monitoring_Directories;

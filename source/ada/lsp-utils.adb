@@ -31,6 +31,7 @@ with Pp.Actions;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Generic_Modulars;
+with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Templates;
 with VSS.String_Vectors;
 with VSS.Unicode;
@@ -426,6 +427,14 @@ package body LSP.Utils is
    begin
       return Get_Location (Node.Unit, Node.Sloc_Range);
    end Get_Node_Location;
+
+   function Image (Value : LSP.Structures.Integer_Or_Virtual_String)
+     return VSS.Strings.Virtual_String is
+       (case Value.Is_Integer is
+           when True => VSS.Strings.Templates.Format
+                     ("{}",
+                      VSS.Strings.Formatters.Integers.Image (Value.Integer)),
+           when False => Value.Virtual_String);
 
    ------------------
    -- Is_Synthetic --

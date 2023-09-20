@@ -98,4 +98,7 @@ package LSP.Utils is
       Slice : out VSS.Strings.Virtual_String);
    --  Return a slice of the Text in Span range
 
+   function Image (Value : LSP.Structures.Integer_Or_Virtual_String)
+     return VSS.Strings.Virtual_String;
+
 end LSP.Utils;

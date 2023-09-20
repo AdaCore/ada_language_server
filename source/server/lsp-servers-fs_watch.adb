@@ -21,6 +21,13 @@ with Ada.Unchecked_Deallocation;
 with Libfswatch;                use Libfswatch;
 
 with GNATCOLL.VFS;              use GNATCOLL.VFS;
+with GNATCOLL.Traces;
+
+with VSS.Strings.Conversions;
+
+with LSP.Server_Notifications.DidChangeWatchedFiles;
+with LSP.Enumerations;
+with URIs;
 
 package body LSP.Servers.FS_Watch is
 
@@ -35,26 +42,14 @@ package body LSP.Servers.FS_Watch is
    overriding procedure Callback
      (Self : in out LSP_Monitor; Events : Libfswatch.Event_Vectors.Vector)
    is
-      function Flag_To_FileChangeType
-        (X : Event_Flags) return LSP.Messages.FileChangeType;
+
       --  Utility conversion function
-
-      ----------------------------
-      -- Flag_To_FileChangeType --
-      ----------------------------
-
       function Flag_To_FileChangeType
-        (X : Event_Flags) return LSP.Messages.FileChangeType is
-      begin
-         case X is
-         when Created | Moved_From =>
-            return LSP.Messages.Created;
-         when Removed =>
-            return LSP.Messages.Deleted;
-         when others =>
-            return LSP.Messages.Changed;
-         end case;
-      end Flag_To_FileChangeType;
+        (X : Event_Flags) return LSP.Enumerations.FileChangeType is
+        (case X is
+            when Created | Moved_From => LSP.Enumerations.Created,
+            when Removed              => LSP.Enumerations.Deleted,
+            when others               => LSP.Enumerations.Changed);
 
       File : Virtual_File;
 
@@ -67,22 +62,23 @@ package body LSP.Servers.FS_Watch is
          --  server will process it in the processing thread.
 
          declare
-            use LSP.Messages;
-            use LSP.Messages.Server_Notifications;
-            Message : Message_Access;
-            Changes : DidChangeWatchedFilesParams;
-            URI     : constant LSP.Messages.DocumentUri :=
-              LSP.Types.File_To_URI (File.Display_Full_Name);
+            Message : Server_Message_Access;
+            Changes : LSP.Structures.DidChangeWatchedFilesParams;
+            URI     : constant LSP.Structures.DocumentUri :=
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (URIs.Conversions.From_File (File.Display_Full_Name))
+                   with null record);
+
          begin
             for F of E.Flags loop
                Changes.changes.Append
-                 (FileEvent'(uri => URI,
-                             a_type => Flag_To_FileChangeType (F)));
+                 (LSP.Structures.FileEvent'
+                    (uri    => URI,
+                     a_type => Flag_To_FileChangeType (F)));
             end loop;
-            Message := new DidChangeWatchedFiles_Notification'
-              (method  => "workspace/didChangeWatchedFiles",
-               jsonrpc => "2.0",
-               params  => Changes);
+
+            Message := new LSP.Server_Notifications.DidChangeWatchedFiles
+                .Notification'(Params  => Changes);
 
             Self.The_Server.Input_Queue.Enqueue (Message);
          end;
@@ -182,8 +178,7 @@ package body LSP.Servers.FS_Watch is
 
    overriding procedure Monitor_Directories
      (Self        : access FS_Watch_Monitor;
-      Directories : GNATCOLL.VFS.File_Array)
-   is
+      Directories : GNATCOLL.VFS.File_Array) is
    begin
       --  If the trace is deactivated, do nothing, and do not launch the task
       if not Filesystem_Monitoring_Trace.Active then
@@ -195,12 +190,12 @@ package body LSP.Servers.FS_Watch is
          Self.Filesystem_Monitor_Task := new Monitor_Task;
       end if;
 
-      if Self.To_Monitor /= null then
-         --  If we were previously monitoring directories, stop this now
-         Self.To_Monitor.Stop_Monitor;
-      else
+      if Self.To_Monitor = null then
          --  Create the shared data if it didn't exist before
          Self.To_Monitor := new Data_To_Monitor (Self.Server);
+      else
+         --  If we were previously monitoring directories, stop this now
+         Self.To_Monitor.Stop_Monitor;
       end if;
 
       --  Tell the task to start monitoring directories

@@ -418,4 +418,48 @@ package body LSP.Structures.LSPAny_Vectors is
       Vector.Append (JSON_Stream_Element'(Kind => End_Array));
    end To_Any;
 
+   procedure To_Any
+     (Self   : FileSystemWatcher;
+      Vector : in out LSPAny_Vector)
+   is
+      procedure To_Any
+        (Self   : GlobPattern;
+         Vector : in out LSPAny_Vector);
+
+      procedure To_Any
+        (Self   : WatchKind;
+         Vector : in out LSPAny_Vector);
+
+      procedure To_Any
+        (Self   : GlobPattern;
+         Vector : in out LSPAny_Vector) is
+      begin
+         case Self.Is_Pattern is
+            when True =>
+               To_Any (VSS.Strings.Virtual_String (Self.Pattern), Vector);
+            when False =>
+               raise Program_Error with "unimplemented";
+         end case;
+      end To_Any;
+
+      procedure To_Any
+        (Self   : WatchKind;
+         Vector : in out LSPAny_Vector) is
+      begin
+         To_Any (Integer (Self), Vector);
+      end To_Any;
+
+   begin
+      Vector.Append (JSON_Stream_Element'(Kind => Start_Object));
+      Add_Key ("globPattern", Vector);
+      To_Any (Self.globPattern, Vector);
+
+      if Self.kind.Is_Set then
+         Add_Key ("kind", Vector);
+         To_Any (Self.kind.Value, Vector);
+      end if;
+
+      Vector.Append (JSON_Stream_Element'(Kind => End_Object));
+   end To_Any;
+
 end LSP.Structures.LSPAny_Vectors;

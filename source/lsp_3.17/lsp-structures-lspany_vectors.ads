@@ -84,6 +84,10 @@ package LSP.Structures.LSPAny_Vectors is
      (Cursor : in out JSON_Event_Vectors.Cursor)
       return TextDocumentIdentifier;
 
+   procedure To_Any
+     (Self   : FileSystemWatcher;
+      Vector : in out LSPAny_Vector);
+
    procedure Add_Key
      (Key    : VSS.Strings.Virtual_String;
       Vector : in out LSPAny_Vector);

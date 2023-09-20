@@ -501,23 +501,19 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       --  Reindex all open documents immediately after project reload, so
       --  that navigation from editors is accurate.
-      --  for Document of Self.Open_Documents loop
-      --     for Context of Self.Contexts_For_URI (Document.URI) loop
-      --        Context.Index_Document (Document.all);
-      --     end loop;
-      --
-      --     Self.Publish_Diagnostics (Document_Access (Document));
-      --  end loop;
+      for Document of Self.Open_Documents loop
+         for Context of Self.Contexts_For_URI (Document.URI) loop
+            Context.Index_Document (Document.all);
+         end loop;
 
-      --  if not Self.File_Monitor.Assigned then
-      --     Self.File_Monitor :=
-      --       new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
-      --  end if;
+         Self.Publish_Diagnostics
+           (LSP.Ada_Documents.Document_Access (Document));
+      end loop;
 
       --  We have successfully loaded a real project: monitor the filesystem
       --  for any changes on the sources of the project
-      --  Self.File_Monitor.Monitor_Directories
-      --    (Self.Contexts.All_Source_Directories);
+      Self.File_Monitor.Monitor_Directories
+        (Self.Contexts.All_Source_Directories);
 
       --  Reindex the files from disk in the background after a project reload
       Mark_Source_Files_For_Indexing (Self);
