@@ -62,6 +62,7 @@ with LSP.Ada_Completions.Use_Clauses;
 with LSP.Ada_Completions;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
+with LSP.Ada_Empty_Handlers;
 with LSP.Ada_Handlers.Call_Hierarchy;
 with LSP.Ada_Handlers.Formatting;
 with LSP.Ada_Handlers.Invisibles;
@@ -4198,6 +4199,13 @@ package body LSP.Ada_Handlers is
       end if;
 
    exception
+      when Libadalang.Common.Property_Error =>
+         declare
+            R : LSP.Ada_Empty_Handlers.Empty_Message_Handler (Self.Sender);
+         begin
+            Value.Visit_Server_Receiver (R);
+         end;
+
       when E : others =>
          declare
             Message : constant VSS.Strings.Virtual_String :=
