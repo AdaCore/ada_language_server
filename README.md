@@ -99,7 +99,7 @@ but it understands these options:
 * `--config=<FILE>` - Full path to a JSON file containing the server's configuration
 * `--help` - Display supported command like options and exit.
 
-You can turn some debugging and experimental features trought
+You can turn some debugging and experimental features through
 [the traces file](doc/traces.md).
 
 The server also gets configuration via `workspace/didChangeConfiguration`
@@ -139,8 +139,6 @@ formatting might no succeed on incomplete/illegal code.
 * **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/refactoring_tools.md)). You can execute the *Ada: Reload project* command to reload your project after saving the new scenario values (use the *Ctrl+P* shortcut to invoke the **Command Palette**, allowing you to execute commands).
 
   Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.
-
-* **Debugging**: some manual work is needed in order to debug Ada code. In particular, you will need a `launch.json` file that describes your debugging configuration. All the steps needed for debugging are described [here](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started#debug-hello_worldadb).
 
 ### Bug Reporting
 

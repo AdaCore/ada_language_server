@@ -1,8 +1,8 @@
 # ☀ Welcome to Ada!
 
-Take a few minutes to learn about the functionality provided by the Ada extension.
+Take a few minutes to learn about the features provided by the Ada extension.
 
-Use this extension to enable Ada/SPARK support in VS Code.
+Use this extension to develop in Ada/SPARK in VS Code.
 
 📖 Take a look at our [WiKi site](https://github.com/AdaCore/ada_language_server/wiki) with tutorials and demos:
 * [Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started)
