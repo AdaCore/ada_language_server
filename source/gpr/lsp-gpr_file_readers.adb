@@ -36,7 +36,8 @@ with VSS.Strings.Converters.Decoders;
 with VSS.Strings.Conversions;
 
 with LSP.GPR_Documents;            use LSP.GPR_Documents;
-with LSP.Types;
+with LSP.Structures;
+with URIs;
 
 with Langkit_Support.Text;
 
@@ -66,6 +67,8 @@ package body LSP.GPR_File_Readers is
       --  present
    --  Default flags for the text decoder.
 
+   function To_URI (Item : String) return LSP.Structures.DocumentUri;
+
    ------------
    -- Create --
    ------------
@@ -82,6 +85,70 @@ package body LSP.GPR_File_Readers is
          Data => Reader);
       return Reference;
    end Create;
+
+   ----------
+   -- Read --
+   ----------
+
+   overriding procedure Read
+     (Self        : File_Reader;
+      Filename    : String;
+      Charset     : String;
+      Read_BOM    : Boolean;
+      Contents    : out GPR2.File_Readers.Decoded_File_Contents;
+      Diagnostics : in out GPR2.Log.Object)
+   is
+      Doc   : Document_Access;
+      Text  : VSS.Strings.Virtual_String;
+      Error : VSS.Strings.Virtual_String;
+
+   begin
+      --  First check if the file is an open document
+
+      Doc := Self.Handler.Get_Open_Document
+        (URI   => To_URI (Filename),
+         Force => False);
+
+      --  Preprocess the document's contents if open, or the file contents if
+      --  not.
+
+      if Doc /= null then
+         Text := Doc.Text;
+
+      else
+         Read_And_Decode
+           (Filename => Filename,
+            Charset  => VSS.Strings.Conversions.To_Virtual_String (Charset),
+            Decoded  => Text,
+            Error    => Error);
+
+         if not Error.Is_Empty then
+            Diagnostics.Append
+              (GPR2.Message.Create
+                 (Level   => GPR2.Message.Error,
+                  Message => Ada.Strings.Unbounded.To_String
+                    (VSS.Strings.Conversions.To_Unbounded_UTF_8_String
+                         (Error)),
+                  Sloc    => (if Filename'Length = 0
+                              then GPR2.Source_Reference.Builtin
+                             else GPR2.Source_Reference.Create
+                                (Filename =>
+                                   GPR2.Path_Name.Full_Name (Filename),
+                                 Line     => 1,
+                                 Column   => 1))));
+         end if;
+      end if;
+
+      Contents :=
+        (Buffer =>
+            new Langkit_Support.Text.Text_Type
+           (1 .. Natural (Text.Character_Length)),
+         First  => 1,
+         Last   => Natural (Text.Character_Length));
+
+      VSS.Strings.Conversions.Set_Wide_Wide_String
+        (Text, Contents.Buffer.all);
+   end Read;
 
    ---------------------
    -- Read_And_Decode --
@@ -137,68 +204,12 @@ package body LSP.GPR_File_Readers is
       GNAT.Strings.Free (Raw);
    end Read_And_Decode;
 
-   ----------
-   -- Read --
-   ----------
+   ------------
+   -- To_URI --
+   ------------
 
-   overriding procedure Read
-     (Self        : File_Reader;
-      Filename    : String;
-      Charset     : String;
-      Read_BOM    : Boolean;
-      Contents    : out GPR2.File_Readers.Decoded_File_Contents;
-      Diagnostics : in out GPR2.Log.Object)
-   is
-      Doc   : Document_Access;
-      Text  : VSS.Strings.Virtual_String;
-      Error : VSS.Strings.Virtual_String;
-
-   begin
-      --  First check if the file is an open document
-
-      Doc := Self.Handler.Get_Open_Document
-        (URI   => LSP.Types.File_To_URI (Filename),
-         Force => False);
-
-      --  Preprocess the document's contents if open, or the file contents if
-      --  not.
-
-      if Doc /= null then
-         Text := Doc.Text;
-
-      else
-         Read_And_Decode
-           (Filename => Filename,
-            Charset  => VSS.Strings.Conversions.To_Virtual_String (Charset),
-            Decoded  => Text,
-            Error    => Error);
-
-         if not Error.Is_Empty then
-            Diagnostics.Append
-              (GPR2.Message.Create
-                 (Level   => GPR2.Message.Error,
-                  Message => Ada.Strings.Unbounded.To_String
-                    (VSS.Strings.Conversions.To_Unbounded_UTF_8_String
-                         (Error)),
-                  Sloc    => (if Filename'Length = 0
-                              then GPR2.Source_Reference.Builtin
-                             else GPR2.Source_Reference.Create
-                                (Filename =>
-                                   GPR2.Path_Name.Full_Name (Filename),
-                                 Line     => 1,
-                                 Column   => 1))));
-         end if;
-      end if;
-
-      Contents :=
-        (Buffer =>
-            new Langkit_Support.Text.Text_Type
-           (1 .. Natural (Text.Character_Length)),
-         First  => 1,
-         Last   => Natural (Text.Character_Length));
-
-      VSS.Strings.Conversions.Set_Wide_Wide_String
-        (Text, Contents.Buffer.all);
-   end Read;
+   function To_URI (Item : String) return LSP.Structures.DocumentUri is
+     (VSS.Strings.Conversions.To_Virtual_String
+        (URIs.Conversions.From_File (Item)) with null record);
 
 end LSP.GPR_File_Readers;

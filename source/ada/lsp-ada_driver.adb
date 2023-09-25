@@ -57,6 +57,7 @@ with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.GNATCOLL_Tracers;
+with LSP.GPR_Handlers;
 with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
 with LSP.Servers;
@@ -130,8 +131,8 @@ procedure LSP.Ada_Driver is
    Stream      : aliased LSP.Stdio_Streams.Stdio_Stream;
    Ada_Handler : aliased LSP.Ada_Handlers.Message_Handler
      (Server'Access, Server'Access, Tracer'Unchecked_Access);
-   GPR_Handler : aliased LSP.Ada_Handlers.Message_Handler
-     (Server'Access, Server'Access, Tracer'Unchecked_Access);
+   GPR_Handler : aliased LSP.GPR_Handlers.Message_Handler
+     (Server'Access, Tracer'Unchecked_Access);
 
    Fuzzing_Activated      : constant Boolean :=
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
@@ -299,12 +300,9 @@ begin
         := GNATCOLL.Traces.Create ("ALS.ALLOW_INCREMENTAL_TEXT_CHANGES",
                                    GNATCOLL.Traces.On);
       --  Trace to activate the support for incremental text changes.
+
    begin
       Ada_Handler.Initialize
-        (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active,
-         Config_File => VSS.Command_Line.Value (Config_File_Option));
-
-      GPR_Handler.Initialize
         (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active,
          Config_File => VSS.Command_Line.Value (Config_File_Option));
    end;
@@ -314,9 +312,9 @@ begin
    begin
       if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
          Server.Run (GPR_Handler'Unchecked_Access, Tracer'Unchecked_Access);
+
       else
          Register_Commands;
-
          Server.Run (Ada_Handler'Unchecked_Access, Tracer'Unchecked_Access);
       end if;
    exception

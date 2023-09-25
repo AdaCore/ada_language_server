@@ -14,94 +14,55 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
---  This package provides Get_Symbols request implementation
 
-with LSP.GPR_Handlers;
-with LSP.Types;
+with LSP.Constants;
+with LSP.Enumerations;
 
 package body LSP.GPR_Files.Symbols is
 
-   package Added_Lists is
-     new Ada.Containers.Indefinite_Vectors
-       (Positive, Gpr_Parser.Common.Token_Reference);
-   subtype Added_List is Added_Lists.Vector;
-
    function Get_File
-     (Provider : LSP.GPR_Files.File_Provider_Access;
-      Request  : LSP.Messages.Server_Requests.Document_Symbols_Request)
-      return File_Access is
-     (LSP.GPR_Files.Parse
-        (Provider,
-         LSP.GPR_Handlers.To_File
-           (Request.params.textDocument.uri, Provider.Follow_Symlinks)));
+     (Provider  : LSP.GPR_Files.File_Provider_Access;
+      File_Name : GPR2.Path_Name.Object) return File_Access
+   is
+     (LSP.GPR_Files.Parse (Provider, File_Name));
 
    function To_Symbol_Kind
-     (Symbol : LSP.GPR_Files.Symbol) return LSP.Messages.SymbolKind;
+     (Symbol : LSP.GPR_Files.Symbol) return LSP.Enumerations.SymbolKind;
 
-   function To_Span (Symbol : LSP.GPR_Files.Symbol) return LSP.Messages.Span is
-     (first =>
-        (line      =>
-              LSP.Types.Line_Number (Symbol.Start_Position.Line - 1),
-         character =>
-            LSP.Types.UTF_16_Index (Symbol.Start_Position.Column - 1)),
-      last  =>
-        (line      =>
-              LSP.Types.Line_Number (Symbol.End_Position.Line - 1),
-         character =>
-            LSP.Types.UTF_16_Index (Symbol.End_Position.Column - 1)));
-
-   --------------------
-   -- To_Symbol_Kind --
-   --------------------
-
-   function To_Symbol_Kind
-     (Symbol : LSP.GPR_Files.Symbol) return LSP.Messages.SymbolKind is
-   begin
-      case Symbol.Kind is
-         when K_Imported =>
-            return LSP.Messages.Namespace;
-         when K_Project =>
-            return LSP.Messages.Module;
-         when K_Type =>
-            return LSP.Messages.Enum;
-         when K_Variable =>
-            return LSP.Messages.Variable;
-         when K_Attribute =>
-            return LSP.Messages.Property;
-         when K_Package =>
-            return LSP.Messages.A_Package;
-      end case;
-   end To_Symbol_Kind;
+   function To_Range
+     (Symbol : LSP.GPR_Files.Symbol) return LSP.Structures.A_Range;
 
    -----------------
    -- Get_Symbols --
    -----------------
 
    procedure Get_Symbols
-     (Provider : LSP.GPR_Files.File_Provider_Access;
-      Request  : LSP.Messages.Server_Requests.Document_Symbols_Request;
-      Result   : out LSP.Messages.Symbol_Vector) is
-      File    : constant File_Access := Get_File (Provider, Request);
+     (Provider     : LSP.GPR_Files.File_Provider_Access;
+      Document_URI : LSP.Structures.DocumentUri;
+      File_Name    : GPR2.Path_Name.Object;
+      Result       : out LSP.Structures.SymbolInformation_Vector)
+   is
+      File : constant File_Access := Get_File (Provider, File_Name);
+
    begin
       for Symbol of File.Document_Symbols.Document_Symbols loop
          declare
-            Item : LSP.Messages.SymbolInformation;
-            Kind : constant LSP.Messages.SymbolKind :=
+            Item : LSP.Structures.SymbolInformation;
+            Kind : constant LSP.Enumerations.SymbolKind :=
               To_Symbol_Kind (Symbol);
+
          begin
             Item :=
-              (name              => Symbol.Name,
-               kind              => Kind,
-               alsIsAdaProcedure => <>,
-               tags              => LSP.Messages.Empty,
-               deprecated        => <>,
-               location          =>
-                 (uri     => Request.params.textDocument.uri,
-                  span    => To_Span (Symbol),
-                  alsKind => LSP.Messages.Empty_Set),
-               containerName     => <>);
-            Result.Vector.Append (Item);
+              (name          => Symbol.Name,
+               kind          => Kind,
+               tags          => LSP.Constants.Empty,
+               deprecated    => <>,
+               location      =>
+                 (uri     => Document_URI,
+                  a_range => To_Range (Symbol),
+                  alsKind => LSP.Constants.Empty),
+               containerName => <>);
+            Result.Append (Item);
          end;
       end loop;
    end Get_Symbols;
@@ -111,21 +72,18 @@ package body LSP.GPR_Files.Symbols is
    ---------------------------
 
    procedure Get_Symbols_Hierarchy
-     (Provider : LSP.GPR_Files.File_Provider_Access;
-      Request  : LSP.Messages.Server_Requests.Document_Symbols_Request;
-      Result   : out LSP.Messages.Symbol_Vector) is
+     (Provider     : LSP.GPR_Files.File_Provider_Access;
+      Document_URI : LSP.Structures.DocumentUri;
+      File_Name    : GPR2.Path_Name.Object;
+      Result       : out LSP.Structures.DocumentSymbol_Vector)
+   is
+      pragma Unreferenced (Document_URI);
 
-      use LSP.Messages;
-
-      File : constant File_Access := Get_File (Provider, Request);
-
-      Added : Added_List;
-      --  Used to protect against infinite loop on incorrect tree.
+      File : constant File_Access := Get_File (Provider, File_Name);
 
       procedure Walk
         (Symbols : LSP.GPR_Files.Symbol_List;
-         Cursor  : LSP.Messages.DocumentSymbol_Trees.Cursor;
-         Tree    : in out LSP.Messages.DocumentSymbol_Tree);
+         Result  : in out LSP.Structures.DocumentSymbol_Vector);
 
       ----------
       -- Walk --
@@ -133,60 +91,84 @@ package body LSP.GPR_Files.Symbols is
 
       procedure Walk
         (Symbols : LSP.GPR_Files.Symbol_List;
-         Cursor  : LSP.Messages.DocumentSymbol_Trees.Cursor;
-         Tree    : in out LSP.Messages.DocumentSymbol_Tree) is
-         Next : LSP.Messages.DocumentSymbol_Trees.Cursor := Cursor;
+         Result  : in out LSP.Structures.DocumentSymbol_Vector) is
       begin
          for Symbol of Symbols loop
-            if not Added.Contains (Symbol.Ref) then
-               Added.Append (Symbol.Ref);
+            declare
+               Item : LSP.Structures.DocumentSymbol :=
+                 (name              => Symbol.Name,
+                  detail            => <>,
+                  kind              => To_Symbol_Kind (Symbol),
+                  tags              => LSP.Constants.Empty,
+                  deprecated        => <>,
+                  a_range           => To_Range (Symbol),
+                  selectionRange    => To_Range (Symbol),
+                  alsIsDeclaration  => (Is_Set => False),
+                  alsIsAdaProcedure => <>,
+                  alsVisibility     => <>,
+                  children          => <>);
 
-               declare
-                  Item : constant LSP.Messages.DocumentSymbol :=
-                    (name              => Symbol.Name,
-                     detail            => <>,
-                     kind              => To_Symbol_Kind (Symbol),
-                     tags              => LSP.Messages.Empty,
-                     deprecated        => <>,
-                     span              => To_Span (Symbol),
-                     selectionRange    => To_Span (Symbol),
-                     alsIsDeclaration  => (Is_Set => False),
-                     alsIsAdaProcedure => <>,
-                     alsVisibility     => <>,
-                     children          =>
-                       Symbol.Children /= Gpr_Parser.Common.No_Token);
-               begin
-                  Tree.Insert_Child
-                    (Parent   => Cursor,
-                     Before   =>
-                       LSP.Messages.DocumentSymbol_Trees.No_Element,
-                     New_Item => Item,
-                     Position => Next);
-               end;
-
+            begin
                if Symbol.Children /= Gpr_Parser.Common.No_Token then
                   declare
                      C : constant LSP.GPR_Files.Symbols_Maps.Cursor :=
-                           File.Document_Symbols.Children.Find
-                             (Symbol.Children);
+                       File.Document_Symbols.Children.Find
+                         (Symbol.Children);
+
                   begin
                      if LSP.GPR_Files.Symbols_Maps.Has_Element (C) then
                         Walk
-                          (Symbols => LSP.GPR_Files.Symbols_Maps.Element (C),
-                           Cursor  => Next,
-                           Tree    => Tree);
+                          (LSP.GPR_Files.Symbols_Maps.Element (C),
+                           Item.children);
                      end if;
                   end;
                end if;
-            end if;
+
+               Result.Append (Item);
+            end;
          end loop;
       end Walk;
 
    begin
-      Result := (Is_Tree => True, others => <>);
-      Walk (File.Document_Symbols.Document_Symbols,
-            Result.Tree.Root,
-            Result.Tree);
+      Walk (File.Document_Symbols.Document_Symbols, Result);
    end Get_Symbols_Hierarchy;
+
+   --------------
+   -- To_Range --
+   --------------
+
+   function To_Range
+     (Symbol : LSP.GPR_Files.Symbol) return LSP.Structures.A_Range
+   is
+     (start  =>
+        (line      => Symbol.Start_Position.Line - 1,
+         character => Symbol.Start_Position.Column - 1),
+      an_end =>
+        (line      => Symbol.End_Position.Line - 1,
+         character => Symbol.End_Position.Column - 1));
+   --  XXX Incorrect conversion
+
+   --------------------
+   -- To_Symbol_Kind --
+   --------------------
+
+   function To_Symbol_Kind
+     (Symbol : LSP.GPR_Files.Symbol) return LSP.Enumerations.SymbolKind is
+   begin
+      case Symbol.Kind is
+         when K_Imported =>
+            return LSP.Enumerations.Namespace;
+         when K_Project =>
+            return LSP.Enumerations.Module;
+         when K_Type =>
+            return LSP.Enumerations.Enum;
+         when K_Variable =>
+            return LSP.Enumerations.Variable;
+         when K_Attribute =>
+            return LSP.Enumerations.Property;
+         when K_Package =>
+            return LSP.Enumerations.A_Package;
+      end case;
+   end To_Symbol_Kind;
 
 end LSP.GPR_Files.Symbols;

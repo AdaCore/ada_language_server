@@ -14,22 +14,23 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
+
 --  This package provides Get_Symbols requests implementation
 
-with LSP.Messages;
-with LSP.Messages.Server_Requests;
+with LSP.Structures;
 
 package LSP.GPR_Files.Symbols is
 
    procedure Get_Symbols
-     (Provider : LSP.GPR_Files.File_Provider_Access;
-      Request  : LSP.Messages.Server_Requests.Document_Symbols_Request;
-      Result   : out LSP.Messages.Symbol_Vector);
+     (Provider     : LSP.GPR_Files.File_Provider_Access;
+      Document_URI : LSP.Structures.DocumentUri;
+      File_Name    : GPR2.Path_Name.Object;
+      Result       : out LSP.Structures.SymbolInformation_Vector);
 
    procedure Get_Symbols_Hierarchy
-     (Provider : LSP.GPR_Files.File_Provider_Access;
-      Request  : LSP.Messages.Server_Requests.Document_Symbols_Request;
-      Result   : out LSP.Messages.Symbol_Vector);
+     (Provider     : LSP.GPR_Files.File_Provider_Access;
+      Document_URI : LSP.Structures.DocumentUri;
+      File_Name    : GPR2.Path_Name.Object;
+      Result       : out LSP.Structures.DocumentSymbol_Vector);
 
 end LSP.GPR_Files.Symbols;

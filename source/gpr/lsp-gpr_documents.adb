@@ -15,13 +15,13 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Wide_Wide_Latin_1;
+with GNATCOLL.Traces;
 
 with GPR2.Message;
 
-with VSS.Strings.Cursors.Iterators.Characters;
-
+with VSS.Characters.Latin;
 with VSS.Strings.Character_Iterators;
+with VSS.Strings.Conversions;
 with VSS.Strings.Line_Iterators;
 with VSS.Unicode;
 
@@ -39,7 +39,7 @@ package body LSP.GPR_Documents is
 
    procedure Span_To_Markers
      (Self : Document'Class;
-      Span : LSP.Messages.Span;
+      Span : LSP.Structures.A_Range;
       From : out VSS.Strings.Markers.Character_Marker;
       To   : out VSS.Strings.Markers.Character_Marker);
 
@@ -48,7 +48,7 @@ package body LSP.GPR_Documents is
 
    procedure Recompute_Markers
      (Self         : in out Document'Class;
-      Low_Line     : LSP.Types.Line_Number;
+      Low_Line     : Natural;
       Start_Marker : VSS.Strings.Markers.Character_Marker;
       End_Marker   : VSS.Strings.Markers.Character_Marker);
    --  Recompute line-to-marker index starting from Start_Marker till
@@ -62,27 +62,26 @@ package body LSP.GPR_Documents is
 
    procedure Apply_Changes
      (Self    : aliased in out Document;
-      Version : LSP.Types.LSP_Number;
-      Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector)
+      Version : Integer;
+      Vector  : LSP.Structures.TextDocumentContentChangeEvent_Vector)
    is
-      URI : constant String := Types.To_UTF_8_String (Self.URI);
-      use LSP.Types;
+      URI : constant String :=
+        VSS.Strings.Conversions.To_UTF_8_String (Self.URI);
+
    begin
       Document_Changes_Trace.Trace ("Applying changes for document " & URI);
 
       Self.Version := Version;
 
       for Change of Vector loop
-         if Change.span.Is_Set then
+         if Change.a_range.Is_Set then
             --  We're replacing a range
 
             declare
-               Low_Line    : LSP.Types.Line_Number :=
-                 Change.span.Value.first.line;
-               High_Line   : LSP.Types.Line_Number :=
-                 Change.span.Value.last.line;
-               Delete_High : LSP.Types.Line_Number := High_Line;
-               Start_Index : LSP.Types.Line_Number;
+               Low_Line    : Natural := Change.a_range.Value.start.line;
+               High_Line   : Natural := Change.a_range.Value.an_end.line;
+               Delete_High : Natural := High_Line;
+               Start_Index : Natural;
 
                First_Marker : VSS.Strings.Markers.Character_Marker;
                Last_Marker  : VSS.Strings.Markers.Character_Marker;
@@ -93,7 +92,7 @@ package body LSP.GPR_Documents is
                --  Do text replacement
 
                Self.Span_To_Markers
-                 (Change.span.Value, First_Marker, Last_Marker);
+                 (Change.a_range.Value, First_Marker, Last_Marker);
                Self.Text.Replace (First_Marker, Last_Marker, Change.text);
 
                --  Markers inside modified range of lines need to be
@@ -150,9 +149,11 @@ package body LSP.GPR_Documents is
             Self.Text := Change.text;
 
             --  We're setting the whole text: compute the indexes now.
+
             Self.Recompute_Indexes;
          end if;
       end loop;
+
       Document_Changes_Trace.Trace
         ("Done applying changes for document " & URI);
    end Apply_Changes;
@@ -243,10 +244,9 @@ package body LSP.GPR_Documents is
 
    function Get_Source_Location
      (Self     : Document'Class;
-      Position : LSP.Messages.Position)
+      Position : LSP.Structures.Position)
       return Langkit_Support.Slocs.Source_Location
    is
-      use type LSP.Types.Line_Number;
       use type VSS.Unicode.UTF16_Code_Unit_Offset;
       use type VSS.Strings.Character_Index;
 
@@ -258,16 +258,19 @@ package body LSP.GPR_Documents is
 
       Line_First_Character : constant VSS.Strings.Character_Index :=
         Iterator.Character_Index;
+
    begin
-      while Iterator.First_UTF16_Offset - Line_Offset <= Position.character
+      while Integer (Iterator.First_UTF16_Offset - Line_Offset)
+              <= Position.character
         and then Iterator.Forward
       loop
          null;
       end loop;
 
-      return ((Line   => Langkit_Support.Slocs.Line_Number (Position.line + 1),
-               Column => Langkit_Support.Slocs.Column_Number
-                 (Iterator.Character_Index - Line_First_Character)));
+      return
+        ((Line   => Langkit_Support.Slocs.Line_Number (Position.line + 1),
+          Column => Langkit_Support.Slocs.Column_Number
+                      (Iterator.Character_Index - Line_First_Character)));
    end Get_Source_Location;
 
    -----------------
@@ -276,8 +279,8 @@ package body LSP.GPR_Documents is
 
    function Get_Text_At
      (Self      : Document;
-      Start_Pos : LSP.Messages.Position;
-      End_Pos   : LSP.Messages.Position) return VSS.Strings.Virtual_String
+      Start_Pos : LSP.Structures.Position;
+      End_Pos   : LSP.Structures.Position) return VSS.Strings.Virtual_String
    is
       First_Marker : VSS.Strings.Markers.Character_Marker;
       Last_Marker  : VSS.Strings.Markers.Character_Marker;
@@ -295,7 +298,7 @@ package body LSP.GPR_Documents is
 
    function Get_Word_At
      (Self     : Document;
-      Position : LSP.Messages.Position)
+      Position : LSP.Structures.Position)
       return VSS.Strings.Virtual_String
    is
       Result : VSS.Strings.Virtual_String;
@@ -321,17 +324,17 @@ package body LSP.GPR_Documents is
 
    procedure Initialize
      (Self        : in out Document;
-      URI         : LSP.Messages.DocumentUri;
+      URI         : LSP.Structures.DocumentUri;
       File        : GPR2.Path_Name.Object;
       Text        : VSS.Strings.Virtual_String;
-      Provider    : LSP.GPR_Files.File_Provider_Access)
-   is
+      Provider    : LSP.GPR_Files.File_Provider_Access) is
    begin
-      Self.URI  := URI;
-      Self.File := File;
-      Self.Version := 1;
-      Self.Text := Text;
+      Self.URI           := URI;
+      Self.File          := File;
+      Self.Version       := 1;
+      Self.Text          := Text;
       Self.File_Provider := Provider;
+
       Recompute_Indexes (Self);
    end Initialize;
 
@@ -340,16 +343,17 @@ package body LSP.GPR_Documents is
    ---------------------
 
    function Line_Terminator
-     (Self : Document'Class) return VSS.Strings.Virtual_String is
+     (Self : Document'Class) return VSS.Strings.Virtual_String
+   is
+      use type VSS.Strings.Virtual_String;
+
    begin
       if Self.Line_Terminator.Is_Empty then
          --  Document has no line terminator yet, return LF as most used
          --
          --  Should it be platform specific? CRLF for Windows, CR for Mac?
 
-         return
-           VSS.Strings.To_Virtual_String
-             ((1 => Ada.Characters.Wide_Wide_Latin_1.LF));
+         return 1 * VSS.Characters.Latin.Line_Feed;
 
       else
          return Self.Line_Terminator;
@@ -466,11 +470,10 @@ package body LSP.GPR_Documents is
 
    procedure Recompute_Markers
      (Self         : in out Document'Class;
-      Low_Line     : LSP.Types.Line_Number;
+      Low_Line     : Natural;
       Start_Marker : VSS.Strings.Markers.Character_Marker;
       End_Marker   : VSS.Strings.Markers.Character_Marker)
    is
-      use type LSP.Types.Line_Number;
       use type VSS.Strings.Character_Count;
 
       M    : VSS.Strings.Markers.Character_Marker;
@@ -479,7 +482,7 @@ package body LSP.GPR_Documents is
           (Position        => Start_Marker,
            Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => True);
-      Line : LSP.Types.Line_Number := Low_Line;
+      Line : Natural := Low_Line;
 
    begin
       if J.Has_Element then
@@ -508,26 +511,26 @@ package body LSP.GPR_Documents is
 
    procedure Span_To_Markers
      (Self : Document'Class;
-      Span : LSP.Messages.Span;
+      Span : LSP.Structures.A_Range;
       From : out VSS.Strings.Markers.Character_Marker;
       To   : out VSS.Strings.Markers.Character_Marker)
    is
       use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
       J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.At_Character (Self.Line_To_Marker (Span.first.line));
+        Self.Text.At_Character (Self.Line_To_Marker (Span.start.line));
       U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J1.First_UTF16_Offset;
 
       J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.At_Character (Self.Line_To_Marker (Span.last.line));
+        Self.Text.At_Character (Self.Line_To_Marker (Span.an_end.line));
       U2 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J2.First_UTF16_Offset;
 
       Dummy : Boolean;
 
    begin
-      while Span.first.character /= J1.First_UTF16_Offset - U1
+      while Span.start.character /= Integer (J1.First_UTF16_Offset - U1)
         and then J1.Forward
       loop
          null;
@@ -535,7 +538,7 @@ package body LSP.GPR_Documents is
 
       From := J1.Marker;
 
-      while Span.last.character /= J2.First_UTF16_Offset - U2
+      while Span.an_end.character /= Integer (J2.First_UTF16_Offset - U2)
         and then J2.Forward
       loop
          null;
@@ -560,7 +563,7 @@ package body LSP.GPR_Documents is
    --------------------------
 
    function Versioned_Identifier
-     (Self : Document) return LSP.Messages.VersionedTextDocumentIdentifier is
+     (Self : Document) return LSP.Structures.VersionedTextDocumentIdentifier is
    begin
       return (uri     => Self.URI,
               version => Self.Version);
