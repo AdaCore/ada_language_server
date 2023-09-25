@@ -565,7 +565,6 @@
                   },
                   {
                      "name": "Main",
-                     "detail": "",
                      "kind": 12,
                      "range": {
                         "start": {
@@ -589,8 +588,7 @@
                      },
                      "alsIsDeclaration": false,
                      "alsIsAdaProcedure": true,
-                     "alsVisibility": 1,
-                     "children": []
+                     "alsVisibility": 1
                   }
                ]
             }
@@ -656,7 +654,6 @@
                   },
                   {
                      "name": "Qux",
-                     "detail": "",
                      "kind": 4,
                      "range": {
                         "start": {
@@ -684,7 +681,6 @@
                      "children": [
                         {
                            "name": "Bar",
-                           "detail": "",
                            "kind": 12,
                            "range": {
                               "start": {
@@ -708,8 +704,7 @@
                            },
                            "alsIsDeclaration": true,
                            "alsIsAdaProcedure": true,
-                           "alsVisibility": 1,
-                           "children": []
+                           "alsVisibility": 1
                         }
                      ]
                   }

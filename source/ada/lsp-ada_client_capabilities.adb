@@ -80,6 +80,74 @@ package body LSP.Ada_Client_Capabilities is
       return (if Result.Is_Set then Result.Value else False);
    end didChangeWatchedFiles_dynamicRegistration;
 
+   ------------------------------
+   -- fileOperations_didCreate --
+   ------------------------------
+
+   function fileOperations_didCreate
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        didCreate
+          (fileOperations
+             (Self.Value.capabilities.workspace));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end fileOperations_didCreate;
+
+   ------------------------------
+   -- fileOperations_didDelete --
+   ------------------------------
+
+   function fileOperations_didDelete
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        didDelete
+          (fileOperations
+             (Self.Value.capabilities.workspace));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end fileOperations_didDelete;
+
+   ------------------------------
+   -- fileOperations_didRename --
+   ------------------------------
+
+   function fileOperations_didRename
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        didDelete
+          (fileOperations
+             (Self.Value.capabilities.workspace));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end fileOperations_didRename;
+
+   ----------------------------------------
+   -- fileOperations_dynamicRegistration --
+   ----------------------------------------
+
+   function fileOperations_dynamicRegistration
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        dynamicRegistration
+          (fileOperations
+             (Self.Value.capabilities.workspace));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end fileOperations_dynamicRegistration;
+
    -------------------------
    -- Hierarchical_Symbol --
    -------------------------
@@ -261,6 +329,36 @@ package body LSP.Ada_Client_Capabilities is
    is
       use type VSS.Strings.Virtual_String;
 
+      function Ada_Patterns
+        return LSP.Structures.FileOperationFilter_Vectors.Vector is
+           [(scheme  => "file",   --  shell we also support `untitled`???
+             pattern =>
+               (glob    => "**/*.ad{a,s,b,c}",
+                matches => LSP.Constants.file,
+                options => LSP.Constants.ignoreCase))];
+
+      function Ada_Extensions (Enabled : Boolean)
+        return LSP.Structures.FileOperationRegistrationOptions_Optional is
+          (if Enabled then
+             (Is_Set => True,
+              Value  => (filters => (Ada_Patterns with null record)))
+           else (Is_Set => False));
+
+      function fileOperations
+        return LSP.Structures.FileOperationOptions_Optional is
+          (if Self.fileOperations_didCreate
+             or else Self.fileOperations_didRename
+             or else Self.fileOperations_didDelete
+           then
+             (Is_Set => True,
+              Value  =>
+                (didCreate => Ada_Extensions (Self.fileOperations_didCreate),
+                 didRename => Ada_Extensions (Self.fileOperations_didRename),
+                 didDelete => Ada_Extensions (Self.fileOperations_didDelete),
+                 others    => <>))
+           else
+             (Is_Set => False));
+
       function Supported_Code_Action_Kinds
         return LSP.Structures.CodeActionKind_Vectors.Vector is
           [LSP.Enumerations.QuickFix,
@@ -351,6 +449,12 @@ package body LSP.Ada_Client_Capabilities is
               (triggerCharacters   => [",", "("],
                retriggerCharacters => [1 * VSS.Characters.Latin.Backspace],
                workDoneProgress    => <>));
+
+         Result.workspace :=
+           (Is_Set => True,
+            Value  =>
+              (fileOperations   => fileOperations,
+               workspaceFolders => <>));
 
       end return;
    end To_Server_Capabilities;

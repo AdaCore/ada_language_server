@@ -94,4 +94,28 @@ package LSP.Structures.Unwrap is
        return Boolean_Optional is
          (if X.Is_Set then X.Value.dynamicRegistration else (Is_Set => False));
 
+   function fileOperations (X : WorkspaceClientCapabilities_Optional)
+     return FileOperationClientCapabilities_Optional is
+       (if X.Is_Set then X.Value.fileOperations else (Is_Set => False));
+
+   function dynamicRegistration
+     (X : FileOperationClientCapabilities_Optional)
+       return Boolean_Optional is
+         (if X.Is_Set then X.Value.dynamicRegistration else (Is_Set => False));
+
+   function didCreate
+     (X : FileOperationClientCapabilities_Optional)
+       return Boolean_Optional is
+         (if X.Is_Set then X.Value.didCreate else (Is_Set => False));
+
+   function didDelete
+     (X : FileOperationClientCapabilities_Optional)
+       return Boolean_Optional is
+         (if X.Is_Set then X.Value.didDelete else (Is_Set => False));
+
+   function didRename
+     (X : FileOperationClientCapabilities_Optional)
+       return Boolean_Optional is
+         (if X.Is_Set then X.Value.didRename else (Is_Set => False));
+
 end LSP.Structures.Unwrap;

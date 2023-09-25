@@ -147,4 +147,11 @@ package LSP.Constants is
    function RequestCancelled return LSP.Enumerations.ErrorCodes is
      (LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestCancelled));
 
+   function file return LSP.Structures.FileOperationPatternKind_Optional is
+     (Is_Set => True, Value => LSP.Enumerations.file);
+
+   function ignoreCase
+     return LSP.Structures.FileOperationPatternOptions_Optional is
+       (Is_Set => True, Value => (ignoreCase => True));
+
 end LSP.Constants;

@@ -77,6 +77,24 @@ package LSP.Ada_Client_Capabilities is
 
    function didChangeWatchedFiles_dynamicRegistration
      (Self : Client_Capability'Class) return Boolean;
+   --  Returns capabilities.workspace.didChangeWatchedFiles.dynamicRegistration
+
+   function fileOperations_dynamicRegistration
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns capabilities.workspace.fileOperations.dynamicRegistration
+
+   function fileOperations_didCreate
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns capabilities.workspace.fileOperations.didCreate
+
+   function fileOperations_didRename
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns capabilities.workspace.fileOperations.didRename
+
+   function fileOperations_didDelete
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns capabilities.workspace.fileOperations.didDelete
+
    --  Resource 0perations --
 
    function Resource_Create_Supported
