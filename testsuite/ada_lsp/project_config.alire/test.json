@@ -77,7 +77,7 @@
             },
             "wait":[{
                 "id": "defname-1",
-                "result":[{
+                "result":{
                     "uri": "$URI{alire/cache/dependencies/libhello_1.0.1_3c15bc7f/src/libhello.ads}",
                     "range": {
                         "start": {
@@ -89,7 +89,7 @@
                             "character": 24
                         }
                     }
-                }]
+                }
             }]
         }
     },  {

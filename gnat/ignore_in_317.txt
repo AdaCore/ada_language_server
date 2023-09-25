@@ -1,5 +1,3 @@
-lsp-ada_handlers-alire.adb
-lsp-ada_handlers-alire.ads
 lsp-common.adb
 lsp-common.ads
 lsp-error_decorators.adb

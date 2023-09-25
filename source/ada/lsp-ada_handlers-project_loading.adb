@@ -37,6 +37,7 @@ with Spawn.Environments;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
+with LSP.Ada_Handlers.Alire;
 with LSP.Ada_Handlers.File_Readers;
 with LSP.Ada_Indexing;
 with LSP.Enumerations;
@@ -50,26 +51,6 @@ package body LSP.Ada_Handlers.Project_Loading is
      GNATCOLL.Traces.Create ("ALS.RUNTIME_INDEXING",
                              GNATCOLL.Traces.On);
    --  Trace to enable/disable runtime indexing. Useful for the testsuite.
-
-   package Alire is
-
-      procedure Run_Alire
-        (Root        : String;
-         Has_Alire   : out Boolean;
-         Error       : out VSS.Strings.Virtual_String;
-         Project     : out VSS.Strings.Virtual_String;
-         Environment : in out GPR2.Environment.Object) is null;
-      --  if Root directory contains `alire.toml` file, then run
-      --  `alr printenv` and fetch the first project from `alire.toml`.
-
-      procedure Run_Alire
-        (Root        : String;
-         Has_Alire   : out Boolean;
-         Error       : out VSS.Strings.Virtual_String;
-         Environment : in out GPR2.Environment.Object) is null;
-      --  The same as above, but without fetching the project file
-
-   end Alire;
 
    procedure Load_Project_With_Alire
      (Self               : in out Message_Handler'Class;
@@ -552,7 +533,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
          if Project.Is_Empty then
 
-            Alire.Run_Alire
+            LSP.Ada_Handlers.Alire.Run_Alire
               (Root        => Root (Self).Display_Full_Name,
                Has_Alire   => Has_Alire,
                Error       => Errors,
@@ -562,7 +543,7 @@ package body LSP.Ada_Handlers.Project_Loading is
             Status := Alire_Project;
          else
 
-            Alire.Run_Alire
+            LSP.Ada_Handlers.Alire.Run_Alire
               (Root        => Root (Self).Display_Full_Name,
                Has_Alire   => Has_Alire,
                Error       => Errors,

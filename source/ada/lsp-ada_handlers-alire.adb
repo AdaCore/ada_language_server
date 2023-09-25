@@ -21,6 +21,7 @@ with GNAT.OS_Lib;
 with VSS.Stream_Element_Vectors;
 with VSS.Strings.Conversions;
 with VSS.Strings.Converters.Decoders;
+with VSS.String_Vectors;
 with VSS.Characters.Latin;
 with VSS.Regular_Expressions;
 
