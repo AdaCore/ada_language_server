@@ -43,6 +43,11 @@ package body LSP_Gen.Responses is
       From  : LSP_Gen.Configurations.Message_Direction;
       Done  : LSP_Gen.Dependencies.Dependency_Map);
 
+   procedure Write_Loggers
+     (Model : LSP_Gen.Meta_Models.Meta_Model;
+      Done  : LSP_Gen.Dependencies.Dependency_Map;
+      From  : LSP_Gen.Configurations.Message_Direction);
+
    function Prefix
      (From : LSP_Gen.Configurations.Message_Direction)
       return VSS.Strings.Virtual_String is
@@ -68,6 +73,170 @@ package body LSP_Gen.Responses is
    begin
       return LSP_Gen.Dependencies.Dependency_Maps.Element (Found).Short_Name;
    end Result_Type;
+
+   -------------------
+   -- Write_Loggers --
+   -------------------
+
+   procedure Write_Loggers
+     (Model : LSP_Gen.Meta_Models.Meta_Model;
+      Done  : LSP_Gen.Dependencies.Dependency_Map;
+      From  : LSP_Gen.Configurations.Message_Direction)
+   is
+      use all type LSP_Gen.Configurations.Message_Direction;
+
+      Kind : constant VSS.Strings.Virtual_String := Prefix (From);
+      Name : constant VSS.Strings.Virtual_String :=
+        Kind & "_Response_Logger";
+   begin
+      Put_Lines (Model.License_Header, "--  ");
+      New_Line;
+      Put_Line ("with VSS.Text_Streams;");
+      New_Line;
+      Put_Line ("with LSP.Errors;");
+      Put_Line ("with LSP.Structures;");
+      Put ("with LSP.");
+      Put (Kind);
+      Put_Line ("_Response_Receivers;");
+      New_Line;
+      Put ("package LSP.");
+      Put (Name);
+      Put_Line ("s is");
+      Put_Line ("pragma Preelaborate;");
+      New_Line;
+      Put ("type ");
+      Put_Line (Name);
+
+      Put ("(Output : access VSS.Text_Streams");
+      Put_Line (".Output_Text_Stream'Class)");
+      Put ("is new ");
+
+      Put ("LSP.");
+      Put (Kind);
+      Put ("_Response_Receivers.");
+      Put (Kind);
+      Put_Line ("_Response_Receiver");
+      Put_Line ("with null record;");
+      New_Line;
+
+      for J of Model.Requests loop
+         if Model.Message_Direction (J) = From then
+            Put ("overriding procedure On_");
+            Put (Model.Message_Name (J));
+            Put_Line ("_Response");
+            Put ("(Self : in out ");
+            Put (Name);
+            Put_Line (";");
+            Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String;");
+            Put ("Value : LSP.Structures.");
+            Put (Result_Type (Model, Done, J));
+
+            Put_Line (");");
+            New_Line;
+         end if;
+      end loop;
+
+      Put_Line ("overriding procedure On_Error_Response");
+      Put ("(Self : in out ");
+      Put (Name);
+      Put_Line (";");
+      Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String;");
+      Put_Line ("Value : LSP.Errors.ResponseError);");
+      New_Line;
+
+      Put_Line ("procedure Put_Id");
+      Put ("  (Self : in out ");
+      Put (Name);
+      Put_Line ("'Class;");
+      Put_Line ("   Id   : LSP.Structures.Integer_Or_Virtual_String;");
+      Put_Line ("   Ok   : in out Boolean);");
+      New_Line;
+
+      Put_Line ("end;");
+
+      Put_Lines (Model.License_Header, "--  ");
+      New_Line;
+      Put_Line ("with VSS.Strings;");
+      New_Line;
+      Put ("package body LSP.");
+      Put (Name);
+      Put_Line ("s is");
+      New_Line;
+
+      for J of Model.Requests loop
+         if Model.Message_Direction (J) = From then
+            Put ("overriding procedure On_");
+            Put (Model.Message_Name (J));
+            Put_Line ("_Response");
+            Put ("(Self : in out ");
+            Put (Name);
+            Put_Line (";");
+            Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String");
+
+            Put_Line (";");
+            Put ("Value : LSP.Structures.");
+            Put (Result_Type (Model, Done, J));
+
+            Put_Line (")");
+            Put_Line ("is");
+            Put_Line ("Ok : Boolean := False;");
+            Put_Line ("begin");
+            Put ("Self.Output.Put (""'");
+            Put (J);
+            Put_Line ("'"", Ok);");
+            Put_Line ("Self.Put_Id (Id, Ok);");
+
+            Put_Line ("Self.Output.Put ("" result : "", Ok);");
+            Put ("Self.Output.Put (VSS.Strings.To_Virtual_String");
+            Put_Line (" (Value'Wide_Wide_Image), Ok);");
+
+            Put ("Self.Output.New_Line (Ok);");
+            Put_Line ("end;");
+            New_Line;
+         end if;
+      end loop;
+
+      Put_Line ("overriding procedure On_Error_Response");
+      Put ("(Self : in out ");
+      Put (Name);
+      Put_Line (";");
+      Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String;");
+      Put_Line ("Value : LSP.Errors.ResponseError)");
+      Put_Line ("is");
+      Put_Line ("Ok : Boolean := False;");
+      Put_Line ("begin");
+      Put ("Self.Output.Put (""'Error response'"", Ok);");
+      Put_Line ("Self.Put_Id (Id, Ok);");
+
+      Put_Line ("Self.Output.Put ("" error : "", Ok);");
+      Put ("Self.Output.Put (VSS.Strings.To_Virtual_String");
+      Put_Line (" (Value'Wide_Wide_Image), Ok);");
+
+      Put ("Self.Output.New_Line (Ok);");
+      Put_Line ("end;");
+      New_Line;
+
+      Put_Line ("procedure Put_Id");
+      Put ("  (Self : in out ");
+      Put (Name);
+      Put_Line ("'Class;");
+      Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String;");
+      Put_Line ("Ok : in out Boolean) is");
+      Put_Line ("begin");
+      Put_Line ("Self.Output.Put ("" Id="", Ok);");
+      New_Line;
+      Put_Line ("if Id.Is_Integer then");
+      Put ("Self.Output.Put (VSS.Strings.To_Virtual_String");
+      Put_Line (" (Id.Integer'Wide_Wide_Image), Ok);");
+      Put_Line ("else");
+      Put_Line ("Self.Output.Put (Id.Virtual_String, Ok);");
+      Put_Line ("end if;");
+      Put_Line ("end Put_Id;");
+      New_Line;
+
+      Put_Line ("end;");
+
+   end Write_Loggers;
 
    --------------------------
    -- Write_Response_Types --
@@ -361,6 +530,8 @@ package body LSP_Gen.Responses is
       Write_Receivers (Model, Done, From_Server);
       Write_Response_Types (Model, From_Client, Done);
       Write_Response_Types (Model, From_Server, Done);
+      Write_Loggers (Model, Done, From_Server);
+      Write_Loggers (Model, Done, From_Client);
    end Write;
 
    -------------------
