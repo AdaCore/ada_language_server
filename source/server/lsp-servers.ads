@@ -23,6 +23,7 @@
 with Ada.Streams;
 
 with LSP.Client_Message_Receivers;
+with LSP.Client_Message_Visitors;
 with LSP.Server_Message_Visitors;
 with LSP.Structures;
 
@@ -62,14 +63,21 @@ package LSP.Servers is
      LSP.Server_Message_Visitors.Server_Message_Visitor'Class
        with Storage_Size => 0;
 
+   type Client_Message_Visitor_Access is access all
+     LSP.Client_Message_Visitors.Client_Message_Visitor'Class
+       with Storage_Size => 0;
+
    procedure Run
      (Self         : in out Server;
       Handler      : not null Server_Message_Visitor_Access;
-      Tracer       : not null LSP.Tracers.Tracer_Access);
+      Tracer       : not null LSP.Tracers.Tracer_Access;
+      In_Logger    : Server_Message_Visitor_Access;
+      Out_Logger   : Client_Message_Visitor_Access);
    --  Run the server using given Request and Notification handler.
    --  Tracer object provides tracing/logging capabilities for the main trace,
    --  all input & output traces for debugging purposes.
-   --  Call On_Error in case of uncaught exceptions.
+   --  In/out loggers are used to dump client-to-server and server-to-client
+   --  messages.
 
    procedure Stop (Self : in out Server);
    --  Ask server to stop
@@ -177,7 +185,7 @@ private
    task type Output_Task_Type
      (Server : access LSP.Servers.Server)
    is
-      entry Start;
+      entry Start (Out_Logger : Client_Message_Visitor_Access);
       --  Start the task. Should be called once.
 
       entry Stop;
@@ -188,7 +196,7 @@ private
    task type Input_Task_Type
      (Server : access LSP.Servers.Server)
    is
-      entry Start;
+      entry Start (In_Logger : Server_Message_Visitor_Access);
       --  Start the task. Should be called once.
 
       entry Stop;

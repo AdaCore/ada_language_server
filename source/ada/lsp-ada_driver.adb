@@ -311,11 +311,20 @@ begin
 
    begin
       if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
-         Server.Run (GPR_Handler'Unchecked_Access, Tracer'Unchecked_Access);
+         Server.Run
+           (GPR_Handler'Unchecked_Access,
+            Tracer'Unchecked_Access,
+            In_Logger  => null,
+            Out_Logger => null);
 
       else
          Register_Commands;
-         Server.Run (Ada_Handler'Unchecked_Access, Tracer'Unchecked_Access);
+
+         Server.Run
+           (Ada_Handler'Unchecked_Access,
+            Tracer'Unchecked_Access,
+            In_Logger  => null,
+            Out_Logger => null);
       end if;
    exception
       when E : others =>

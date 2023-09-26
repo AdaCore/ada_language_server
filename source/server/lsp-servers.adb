@@ -45,6 +45,7 @@ package body LSP.Servers is
      (Self    : in out Server'Class;
       Checker : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
       Map     : in out LSP.Known_Requests.Known_Request_Map;
+      Logger  : Server_Message_Visitor_Access;
       EOF     : in out Boolean);
    --  Read data from stdin and create a message if there is enough data.
    --  Then put the message into Self.Input_Queue.
@@ -175,6 +176,7 @@ package body LSP.Servers is
      (Self    : in out Server'Class;
       Checker : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
       Map     : in out LSP.Known_Requests.Known_Request_Map;
+      Logger  : Server_Message_Visitor_Access;
       EOF     : in out Boolean)
    is
       use type Ada.Streams.Stream_Element_Count;
@@ -464,6 +466,10 @@ package body LSP.Servers is
             Message := Server_Message_Access (Notification);
          end if;
 
+         if Logger /= null then
+            Message.Visit_Server_Message_Visitor (Logger.all);
+         end if;
+
          Checker.Check_Message (Self, Message.all, Ok, Is_Exit_Notification);
          --  Check initialization status and send a response if this is a
          --  request before initialization.
@@ -567,12 +573,14 @@ package body LSP.Servers is
    procedure Run
      (Self         : in out Server;
       Handler      : not null Server_Message_Visitor_Access;
-      Tracer       : not null LSP.Tracers.Tracer_Access) is
+      Tracer       : not null LSP.Tracers.Tracer_Access;
+      In_Logger    : Server_Message_Visitor_Access;
+      Out_Logger   : Client_Message_Visitor_Access) is
    begin
       Self.Tracer := Tracer;
       Self.Processing_Task.Start (Handler);
-      Self.Output_Task.Start;
-      Self.Input_Task.Start;
+      Self.Output_Task.Start (Out_Logger);
+      Self.Input_Task.Start (In_Logger);
 
       --  Wait for stop signal
       Self.Stop_Signal.Seize;
@@ -644,8 +652,11 @@ package body LSP.Servers is
       Message : Server_Message_Access;
       Map     : LSP.Known_Requests.Known_Request_Map;
       Checker : LSP.Lifecycle_Checkers.Lifecycle_Checker;
+      Logger  : Server_Message_Visitor_Access;
    begin
-      accept Start;
+      accept Start (In_Logger : Server_Message_Visitor_Access) do
+         Logger := In_Logger;
+      end Start;
 
       loop
          loop
@@ -665,7 +676,7 @@ package body LSP.Servers is
             accept Stop;
             exit;
          else
-            Server.Process_One_Message (Checker, Map, EOF);
+            Server.Process_One_Message (Checker, Map, Logger, EOF);
             --  This call can block reading from stream
 
             if EOF then
@@ -697,6 +708,8 @@ package body LSP.Servers is
    ----------------------
 
    task body Output_Task_Type is
+      Logger : Client_Message_Visitor_Access;
+
       Message : Client_Message_Access;
 
       Output_Queue : Output_Message_Queues.Queue renames Server.Output_Queue;
@@ -733,12 +746,18 @@ package body LSP.Servers is
       end Write_JSON_RPC;
 
    begin
-      accept Start;
+      accept Start (Out_Logger : Client_Message_Visitor_Access) do
+         Logger := Out_Logger;
+      end Start;
 
       loop
          select
             --  Process all available outputs before acceptiong Stop
             Output_Queue.Dequeue (Message);
+
+            if Logger /= null then
+               Message.Visit_Client_Message_Visitor (Logger.all);
+            end if;
 
             declare
                Stream : aliased VSS.Text_Streams.Memory_UTF8_Output
