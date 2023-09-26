@@ -354,7 +354,7 @@ package body LSP.Ada_Documents is
 
                      Named_Template      : constant
                        VSS.Strings.Templates.Virtual_String_Template :=
-                         "{} => ${{{}:{} : {}{}}, ";
+                         "{} => ${{{}:{}{}}, ";
                      Positional_Template : constant
                        VSS.Strings.Templates.Virtual_String_Template :=
                          "${{{}:{} : {}{}}, ";
@@ -366,7 +366,6 @@ package body LSP.Ada_Documents is
                           Named_Template.Format
                             (LSP.Formatters.Texts.Image (Id.Text),
                              VSS.Strings.Formatters.Integers.Image (Idx),
-                             LSP.Formatters.Texts.Image (Id.Text),
                              LSP.Formatters.Texts.Image (Mode_Text),
                              LSP.Formatters.Texts.Image
                                (Param.F_Type_Expr.Text));
