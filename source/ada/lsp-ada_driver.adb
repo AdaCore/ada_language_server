@@ -56,10 +56,12 @@ with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Suspend_Executions;
+with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
 with LSP.GPR_Handlers;
 with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
+with LSP.Secure_Message_Loggers;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -126,6 +128,17 @@ procedure LSP.Ada_Driver is
    Out_Trace : constant Trace_Handle := Create ("ALS.OUT", Off);
    --  Traces that logs all input & output. For debugging purposes.
    Tracer    : aliased LSP.GNATCOLL_Tracers.Tracer;
+
+   In_Stream  : aliased LSP.GNATCOLL_Trace_Streams.Output_Text_Stream;
+   --  Output stream for logging input messages into the trace
+   In_Logger  : aliased LSP.Secure_Message_Loggers.Server_Logger
+    (In_Stream'Unchecked_Access);
+   --  Logger for logging input messages
+   Out_Stream : aliased LSP.GNATCOLL_Trace_Streams.Output_Text_Stream;
+   --  Output stream for logging output messages into the trace
+   Out_Logger : aliased LSP.Secure_Message_Loggers.Client_Logger
+    (Out_Stream'Unchecked_Access);
+   --  Logger for logging output messages
 
    Server      : aliased LSP.Servers.Server;
    Stream      : aliased LSP.Stdio_Streams.Stdio_Stream;
@@ -268,6 +281,9 @@ begin
       end;
    end if;
 
+   In_Stream.Initialize (Server_Trace);
+   Out_Stream.Initialize (Server_Trace);
+
    Tracer.Initialize (Server_Trace, In_Trace, Out_Trace);
    Tracer.Trace ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");
 
@@ -314,8 +330,8 @@ begin
          Server.Run
            (GPR_Handler'Unchecked_Access,
             Tracer'Unchecked_Access,
-            In_Logger  => null,
-            Out_Logger => null);
+            In_Logger  => In_Logger'Unchecked_Access,
+            Out_Logger => Out_Logger'Unchecked_Access);
 
       else
          Register_Commands;
@@ -323,8 +339,8 @@ begin
          Server.Run
            (Ada_Handler'Unchecked_Access,
             Tracer'Unchecked_Access,
-            In_Logger  => null,
-            Out_Logger => null);
+            In_Logger  => In_Logger'Unchecked_Access,
+            Out_Logger => Out_Logger'Unchecked_Access);
       end if;
    exception
       when E : others =>
