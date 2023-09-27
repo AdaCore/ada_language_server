@@ -345,10 +345,7 @@ package body LSP.Ada_Handlers is
          return (URI, LSP.Structures.Integer_Or_Null'(Is_Null => True));
 
       else
-         return
-           (uri     => Document.Versioned_Identifier.uri,
-            version => (Is_Null => False,
-                        Value   => Document.Versioned_Identifier.version));
+         return Document.Identifier;
       end if;
    end Get_Open_Document_Version;
 
@@ -3540,7 +3537,7 @@ package body LSP.Ada_Handlers is
              Laltools.Partial_GNATPP.Previous_Non_Whitespace_Non_Comment_Token
                (Token);
          Previous_NWNC_Token_Span : constant LSP.Structures.A_Range :=
-           Document.To_LSP_Range
+           Document.To_A_Range
              (Libadalang.Common.Sloc_Range
                 (Libadalang.Common.Data (Previous_NWNC_Token)));
 
@@ -3549,7 +3546,7 @@ package body LSP.Ada_Handlers is
              Document.Get_Formatting_Region
                (Context.all, Previous_NWNC_Token_Span.start);
          Formatting_Span   : constant LSP.Structures.A_Range :=
-           Document.To_LSP_Range
+           Document.To_A_Range
              (Libadalang.Slocs.Make_Range
                 (Libadalang.Slocs.Start_Sloc
                    (Libadalang.Common.Sloc_Range
@@ -4263,7 +4260,7 @@ package body LSP.Ada_Handlers is
          Document : constant LSP.Ada_Documents.Document_Access :=
            Self.Get_Open_Document (Value.textDocument.uri);
          Location : constant Langkit_Support.Slocs.Source_Location :=
-           Document.Get_Source_Location (Value.position);
+           Document.To_Source_Location (Value.position);
 
          Position : LSP.Structures.Position := Value.position;
          Node     : Libadalang.Analysis.Ada_Node;

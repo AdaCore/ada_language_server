@@ -75,7 +75,7 @@ package body LSP.Ada_Handlers.Locations is
       if File = Node_File then
          Result.Append
            (LSP.Structures.DocumentHighlight'
-              (a_range => Document.To_LSP_Range (Node.Sloc_Range),
+              (a_range => Document.To_A_Range (Node.Sloc_Range),
                kind    => Kind));
       end if;
    end Append_Location;

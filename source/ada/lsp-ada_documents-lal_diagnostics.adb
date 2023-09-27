@@ -40,11 +40,12 @@ package body LSP.Ada_Documents.LAL_Diagnostics is
       Self.Errors := Self.Get_Diagnostics (Context);
 
       for J in Self.Errors.List'Range loop
-         Item.a_range := Self.Document.To_LSP_Range
-           (Self.Errors.List (J).Sloc_Range);
+         Item.a_range :=
+           Self.Document.To_A_Range (Self.Errors.List (J).Sloc_Range);
 
-         Item.message := VSS.Strings.Conversions.To_Virtual_String
-           (Self.Errors.List (J).Message);
+         Item.message :=
+           VSS.Strings.Conversions.To_Virtual_String
+             (Self.Errors.List (J).Message);
 
          Errors.Append (Item);
       end loop;

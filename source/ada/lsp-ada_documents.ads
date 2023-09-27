@@ -21,7 +21,6 @@ with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 with VSS.String_Vectors;
 with VSS.Strings;
-private with VSS.Strings.Markers;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
@@ -36,6 +35,7 @@ with LSP.Ada_Completions;
 with LSP.Ada_Highlighters;
 with LSP.Constants;
 with LSP.Diagnostic_Sources;
+with LSP.Text_Documents.Langkit_Documents;
 with LSP.Search;
 with LSP.Structures;
 with LSP.Tracers;
@@ -44,13 +44,9 @@ package LSP.Ada_Documents is
 
    MAX_NB_DIAGNOSTICS : constant := 2;
 
-   LSP_New_Line_Function_Set : constant VSS.Strings.Line_Terminator_Set :=
-     (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
-      others => False);
-   --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
-
    type Document (Tracer : not null LSP.Tracers.Tracer_Access) is
-     tagged limited private;
+     new LSP.Text_Documents.Langkit_Documents.Langkit_Text_Document
+       with private;
    --  An Ada document (file).
 
    type Document_Access is access all LSP.Ada_Documents.Document
@@ -67,43 +63,12 @@ package LSP.Ada_Documents is
    procedure Cleanup (Self : in out Document);
    --  Free all the data associated to this document.
 
-   -----------------------
-   -- Contents handling --
-   -----------------------
-
-   function URI (Self : Document) return LSP.Structures.DocumentUri;
-   --  Return the URI associated with Self
-
-   function Text (Self : Document) return VSS.Strings.Virtual_String;
-   --  Return the text associated with Self
-
-   function Get_Text_At
-     (Self      : Document;
-      Start_Pos : LSP.Structures.Position;
-      End_Pos   : LSP.Structures.Position) return VSS.Strings.Virtual_String;
-   --  Return the text in the specified range.
-
-   function To_LSP_Range
-     (Self    : Document;
-      Segment : Langkit_Support.Slocs.Source_Location_Range)
-      return LSP.Structures.A_Range;
-   --  Convert LAL's Source_Location_Range to LSP's Range
-
    function To_LSP_Location
      (Self    : Document;
       Segment : Langkit_Support.Slocs.Source_Location_Range;
       Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location;
    --  Convert LAL's Source_Location_Range and document's uri to a LSP location
-
-   procedure Apply_Changes
-     (Self    : aliased in out Document;
-      Version : Integer;
-      Vector  : LSP.Structures.TextDocumentContentChangeEvent_Vector);
-   --  Modify document according to event vector provided by LSP client.
-
-   function Versioned_Identifier
-     (Self : Document) return LSP.Structures.VersionedTextDocumentIdentifier;
 
    --------------
    -- Requests --
@@ -314,16 +279,6 @@ package LSP.Ada_Documents is
    --  Either set the item documentation and details or setup it to produce
    --  them for the Completion_Resolve request.
 
-   function Get_Source_Location
-     (Self     : Document'Class;
-      Position : LSP.Structures.Position)
-      return Langkit_Support.Slocs.Source_Location;
-   --  Convert a Positon to a Source_Location
-
-   function Line_Terminator
-     (Self : Document'Class) return VSS.Strings.Virtual_String;
-   --  Return line terminator for the document
-
    function Get_Token_At
      (Self     : Document'Class;
       Context  : LSP.Ada_Contexts.Context;
@@ -340,11 +295,6 @@ package LSP.Ada_Documents is
    --  Return semantic tokens in the document. See details in LSP specification
 
 private
-
-   package Line_Marker_Vectors is new Ada.Containers.Vectors
-     (Index_Type   => Natural,
-      Element_Type => VSS.Strings.Markers.Character_Marker,
-      "="          => VSS.Strings.Markers."=");
 
    type Name_Information is record
       Loc       : Langkit_Support.Slocs.Source_Location;
@@ -364,60 +314,14 @@ private
      LSP.Diagnostic_Sources.Diagnostic_Source_Access;
 
    type Document (Tracer : not null LSP.Tracers.Tracer_Access) is
-     tagged limited
-   record
-      URI  : LSP.Structures.DocumentUri;
-
-      Version : Integer := 1;
-      --  Document version
-
-      Text : VSS.Strings.Virtual_String;
-      --  The text of the document
-
-      Line_To_Marker : Line_Marker_Vectors.Vector;
-      --  Within text, an array associating a line number (starting at 0) to
-      --  the marker of the first character of that line in Text.
-      --  This serves as cache to be able to modify text ranges in Text
-      --  given in line/column coordinates without having to scan the whole
-      --  text from the beginning.
-
+     new LSP.Text_Documents.Langkit_Documents.Langkit_Text_Document with record
       Symbol_Cache : Symbol_Maps.Map;
       --  Cache of all defining name symbol of the document.
       Refresh_Symbol_Cache : Boolean := False;
       --  Symbol_Cache rebuild is required before.
-      Line_Terminator : VSS.Strings.Virtual_String;
-      --  Line terminator for the text, if known, "" otherwise
       Diagnostic_Sources : Diagnostic_Source_Array (1 .. 2);
       --  Known sources of diagnostics
    end record;
-
-   Empty_Range : LSP.Structures.A_Range := ((1, 1), (0, 0));
-
-   procedure Diff
-     (Self     : Document;
-      New_Text : VSS.Strings.Virtual_String;
-      Old_Span : LSP.Structures.A_Range := Empty_Range;
-      New_Span : LSP.Structures.A_Range := Empty_Range;
-      Edit     : out LSP.Structures.TextEdit_Vector);
-   --  Create a diff between document Text and New_Text and return Text_Edit
-   --  based on Needleman-Wunsch algorithm.
-   --  Old_Span and New_Span are used when we need to compare certain
-   --  old/new lines instead of whole buffers.
-
-   procedure Diff_Symbols
-     (Self     : Document;
-      Span     : LSP.Structures.A_Range;
-      New_Text : VSS.Strings.Virtual_String;
-      Edit     : in out LSP.Structures.TextEdit_Vector);
-   --  Create a diff between document Text inside Span and New_Chunk and
-   --  return Text_Edit. Tests individual symbols instead of lines
-   --  as above. Do not use it for large text slices because it
-   --  creates an N^M map for symbols.
-
-   function URI (Self : Document) return LSP.Structures.DocumentUri is
-     (Self.URI);
-   function Text (Self : Document) return VSS.Strings.Virtual_String is
-     (Self.Text);
 
    function Unit
      (Self    : Document'Class;

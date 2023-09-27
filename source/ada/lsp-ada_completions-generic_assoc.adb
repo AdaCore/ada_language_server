@@ -405,13 +405,12 @@ package body LSP.Ada_Completions.Generic_Assoc is
       end if;
 
       Prefix_Span :=
-        Self.Document.To_LSP_Range
+        Self.Document.To_A_Range
           (Langkit_Support.Slocs.Make_Range
              (Langkit_Support.Slocs.Start_Sloc
                 (Get_Prefix_Node (Elem_Node, Column => Column).Sloc_Range),
               Sloc));
-      Prefix := Self.Document.Get_Text_At
-        (Prefix_Span.start, Prefix_Span.an_end);
+      Prefix := Self.Document.Slice (Prefix_Span);
 
       Parameters := Get_Parameters (Elem_Node, Prefixed);
       Using_Name := Has_Designator (Unnamed_Params);

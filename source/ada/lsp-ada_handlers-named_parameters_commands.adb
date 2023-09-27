@@ -212,8 +212,6 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       Args    : Libadalang.Analysis.Basic_Assoc_List;
       Params  : VSS.String_Vectors.Virtual_String_Vector;
       Index   : Natural := 0;
-      Version : constant LSP.Structures.VersionedTextDocumentIdentifier :=
-        Document.Versioned_Identifier;
 
    begin
       Apply.label := VSS.Strings.Conversions.To_Virtual_String
@@ -225,10 +223,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
               (Kind     =>
                    documentChanges_OfWorkspaceEdit_Item_Variant'(Variant_1),
                Variant_1 =>
-                 (textDocument =>
-                      (uri      => Version.uri,
-                       version  => (Is_Null => False,
-                                    Value   => Version.version)),
+                 (textDocument => Document.Identifier,
                   edits        => <>)));
       end if;
 

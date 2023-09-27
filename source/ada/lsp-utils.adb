@@ -37,7 +37,7 @@ with VSS.String_Vectors;
 with VSS.Unicode;
 with Laltools.Common;
 
-with LSP.Ada_Documents;
+with LSP.Text_Documents;
 with LSP.Constants;
 with LSP.Formatters.File_Names;
 with URIs;
@@ -521,7 +521,7 @@ package body LSP.Utils is
    begin
       Lines :=
         Text.Split_Lines
-          (Terminators     => LSP.Ada_Documents.LSP_New_Line_Function_Set,
+          (Terminators     => LSP.Text_Documents.LSP_New_Line_Function_Set,
            Keep_Terminator => True);
       Line := Lines (Num);
 

@@ -154,11 +154,7 @@ package body LSP.GPR_Handlers is
          return (URI, (Is_Null => True));
 
       else
-         return
-           (uri     => Target_Text_Document.Versioned_Identifier.uri,
-            version =>
-              (Is_Null => False,
-               Value   => Target_Text_Document.Versioned_Identifier.version));
+         return Target_Text_Document.Identifier;
       end if;
    end Get_Open_Document_Version;
 
