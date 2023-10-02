@@ -18,9 +18,7 @@
 --  This package provides a context of Ada Language server.
 
 with Ada.Strings.Unbounded;
-with Ada.Strings.UTF_Encoding;
 
-with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with GNATdoc.Comments.Options;
@@ -36,19 +34,18 @@ with Libadalang.Common;
 
 with Utils.Command_Lines;
 with Pp.Command_Lines;
-with VSS.String_Vectors;
 
 with VSS.Strings;
 
-with LSP.Messages;
 with LSP.Ada_Documents;
-with LSP.Ada_File_Sets; use LSP.Ada_File_Sets;
+with LSP.Ada_File_Sets;
 with LSP.Search;
-with LSP.Types;
+with LSP.Structures;
+with LSP.Tracers;
 
 package LSP.Ada_Contexts is
 
-   type Context (Trace : GNATCOLL.Traces.Trace_Handle) is
+   type Context (Tracer : not null LSP.Tracers.Tracer_Access) is
      tagged limited private;
    --  A context contains a non-aggregate project tree and its associated
    --  libadalang context.
@@ -85,55 +82,15 @@ package LSP.Ada_Contexts is
    --  Release the memory associated to Self. You should not use the
    --  context after calling this.
 
+   --  function URI_To_File
+   --    (Self : Context;
+   --     URI  : LSP.Types.LSP_URI)
+   --     return Ada.Strings.UTF_Encoding.UTF_8_String;
+   --
    function URI_To_File
      (Self : Context;
-      URI  : LSP.Types.LSP_URI)
-      return Ada.Strings.UTF_Encoding.UTF_8_String;
-
-   function URI_To_File
-     (Self : Context;
-      URI  : LSP.Types.LSP_URI)
+      URI  : LSP.Structures.DocumentUri)
       return GNATCOLL.VFS.Virtual_File;
-
-   function Get_Node_At
-     (Self         : Context;
-      Document     : LSP.Ada_Documents.Document_Access;
-      Position     : LSP.Messages.TextDocumentPositionParams'Class;
-      Project_Only : Boolean := True)
-      return Libadalang.Analysis.Ada_Node;
-   --  Return the node at the given location.
-   --  If Document is not null, get the location from the document, otherwise
-   --  get it from the file if it belongs to the context's project when
-   --  Project_Only is True.
-
-   function Get_Token_At
-     (Self         : Context;
-      Document     : LSP.Ada_Documents.Document_Access;
-      Position     : LSP.Messages.TextDocumentPositionParams'Class;
-      Project_Only : Boolean := True)
-      return Libadalang.Common.Token_Reference;
-   --  Return the token at the given location.
-   --  If Document is not null, get the location from the document, otherwise
-   --  get it from the file if it belongs to the context's project when
-   --  Project_Only is True.
-
-   procedure Format
-     (Self     : in out Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions;
-      Edit     : out LSP.Messages.TextEdit_Vector;
-      Success  : out Boolean;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector);
-
-   procedure Range_Format
-     (Self     : in out Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions;
-      Edit     : out LSP.Messages.TextEdit_Vector;
-      Success  : out Boolean;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector);
 
    procedure Find_All_References
      (Self       : Context;
@@ -205,11 +162,17 @@ package LSP.Ada_Contexts is
 
    function Is_Part_Of_Project
      (Self : Context;
+      URI  : LSP.Structures.DocumentUri) return Boolean;
+   --  Check if given file belongs to the project loaded in the Context
+
+   function Is_Part_Of_Project
+     (Self : Context;
       File : GNATCOLL.VFS.Virtual_File) return Boolean;
    --  Check if given file belongs to the project loaded in the Context
 
-   function List_Files (Self : Context)
-     return File_Sets.Set_Iterator_Interfaces.Reversible_Iterator'Class;
+   function List_Files (Self : Context'CLass)
+     return LSP.Ada_File_Sets.File_Sets.Set_Iterator_Interfaces
+       .Reversible_Iterator'Class;
    --  Return the list of files known to this context.
 
    function File_Count (Self : Context) return Natural;
@@ -276,23 +239,6 @@ package LSP.Ada_Contexts is
       File : GNATCOLL.VFS.Virtual_File);
    --  Revert a document to the state of the file discarding any changes
 
-   procedure Append_Declarations
-     (Self                    : Context;
-      Document                : LSP.Ada_Documents.Document_Access;
-      Position                : LSP.Messages.TextDocumentPositionParams;
-      Display_Method_Ancestry_Policy :
-         LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy;
-      Result                  : in out LSP.Messages.Location_Or_Link_Vector;
-      Imprecise               : in out Boolean);
-   --  Find corresponding declarations for a name at given Position and append
-   --  their locations to Result.
-   --  Document is the document from which the request originates; it can
-   --  be null if no document is open for this location.
-   --
-   --  Here we follow C terminology, where 'Declaration' equals to
-   --  Ada subprogram specification while 'Definition' equals to
-   --  Ada subprogram body (completion).
-
    function LAL_Context
      (Self : Context) return Libadalang.Analysis.Analysis_Context;
    --  Return the LAL context corresponding to Self
@@ -333,7 +279,8 @@ package LSP.Ada_Contexts is
 
 private
 
-   type Context (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
+   type Context (Tracer : not null LSP.Tracers.Tracer_Access) is tagged limited
+   record
       Id             : VSS.Strings.Virtual_String;
       Unit_Provider  : Libadalang.Analysis.Unit_Provider_Reference;
       Event_Handler  : Libadalang.Analysis.Event_Handler_Reference;
@@ -381,9 +328,9 @@ private
      (Self : Context) return Libadalang.Analysis.Analysis_Context is
      (Self.LAL_Context);
 
-   function List_Files (Self : Context)
-     return File_Sets.Set_Iterator_Interfaces.Reversible_Iterator'Class
-       is (Self.Source_Files.Iterate);
+   function List_Files (Self : Context'Class)
+     return LSP.Ada_File_Sets.File_Sets.Set_Iterator_Interfaces
+       .Reversible_Iterator'Class is (Self.Source_Files.Iterate);
 
    function File_Count (Self : Context) return Natural
    is (Self.Source_Files.Length);

@@ -78,6 +78,7 @@
             "wait":[{
                 "id": "wsSymbol",
                 "result": [
+                    "<HAS>",
                     {
                         "name": "Test1",
                         "kind": 12,
@@ -127,7 +128,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

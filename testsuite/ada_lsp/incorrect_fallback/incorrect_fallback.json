@@ -209,7 +209,7 @@
          "wait": [
             {
                "id": 1,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -223,7 +223,6 @@
                      },
                      "uri": "$URI{test.adb}"
                   }
-               ]
             }
          ]
       }
@@ -247,7 +246,6 @@
    {
       "send": {
          "request": {
-            "params": null,
             "jsonrpc": "2.0",
             "method": "exit"
          },

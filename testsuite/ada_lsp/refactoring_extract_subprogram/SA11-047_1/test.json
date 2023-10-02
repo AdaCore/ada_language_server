@@ -43,7 +43,6 @@
                                 "codeActionLiteralSupport": {
                                     "codeActionKind": {
                                         "valueSet": [
-                                            "<HAS>",
                                             "refactor",
                                             "refactor.extract",
                                             "refactor.inline",
@@ -78,8 +77,7 @@
                                     "<HAS>",
                                     "als-refactor-extract-subprogram"
                                 ]
-                            },
-                            "alsCheckSyntaxProvider": true
+                            }
                         }
                     }
                 }
@@ -120,7 +118,7 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
+                    "id": 1,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -265,7 +263,7 @@
             },
             "wait": [
                 {
-                    "id": 3,
+                    "id": 2,
                     "method": "workspace/applyEdit",
                     "params": {
                         "edit": {

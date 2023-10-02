@@ -119,7 +119,7 @@
          "wait": [
             {
                "id": 3,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -133,7 +133,6 @@
                      },
                      "uri": "$URI{test_class.ads}"
                   }
-               ]
             }
          ]
       }

@@ -56,7 +56,7 @@ package body LSP.Search.Regexp is
          Text           => Pattern,
          Case_Sensitive => Case_Sensitive,
          Whole_Word     => Whole_Word,
-         Kind           => LSP.Messages.Regexp,
+         Kind           => LSP.Enumerations.Regexp,
          Negate         => Negate);
    end Build;
 

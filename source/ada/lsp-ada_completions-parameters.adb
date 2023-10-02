@@ -24,8 +24,7 @@ with LSP.Ada_Completions.Filters;
 with LSP.Ada_Completions.Generic_Assoc;
 with LSP.Ada_Completions.Generic_Assoc_Utils;
 use LSP.Ada_Completions.Generic_Assoc_Utils;
-
-with LSP.Lal_Utils;
+with LSP.Enumerations;
 
 with VSS.Strings.Conversions;
 with Langkit_Support.Slocs;
@@ -38,7 +37,7 @@ package body LSP.Ada_Completions.Parameters is
       return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
    function Get_Spec_Call_Expr_Designators
      (C             : Libadalang.Analysis.Call_Expr;
-      Context       : not null LSP.Ada_Handlers.Context_Access;
+      Context       : not null LSP.Ada_Context_Sets.Context_Access;
       For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
    function Get_Prefix_Node
@@ -49,13 +48,19 @@ package body LSP.Ada_Completions.Parameters is
      (C : Libadalang.Analysis.Call_Expr)
       return Libadalang.Analysis.Ada_Node'Class is (C);
 
+   function Get_Call_Expr
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return Libadalang.Analysis.Call_Expr;
+   --  From Node try to find a Call_Expr node, it will handle basic error
+   --  recovery.
+
    package Call_Expr_Completion is new
      LSP.Ada_Completions.Generic_Assoc
        (Element              => Libadalang.Analysis.Call_Expr,
         Null_Element         => Libadalang.Analysis.No_Call_Expr,
         Pretty_Print_Rule    => Libadalang.Common.Param_Assoc_Rule,
         Get_Prefix_Node      => Get_Prefix_Node,
-        Search_Element       => LSP.Lal_Utils.Get_Call_Expr,
+        Search_Element       => Get_Call_Expr,
         Get_Parameters       => Get_Parameters,
         Get_Spec_Designators => Get_Spec_Call_Expr_Designators,
         To_Node              => To_Node);
@@ -69,7 +74,7 @@ package body LSP.Ada_Completions.Parameters is
       return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
    function Get_Spec_Aggregate_Designators
      (A             : Libadalang.Analysis.Aggregate;
-      Context       : not null LSP.Ada_Handlers.Context_Access;
+      Context       : not null LSP.Ada_Context_Sets.Context_Access;
       For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
    function Get_Prefix_Node
@@ -100,7 +105,7 @@ package body LSP.Ada_Completions.Parameters is
       return LSP.Ada_Completions.Generic_Assoc_Utils.Param_Vectors.Vector;
    function Get_Decl_Designators
      (G             : Libadalang.Analysis.Generic_Package_Instantiation;
-      Context       : not null LSP.Ada_Handlers.Context_Access;
+      Context       : not null LSP.Ada_Context_Sets.Context_Access;
       For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
    function Get_Prefix_Node
@@ -190,7 +195,7 @@ package body LSP.Ada_Completions.Parameters is
 
    function Get_Spec_Call_Expr_Designators
      (C             : Libadalang.Analysis.Call_Expr;
-      Context       : not null LSP.Ada_Handlers.Context_Access;
+      Context       : not null LSP.Ada_Context_Sets.Context_Access;
       For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
    is
@@ -319,7 +324,7 @@ package body LSP.Ada_Completions.Parameters is
 
    function Get_Spec_Aggregate_Designators
      (A             : Libadalang.Analysis.Aggregate;
-      Context       : not null LSP.Ada_Handlers.Context_Access;
+      Context       : not null LSP.Ada_Context_Sets.Context_Access;
       For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
    is
@@ -467,7 +472,7 @@ package body LSP.Ada_Completions.Parameters is
       begin
          if Length = 0 then
             return
-              LSP.Lal_Utils.To_Virtual_String
+              VSS.Strings.To_Virtual_String
                 ("Aggregate for " & Aggr_Type.F_Name.Text);
          end if;
 
@@ -479,12 +484,12 @@ package body LSP.Ada_Completions.Parameters is
                  Discriminants (Idx);
             begin
                Result.Append
-                 (LSP.Lal_Utils.To_Virtual_String
+                 (VSS.Strings.To_Virtual_String
                     (Discriminant (Disc_Values).Text));
                Result.Append (" => ");
 
                Result.Append
-                 (LSP.Lal_Utils.To_Virtual_String (Values (Disc_Values).Text));
+                 (VSS.Strings.To_Virtual_String (Values (Disc_Values).Text));
 
                if Idx < Discriminants'Length then
                   Result.Append (", ");
@@ -646,7 +651,7 @@ package body LSP.Ada_Completions.Parameters is
 
    function Get_Decl_Designators
      (G             : Libadalang.Analysis.Generic_Package_Instantiation;
-      Context       : not null LSP.Ada_Handlers.Context_Access;
+      Context       : not null LSP.Ada_Context_Sets.Context_Access;
       For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List
    is
@@ -748,10 +753,10 @@ package body LSP.Ada_Completions.Parameters is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList)
+      Result : in out LSP.Structures.CompletionList)
    is
       Count        : Natural := 0;
-      Unsorted_Res : LSP.Messages.CompletionItem_Vector;
+      Unsorted_Res : LSP.Structures.CompletionItem_Vector;
    begin
       Call_Expr_Completion.Propose_Completion
         (Self         => Self,
@@ -790,9 +795,8 @@ package body LSP.Ada_Completions.Parameters is
             --  Use a "+" as the first sorted character to be shown before
             --  the items from the other providers ("+" is lower than
             --  the alphanumeric symbol and "~" in the ASCII table)
-            Unsort_Item.sortText := (True, Value => <>);
-            Unsort_Item.sortText.Value.Append ('+');
-            Unsort_Item.sortText.Value.Append
+            Unsort_Item.sortText.Append ('+');
+            Unsort_Item.sortText.Append
               (VSS.Strings.Conversions.To_Virtual_String
                  (GNATCOLL.Utils.Image (Count, Min_Width => Min_Width)));
             Result.items.Append (Unsort_Item);
@@ -806,21 +810,21 @@ package body LSP.Ada_Completions.Parameters is
    ------------------------
 
    procedure Propose_Signatures
-     (Context         : not null LSP.Ada_Handlers.Context_Access;
+     (Context         : not null LSP.Ada_Context_Sets.Context_Access;
       Node            : Libadalang.Analysis.Ada_Node;
       Cursor          : Langkit_Support.Slocs.Source_Location;
-      Prev_Signatures : LSP.Messages.Optional_SignatureHelpContext;
-      Res             : in out LSP.Messages.SignatureHelp)
+      Prev_Signatures : LSP.Structures.SignatureHelpContext_Optional;
+      Res             : in out LSP.Structures.SignatureHelp)
    is
-      use type LSP.Messages.SignatureHelpTriggerKind;
+      use type LSP.Enumerations.SignatureHelpTriggerKind;
       use type VSS.Strings.Virtual_String;
-      Filter_Signatures : LSP.Messages.Optional_SignatureHelpContext :=
+      Filter_Signatures : LSP.Structures.SignatureHelpContext_Optional :=
         (Is_Set => False);
    begin
       --  Special handling of typecast
       declare
-         Call_Node : constant Libadalang.Analysis.Call_Expr
-           := LSP.Lal_Utils.Get_Call_Expr (Node);
+         Call_Node : constant Libadalang.Analysis.Call_Expr :=
+           Get_Call_Expr (Node);
       begin
          if not Call_Node.Is_Null then
             declare
@@ -844,11 +848,10 @@ package body LSP.Ada_Completions.Parameters is
         and then Prev_Signatures.Value.isRetrigger
         and then Prev_Signatures.Value.activeSignatureHelp.Is_Set
         and then
-          (Prev_Signatures.Value.triggerKind /= LSP.Messages.TriggerCharacter
-           or else
+          (Prev_Signatures.Value.triggerKind /=
+             LSP.Enumerations.TriggerCharacter
            --  Adding a ',' will not add new results only filter the previous
-             (Prev_Signatures.Value.triggerCharacter.Is_Set
-              and then Prev_Signatures.Value.triggerCharacter.Value = ","))
+           or else Prev_Signatures.Value.triggerCharacter = ",")
       then
          --  At this point, we are filtering the previous signatures
          Filter_Signatures := Prev_Signatures;
@@ -876,5 +879,52 @@ package body LSP.Ada_Completions.Parameters is
          Prev_Signatures => Filter_Signatures,
          Res             => Res);
    end Propose_Signatures;
+
+   -------------------
+   -- Get_Call_Expr --
+   -------------------
+
+   function Get_Call_Expr
+     (Node : Libadalang.Analysis.Ada_Node'Class)
+      return Libadalang.Analysis.Call_Expr
+   is
+      Cur_Node : Ada_Node := Node.As_Ada_Node;
+   begin
+      if not Cur_Node.Is_Null
+        and then Cur_Node.Kind in Ada_Error_Stmt_Range
+      then
+         --  In case of Error_Stmt, find the nearest previous sibling
+         --  which is not also an Error_Stmt
+         while not Cur_Node.Is_Null
+           and then Cur_Node.Kind in Ada_Error_Stmt_Range
+         loop
+            Cur_Node := Cur_Node.Previous_Sibling;
+         end loop;
+
+         --  Find the nearest Call_Expr node in the children
+         if not Cur_Node.Is_Null then
+            for Child_Node of Cur_Node.Children loop
+               if Child_Node.Kind in Ada_Call_Expr_Range then
+                  Cur_Node := Child_Node;
+                  exit;
+               end if;
+            end loop;
+         end if;
+      end if;
+
+      --  Find the nearest Call_Expr node in the parents or itself
+      while not Cur_Node.Is_Null loop
+         exit when Cur_Node.Kind in Ada_Call_Expr_Range;
+
+         Cur_Node := Cur_Node.Parent;
+      end loop;
+
+      --  At this point we have null or a Call_Expr
+      if Cur_Node.Is_Null then
+         return No_Call_Expr;
+      else
+         return Cur_Node.As_Call_Expr;
+      end if;
+   end Get_Call_Expr;
 
 end LSP.Ada_Completions.Parameters;

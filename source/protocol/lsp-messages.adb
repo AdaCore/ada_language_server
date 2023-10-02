@@ -2833,13 +2833,14 @@ package body LSP.Messages is
       Nested     : aliased LSP.JSON_Streams.JSON_Stream
         (JS.Is_Server_Side, Look_Ahead'Unchecked_Access);
    begin
-      pragma Assert (Look_Ahead.Is_Start_Array);
-      Look_Ahead.Read_Next;
-
-      if Look_Ahead.Is_End_Array then
+      if Look_Ahead.Is_Start_Array then
          Look_Ahead.Read_Next;
-         V := (Kind => Empty_Vector_Kind);
-         return;
+
+         if Look_Ahead.Is_End_Array then
+            Look_Ahead.Read_Next;
+            V := (Kind => Empty_Vector_Kind);
+            return;
+         end if;
       end if;
 
       pragma Assert (Look_Ahead.Is_Start_Object);
@@ -2857,16 +2858,38 @@ package body LSP.Messages is
             then
                V := (Kind => LocationLink_Vector_Kind, LocationLinks => <>);
                Look_Ahead.Rewind;  --  Rewind to Start_Array and read
-               LocationLink_Vector'Read
-                 (Nested'Unchecked_Access, V.LocationLinks);
+
+               if Look_Ahead.Is_Start_Array then
+                  LocationLink_Vector'Read
+                    (Nested'Unchecked_Access, V.LocationLinks);
+               else
+                  declare
+                     Item : LocationLink;
+                  begin
+                     LocationLink'Read (Nested'Unchecked_Access, Item);
+                     V.LocationLinks.Append (Item);
+                  end;
+               end if;
 
                return;
+
             elsif Key in "uri" | "range" then
                V := (Kind => Location_Vector_Kind, Locations => <>);
                Look_Ahead.Rewind;  --  Rewind to Start_Array and read
-               Location_Vector'Read (Nested'Unchecked_Access, V.Locations);
+
+               if Look_Ahead.Is_Start_Array then
+                  Location_Vector'Read (Nested'Unchecked_Access, V.Locations);
+               else
+                  declare
+                     Item : Location;
+                  begin
+                     Location'Read (Nested'Unchecked_Access, Item);
+                     V.Locations.Append (Item);
+                  end;
+               end if;
 
                return;
+
             else
                --  Go to next field and try again
                Nested.Skip_Value;

@@ -19,8 +19,9 @@ with GNATCOLL.VFS;
 
 with VSS.Strings;
 
-with LSP.Lal_Utils;
+with LSP.Enumerations;
 with LSP.Search;
+with LSP.Utils;
 
 package body LSP.Ada_Handlers.Invisibles is
 
@@ -35,7 +36,7 @@ package body LSP.Ada_Handlers.Invisibles is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList)
+      Result : in out LSP.Structures.CompletionList)
    is
       pragma Unreferenced (Result);
       use all type Libadalang.Common.Token_Kind;
@@ -120,12 +121,12 @@ package body LSP.Ada_Handlers.Invisibles is
 
       declare
          Word : constant VSS.Strings.Virtual_String :=
-           LSP.Lal_Utils.To_Virtual_String
+           VSS.Strings.To_Virtual_String
              (if Libadalang.Common.Is_Trivia (Token) then ""
               else Libadalang.Common.Text (Token));
 
          Canonical_Prefix : constant VSS.Strings.Virtual_String :=
-           LSP.Lal_Utils.Canonicalize (Word);
+           LSP.Utils.Canonicalize (Word);
 
       begin
          if not Word.Is_Empty then
@@ -136,7 +137,7 @@ package body LSP.Ada_Handlers.Invisibles is
                     Case_Sensitive => False,
                     Whole_Word     => False,
                     Negate         => False,
-                    Kind           => LSP.Messages.Start_Word_Text);
+                    Kind           => LSP.Enumerations.Start_Word_Text);
             begin
                Self.Context.Get_Any_Symbol
                  (Pattern     => Pattern,

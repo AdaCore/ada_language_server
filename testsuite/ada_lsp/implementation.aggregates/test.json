@@ -350,7 +350,7 @@
          "wait": [
             {
                "id": 9,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -364,7 +364,6 @@
                      },
                      "uri": "$URI{common/common_pack.ads}"
                   }
-               ]
             }
          ]
       }
@@ -388,7 +387,7 @@
          "wait": [
             {
                "id": 10,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -402,7 +401,6 @@
                      },
                      "uri": "$URI{common/common_pack.ads}"
                   }
-               ]
             }
          ]
       }

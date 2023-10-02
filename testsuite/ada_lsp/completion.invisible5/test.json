@@ -148,8 +148,7 @@
                            "kind": 9,
                            "detail": "package Ada",
                            "documentation": "<ANY>",
-                           "sortText": "100&1Ada",
-                           "additionalTextEdits": []
+                           "sortText": "100&00001Ada"
                         }
                      ]
                   }

@@ -25,6 +25,8 @@ with LSP_Gen.Mappings;
 
 package body LSP_Gen.Meta_Models is
 
+   procedure Apply_Protocol_Extension (Self : in out Meta_Model'Class);
+
    procedure Sort (List : in out VSS.String_Vectors.Virtual_String_Vector);
 
    ------------
@@ -38,6 +40,78 @@ package body LSP_Gen.Meta_Models is
       Self.Required.Union (Value.Required);
       Self.Optional.Union (Value.Optional);
    end Append;
+
+   ------------------------------
+   -- Apply_Protocol_Extension --
+   ------------------------------
+
+   procedure Apply_Protocol_Extension (Self : in out Meta_Model'Class) is
+      use type VSS.Strings.Virtual_String;
+
+      Name    : constant VSS.Strings.Virtual_String :=
+        Self.Config.Protocol_Extension;
+
+      Input   : aliased VSS.Text_Streams.File_Input.File_Input_Text_Stream;
+      Reader  : VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
+      Patch   : LSP_Gen.Entities.MetaModel;
+      Success : Boolean := True;
+   begin
+      Input.Open (Name, "utf-8");
+      Reader.Set_Stream (Input'Unchecked_Access);
+      Reader.Read_Next;
+      pragma Assert (Reader.Is_Start_Document);
+      Reader.Read_Next;
+      LSP_Gen.Entities.Inputs.Input_MetaModel (Reader, Patch, Success);
+      pragma Assert (Success);
+
+      --  Copy enumeration types
+      for J in 1 .. Patch.enumerations.Length loop
+         declare
+            Item : constant LSP_Gen.Entities.Enumeration :=
+              Patch.enumerations (J);
+         begin
+            Self.Model.enumerations.Append (Item);
+         end;
+      end loop;
+
+      --  Copy/patch structure types
+      for J in 1 .. Patch.structures.Length loop
+         declare
+            Found : Boolean := False;
+            Item : constant LSP_Gen.Entities.Structure :=
+              Patch.structures (J);
+         begin
+            for K in 1 .. Self.Model.structures.Length loop
+               if Self.Model.structures (K).name = Item.name then
+                  for P in 1 .. Item.properties.Length loop
+                     declare
+                        Prop : constant LSP_Gen.Entities.Property :=
+                          Item.properties (P);
+                     begin
+                        Self.Model.structures (K).properties.Append (Prop);
+                     end;
+                  end loop;
+
+                  Found := True;
+                  exit;
+               end if;
+            end loop;
+
+            if not Found then
+               Self.Model.structures.Append (Item);
+            end if;
+         end;
+      end loop;
+
+      --  Copy extra requests
+      for J in 1 .. Patch.requests.Length loop
+         declare
+            Item : constant LSP_Gen.Entities.Request := Patch.requests (J);
+         begin
+            Self.Model.requests.Append (Item);
+         end;
+      end loop;
+   end Apply_Protocol_Extension;
 
    ----------------
    -- Dependency --
@@ -330,7 +404,7 @@ package body LSP_Gen.Meta_Models is
       end if;
 
       return
-        "Varian_" & VSS.Strings.To_Virtual_String (Image (2 .. Image'Last));
+        "Variant_" & VSS.Strings.To_Virtual_String (Image (2 .. Image'Last));
    end Get_Variant;
 
    ------------------
@@ -367,6 +441,19 @@ package body LSP_Gen.Meta_Models is
             return False;
       end case;
    end Is_Base_Type;
+
+   ---------------------------
+   -- Is_Custom_Enumeration --
+   ---------------------------
+
+   function Is_Custom_Enumeration
+     (Self : Meta_Model'Class;
+      Name : VSS.Strings.Virtual_String) return Boolean is
+   begin
+      return Self.Is_Enumeration (Name) and then
+        Self.Model.enumerations (Self.Index (Name).Position)
+          .supportsCustomValues;
+   end Is_Custom_Enumeration;
 
    --------------------
    -- Is_Enumeration --
@@ -470,6 +557,10 @@ package body LSP_Gen.Meta_Models is
       Reader.Read_Next;
       LSP_Gen.Entities.Inputs.Input_MetaModel (Reader, Self.Model, Success);
       pragma Assert (Success);
+
+      if not Self.Config.Protocol_Extension.Is_Empty then
+         Self.Apply_Protocol_Extension;
+      end if;
 
       for J in 1 .. Self.Model.enumerations.Length loop
          declare

@@ -322,45 +322,8 @@
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
-                     },
-                     "declarationProvider": true,
                      "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
-                     "codeActionProvider": {
-                        "codeActionKinds": [
-                           "quickfix",
-                           "refactor.rewrite"
-                        ]
-                     },
-                     "documentFormattingProvider": true,
-                     "renameProvider": {
-                        "prepareProvider": true
-                     },
-                     "foldingRangeProvider": true,
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {}
+                     "documentSymbolProvider": true
                   }
                }
             }
@@ -401,110 +364,18 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 2,
+               "id": 1,
                "method": "client/registerCapability",
                "params": {
                   "registrations": [
                      {
-                        "id": "fm-1",
+                        "id": "1",
                         "method": "workspace/didChangeWatchedFiles",
                         "registerOptions": {
                            "watchers": [
                               {
-                                 "globPattern": "${DIR}${DIR_SEP}*"
-                              }
-                           ]
-                        }
-                     }
-                  ]
-               }
-            },
-            {
-               "jsonrpc": "2.0",
-               "id": 3,
-               "method": "client/registerCapability",
-               "params": {
-                  "registrations": [
-                     {
-                        "id": "Will_Create",
-                        "method": "workspace/willCreateFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Did_Create",
-                        "method": "workspace/didCreateFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Will_Rename",
-                        "method": "workspace/willRenameFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Did_Rename",
-                        "method": "workspace/didRenameFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Will_Delete",
-                        "method": "workspace/willDeleteFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Did_Delete",
-                        "method": "workspace/didDeleteFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
+                                 "globPattern": "${DIR}${DIR_SEP}*",
+                                 "kind": 7
                               }
                            ]
                         }
@@ -610,7 +481,7 @@
          "wait": [
             {
                "id": 2,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{qux.ads}",
                      "range": {
@@ -624,7 +495,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -695,7 +565,6 @@
                   },
                   {
                      "name": "Main",
-                     "detail": "",
                      "kind": 12,
                      "range": {
                         "start": {
@@ -719,8 +588,7 @@
                      },
                      "alsIsDeclaration": false,
                      "alsIsAdaProcedure": true,
-                     "alsVisibility": 1,
-                     "children": []
+                     "alsVisibility": 1
                   }
                ]
             }
@@ -786,7 +654,6 @@
                   },
                   {
                      "name": "Qux",
-                     "detail": "",
                      "kind": 4,
                      "range": {
                         "start": {
@@ -814,7 +681,6 @@
                      "children": [
                         {
                            "name": "Bar",
-                           "detail": "",
                            "kind": 12,
                            "range": {
                               "start": {
@@ -838,8 +704,7 @@
                            },
                            "alsIsDeclaration": true,
                            "alsIsAdaProcedure": true,
-                           "alsVisibility": 1,
-                           "children": []
+                           "alsVisibility": 1
                         }
                      ]
                   }
@@ -907,7 +772,7 @@
          "wait": [
             {
                "id": 6,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{qux.ads}",
                      "range": {
@@ -921,7 +786,7 @@
                         }
                      }
                   }
-               ]
+              
             }
          ]
       }
@@ -996,7 +861,7 @@
             {
                "jsonrpc": "2.0",
                "id": 8,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{qux.ads}",
                      "range": {
@@ -1010,7 +875,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }

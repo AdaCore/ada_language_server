@@ -39,6 +39,10 @@ package body LSP_Gen.Requests is
      (Model : LSP_Gen.Meta_Models.Meta_Model;
       From  : LSP_Gen.Configurations.Message_Direction);
 
+   procedure Write_Loggers
+     (Model : LSP_Gen.Meta_Models.Meta_Model;
+      From  : LSP_Gen.Configurations.Message_Direction);
+
    function Prefix
      (From : LSP_Gen.Configurations.Message_Direction)
       return VSS.Strings.Virtual_String is
@@ -47,6 +51,150 @@ package body LSP_Gen.Requests is
               when LSP_Gen.Configurations.From_Both => "Base",
               when LSP_Gen.Configurations.From_Client => "Server",
               when LSP_Gen.Configurations.From_Server => "Client"));
+
+   -------------------
+   -- Write_Loggers --
+   -------------------
+
+   procedure Write_Loggers
+     (Model : LSP_Gen.Meta_Models.Meta_Model;
+      From  : LSP_Gen.Configurations.Message_Direction)
+   is
+      use all type LSP_Gen.Configurations.Message_Direction;
+
+      Kind : constant VSS.Strings.Virtual_String := Prefix (From);
+      Name : constant VSS.Strings.Virtual_String :=
+        Kind & "_Request_Logger";
+   begin
+      Put_Lines (Model.License_Header, "--  ");
+      New_Line;
+      Put_Line ("with LSP.Structures;");
+      Put_Line ("with VSS.Text_Streams;");
+      Put ("with LSP.");
+      Put (Kind);
+      Put_Line ("_Request_Receivers;");
+      New_Line;
+      Put ("package LSP.");
+      Put (Name);
+      Put_Line ("s is");
+      Put_Line ("pragma Preelaborate;");
+      New_Line;
+      Put ("type ");
+      Put_Line (Name);
+
+      Put ("(Output : access VSS.Text_Streams");
+      Put_Line (".Output_Text_Stream'Class)");
+      Put ("is new ");
+
+      Put ("LSP.");
+      Put (Kind);
+      Put ("_Request_Receivers.");
+      Put (Kind);
+      Put_Line ("_Request_Receiver");
+      Put_Line ("with null record;");
+      New_Line;
+
+      for J of Model.Requests loop
+         if Model.Message_Direction (J) = From then
+            Put ("overriding procedure On_");
+            Put (Model.Message_Name (J));
+            Put_Line ("_Request");
+            Put ("(Self : in out ");
+            Put (Name);
+            Put_Line (";");
+            Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String");
+
+            if Model.Request (J).params.Is_Set then
+               Put_Line (";");
+               Put ("Value : LSP.Structures.");
+               Put (Param_Type (Model, J));
+            end if;
+
+            Put_Line (");");
+            New_Line;
+         end if;
+      end loop;
+
+      Put_Line ("procedure Put_Id");
+      Put ("  (Self : in out ");
+      Put (Name);
+      Put_Line ("'Class;");
+      Put_Line ("   Id   : LSP.Structures.Integer_Or_Virtual_String;");
+      Put_Line ("   Ok   : in out Boolean);");
+      New_Line;
+
+      Put_Line ("end;");
+
+      New_Line;
+      Put_Lines (Model.License_Header, "--  ");
+
+      New_Line;
+      Put_Line ("with VSS.Strings;");
+      New_Line;
+      Put ("package body LSP.");
+      Put (Name);
+      Put_Line ("s is");
+      New_Line;
+
+      for J of Model.Requests
+        when Model.Message_Direction (J) = From
+      loop
+         Put ("overriding procedure On_");
+         Put (Model.Message_Name (J));
+         Put_Line ("_Request");
+         Put ("(Self : in out ");
+         Put (Name);
+         Put_Line (";");
+         Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String");
+
+         if Model.Request (J).params.Is_Set then
+            Put_Line (";");
+            Put ("Value : LSP.Structures.");
+            Put (Param_Type (Model, J));
+         end if;
+
+         Put_Line (")");
+         Put_Line ("is");
+         Put_Line ("Ok : Boolean := False;");
+         Put_Line ("begin");
+         Put ("Self.Output.Put (""'");
+         Put (J);
+         Put_Line ("'"", Ok);");
+         Put_Line ("Self.Put_Id (Id, Ok);");
+
+         if Model.Request (J).params.Is_Set then
+            Put_Line ("Self.Output.Put ("" Params : "", Ok);");
+
+            Put ("Self.Output.Put (VSS.Strings.To_Virtual_String");
+            Put_Line (" (Value'Wide_Wide_Image), Ok);");
+         end if;
+
+         Put ("Self.Output.New_Line (Ok);");
+         Put_Line ("end;");
+         New_Line;
+      end loop;
+
+      Put_Line ("procedure Put_Id");
+      Put ("  (Self : in out ");
+      Put (Name);
+      Put_Line ("'Class;");
+      Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String;");
+      Put_Line ("Ok : in out Boolean) is");
+      Put_Line ("begin");
+      Put_Line ("Self.Output.Put ("" Id="", Ok);");
+      New_Line;
+      Put_Line ("if Id.Is_Integer then");
+      Put ("Self.Output.Put (VSS.Strings.To_Virtual_String");
+      Put_Line (" (Id.Integer'Wide_Wide_Image), Ok);");
+      Put_Line ("else");
+      Put_Line ("Self.Output.Put (Id.Virtual_String, Ok);");
+      Put_Line ("end if;");
+      Put_Line ("end Put_Id;");
+      New_Line;
+
+      Put_Line ("end;");
+
+   end Write_Loggers;
 
    ------------------------------
    -- Write_Request_Types --
@@ -186,7 +334,7 @@ package body LSP_Gen.Requests is
       Put_Line ("_Request_Readers is");
       New_Line;
 
-      Put_Line ("package Method_Map is new Minimal_Perfect_Hash ((");
+      Put_Line ("package Method_Map is new Minimal_Perfect_Hash ([");
       for J of Model.Requests loop
          if Model.Message_Direction (J) in From | From_Both then
             if First then
@@ -201,7 +349,7 @@ package body LSP_Gen.Requests is
          end if;
       end loop;
 
-      Put_Line ("));");
+      Put_Line ("]);");
       New_Line;
       Put_Line ("procedure Initialize is begin Method_Map.Initialize; end;");
       New_Line;
@@ -369,6 +517,8 @@ package body LSP_Gen.Requests is
       Write_Receivers (Model, From_Server);
       Write_Request_Types (Model, From_Client);
       Write_Request_Types (Model, From_Server);
+      Write_Loggers (Model, From_Server);
+      Write_Loggers (Model, From_Client);
    end Write;
 
    -------------------

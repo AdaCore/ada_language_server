@@ -38,20 +38,6 @@
                             }
                         },
                         "textDocument": {
-                            "codeAction": {
-                                "dynamicRegistration": true,
-                                "codeActionLiteralSupport": {
-                                    "codeActionKind": {
-                                        "valueSet": [
-                                            "<HAS>",
-                                            "refactor",
-                                            "refactor.extract",
-                                            "refactor.inline",
-                                            "refactor.rewrite"
-                                        ]
-                                    }
-                                }
-                            },
                             "rangeFormatting": {
                                 "dynamicRegistration": true
                             }

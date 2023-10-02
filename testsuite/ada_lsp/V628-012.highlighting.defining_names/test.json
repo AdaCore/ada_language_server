@@ -88,45 +88,14 @@
                   "result": {
                       "capabilities": {
                           "textDocumentSync": 2,
-                          "completionProvider": {
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ],
-                              "resolveProvider": true
-                          },
                           "semanticTokensProvider": {
                             "legend": {
                               "tokenTypes": ["namespace","type","class","enum","interface","struct","typeParameter","parameter","variable","property","enumMember","function","keyword","modifier","comment","string","number","operator"],
                               "tokenModifiers": ["declaration","definition","readonly","static","deprecated","abstract","modification","documentation","defaultLibrary"]
                             },
                             "range": true,
-                            "full": {}
-                          },
-                          "hoverProvider": true,
-                          "declarationProvider": true,
-                          "definitionProvider": true,
-                          "typeDefinitionProvider": true,
-                          "implementationProvider": true,
-                          "referencesProvider": true,
-                          "codeActionProvider": {
-                          },
-                          "renameProvider": {
-                          },
-                          "foldingRangeProvider": true,
-                          "executeCommandProvider": {},
-                          "alsReferenceKinds": [
-                              "reference",
-                              "access",
-                              "write",
-                              "call",
-                              "dispatching call",
-                              "parent",
-                              "child",
-                              "overriding"
-                          ]
+                            "full": true
+                          }
                       }
                   }
               }

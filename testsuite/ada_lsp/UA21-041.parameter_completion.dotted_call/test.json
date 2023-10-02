@@ -171,7 +171,6 @@
                         "sortText": "+0",
                         "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{bar.ads}",
                            "range": {
@@ -191,24 +190,21 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "M => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "A",
                         "kind": 5,
                         "sortText": "+2",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+3",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Hello",
@@ -216,7 +212,6 @@
                         "sortText": "+4",
                         "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{bar.ads}",
                            "range": {
@@ -236,16 +231,14 @@
                         "kind": 5,
                         "sortText": "+5",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+6",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -265,7 +258,6 @@
                "sortText": "+0",
                "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                "insertTextFormat": 2,
-               "additionalTextEdits": [],
                "data": {
                   "uri": "$URI{bar.ads}",
                   "range": {
@@ -292,7 +284,6 @@
                   "sortText": "+0",
                   "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                   "insertTextFormat": 2,
-                  "additionalTextEdits": [],
                   "data": {
                      "uri": "$URI{bar.ads}",
                      "range": {
@@ -399,7 +390,6 @@
                         "sortText": "+0",
                         "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{bar.ads}",
                            "range": {
@@ -419,24 +409,21 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "M => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "A",
                         "kind": 5,
                         "sortText": "+2",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+3",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Bar.Hello",
@@ -444,7 +431,6 @@
                         "sortText": "+4",
                         "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{bar.ads}",
                            "range": {
@@ -464,16 +450,14 @@
                         "kind": 5,
                         "sortText": "+5",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+6",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -520,7 +504,6 @@
                   "sortText": "+0",
                   "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
                   "insertTextFormat": 2,
-                  "additionalTextEdits": [],
                   "data": {
                      "uri": "$URI{bar.ads}",
                      "range": {
@@ -627,7 +610,6 @@
                         "sortText": "+0",
                         "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{bar.ads}",
                            "range": {
@@ -647,16 +629,14 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+2",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -703,7 +683,6 @@
                   "sortText": "+0",
                   "insertText": "${1:A : Integer}, ${2:B : Float})$0",
                   "insertTextFormat": 2,
-                  "additionalTextEdits": [],
                   "data": {
                      "uri": "$URI{bar.ads}",
                      "range": {

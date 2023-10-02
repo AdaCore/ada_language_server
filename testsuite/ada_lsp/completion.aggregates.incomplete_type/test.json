@@ -81,29 +81,7 @@
                                   "("
                               ],
                               "resolveProvider": true
-                          },
-                          "hoverProvider": true,
-                          "declarationProvider": true,
-                          "definitionProvider": true,
-                          "typeDefinitionProvider": true,
-                          "implementationProvider": true,
-                          "referencesProvider": true,
-                          "codeActionProvider": {
-                          },
-                          "renameProvider": {
-                          },
-                          "foldingRangeProvider": true,
-                          "executeCommandProvider": {},
-                          "alsReferenceKinds": [
-                              "reference",
-                              "access",
-                              "write",
-                              "call",
-                              "dispatching call",
-                              "parent",
-                              "child",
-                              "overriding"
-                          ]
+                          }
                       }
                   }
               }
@@ -201,7 +179,6 @@
                         "kind": 15,
                         "detail": "type Cell is\nrecord\n   Value : Integer;\n   Succ  : Link;\n   Pred  : Link;\nend record;",
                         "label": "Aggregate for Cell",
-                        "additionalTextEdits": [],
                         "insertTextFormat": 2,
                         "documentation": "at main.adb (6:4)",
                         "sortText": "+0"
@@ -211,27 +188,21 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "Value => ",
-                         "insertTextFormat": 1,
-                         "additionalTextEdits": [
-                         ]
+                         "insertTextFormat": 1
                      },
                      {
                          "label": "Succ",
                          "kind": 5,
                          "sortText": "+2",
                          "insertText": "Succ => ",
-                         "insertTextFormat": 1,
-                         "additionalTextEdits": [
-                         ]
+                         "insertTextFormat": 1
                      },
                      {
                          "label": "Pred",
                          "kind": 5,
                          "sortText": "+3",
                          "insertText": "Pred => ",
-                         "insertTextFormat": 1,
-                         "additionalTextEdits": [
-                         ]
+                         "insertTextFormat": 1
                      }
                   ]
                }

@@ -43,7 +43,6 @@
                                 "codeActionLiteralSupport": {
                                     "codeActionKind": {
                                         "valueSet": [
-                                            "<HAS>",
                                             "refactor",
                                             "refactor.extract",
                                             "refactor.inline",
@@ -55,7 +54,6 @@
                         },
                         "experimental": {
                             "advanced_refactorings": [
-                                "<HAS>",
                                 "change_parameters_default_value"
                             ]
                         }
@@ -79,8 +77,7 @@
                                     "<HAS>",
                                     "als-refactor-change_parameters_default_value"
                                 ]
-                            },
-                            "alsCheckSyntaxProvider": true
+                            }
                         }
                     }
                 }
@@ -121,7 +118,7 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
+                    "id": 1,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -184,8 +181,7 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-change_parameters_default_value",
-                                "arguments": [
-                                    {
+                                "arguments": [{
                                         "context": "Default",
                                         "where": {
                                             "uri": "$URI{main.adb}",
@@ -201,8 +197,7 @@
                                             }
                                         },
                                         "newParametersDefaultValue": ""
-                                    }
-                                ]
+                                    }]
                             }
                         }
                     ]
@@ -218,8 +213,7 @@
                 "method": "workspace/executeCommand",
                 "params": {
                     "command": "als-refactor-change_parameters_default_value",
-                    "arguments": [
-                        {
+                    "arguments": [{
                             "context": "Default",
                             "where": {
                                 "uri": "$URI{main.adb}",
@@ -235,14 +229,13 @@
                                 }
                             },
                             "newParametersDefaultValue": "False"
-                        }
-                    ]
+                        }]
                 }
             },
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 3,
+                    "id": 2,
                     "method": "workspace/applyEdit",
                     "params": {
                         "edit": {

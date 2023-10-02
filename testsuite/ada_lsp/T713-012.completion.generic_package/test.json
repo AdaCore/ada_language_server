@@ -86,29 +86,7 @@
                                   "("
                               ],
                               "resolveProvider": true
-                          },
-                          "hoverProvider": true,
-                          "declarationProvider": true,
-                          "definitionProvider": true,
-                          "typeDefinitionProvider": true,
-                          "implementationProvider": true,
-                          "referencesProvider": true,
-                          "codeActionProvider": {
-                          },
-                          "renameProvider": {
-                          },
-                          "foldingRangeProvider": true,
-                          "executeCommandProvider": {},
-                          "alsReferenceKinds": [
-                              "reference",
-                              "access",
-                              "write",
-                              "call",
-                              "dispatching call",
-                              "parent",
-                              "child",
-                              "overriding"
-                          ]
+                          }
                       }
                   }
               }
@@ -202,7 +180,6 @@
                         "sortText": "+0",
                         "insertText": "${1:Elt_Type : type Elt_Type(<>) is limited private;}, ${2:Elt_Ptr : type Elt_Ptr is access all Elt_Type;})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{src/g.ads}",
                            "range": {
@@ -223,8 +200,7 @@
                         "documentation": "Elt_Type => ",
                         "sortText": "+1",
                         "insertText": "Elt_Type => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Elt_Ptr",
@@ -232,8 +208,7 @@
                         "documentation": "Elt_Ptr => ",
                         "sortText": "+2",
                         "insertText": "Elt_Ptr => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -280,7 +255,6 @@
                   "sortText": "+0",
                   "insertText": "${1:Elt_Type : type Elt_Type(<>) is limited private;}, ${2:Elt_Ptr : type Elt_Ptr is access all Elt_Type;})$0",
                   "insertTextFormat": 2,
-                  "additionalTextEdits": [],
                   "data": {
                      "uri": "$URI{src/g.ads}",
                      "range": {
@@ -311,8 +285,7 @@
                "documentation": "Elt_Type => ",
                "sortText": "+1",
                "insertText": "Elt_Type => ",
-               "insertTextFormat": 1,
-               "additionalTextEdits": []
+               "insertTextFormat": 1
             }
          },
          "wait": [
@@ -324,8 +297,7 @@
                   "documentation": "Elt_Type => ",
                   "sortText": "+1",
                   "insertText": "Elt_Type => ",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -452,7 +424,6 @@
                         "sortText": "+0",
                         "insertText": " Elt_Ptr => ${2:type Elt_Ptr is access all Elt_Type;})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{src/g.ads}",
                            "range": {
@@ -473,8 +444,7 @@
                         "documentation": " Elt_Ptr => ",
                         "sortText": "+1",
                         "insertText": " Elt_Ptr => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -494,7 +464,6 @@
                "sortText": "+0",
                "insertText": " Elt_Ptr => ${2:type Elt_Ptr is access all Elt_Type;})$0",
                "insertTextFormat": 2,
-               "additionalTextEdits": [],
                "data": {
                   "uri": "$URI{src/g.ads}",
                   "range": {
@@ -521,7 +490,6 @@
                   "sortText": "+0",
                   "insertText": " Elt_Ptr => ${2:type Elt_Ptr is access all Elt_Type;})$0",
                   "insertTextFormat": 2,
-                  "additionalTextEdits": [],
                   "data": {
                      "uri": "$URI{src/g.ads}",
                      "range": {

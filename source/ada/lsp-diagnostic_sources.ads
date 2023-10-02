@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with LSP.Messages;
+with LSP.Structures;
 limited with LSP.Ada_Contexts;
 
 package LSP.Diagnostic_Sources is
@@ -30,7 +30,7 @@ package LSP.Diagnostic_Sources is
    procedure Get_Diagnostic
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
-      Errors  : out LSP.Messages.Diagnostic_Vector) is abstract;
+      Errors  : out LSP.Structures.Diagnostic_Vector) is abstract;
    --  Fill diagnostics for given document.
 
    function Has_New_Diagnostic

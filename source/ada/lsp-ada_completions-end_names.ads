@@ -28,7 +28,7 @@ package LSP.Ada_Completions.End_Names is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList);
+      Result : in out LSP.Structures.CompletionList);
    --  Get completion for <end End_Name> or <end _keyword_>.
 
 end LSP.Ada_Completions.End_Names;

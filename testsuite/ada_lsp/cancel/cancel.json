@@ -17,7 +17,13 @@
                 "result":{
                     "capabilities":{
                         "textDocumentSync": 2,
-                        "definitionProvider":true
+                        "definitionProvider": true,
+                        "executeCommandProvider": {
+                            "commands": [
+                               "<HAS>",
+                               "als-suspend-execution"
+                            ]
+                        }
                     }
                 }
             }]
@@ -51,15 +57,20 @@
             "wait":[]
         }
     },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id":"suspend-1",
-                "method":"$/alsDebug",
-                "params":{
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "stop",
+            "method": "workspace/executeCommand",
+            "params": {
+               "arguments": [
+                  {
                     "inputQueueLength": 2
-                }
-            },
+                  }
+               ],
+               "command": "als-suspend-execution"
+            }
+         },
             "wait":[]
         }
     },  {
@@ -88,6 +99,9 @@
                 "params": {"id": "defname-1"}
             },
             "wait":[{
+                "id":"stop",
+                "result":null
+            }, {
                 "id": "defname-1",
                 "error": {
                     "code":-32800,
@@ -113,7 +127,7 @@
             },
             "wait":[{
                 "id": "defname-2",
-                "result":[{
+                "result":{
                     "uri": "$URI{aaa.adb}",
                     "range": {
                         "start": {
@@ -125,7 +139,7 @@
                             "character": 13
                         }
                     }
-                }]
+                }
             }]
         }
     },  {
@@ -140,7 +154,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

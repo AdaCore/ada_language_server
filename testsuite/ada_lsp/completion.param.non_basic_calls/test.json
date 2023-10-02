@@ -149,16 +149,14 @@
                         "documentation": "at foo.adb (5:4)",
                         "sortText": "+00",
                         "insertText": "C => ${1:String})$0",
-                        "insertTextFormat": 2,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 2
                      },
                      {
                         "label": "C",
                         "kind": 5,
                         "sortText": "+01",
                         "insertText": "C => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Bar",
@@ -167,24 +165,21 @@
                         "documentation": "at foo.adb (4:4)",
                         "sortText": "+02",
                         "insertText": "${1:A : Integer}, ${2:B : Integer})$0",
-                        "insertTextFormat": 2,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 2
                      },
                      {
                         "label": "A",
                         "kind": 5,
                         "sortText": "+03",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+04",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Bar",
@@ -193,40 +188,35 @@
                         "documentation": "at foo.adb (2:4)",
                         "sortText": "+05",
                         "insertText": "I => ${1:Integer}, J => ${2:Integer}, K => ${3:Integer}, L => ${4:Float})$0",
-                        "insertTextFormat": 2,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 2
                      },
                      {
                         "label": "I",
                         "kind": 5,
                         "sortText": "+06",
                         "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "J",
                         "kind": 5,
                         "sortText": "+07",
                         "insertText": "J => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "K",
                         "kind": 5,
                         "sortText": "+08",
                         "insertText": "K => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "L",
                         "kind": 5,
                         "sortText": "+09",
                         "insertText": "L => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }

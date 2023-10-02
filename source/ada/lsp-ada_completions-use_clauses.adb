@@ -17,7 +17,9 @@
 
 with VSS.Strings.Conversions;
 with Libadalang.Iterators;
+
 with LSP.Ada_Completions.Filters;
+with LSP.Enumerations;
 
 package body LSP.Ada_Completions.Use_Clauses is
 
@@ -32,7 +34,7 @@ package body LSP.Ada_Completions.Use_Clauses is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList)
+      Result : in out LSP.Structures.CompletionList)
    is
       use Libadalang.Common;
       use Langkit_Support.Slocs;
@@ -79,7 +81,7 @@ package body LSP.Ada_Completions.Use_Clauses is
            VSS.Strings.Conversions.To_Virtual_String
              ("Insert the use-clause corresponding to the with-clause on "
               & "the same line.");
-         Item        : LSP.Messages.CompletionItem;
+         Item        : LSP.Structures.CompletionItem;
          Count       : Positive := 1;
       begin
          for Package_Name of Packages loop
@@ -97,26 +99,28 @@ package body LSP.Ada_Completions.Use_Clauses is
 
          Item :=
            (label               => Insert_Text,
-            kind                => (True, LSP.Messages.Unit),
-            tags                => (Is_Set => False),
-            detail              => (Is_Set => False),
+            labelDetails        => (Is_Set => False),
+            kind                => (True, LSP.Enumerations.Unit),
+            tags                => <>,
+            detail              => <>,
             documentation       =>
               (Is_Set => True,
-               Value  => LSP.Messages.String_Or_MarkupContent'
-                 (Is_String => True,
-                  String    => Doc_Text)),
+               Value  => LSP.Structures.Virtual_String_Or_MarkupContent'
+                 (Is_Virtual_String => True,
+                  Virtual_String    => Doc_Text)),
             deprecated          => (Is_Set => False),
             preselect           => (True, False),
-            sortText            => (True, "+" & Insert_Text),
-            filterText          => (Is_Set => False),
-            insertText          => (True, Insert_Text),
+            sortText            => "+" & Insert_Text,
+            filterText          => <>,
+            insertText          => Insert_Text,
             insertTextFormat    => (Is_Set => False),
             insertTextMode      => (Is_Set => False),
             textEdit            => (Is_Set => False),
+            textEditText        => <>,
             additionalTextEdits => <>,
-            commitCharacters    => (Is_Set => False),
+            commitCharacters    => <>,
             command             => (Is_Set => False),
-            data                => (Is_Set => False));
+            data                => <>);
 
          Result.items.Append (Item);
       end;

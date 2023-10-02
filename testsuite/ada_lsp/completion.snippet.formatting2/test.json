@@ -172,7 +172,6 @@
                            },
                            "newText": "Bar\n     (A       => ${1:Integer},\n      BBBBB   => ${2:Integer},\n      CCCCCCC => ${3:Integer},\n      DDD     => ${4:Float})$0"
                         },
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -192,32 +191,28 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "BBBBB",
                         "kind": 5,
                         "sortText": "+2",
                         "insertText": "BBBBB => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "CCCCCCC",
                         "kind": 5,
                         "sortText": "+3",
                         "insertText": "CCCCCCC => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "DDD",
                         "kind": 5,
                         "sortText": "+4",
                         "insertText": "DDD => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -248,8 +243,7 @@
                   "kind": 5,
                   "sortText": "+1",
                   "insertText": "A => ",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]
@@ -360,7 +354,6 @@
                            },
                            "newText": "Bar\n     (A       => 1,\n      BBBBB   => ${2:Integer},\n      CCCCCCC => ${3:Integer},\n      DDD     => ${4:Float})$0"
                         },
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -380,24 +373,21 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": " BBBBB => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "CCCCCCC",
                         "kind": 5,
                         "sortText": "+2",
                         "insertText": " CCCCCCC => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "DDD",
                         "kind": 5,
                         "sortText": "+3",
                         "insertText": " DDD => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2022, AdaCore                        --
+--                     Copyright (C) 2022-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,56 +18,57 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Wide_Wide_Unbounded;
 
-with GNATCOLL.Traces;
-
 with Libadalang.Analysis;
 
-with LSP.Messages;
-with LSP.Types;
+with LSP.Ada_Client_Capabilities;
+with LSP.Enumerations;
+with LSP.Structures;
+with LSP.Tracers;
 
 package LSP.Ada_Highlighters is
 
    type Ada_Highlighter is tagged limited private;
 
    procedure Initialize
-     (Self   : in out Ada_Highlighter'Class;
-      Client : LSP.Messages.SemanticTokensClientCapabilities;
-      Legend : out LSP.Messages.SemanticTokensLegend);
+     (Self      : in out Ada_Highlighter'Class;
+      Client    : LSP.Ada_Client_Capabilities.Client_Capability;
+      Types     : out LSP.Structures.Virtual_String_Vector;
+      Modifiers : out LSP.Structures.Virtual_String_Vector);
 
    function Get_Tokens
-     (Self  : Ada_Highlighter'Class;
-      Unit  : Libadalang.Analysis.Analysis_Unit;
-      Trace : GNATCOLL.Traces.Trace_Handle;
-      Span  : LSP.Messages.Span)
-      return LSP.Messages.uinteger_Vector;
+     (Self   : Ada_Highlighter'Class;
+      Unit   : Libadalang.Analysis.Analysis_Unit;
+      Tracer : in out LSP.Tracers.Tracer'Class;
+      Span   : LSP.Structures.A_Range)
+      return LSP.Structures.Natural_Vector;
    --  If Span isn't empty then return unit tokens in given Span, otherwise
    --  return all tokens in the Unit.
 
 private
 
-   function Hash (Value : LSP.Messages.SemanticTokenTypes)
+   function Hash (Value : LSP.Enumerations.SemanticTokenTypes)
      return Ada.Containers.Hash_Type is
        (Ada.Containers.Hash_Type
-          (LSP.Messages.SemanticTokenTypes'Pos (Value)));
+          (LSP.Enumerations.SemanticTokenTypes'Pos (Value)));
 
    package Token_Type_Maps is new Ada.Containers.Hashed_Maps
-     (LSP.Messages.SemanticTokenTypes,
-      LSP.Messages.uinteger,
+     (LSP.Enumerations.SemanticTokenTypes,
+      Natural,
       Hash,
-      LSP.Messages."=",
-      LSP.Types."=");
+      LSP.Enumerations."=",
+      "=");
 
-   function Hash (Value : LSP.Messages.SemanticTokenModifiers)
+   function Hash (Value : LSP.Enumerations.SemanticTokenModifiers)
      return Ada.Containers.Hash_Type is
        (Ada.Containers.Hash_Type
-          (LSP.Messages.SemanticTokenModifiers'Pos (Value)));
+          (LSP.Enumerations.SemanticTokenModifiers'Pos (Value)));
 
    package Token_Modifier_Maps is new Ada.Containers.Hashed_Maps
-     (LSP.Messages.SemanticTokenModifiers,
-      LSP.Messages.uinteger,
+     (LSP.Enumerations.SemanticTokenModifiers,
+      Natural,
       Hash,
-      LSP.Messages."=",
-      LSP.Types."=");
+      LSP.Enumerations."=",
+      "=");
 
    subtype Unbounded_Text_Type is
      Ada.Strings.Wide_Wide_Unbounded.Unbounded_Wide_Wide_String;

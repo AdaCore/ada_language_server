@@ -20,7 +20,7 @@ with Libadalang.Analysis;
 with LSP.Ada_Completions.Filters;
 with LSP.Ada_Completions.Generic_Assoc_Utils;
 with LSP.Ada_Completions.Parameters;
-with LSP.Ada_Handlers;
+with LSP.Ada_Context_Sets;
 
 generic
    type Element is private;
@@ -44,7 +44,7 @@ generic
 
    with function Get_Spec_Designators
      (E             : Element;
-      Context       : not null LSP.Ada_Handlers.Context_Access;
+      Context       : not null LSP.Ada_Context_Sets.Context_Access;
       For_Signature : Boolean)
       return LSP.Ada_Completions.Generic_Assoc_Utils.Assoc_Data_Lists.List;
    --  Return all the specs matching E
@@ -75,14 +75,14 @@ package LSP.Ada_Completions.Generic_Assoc is
       Limit        : Natural;
       Filter       : in out LSP.Ada_Completions.Filters.Filter;
       Names        : in out Ada_Completions.Completion_Maps.Map;
-      Unsorted_Res : in out LSP.Messages.CompletionItem_Vector);
+      Unsorted_Res : in out LSP.Structures.CompletionItem_Vector);
 
    procedure Propose_Signatures
-     (Context         : not null LSP.Ada_Handlers.Context_Access;
+     (Context         : not null LSP.Ada_Context_Sets.Context_Access;
       Node            : Libadalang.Analysis.Ada_Node;
       Cursor          : Langkit_Support.Slocs.Source_Location;
-      Prev_Signatures : LSP.Messages.Optional_SignatureHelpContext;
-      Res             : in out LSP.Messages.SignatureHelp;
+      Prev_Signatures : LSP.Structures.SignatureHelpContext_Optional;
+      Res             : in out LSP.Structures.SignatureHelp;
       Lazy            : Boolean := False);
    --  If Lazy, give up on trying to highlight the parameters when multiple
    --  signature are possible.

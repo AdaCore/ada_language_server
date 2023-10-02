@@ -28,7 +28,7 @@ package LSP.Ada_Completions.Attributes is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList);
+      Result : in out LSP.Structures.CompletionList);
    --  Get completion for attributes.
 
 end LSP.Ada_Completions.Attributes;

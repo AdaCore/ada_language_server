@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with LSP.Ada_Handlers.Project_Loading;
+
 package body LSP.Ada_Handlers.Project_Reload_Commands is
 
    ------------
@@ -22,11 +24,12 @@ package body LSP.Ada_Handlers.Project_Reload_Commands is
    ------------
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class) return Command
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+      return Command
    is
-      pragma Unreferenced (JS);
+      pragma Unreferenced (Any);
    begin
-      return (LSP.Commands.Command with null record);
+      return (LSP.Ada_Commands.Command with null record);
    end Create;
 
    -------------
@@ -35,33 +38,10 @@ package body LSP.Ada_Handlers.Project_Reload_Commands is
 
    overriding procedure Execute
      (Self    : Command;
-      Handler : not null access LSP.Server_Notification_Receivers
-        .Server_Notification_Receiver'Class;
-      Client  : not null access LSP.Client_Message_Receivers
-        .Client_Message_Receiver'Class;
-      Error   : in out LSP.Errors.Optional_ResponseError)
-   is
-      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
-        LSP.Ada_Handlers.Message_Handler (Handler.all);
-
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Error   : in out LSP.Errors.ResponseError_Optional) is
    begin
-      Message_Handler.Reload_Project;
+      LSP.Ada_Handlers.Project_Loading.Reload_Project (Handler.all);
    end Execute;
-
-   -------------------
-   -- Write_Command --
-   -------------------
-
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      V : Command)
-   is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
-   begin
-      JS.Start_Object;
-      --  no command arguments!
-      JS.End_Object;
-   end Write_Command;
 
 end LSP.Ada_Handlers.Project_Reload_Commands;

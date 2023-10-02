@@ -20,7 +20,6 @@ with Langkit_Support.Errors;
 with VSS.Strings;
 
 with LSP.Ada_Completions.Filters;
-with LSP.Lal_Utils;
 
 package body LSP.Ada_Completions.Names is
 
@@ -35,7 +34,7 @@ package body LSP.Ada_Completions.Names is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList)
+      Result : in out LSP.Structures.CompletionList)
    is
       use all type Libadalang.Analysis.Base_Id;
       use all type Libadalang.Common.Ada_Node_Kind_Type;
@@ -172,8 +171,8 @@ package body LSP.Ada_Completions.Names is
 
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
-                  Name :=
-                    LSP.Lal_Utils.To_Virtual_String (DN.P_Relative_Name.Text);
+                  Name := VSS.Strings.To_Virtual_String
+                    (DN.P_Relative_Name.Text);
 
                   if Name.Ends_With (Underscore) then
                      --  Skip `root_types_` until UB30-020 is fixed.

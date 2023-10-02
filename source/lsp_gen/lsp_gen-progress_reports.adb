@@ -124,7 +124,7 @@ package body LSP_Gen.Progress_Reports is
       Put ("package body LSP.Progress_Report_Readers is");
       New_Line;
 
-      Put_Line ("package Method_Map is new Minimal_Perfect_Hash ((");
+      Put_Line ("package Method_Map is new Minimal_Perfect_Hash ([");
       for J of Model.Requests loop
          if Model.Message_Direction (J) = From
            and then Model.Request (J).partialResult.Is_Set
@@ -148,7 +148,7 @@ package body LSP_Gen.Progress_Reports is
          Put ("""");
       end loop;
 
-      Put_Line ("));");
+      Put_Line ("]);");
       New_Line;
       Put_Line ("procedure Initialize is begin Method_Map.Initialize; end;");
       New_Line;
@@ -283,7 +283,7 @@ package body LSP_Gen.Progress_Reports is
             Put ("(Self : in out ");
             Put (Name);
             Put_Line (";");
-            Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+            Put_Line ("Token : LSP.Structures.ProgressToken;");
             Put ("Value : LSP.Structures.");
             Put (Result_Type (Model, Done, J));
 
@@ -301,7 +301,7 @@ package body LSP_Gen.Progress_Reports is
          Put ("(Self : in out ");
          Put (Name);
          Put_Line (";");
-         Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+         Put_Line ("Token : LSP.Structures.ProgressToken;");
          Put ("Value : LSP.Structures.WorkDone");
          Put (Work_Done);
          Put_Line (") is null;");
@@ -460,7 +460,7 @@ package body LSP_Gen.Progress_Reports is
             Put ("(Self : in out ");
             Put (Name);
             Put_Line (";");
-            Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+            Put_Line ("Token : LSP.Structures.ProgressToken;");
             Put ("Value : LSP.Structures.");
             Put (Result_Type (Model, Done, J));
             Put_Line (");");
@@ -475,7 +475,7 @@ package body LSP_Gen.Progress_Reports is
          Put ("(Self : in out ");
          Put (Name);
          Put_Line (";");
-         Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+         Put_Line ("Token : LSP.Structures.ProgressToken;");
          Put ("Value : LSP.Structures.WorkDone");
          Put (Work_Done);
          Put_Line (");");
@@ -505,7 +505,7 @@ package body LSP_Gen.Progress_Reports is
             Put ("(Self : in out ");
             Put (Name);
             Put_Line (";");
-            Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+            Put_Line ("Token : LSP.Structures.ProgressToken;");
             Put ("Value : LSP.Structures.");
             Put (Result_Type (Model, Done, J));
             Put_Line (") is");
@@ -532,7 +532,7 @@ package body LSP_Gen.Progress_Reports is
          Put ("(Self : in out ");
          Put (Name);
          Put_Line (";");
-         Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+         Put_Line ("Token : LSP.Structures.ProgressToken;");
          Put ("Value : LSP.Structures.WorkDone");
          Put (Work_Done);
          Put_Line (") is");

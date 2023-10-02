@@ -38,7 +38,6 @@
                                 "codeActionLiteralSupport": {
                                     "codeActionKind": {
                                         "valueSet": [
-                                            "<HAS>",
                                             "refactor",
                                             "refactor.extract",
                                             "refactor.inline",
@@ -73,8 +72,7 @@
                                     "<HAS>",
                                     "als-refactor-add-parameters"
                                 ]
-                            },
-                            "alsCheckSyntaxProvider": true
+                            }
                         }
                     }
                 }
@@ -115,7 +113,7 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
+                    "id": 1,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -178,26 +176,24 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-add-parameters",
-                                "arguments": [
-                                    {
-                                        "context_id": "Default",
-                                        "where": {
-                                            "uri": "$URI{main.adb}",
-                                            "range": {
-                                                "start": {
-                                                    "line": 1,
-                                                    "character": 18
-                                                },
-                                                "end": {
-                                                    "line": 1,
-                                                    "character": 18
-                                                }
+                                "arguments": [{
+                                    "context_id": "Default",
+                                    "where": {
+                                        "uri": "$URI{main.adb}",
+                                        "range": {
+                                            "start": {
+                                                "line": 1,
+                                                "character": 18
+                                            },
+                                            "end": {
+                                                "line": 1,
+                                                "character": 18
                                             }
-                                        },
-                                        "newParameter": "",
-                                        "requiresFullSpecification": false
-                                    }
-                                ]
+                                        }
+                                    },
+                                    "newParameter": "",
+                                    "requiresFullSpecification": false
+                                }]
                             }
                         }
                     ]
@@ -288,7 +284,7 @@
             "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 3,
+                    "id": 2,
                     "method": "workspace/applyEdit",
                     "params": {
                         "edit": {

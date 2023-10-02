@@ -23,7 +23,6 @@ with Ada.Containers.Vectors;
 
 with Langkit_Support.Slocs;
 
-with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with GPR2.Context;
@@ -33,17 +32,17 @@ with GPR2.Path_Name;
 with GPR2.Path_Name.Set;
 with GPR2.Project.Tree;
 
+with LSP.Text_Documents;
 with LSP.GPR_Files;
-with LSP.Messages;
-with LSP.Types;
+with LSP.Structures;
+with LSP.Tracers;
 
 with VSS.Strings;
-private with VSS.Strings.Markers;
 
 package LSP.GPR_Documents is
 
-   type Document (Trace : GNATCOLL.Traces.Trace_Handle) is
-     tagged limited private;
+   type Document (Tracer : not null LSP.Tracers.Tracer_Access) is
+     new LSP.Text_Documents.Text_Document with private;
    --  A GPR document (file).
 
    type Document_Access is access all LSP.GPR_Documents.Document
@@ -63,7 +62,7 @@ package LSP.GPR_Documents is
 
    procedure Initialize
      (Self        : in out Document;
-      URI         : LSP.Messages.DocumentUri;
+      URI         : LSP.Structures.DocumentUri;
       File        : GPR2.Path_Name.Object;
       Text        : VSS.Strings.Virtual_String;
       Provider    : LSP.GPR_Files.File_Provider_Access);
@@ -75,31 +74,6 @@ package LSP.GPR_Documents is
 
    procedure Cleanup (Self : in out Document);
    --  Free all the data associated to this document.
-
-   -----------------------
-   -- Contents handling --
-   -----------------------
-
-   function URI (Self : Document) return LSP.Messages.DocumentUri;
-   --  Return the URI associated with Self
-
-   function Text (Self : Document) return VSS.Strings.Virtual_String;
-   --  Return the text associated with Self
-
-   function Get_Text_At
-     (Self      : Document;
-      Start_Pos : LSP.Messages.Position;
-      End_Pos   : LSP.Messages.Position) return VSS.Strings.Virtual_String;
-   --  Return the text in the specified range.
-
-   procedure Apply_Changes
-     (Self    : aliased in out Document;
-      Version : LSP.Types.LSP_Number;
-      Vector  : LSP.Messages.TextDocumentContentChangeEvent_Vector);
-   --  Modify document according to event vector provided by LSP client.
-
-   function Versioned_Identifier
-     (Self : Document) return LSP.Messages.VersionedTextDocumentIdentifier;
 
    --------------
    -- Requests --
@@ -119,12 +93,6 @@ package LSP.GPR_Documents is
       return Boolean;
    --  Returns True when errors found during document parsing.
 
-   function Get_Word_At
-     (Self     : Document;
-      Position : LSP.Messages.Position)
-      return VSS.Strings.Virtual_String;
-   --  Get an identifier at given position in the document or an empty string.
-
    -----------------------
    -- Document_Provider --
    -----------------------
@@ -141,7 +109,7 @@ package LSP.GPR_Documents is
 
    function Get_Open_Document
      (Self  : access Document_Provider;
-      URI   : LSP.Messages.DocumentUri;
+      URI   : LSP.Structures.DocumentUri;
       Force : Boolean := False)
       return Document_Access is abstract;
    --  Return the open document for the given URI.
@@ -151,31 +119,16 @@ package LSP.GPR_Documents is
 
    function Get_Open_Document_Version
      (Self  : access Document_Provider;
-      URI   : LSP.Messages.DocumentUri)
-      return LSP.Messages.OptionalVersionedTextDocumentIdentifier is abstract;
+      URI   : LSP.Structures.DocumentUri)
+      return LSP.Structures.OptionalVersionedTextDocumentIdentifier is abstract;
    --  Return the version of an open document for the given URI.
    --  If the document is not opened, then it returns a
    --  VersionedTextDocumentIdentifier with a null version.
-
-   function Get_Source_Location
-     (Self     : Document'Class;
-      Position : LSP.Messages.Position)
-      return Langkit_Support.Slocs.Source_Location;
-   --  Convert a Position to a Source_Location
-
-   function Line_Terminator
-     (Self : Document'Class) return VSS.Strings.Virtual_String;
-   --  Return line terminator for the document
 
    procedure Update_Files_With_Diags
      (Self : in out Document'Class; Files : GPR2.Path_Name.Set.Object);
 
 private
-
-   package Line_Marker_Vectors is new Ada.Containers.Vectors
-     (Index_Type   => LSP.Types.Line_Number,
-      Element_Type => VSS.Strings.Markers.Character_Marker,
-      "="          => VSS.Strings.Markers."=");
 
    type Name_Information is record
       Loc       : Langkit_Support.Slocs.Source_Location;
@@ -191,20 +144,10 @@ private
       "<"          => VSS.Strings."<",
       "="          => Name_Vectors."=");
 
-   type Document
-     (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited record
-
-      URI  : LSP.Messages.DocumentUri;
-      --  document's file URI
-
+   type Document (Tracer : not null LSP.Tracers.Tracer_Access) is
+     new LSP.Text_Documents.Text_Document with record
       File : GPR2.Path_Name.Object;
       --  document's file path
-
-      Version : LSP.Types.LSP_Number := 1;
-      --  Document version
-
-      Text : VSS.Strings.Virtual_String;
-      --  The text of the document
 
       Tree : GPR2.Project.Tree.Object;
       --  The loaded tree
@@ -227,25 +170,9 @@ private
       Errors_Changed : Boolean;
       --  True if Messages content was not yet published
 
-      Line_To_Marker : Line_Marker_Vectors.Vector;
-      --  Within text, an array associating a line number (starting at 0) to
-      --  the marker of the first character of that line in Text.
-      --  This serves as cache to be able to modify text ranges in Text
-      --  given in line/column coordinates without having to scan the whole
-      --  text from the beginning.
-
-      Line_Terminator : VSS.Strings.Virtual_String;
-      --  Line terminator for the text, if known, "" otherwise
-
       Published_Files_With_Diags : GPR2.Path_Name.Set.Object;
       --  Protocol requires publishing empty diags to clear diags on client.
       --  This set records files with diags previously published.
-
    end record;
-
-   function URI (Self : Document) return LSP.Messages.DocumentUri is
-     (Self.URI);
-   function Text (Self : Document) return VSS.Strings.Virtual_String is
-     (Self.Text);
 
 end LSP.GPR_Documents;

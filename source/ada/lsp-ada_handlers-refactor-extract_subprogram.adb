@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2022, AdaCore                       --
+--                        Copyright (C) 2022-2023, AdaCore                  --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,19 +15,19 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.UTF_Encoding;
-
 with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 
-with Libadalang.Analysis; use Libadalang.Analysis;
-with Libadalang.Common; use Libadalang.Common;
+with Libadalang.Analysis;   use Libadalang.Analysis;
+with Libadalang.Common;     use Libadalang.Common;
 
 with LAL_Refactor; use LAL_Refactor;
 with LAL_Refactor.Extract_Subprogram;
 use LAL_Refactor.Extract_Subprogram;
 
-with VSS.Strings.Conversions;
-with LSP.Commands;
+with VSS.JSON.Streams;
+
+with LSP.Enumerations;
+with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
 
 package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
@@ -37,13 +37,12 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
    procedure Append_Code_Action
      (Self            : in out Command;
-      Context         : Context_Access;
-      Commands_Vector : in out LSP.Messages.CodeAction_Vector;
-      Where           : LSP.Messages.Location;
+      Context         : LSP.Ada_Context_Sets.Context_Access;
+      Commands_Vector : in out LSP.Structures.Command_Or_CodeAction_Vector;
+      Where           : LSP.Structures.Location;
       Subprogram_Kind : Libadalang.Common.Ada_Subp_Kind)
    is
-      Pointer     : LSP.Commands.Command_Pointer;
-      Code_Action : LSP.Messages.CodeAction;
+      Code_Action : LSP.Structures.CodeAction;
 
       Code_Action_Title  : constant String :=
         (if Subprogram_Kind in Ada_Subp_Kind_Procedure_Range then
@@ -57,26 +56,28 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
          Where           => Where,
          Subprogram_Kind => Subprogram_Kind);
 
-      Pointer.Set (Self);
-
       Code_Action :=
         (title       =>
            VSS.Strings.Conversions.To_Virtual_String (Code_Action_Title),
          kind        =>
            (Is_Set => True,
-            Value  => LSP.Messages.RefactorExtract),
-         diagnostics => (Is_Set => False),
+            Value  => LSP.Enumerations.RefactorExtract),
+         diagnostics => <>,
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
          disabled    => (Is_Set => False),
          command     =>
            (Is_Set => True,
             Value  =>
-              (Is_Unknown => False,
-               title      => "",
-               Custom     => Pointer)));
+              (title     => "",
+               command   => VSS.Strings.Conversions.To_Virtual_String
+                 (Command'External_Tag),
+               arguments => Self.Write_Command)),
+         data        => <>);
 
-      Commands_Vector.Append (Code_Action);
+      Commands_Vector.Append
+        (LSP.Structures.Command_Or_CodeAction'
+           (Is_Command => False, CodeAction => Code_Action));
    end Append_Code_Action;
 
    ------------
@@ -84,51 +85,49 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
    ------------
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
-      return Command is
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+      return Command
+   is
+      use VSS.JSON.Streams;
+      use VSS.Strings;
+      use LSP.Structures.JSON_Event_Vectors;
+
+      C : Cursor := Any.First;
    begin
-      return V : Command do
-         pragma Assert (JS.R.Is_Start_Object);
+      return Self : Command do
+         pragma Assert (Element (C).Kind = Start_Array);
+         Next (C);
+         pragma Assert (Element (C).Kind = Start_Object);
+         Next (C);
 
-         JS.R.Read_Next;
-
-         while not JS.R.Is_End_Object loop
-            pragma Assert (JS.R.Is_Key_Name);
-
+         while Has_Element (C)
+           and then Element (C).Kind /= End_Object
+         loop
+            pragma Assert (Element (C).Kind = Key_Name);
             declare
-               Key : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-                 VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
-
+               Key : constant Virtual_String := Element (C).Key_Name;
             begin
-               JS.R.Read_Next;
+               Next (C);
 
                if Key = "context_id" then
-                  LSP.Types.Read_String (JS, V.Context_Id);
+                  Self.Context_Id := Element (C).String_Value;
 
                elsif Key = "section_to_extract_sloc" then
-                  LSP.Messages.Location'Read
-                    (JS, V.Section_To_Extract_SLOC);
+                  Self.Section_To_Extract_SLOC := From_Any (C);
 
                elsif Key = "subprogram_kind" then
-                  declare
-                     Subprogram_Kind : VSS.Strings.Virtual_String;
-
-                     use VSS.Strings.Conversions;
-
-                  begin
-                     LSP.Types.Read_String (JS, Subprogram_Kind);
-                     V.Subprogram_Kind :=
-                       Libadalang.Common.Ada_Subp_Kind'Value
-                         (To_UTF_8_String (Subprogram_Kind));
-                  end;
+                  Self.Subprogram_Kind :=
+                    Libadalang.Common.Ada_Subp_Kind'Value
+                      (VSS.Strings.Conversions.To_UTF_8_String
+                         (Element (C).String_Value));
 
                else
-                  JS.Skip_Value;
+                  Skip_Value (C);
                end if;
             end;
-         end loop;
 
-         JS.R.Read_Next;
+            Next (C);
+         end loop;
       end return;
    end Create;
 
@@ -138,14 +137,9 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
 
    overriding procedure Refactor
      (Self    : Command;
-      Handler : not null access LSP.Server_Notification_Receivers.
-        Server_Notification_Receiver'Class;
-      Client  : not null access LSP.Client_Message_Receivers.
-        Client_Message_Receiver'Class;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Edits   : out LAL_Refactor.Refactoring_Edits)
    is
-      use LSP.Types;
-
       Message_Handler : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
       Context         : LSP.Ada_Contexts.Context renames
@@ -155,16 +149,19 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
         (Context.Analysis_Units);
       --  Provides the Context Analysis_Unit_Array to the Mode_Changer
 
-      Unit               : constant Analysis_Unit :=
-        Context.LAL_Context.Get_From_File
-          (Context.URI_To_File (Self.Section_To_Extract_SLOC.uri));
+      File            : constant GNATCOLL.VFS.Virtual_File :=
+        Message_Handler.To_File (Self.Section_To_Extract_SLOC.uri);
+
+      Unit               : constant Analysis_Unit := Context.Get_AU (File);
       Section_To_Extract : constant Source_Location_Range :=
         (Langkit_Support.Slocs.Line_Number
-           (Self.Section_To_Extract_SLOC.span.first.line) + 1,
+           (Self.Section_To_Extract_SLOC.a_range.start.line) + 1,
          Langkit_Support.Slocs.Line_Number
-           (Self.Section_To_Extract_SLOC.span.last.line) + 1,
-         Column_Number (Self.Section_To_Extract_SLOC.span.first.character) + 1,
-         Column_Number (Self.Section_To_Extract_SLOC.span.last.character) + 1);
+           (Self.Section_To_Extract_SLOC.a_range.an_end.line) + 1,
+         Column_Number
+           (Self.Section_To_Extract_SLOC.a_range.start.character) + 1,
+         Column_Number
+           (Self.Section_To_Extract_SLOC.a_range.an_end.character) + 1);
 
       Extractor : constant Subprogram_Extractor :=
         Create_Subprogram_Extractor
@@ -188,7 +185,7 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
    procedure Initialize
      (Self             : in out Command'Class;
       Context          : LSP.Ada_Contexts.Context;
-      Where            : LSP.Messages.Location;
+      Where            : LSP.Structures.Location;
       Subprogram_Kind  : Libadalang.Common.Ada_Subp_Kind) is
    begin
       Self.Context_Id := Context.Id;
@@ -200,24 +197,35 @@ package body LSP.Ada_Handlers.Refactor.Extract_Subprogram is
    -- Write_Command --
    -------------------
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      C : Command)
+   function Write_Command
+     (Self : Command) return LSP.Structures.LSPAny_Vector
    is
-      JS : LSP.JSON_Streams.JSON_Stream'Class renames
-        LSP.JSON_Streams.JSON_Stream'Class (S.all);
+      use VSS.JSON.Streams;
 
+      Result : LSP.Structures.LSPAny_Vector;
    begin
-      JS.Start_Object;
-      JS.Key ("context_id");
-      LSP.Types.Write_String (S, C.Context_Id);
-      JS.Key ("section_to_extract_sloc");
-      LSP.Messages.Location'Write (S, C.Section_To_Extract_SLOC);
-      JS.Key ("subprogram_kind");
-      LSP.Types.Write_String
-        (S,
-         VSS.Strings.Conversions.To_Virtual_String (C.Subprogram_Kind'Image));
-      JS.End_Object;
+      Result.Append (JSON_Stream_Element'(Kind => Start_Array));
+      Result.Append (JSON_Stream_Element'(Kind => Start_Object));
+
+      --  "context_id"
+      Add_Key ("context_id", Result);
+      To_Any (Self.Context_Id, Result);
+
+      --  "section_to_extract_sloc"
+      Add_Key ("section_to_extract_sloc", Result);
+      To_Any (Self.Section_To_Extract_SLOC, Result);
+
+      --  "subprogram_kind"
+      Add_Key ("subprogram_kind", Result);
+      To_Any
+        (VSS.Strings.Conversions.To_Virtual_String
+           (Self.Subprogram_Kind'Image),
+         Result);
+
+      Result.Append (JSON_Stream_Element'(Kind => End_Object));
+      Result.Append (JSON_Stream_Element'(Kind => End_Array));
+
+      return Result;
    end Write_Command;
 
 end LSP.Ada_Handlers.Refactor.Extract_Subprogram;

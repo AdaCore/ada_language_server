@@ -32,22 +32,8 @@
                "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true,
-                     "hoverProvider": true,
-                     "definitionProvider": true,
                      "renameProvider": {},
-                     "referencesProvider": true,
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "documentSymbolProvider": true
+                     "textDocumentSync": 2
                   }
                }
             }

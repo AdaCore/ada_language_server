@@ -170,7 +170,8 @@
                                     "character": 15
                                  }
                               },
-                              "newText": "Qux"
+                              "newText": "Qux",
+                              "annotationId": ""
                            },
                            {
                               "range": {
@@ -183,7 +184,8 @@
                                     "character": 11
                                  }
                               },
-                              "newText": "Qux"
+                              "newText": "Qux",
+                              "annotationId": ""
                            }
                         ]
                      },
@@ -204,7 +206,8 @@
                                     "character": 15
                                  }
                               },
-                              "newText": "Qux"
+                              "newText": "Qux",
+                              "annotationId": ""
                            },
                            {
                               "range": {
@@ -217,7 +220,8 @@
                                     "character": 11
                                  }
                               },
-                              "newText": "Qux"
+                              "newText": "Qux",
+                              "annotationId": ""
                            }
                         ]
                      },
@@ -238,7 +242,8 @@
                                     "character": 12
                                  }
                               },
-                              "newText": "Qux"
+                              "newText": "Qux",
+                              "annotationId": ""
                            },
                            {
                               "range": {
@@ -251,21 +256,20 @@
                                     "character": 12
                                  }
                               },
-                              "newText": "Qux"
+                              "newText": "Qux",
+                              "annotationId": ""
                            }
                         ]
                      },
                      {
                         "kind": "rename",
                         "oldUri": "$URI{foo-bar-baz.ads}",
-                        "newUri": "$URI{foo-qux-baz.ads}",
-                        "options": {}
+                        "newUri": "$URI{foo-qux-baz.ads}"
                      },
                      {
                         "kind": "rename",
                         "oldUri": "$URI{foo-bar.ads}",
-                        "newUri": "$URI{foo-qux.ads}",
-                        "options": {}
+                        "newUri": "$URI{foo-qux.ads}"
                      }
                   ]
                }

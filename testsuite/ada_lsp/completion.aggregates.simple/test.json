@@ -81,29 +81,7 @@
                                   "("
                               ],
                               "resolveProvider": true
-                          },
-                          "hoverProvider": true,
-                          "declarationProvider": true,
-                          "definitionProvider": true,
-                          "typeDefinitionProvider": true,
-                          "implementationProvider": true,
-                          "referencesProvider": true,
-                          "codeActionProvider": {
-                          },
-                          "renameProvider": {
-                          },
-                          "foldingRangeProvider": true,
-                          "executeCommandProvider": {},
-                          "alsReferenceKinds": [
-                              "reference",
-                              "access",
-                              "write",
-                              "call",
-                              "dispatching call",
-                              "parent",
-                              "child",
-                              "overriding"
-                          ]
+                          }
                       }
                   }
               }
@@ -203,7 +181,6 @@
                         "label": "Aggregate for Aggr_Type_1",
                         "documentation": "at main.adb (2:4)",
                         "sortText": "+0",
-                        "additionalTextEdits": [],
                         "insertTextFormat": 2
                      },
                      {
@@ -211,27 +188,21 @@
                          "kind": 5,
                          "sortText": "+1",
                          "insertText": "A => ",
-                         "insertTextFormat": 1,
-                         "additionalTextEdits": [
-                         ]
+                         "insertTextFormat": 1
                        },
                        {
                          "label": "B",
                          "kind": 5,
                          "sortText": "+2",
                          "insertText": "B => ",
-                         "insertTextFormat": 1,
-                         "additionalTextEdits": [
-                         ]
+                         "insertTextFormat": 1
                        },
                        {
                          "label": "C",
                          "kind": 5,
                          "sortText": "+3",
                          "insertText": "C => ",
-                         "insertTextFormat": 1,
-                         "additionalTextEdits": [
-                         ]
+                         "insertTextFormat": 1
                        }
                   ]
                }

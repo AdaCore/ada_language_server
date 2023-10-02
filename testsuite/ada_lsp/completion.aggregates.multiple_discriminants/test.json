@@ -150,7 +150,6 @@
                         "sortText": "+00",
                         "insertText": "X => True, Y => True, Z => ${3:Boolean}, A => ${4:Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -170,32 +169,28 @@
                         "kind": 5,
                         "sortText": "+01",
                         "insertText": "X => True",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Y => True",
                         "kind": 5,
                         "sortText": "+02",
                         "insertText": "Y => True",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Z",
                         "kind": 5,
                         "sortText": "+03",
                         "insertText": "Z => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "A",
                         "kind": 5,
                         "sortText": "+04",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Aggregate when X => True, Y => False",
@@ -203,7 +198,6 @@
                         "sortText": "+05",
                         "insertText": "X => True, Y => False, Z => ${3:Boolean}, B => ${4:Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -223,32 +217,28 @@
                         "kind": 5,
                         "sortText": "+06",
                         "insertText": "X => True",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Y => False",
                         "kind": 5,
                         "sortText": "+07",
                         "insertText": "Y => False",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Z",
                         "kind": 5,
                         "sortText": "+08",
                         "insertText": "Z => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+09",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Aggregate when X => others, Z => True",
@@ -256,7 +246,6 @@
                         "sortText": "+10",
                         "insertText": "X => ${1:others}, Z => True, Y => ${3:Boolean}, C => ${4:Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -276,32 +265,28 @@
                         "kind": 5,
                         "sortText": "+11",
                         "insertText": "X => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Z => True",
                         "kind": 5,
                         "sortText": "+12",
                         "insertText": "Z => True",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Y",
                         "kind": 5,
                         "sortText": "+13",
                         "insertText": "Y => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "C",
                         "kind": 5,
                         "sortText": "+14",
                         "insertText": "C => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Aggregate when X => others, Z => False",
@@ -309,7 +294,6 @@
                         "sortText": "+15",
                         "insertText": "X => ${1:others}, Z => False, Y => ${3:Boolean}, D => ${4:Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -329,32 +313,28 @@
                         "kind": 5,
                         "sortText": "+16",
                         "insertText": "X => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Z => False",
                         "kind": 5,
                         "sortText": "+17",
                         "insertText": "Z => False",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Y",
                         "kind": 5,
                         "sortText": "+18",
                         "insertText": "Y => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "D",
                         "kind": 5,
                         "sortText": "+19",
                         "insertText": "D => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }

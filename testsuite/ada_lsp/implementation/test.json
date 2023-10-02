@@ -49,34 +49,9 @@
                "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                         "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ],
-                     "hoverProvider": true,
                      "definitionProvider": true,
                      "implementationProvider": true,
-                     "renameProvider": {},
-                     "referencesProvider": true,
-                     "declarationProvider": true,
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "documentSymbolProvider": true
+                     "textDocumentSync": 2
                   }
                }
             }
@@ -147,7 +122,7 @@
          "wait": [
             {
                "id": 2,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -161,7 +136,6 @@
                      },
                      "uri": "$URI{pack.adb}"
                   }
-               ]
             }
          ]
       }
@@ -203,7 +177,7 @@
          "wait": [
             {
                "id": 3,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -217,7 +191,6 @@
                      },
                      "uri": "$URI{pack.adb}"
                   }
-               ]
             }
          ]
       }
@@ -242,7 +215,7 @@
          "wait": [
             {
                "id": 4,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -256,7 +229,6 @@
                      },
                      "uri": "$URI{pack.ads}"
                   }
-               ]
             }
          ]
       }
@@ -281,7 +253,7 @@
          "wait": [
             {
                "id": 5,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -295,7 +267,6 @@
                      },
                      "uri": "$URI{pack.ads}"
                   }
-               ]
             }
          ]
       }
@@ -320,7 +291,7 @@
          "wait": [
             {
                "id": 6,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -334,7 +305,6 @@
                      },
                      "uri": "$URI{pack.ads}"
                   }
-               ]
             }
          ]
       }
@@ -411,7 +381,7 @@
          "wait": [
             {
                "id": 9,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -425,7 +395,6 @@
                      },
                      "uri": "$URI{pack.adb}"
                   }
-               ]
             }
          ]
       }
@@ -450,7 +419,7 @@
          "wait": [
             {
                "id": 10,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -464,7 +433,6 @@
                      },
                      "uri": "$URI{pack.adb}"
                   }
-               ]
             }
          ]
       }

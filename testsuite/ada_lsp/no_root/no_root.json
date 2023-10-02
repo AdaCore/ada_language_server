@@ -71,7 +71,7 @@
             },
             "wait":[{
                 "id": "defname-1",
-                "result":[{
+                "result":{
                     "uri": "$URI{aaa.adb}",
                     "range": {
                         "start": {
@@ -83,7 +83,7 @@
                             "character": 13
                         }
                     }
-                }]
+                }
             }]
         }
     },  {
@@ -104,12 +104,12 @@
             },
             "wait":[{
                 "id": "defname-2",
-                "result":[{
+                "result":{
                     "range": {
                         "start": {},
                         "end": {}
                     }
-                }]
+                }
             }]
         }
     },  {
@@ -124,7 +124,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

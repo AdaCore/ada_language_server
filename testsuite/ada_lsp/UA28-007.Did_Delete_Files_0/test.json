@@ -421,47 +421,26 @@
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
-                     },
-                     "declarationProvider": true,
                      "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
                      "documentSymbolProvider": true,
-                     "codeActionProvider": {
-                        "codeActionKinds": [
-                           "quickfix",
-                           "refactor.rewrite"
-                        ]
-                     },
-                     "documentFormattingProvider": true,
-                     "renameProvider": {
-                        "prepareProvider": true
-                     },
-                     "foldingRangeProvider": true,
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsCheckSyntaxProvider": true
+                     "workspace": {
+                        "fileOperations": {
+                          "didDelete": {
+                            "filters": [
+                              {
+                                "scheme": "file",
+                                "pattern": {
+                                  "glob": "**/*.ad{a,s,b,c}",
+                                  "matches": "file",
+                                  "options": {
+                                    "ignoreCase": true
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                     }
                   }
                }
             }
@@ -502,110 +481,17 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 2,
+               "id": 1,
                "method": "client/registerCapability",
                "params": {
                   "registrations": [
                      {
-                        "id": "fm-1",
+                        "id": "1",
                         "method": "workspace/didChangeWatchedFiles",
                         "registerOptions": {
                            "watchers": [
                               {
                                  "globPattern": "${DIR}${DIR_SEP}*"
-                              }
-                           ]
-                        }
-                     }
-                  ]
-               }
-            },
-            {
-               "jsonrpc": "2.0",
-               "id": 3,
-               "method": "client/registerCapability",
-               "params": {
-                  "registrations": [
-                     {
-                        "id": "Will_Create",
-                        "method": "workspace/willCreateFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Did_Create",
-                        "method": "workspace/didCreateFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Will_Rename",
-                        "method": "workspace/willRenameFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Did_Rename",
-                        "method": "workspace/didRenameFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Will_Delete",
-                        "method": "workspace/willDeleteFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
-                              }
-                           ]
-                        }
-                     },
-                     {
-                        "id": "Did_Delete",
-                        "method": "workspace/didDeleteFiles",
-                        "registerOptions": {
-                           "filters": [
-                              {
-                                 "scheme": "file",
-                                 "pattern": {
-                                    "glob": "${DIR}${DIR_SEP}*{.ads,.adb}"
-                                 }
                               }
                            ]
                         }
@@ -709,7 +595,6 @@
                   },
                   {
                      "name": "Main",
-                     "detail": "",
                      "kind": 12,
                      "range": {
                         "start": {
@@ -733,8 +618,7 @@
                      },
                      "alsIsDeclaration": false,
                      "alsIsAdaProcedure": true,
-                     "alsVisibility": 1,
-                     "children": []
+                     "alsVisibility": 1
                   }
                ]
             }
@@ -760,7 +644,7 @@
          "wait": [
             {
                "id": 6,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{qux.ads}",
                      "range": {
@@ -774,7 +658,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -838,7 +721,6 @@
                   },
                   {
                      "name": "Qux",
-                     "detail": "",
                      "kind": 4,
                      "range": {
                         "start": {
@@ -866,7 +748,6 @@
                      "children": [
                         {
                            "name": "Bar",
-                           "detail": "",
                            "kind": 12,
                            "range": {
                               "start": {
@@ -890,34 +771,11 @@
                            },
                            "alsIsDeclaration": true,
                            "alsIsAdaProcedure": true,
-                           "alsVisibility": 1,
-                           "children": []
+                           "alsVisibility": 1
                         }
                      ]
                   }
                ]
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 13,
-            "method": "workspace/willDeleteFiles",
-            "params": {
-               "files": [
-                  {
-                     "uri": "$URI{qux.ads}"
-                  }
-               ]
-            }
-         },
-         "wait": [
-            {
-               "id": 13,
-               "result": null
             }
          ]
       }
@@ -1024,7 +882,6 @@
                   },
                   {
                      "name": "Main",
-                     "detail": "",
                      "kind": 12,
                      "range": {
                         "start": {
@@ -1048,8 +905,7 @@
                      },
                      "alsIsDeclaration": false,
                      "alsIsAdaProcedure": true,
-                     "alsVisibility": 1,
-                     "children": []
+                     "alsVisibility": 1
                   }
                ]
             }

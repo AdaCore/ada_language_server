@@ -30,14 +30,8 @@ with GPR2.Project.Source;
 
 with VSS.Strings.Conversions;
 
-with URIs;
-with LSP.Ada_Id_Iterators;
-with LSP.Common;                  use LSP.Common;
-with LSP.Lal_Utils;               use LSP.Lal_Utils;
-
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Project_Provider;
-
 with Langkit_Support.Slocs;
 
 with Utils.Command_Lines.Common;
@@ -45,17 +39,19 @@ with Utils.Command_Lines.Common;
 with Pp.Actions;
 with Langkit_Support.Text;
 
+with URIs;
+with LSP.Ada_Id_Iterators;
+with LSP.Ada_Projects;
+
 package body LSP.Ada_Contexts is
 
    Indexing_Trace   : constant Trace_Handle := Create ("ALS.INDEXING", Off);
-
-   Formatting_Trace : constant Trace_Handle := Create ("ALS.FORMATTING", On);
 
    use type Libadalang.Analysis.Analysis_Unit;
 
    type LSP_Context_Event_Handler_Type
    is new Libadalang.Analysis.Event_Handler_Interface with record
-      Trace : Trace_Handle;
+      Tracer : LSP.Tracers.Tracer_Access;
    end record;
    --  LAL event handler used to log units that have notbeen found when
    --  requested.
@@ -93,26 +89,19 @@ package body LSP.Ada_Contexts is
    --  references to the base primitives it inherits and all the references to
    --  the overriding ones.
 
-   function URI_To_File
-     (Self : Context;
-      URI  : LSP.Types.LSP_URI)
-      return Ada.Strings.UTF_Encoding.UTF_8_String
-        is (URIs.Conversions.To_File (LSP.Types.To_UTF_8_String (URI),
-            Self.Follow_Symlinks));
+   -----------------
+   -- URI_To_File --
+   -----------------
 
    function URI_To_File
      (Self : Context;
-      URI  : LSP.Types.LSP_URI)
+      URI  : LSP.Structures.DocumentUri)
       return GNATCOLL.VFS.Virtual_File
    is
-     (GNATCOLL.VFS.Create_From_UTF8 (Self.URI_To_File (URI)));
-
-   procedure Update_Pp_Formatting_Options
-     (Pp_Options  : in out Utils.Command_Lines.Command_Line;
-      LSP_Options : LSP.Messages.FormattingOptions);
-   --  Update the gnatpp formatting options using the LSP ones.
-   --  Options that are explicitly specified in the .gpr file take precedence
-   --  over LSP options.
+     (GNATCOLL.VFS.Create_From_UTF8
+        (URIs.Conversions.To_File
+             (VSS.Strings.Conversions.To_UTF_8_String (URI),
+              Self.Follow_Symlinks)));
 
    -----------------------------
    -- Unit_Requested_Callback --
@@ -127,136 +116,11 @@ package body LSP.Ada_Contexts is
       Is_Not_Found_Error : Boolean) is
    begin
       if not Found then
-         Self.Trace.Trace
+         Self.Tracer.Trace
            ("Failed to request the following unit: "
             & Langkit_Support.Text.To_UTF8 (Name));
       end if;
    end Unit_Requested_Callback;
-
-   -------------------------
-   -- Append_Declarations --
-   -------------------------
-
-   procedure Append_Declarations
-     (Self                    : Context;
-      Document                : LSP.Ada_Documents.Document_Access;
-      Position                : LSP.Messages.TextDocumentPositionParams;
-      Display_Method_Ancestry_Policy :
-         LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy;
-      Result                  : in out LSP.Messages.Location_Or_Link_Vector;
-      Imprecise               : in out Boolean)
-   is
-      use LSP.Messages;
-      use Libadalang.Analysis;
-
-      Name_Node : constant Libadalang.Analysis.Name :=
-        Laltools.Common.Get_Node_As_Name
-          (Self.Get_Node_At (Document, Position));
-
-      Definition              : Libadalang.Analysis.Defining_Name;
-      --  A defining name that corresponds to Name_Node
-      First_Part              : Libadalang.Analysis.Defining_Name;
-      --  "Canonical part" of Definition
-      Prev_Part               : Libadalang.Analysis.Defining_Name;
-      --  A previous name for Definition
-      Decl_For_Find_Overrides : Libadalang.Analysis.Basic_Decl :=
-        Libadalang.Analysis.No_Basic_Decl;
-
-      On_Defining_Name        : Boolean := False;
-      --  Set to True if we are on a denfining name node
-   begin
-      if Name_Node = Libadalang.Analysis.No_Name then
-         return;
-      end if;
-
-      --  Check if we are on some defining name
-      Definition := Laltools.Common.Get_Name_As_Defining (Name_Node);
-
-      if Definition = Libadalang.Analysis.No_Defining_Name then
-         --  If we aren't on a defining_name already then try to resolve
-         declare
-            Is_Imprecise : Boolean;
-         begin
-            Definition := Laltools.Common.Resolve_Name
-              (Name_Node, Self.Trace, Is_Imprecise);
-
-            Imprecise := Imprecise or Is_Imprecise;
-         end;
-      else
-         On_Defining_Name := True;
-      end if;
-
-      if Definition = Libadalang.Analysis.No_Defining_Name then
-         return;  --  Name resolution fails, nothing to do.
-      end if;
-
-      --  Display the method ancestry in three cases:
-      --
-      --   . When the preference is set to Always
-      --
-      --   . When we are on a usage node (e.g: subprogram call) and if the
-      --     preference is set to Usage_And_Abstract_Only
-      --
-      --   . When we are on a defining name node and if the preference is
-      --     set to Definition_Only
-
-      if Display_Method_Ancestry_Policy = Always
-        or else (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
-                        and then not On_Defining_Name)
-        or else (Display_Method_Ancestry_Policy = Definition_Only
-                        and then On_Defining_Name)
-      then
-         First_Part := Laltools.Common.Find_Canonical_Part
-           (Definition, Self.Trace);
-
-         if First_Part = Libadalang.Analysis.No_Defining_Name then
-            Decl_For_Find_Overrides := Definition.P_Basic_Decl;
-         else
-            Decl_For_Find_Overrides := First_Part.P_Basic_Decl;
-         end if;
-      end if;
-
-      begin
-         Prev_Part := Definition.P_Previous_Part;
-      exception
-         when E :  Libadalang.Common.Property_Error =>
-            Log (Self.Trace, E);
-            Prev_Part := Libadalang.Analysis.No_Defining_Name;
-      end;
-
-      if Prev_Part /= Libadalang.Analysis.No_Defining_Name then
-         --  We have found previous part, return it.
-         LSP.Lal_Utils.Append_Location (Result, Prev_Part);
-      elsif Definition /= Libadalang.Analysis.No_Defining_Name then
-         --  No previous part, return definition itself.
-         LSP.Lal_Utils.Append_Location (Result, Definition);
-      end if;
-
-      if not Decl_For_Find_Overrides.Is_Null then
-         declare
-            Imprecise_Over       : Boolean;
-            Imprecise_Base       : Boolean;
-            Overriding_Subps     : constant Basic_Decl_Array :=
-              Self.Find_All_Overrides
-                (Decl_For_Find_Overrides,
-                 Imprecise_Results => Imprecise_Over);
-            Base_Subps           : constant Basic_Decl_Array :=
-              Self.Find_All_Base_Declarations
-                (Decl_For_Find_Overrides,
-                 Imprecise_Results => Imprecise_Base);
-         begin
-            for Subp of Base_Subps loop
-               Append_Location
-                 (Result, Subp.P_Defining_Name, LSP.Common.Is_Parent);
-            end loop;
-            for Subp of Overriding_Subps loop
-               Append_Location
-                 (Result, Subp.P_Defining_Name, LSP.Common.Is_Child);
-            end loop;
-            Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
-         end;
-      end if;
-   end Append_Declarations;
 
    ------------
    -- Get_AU --
@@ -336,7 +200,7 @@ package body LSP.Ada_Contexts is
       LSP.Ada_Id_Iterators.Find_All_References (Definition, Units, Callback);
    exception
       when E : Libadalang.Common.Property_Error =>
-         Log (Self.Trace, E, "in Find_All_References");
+         Self.Tracer.Trace_Exception (E, "in Find_All_References");
    end Find_All_References;
 
    ------------------------
@@ -365,13 +229,13 @@ package body LSP.Ada_Contexts is
       exception
          when E : Libadalang.Common.Property_Error =>
             Imprecise_Results := True;
-            Log (Self.Trace, E, "in Find_All_Overrides (precise)");
+            Self.Tracer.Trace_Exception (E, "in Find_All_Overrides (precise)");
             return Decl.P_Find_All_Overrides
               (Units, Imprecise_Fallback => True);
       end;
    exception
       when E : Libadalang.Common.Property_Error =>
-         Log (Self.Trace, E, "in Find_All_Overrides (imprecise)");
+         Self.Tracer.Trace_Exception (E, "in Find_All_Overrides (imprecise)");
          return (1 .. 0 => <>);
    end Find_All_Overrides;
 
@@ -386,7 +250,14 @@ package body LSP.Ada_Contexts is
       return Libadalang.Analysis.Basic_Decl_Array
    is
       use Libadalang.Analysis;
+      use type Langkit_Support.Slocs.Source_Location;
 
+      function Equal (Left, Right : Libadalang.Analysis.Ada_Node'Class)
+                      return Boolean is
+        (Left.Unit.Get_Filename =
+           Right.Unit.Get_Filename and then
+         Langkit_Support.Slocs.Start_Sloc (Left.Sloc_Range) =
+             Langkit_Support.Slocs.Start_Sloc (Right.Sloc_Range));
    begin
       Imprecise_Results := False;
 
@@ -395,7 +266,6 @@ package body LSP.Ada_Contexts is
       end if;
 
       declare
-         use VSS.Strings;
          Lal_Result : constant Basic_Decl_Array :=
                         Decl.P_Base_Subp_Declarations;
          Our_Result : Basic_Decl_Array
@@ -411,7 +281,7 @@ package body LSP.Ada_Contexts is
          --  The result returned by Libadalang includes self; we want to remove
          --  this from the list.
          for J of Lal_Result loop
-            if Node_Location_Image (J) /= Node_Location_Image (Decl) then
+            if not Equal (J, Decl) then
                Our_Result (Index) := J;
                Index := Index + 1;
             end if;
@@ -422,7 +292,7 @@ package body LSP.Ada_Contexts is
 
    exception
       when E : Libadalang.Common.Property_Error =>
-         Log (Self.Trace, E, "in Find_All_Base_Declarations");
+         Self.Tracer.Trace_Exception (E, "in Find_All_Base_Declarations");
          Imprecise_Results := True;
          return (1 .. 0 => <>);
    end Find_All_Base_Declarations;
@@ -475,7 +345,7 @@ package body LSP.Ada_Contexts is
       else
          LSP.Ada_Id_Iterators.Find_All_Subp_References_In_Hierarchy
            (Hierarchy => Hierarchy,
-            Trace     => Self.Trace,
+            Tracer    => Self.Tracer.all,
             Callback  => Callback);
       end if;
    end Find_All_References_In_Hierarchy;
@@ -564,7 +434,7 @@ package body LSP.Ada_Contexts is
       end loop;
    exception
       when E : Libadalang.Common.Property_Error =>
-         Log (Self.Trace, E, "in Is_Called_By");
+         Self.Tracer.Trace_Exception (E, "in Is_Called_By");
    end Find_All_Calls;
 
    ---------------------------
@@ -597,7 +467,7 @@ package body LSP.Ada_Contexts is
       return Res;
    exception
       when E : Libadalang.Common.Property_Error =>
-         Log (Self.Trace, E, "in Find_All_Env_Elements");
+         Self.Tracer.Trace_Exception (E, "in Find_All_Env_Elements");
          return Laltools.Common.Node_Vectors.Empty_Vector;
    end Find_All_Env_Elements;
 
@@ -677,6 +547,18 @@ package body LSP.Ada_Contexts is
       --  Tab stop is set 1 to disable "visible character guessing" by LAL.
       Self.Is_Fallback_Context := As_Fallback_Context;
    end Initialize;
+
+   ------------------------
+   -- Is_Part_Of_Project --
+   ------------------------
+
+   function Is_Part_Of_Project
+     (Self : Context;
+      URI : LSP.Structures.DocumentUri) return Boolean is
+   begin
+      return Self.Is_Fallback_Context
+        or else Self.Source_Files.Contains (Self.URI_To_File (URI));
+   end Is_Part_Of_Project;
 
    ------------------------
    -- Is_Part_Of_Project --
@@ -784,19 +666,19 @@ package body LSP.Ada_Contexts is
       -- Pretty_Printer_Setup --
       --------------------------
 
-      procedure Pretty_Printer_Setup
-      is
+      procedure Pretty_Printer_Setup is
          Validated : GNAT.Strings.String_List_Access;
          Index     : Integer := 0;
          Attribute : GPR2.Project.Attribute.Object;
          Values    : GPR2.Containers.Value_List;
+
       begin
 
          --  Initialize an gnatpp command line object
 
          if Root.Check_Attribute
-           (Name   => LSP.Common.Pretty_Printer.Switches,
-            Index  => LSP.Common.Ada_Index,
+           (Name   => LSP.Ada_Projects.Pretty_Printer.Switches,
+            Index  => LSP.Ada_Projects.Pretty_Printer.Ada_Index,
             Result => Attribute)
          then
 
@@ -851,7 +733,7 @@ package body LSP.Ada_Contexts is
           (Tree => Tree, Project => Root);
 
       Self.Event_Handler := Libadalang.Analysis.Create_Event_Handler_Reference
-        (LSP_Context_Event_Handler_Type'(Trace => Self.Trace));
+        (LSP_Context_Event_Handler_Type'(Tracer => Self.Tracer));
 
       Self.Reload;
       Update_Source_Files;
@@ -873,111 +755,6 @@ package body LSP.Ada_Contexts is
       --  Tab stop is set 1 to disable "visible character guessing" by LAL.
    end Reload;
 
-   ----------------------------------
-   -- Update_Pp_Formatting_Options --
-   ----------------------------------
-
-   procedure Update_Pp_Formatting_Options
-     (Pp_Options  : in out Utils.Command_Lines.Command_Line;
-      LSP_Options : LSP.Messages.FormattingOptions)
-   is
-      Pp_Indentation : constant Natural :=
-        Pp.Command_Lines.Pp_Nat_Switches.Arg
-          (Pp_Options, Pp.Command_Lines.Indentation);
-      Pp_No_Tab      : constant Boolean :=
-        Pp.Command_Lines.Pp_Flag_Switches.Arg
-          (Pp_Options, Pp.Command_Lines.No_Tab);
-   begin
-      --  Check if intentation and 'no tab' policy options have been explictly
-      --  set in the project.
-      --  If it's not the case, use the LSP options.
-
-      if not Pp.Command_Lines.Pp_Nat_Switches.Explicit
-        (Pp_Options, Pp.Command_Lines.Indentation)
-      then
-         Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
-           (Pp_Options,
-            Pp.Command_Lines.Indentation,
-            Natural (LSP_Options.tabSize));
-
-      elsif Pp_Indentation /= Natural (LSP_Options.tabSize) then
-         Formatting_Trace.Trace
-           ("Project file defines an indentation "
-            & "of" & Pp_Indentation'Img & ", while LSP defines an "
-            & "indentation of" & LSP_Options.tabSize'Img & ".");
-      end if;
-
-      if not Pp.Command_Lines.Pp_Flag_Switches.Explicit
-        (Pp_Options, Pp.Command_Lines.No_Tab)
-      then
-         Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
-           (Pp_Options,
-            Pp.Command_Lines.No_Tab,
-            LSP_Options.insertSpaces);
-
-      elsif Pp_No_Tab /= LSP_Options.insertSpaces then
-         Formatting_Trace.Trace
-           ("Project file no tab policy is set to " & Pp_No_Tab'Img
-            & ", while LSP is set to " & LSP_Options.insertSpaces'Img);
-      end if;
-   end Update_Pp_Formatting_Options;
-
-   ------------
-   -- Format --
-   ------------
-
-   procedure Format
-     (Self     : in out Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions;
-      Edit     : out LSP.Messages.TextEdit_Vector;
-      Success  : out Boolean;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector) is
-   begin
-      --  Take into account the options set by the request only if the
-      --  corresponding GPR switches are not explicitly set.
-
-      Update_Pp_Formatting_Options
-        (Pp_Options  => Self.PP_Options,
-         LSP_Options => Options);
-
-      Success := Document.Formatting
-        (Context  => Self,
-         Span     => Span,
-         Cmd      => Self.PP_Options,
-         Edit     => Edit,
-         Messages => Messages);
-   end Format;
-
-   ------------------
-   -- Range_Format --
-   ------------------
-
-   procedure Range_Format
-     (Self     : in out Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions;
-      Edit     : out LSP.Messages.TextEdit_Vector;
-      Success  : out Boolean;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector) is
-   begin
-      --  Take into account the options set by the request only if the
-      --  corresponding GPR switches are not explicitly set.
-
-      Update_Pp_Formatting_Options
-        (Pp_Options  => Self.PP_Options,
-         LSP_Options => Options);
-
-      Success := Document.Range_Formatting
-        (Context    => Self,
-         Span       => Span,
-         PP_Options => Self.PP_Options,
-         Edit       => Edit,
-         Messages   => Messages);
-   end Range_Format;
-
    ----------
    -- Free --
    ----------
@@ -991,113 +768,6 @@ package body LSP.Ada_Contexts is
       --  Cleanup gnatpp's template tables
       Pp.Actions.Clear_Template_Tables;
    end Free;
-
-   -----------------
-   -- Get_Node_At --
-   -----------------
-
-   function Get_Node_At
-     (Self         : Context;
-      Document     : LSP.Ada_Documents.Document_Access;
-      Position     : LSP.Messages.TextDocumentPositionParams'Class;
-      Project_Only : Boolean := True)
-      return Libadalang.Analysis.Ada_Node
-   is
-      use type Libadalang.Analysis.Ada_Node;
-      use type LSP.Ada_Documents.Document_Access;
-      use type Langkit_Support.Slocs.Line_Number;
-      use type Langkit_Support.Slocs.Column_Number;
-
-      Unit : Libadalang.Analysis.Analysis_Unit;
-
-      URI      : constant LSP.Messages.DocumentUri :=
-        Position.textDocument.uri;
-      Name     : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-        Self.URI_To_File (URI);
-      File     : constant Virtual_File := Create_From_UTF8 (Name);
-   begin
-      --  We're about to get a node from an analysis unit. Either the document
-      --  is open for it, in which case we read the document, or the
-      --  document is not open for it. In this case, resolve this only
-      --  if the file belongs to the project (unless if Project_Only is False):
-      --  we don't want to pollute the LAL context with units that are not in
-      --  the project.
-
-      if Document /= null then
-         return Document.Get_Node_At
-           (Context   => Self,
-            Position  => Position.position);
-      elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
-         Unit := Self.Get_AU (File);
-
-         if Unit.Root = Libadalang.Analysis.No_Ada_Node then
-            return Libadalang.Analysis.No_Ada_Node;
-         end if;
-
-         return Unit.Root.Lookup
-           ((Line   => Langkit_Support.Slocs.Line_Number
-             (Position.position.line) + 1,
-             Column => Langkit_Support.Slocs.Column_Number
-               (Position.position.character) + 1));
-         --  ??? Incorrect conversion of UTF16 offset to Column_Number
-
-      else
-         return Libadalang.Analysis.No_Ada_Node;
-      end if;
-   end Get_Node_At;
-
-   ------------------
-   -- Get_Token_At --
-   ------------------
-
-   function Get_Token_At
-     (Self         : Context;
-      Document     : LSP.Ada_Documents.Document_Access;
-      Position     : LSP.Messages.TextDocumentPositionParams'Class;
-      Project_Only : Boolean := True)
-      return Libadalang.Common.Token_Reference
-   is
-      use type Libadalang.Analysis.Ada_Node;
-      use type LSP.Ada_Documents.Document_Access;
-      use type Langkit_Support.Slocs.Line_Number;
-      use type Langkit_Support.Slocs.Column_Number;
-
-      Unit : Libadalang.Analysis.Analysis_Unit;
-
-      URI      : constant LSP.Messages.DocumentUri :=
-        Position.textDocument.uri;
-      Name     : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
-        Self.URI_To_File (URI);
-      File     : constant Virtual_File := Create_From_UTF8 (Name);
-   begin
-      --  We're about to get a node from an analysis unit. Either the document
-      --  is open for it, in which case we read the document, or the
-      --  document is not open for it. In this case, resolve this only
-      --  if the file belongs to the project (unless if Project_Only is False):
-      --  we don't want to pollute the LAL context with units that are not in
-      --  the project.
-
-      if Document /= null then
-         return Document.Get_Token_At
-           (Context   => Self,
-            Position  => Position.position);
-      elsif not Project_Only or else Self.Is_Part_Of_Project (File) then
-         Unit := Self.Get_AU (File);
-
-         if Unit.Root = Libadalang.Analysis.No_Ada_Node then
-            return Libadalang.Common.No_Token;
-         end if;
-
-         return Unit.Lookup_Token
-           ((Line   => Langkit_Support.Slocs.Line_Number
-             (Position.position.line) + 1,
-             Column => Langkit_Support.Slocs.Column_Number
-               (Position.position.character) + 1));
-
-      else
-         return Libadalang.Common.No_Token;
-      end if;
-   end Get_Token_At;
 
    --------
    -- Id --
@@ -1179,7 +849,7 @@ package body LSP.Ada_Contexts is
      (Self     : in out Context;
       Document : in out LSP.Ada_Documents.Document)
    is
-      Filename : constant Ada.Strings.UTF_Encoding.UTF_8_String :=
+      Filename : constant GNATCOLL.VFS.Virtual_File :=
         Self.URI_To_File (Document.URI);
    begin
       --  Reset cache of symbols to avoid access to stale references
@@ -1188,7 +858,7 @@ package body LSP.Ada_Contexts is
       --  Index the file, calling Populate_Lexical_Env on it to speed up the
       --  response to user queries.
       Self.Index_File
-        (File    => Create_From_UTF8 (Filename),
+        (File    => Filename,
          Reparse => True,
          PLE     => True);
    end Index_Document;

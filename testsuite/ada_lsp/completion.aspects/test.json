@@ -221,8 +221,7 @@
                         "label": "Address",
                         "kind": 1,
                         "detail": "Ada RM",
-                        "documentation": "<ANY>",
-                        "additionalTextEdits": []
+                        "documentation": "<ANY>"
                       }
                   ]
                }
@@ -239,8 +238,7 @@
             "params": {
                   "label": "Address",
                   "kind": 1,
-                  "detail": "Ada RM",
-                  "additionalTextEdits": []
+                  "detail": "Ada RM"
             }
          },
          "wait": [
@@ -249,8 +247,7 @@
                "result": {
                   "label": "Address",
                   "kind": 1,
-                  "detail": "Ada RM",
-                  "additionalTextEdits": []
+                  "detail": "Ada RM"
                }
             }
          ]

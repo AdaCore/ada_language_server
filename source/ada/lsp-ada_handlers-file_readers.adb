@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,8 @@ with Libadalang.Preprocessing;     use Libadalang.Preprocessing;
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
+
+with URIs;
 
 package body LSP.Ada_Handlers.File_Readers is
 
@@ -121,7 +123,7 @@ package body LSP.Ada_Handlers.File_Readers is
    ----------
 
    overriding procedure Read
-     (Self        : LSP_Reader_Interface;
+     (Self        : LSP_File_Reader;
       Filename    : String;
       Charset     : String;
       Read_BOM    : Boolean;
@@ -129,6 +131,8 @@ package body LSP.Ada_Handlers.File_Readers is
       Diagnostics : in out
         Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector)
    is
+      URI : constant URIs.URI_String := URIs.Conversions.From_File (Filename);
+
       Doc   : Document_Access;
       Text  : VSS.Strings.Virtual_String;
       Error : VSS.Strings.Virtual_String;
@@ -137,7 +141,8 @@ package body LSP.Ada_Handlers.File_Readers is
       --  First check if the file is an open document
 
       Doc := Self.Handler.Get_Open_Document
-        (URI   => LSP.Types.File_To_URI (Filename),
+        (URI   => (VSS.Strings.Conversions.To_Virtual_String (URI)
+                     with null record),
          Force => False);
 
       --  Preprocess the document's contents if open, or the file contents if

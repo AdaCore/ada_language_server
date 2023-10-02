@@ -71,7 +71,7 @@
             },
             "wait":[{
                 "id": "typedefname-1",
-                "result":[{
+                "result":{
                     "uri": "$URI{test.adb}",
                     "range": {
                         "start": {
@@ -83,7 +83,7 @@
                             "character": 9
                         }
                     }
-                }]
+                }
             }]
         }
     },  {
@@ -104,7 +104,7 @@
             },
             "wait":[{
                 "id": "typedefname-2",
-                "result":[{
+                "result":{
                     "uri": "$URI{test.adb}",
                     "range": {
                         "start": {
@@ -116,7 +116,7 @@
                             "character": 9
                         }
                     }
-                }]
+                }
             }]
         }
     },  {
@@ -137,7 +137,7 @@
             },
             "wait":[{
                 "id": "typedefname-3",
-                "result":[{
+                "result":{
                     "uri": "$URI{test.adb}",
                     "range": {
                         "start": {
@@ -149,7 +149,7 @@
                             "character": 9
                         }
                     }
-                }]
+                }
             }]
         }
         },  {
@@ -185,7 +185,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {
