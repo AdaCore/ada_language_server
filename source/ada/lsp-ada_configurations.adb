@@ -103,6 +103,7 @@ package body LSP.Ada_Configurations is
       Index : Positive := From;
       Variables_Names  : VSS.String_Vectors.Virtual_String_Vector;
       Variables_Values : VSS.String_Vectors.Virtual_String_Vector;
+      Follow_Symlinks  : constant Boolean := Self.Follow_Symlinks;
 
       procedure Parse_Variables (From : Positive);
       procedure Swap_Variables (Left, Right : Positive);
@@ -110,6 +111,7 @@ package body LSP.Ada_Configurations is
       procedure Set
         (Target : in out VSS.Strings.Virtual_String;
          Value  : VSS.Strings.Virtual_String);
+      --  If Target /= Value then assign Target and set Reload to Trues
 
       ---------------------
       -- Parse_Variables --
@@ -146,6 +148,7 @@ package body LSP.Ada_Configurations is
       begin
          if Target /= Value then
             Target := Value;
+            Reload := True;
          end if;
       end Set;
 
@@ -248,6 +251,7 @@ package body LSP.Ada_Configurations is
            and then JSON (Index).Kind = Boolean_Value
          then
             Self.Follow_Symlinks := JSON (Index).Boolean_Value;
+            Reload := Reload or else Follow_Symlinks /= Self.Follow_Symlinks;
 
          elsif Name = "documentationStyle"
            and then JSON (Index).Kind = String_Value
