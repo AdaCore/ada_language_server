@@ -15,36 +15,42 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Calendar; use Ada.Calendar;
-with Ada.Characters.Handling; use Ada.Characters.Handling;
-with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Exceptions;
-with Ada.Strings.Wide_Wide_Unbounded;
+with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Tags.Generic_Dispatching_Constructor;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
-with GNATCOLL.Utils;             use GNATCOLL.Utils;
-
-with GPR2.Containers;
-with GPR2.Environment;
-with GPR2.Message;
-with GPR2.Project.Registry.Attribute;
-with GPR2.Project.Source.Set;
-with GPR2.Project.Tree.View_Builder;
-with GPR2.Project.View;
-
-with Spawn.Environments;
+with GNATCOLL.Traces;
 
 with VSS.Characters.Latin;
-with VSS.Strings.Conversions;
-with VSS.Unicode;
+with VSS.Strings.Formatters.Integers;
+with VSS.Strings.Formatters.Strings;
+with VSS.Strings.Templates;
+with VSS.String_Vectors;
+with VSS.JSON.Streams;
 
-with LSP.Ada_Documents;        use LSP.Ada_Documents;
-with LSP.Search;               use LSP.Search;
-with LSP.Ada_Contexts;         use LSP.Ada_Contexts;
-with LSP.Ada_Completions;
+with Libadalang.Analysis;
+with Libadalang.Common;
+with Libadalang.Helpers;
+
+with Laltools.Common;
+with Laltools.Partial_GNATPP;
+
+with Langkit_Support.Slocs;
+
+with LAL_Refactor.Extract_Subprogram;
+with LAL_Refactor.Introduce_Parameter;
+with LAL_Refactor.Pull_Up_Declaration;
+with LAL_Refactor.Refactor_Imports;
+with LAL_Refactor.Replace_Type;
+with LAL_Refactor.Sort_Dependencies;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
+with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
+with LAL_Refactor.Suppress_Separate;
+
 with LSP.Ada_Completions.Aspects;
 with LSP.Ada_Completions.Attributes;
 with LSP.Ada_Completions.End_Names;
@@ -53,324 +59,158 @@ with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
 with LSP.Ada_Completions.Use_Clauses;
+with LSP.Ada_Completions;
+with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
-with LSP.Ada_Handlers.Alire;
+with LSP.Ada_Empty_Handlers;
+with LSP.Ada_Handlers.Call_Hierarchy;
+with LSP.Ada_Handlers.Formatting;
 with LSP.Ada_Handlers.Invisibles;
+with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
-with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
-with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
-with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+with LSP.Ada_Handlers.Project_Diagnostics;
+with LSP.Ada_Handlers.Project_Loading;
 with LSP.Ada_Handlers.Refactor.Add_Parameter;
-with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
+with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Imports_Commands;
+with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
-with LSP.Ada_Handlers.Refactor.Remove_Parameter;
-with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
+with LSP.Ada_Handlers.Refactor.Remove_Parameter;
 with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
-with LSP.Ada_Handlers.Project_Diagnostics;
+with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+with LSP.Ada_Handlers.Renaming;
+with LSP.Ada_Handlers.Symbols;
+with LSP.Ada_Commands;
 with LSP.Client_Side_File_Monitors;
-with LSP.Commands;
-with LSP.Common;       use LSP.Common;
-with LSP.Ada_Handlers.File_Readers;
+with LSP.Constants;
 with LSP.Diagnostic_Sources;
+with LSP.Enumerations;
 with LSP.Errors;
-with LSP.Lal_Utils;    use LSP.Lal_Utils;
-with LSP.Messages.Client_Requests;
-with LSP.Messages.Server_Notifications;
-with LSP.Servers.FS_Watch;
-with LSP.Types;        use LSP.Types;
+with LSP.Formatters.Texts;
 with LSP.Generic_Cancel_Check;
-
-with Langkit_Support.Slocs;
-with Langkit_Support.Text;
-
-with Laltools.Common;
-with Laltools.Partial_GNATPP;
-
-with LAL_Refactor.Refactor_Imports;
-with LAL_Refactor.Subprogram_Signature;
-with LAL_Refactor.Safe_Rename;
-with LAL_Refactor.Suppress_Separate;
-with LAL_Refactor.Extract_Subprogram;
-with LAL_Refactor.Introduce_Parameter;
-with LAL_Refactor.Pull_Up_Declaration;
-with LAL_Refactor.Sort_Dependencies;
-with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
-with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
-with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
-with LAL_Refactor.Replace_Type;
-
-with Libadalang.Analysis;
-with Libadalang.Common;    use Libadalang.Common;
-with Libadalang.Helpers;
-with Libadalang.Preprocessing;
-
-with URIs;
+with LSP.GNATCOLL_Tracers.Handle;
+with LSP.Search;
+with LSP.Server_Notifications.DidChange;
+with LSP.Servers;
+with LSP.Servers.FS_Watch;
+with LSP.Structures.LSPAny_Vectors;
+with LSP.Utils;
 
 package body LSP.Ada_Handlers is
-   use GNATCOLL.VFS;
 
-   type Cancel_Countdown is mod 128;
-   --  Counter to restrict frequency of Request.Canceled checks
+   pragma Style_Checks ("o");  --  check subprogram bodies in alphabetical ordr
 
-   Allow_Incremental_Text_Changes : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.ALLOW_INCREMENTAL_TEXT_CHANGES",
-                             GNATCOLL.Traces.On);
-   --  Trace to activate the support for incremental text changes.
+   subtype AlsReferenceKind_Array is LSP.Structures.AlsReferenceKind_Set;
 
-   Notifications_For_Imprecise : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.NOTIFICATIONS_FOR_IMPRECISE_NAVIGATION",
-                             GNATCOLL.Traces.Off);
+   function Is_Parent return AlsReferenceKind_Array is
+     ([LSP.Enumerations.parent => True, others => False]);
 
-   Runtime_Indexing : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.RUNTIME_INDEXING",
-                             GNATCOLL.Traces.On);
-   --  Trace to enable/disable runtime indexing. Useful for the testsuite.
+   function Is_Child return AlsReferenceKind_Array is
+     ([LSP.Enumerations.child => True, others => False]);
 
-   Partial_Gnatpp_Trace   : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create
-       (Unit_Name => "ALS.PARTIAL_GNATPP",
-        Default   => GNATCOLL.Traces.On);
-   --  Trace to enable/disable using partial Gnatpp in the rangeFormatting
-   --  request.
+   procedure Clean_Diagnostics
+     (Self     : in out Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access);
+   --  Clean diagnostics up for the document
 
-   On_Type_Formatting_Trace : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create
-       (Unit_Name => "ALS.ON_TYPE_FORMATTING",
-        Default   => GNATCOLL.Traces.On);
-   --  Trace to enable/disable ALS from providing the
-   --  documentOnTypeFormattingProvider capability.
+   function To_DocumentUri (X : VSS.Strings.Virtual_String)
+     return LSP.Structures.DocumentUri is (X with null record);
 
-   Is_Parent : constant LSP.Messages.AlsReferenceKind_Set :=
-     (Is_Server_Side => True,
-      As_Flags => [LSP.Messages.Parent => True, others => False]);
-   Is_Child : constant LSP.Messages.AlsReferenceKind_Set :=
-     (Is_Server_Side => True,
-      As_Flags => [LSP.Messages.Child => True, others => False]);
-   --  Convenient constants
+   function To_DocumentUri
+     (X : LSP.Structures.URI)
+      return LSP.Structures.DocumentUri is
+     (VSS.Strings.Virtual_String (X) with null record);
 
-   Line_Feed : constant Wide_Wide_Character :=
-     Ada.Characters.Wide_Wide_Latin_1.LF;
-   --  Backspace : constant Character := Ada.Characters.Latin_1.BS;
+   EmptyDocumentUri : constant LSP.Structures.DocumentUri :=
+     To_DocumentUri (VSS.Strings.Empty_Virtual_String);
 
-   procedure Log_Imprecise_Xref_Message
-     (Self     : access Message_Handler;
-      URI      : LSP.Messages.DocumentUri;
-      Position : LSP.Messages.Position);
-   --  Log a message to record that we have made an imprecise navigation
+   procedure Log_Method_In
+     (Self : in out Message_Handler;
+      Name : String;
+      URI  : LSP.Structures.DocumentUri := EmptyDocumentUri);
 
-   procedure Log_Unexpected_Null_Document
-     (Self     : access Message_Handler;
-      Where    : String);
-   --  Log a message saying we unexpectedly couldn't find an open document
+   procedure Log_Method_Out
+     (Self : in out Message_Handler;
+      Name : String);
+   --  Save method in/out in a log file
 
-   procedure Imprecise_Resolve_Name
-     (Self       : access Message_Handler;
-      In_Context : Context_Access;
-      Position   : LSP.Messages.TextDocumentPositionParams'Class;
-      Definition : out Libadalang.Analysis.Defining_Name);
-   --  If node at given Position is a name, then resolve it.
-   --  Send a message in case of a possible imprecise result.
-   --  See description of Msg_Type in Send_Imprecise_Xref_Message comments.
+   function To_LSP_Location
+     (Self : in out Message_Handler'Class;
+      Node : Libadalang.Analysis.Ada_Node'Class;
+      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      return LSP.Structures.Location
+        renames LSP.Ada_Handlers.Locations.To_LSP_Location;
 
-   procedure Show_Message
-     (Self : access Message_Handler;
-      Text : VSS.Strings.Virtual_String;
-      Mode : LSP.Messages.MessageType := LSP.Messages.Error);
-   --  Convenience function to send a message to the user.
+   function Get_Node_At
+     (Self     : in out Message_Handler'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Value    : LSP.Structures.TextDocumentPositionParams'Class)
+      return Libadalang.Analysis.Ada_Node
+        renames LSP.Ada_Handlers.Locations.Get_Node_At;
 
-   procedure Show_Imprecise_Reference_Warning
-     (Self      : access Message_Handler;
-      Operation : String);
-   --  Convenience function to send the warning that the navigation is
-   --  imprecise.
+   procedure Append_Location
+     (Self   : in out Message_Handler;
+      Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kinds  : AlsReferenceKind_Array := LSP.Constants.Empty)
+        renames LSP.Ada_Handlers.Locations.Append_Location;
 
-   function Get_Unique_Progress_Token
-     (Self      : access Message_Handler;
-      Operation : String := "") return LSP_Number_Or_String;
-   --  Return an unique token for indicating progress
+   function Imprecise_Resolve_Name
+     (Self     : in out Message_Handler'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Structures.TextDocumentPositionParams'Class)
+        return Libadalang.Analysis.Defining_Name;
 
-   procedure Index_Files (Self : access Message_Handler);
-   --  Index all loaded files in each context. Emit progresormation.
+   -----------------------------
+   -- Allocate_Progress_Token --
+   -----------------------------
 
-   procedure Release_Contexts_And_Project_Info (Self : access Message_Handler);
-   --  Release the memory associated to project information in Self
+   function Allocate_Progress_Token
+     (Self      : in out Message_Handler'Class;
+      Operation : VSS.Strings.Virtual_String)
+      return LSP.Structures.ProgressToken
+   is
+      Token_Template : VSS.Strings.Templates.Virtual_String_Template :=
+        "ada_ls-{}-{}-{}";
 
-   function Contexts_For_File
-     (Self : access Message_Handler;
-      File : Virtual_File)
-      return LSP.Ada_Context_Sets.Context_Lists.List;
-   function Contexts_For_URI
-     (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri)
-      return LSP.Ada_Context_Sets.Context_Lists.List;
-   --  Return a list of contexts that are suitable for the given File/URI:
-   --  a list of all contexts where the file is known to be part of the
-   --  project tree, or is a runtime file for this project. If the file
-   --  is not known to any project, return an empty list.
-   --  The result should not be freed.
+   begin
+      Self.Token_Id := Self.Token_Id + 1;
+      --  Generate an identifier that has little risk of collision with
+      --  other language servers, or other occurrences of this server.
+      --  (There is still a very small risk of collision with PID recyclings,
+      --  but the consequences are acceptable.)
 
-   procedure Reload_Implicit_Project_Dirs (Self : access Message_Handler);
-   --  Reload as project source dirs the directories in
-   --  Self.Project_Dirs_Loaded.
+      return
+        (Is_Integer     => False,
+         Virtual_String =>
+           Token_Template.Format
+             (VSS.Strings.Formatters.Integers.Image
+                (GNAT.OS_Lib.Pid_To_Integer (GNAT.OS_Lib.Current_Process_Id)),
+              VSS.Strings.Formatters.Strings.Image (Operation),
+              VSS.Strings.Formatters.Integers.Image (Self.Token_Id)));
+   end Allocate_Progress_Token;
 
-   function Compute_File_Operations_Server_Capabilities
-     (Self : access Message_Handler)
-      return LSP.Messages.Optional_FileOperationsServerCapabilities;
-   --  Computes FileOperationsServerCapabilities based on the client's
-   --  capabilities. If the client does have any, then this function returns
-   --  an unset object.
+   -----------------------
+   -- Clean_Diagnostics --
+   -----------------------
 
-   function Compute_File_Operation_Registration_Options
-     (Self : access Message_Handler)
-      return LSP.Messages.FileOperationRegistrationOptions;
-   --  Computes FileOperationRegistrationOptions based on the project held by
-   --  Self. These registration options will include Ada file that is in a
-   --  source folder of Self's project.
-
-   function Format
-     (Self     : in out LSP.Ada_Contexts.Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions;
-      Handler  : access Message_Handler)
-      return LSP.Messages.Server_Responses.Formatting_Response;
-   --  Format the text of the given document in the given range (span).
-
-   function Range_Format
-     (Self        : in out LSP.Ada_Contexts.Context;
-      Document    : LSP.Ada_Documents.Document_Access;
-      Span        : LSP.Messages.Span;
-      Options     : LSP.Messages.FormattingOptions)
-      return LSP.Messages.Server_Responses.Formatting_Response;
-   --  Format the text of the given document in the given range (span).
-
-   type File_Span is record
-      File : GNATCOLL.VFS.Virtual_File;
-      Span : LSP.Messages.Span;
-   end record;
-   --  A text range in a file
-
-   function Hash (Value : File_Span) return Ada.Containers.Hash_Type;
-
-   package File_Span_Sets is new Ada.Containers.Hashed_Sets
-     (Element_Type        => File_Span,
-      Hash                => Hash,
-      Equivalent_Elements => "=");
-
-   ---------------------
-   -- Project loading --
-   ---------------------
-
-   --  The heuristics that is used for loading a project is the following:
-   --
-   --     * if a project (and optionally a scenario) was specified by
-   --       the user via the workspace/didChangeConfiguration notification or
-   --       Initialize request, attempt to use this.
-   --       If there is an `alire.toml` file in the root directory, then run
-   --       `alr` to find search path and extra scenario variables.
-   --       If this fails to load, then report an error, but do not attempt to
-   --       load another project.
-   --     => This case is handled by a call to Reload_Project in
-   --        Change_Configuration.
-   --
-   --     * if no project was specified by the user, then run `alr` in the
-   --       root directory to get project file name from alire.toml (take the
-   --       very first project if many or crate name if none).
-   --       Otherwise look in the root directory, mimicking the behavior of
-   --       gprbuild :
-   --          * if there are zero .gpr files in this directory, load the
-   --            implicit project
-   --          * if there is exactly one .gpr file in this directory, load
-   --            it, returning an error if this failed
-   --          * if there are more than one .gpr files in this directory,
-   --            display an error
-   --      => These cases are handled by Ensure_Project_Loaded
-   --
-   --  At any point where requests are made, Self.Contexts should
-   --  contain one or more contexts, each one containing a non-aggregate
-   --  project hierarchy.
-   --
-   --  The attempt to load a project should be done in reaction to
-   --  On_DidChangeConfiguration_Notification. However, the IDEs that
-   --  are not configured specifically for this language server might
-   --  not pass a .gpr file to didChangeConfiguration: for these IDEs,
-   --  we fallback to loading the project the first time an editor is
-   --  open or a request on non-openned file.
-
-   procedure Ensure_Project_Loaded (Self : access Message_Handler);
-   --  This function makes sure that the contexts in Self are properly
-   --  initialized and a project is loaded. If they are not initialized,
-   --  initialize them.
-
-   procedure Ensure_Project_Loaded
-     (Self : access Message_Handler;
-      URI  : LSP.Types.LSP_URI);
-   --  This function makes sure that the contexts in Self are properly
-   --  initialized and a project is loaded. If they are not initialized,
-   --  initialize them. Use URI to find a custom root directory if provided.
-
-   procedure Load_Implicit_Project
-     (Self   : access Message_Handler;
-      Status : Implicit_Project_Loaded);
-   --  Load the implicit project
-
-   procedure Load_Project
-     (Self         : access Message_Handler;
-      Project_File : VSS.Strings.Virtual_String;
-      Scenario     : Scenario_Variable_List;
-      Environment  : GPR2.Environment.Object;
-      Charset      : VSS.Strings.Virtual_String;
-      Status       : Load_Project_Status);
-   --  Attempt to load the given project file, with the scenario provided.
-   --  This unloads all currently loaded project contexts. This factorizes code
-   --  between Load_Project_With_Alire and Ensure_Project_Loaded.
-
-   procedure Load_Project_With_Alire
-     (Self                : access Message_Handler;
-      Project_File        : VSS.Strings.Virtual_String := "";
-      Scenario_Variables  : Scenario_Variable_List;
-      Charset             : VSS.Strings.Virtual_String);
-   --  Core procedure to find project, search path, scenario and load the
-   --  project.
-   --
-   --  @param Self                 The message handler itself
-   --  @param Project_File         GPR, if set by the user in settings
-   --  @param Scenario_Variables   Scenario as set by the user in settings
-   --  @param Charset              Charset, if set by the user in settings
-   --
-   --  Load a project with a help of alire. If there is `alire.toml` in the
-   --  root directory and `alr` in the `PATH`, then use Alire to setup project
-   --  search path, extra scenario variables (and a project file name if
-   --  Project_File is empty). If Alire reports error then show it to the
-   --  user and fallback to an implicit project.
-   --
-   --  If Alire succeed or no alire/crate then load project if provided.
-
-   procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler);
-   --  Mark all sources in all projects for indexing. This factorizes code
-   --  between Load_Project and Load_Implicit_Project.
-
-   function URI_To_File
-     (Self : Message_Handler'Class;
-      URI  : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
-   --  Turn URI into path
-
-   function To_Virtual_File
-     (Value : VSS.Strings.Virtual_String) return Virtual_File is
-       (Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Value)));
-   --  Cast Virtual_String to Virtual_File
-
-   function To_Virtual_String
-     (Value : Virtual_File) return VSS.Strings.Virtual_String is
-       (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
-   --  Cast Virtual_File to Virtual_String
-
-   procedure Update_Project_Predefined_Sources (Self : access Message_Handler);
-   --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
+   procedure Clean_Diagnostics
+     (Self     : in out Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access)
+   is
+      Diag : LSP.Structures.PublishDiagnosticsParams;
+   begin
+      if Self.Configuration.Diagnostics_Enabled then
+         Diag.uri := Document.URI;
+         Self.Sender.On_PublishDiagnostics_Notification (Diag);
+      end if;
+   end Clean_Diagnostics;
 
    -----------------------
    -- Contexts_For_File --
@@ -378,7 +218,7 @@ package body LSP.Ada_Handlers is
 
    function Contexts_For_File
      (Self : access Message_Handler;
-      File : Virtual_File)
+      File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List
    is
       function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
@@ -407,27 +247,55 @@ package body LSP.Ada_Handlers is
 
    function Contexts_For_URI
      (Self : access Message_Handler;
-      URI  : LSP.Messages.DocumentUri)
+      URI  : LSP.Structures.DocumentUri)
       return LSP.Ada_Context_Sets.Context_Lists.List
    is
-      File : constant Virtual_File := Self.To_File (URI);
+      function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
+        (Self.Is_Part_Of_Project (URI));
+      --  Return True if URI is a source of the project held by Context
+
+      File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
    begin
-      return Self.Contexts_For_File (File);
+      --  If the file does not exist on disk, assume this is a file
+      --  being created and, as a special convenience in this case,
+      --  assume it could belong to any project.
+      if not File.Is_Regular_File
+      --  If the file is a runtime file for the loaded project environment,
+      --  all projects can see it.
+        or else Self.Project_Predefined_Sources.Contains (File)
+      then
+         return Self.Contexts.Each_Context;
+      end if;
+
+      --  List contexts where File is a source of the project hierarchy
+      return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
    end Contexts_For_URI;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (Self : in out Internal_Document_Access) is
+      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+        (LSP.Ada_Documents.Document, Internal_Document_Access);
+   begin
+      Self.Cleanup;
+      Unchecked_Free (Self);
+   end Free;
 
    -----------------------
    -- Get_Open_Document --
    -----------------------
 
-   overriding function Get_Open_Document
-     (Self  : access Message_Handler;
-      URI   : LSP.Messages.DocumentUri;
+   function Get_Open_Document
+     (Self  : in out Message_Handler;
+      URI   : LSP.Structures.DocumentUri;
       Force : Boolean := False)
       return LSP.Ada_Documents.Document_Access
    is
       File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
    begin
-      Self.Ensure_Project_Loaded (URI);
+      Project_Loading.Ensure_Project_Loaded (Self);
 
       if Self.Open_Documents.Contains (File) then
          return LSP.Ada_Documents.Document_Access
@@ -435,7 +303,7 @@ package body LSP.Ada_Handlers is
       elsif Force then
          declare
             Document : constant Internal_Document_Access :=
-              new LSP.Ada_Documents.Document (Self.Trace);
+              new LSP.Ada_Documents.Document (Self.Tracer);
          begin
             Document.Initialize (URI, VSS.Strings.Empty_Virtual_String, null);
             return LSP.Ada_Documents.Document_Access (Document);
@@ -445,17 +313,25 @@ package body LSP.Ada_Handlers is
       end if;
    end Get_Open_Document;
 
+   -----------------------
+   -- Get_Project_Stamp --
+   -----------------------
+
+   function Get_Project_Stamp
+     (Self : Message_Handler'Class)
+      return Project_Stamp is (Self.Project_Stamp);
+
    -------------------------------
    -- Get_Open_Document_Version --
    -------------------------------
 
-   overriding
    function Get_Open_Document_Version
-     (Self  : access Message_Handler;
-      URI   : LSP.Messages.DocumentUri)
-      return LSP.Messages.OptionalVersionedTextDocumentIdentifier
+     (Self : in out Message_Handler;
+      URI  : LSP.Structures.DocumentUri)
+      return LSP.Structures.OptionalVersionedTextDocumentIdentifier
    is
-      Target_Text_Document : constant LSP.Ada_Documents.Document_Access :=
+      use type LSP.Ada_Documents.Document_Access;
+      Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (URI);
 
    begin
@@ -465,895 +341,213 @@ package body LSP.Ada_Handlers is
       --  In that case, its VersionedTextDocumentIdentifier.version will
       --  be null.
 
-      if Target_Text_Document = null then
-         return (URI, LSP.Messages.Nullable_Number'(Is_Set => False));
+      if Document = null then
+         return (URI, LSP.Structures.Integer_Or_Null'(Is_Null => True));
 
       else
-         return
-           (uri     => Target_Text_Document.Versioned_Identifier.uri,
-            version =>
-              (True, Target_Text_Document.Versioned_Identifier.version));
+         return Document.Identifier;
       end if;
    end Get_Open_Document_Version;
-
-   ----------------------------------
-   -- Log_Unexpected_Null_Document --
-   ----------------------------------
-
-   procedure Log_Unexpected_Null_Document
-     (Self     : access Message_Handler;
-      Where    : String) is
-   begin
-      Self.Trace.Trace ("Unexpected null document in " & Where);
-   end Log_Unexpected_Null_Document;
-
-   --------------------------------
-   -- Log_Imprecise_Xref_Message --
-   --------------------------------
-
-   procedure Log_Imprecise_Xref_Message
-     (Self     : access Message_Handler;
-      URI      : LSP.Messages.DocumentUri;
-      Position : LSP.Messages.Position)
-   is
-      File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
-   begin
-      Self.Trace.Trace
-        ("Imprecise fallback used to compute cross-references on entity at "
-         & File.Display_Base_Name
-         & ":" & Integer'Image (Integer (Position.line) + 1)
-         & ":" & Integer'Image (Integer (Position.character) + 1));
-   end Log_Imprecise_Xref_Message;
 
    ----------------------------
    -- Imprecise_Resolve_Name --
    ----------------------------
 
-   procedure Imprecise_Resolve_Name
-     (Self       : access Message_Handler;
-      In_Context : Context_Access;
-      Position   : LSP.Messages.TextDocumentPositionParams'Class;
-      Definition : out Libadalang.Analysis.Defining_Name)
+   function Imprecise_Resolve_Name
+     (Self     : in out Message_Handler'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Structures.TextDocumentPositionParams'Class)
+        return Libadalang.Analysis.Defining_Name
    is
-      use type Libadalang.Analysis.Name;
+      Trace     : constant GNATCOLL.Traces.Trace_Handle :=
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
 
-      Name_Node : constant Libadalang.Analysis.Name :=
+      Name_Node  : constant Libadalang.Analysis.Name :=
         Laltools.Common.Get_Node_As_Name
-          (In_Context.Get_Node_At
-             (Get_Open_Document (Self, Position.textDocument.uri),
-              Position,
-              Project_Only => False));
+          (Self.Get_Node_At (Context, Position));
 
       Imprecise : Boolean;
    begin
-      if Name_Node = Libadalang.Analysis.No_Name then
-         return;
+      if Name_Node.Is_Null then
+         return Libadalang.Analysis.No_Defining_Name;
       end if;
 
-      Definition := Laltools.Common.Resolve_Name
+      return Laltools.Common.Resolve_Name
         (Name_Node,
-         Self.Trace,
+         Trace,
          Imprecise => Imprecise);
-
-      --  If we used the imprecise fallback to get to the definition, log it
-      if Imprecise then
-         Self.Log_Imprecise_Xref_Message
-           (URI      => Position.textDocument.uri,
-            Position => Position.position);
-      end if;
    end Imprecise_Resolve_Name;
 
-   ---------------------------------------
-   -- Release_Contexts_And_Project_Info --
-   ---------------------------------------
-
-   procedure Release_Contexts_And_Project_Info
-     (Self : access Message_Handler)
-   is
-   begin
-      Self.Contexts.Cleanup;
-
-      Self.Project_Tree.Unload;
-      Self.Project_Environment := Empty_Environment;
-      Self.Project_Predefined_Sources.Clear;
-      Self.Project_Dirs_Loaded.Clear;
-
-      --  Clear indexing data
-      Self.Files_To_Index.Clear;
-      Self.Total_Files_To_Index := 1;
-      Self.Total_Files_Indexed := 0;
-   end Release_Contexts_And_Project_Info;
-
-   --------------------------
-   -- Stop_File_Monitoring --
-   --------------------------
-
-   procedure Stop_File_Monitoring (Self : access Message_Handler) is
-   begin
-      if Self.File_Monitor.Assigned then
-         Self.File_Monitor.Stop_Monitoring_Directories;
-      end if;
-   end Stop_File_Monitoring;
-
-   -------------
-   -- Cleanup --
-   -------------
-
-   procedure Cleanup (Self : access Message_Handler)
-   is
-   begin
-      --  Cleanup documents
-      for Document of Self.Open_Documents loop
-         Free (Document);
-      end loop;
-      Self.Open_Documents.Clear;
-
-      --  Cleanup contexts, project and environment
-      Self.Release_Contexts_And_Project_Info;
-
-      --  Free the file monitor
-      LSP.File_Monitors.Unchecked_Free (Self.File_Monitor);
-   end Cleanup;
-
    ----------------
-   -- Clean_Logs --
+   -- Initialize --
    ----------------
 
-   procedure Clean_Logs (Self : access Message_Handler; Dir : Virtual_File) is
-      Files : File_Array_Access := Read_Dir (Dir, Files_Only);
-      Dummy : Boolean;
-      Cpt   : Integer := 0;
-   begin
-      Sort (Files.all);
-      --  Browse the log files in reverse timestamp order
-      for F of reverse Files.all loop
-         --  Filter out files like traces.cfg
-         if GNATCOLL.Utils.Ends_With (+F.Base_Name, ".log") then
-            Cpt := Cpt + 1;
-            --  Delete the old logs
-            if Cpt > Self.Log_Threshold then
-               Delete (F, Dummy);
-            end if;
-         end if;
-      end loop;
-      Unchecked_Free (Files);
-   end Clean_Logs;
-
-   -----------------------
-   -- Exit_Notification --
-   -----------------------
-
-   overriding procedure On_Exit_Notification (Self : access Message_Handler) is
-   begin
-      Self.Server.Stop;
-   end On_Exit_Notification;
-
-   ----------------------------------
-   -- Reload_Implicit_Project_Dirs --
-   ----------------------------------
-
-   procedure Reload_Implicit_Project_Dirs (Self : access Message_Handler) is
-      Project : GPR2.Project.Tree.View_Builder.Object :=
-                   GPR2.Project.Tree.View_Builder.Create
-                     (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
-                      Name        => "default");
-      Values  : GPR2.Containers.Value_List;
-   begin
-      for Dir of Self.Project_Dirs_Loaded loop
-         Values.Append (Dir.Display_Full_Name);
-      end loop;
-
-      Project.Set_Attribute
-        (GPR2.Project.Registry.Attribute.Source_Dirs, Values);
-
-      --  Load_Autoconf is assuming loading unloaded tree.
-
-      Self.Project_Tree.Unload;
-
-      GPR2.Project.Tree.View_Builder.Load_Autoconf
-        (Self              => Self.Project_Tree,
-         Project           => Project,
-         Context           => Self.Project_Environment.Context,
-         Build_Path        => Self.Project_Environment.Build_Path);
-
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
-
-   exception
-      when E : others =>
-         Self.Trace.Trace ("Exception loading implicit");
-         Self.Trace.Trace (E);
-   end Reload_Implicit_Project_Dirs;
-
-   --------------------
-   -- Reload_Project --
-   --------------------
-
-   procedure Reload_Project (Self : access Message_Handler) is
-   begin
-      if Self.Project_File.Is_Empty then
-         Self.Release_Contexts_And_Project_Info;
-         Self.Ensure_Project_Loaded;
-      else
-         Self.Load_Project_With_Alire
-           (Self.Project_File,
-            Self.Scenario_Variables,
-            Self.Charset);
-      end if;
-   end Reload_Project;
-
-   ---------------------------
-   -- Load_Implicit_Project --
-   ---------------------------
-
-   procedure Load_Implicit_Project
-     (Self   : access Message_Handler;
-      Status : Implicit_Project_Loaded)
+   procedure Initialize
+     (Self                     : access Message_Handler'Class;
+      Incremental_Text_Changes : Boolean;
+      Config_File              : VSS.Strings.Virtual_String)
    is
-      C    : constant Context_Access := new Context (Self.Trace);
-      Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
-   begin
-      Self.Trace.Trace ("Loading the implicit project");
-
-      Self.Project_Status := Status;
-      Self.Release_Contexts_And_Project_Info;
-
-      C.Initialize
-        (File_Reader         => Reader,
-         Follow_Symlinks     => Self.Follow_Symlinks,
-         Style               => Self.Options.Documentation.Style,
-         As_Fallback_Context => True);
-
-      --  Note: we would call Load_Implicit_Project here, but this has
-      --  two problems:
-      --    - there is a bug under Windows where the files returned by
-      --      Source_Files have an extraneous directory separator
-      --    - the implicit project relies on the current working
-      --      of the ALS, which imposes a restriction on clients, and
-      --      is an extra pitfall for developers of this server
-      --
-      --  Instead, use Load_Empty_Project and set the source dir and
-      --  language manually: this does not have these inconvenients.
-
-      --  When there is no .gpr, create a project which loads the
-      --  root directory in the workspace.
-
-      Self.Project_Dirs_Loaded.Include (Self.Root);
-      Self.Reload_Implicit_Project_Dirs;
-      C.Load_Project (Self.Project_Tree,
-                      Self.Project_Tree.Root_Project,
-                      "iso-8859-1");
-
-      Update_Project_Predefined_Sources (Self);
-
-      Self.Contexts.Prepend (C);
-
-      --  Reindex the files from disk in the background after a project reload
-      Self.Mark_Source_Files_For_Indexing;
-   end Load_Implicit_Project;
-
-   ---------------------------
-   -- Ensure_Project_Loaded --
-   ---------------------------
-
-   procedure Ensure_Project_Loaded
-     (Self : access Message_Handler;
-      URI  : LSP.Types.LSP_URI)
-   is
-   begin
-      if not Self.Contexts.Is_Empty then
-         --  Rely on the fact that there is at least one context initialized
-         --  as a guarantee that the initialization has been done.
-         return;
-      end if;
-
-      if Self.Root = No_File then
-         Self.Root := Self.To_File (URI).Dir;
-      end if;
-
-      Self.Ensure_Project_Loaded;
-   end Ensure_Project_Loaded;
-
-   ---------------------------
-   -- Ensure_Project_Loaded --
-   ---------------------------
-
-   procedure Ensure_Project_Loaded (Self : access Message_Handler) is
-      GPRs_Found   : Natural := 0;
-      Files        : File_Array_Access;
-      Project_File : VSS.Strings.Virtual_String;
-   begin
-      if not Self.Contexts.Is_Empty then
-         --  Rely on the fact that there is at least one context initialized
-         --  as a guarantee that the initialization has been done.
-         return;
-      end if;
-
-      Self.Trace.Trace ("Looking for a project...");
-      Self.Trace.Trace ("Root : " & Self.Root.Display_Full_Name);
-
-      Self.Load_Project_With_Alire
-        (Project_File        => VSS.Strings.Empty_Virtual_String,
-         Scenario_Variables  => Self.Scenario_Variables,
-         Charset             => Self.Charset);
-
-      if not Self.Contexts.Is_Empty then
-         --  Some project was found by alire and loaded. We are done!
-         return;
-      end if;
-
-      --  We don't have alire/crate.
-      --  We're going to look for a project in Root: list all the files
-      --  in this directory, looking for .gpr files.
-
-      Files := Self.Root.Read_Dir (Files_Only);
-
-      for X of Files.all loop
-         if X.Has_Suffix (".gpr") then
-            GPRs_Found := GPRs_Found + 1;
-            exit when GPRs_Found > 1;
-            Project_File := To_Virtual_String (X);
-         end if;
-      end loop;
-
-      Unchecked_Free (Files);
-
-      --  What we do depends on the number of .gpr files found:
-
-      if GPRs_Found = 0 then
-         --  We have found zero .gpr files: load the implicit project
-
-         Self.Load_Implicit_Project (No_Project_Found);
-      elsif GPRs_Found = 1 then
-         --  We have found exactly one .gpr file: let's load it.
-         Self.Trace.Trace
-           ("Loading " &
-              VSS.Strings.Conversions.To_UTF_8_String (Project_File));
-
-         Self.Load_Project
-           (Project_File,
-            Self.Scenario_Variables,
-            GPR2.Environment.Process_Environment,
-            "iso-8859-1",
-            Single_Project_Found);
-      else
-         --  We have found more than one project: warn the user!
-
-         Self.Show_Message
-           (VSS.Strings.To_Virtual_String
-              ("More than one .gpr found." & Line_Feed &
-                 "Note: you can configure a project " &
-                 " through the ada.projectFile setting."));
-         Self.Load_Implicit_Project (Multiple_Projects_Found);
-      end if;
-   end Ensure_Project_Loaded;
-
-   -------------------------------------------------
-   -- Compute_File_Operations_Server_Capabilities --
-   -------------------------------------------------
-
-   function Compute_File_Operations_Server_Capabilities
-     (Self : access Message_Handler)
-      return LSP.Messages.Optional_FileOperationsServerCapabilities
-   is
-      use LSP.Messages;
-      Client_Capabilities :
-        LSP.Messages.Optional_FileOperationsClientCapabilities
-          renames Self.Client.capabilities.workspace.fileOperations;
-   begin
-
-      if Client_Capabilities.Is_Set
-        and then not Self.Contexts.Each_Context.Is_Empty
-      then
-         declare
-            Registration_Options :
-              constant Optional_FileOperationRegistrationOptions :=
-                (Is_Set => True,
-                 Value  => Self.Compute_File_Operation_Registration_Options);
-         begin
-            return Server_Capabilities :
-                     Optional_FileOperationsServerCapabilities (Is_Set => True)
-            do
-               if Client_Capabilities.Value.didCreate = True then
-                  Server_Capabilities.Value.didCreate := Registration_Options;
-               end if;
-               if Client_Capabilities.Value.willCreate = True then
-                  Server_Capabilities.Value.willCreate := Registration_Options;
-               end if;
-               if Client_Capabilities.Value.didRename = True then
-                  Server_Capabilities.Value.didRename := Registration_Options;
-               end if;
-               if Client_Capabilities.Value.willRename = True then
-                  Server_Capabilities.Value.willRename := Registration_Options;
-               end if;
-               if Client_Capabilities.Value.didDelete = True then
-                  Server_Capabilities.Value.didDelete := Registration_Options;
-               end if;
-               if Client_Capabilities.Value.willDelete = True then
-                  Server_Capabilities.Value.willDelete := Registration_Options;
-               end if;
-            end return;
-         end;
-      else
-         return Optional_FileOperationsServerCapabilities'(Is_Set => False);
-      end if;
-   end Compute_File_Operations_Server_Capabilities;
-
-   -------------------------------------------------
-   -- Compute_File_Operation_Registration_Options --
-   -------------------------------------------------
-
-   function Compute_File_Operation_Registration_Options
-     (Self : access Message_Handler)
-      return LSP.Messages.FileOperationRegistrationOptions
-   is
-      use LSP.Messages;
-      use LSP.Ada_File_Sets.Extension_Sets;
-      use VSS.Strings;
-
-      File_Operation_Filters : LSP.Messages.FileOperationFilter_Vector;
-
-   begin
-
-      for Context of Self.Contexts.Each_Context loop
-         declare
-            Extensions_Set    : constant LSP.Ada_File_Sets.Extension_Sets.Set
-              := Context.List_Source_Extensions;
-            --  Need to lock the Set in a local variable for the cursor to stay
-            --  valid.
-            Extension_Pattern : VSS.Strings.Virtual_String := "{";
-            Extension_Cursor  : LSP.Ada_File_Sets.Extension_Sets.Cursor :=
-              First (Extensions_Set);
-         begin
-            while Has_Element (Extension_Cursor) loop
-               Extension_Pattern.Append (Element (Extension_Cursor));
-               Next (Extension_Cursor);
-               if Has_Element (Extension_Cursor) then
-                  Extension_Pattern.Append (",");
-               else
-                  Extension_Pattern.Append ("}");
-               end if;
-            end loop;
-
-            for Source_Dir of Context.List_Source_Directories loop
-               declare
-                  Dir_Full_Name : constant GNATCOLL.VFS.Filesystem_String :=
-                    GNATCOLL.VFS."/" (Source_Dir, "*").Full_Name;
-                  Scheme        : constant VSS.Strings.Virtual_String :=
-                    "file";
-                  Sources_Glob  : constant VSS.Strings.Virtual_String :=
-                    VSS.Strings.Conversions.To_Virtual_String (+Dir_Full_Name);
-
-                  File_Operation_Filter :
-                  constant LSP.Messages.FileOperationFilter :=
-                    (scheme  => (Is_Set => True,
-                                 Value  => Scheme),
-                     pattern => (glob   => Sources_Glob & Extension_Pattern,
-                                 others => <>));
-               begin
-                  File_Operation_Filters.Append (File_Operation_Filter);
-               end;
-            end loop;
-         end;
-      end loop;
-
-      return
-        FileOperationRegistrationOptions'(filters => File_Operation_Filters);
-   end Compute_File_Operation_Registration_Options;
-
-   ------------
-   -- Format --
-   ------------
-
-   function Format
-     (Self     : in out LSP.Ada_Contexts.Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions;
-      Handler  : access Message_Handler)
-      return LSP.Messages.Server_Responses.Formatting_Response
-   is
-      Response : LSP.Messages.Server_Responses.Formatting_Response
-        (Is_Error => False);
-      Success  : Boolean;
-      Messages : VSS.String_Vectors.Virtual_String_Vector;
-   begin
-      Self.Format
-        (Document => Document,
-         Span     => Span,
-         Options  => Options,
-         Edit     => Response.result,
-         Success  => Success,
-         Messages => Messages);
-
-      if not Success then
-         declare
-            use VSS.Strings;
-
-            Response  : LSP.Messages.Server_Responses.Formatting_Response
-              (Is_Error => True);
-            Error_Msg : VSS.Strings.Virtual_String;
-         begin
-            --  Display error messages from gnatpp, if any
-            for Msg of Messages loop
-               Error_Msg := Error_Msg & Msg;
-            end loop;
-
-            Response.error :=
-              (True,
-               (code    => LSP.Errors.InternalError,
-                message => Error_Msg,
-                data    => <>));
-            return Response;
-         end;
-      else
-         --  If the formntting succeeded, still display messages in the client
-         --  if any.
-         for Msg of Messages loop
-            Show_Message
-              (Self => Handler,
-               Text => Msg,
-               Mode => LSP.Messages.Info);
-         end loop;
-      end if;
-
-      return Response;
-   end Format;
-
-   ------------------
-   -- Range_Format --
-   ------------------
-
-   function Range_Format
-     (Self     : in out LSP.Ada_Contexts.Context;
-      Document : LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Messages.Span;
-      Options  : LSP.Messages.FormattingOptions)
-      return LSP.Messages.Server_Responses.Formatting_Response
-   is
-      Response : LSP.Messages.Server_Responses.Formatting_Response
-        (Is_Error => False);
-      Success  : Boolean;
-      Messages : VSS.String_Vectors.Virtual_String_Vector;
-
-   begin
-      Self.Range_Format
-        (Document => Document,
-         Span     => Span,
-         Options  => Options,
-         Edit     => Response.result,
-         Success  => Success,
-         Messages => Messages);
-
-      if not Success then
-         declare
-            use VSS.Strings;
-
-            Response  : LSP.Messages.Server_Responses.Formatting_Response
-              (Is_Error => True);
-            Error_Msg : VSS.Strings.Virtual_String;
-         begin
-            --  Display error messages from gnatpp, if any
-            for Msg of Messages loop
-               Error_Msg := Error_Msg & Msg;
-            end loop;
-
-            Response.error :=
-              (True,
-               (code    => LSP.Errors.InternalError,
-                message => Error_Msg,
-                data    => <>));
-            return Response;
-         end;
-      end if;
-
-      return Response;
-   end Range_Format;
-
-   ------------------------
-   -- Initialize_Request --
-   ------------------------
-
-   overriding function On_Initialize_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Initialize_Request)
-      return LSP.Messages.Server_Responses.Initialize_Response
-   is
-      use LSP.Messages;
-
-      Value            : LSP.Messages.InitializeParams renames Request.params;
-      Code_Action      : LSP.Messages.Optional_CodeActionClientCapabilities
-        renames Value.capabilities.textDocument.codeAction;
-      Has_Rename       : LSP.Messages.Optional_RenameClientCapabilities
-        renames Value.capabilities.textDocument.rename;
-      Semantic_Tokens  : LSP.Messages.Optional_SemanticTokensClientCapabilities
-        renames Value.capabilities.textDocument.semanticTokens;
-      Experimental_Client_Capabilities : LSP.Types.Optional_LSP_Any renames
-        Value.capabilities.experimental;
-      Response         : LSP.Messages.Server_Responses.Initialize_Response
-        (Is_Error => False);
-      Root             : VSS.Strings.Virtual_String;
-      codeActionKinds  : LSP.Messages.CodeActionKindSet;
-      Backspace_String : VSS.Strings.Virtual_String;
-      Retrigger_Vector : VSS.String_Vectors.Virtual_String_Vector;
-
-   begin
-      Backspace_String.Append (VSS.Characters.Latin.Backspace);
-      Retrigger_Vector.Append (Backspace_String);
-
-      Response.result.capabilities.declarationProvider :=
-        (Is_Set => True,
-         Value => (Is_Boolean => True, Bool => True));
-      Response.result.capabilities.definitionProvider :=
-        (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None));
-      Response.result.capabilities.typeDefinitionProvider :=
-        (Is_Set => True,
-         Value => (Is_Boolean => True, Bool => True));
-      Response.result.capabilities.implementationProvider :=
-        (Is_Set => True,
-         Value => (Is_Boolean => True, Bool => True));
-      Response.result.capabilities.referencesProvider :=
-        (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None));
-      Response.result.capabilities.documentFormattingProvider :=
-        (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None));
-      Response.result.capabilities.documentRangeFormattingProvider :=
-        (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None));
-      Response.result.capabilities.documentOnTypeFormattingProvider :=
-        (if On_Type_Formatting_Trace.Is_Active then
-           (Is_Set => True,
-            Value  =>
-              (firstTriggerCharacter =>
-                 Self.On_Type_Formatting_Settings.First_Trigger_Character,
-               moreTriggerCharacter  =>
-                 Self.On_Type_Formatting_Settings.More_Trigger_Characters))
-         else
-           (Is_Set => False));
-      Response.result.capabilities.callHierarchyProvider :=
-        (Is_Set => True,
-         Value  => (Is_Boolean => False, Options => <>));
-      Response.result.capabilities.documentHighlightProvider :=
-        (Is_Set => True,
-         Value => (workDoneProgress => LSP.Types.None));
-
-      Response.result.capabilities.workspaceSymbolProvider :=
-        (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None));
-      Response.result.capabilities.documentSymbolProvider :=
-        (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None, label => <>));
-      Response.result.capabilities.renameProvider :=
-        (Is_Set => True,
-         Value  => (prepareProvider  =>
-                     (if Has_Rename.Is_Set
-                      and then Has_Rename.Value.prepareSupport = True
-                        then LSP.Types.True else LSP.Types.None),
-                    workDoneProgress => LSP.Types.None));
-      Response.result.capabilities.textDocumentSync :=
-        (Is_Set => True, Is_Number => True,
-         Value  =>
-           (if Allow_Incremental_Text_Changes.Active then
-               LSP.Messages.Incremental
-            else
-               LSP.Messages.Full));
-      Response.result.capabilities.signatureHelpProvider :=
-        (True,
-         (triggerCharacters   => (True, [",", "("]),
-          retriggerCharacters => (True, Retrigger_Vector),
-          workDoneProgress    => LSP.Types.None));
-      Response.result.capabilities.completionProvider :=
-        (True,
-         (resolveProvider     => LSP.Types.True,
-          triggerCharacters   => (True, [".", ",", "'", "("]),
-          allCommitCharacters => (Is_Set => False),
-          workDoneProgress    => LSP.Types.None));
-      Response.result.capabilities.hoverProvider :=
-        (Is_Set => True,
-         Value  => (workDoneProgress => LSP.Types.None));
-      Response.result.capabilities.executeCommandProvider :=
-        (Is_Set => True,
-         Value  => (commands => LSP.Commands.All_Commands,
-                    workDoneProgress  => LSP.Types.None));
-
-      if Code_Action.Is_Set and then
-        Code_Action.Value.codeActionLiteralSupport.Is_Set
-      then
-         LSP.Messages.Include (codeActionKinds, LSP.Messages.QuickFix);
-         LSP.Messages.Include (codeActionKinds, LSP.Messages.RefactorRewrite);
-
-         Response.result.capabilities.codeActionProvider :=
-           (Is_Set => True,
-            Value  =>
-              (codeActionKinds  => (True, codeActionKinds),
-               workDoneProgress => LSP.Types.None,
-               resolveProvider  => LSP.Types.None));
-      else
-         Response.result.capabilities.codeActionProvider :=
-           (Is_Set => True, Value => <>);
-      end if;
-
-      Response.result.capabilities.alsShowDepsProvider := True;
-
-      Response.result.capabilities.alsReferenceKinds :=
-        (Is_Set => True,
-         Value  => (Is_Server_Side => True, As_Flags => [others => True]));
-
-      Response.result.capabilities.foldingRangeProvider :=
-        (Is_Set => True,
-         Value => (Is_Boolean => True, Bool => True));
-
-      Self.Resource_Operations :=
-        Value.capabilities.workspace.workspaceEdit.resourceOperations;
-
-      Response.result.capabilities.alsCheckSyntaxProvider := True;
-
-      --  Client capability to support versioned document changes in
-      --  `WorkspaceEdit`s.
-      Self.Versioned_Documents :=
-        Value.capabilities.workspace.workspaceEdit.documentChanges = True;
-
-      if Value.capabilities.textDocument.documentSymbol.Is_Set
-        and then Value.capabilities.textDocument.documentSymbol.Value
-          .hierarchicalDocumentSymbolSupport = True
-      then
-         Self.Get_Symbols := LSP.Ada_Documents.Get_Symbol_Hierarchy'Access;
-      else
-         Self.Get_Symbols := LSP.Ada_Documents.Get_Symbols'Access;
-      end if;
-
-      if Value.capabilities.textDocument.foldingRange.Is_Set
-        and then Value.capabilities.textDocument.foldingRange.Value.
-          lineFoldingOnly = True
-      then
-         --  Client capability to fold only entire lines
-         Self.Line_Folding_Only := True;
-      end if;
-
-      if Value.capabilities.textDocument.publishDiagnostics.Is_Set
-        and then Value.capabilities.textDocument.publishDiagnostics.Value.
-          relatedInformation.Is_Set
-      then
-         --  Client capability to support relatedInformation field in
-         --  diagnostics.
-         Self.Supports_Related_Diagnostics :=
-           Value.capabilities.textDocument.publishDiagnostics.Value.
-             relatedInformation.Value;
-      end if;
-
-      if Value.capabilities.textDocument.completion.completionItem.Is_Set
-        and then Value.capabilities.textDocument.completion.
-          completionItem.Value.snippetSupport = True
-      then
-         --  Client capability to support snippets for completion
-         Self.Completion_Snippets_Enabled := True;
-      end if;
-
-      if Value.capabilities.textDocument.completion.completionItem.Is_Set
-        and then Value.capabilities.textDocument.completion.
-          completionItem.Value.resolveSupport.Is_Set
-      then
-         Self.Completion_Resolve_Properties :=
-           Value.capabilities.textDocument.completion.
-             completionItem.Value.resolveSupport.Value.properties;
-      end if;
-
-      if Value.capabilities.workspace.didChangeWatchedFiles.Is_Set
-        and then Value.capabilities.workspace.didChangeWatchedFiles.Value
-           .dynamicRegistration = True
-      then
-         Self.File_Monitor := new LSP.Client_Side_File_Monitors.File_Monitor
-           (Self.Server);
-      end if;
-
-      if Semantic_Tokens.Is_Set then
-         declare
-            Legend : LSP.Messages.SemanticTokensLegend;
-         begin
-            Self.Highlighter.Initialize (Semantic_Tokens.Value, Legend);
-
-            Response.result.capabilities.semanticTokensProvider :=
-              (True,
-               (legend => Legend,
-                full   => (True, (diff => <>)),
-                span   => LSP.Types.True,
-                others => <>));
-         end;
-      end if;
-
-      if Value.rootUri.Is_Set
-        and then not Value.rootUri.Value.Is_Empty
-      then
-         Root := Self.URI_To_File (Value.rootUri.Value);
-      elsif Value.rootPath.Is_Set and then Value.rootPath.Value.Is_Set then
-         --  URI isn't provided, rollback to deprecated rootPath
-         Root := Value.rootPath.Value.Value;
-      end if;
-
-      --  Some clients - notably VS Code as of version 33, when opening a file
-      --  rather than a workspace - don't provide a root at all. In that case
-      --  use the current directory as root.
-
-      if Root.Is_Empty then
-         Root := ".";
-      end if;
-
-      Self.Root := To_Virtual_File (Root);
-      Self.Client := Value;
-
-      --  Log the context root
-      Self.Trace.Trace
-        ("Context root: " & VSS.Strings.Conversions.To_UTF_8_String (Root));
-
-      --  Client/ServerCapabilities.workspace.fileOperations capabilities
-
-      declare
-         File_Operation_Capabilities :
-           constant Optional_FileOperationsServerCapabilities :=
-             Self.Compute_File_Operations_Server_Capabilities;
-
+      function Directory (File : VSS.Strings.Virtual_String)
+        return VSS.Strings.Virtual_String;
+
+      ---------------
+      -- Directory --
+      ---------------
+
+      function Directory (File : VSS.Strings.Virtual_String)
+        return VSS.Strings.Virtual_String is
+
+         Value : constant GNATCOLL.VFS.Virtual_File :=
+           GNATCOLL.VFS.Create_From_UTF8
+             (VSS.Strings.Conversions.To_UTF_8_String (File));
       begin
-         if File_Operation_Capabilities.Is_Set then
-            Response.result.capabilities.workspace :=
-              (Is_Set => True,
-               Value =>
-                 (workspaceFolders => (Is_Set => False),
-                  fileOperations   => File_Operation_Capabilities));
-         end if;
-      end;
+         return VSS.Strings.Conversions.To_Virtual_String
+           (Value.Dir.Display_Full_Name);
+      end Directory;
 
-      Response.result.serverInfo := LSP.Messages.Optional_ProgramInfo'
-        (True,
-         (log_filename =>
-              (True, VSS.Strings.Conversions.To_Virtual_String
-                 (Runtime_Indexing.Get_Stream_File.Display_Full_Name)),
-          others       => <>));
+   begin
+      Self.Incremental_Text_Changes := Incremental_Text_Changes;
+      Self.File_Monitor :=
+        new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
 
-      --  Experimental Client Capabilities
-      Self.Experimental_Client_Capabilities :=
-        Parse (Experimental_Client_Capabilities);
+      if not Config_File.Is_Empty then
+         Self.Configuration.Read_File (Config_File);
+         Self.Client.Set_Root_If_Empty (Directory (Config_File));
+         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self.all);
+      end if;
+   end Initialize;
 
-      if Value.initializationOptions.Is_Set then
-         Self.Change_Configuration (Value.initializationOptions.Value);
+   ----------------------
+   -- Is_Open_Document --
+   ----------------------
+
+   function Is_Open_Document
+     (Self : Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File) return Boolean is
+   begin
+      return Self.Open_Documents.Contains (File);
+   end Is_Open_Document;
+
+   -----------------
+   -- Is_Shutdown --
+   -----------------
+
+   function Is_Shutdown
+     (Self : Message_Handler'Class) return Boolean is (Self.Shutdown);
+
+   -------------------
+   -- Log_Method_In --
+   -------------------
+
+   procedure Log_Method_In
+     (Self : in out Message_Handler;
+      Name : String;
+      URI  : LSP.Structures.DocumentUri := EmptyDocumentUri) is
+   begin
+      if not URI.Is_Empty then
+         Self.Tracer.Trace ("In Message_Handler " & Name & " URI:");
+         Self.Tracer.Trace_Text (URI);
+      else
+         Self.Tracer.Trace ("In Message_Handler " & Name);
+      end if;
+   end Log_Method_In;
+
+   --------------------
+   -- Log_Method_Out --
+   --------------------
+
+   procedure Log_Method_Out
+     (Self : in out Message_Handler;
+      Name : String) is
+   begin
+      Self.Tracer.Trace ("Out Message_Handler " & Name);
+   end Log_Method_Out;
+
+   -------------------------------
+   -- On_AlsCheckSyntax_Request --
+   -------------------------------
+
+   overriding procedure On_AlsCheckSyntax_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.AlsCheckSyntaxParams)
+   is
+
+      function "+"
+        (Item : VSS.Strings.Virtual_String'Class)
+         return Ada.Strings.UTF_Encoding.UTF_8_String
+         renames VSS.Strings.Conversions.To_UTF_8_String;
+
+      function "+"
+        (Item : VSS.Strings.Virtual_String'Class)
+         return Ada.Strings.Unbounded.Unbounded_String
+         renames VSS.Strings.Conversions.To_Unbounded_UTF_8_String;
+
+      Response : LSP.Structures.AlsCheckSyntaxResult;
+
+      Invalid_Rule_Error_Message : constant VSS.Strings.Virtual_String :=
+        "Error parsing the grammar rules for the syntax check";
+
+      Rules : Laltools.Common.Grammar_Rule_Vector;
+
+   begin
+      --  The input cannot be empty and only needs to be valid against one of
+      --  the rules.
+
+      if Value.rules.Length = 0 then
+         --  We need at least one rule in order to validate the input
+
+         Self.Sender.On_Error_Response
+           (Id, (LSP.Enumerations.InvalidParams, "Rule list is empty"));
+
+         return;
+      elsif Value.input.Is_Empty then
+
+         Response.diagnostic := "Invalid Syntax";
+         Self.Sender.On_AlsCheckSyntax_Response (Id, Response);
+
+         return;
       end if;
 
-      return Response;
-   end On_Initialize_Request;
+      for Rule of Value.rules loop
+         begin
+            --  A Constraint_Error can be raised here is an invalid rule is
+            --  received in the request parameters.
+            Rules.Append (Libadalang.Common.Grammar_Rule'Value (+Rule));
+         exception
+            when Constraint_Error =>
+               Self.Sender.On_Error_Response
+                 (Id,
+                  (LSP.Enumerations.InvalidParams,
+                   Invalid_Rule_Error_Message));
 
-   -------------------------
-   -- On_Shutdown_Request --
-   -------------------------
+               return;
+         end;
+      end loop;
 
-   overriding function On_Shutdown_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Shutdown_Request)
-      return LSP.Messages.Server_Responses.Shutdown_Response
-   is
-      pragma Unreferenced (Request);
-   begin
-      --  Suspend files/runtime indexing after shutdown requst
-      Self.Indexing_Enabled := False;
+      if not Laltools.Common.Validate_Syntax (+Value.input, Rules) then
+         Response.diagnostic := "Invalid Syntax";
+      end if;
 
-      return Response : LSP.Messages.Server_Responses.Shutdown_Response
-        (Is_Error => False);
-   end On_Shutdown_Request;
+      Self.Sender.On_AlsCheckSyntax_Response (Id, Response);
+   end On_AlsCheckSyntax_Request;
 
    ---------------------------
    -- On_CodeAction_Request --
    ---------------------------
 
-   overriding function On_CodeAction_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.CodeAction_Request)
-      return LSP.Messages.Server_Responses.CodeAction_Response
+   overriding procedure On_CodeAction_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CodeActionParams)
    is
-      Params   : LSP.Messages.CodeActionParams renames Request.params;
+
+      use Libadalang.Common;
 
       procedure Analyse_In_Context
-        (Context  : Context_Access;
+        (Context  : LSP.Ada_Context_Sets.Context_Access;
          Document : LSP.Ada_Documents.Document_Access;
-         Result   : out LSP.Messages.CodeAction_Vector;
+         Result   : out LSP.Structures.Command_Or_CodeAction_Vector;
          Found    : in out Boolean);
       --  Perform refactoring ananlysis given Document in the Context.
       --  Return Found = True if some refactoring is possible. Populate
@@ -1365,9 +559,9 @@ package body LSP.Ada_Handlers is
       --  ParamAssoc without a designator.
 
       procedure Analyse_Node
-        (Context : Context_Access;
+        (Context : LSP.Ada_Context_Sets.Context_Access;
          Node    : Libadalang.Analysis.Ada_Node;
-         Result  : out LSP.Messages.CodeAction_Vector;
+         Result  : out LSP.Structures.Command_Or_CodeAction_Vector;
          Found   : in out Boolean);
       --  Look for a possible refactoring in given Node.
       --  Return Found = True if some refactoring is possible. Populate
@@ -1375,8 +569,875 @@ package body LSP.Ada_Handlers is
       --  analysis has no sense.
 
       procedure Append_Project_Status_Code_Actions
-        (Result : in out LSP.Messages.CodeAction_Vector);
+        (Result : in out LSP.Structures.Command_Or_CodeAction_Vector);
       --  Append project status code action if needed
+
+      ------------------------
+      -- Analyse_In_Context --
+      ------------------------
+
+      procedure Analyse_In_Context
+        (Context  : LSP.Ada_Context_Sets.Context_Access;
+         Document : LSP.Ada_Documents.Document_Access;
+         Result   : out LSP.Structures.Command_Or_CodeAction_Vector;
+         Found    : in out Boolean)
+      is
+         Node : constant Libadalang.Analysis.Ada_Node :=
+           Document.Get_Node_At (Context.all, Value.a_range.start);
+      begin
+         if Node.Is_Null then
+            Found := False;
+            return;
+         end if;
+
+         Analyse_Node (Context, Node, Result, Found);
+      end Analyse_In_Context;
+
+      ------------------
+      -- Analyse_Node --
+      ------------------
+
+      procedure Analyse_Node
+        (Context : LSP.Ada_Context_Sets.Context_Access;
+         Node    : Libadalang.Analysis.Ada_Node;
+         Result  : out LSP.Structures.Command_Or_CodeAction_Vector;
+         Found   : in out Boolean)
+      is
+         procedure Change_Parameters_Type_Code_Action;
+         --  Checks if the Change Parameters Type refactoring tool is avaiable,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Change_Parameters_Default_Value_Code_Action;
+         --  Checks if the Change Parameters Default Value refactoring tool is
+         --  avaiable, and if so, appends a Code Action with its Command.
+
+         procedure Extract_Subprogram_Code_Action;
+         --  Checks if the Extract Subprogram refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Introduce_Parameter_Code_Action;
+         --  Checks if the Introduce Parameter refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Import_Package_Code_Action;
+         --  Checks if the Import Package code assist is available,
+         --  and if so, appends a Code Aciton with its Command.
+
+         procedure Named_Parameters_Code_Action;
+         --  Checks if the Named Parameters refactoring is available, and if
+         --  so, appends a Code Action with its Command.
+
+         procedure Pull_Up_Declaration_Code_Action;
+         --  Checks if the Pull Up Declaration refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Replace_Type_Code_Action;
+         --  Checks if the Replace Type refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Sort_Dependencies_Code_Action;
+         --  Checks if the Sort Dependencies refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         -------------------------------------------------
+         -- Change_Parameters_Default_Value_Code_Action --
+         -------------------------------------------------
+
+         procedure Change_Parameters_Default_Value_Code_Action is
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Subprogram_Signature.
+                  Change_Parameters_Default_Value;
+            use LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Change_Parameters_Default_Value_Command : Command;
+
+         begin
+            if Is_Change_Parameters_Default_Value_Available
+                 (Unit                             => Node.Unit,
+                  Parameters_Source_Location_Range => Span)
+            then
+               Change_Parameters_Default_Value_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
+
+               Found := True;
+            end if;
+         end Change_Parameters_Default_Value_Code_Action;
+
+         ----------------------------------------
+         -- Change_Parameters_Type_Code_Action --
+         ----------------------------------------
+
+         procedure Change_Parameters_Type_Code_Action is
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
+            use LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Syntax_Rules : Laltools.Common.Grammar_Rule_Vector;
+
+            Change_Parameters_Type_Command : Command;
+
+         begin
+            if Is_Change_Parameters_Type_Available
+                 (Unit                             => Node.Unit,
+                  Parameters_Source_Location_Range => Span,
+                  New_Parameter_Syntax_Rules       => Syntax_Rules)
+            then
+               Change_Parameters_Type_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty),
+                  Syntax_Rules    => Syntax_Rules);
+
+               Found := True;
+            end if;
+         end Change_Parameters_Type_Code_Action;
+
+         ------------------------------------
+         -- Extract_Subprogram_Code_Action --
+         ------------------------------------
+
+         procedure Extract_Subprogram_Code_Action is
+            use LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Extract_Subprogram;
+            use type LSP.Structures.Position;
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+
+            Section_To_Extract_SLOC : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Available_Subprogram_Kinds : Available_Subprogram_Kinds_Type;
+
+            Extract_Subprogram_Command : Command;
+
+         begin
+            if not Single_Location then
+               if Is_Extract_Subprogram_Available
+                 (Node.Unit,
+                  Section_To_Extract_SLOC,
+                  Available_Subprogram_Kinds)
+               then
+                  if Available_Subprogram_Kinds (Ada_Subp_Kind_Procedure) then
+                     Extract_Subprogram_Command.Append_Code_Action
+                       (Context         => Context,
+                        Commands_Vector => Result,
+                        Where           =>
+                          (Value.textDocument.uri,
+                           Value.a_range,
+                           LSP.Constants.Empty),
+                        Subprogram_Kind => Ada_Subp_Kind_Procedure);
+                  end if;
+
+                  if Available_Subprogram_Kinds (Ada_Subp_Kind_Function) then
+                     Extract_Subprogram_Command.Append_Code_Action
+                       (Context         => Context,
+                        Commands_Vector => Result,
+                        Where           =>
+                          (Value.textDocument.uri,
+                           Value.a_range,
+                           LSP.Constants.Empty),
+                        Subprogram_Kind => Ada_Subp_Kind_Function);
+                  end if;
+
+                  Found := True;
+               end if;
+            end if;
+         end Extract_Subprogram_Code_Action;
+
+         --------------------------------
+         -- Import_Package_Code_Action --
+         --------------------------------
+
+         procedure Import_Package_Code_Action is
+            use Libadalang.Analysis;
+            use LAL_Refactor.Refactor_Imports;
+            use LSP.Structures;
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+
+            Units_Vector : Libadalang.Helpers.Unit_Vectors.Vector;
+            Units_Array  : constant Analysis_Unit_Array :=
+              Context.Analysis_Units;
+
+            Import_Suggestions : Import_Suggestions_Vector.Vector;
+
+            function Is_Import_Suggestions_Available
+              (This_Node : Ada_Node'Class)
+               return Boolean;
+            --  Checks if This_Node is a suitable node to get import
+            --  suggestions. A suitable node must be an identifier, non
+            --  defining and if it resolves, it must be to a declaration not
+            --  declared in the standard package.
+            --  This function also prepares Units_Vector with the right units
+            --  where suggestions should be searched for.
+
+            -------------------------------------
+            -- Is_Import_Suggestions_Available --
+            -------------------------------------
+
+            function Is_Import_Suggestions_Available
+              (This_Node : Ada_Node'Class)
+               return Boolean
+            is
+               Aux_Node              : Ada_Node :=
+                 (if This_Node.Is_Null then No_Ada_Node
+                  else This_Node.As_Ada_Node);
+               Referenced_Definition : Defining_Name := No_Defining_Name;
+
+            begin
+               --  Only get suggestions for Identifiers or Dotted_Names
+               if Aux_Node.Is_Null
+                 or else Aux_Node.Kind not in
+                   Ada_Identifier_Range | Ada_Dotted_Name_Range
+               then
+                  return False;
+               end if;
+
+               --  Get the full Dotted_Name if applicable
+               while not Aux_Node.Is_Null
+                 and then not Aux_Node.Parent.Is_Null
+                 and then Aux_Node.Parent.Kind in Ada_Dotted_Name_Range
+               loop
+                  Aux_Node := Aux_Node.Parent;
+               end loop;
+
+               --  Defining names do not need prefixes
+               if Aux_Node.Is_Null or else Aux_Node.As_Name.P_Is_Defining then
+                  return False;
+               end if;
+
+               Referenced_Definition :=
+                 Aux_Node.As_Name.P_Referenced_Defining_Name;
+
+               --  Declarations in the standard package do not need prefixes
+               if not Referenced_Definition.Is_Null then
+                  if Referenced_Definition.Unit = Node.P_Standard_Unit then
+                     return False;
+                  end if;
+               end if;
+
+               if Referenced_Definition.Is_Null then
+                  --  The name could not be resolved so a full search needs to
+                  --  be done.
+
+                  for U of Units_Array loop
+                     Units_Vector.Append (U);
+                  end loop;
+
+                  --  Add runtime analysis units for this context
+                  --  ??? If possible, this should be cached.
+
+                  for F in Self.Project_Predefined_Sources.Iterate loop
+                     declare
+                        VF : GNATCOLL.VFS.Virtual_File renames
+                          LSP.Ada_File_Sets.File_Sets.Element (F);
+                     begin
+                        Units_Vector.Append
+                          (Context.LAL_Context.Get_From_File
+                             (VF.Display_Full_Name,
+                              --  ??? What is the charset for predefined
+                              --  files?
+                              ""));
+                     end;
+                  end loop;
+
+               else
+                  --  Libadalang sometimes can resolve names that are not
+                  --  withed.
+                  --  For instance, with Ada.Text_IO, resolve
+                  --  Ada.Text_IO.Put_Line, remove the Ada.Text_IO and then
+                  --  resolve again Ada.Text_IO.Put_Line. Even though
+                  --  Ada.Text_IO is no longer withed, Libadalang is still
+                  --  able to resolve Put_Line.
+                  --  For such cases, include only Referenced_Definition's
+                  --  Analysis_Units and the tool will suggest the prefixes
+                  --  (there can be more than one, for instance, when there
+                  --  are nested packages.
+                  Units_Vector.Append (Referenced_Definition.Unit);
+               end if;
+
+               return True;
+            exception
+               when others => return False;
+            end Is_Import_Suggestions_Available;
+
+         begin
+            if not Single_Location
+              or else not Is_Import_Suggestions_Available (Node)
+            then
+               return;
+            end if;
+
+            --  Get suggestions for all reachable declarations.
+            --  Each suggestion contains a with clause and a
+            --  prefix.
+
+            Import_Suggestions :=
+              Get_Import_Suggestions (Node, Units_Vector);
+
+            --  Create a new codeAction command for each suggestion
+
+            for Suggestion of Import_Suggestions loop
+               declare
+                  Command : LSP.Ada_Handlers.Refactor.Imports_Commands.Command;
+               begin
+                  Command.Append_Suggestion
+                    (Context         => Context,
+                     Where           =>
+                       LSP.Utils.Get_Node_Location (Node),
+                     Commands_Vector => Result,
+                     Suggestion      => Suggestion);
+               end;
+            end loop;
+
+            if not Import_Suggestions.Is_Empty then
+               Found := True;
+            end if;
+         end Import_Package_Code_Action;
+
+         -------------------------------------
+         -- Introduce_Parameter_Code_Action --
+         -------------------------------------
+
+         procedure Introduce_Parameter_Code_Action is
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Introduce_Parameter;
+            use LSP.Ada_Handlers.Refactor.Introduce_Parameter;
+
+            Span : constant Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Introduce_Parameter_Command : Command;
+
+         begin
+            if Is_Introduce_Parameter_Available
+                 (Unit       => Node.Unit,
+                  SLOC_Range => Span)
+            then
+               Introduce_Parameter_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
+
+               Found := True;
+            end if;
+         end Introduce_Parameter_Code_Action;
+
+         ----------------------------------
+         -- Named_Parameters_Code_Action --
+         ----------------------------------
+
+         procedure Named_Parameters_Code_Action is
+            Aux_Node : Libadalang.Analysis.Ada_Node := Node;
+            Done     : Boolean := False;
+            --  We propose only one choice of Named_Parameters refactoring per
+            --  request. So, if a user clicks on `1` in `A (B (1))` we propose
+            --  the refactoring for B (1), but not for A (...) call. We
+            --  consider this as better user experience.
+            --
+            --  This boolean filter to detect such refactoring duplication.
+
+            procedure Append_Command (Node : Libadalang.Analysis.Ada_Node);
+            --  Contruct a command and append it to Result
+
+            --------------------
+            -- Append_Command --
+            --------------------
+
+            procedure Append_Command (Node : Libadalang.Analysis.Ada_Node) is
+               use LSP.Ada_Handlers.Named_Parameters_Commands;
+
+               Named_Parameters_Command : LSP.Ada_Handlers.
+                 Named_Parameters_Commands.Command;
+
+            begin
+               Named_Parameters_Command.Append_Suggestion
+                 (Context             => Context,
+                  Commands_Vector     => Result,
+                  Where               => LSP.Utils.Get_Node_Location (Node),
+                  Versioned_Documents => Self.Client.Versioned_Documents);
+
+               Done  := True;
+               Found := True;
+            end Append_Command;
+
+         begin
+            while not Done and then not Aux_Node.Is_Null loop
+               case Aux_Node.Kind is
+                  when Libadalang.Common.Ada_Stmt
+                     | Libadalang.Common.Ada_Basic_Decl =>
+
+                     Done := True;
+
+                  when Libadalang.Common.Ada_Basic_Assoc_List =>
+                     if Has_Assoc_Without_Designator
+                          (Aux_Node.As_Basic_Assoc_List)
+                     then
+                        Append_Command (Aux_Node);
+                     end if;
+
+                  when Libadalang.Common.Ada_Call_Expr =>
+                     declare
+                        List : constant Libadalang.Analysis.Ada_Node :=
+                          Aux_Node.As_Call_Expr.F_Suffix;
+
+                     begin
+                        if not List.Is_Null
+                          and then List.Kind in
+                                     Libadalang.Common.Ada_Basic_Assoc_List
+                          and then Has_Assoc_Without_Designator
+                                     (List.As_Basic_Assoc_List)
+                        then
+                           Append_Command (List);
+                        end if;
+                     end;
+                  when others =>
+                     null;
+               end case;
+
+               Aux_Node := Aux_Node.Parent;
+            end loop;
+         end Named_Parameters_Code_Action;
+
+         -------------------------------------
+         -- Pull_Up_Declaration_Code_Action --
+         -------------------------------------
+
+         procedure Pull_Up_Declaration_Code_Action is
+            use Langkit_Support.Slocs;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Pull_Up_Declaration;
+            use LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
+            use LSP.Structures;
+
+            --  This code action is not available when a range of text is
+            --  selected.
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+            Location        : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Pull_Up_Declaration_Command :
+              LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command;
+
+         begin
+            if Single_Location
+              and then Is_Pull_Up_Declaration_Available (Node.Unit, Location)
+            then
+               Pull_Up_Declaration_Command.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
+
+               Found := True;
+            end if;
+         end Pull_Up_Declaration_Code_Action;
+
+         ------------------------------
+         -- Replace_Type_Code_Action --
+         ------------------------------
+
+         procedure Replace_Type_Code_Action is
+            use LSP.Ada_Handlers.Refactor.Replace_Type;
+            use LAL_Refactor.Replace_Type;
+
+            use Langkit_Support.Slocs;
+
+            Location : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Replace_Type_Command :
+              LSP.Ada_Handlers.Refactor.Replace_Type.Command;
+
+         begin
+            if Is_Replace_Type_Available (Node.Unit, Location) then
+               Replace_Type_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (Value.textDocument.uri,
+                     Value.a_range,
+                     LSP.Constants.Empty));
+
+               Found := True;
+            end if;
+         end Replace_Type_Code_Action;
+
+         -----------------------------------
+         -- Sort_Dependencies_Code_Action --
+         -----------------------------------
+
+         procedure Sort_Dependencies_Code_Action is
+            use Langkit_Support.Slocs;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Sort_Dependencies;
+            use LSP.Ada_Handlers.Refactor.Sort_Dependencies;
+            use LSP.Structures;
+
+            Location        : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Sort_Dependencies_Command :
+              LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command;
+
+         begin
+            if Is_Sort_Dependencies_Available (Node.Unit, Location) then
+               Sort_Dependencies_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
+
+               Found := True;
+            end if;
+         end Sort_Dependencies_Code_Action;
+
+      begin
+         Named_Parameters_Code_Action;
+
+         Sort_Dependencies_Code_Action;
+
+         Import_Package_Code_Action;
+
+         --  Refactoring Code Actions
+
+         --  Extract Subprogram
+         Extract_Subprogram_Code_Action;
+
+         --  Pull Up Declaration
+         Pull_Up_Declaration_Code_Action;
+
+         --  These refactorings are only available for clients that can
+         --  provide user inputs:
+         --  - Add Parameter
+         --  - Change Parameters Type
+         --  - Change Parameters Default Value
+
+         --  Add Parameter
+         if Self.Client.Refactoring_Add_Parameter then
+            declare
+               use LSP.Ada_Handlers.Refactor.Add_Parameter;
+               use Libadalang.Analysis;
+               use LAL_Refactor.Subprogram_Signature;
+               use Langkit_Support.Slocs;
+               use type LSP.Structures.Position;
+
+               --  This code action is not available when a range of text is
+               --  selected.
+
+               Single_Location             : constant Boolean :=
+                 Value.a_range.start = Value.a_range.an_end;
+               Location                    : constant Source_Location :=
+                 (if Single_Location then
+                    (Langkit_Support.Slocs.Line_Number
+                         (Value.a_range.start.line) + 1,
+                     Column_Number (Value.a_range.start.character) + 1)
+                  else
+                     No_Source_Location);
+
+               Requires_Full_Specification : Boolean;
+
+               Add_Parameter_Commad : Command;
+
+            begin
+               if Single_Location
+                 and then Is_Add_Parameter_Available
+                   (Node.Unit,
+                    Location,
+                    Requires_Full_Specification)
+               then
+                  Add_Parameter_Commad.Append_Code_Action
+                    (Context                     => Context,
+                     Commands_Vector             => Result,
+                     Where                       =>
+                       (Value.textDocument.uri,
+                        Value.a_range,
+                        LSP.Constants.Empty),
+                     Requires_Full_Specification =>
+                       Requires_Full_Specification);
+
+                  Found := True;
+               end if;
+            end;
+         end if;
+
+         --  Change Parameters Type
+         if Self.Client.Refactoring_Change_Parameters_Type then
+            Change_Parameters_Type_Code_Action;
+         end if;
+
+         --  Change Parameters Default Value
+         if Self.Client.Refactoring_Change_Parameters_Default_Value then
+            Change_Parameters_Default_Value_Code_Action;
+         end if;
+
+         --  Remove Parameter
+         declare
+            use LSP.Ada_Handlers.Refactor.Remove_Parameter;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Subprogram_Signature;
+            use LAL_Refactor.Subprogram_Signature.Remove_Parameter;
+
+            Target_Subp              : Basic_Decl := No_Basic_Decl;
+            Parameter_Indices_Range  : Parameter_Indices_Range_Type;
+            Remove_Parameter_Command : Command;
+
+         begin
+            if Is_Remove_Parameter_Available
+              (Node, Target_Subp, Parameter_Indices_Range)
+            then
+               Remove_Parameter_Command.Append_Code_Action
+                 (Context            => Context,
+                  Commands_Vector    => Result,
+                  Target_Subp        => Target_Subp,
+                  Parameters_Indices => Parameter_Indices_Range);
+
+               Found := True;
+            end if;
+         end;
+
+         --  Move Parameter
+         declare
+            use LSP.Ada_Handlers.Refactor.Move_Parameter;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Subprogram_Signature;
+
+            Target_Subp            : Basic_Decl := No_Basic_Decl;
+            Parameter_Index        : Positive;
+            Move_Directions        : Move_Direction_Availability_Type;
+            Move_Parameter_Command : Command;
+
+         begin
+            if Is_Move_Parameter_Available
+              (Node, Target_Subp, Parameter_Index, Move_Directions)
+            then
+               for Direction in Move_Direction_Type loop
+                  if Move_Directions (Direction) then
+                     Move_Parameter_Command.Append_Code_Action
+                       (Context          => Context,
+                        Commands_Vector  => Result,
+                        Target_Subp      => Target_Subp,
+                        Parameter_Index  => Parameter_Index,
+                        Move_Direction   => Direction);
+                  end if;
+               end loop;
+
+               Found := True;
+            end if;
+         end;
+
+         --  Change Parameter Mode
+         declare
+            use LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Subprogram_Signature;
+
+            Target_Subp                   : Basic_Decl := No_Basic_Decl;
+            Target_Parameters_Indices     : Parameter_Indices_Range_Type;
+            Mode_Alternatives             : Mode_Alternatives_Type;
+            Change_Parameter_Mode_Command : Command;
+
+         begin
+            if Is_Change_Mode_Available
+              (Node, Target_Subp, Target_Parameters_Indices, Mode_Alternatives)
+            then
+               for Alternative of Mode_Alternatives loop
+                  Change_Parameter_Mode_Command.Append_Code_Action
+                    (Context            => Context,
+                     Commands_Vector    => Result,
+                     Target_Subp        => Target_Subp,
+                     Parameters_Indices => Target_Parameters_Indices,
+                     New_Mode           => Alternative);
+               end loop;
+
+               Found := True;
+            end if;
+         end;
+
+         --  Introduce Parameter
+         Introduce_Parameter_Code_Action;
+
+         --  Suppress Subprogram
+         declare
+            use LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Suppress_Separate;
+
+            Target_Separate           : Basic_Decl := No_Basic_Decl;
+            Suppress_Separate_Command : Command;
+         begin
+            if Is_Suppress_Separate_Available (Node, Target_Separate) then
+               Suppress_Separate_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Target_Separate => Target_Separate);
+
+               Found := True;
+            end if;
+         end;
+
+         --  Replace Type
+         if Self.Client.Refactoring_Replace_Type then
+            Replace_Type_Code_Action;
+         end if;
+      end Analyse_Node;
+
+      ----------------------------------------
+      -- Append_Project_Status_Code_Actions --
+      ----------------------------------------
+
+      procedure Append_Project_Status_Code_Actions
+        (Result : in out LSP.Structures.Command_Or_CodeAction_Vector)
+      is
+         use type VSS.Strings.Virtual_String;
+
+         Diagnostics : LSP.Structures.Diagnostic_Vector;
+
+      begin
+         for Item of Value.context.diagnostics loop
+            if Item.source = "project" then
+               Diagnostics.Append (Item);
+            end if;
+         end loop;
+
+         case Self.Project_Status is
+            when Valid_Project_Configured | Alire_Project =>
+               null;
+            when No_Runtime_Found =>
+               --  TODO: Provide help with the compiler installation
+               null;
+            when Single_Project_Found | Multiple_Projects_Found =>
+               declare
+                  Item    : LSP.Structures.CodeAction;
+                  Command : LSP.Structures.Command;
+                  Arg     : constant VSS.JSON.Streams.JSON_Stream_Element :=
+                    VSS.JSON.Streams.JSON_Stream_Element'
+                      (Kind         => VSS.JSON.Streams.String_Value,
+                       String_Value => "ada.projectFile");
+               begin
+                  Command.title := "Open settings for ada.projectFile";
+                  Command.command := "workbench.action.openSettings";
+                  Command.arguments.Append (Arg);
+
+                  Item :=
+                    (title       => Command.title,
+                     kind        => (True, LSP.Enumerations.QuickFix),
+                     diagnostics => Diagnostics,
+                     disabled    => (Is_Set => False),
+                     edit        => (Is_Set => False),
+                     isPreferred => LSP.Constants.True,
+                     command     => (True, Command),
+                     data        => <>);
+
+                  Result.Append
+                    (LSP.Structures.Command_Or_CodeAction'
+                       (Is_Command => False, CodeAction => Item));
+               end;
+            when No_Project_Found =>
+               declare
+                  Title  : constant VSS.Strings.Virtual_String :=
+                    "Create a default project file (default.gpr)";
+                  URI    : constant LSP.Structures.DocumentUri :=
+                    Self.To_URI
+                      (GNATCOLL.VFS.Create_From_UTF8
+                         (VSS.Strings.Conversions.To_UTF_8_String
+                            (Self.Client.Root)).Join
+                              ("default.gpr").Display_Full_Name);
+
+                  Create : constant LSP.Structures.
+                    documentChanges_OfWorkspaceEdit_Item :=
+                      (Kind    => LSP.Structures.create,
+                       create  => (uri    => URI,
+                                   others => <>));
+
+                  Text   : constant LSP.Structures.
+                    TextEdit_Or_AnnotatedTextEdit :=
+                      (Is_TextEdit => True,
+                       TextEdit    =>
+                         (a_range => ((0, 0), (0, 0)),
+                          newText => "project Default is end Default;"));
+                  Insert : LSP.Structures.
+                    documentChanges_OfWorkspaceEdit_Item :=
+                    (LSP.Structures.Variant_1,
+                     (textDocument => (uri => URI, others => <>),
+                      edits        => <>));
+
+                  Item   : LSP.Structures.CodeAction;
+                  Edit   : LSP.Structures.WorkspaceEdit;
+               begin
+                  Insert.Variant_1.edits.Append (Text);
+                  Edit.documentChanges.Append (Create);
+                  Edit.documentChanges.Append (Insert);
+                  Item :=
+                    (title       => Title,
+                     kind        => (True, LSP.Enumerations.QuickFix),
+                     diagnostics => Diagnostics,
+                     disabled    => (Is_Set => False),
+                     edit        => (True, Edit),
+                     isPreferred => LSP.Constants.True,
+                     command     => (Is_Set => False),
+                     data        => <>);
+
+                  Result.Append
+                    (LSP.Structures.Command_Or_CodeAction'
+                       (Is_Command => False, CodeAction => Item));
+               end;
+            when Invalid_Project_Configured =>
+               null;
+         end case;
+      end Append_Project_Status_Code_Actions;
 
       ----------------------------------
       -- Has_Assoc_Without_Designator --
@@ -1506,1174 +1567,414 @@ package body LSP.Ada_Handlers is
          end;
       end Has_Assoc_Without_Designator;
 
-      ------------------
-      -- Analyse_Node --
-      ------------------
-
-      procedure Analyse_Node
-        (Context : Context_Access;
-         Node    : Libadalang.Analysis.Ada_Node;
-         Result  : out LSP.Messages.CodeAction_Vector;
-         Found   : in out Boolean)
-      is
-         procedure Change_Parameters_Type_Code_Action;
-         --  Checks if the Change Parameters Type refactoring tool is avaiable,
-         --  and if so, appends a Code Action with its Command.
-
-         procedure Change_Parameters_Default_Value_Code_Action;
-         --  Checks if the Change Parameters Default Value refactoring tool is
-         --  avaiable, and if so, appends a Code Action with its Command.
-
-         procedure Extract_Subprogram_Code_Action;
-         --  Checks if the Extract Subprogram refactoring tool is available,
-         --  and if so, appends a Code Action with its Command.
-
-         procedure Introduce_Parameter_Code_Action;
-         --  Checks if the Introduce Parameter refactoring tool is available,
-         --  and if so, appends a Code Action with its Command.
-
-         procedure Import_Package_Code_Action;
-         --  Checks if the Import Package code assist is available,
-         --  and if so, appends a Code Aciton with its Command.
-
-         procedure Named_Parameters_Code_Action;
-         --  Checks if the Named Parameters refactoring is available, and if
-         --  so, appends a Code Action with its Command.
-
-         procedure Pull_Up_Declaration_Code_Action;
-         --  Checks if the Pull Up Declaration refactoring tool is available,
-         --  and if so, appends a Code Action with its Command.
-
-         procedure Replace_Type_Code_Action;
-         --  Checks if the Replace Type refactoring tool is available,
-         --  and if so, appends a Code Action with its Command.
-
-         procedure Sort_Dependencies_Code_Action;
-         --  Checks if the Sort Dependencies refactoring tool is available,
-         --  and if so, appends a Code Action with its Command.
-
-         ----------------------------------------
-         -- Change_Parameters_Type_Code_Action --
-         ----------------------------------------
-
-         procedure Change_Parameters_Type_Code_Action is
-            use Langkit_Support.Slocs;
-            use LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
-            use LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
-
-            Span : constant Source_Location_Range :=
-              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
-               Langkit_Support.Slocs.Line_Number (Params.span.last.line) + 1,
-               Column_Number (Params.span.first.character) + 1,
-               Column_Number (Params.span.last.character) + 1);
-
-            Syntax_Rules : Laltools.Common.Grammar_Rule_Vector;
-
-            Change_Parameters_Type_Command : Command;
-
-         begin
-            if Is_Change_Parameters_Type_Available
-                 (Unit                             => Node.Unit,
-                  Parameters_Source_Location_Range => Span,
-                  New_Parameter_Syntax_Rules       => Syntax_Rules)
-            then
-               Change_Parameters_Type_Command.Append_Code_Action
-                 (Context                     => Context,
-                  Commands_Vector             => Result,
-                  Where                       =>
-                    (uri     => Params.textDocument.uri,
-                     span    => Params.span,
-                     alsKind => LSP.Messages.Empty_Set),
-                  Syntax_Rules                => Syntax_Rules);
-
-               Found := True;
-            end if;
-         end Change_Parameters_Type_Code_Action;
-
-         -------------------------------------------------
-         -- Change_Parameters_Default_Value_Code_Action --
-         -------------------------------------------------
-
-         procedure Change_Parameters_Default_Value_Code_Action is
-            use Langkit_Support.Slocs;
-            use LAL_Refactor.Subprogram_Signature.
-                  Change_Parameters_Default_Value;
-            use LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
-
-            Span : constant Source_Location_Range :=
-              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
-               Langkit_Support.Slocs.Line_Number (Params.span.last.line) + 1,
-               Column_Number (Params.span.first.character) + 1,
-               Column_Number (Params.span.last.character) + 1);
-
-            Change_Parameters_Default_Value_Command : Command;
-
-         begin
-            if Is_Change_Parameters_Default_Value_Available
-                 (Unit                             => Node.Unit,
-                  Parameters_Source_Location_Range => Span)
-            then
-               Change_Parameters_Default_Value_Command.Append_Code_Action
-                 (Context                     => Context,
-                  Commands_Vector             => Result,
-                  Where                       =>
-                    (uri     => Params.textDocument.uri,
-                     span    => Params.span,
-                     alsKind => LSP.Messages.Empty_Set));
-
-               Found := True;
-            end if;
-         end Change_Parameters_Default_Value_Code_Action;
-
-         ------------------------------------
-         -- Extract_Subprogram_Code_Action --
-         ------------------------------------
-
-         procedure Extract_Subprogram_Code_Action is
-            use LSP.Ada_Handlers.Refactor.Extract_Subprogram;
-            use Langkit_Support.Slocs;
-            use LAL_Refactor.Extract_Subprogram;
-            use type LSP.Messages.Position;
-
-            Single_Location : constant Boolean :=
-              Params.span.first = Params.span.last;
-
-            Section_To_Extract_SLOC : constant Source_Location_Range :=
-              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
-               Langkit_Support.Slocs.Line_Number (Params.span.last.line) + 1,
-               Column_Number (Params.span.first.character) + 1,
-               Column_Number (Params.span.last.character) + 1);
-
-            Available_Subprogram_Kinds : Available_Subprogram_Kinds_Type;
-
-            Extract_Subprogram_Command : Command;
-
-         begin
-            if not Single_Location then
-               if Is_Extract_Subprogram_Available
-                 (Node.Unit,
-                  Section_To_Extract_SLOC,
-                  Available_Subprogram_Kinds)
-               then
-                  if Available_Subprogram_Kinds (Ada_Subp_Kind_Procedure) then
-                     Extract_Subprogram_Command.Append_Code_Action
-                       (Context                    => Context,
-                        Commands_Vector            => Result,
-                        Where                      =>
-                          (Params.textDocument.uri,
-                           Params.span,
-                           LSP.Messages.Empty_Set),
-                        Subprogram_Kind            =>
-                          Ada_Subp_Kind_Procedure);
-                  end if;
-
-                  if Available_Subprogram_Kinds (Ada_Subp_Kind_Function) then
-                     Extract_Subprogram_Command.Append_Code_Action
-                       (Context                    => Context,
-                        Commands_Vector            => Result,
-                        Where                      =>
-                          (Params.textDocument.uri,
-                           Params.span,
-                           LSP.Messages.Empty_Set),
-                        Subprogram_Kind            =>
-                          Ada_Subp_Kind_Function);
-                  end if;
-
-                  Found := True;
-               end if;
-            end if;
-         end Extract_Subprogram_Code_Action;
-
-         -------------------------------------
-         -- Introduce_Parameter_Code_Action --
-         -------------------------------------
-
-         procedure Introduce_Parameter_Code_Action is
-            use Langkit_Support.Slocs;
-            use LAL_Refactor.Introduce_Parameter;
-            use LSP.Ada_Handlers.Refactor.Introduce_Parameter;
-
-            Span : constant Source_Location_Range :=
-              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
-               Langkit_Support.Slocs.Line_Number (Params.span.last.line) + 1,
-               Column_Number (Params.span.first.character) + 1,
-               Column_Number (Params.span.last.character) + 1);
-
-            Introduce_Parameter_Command : Command;
-
-         begin
-            if Is_Introduce_Parameter_Available
-                 (Unit       => Node.Unit,
-                  SLOC_Range => Span)
-            then
-               Introduce_Parameter_Command.Append_Code_Action
-                 (Context         => Context,
-                  Commands_Vector => Result,
-                  Where           =>
-                    (uri     => Params.textDocument.uri,
-                     span    => Params.span,
-                     alsKind => LSP.Messages.Empty_Set));
-
-               Found := True;
-            end if;
-         end Introduce_Parameter_Code_Action;
-
-         --------------------------------
-         -- Import_Package_Code_Action --
-         --------------------------------
-
-         procedure Import_Package_Code_Action is
-            use Libadalang.Analysis;
-            use LAL_Refactor.Refactor_Imports;
-            use LSP.Messages;
-
-            Single_Location : constant Boolean :=
-              Params.span.first = Params.span.last;
-
-            Units_Vector : Libadalang.Helpers.Unit_Vectors.Vector;
-            Units_Array  : constant Analysis_Unit_Array :=
-              Context.Analysis_Units;
-
-            Import_Suggestions : Import_Suggestions_Vector.Vector;
-
-            function Is_Import_Suggestions_Available
-              (This_Node : Ada_Node'Class)
-               return Boolean;
-            --  Checks if This_Node is a suitable node to get import
-            --  suggestions. A suitable node must be an identifier, non
-            --  defining and if it resolves, it must be to a declaration not
-            --  declared in the standard package.
-            --  This function also prepares Units_Vector with the right units
-            --  where suggestions should be searched for.
-
-            -------------------------------------
-            -- Is_Import_Suggestions_Available --
-            -------------------------------------
-
-            function Is_Import_Suggestions_Available
-              (This_Node : Ada_Node'Class)
-               return Boolean
-            is
-               Aux_Node              : Ada_Node :=
-                 (if This_Node.Is_Null then No_Ada_Node
-                  else This_Node.As_Ada_Node);
-               Referenced_Definition : Defining_Name := No_Defining_Name;
-
-            begin
-               --  Only get suggestions for Identifiers or Dotted_Names
-               if Aux_Node.Is_Null
-                 or else Aux_Node.Kind not in
-                   Ada_Identifier_Range | Ada_Dotted_Name_Range
-               then
-                  return False;
-               end if;
-
-               --  Get the full Dotted_Name if applicable
-               while not Aux_Node.Is_Null
-                 and then not Aux_Node.Parent.Is_Null
-                 and then Aux_Node.Parent.Kind in Ada_Dotted_Name_Range
-               loop
-                  Aux_Node := Aux_Node.Parent;
-               end loop;
-
-               --  Defining names do not need prefixes
-               if Aux_Node.Is_Null or else Aux_Node.As_Name.P_Is_Defining then
-                  return False;
-               end if;
-
-               Referenced_Definition :=
-                 Aux_Node.As_Name.P_Referenced_Defining_Name;
-
-               --  Declarations in the standard package do not need prefixes
-               if not Referenced_Definition.Is_Null then
-                  if Referenced_Definition.Unit = Node.P_Standard_Unit then
-                     return False;
-                  end if;
-               end if;
-
-               if Referenced_Definition.Is_Null then
-                  --  The name could not be resolved so a full search needs to
-                  --  be done.
-
-                  for U of Units_Array loop
-                     Units_Vector.Append (U);
-                  end loop;
-
-                  --  Add runtime analysis units for this context
-                  --  ??? If possible, this should be cached.
-
-                  for F in Self.Project_Predefined_Sources.Iterate loop
-                     declare
-                        VF : GNATCOLL.VFS.Virtual_File renames
-                          LSP.Ada_File_Sets.File_Sets.Element (F);
-                     begin
-                        Units_Vector.Append
-                          (Context.LAL_Context.Get_From_File
-                             (VF.Display_Full_Name,
-                              --  ??? What is the charset for predefined
-                              --  files?
-                              ""));
-                     end;
-                  end loop;
-
-               else
-                  --  Libadalang sometimes can resolve names that are not
-                  --  withed.
-                  --  For instance, with Ada.Text_IO, resolve
-                  --  Ada.Text_IO.Put_Line, remove the Ada.Text_IO and then
-                  --  resolve again Ada.Text_IO.Put_Line. Even though
-                  --  Ada.Text_IO is no longer withed, Libadalang is still
-                  --  able to resolve Put_Line.
-                  --  For such cases, include only Referenced_Definition's
-                  --  Analysis_Units and the tool will suggest the prefixes
-                  --  (there can be more than one, for instance, when there
-                  --  are nested packages.
-                  Units_Vector.Append (Referenced_Definition.Unit);
-               end if;
-
-               return True;
-            exception
-               when others => return False;
-            end Is_Import_Suggestions_Available;
-
-         begin
-            if not Single_Location
-              or else not Is_Import_Suggestions_Available (Node)
-            then
-               return;
-            end if;
-
-            --  Get suggestions for all reachable declarations.
-            --  Each suggestion contains a with clause and a
-            --  prefix.
-
-            Import_Suggestions :=
-              Get_Import_Suggestions (Node, Units_Vector);
-
-            --  Create a new codeAction command for each suggestion
-
-            for Suggestion of Import_Suggestions loop
-               declare
-                  Command : LSP.Ada_Handlers.
-                    Refactor.Imports_Commands.Command;
-               begin
-                  Command.Append_Suggestion
-                    (Context         => Context,
-                     Where           =>
-                       LSP.Lal_Utils.Get_Node_Location (Node),
-                     Commands_Vector => Result,
-                     Suggestion      => Suggestion);
-               end;
-            end loop;
-
-            if not Import_Suggestions.Is_Empty then
-               Found := True;
-            end if;
-         end Import_Package_Code_Action;
-
-         ----------------------------------
-         -- Named_Parameters_Code_Action --
-         ----------------------------------
-
-         procedure Named_Parameters_Code_Action is
-            Aux_Node : Libadalang.Analysis.Ada_Node := Node;
-            Done     : Boolean := False;
-            --  We propose only one choice of Named_Parameters refactoring per
-            --  request. So, if a user clicks on `1` in `A (B (1))` we propose
-            --  the refactoring for B (1), but not for A (...) call. We
-            --  consider this as better user experience.
-            --
-            --  This boolean filter to detect such refactoring duplication.
-
-            procedure Append_Command (Node : Libadalang.Analysis.Ada_Node);
-            --  Contruct a command and append it to Result
-
-            --------------------
-            -- Append_Command --
-            --------------------
-
-            procedure Append_Command (Node : Libadalang.Analysis.Ada_Node) is
-               Command : LSP.Ada_Handlers.Named_Parameters_Commands.Command;
-               Pointer : LSP.Commands.Command_Pointer;
-               Item    : LSP.Messages.CodeAction;
-               Where   : constant LSP.Messages.Location :=
-                 LSP.Lal_Utils.Get_Node_Location (Node);
-
-            begin
-               Command.Initialize
-                 (Context => Context.all,
-                  Where   => ((uri => Where.uri), Where.span.first));
-
-               Pointer.Set (Command);
-
-               Item :=
-                 (title       => "Name parameters in the call",
-                  kind        => (Is_Set => True,
-                                  Value  => LSP.Messages.RefactorRewrite),
-                  diagnostics => (Is_Set => False),
-                  disabled    => (Is_Set => False),
-                  edit        => (Is_Set => False),
-                  isPreferred => (Is_Set => False),
-                  command     => (Is_Set => True,
-                                  Value  =>
-                                    (Is_Unknown => False,
-                                     title      => <>,
-                                     Custom     => Pointer)));
-
-               Result.Append (Item);
-
-               Done := True;
-               Found := True;
-            end Append_Command;
-
-         begin
-            while not Done and then not Aux_Node.Is_Null loop
-               case Aux_Node.Kind is
-                  when Libadalang.Common.Ada_Stmt
-                     | Libadalang.Common.Ada_Basic_Decl =>
-
-                     Done := True;
-
-                  when Libadalang.Common.Ada_Basic_Assoc_List =>
-                     if Has_Assoc_Without_Designator
-                          (Aux_Node.As_Basic_Assoc_List)
-                     then
-                        Append_Command (Aux_Node);
-                     end if;
-
-                  when Libadalang.Common.Ada_Call_Expr =>
-                     declare
-                        List : constant Libadalang.Analysis.Ada_Node :=
-                          Aux_Node.As_Call_Expr.F_Suffix;
-
-                     begin
-                        if not List.Is_Null
-                          and then List.Kind in
-                                     Libadalang.Common.Ada_Basic_Assoc_List
-                          and then Has_Assoc_Without_Designator
-                                     (List.As_Basic_Assoc_List)
-                        then
-                           Append_Command (List);
-                        end if;
-                     end;
-                  when others =>
-                     null;
-               end case;
-
-               Aux_Node := Aux_Node.Parent;
-            end loop;
-         end Named_Parameters_Code_Action;
-
-         -------------------------------------
-         -- Pull_Up_Declaration_Code_Action --
-         -------------------------------------
-
-         procedure Pull_Up_Declaration_Code_Action is
-            use Langkit_Support.Slocs;
-            use Libadalang.Analysis;
-            use LAL_Refactor.Pull_Up_Declaration;
-            use LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
-            use LSP.Messages;
-
-            --  This code action is not available when a range of text is
-            --  selected.
-
-            Single_Location : constant Boolean :=
-              Params.span.first = Params.span.last;
-            Location        : constant Source_Location :=
-              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
-               Column_Number (Params.span.first.character) + 1);
-
-            Pull_Up_Declaration_Command :
-              LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command;
-
-         begin
-            if Single_Location
-              and then Is_Pull_Up_Declaration_Available (Node.Unit, Location)
-            then
-               Pull_Up_Declaration_Command.Append_Code_Action
-                 (Context                     => Context,
-                  Commands_Vector             => Result,
-                  Where                       =>
-                    (uri     => Params.textDocument.uri,
-                     span    => Params.span,
-                     alsKind => Empty_Set));
-
-               Found := True;
-            end if;
-         end Pull_Up_Declaration_Code_Action;
-
-         ------------------------------
-         -- Replace_Type_Code_Action --
-         ------------------------------
-
-         procedure Replace_Type_Code_Action is
-            use LSP.Ada_Handlers.Refactor.Replace_Type;
-            use LAL_Refactor.Replace_Type;
-
-            use Langkit_Support.Slocs;
-
-            Location : constant Source_Location :=
-              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
-               Column_Number (Params.span.first.character) + 1);
-
-            Replace_Type_Command :
-              LSP.Ada_Handlers.Refactor.Replace_Type.Command;
-
-         begin
-            if Is_Replace_Type_Available (Node.Unit, Location) then
-               Replace_Type_Command.Append_Code_Action
-                 (Context                     => Context,
-                  Commands_Vector             => Result,
-                  Where                       =>
-                    (Params.textDocument.uri,
-                     Params.span,
-                     LSP.Messages.Empty_Set));
-
-               Found := True;
-            end if;
-         end Replace_Type_Code_Action;
-
-         -----------------------------------
-         -- Sort_Dependencies_Code_Action --
-         -----------------------------------
-
-         procedure Sort_Dependencies_Code_Action is
-            use Langkit_Support.Slocs;
-            use Libadalang.Analysis;
-            use LAL_Refactor.Sort_Dependencies;
-            use LSP.Ada_Handlers.Refactor.Sort_Dependencies;
-            use LSP.Messages;
-
-            Location        : constant Source_Location :=
-              (Langkit_Support.Slocs.Line_Number (Params.span.first.line) + 1,
-               Column_Number (Params.span.first.character) + 1);
-
-            Sort_Dependencies_Command :
-              LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command;
-
-         begin
-            if Is_Sort_Dependencies_Available (Node.Unit, Location) then
-               Sort_Dependencies_Command.Append_Code_Action
-                 (Context                     => Context,
-                  Commands_Vector             => Result,
-                  Where                       =>
-                    (uri     => Params.textDocument.uri,
-                     span    => Params.span,
-                     alsKind => Empty_Set));
-
-               Found := True;
-            end if;
-         end Sort_Dependencies_Code_Action;
-
-      begin
-         Named_Parameters_Code_Action;
-
-         Sort_Dependencies_Code_Action;
-
-         Import_Package_Code_Action;
-
-         --  Refactoring Code Actions
-
-         --  Extract Subprogram
-         Extract_Subprogram_Code_Action;
-
-         --  Pull Up Declaration
-         Pull_Up_Declaration_Code_Action;
-
-         --  These refactorings are only available for clients that can
-         --  provide user inputs:
-         --  - Add Parameter
-         --  - Change Parameters Type
-         --  - Change Parameters Default Value
-
-         --  Add Parameter
-         if Self.Experimental_Client_Capabilities.
-              Advanced_Refactorings (Add_Parameter)
-         then
-            declare
-               use LSP.Ada_Handlers.Refactor.Add_Parameter;
-               use Libadalang.Analysis;
-               use LAL_Refactor.Subprogram_Signature;
-               use Langkit_Support.Slocs;
-               use type LSP.Messages.Position;
-
-               --  This code action is not available when a range of text is
-               --  selected.
-
-               Single_Location             : constant Boolean :=
-                 Params.span.first = Params.span.last;
-               Location                    : constant Source_Location :=
-                 (if Single_Location then
-                    (Langkit_Support.Slocs.Line_Number
-                         (Params.span.first.line) + 1,
-                     Column_Number (Params.span.first.character) + 1)
-                  else
-                     No_Source_Location);
-
-               Requires_Full_Specification : Boolean;
-
-               Add_Parameter_Commad : Command;
-
-            begin
-               if Single_Location
-                 and then Is_Add_Parameter_Available
-                   (Node.Unit,
-                    Location,
-                    Requires_Full_Specification)
-               then
-                  Add_Parameter_Commad.Append_Code_Action
-                    (Context                     => Context,
-                     Commands_Vector             => Result,
-                     Where                       =>
-                       (Params.textDocument.uri,
-                        Params.span,
-                        LSP.Messages.Empty_Set),
-                     Requires_Full_Specification =>
-                       Requires_Full_Specification);
-
-                  Found := True;
-               end if;
-            end;
-         end if;
-
-         --  Change Parameters Type
-         if Self.Experimental_Client_Capabilities.
-              Advanced_Refactorings (Change_Parameters_Type)
-         then
-            Change_Parameters_Type_Code_Action;
-         end if;
-
-         --  Change Parameters Default Value
-         if Self.Experimental_Client_Capabilities.
-              Advanced_Refactorings (Change_Parameters_Default_Value)
-         then
-            Change_Parameters_Default_Value_Code_Action;
-         end if;
-
-         --  Remove Parameter
-         declare
-            use LSP.Ada_Handlers.Refactor.Remove_Parameter;
-            use Libadalang.Analysis;
-            use LAL_Refactor.Subprogram_Signature;
-            use LAL_Refactor.Subprogram_Signature.Remove_Parameter;
-
-            Target_Subp              : Basic_Decl := No_Basic_Decl;
-            Parameter_Indices_Range  : Parameter_Indices_Range_Type;
-            Remove_Parameter_Command : Command;
-
-         begin
-            if Is_Remove_Parameter_Available
-              (Node, Target_Subp, Parameter_Indices_Range)
-            then
-               Remove_Parameter_Command.Append_Code_Action
-                 (Context            => Context,
-                  Commands_Vector    => Result,
-                  Target_Subp        => Target_Subp,
-                  Parameters_Indices => Parameter_Indices_Range);
-
-               Found := True;
-            end if;
-         end;
-
-         --  Move Parameter
-         declare
-            use LSP.Ada_Handlers.Refactor.Move_Parameter;
-            use Libadalang.Analysis;
-            use LAL_Refactor.Subprogram_Signature;
-
-            Target_Subp            : Basic_Decl := No_Basic_Decl;
-            Parameter_Index        : Positive;
-            Move_Directions        : Move_Direction_Availability_Type;
-            Move_Parameter_Command : Command;
-
-         begin
-            if Is_Move_Parameter_Available
-              (Node, Target_Subp, Parameter_Index, Move_Directions)
-            then
-               for Direction in Move_Direction_Type loop
-                  if Move_Directions (Direction) then
-                     Move_Parameter_Command.Append_Code_Action
-                       (Context          => Context,
-                        Commands_Vector  => Result,
-                        Target_Subp      => Target_Subp,
-                        Parameter_Index  => Parameter_Index,
-                        Move_Direction   => Direction);
-                  end if;
-               end loop;
-
-               Found := True;
-            end if;
-         end;
-
-         --  Change Parameter Mode
-         declare
-            use LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
-            use Libadalang.Analysis;
-            use LAL_Refactor.Subprogram_Signature;
-
-            Target_Subp                   : Basic_Decl := No_Basic_Decl;
-            Target_Parameters_Indices     : Parameter_Indices_Range_Type;
-            Mode_Alternatives             : Mode_Alternatives_Type;
-            Change_Parameter_Mode_Command : Command;
-
-         begin
-            if Is_Change_Mode_Available
-              (Node, Target_Subp, Target_Parameters_Indices, Mode_Alternatives)
-            then
-               for Alternative of Mode_Alternatives loop
-                  Change_Parameter_Mode_Command.Append_Code_Action
-                    (Context            => Context,
-                     Commands_Vector    => Result,
-                     Target_Subp        => Target_Subp,
-                     Parameters_Indices => Target_Parameters_Indices,
-                     New_Mode           => Alternative);
-               end loop;
-
-               Found := True;
-            end if;
-         end;
-
-         --  Introduce Parameter
-         Introduce_Parameter_Code_Action;
-
-         --  Suppress Subprogram
-         declare
-            use LSP.Ada_Handlers.Refactor.Suppress_Seperate;
-            use Libadalang.Analysis;
-            use LAL_Refactor.Suppress_Separate;
-
-            Target_Separate           : Basic_Decl := No_Basic_Decl;
-            Suppress_Separate_Command : Command;
-         begin
-            if Is_Suppress_Separate_Available (Node, Target_Separate) then
-               Suppress_Separate_Command.Append_Code_Action
-                 (Context         => Context,
-                  Commands_Vector => Result,
-                  Target_Separate => Target_Separate);
-
-               Found := True;
-            end if;
-         end;
-
-         --  Replace Type
-         if Self.Experimental_Client_Capabilities.
-              Advanced_Refactorings (Replace_Type)
-         then
-            Replace_Type_Code_Action;
-         end if;
-      end Analyse_Node;
-
-      ------------------------
-      -- Analyse_In_Context --
-      ------------------------
-
-      procedure Analyse_In_Context
-        (Context  : Context_Access;
-         Document : LSP.Ada_Documents.Document_Access;
-         Result   : out LSP.Messages.CodeAction_Vector;
-         Found    : in out Boolean)
-      is
-         Node : constant Libadalang.Analysis.Ada_Node :=
-           Document.Get_Node_At (Context.all, Params.span.first);
-      begin
-         if Node.Is_Null then
-            Found := False;
-            return;
-         end if;
-
-         Analyse_Node (Context, Node, Result, Found);
-      end Analyse_In_Context;
-
-      ----------------------------------------
-      -- Append_Project_Status_Code_Actions --
-      ----------------------------------------
-
-      procedure Append_Project_Status_Code_Actions
-        (Result : in out LSP.Messages.CodeAction_Vector)
-      is
-         use type VSS.Strings.Virtual_String;
-
-         Diagnostics : LSP.Messages.Diagnostic_Vector;
-
-      begin
-         for Item of Params.context.diagnostics loop
-            if Item.source.Is_Set and then Item.source.Value = "project" then
-               Diagnostics.Append (Item);
-            end if;
-         end loop;
-
-         case Self.Project_Status is
-            when Valid_Project_Configured | Alire_Project =>
-               null;
-            when No_Runtime_Found =>
-               --  TODO: Provide help with the compiler installation
-               null;
-            when Single_Project_Found | Multiple_Projects_Found =>
-               declare
-                  Item    : LSP.Messages.CodeAction;
-                  Command : LSP.Messages.Command (Is_Unknown => True);
-                  Arg     : constant LSP.Types.LSP_Any :=
-                    LSP.Types.Create ("ada.projectFile");
-               begin
-                  Command.title := "Open settings for ada.projectFile";
-                  Command.command := "workbench.action.openSettings";
-                  Command.arguments := (Is_Set => True, Value => <>);
-                  Command.arguments.Value.Append (Arg);
-
-                  Item :=
-                    (title       => Command.title,
-                     kind        => (True, LSP.Messages.QuickFix),
-                     diagnostics => (True, Diagnostics),
-                     disabled    => (Is_Set => False),
-                     edit        => (Is_Set => False),
-                     isPreferred => LSP.Types.True,
-                     command     => (True, Command));
-
-                  Result.Append (Item);
-               end;
-            when No_Project_Found =>
-               declare
-                  Title  : constant VSS.Strings.Virtual_String :=
-                    "Create a default project file (default.gpr)";
-                  URI    : constant LSP.Messages.DocumentUri :=
-                    LSP.Types.File_To_URI
-                      (Self.Root.Join ("default.gpr").Display_Full_Name);
-                  Create : constant LSP.Messages.Document_Change :=
-                    (LSP.Messages.Create_File,
-                     (kind => LSP.Messages.create,
-                      uri  => URI,
-                      others => <>));
-                  Text   : constant LSP.Messages.AnnotatedTextEdit :=
-                    ((span => ((0, 0), (0, 0)),
-                      newText => "project Default is end Default;",
-                      others => <>));
-                  Insert : constant LSP.Messages.Document_Change :=
-                    (LSP.Messages.Text_Document_Edit,
-                     (textDocument => (uri => URI, others => <>),
-                      edits        => LSP.Messages.To_Vector (Text, 1)));
-                  Item   : LSP.Messages.CodeAction;
-                  Edit   : LSP.Messages.WorkspaceEdit;
-               begin
-                  Edit.documentChanges.Append (Create);
-                  Edit.documentChanges.Append (Insert);
-                  Item :=
-                    (title       => Title,
-                     kind        => (True, LSP.Messages.QuickFix),
-                     diagnostics => (True, Diagnostics),
-                     disabled    => (Is_Set => False),
-                     edit        => (True, Edit),
-                     isPreferred => LSP.Types.True,
-                     command     => (Is_Set => False));
-
-                  Result.Append (Item);
-               end;
-            when Invalid_Project_Configured =>
-               null;
-         end case;
-      end Append_Project_Status_Code_Actions;
-
-      use type LSP.Messages.Position;
+      use type LSP.Ada_Documents.Document_Access;
+      use type LSP.Structures.Position;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Params.textDocument.uri);
+        Get_Open_Document (Self, Value.textDocument.uri);
 
-      Response : LSP.Messages.Server_Responses.CodeAction_Response
-        (Is_Error => False);
+      Response : LSP.Structures.Command_Or_CodeAction_Vector_Or_Null;
 
       Found : Boolean := False;
    begin
       if Document = null then
-         Self.Log_Unexpected_Null_Document ("On_CodeAction_Request");
-         return Response;
+         Self.Tracer.Trace
+           ("Unexpected null document in On_CodeAction_Request");
+         Self.Sender.On_CodeAction_Response (Id, Response);
+         return;
       end if;
 
       --  Find any context where we can do some refactoring
-      for C of Self.Contexts_For_URI (Params.textDocument.uri) loop
-         Analyse_In_Context (C, Document, Response.result, Found);
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Analyse_In_Context (C, Document, Response, Found);
 
-         exit when Request.Canceled or else Found;
+         exit when Self.Is_Canceled.all or else Found;
       end loop;
 
-      if Params.span.first = (0, 0) then
-         Append_Project_Status_Code_Actions (Response.result);
+      if Value.a_range.start = LSP.Constants.Empty then
+         Append_Project_Status_Code_Actions (Response);
       end if;
 
-      return Response;
+      Self.Sender.On_CodeAction_Response (Id, Response);
    end On_CodeAction_Request;
 
-   --------------------------------
-   -- On_Execute_Command_Request --
-   --------------------------------
+   ---------------------------
+   -- On_Completion_Request --
+   ---------------------------
 
-   overriding function On_Execute_Command_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Execute_Command_Request)
-      return LSP.Messages.Server_Responses.ExecuteCommand_Response
+   overriding procedure On_Completion_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CompletionParams)
    is
-      Error    : LSP.Errors.Optional_ResponseError;
-      Params   : LSP.Messages.ExecuteCommandParams renames
-        Request.params;
-      Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
-        (Is_Error => True);
+      --  We're completing only based on one context, ie one project
+      --  tree: this seems reasonable. One further refinement could
+      --  be to return only results that are available for all
+      --  project contexts.
+
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+
+      Names    : LSP.Ada_Completions.Completion_Maps.Map;
+
+      --  If lazy computation for the 'detail' and 'documentation' fields is
+      --  supported by the client, set the Compute_Doc_And_Details flag to
+      --  False.
+      Compute_Doc_And_Details : constant Boolean :=
+        not Self.Client.Resolve_Lazily;
+
+      P1 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
+      P2 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
+      P3 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
+      P4 : aliased
+        LSP.Ada_Completions.Attributes.Attributes_Completion_Provider;
+
+      P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
+        (Self.Configuration.Use_Completion_Snippets);
+      P6 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
+        (Self'Access, Context);
+      P7 : aliased
+        LSP.Ada_Completions.Parameters.Parameter_Completion_Provider
+          (Handler                  => Self'Unchecked_Access,
+           Context                  => Context,
+           Document                 => Document,
+           Compute_Doc_And_Details  => Compute_Doc_And_Details,
+           Named_Notation_Threshold =>
+             Self.Configuration.Named_Notation_Threshold);
+      P8 : aliased LSP.Ada_Completions.End_Names.End_Name_Completion_Provider;
+      P9 : aliased
+        LSP.Ada_Completions.Use_Clauses.Use_Clause_Completion_Provider;
+      Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
+        [P1'Unchecked_Access,
+         P2'Unchecked_Access,
+         P3'Unchecked_Access,
+         P4'Unchecked_Access,
+         P5'Unchecked_Access,
+         P6'Unchecked_Access,
+         P7'Unchecked_Access,
+         P8'Unchecked_Access,
+         P9'Unchecked_Access];
+
+      Sloc  : Langkit_Support.Slocs.Source_Location;
+      Token : Libadalang.Common.Token_Reference;
+      Node  : Libadalang.Analysis.Ada_Node;
+
+      Response : LSP.Structures.Completion_Result
+        (Kind => LSP.Structures.Variant_2);
+   begin
+      Response.Variant_2.isIncomplete := False;
+
+      Document.Get_Completion_Node
+        (Context  => Context.all,
+         Position => Value.position,
+         Sloc     => Sloc,
+         Token    => Token,
+         Node     => Node);
+
+      Document.Get_Completions_At
+        (Context   => Context.all,
+         Providers => Providers,
+         Sloc      => Sloc,
+         Token     => Token,
+         Node      => Node,
+         Names     => Names,
+         Result    => Response.Variant_2);
+
+      LSP.Ada_Completions.Write_Completions
+        (Handler                  => Self,
+         Context                  => Context.all,
+         Document                 => Document.all,
+         Sloc                     => Sloc,
+         Node                     => Node,
+         Names                    => Names,
+         Named_Notation_Threshold =>
+           Self.Configuration.Named_Notation_Threshold,
+         Compute_Doc_And_Details  => Compute_Doc_And_Details,
+         Result                   => Response.Variant_2.items);
+
+      Self.Sender.On_Completion_Response (Id, Response);
+   end On_Completion_Request;
+
+   -----------------------------------
+   -- On_Completion_Resolve_Request --
+   -----------------------------------
+
+   overriding procedure On_Completion_Resolve_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CompletionItem)
+   is
+      Context  : LSP.Ada_Context_Sets.Context_Access;
+      Node     : Libadalang.Analysis.Ada_Node;
+      C        : LSP.Structures.JSON_Event_Vectors.Cursor;
+      Location : LSP.Structures.Location;
+      Response : LSP.Structures.CompletionItem := Value;
 
    begin
-      if Params.Is_Unknown or else Params.Custom.Is_Null then
-         Response.error :=
-           (True,
-            (code => LSP.Errors.InternalError,
-             message => "Not implemented",
-             data    => <>));
-         return Response;
+      --  Return immediately if we don't have data that allows us to compute
+      --  additional information for the given item.
+      --  This is the case when all the completion item's fields have already
+      --  been computed.
+      if Value.data.Is_Empty then
+         Self.Sender.On_Completion_Resolve_Response (Id, Value);
       end if;
 
-      declare
-         Command : constant LSP.Commands.Command'Class :=
-           Params.Custom.Unchecked_Get.all;
-      begin
-         Command.Execute
-           (Handler => Self,
-            Client  => Self.Server,
-            Error   => Error);
+      C := Value.data.First;
+      Location := LSP.Structures.LSPAny_Vectors.From_Any (C);
+      Context  := Self.Contexts.Get_Best_Context (Location.uri);
+      Node     := Get_Node_At
+        (Self, Context.all,
+         LSP.Structures.TextDocumentPositionParams'
+           (textDocument => (uri => Location.uri),
+            position     => Location.a_range.start));
 
-         if Error.Is_Set then
-            Response.error := Error;
+      --  Retrieve the Basic_Decl from the completion item's SLOC
+      while not Node.Is_Null
+        and then Node.Kind not in Libadalang.Common.Ada_Basic_Decl
+      loop
+         Node := Node.Parent;
+      end loop;
 
-            return Response;
-         end if;
+      --  Compute the completion item's details
+      if not Node.Is_Null then
+         declare
+            use type VSS.Strings.Virtual_String;
 
-         --  No particular response in case of success.
-         return (Is_Error => False,
-                 error    => (Is_Set => False),
-                 others   => <>);
-      end;
-   end On_Execute_Command_Request;
+            BD           : constant Libadalang.Analysis.Basic_Decl :=
+              Node.As_Basic_Decl;
+            Qual_Text    : VSS.Strings.Virtual_String;
+            Loc_Text     : VSS.Strings.Virtual_String;
+            Doc_Text     : VSS.Strings.Virtual_String;
+            Decl_Text    : VSS.Strings.Virtual_String;
+            Aspects_Text : VSS.Strings.Virtual_String;
+
+         begin
+            LSP.Ada_Documentation.Get_Tooltip_Text
+              (BD                 => BD,
+               Style              => Self.Configuration.Documentation_Style,
+               Qualifier_Text     => Qual_Text,
+               Location_Text      => Loc_Text,
+               Documentation_Text => Doc_Text,
+               Declaration_Text   => Decl_Text,
+               Aspects_Text       => Aspects_Text);
+
+            Response.detail := Decl_Text;
+
+            if not Doc_Text.Is_Empty then
+               Loc_Text.Append (2 * VSS.Characters.Latin.Line_Feed);
+               Loc_Text.Append (Doc_Text);
+            end if;
+
+            Response.documentation :=
+              (Is_Set => True,
+               Value  => LSP.Structures.Virtual_String_Or_MarkupContent'
+                 (Is_Virtual_String => True,
+                  Virtual_String    => Loc_Text));
+         end;
+      end if;
+
+      Self.Sender.On_Completion_Resolve_Response (Id, Response);
+   end On_Completion_Resolve_Request;
 
    ----------------------------
    -- On_Declaration_Request --
    ----------------------------
 
-   overriding function On_Declaration_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Declaration_Request)
-      return LSP.Messages.Server_Responses.Location_Link_Response
-   is
-
-      Value   : LSP.Messages.DeclarationParams renames
-        Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Link_Response
-        (Is_Error => False);
-      Imprecise  : Boolean := False;
-
-      Display_Method_Ancestry_Policy                                  :
-      LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy :=
-        Self.Display_Method_Ancestry_Policy;
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-
-   begin
-      --  Override the displayMethodAncestryOnNavigation global configuration
-      --  flag if there is on embedded in the request.
-      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
-         Display_Method_Ancestry_Policy :=
-           Value.alsDisplayMethodAncestryOnNavigation.Value;
-      end if;
-
-      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
-         C.Append_Declarations
-           (Document,
-            LSP.Messages.TextDocumentPositionParams (Value),
-            Display_Method_Ancestry_Policy,
-            Response.result,
-            Imprecise);
-
-         exit when Request.Canceled;
-      end loop;
-
-      if Imprecise then
-         Self.Show_Imprecise_Reference_Warning ("declaration");
-      end if;
-
-      Sort_And_Remove_Duplicates (Response.result.Locations);
-      return Response;
-   end On_Declaration_Request;
-
-   -------------------------------
-   -- On_Implementation_Request --
-   -------------------------------
-
-   overriding function On_Implementation_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Implementation_Request)
-      return LSP.Messages.Server_Responses.Location_Link_Response
+   overriding procedure On_Declaration_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DeclarationParams)
    is
       use Libadalang.Analysis;
-      use LSP.Messages;
+      use all type LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy;
 
-      Value   : LSP.Messages.ImplementationParams renames
-        Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Link_Response
-        (Is_Error => False);
-      Imprecise  : Boolean := False;
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Utility function, appends to Vector all results of the
+      --  declaration requests found in context C.
 
-      Display_Method_Ancestry_Policy                                  :
-      LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy :=
-        Self.Display_Method_Ancestry_Policy;
+      Response   : LSP.Structures.Declaration_Result (LSP.Structures.Variant_1);
+      Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
+      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
 
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-
-      procedure Resolve_In_Context (C : Context_Access);
-      --  Utility function to gather results on one context
+      Display_Method_Policy : constant
+        LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
+          (if Value.alsDisplayMethodAncestryOnNavigation.Is_Set
+           then Value.alsDisplayMethodAncestryOnNavigation.Value
+           else Self.Configuration.Display_Method_Ancestry_Policy);
 
       ------------------------
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : Context_Access) is
-         Name_Node      : constant Name := Laltools.Common.Get_Node_As_Name
-           (C.Get_Node_At (Document, Value));
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+         Trace      : constant GNATCOLL.Traces.Trace_Handle :=
+           LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
 
-         procedure Update_Response
-           (Bodies : Laltools.Common.Bodies_List.List;
-            Kind   : LSP.Messages.AlsReferenceKind_Set);
-         --  Utility function to update response with the bodies
+         Name_Node               : constant Name :=
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
 
-         ---------------------
-         -- Update_Response --
-         ---------------------
+         Definition              : Libadalang.Analysis.Defining_Name;
+         --  A defining name that corresponds to Name_Node
+         First_Part              : Libadalang.Analysis.Defining_Name;
+         --  "Canonical part" of Definition
+         Prev_Part               : Libadalang.Analysis.Defining_Name;
+         --  A previous name for Definition
+         Decl_For_Find_Overrides : Libadalang.Analysis.Basic_Decl :=
+           Libadalang.Analysis.No_Basic_Decl;
 
-         procedure Update_Response
-           (Bodies : Laltools.Common.Bodies_List.List;
-            Kind   : LSP.Messages.AlsReferenceKind_Set)
-         is
-         begin
-            for E of Bodies loop
-               Append_Location
-                 (Response.result,
-                  E,
-                  Kind);
-            end loop;
-         end Update_Response;
+         On_Defining_Name        : Boolean := False;
+         --  Set to True if we are on a denfining name node
 
-         Definition         : Defining_Name;
-         This_Imprecise     : Boolean;
-         Find_All_Imprecise : Boolean;
-         Decl               : Basic_Decl;
-
+         Is_Imprecise            : Boolean;
       begin
-         if Name_Node = No_Name then
+         if Name_Node.Is_Null then
             return;
          end if;
 
-         --  Find the definition
-         Definition := Laltools.Common.Resolve_Name
-           (Name_Node, Self.Trace, This_Imprecise);
-         Imprecise := Imprecise or This_Imprecise;
+         --  Check if we are on some defining name
+         Definition := Laltools.Common.Get_Name_As_Defining (Name_Node);
 
-         --  If we didn't find a definition, give up for this context
-         if Definition = No_Defining_Name then
-            return;
+         if Definition.Is_Null then
+            --  If we aren't on a defining_name already then try to resolve
+            Definition := Laltools.Common.Resolve_Name
+              (Name_Node, Trace, Is_Imprecise);
+         else
+            On_Defining_Name := True;
          end if;
 
-         --  First list the bodies of this definition
-         Update_Response
-           (Laltools.Common.List_Bodies_Of
-              (Definition, Self.Trace, Imprecise),
-            LSP.Messages.Empty_Set);
+         if Definition.Is_Null then
+            return;  --  Name resolution fails, nothing to do.
+         end if;
 
-         --  Then list the bodies of the parent implementations
-         Decl := Definition.P_Basic_Decl;
+         --  Display the method ancestry in three cases:
+         --
+         --   . When the preference is set to Always
+         --
+         --   . When we are on a usage node (e.g: subprogram call) and if the
+         --     preference is set to Usage_And_Abstract_Only
+         --
+         --   . When we are on a defining name node and if the preference is
+         --     set to Definition_Only
 
-         --  Display overriding/overridden subprograms depending on the
-         --  displayMethodAncestryOnNavigation flag.
-         if Display_Method_Ancestry_Policy in Definition_Only | Always
-           or else
-             (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
-                     and then Decl.Kind in Ada_Abstract_Subp_Decl_Range)
+         if Display_Method_Policy = Always
+           or else (Display_Method_Policy = Usage_And_Abstract_Only
+                   and then not On_Defining_Name)
+           or else (Display_Method_Policy = Definition_Only
+                   and then On_Defining_Name)
          then
-            for Subp of C.Find_All_Base_Declarations (Decl, Find_All_Imprecise)
-            loop
-               Update_Response
-                 (Laltools.Common.List_Bodies_Of
-                    (Subp.P_Defining_Name, Self.Trace, This_Imprecise),
-                  Is_Parent);
-               Imprecise := Imprecise or This_Imprecise;
-            end loop;
-            Imprecise := Imprecise or Find_All_Imprecise;
+            First_Part := Laltools.Common.Find_Canonical_Part (Definition, Trace);
 
-            --  And finally the bodies of child implementations
-            for Subp of C.Find_All_Overrides (Decl, Find_All_Imprecise) loop
-               Update_Response
-                 (Laltools.Common.List_Bodies_Of
-                    (Subp.P_Defining_Name, Self.Trace, This_Imprecise),
-                  Is_Child);
-               Imprecise := Imprecise or This_Imprecise;
-            end loop;
-            Imprecise := Imprecise or Find_All_Imprecise;
+            if First_Part.Is_Null then
+               Decl_For_Find_Overrides := Definition.P_Basic_Decl;
+            else
+               Decl_For_Find_Overrides := First_Part.P_Basic_Decl;
+            end if;
+         end if;
+
+         begin
+            Prev_Part := Definition.P_Previous_Part;
+         exception
+            when E :  Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+               Prev_Part := Libadalang.Analysis.No_Defining_Name;
+         end;
+
+         if not Prev_Part.Is_Null then
+            --  We have found previous part, return it.
+            Self.Append_Location (Vector, Filter, Prev_Part);
+         elsif not Definition.Is_Null then
+            --  No previous part, return definition itself.
+            Self.Append_Location (Vector, Filter, Definition);
+         end if;
+
+         if not Decl_For_Find_Overrides.Is_Null then
+            declare
+               Overridings : constant Libadalang.Analysis.Basic_Decl_Array :=
+                 C.Find_All_Overrides
+                   (Decl_For_Find_Overrides,
+                    Imprecise_Results => Is_Imprecise);
+
+               Bases       : constant Libadalang.Analysis.Basic_Decl_Array :=
+                 C.Find_All_Base_Declarations
+                   (Decl_For_Find_Overrides,
+                    Imprecise_Results => Is_Imprecise);
+            begin
+               for Subp of Bases loop
+                  Self.Append_Location
+                    (Vector, Filter, Subp.P_Defining_Name, Is_Parent);
+               end loop;
+
+               for Subp of Overridings loop
+                  Self.Append_Location
+                    (Vector, Filter, Subp.P_Defining_Name, Is_Child);
+               end loop;
+            end;
          end if;
       end Resolve_In_Context;
 
    begin
       --  Override the displayMethodAncestryOnNavigation global configuration
       --  flag if there is on embedded in the request.
-      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
-         Display_Method_Ancestry_Policy :=
-           Value.alsDisplayMethodAncestryOnNavigation.Value;
-      end if;
+      --  if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+      --     Display_Method_Ancestry_Policy :=
+      --       Value.alsDisplayMethodAncestryOnNavigation.Value;
+      --  end if;
 
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Is_Canceled.all;
       end loop;
 
-      if Imprecise then
-         Self.Show_Imprecise_Reference_Warning ("implementation");
-      end if;
+      Locations.Sort (Vector);
 
-      Sort_And_Remove_Duplicates (Response.result.Locations);
-      return Response;
-   end On_Implementation_Request;
+      Self.Sender.On_Declaration_Response (Id, Response);
+   end On_Declaration_Request;
 
    ---------------------------
    -- On_Definition_Request --
    ---------------------------
 
-   overriding function On_Definition_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Definition_Request)
-      return LSP.Messages.Server_Responses.Location_Link_Response
+   overriding procedure On_Definition_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DefinitionParams)
    is
       use Libadalang.Analysis;
-      use LSP.Messages;
+      use all type LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy;
 
-      Value      : LSP.Messages.DefinitionParams renames
-        Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Link_Response
-        (Is_Error => False);
+      Trace      : constant GNATCOLL.Traces.Trace_Handle :=
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+
+      Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
+      Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
+      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+
       Imprecise  : Boolean := False;
 
-      Display_Method_Ancestry_Policy                          :
-      LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy :=
-        Self.Display_Method_Ancestry_Policy;
+      Display_Method_Policy : constant
+        LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
+          (if Value.alsDisplayMethodAncestryOnNavigation.Is_Set
+           then Value.alsDisplayMethodAncestryOnNavigation.Value
+           else Self.Configuration.Display_Method_Ancestry_Policy);
 
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-
-      procedure Resolve_In_Context (C : Context_Access);
-      --  Utility function, appends to Resonse.result all results of the
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Utility function, appends to Vector all results of the
       --  definition requests found in context C.
 
       ------------------------
       -- Resolve_In_Context --
       ------------------------
 
-      procedure Resolve_In_Context (C : Context_Access) is
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+         use Libadalang.Common;
+
          Name_Node               : constant Name :=
-                                     Laltools.Common.Get_Node_As_Name
-                                       (C.Get_Node_At (Document, Value));
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
+
          Definition              : Defining_Name;
          Other_Part              : Defining_Name;
          Manual_Fallback         : Defining_Name;
@@ -2681,47 +1982,47 @@ package body LSP.Ada_Handlers is
          Decl_For_Find_Overrides : Basic_Decl := No_Basic_Decl;
          Entry_Decl_Node         : Entry_Decl := No_Entry_Decl;
       begin
-         if Name_Node = No_Name then
+         if Name_Node.Is_Null then
             return;
          end if;
 
          --  Check if we are on some defining name
          Definition := Laltools.Common.Get_Name_As_Defining (Name_Node);
 
-         if Definition = No_Defining_Name then
-            Self.Imprecise_Resolve_Name (C, Value, Definition);
+         if Definition.Is_Null then
+            Definition := Laltools.Common.Resolve_Name
+              (Name_Node,
+               Trace,
+               Imprecise => Imprecise);
 
-            if Definition /= No_Defining_Name then
-               Append_Location (Response.result, Definition);
+            if not Definition.Is_Null then
+               Self.Append_Location (Vector, Filter, Definition);
 
-               if Display_Method_Ancestry_Policy
+               if Display_Method_Policy
                   in Usage_And_Abstract_Only | Always
                then
                   Decl_For_Find_Overrides := Definition.P_Basic_Decl;
                end if;
             end if;
          else  --  If we are on a defining_name already
-            Other_Part := Laltools.Common.Find_Next_Part
-              (Definition, Self.Trace);
+            Other_Part := Laltools.Common.Find_Next_Part (Definition, Trace);
 
             Definition_Node := Definition.P_Basic_Decl;
 
             --  Search for overriding subprograms only if we are on an
             --  abstract subprogram.
-            if Display_Method_Ancestry_Policy = Never
-              or else
-                (Display_Method_Ancestry_Policy = Usage_And_Abstract_Only
-                        and then Definition_Node.Kind
-                        not in Ada_Abstract_Subp_Decl_Range)
+            if Display_Method_Policy /= Never
+              and then
+                (Display_Method_Policy /= Usage_And_Abstract_Only
+                  or else Definition_Node.Kind in Ada_Abstract_Subp_Decl_Range)
             then
-               Decl_For_Find_Overrides := No_Basic_Decl;
-            else
                Decl_For_Find_Overrides := Definition_Node;
             end if;
 
             --  Search for accept statements only if we are on an entry
             if Definition_Node.Kind in Ada_Entry_Decl_Range then
                Entry_Decl_Node := Definition_Node.As_Entry_Decl;
+
             elsif Definition_Node.Kind in
               Ada_Single_Task_Type_Decl_Range | Ada_Protected_Type_Decl_Range
             then
@@ -2730,68 +2031,68 @@ package body LSP.Ada_Handlers is
                declare
                   Other_Part_For_Decl : constant Basic_Decl :=
                     Laltools.Common.Find_Next_Part_For_Decl
-                      (Definition_Node, Self.Trace);
+                      (Definition_Node, Trace);
                begin
-                  if Other_Part_For_Decl /= No_Basic_Decl then
+                  if not Other_Part_For_Decl.Is_Null then
                      Other_Part := Other_Part_For_Decl.P_Defining_Name;
                   end if;
                end;
             end if;
 
-            if Other_Part = No_Defining_Name then
+            if Other_Part.Is_Null then
                --  No next part is found. Check first defining name
                Other_Part := Laltools.Common.Find_Canonical_Part
-                 (Definition, Self.Trace);
+                 (Definition, Trace);
             end if;
 
-            if Other_Part /= No_Defining_Name then
-               Append_Location (Response.result, Other_Part);
+            if not Other_Part.Is_Null then
+               Self.Append_Location (Vector, Filter, Other_Part);
+
             else
                --  We were on a defining name, but did not manage to find
                --  an answer using Find_Next_Part / Find_Canonical_Part.
                --  Use the manual fallback to attempt to find a good enough
                --  result.
                Manual_Fallback := Laltools.Common.Find_Other_Part_Fallback
-                 (Definition, Self.Trace);
+                 (Definition, Trace);
 
-               if Manual_Fallback /= No_Defining_Name then
+               if not Manual_Fallback.Is_Null then
                   --  We have found a result using the imprecise heuristics.
                   --  We'll warn the user and send the result.
                   Imprecise := True;
-                  Append_Location (Response.result, Manual_Fallback);
+                  Self.Append_Location (Vector, Filter, Manual_Fallback);
                end if;
             end if;
          end if;
 
-         if Decl_For_Find_Overrides /= Libadalang.Analysis.No_Basic_Decl then
+         if not Decl_For_Find_Overrides.Is_Null then
             declare
-               Imprecise_Over       : Boolean;
-               Imprecise_Base       : Boolean;
-               Overriding_Subps     : constant Basic_Decl_Array :=
+               Overridings : constant Basic_Decl_Array :=
                  C.Find_All_Overrides
                    (Decl_For_Find_Overrides,
-                    Imprecise_Results => Imprecise_Over);
-               Base_Subps           : constant Basic_Decl_Array :=
+                    Imprecise_Results => Imprecise);
+
+               Bases       : constant Basic_Decl_Array :=
                  C.Find_All_Base_Declarations
                    (Decl_For_Find_Overrides,
-                    Imprecise_Results => Imprecise_Base);
+                    Imprecise_Results => Imprecise);
             begin
-               for Subp of Base_Subps loop
-                  Append_Location
-                    (Response.result, Subp.P_Defining_Name, Is_Parent);
+               for Subp of Bases loop
+                  Self.Append_Location
+                    (Vector, Filter, Subp.P_Defining_Name, Is_Parent);
                end loop;
-               for Subp of Overriding_Subps loop
-                  Append_Location
-                    (Response.result, Subp.P_Defining_Name, Is_Child);
+
+               for Subp of Overridings loop
+                  Self.Append_Location
+                    (Vector, Filter, Subp.P_Defining_Name, Is_Child);
                end loop;
-               Imprecise := Imprecise or Imprecise_Over or Imprecise_Base;
             end;
          end if;
 
-         if Entry_Decl_Node /= Libadalang.Analysis.No_Entry_Decl then
+         if not Entry_Decl_Node.Is_Null then
             for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
-               Append_Location
-                 (Response.result, Accept_Node.F_Body_Decl.F_Name);
+               Self.Append_Location
+                 (Vector, Filter, Accept_Node.F_Body_Decl.F_Name);
             end loop;
          end if;
       end Resolve_In_Context;
@@ -2799,143 +2100,67 @@ package body LSP.Ada_Handlers is
    begin
       --  Override the displayMethodAncestryOnNavigation global configuration
       --  flag if there is on embedded in the request.
-      if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
-         Display_Method_Ancestry_Policy :=
-           Value.alsDisplayMethodAncestryOnNavigation.Value;
-      end if;
+      --  if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+      --     Display_Method_Ancestry_Policy :=
+      --       Value.alsDisplayMethodAncestryOnNavigation.Value;
+      --  end if;
 
       for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
          Resolve_In_Context (C);
 
-         exit when Request.Canceled;
+         exit when Self.Is_Canceled.all;
       end loop;
 
-      if Imprecise then
-         Self.Show_Imprecise_Reference_Warning ("definition");
-      end if;
+      Locations.Sort (Vector);
 
-      Sort_And_Remove_Duplicates (Response.result.Locations);
-      return Response;
+      Self.Sender.On_Definition_Response (Id, Response);
    end On_Definition_Request;
 
-   --------------------------------
-   -- On_Type_Definition_Request --
-   --------------------------------
+   -------------------------------
+   -- On_DidChange_Notification --
+   -------------------------------
 
-   overriding function On_Type_Definition_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Type_Definition_Request)
-      return LSP.Messages.Server_Responses.Location_Link_Response
+   overriding procedure On_DidChange_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeTextDocumentParams)
    is
-      use Libadalang.Analysis;
+      use type LSP.Ada_Documents.Document_Access;
 
-      Position   : LSP.Messages.TextDocumentPositionParams renames
-        Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Link_Response
-        (Is_Error => False);
-      Imprecise  : Boolean := False;
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Position.textDocument.uri);
-
-      procedure Resolve_In_Context (C : Context_Access);
-      --  Utility function to gather results on one context
-
-      ------------------------
-      -- Resolve_In_Context --
-      ------------------------
-
-      procedure Resolve_In_Context (C : Context_Access) is
-         Name_Node      : constant Name := Laltools.Common.Get_Node_As_Name
-             (C.Get_Node_At (Document, Position));
-         Definition     : Defining_Name;
-         Type_Decl : Base_Type_Decl;
-      begin
-         if Name_Node = No_Name then
-            return;
-         end if;
-
-         if Name_Node.P_Is_Defining then
-            --  Special case if Name_Node is defining, for instance on the X in
-            --      X : My_Type;
-            declare
-               Def_Name : constant Defining_Name :=
-                 Name_Node.P_Enclosing_Defining_Name;
-               Type_Expr : constant Libadalang.Analysis.Type_Expr :=
-                 Def_Name.P_Basic_Decl.P_Type_Expression;
-            begin
-               if not Type_Expr.Is_Null then
-                  Definition := Laltools.Common.Resolve_Name
-                    (Type_Expr.P_Type_Name, Self.Trace, Imprecise);
-               end if;
-            end;
-         else
-            --  Name_Node is not defining. In this case we can rely on
-            --  P_Expression_Type.
-            Type_Decl := Name_Node.P_Expression_Type;
-
-            --  P_Expression_Type returns the entire expression: narrow the
-            --  result down to the type declaration. Here we assume that the
-            --  first defining name in this expression is the name of the type.
-            if Type_Decl /= No_Type_Decl then
-               Definition := Type_Decl.P_Defining_Name;
-            end if;
-         end if;
-
-         if Definition /= No_Defining_Name then
-            Append_Location (Response.result, Definition);
-         end if;
-      end Resolve_In_Context;
-
-   begin
-      for C of Self.Contexts_For_URI (Position.textDocument.uri) loop
-         Resolve_In_Context (C);
-
-         exit when Request.Canceled;
-      end loop;
-
-      return Response;
-   end On_Type_Definition_Request;
-
-   -------------------------------------------
-   -- On_DidChangeTextDocument_Notification --
-   -------------------------------------------
-
-   overriding procedure On_DidChangeTextDocument_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeTextDocumentParams)
-   is
       function Skip_Did_Change return Boolean;
       --  Check if the following message in the queue is didChange for
       --  the same document
+
+      URI      : LSP.Structures.DocumentUri renames Value.textDocument.uri;
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, URI);
 
       ---------------------
       -- Skip_Did_Change --
       ---------------------
 
       function Skip_Did_Change return Boolean is
-         use type LSP.Servers.Message_Access;
+         use type LSP.Servers.Server_Message_Access;
 
-         subtype DidChangeTextDocument_Notification is LSP.Messages
-           .Server_Notifications.DidChangeTextDocument_Notification;
+         subtype DidChange_Notification is
+           LSP.Server_Notifications.DidChange.Notification;
 
-         Next : constant LSP.Servers.Message_Access :=
-           Self.Server.Look_Ahead_Message;
+         Next : constant LSP.Servers.Server_Message_Access :=
+           LSP.Servers.Server'Class (Self.Sender.all).Look_Ahead_Message;
       begin
+
          if Next = null
-           or else Next.all not in
-             DidChangeTextDocument_Notification'Class
+           or else Next.all not in DidChange_Notification'Class
          then
             return False;
          end if;
 
          declare
-            Object : DidChangeTextDocument_Notification'Class renames
-              DidChangeTextDocument_Notification'Class (Next.all);
-            Object_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (Object.params.textDocument.uri);
-            Value_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (Value.textDocument.uri);
+            use GNATCOLL.VFS;
+            Object      : DidChange_Notification'Class renames
+              DidChange_Notification'Class (Next.all);
+            Object_File : constant Virtual_File := Self.To_File
+              (Object.Params.textDocument.uri);
+            Value_File  : constant Virtual_File := Self.To_File (URI);
          begin
             if Object_File /= Value_File then
                return False;
@@ -2945,15 +2170,14 @@ package body LSP.Ada_Handlers is
          return True;
       end Skip_Did_Change;
 
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
    begin
       if Document = null then
-         Self.Log_Unexpected_Null_Document
-           ("On_DidChangeTextDocument_Notification");
+         Self.Tracer.Trace
+           ("Unexpected null document in On_DidChange_Notification");
+         return;
       end if;
 
-      if Allow_Incremental_Text_Changes.Active then
+      if Self.Incremental_Text_Changes then
          --  If we are applying incremental changes, we can't skip the
          --  call to Apply_Changes, since this would break synchronization.
          Document.Apply_Changes
@@ -2971,6 +2195,7 @@ package body LSP.Ada_Handlers is
          if Skip_Did_Change then
             return;
          end if;
+
          Document.Apply_Changes
            (Value.textDocument.version,
             Value.contentChanges);
@@ -2978,1760 +2203,31 @@ package body LSP.Ada_Handlers is
 
       --  Reindex the document in each of the contexts where it is relevant
 
-      for Context of Self.Contexts_For_URI (Value.textDocument.uri) loop
+      for Context of Self.Contexts_For_URI (URI) loop
          Context.Index_Document (Document.all);
       end loop;
 
       --  Emit diagnostics
       Self.Publish_Diagnostics (Document);
-   end On_DidChangeTextDocument_Notification;
-
-   ------------------------------------------
-   -- On_DidCloseTextDocument_Notification --
-   ------------------------------------------
-
-   overriding procedure On_DidCloseTextDocument_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidCloseTextDocumentParams)
-   is
-      URI      : LSP.Messages.DocumentUri renames Value.textDocument.uri;
-      File     : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
-      Diag     : LSP.Messages.PublishDiagnosticsParams;
-      Document : Internal_Document_Access;
-   begin
-      if Self.Open_Documents.Contains (File) then
-         Document := Self.Open_Documents.Element (File);
-
-         --  Remove the URI from the set of open documents now: this way,
-         --  the call to Flush_Document below will not attempt to reindex
-         --  from an open document, but from the file on disk.
-         Self.Open_Documents.Delete (File);
-
-         for Context of Self.Contexts_For_URI (URI) loop
-            Context.Flush_Document (File);
-         end loop;
-
-         Free (Document);
-
-      else
-         --  We have received a didCloseTextDocument but the document was
-         --  not open: this is not supposed to happen, log it.
-
-         Self.Trace.Trace
-           ("received a didCloseTextDocument for non-open document with uri: "
-            & To_UTF_8_String (URI));
-      end if;
-
-      --  Clean diagnostics up on closing document
-      if Self.Diagnostics_Enabled then
-         Diag.uri := URI;
-         Self.Server.On_Publish_Diagnostics (Diag);
-      end if;
-   end On_DidCloseTextDocument_Notification;
-
-   -----------------------------------------
-   -- On_DidOpenTextDocument_Notification --
-   -----------------------------------------
-
-   overriding procedure On_DidOpenTextDocument_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidOpenTextDocumentParams)
-   is
-      URI    : LSP.Messages.DocumentUri renames Value.textDocument.uri;
-      File   : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
-      Object : constant Internal_Document_Access :=
-        new LSP.Ada_Documents.Document (Self.Trace);
-      Diag   : constant LSP.Diagnostic_Sources.Diagnostic_Source_Access :=
-        new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source (Self);
-   begin
-      Self.Trace.Trace ("In Text_Document_Did_Open");
-      Self.Trace.Trace ("Uri : " & To_UTF_8_String (URI));
-
-      --  Some clients don't properly call initialize, or don't pass the
-      --  project to didChangeConfiguration: fallback here on loading a
-      --  project in this directory, if needed.
-      Self.Ensure_Project_Loaded (URI);
-
-      --  We have received a document: add it to the documents container
-      Object.Initialize (URI, Value.textDocument.text, Diag);
-      Self.Open_Documents.Include (File, Object);
-
-      --  Handle the case where we're loading the implicit project: do
-      --  we need to add the directory in which the document is open?
-
-      if Self.Project_Status in Implicit_Project_Loaded then
-         declare
-            Dir : constant Virtual_File := Self.To_File (URI).Dir;
-         begin
-            if not Self.Project_Dirs_Loaded.Contains (Dir) then
-               --  We do need to add this directory
-               Self.Project_Dirs_Loaded.Insert (Dir);
-               Self.Reload_Implicit_Project_Dirs;
-            end if;
-         end;
-      end if;
-
-      --  Index the document in all the contexts where it is relevant
-      for Context of Self.Contexts_For_URI (URI) loop
-         Context.Index_Document (Object.all);
-      end loop;
-
-      --  Emit diagnostics
-      Self.Publish_Diagnostics (LSP.Ada_Documents.Document_Access (Object));
-
-      Self.Trace.Trace ("Finished Text_Document_Did_Open");
-   end On_DidOpenTextDocument_Notification;
-
-   ------------------------------
-   -- On_Folding_Range_Request --
-   ------------------------------
-
-   overriding function On_Folding_Range_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Folding_Range_Request)
-      return LSP.Messages.Server_Responses.FoldingRange_Response
-   is
-      Value : LSP.Messages.FoldingRangeParams renames
-        Request.params;
-
-      Context  : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-      Result   : LSP.Messages.FoldingRange_Vector;
-
-      package Canceled is new LSP.Generic_Cancel_Check (Request'Access, 127);
-
-   begin
-      if Document /= null then
-         Document.Get_Folding_Blocks
-           (Context.all,
-            Self.Line_Folding_Only,
-            Self.Options.Folding.Comments,
-            Canceled.Has_Been_Canceled'Access,
-            Result);
-
-         return Response : LSP.Messages.Server_Responses.FoldingRange_Response
-           (Is_Error => False)
-         do
-            if not Canceled.Has_Been_Canceled then
-               Response.result := Result;
-            end if;
-         end return;
-
-      else
-         return Response : LSP.Messages.Server_Responses.FoldingRange_Response
-           (Is_Error => True)
-         do
-            Response.error :=
-              (True,
-               (code => LSP.Errors.InternalError,
-                message => "Document is not opened",
-                data => <>));
-         end return;
-      end if;
-   end On_Folding_Range_Request;
-
-   --------------------------------
-   -- On_Selection_Range_Request --
-   --------------------------------
-
-   overriding function On_Selection_Range_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Selection_Range_Request)
-      return LSP.Messages.Server_Responses.SelectionRange_Response
-   is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.SelectionRange_Response
-        (Is_Error => True);
-   begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => "Not implemented",
-          data => <>));
-      return Response;
-   end On_Selection_Range_Request;
-
-   --------------------------
-   -- On_Highlight_Request --
-   --------------------------
-
-   overriding function On_Highlight_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Highlight_Request)
-      return LSP.Messages.Server_Responses.Highlight_Response
-   is
-      use Libadalang.Analysis;
-      use LSP.Messages;
-
-      Value      : LSP.Messages.TextDocumentPositionParams renames
-        Request.params;
-      Context    : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      Document   : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-      File : constant GNATCOLL.VFS.Virtual_File :=
-        Self.To_File (Value.textDocument.uri);
-      Response   : LSP.Messages.Server_Responses.Highlight_Response
-        (Is_Error => False);
-      Definition : Defining_Name;
-
-      procedure Callback
-        (Node   : Libadalang.Analysis.Base_Id;
-         Kind   : Libadalang.Common.Ref_Result_Kind;
-         Cancel : in out Boolean);
-      --  Called on each found reference. Used to append the reference to the
-      --  final result.
-
-      function Get_Highlight_Kind
-        (Node : Ada_Node) return LSP.Messages.Optional_DocumentHighlightKind;
-      --  Fetch highlight kind for given node
-
-      ------------------------
-      -- Get_Highlight_Kind --
-      ------------------------
-
-      function Get_Highlight_Kind
-        (Node : Ada_Node) return LSP.Messages.Optional_DocumentHighlightKind
-      is
-         Id : constant Name := Laltools.Common.Get_Node_As_Name (Node);
-      begin
-         if Id.P_Is_Write_Reference then
-            return LSP.Messages.Optional_DocumentHighlightKind'
-              (Is_Set => True, Value => Write);
-         else
-            return LSP.Messages.Optional_DocumentHighlightKind'
-              (Is_Set => True, Value  => Read);
-         end if;
-      end Get_Highlight_Kind;
-
-      --------------
-      -- Callback --
-      --------------
-
-      procedure Callback
-        (Node   : Libadalang.Analysis.Base_Id;
-         Kind   : Libadalang.Common.Ref_Result_Kind;
-         Cancel : in out Boolean)
-      is
-         pragma Unreferenced (Kind);
-         pragma Unreferenced (Cancel);
-
-      begin
-         if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
-            Append_Location
-              (Result   => Response.result,
-               Document => Document,
-               File     => File,
-               Node     => Node,
-               Kind     => Get_Highlight_Kind (Node.As_Ada_Node));
-         end if;
-
-      end Callback;
-
-   begin
-      if Document /= null then
-         Self.Imprecise_Resolve_Name (Context, Value, Definition);
-
-         if Definition = No_Defining_Name or else Request.Canceled then
-            return Response;
-         end if;
-
-         --  Find all references will return all the references except the
-         --  declaration ...
-         Document.Find_All_References
-           (Context    => Context.all,
-            Definition => Definition,
-            Callback   => Callback'Access);
-
-         --  ... add it manually
-         Append_Location
-           (Result   => Response.result,
-            Document => Document,
-            File     => File,
-            Node     => Definition,
-            Kind     => Get_Highlight_Kind (Definition.As_Ada_Node));
-      end if;
-      return Response;
-   end On_Highlight_Request;
-
-   ----------------------
-   -- On_Hover_Request --
-   ----------------------
-
-   overriding function On_Hover_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Hover_Request)
-      return LSP.Messages.Server_Responses.Hover_Response
-   is
-      use Libadalang.Analysis;
-
-      Value    : LSP.Messages.TextDocumentPositionParams renames
-        Request.params;
-      Response : LSP.Messages.Server_Responses.Hover_Response
-        (Is_Error => False);
-
-      Defining_Name_Node : Defining_Name;
-      Decl               : Basic_Decl;
-      Qualifier_Text     : VSS.Strings.Virtual_String;
-      Decl_Text          : VSS.Strings.Virtual_String;
-      Comments_Text      : VSS.Strings.Virtual_String;
-      Location_Text      : VSS.Strings.Virtual_String;
-      Aspects_Text       : VSS.Strings.Virtual_String;
-
-      C : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      --  For the Hover request, we're only interested in the "best"
-      --  response value, not in the list of values for all contexts
-
-   begin
-      Self.Imprecise_Resolve_Name (C, Value, Defining_Name_Node);
-
-      if Defining_Name_Node = No_Defining_Name then
-         return Response;
-      end if;
-
-      --  Get the associated basic declaration
-      Decl := Defining_Name_Node.P_Basic_Decl;
-
-      if Decl = No_Basic_Decl or else Request.Canceled then
-         return Response;
-      end if;
-
-      LSP.Ada_Documentation.Get_Tooltip_Text
-        (BD                 => Decl,
-         Style              => C.Get_Documentation_Style,
-         Declaration_Text   => Decl_Text,
-         Qualifier_Text     => Qualifier_Text,
-         Location_Text      => Location_Text,
-         Documentation_Text => Comments_Text,
-         Aspects_Text       => Aspects_Text);
-
-      if Decl_Text.Is_Empty then
-         return Response;
-      end if;
-
-      Response.result := (Is_Set => True, others => <>);
-
-      --  Append the whole declaration text to the response
-
-      Response.result.Value.contents.Vector.Append
-        (LSP.Messages.MarkedString'
-           (Is_String => False,
-            value     => Decl_Text,
-            language  => "ada"));
-
-      --  Append qualifier text if any
-
-      if not Qualifier_Text.Is_Empty then
-         Response.result.Value.contents.Vector.Append
-           (LSP.Messages.MarkedString'
-              (Is_String => True,
-               value     => Qualifier_Text));
-      end if;
-
-      --  Append the declaration's location.
-      --  In addition, append the project's name if we are dealing with an
-      --  aggregate project.
-
-      Location_Text := LSP.Lal_Utils.Node_Location_Image (Decl);
-
-      if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
-         Location_Text.Append (VSS.Characters.Latin.Line_Feed);
-         Location_Text.Append ("As defined in project ");
-         Location_Text.Append (C.Id);
-         Location_Text.Append (" (other projects skipped).");
-      end if;
-
-      Response.result.Value.contents.Vector.Append
-        (LSP.Messages.MarkedString'
-           (Is_String => True,
-            value     => Location_Text));
-
-      --  Append the comments associated with the basic declaration
-      --  if any.
-
-      if not Comments_Text.Is_Empty then
-         Response.result.Value.contents.Vector.Append
-           (LSP.Messages.MarkedString'
-              (Is_String => False,
-               language  => "plaintext",
-               value     => Comments_Text));
-      end if;
-
-      --  Append text of aspects
-
-      if not Aspects_Text.Is_Empty then
-         Response.result.Value.contents.Vector.Append
-           (LSP.Messages.MarkedString'
-              (Is_String => False,
-               value     => Aspects_Text,
-               language  => "ada"));
-      end if;
-
-      return Response;
-   end On_Hover_Request;
-
-   ---------------------------
-   -- On_References_Request --
-   ---------------------------
-
-   overriding function On_References_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.References_Request)
-      return LSP.Messages.Server_Responses.Location_Response
-   is
-      use Libadalang.Analysis;
-
-      Value      : LSP.Messages.ReferenceParams renames Request.params;
-      Response   : LSP.Messages.Server_Responses.Location_Response
-        (Is_Error => False);
-      Imprecise  : Boolean := False;
-
-      Additional_Kinds : LSP.Messages.AlsReferenceKind_Array :=
-        [others => False];
-
-      procedure Process_Context (C : Context_Access);
-      --  Process the references found in one context and append
-      --  them to Response.results.
-
-      function Get_Reference_Kind
-        (Node               : Ada_Node;
-         Is_Overriding_Decl : Boolean := False)
-         return LSP.Messages.AlsReferenceKind_Set;
-      --  Fetch reference kind for given node.
-
-      ------------------------
-      -- Get_Reference_Kind --
-      ------------------------
-
-      function Get_Reference_Kind
-        (Node               : Ada_Node;
-         Is_Overriding_Decl : Boolean := False)
-         return LSP.Messages.AlsReferenceKind_Set
-      is
-         use LSP.Messages;
-
-         Id     : constant Name := Laltools.Common.Get_Node_As_Name (Node);
-         Result : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set;
-      begin
-         begin
-            Result.As_Flags (LSP.Messages.Write) := Id.P_Is_Write_Reference;
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               Log (Self.Trace, E);
-         end;
-
-         begin
-            Result.As_Flags (LSP.Messages.Access_Ref) :=
-              Laltools.Common.Is_Access_Ref (Id.As_Ada_Node);
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               Log (Self.Trace, E);
-         end;
-
-         begin
-            Result.As_Flags (LSP.Messages.Static_Call) := Id.P_Is_Static_Call;
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               Log (Self.Trace, E);
-         end;
-
-         begin
-            Result.As_Flags (LSP.Messages.Dispatching_Call) :=
-              Id.P_Is_Dispatching_Call;
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               Log (Self.Trace, E);
-         end;
-
-         begin
-            Result.As_Flags (LSP.Messages.Child) :=
-              Laltools.Common.Is_Type_Derivation (Id.As_Ada_Node);
-         exception
-            when E : Libadalang.Common.Property_Error =>
-               Log (Self.Trace, E);
-         end;
-
-         Result.As_Flags (LSP.Messages.Overriding_Decl) := Is_Overriding_Decl;
-
-         --  If the result has not any set flags at this point, flag it as a
-         --  simple reference.
-         if Result.As_Flags = AlsReferenceKind_Array'(others => False) then
-            Result.As_Flags (LSP.Messages.Simple) := True;
-         end if;
-
-         --  Apply additional kinds
-         Result.As_Flags := Result.As_Flags or Additional_Kinds;
-
-         return Result;
-      end Get_Reference_Kind;
-
-      ---------------------
-      -- Process_Context --
-      ---------------------
-
-      procedure Process_Context (C : Context_Access) is
-         procedure Callback
-           (Node   : Libadalang.Analysis.Base_Id;
-            Kind   : Libadalang.Common.Ref_Result_Kind;
-            Cancel : in out Boolean);
-
-         Count : Cancel_Countdown := 0;
-
-         procedure Callback
-           (Node   : Libadalang.Analysis.Base_Id;
-            Kind   : Libadalang.Common.Ref_Result_Kind;
-            Cancel : in out Boolean) is
-         begin
-            Imprecise := Imprecise or Kind = Libadalang.Common.Imprecise;
-
-            if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
-               Count := Count - 1;
-
-               Append_Location
-                 (Response.result,
-                  Node,
-                  Get_Reference_Kind (Node.As_Ada_Node));
-            end if;
-
-            Cancel := Count = 0 and then Request.Canceled;
-         end Callback;
-
-         Definition : Defining_Name;
-
-      begin
-
-         Self.Imprecise_Resolve_Name (C, Value, Definition);
-
-         if Definition = No_Defining_Name or else Request.Canceled then
-            return;
-         end if;
-
-         --  Set additional "reference" kind for enumeration literal
-         declare
-            Decl : constant Basic_Decl := P_Basic_Decl (Definition);
-         begin
-            if Decl /= No_Basic_Decl
-              and then Kind (Decl) = Ada_Enum_Literal_Decl
-            then
-               Additional_Kinds (LSP.Messages.Simple) := True;
-            end if;
-
-            --  Find all the references
-            C.Find_All_References (Definition, Callback'Access);
-
-            --  Find all the overriding declarations, if any
-            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
-               Append_Location
-                 (Response.result,
-                  Subp.P_Defining_Name,
-                  Get_Reference_Kind
-                    (Definition.As_Ada_Node,
-                     Is_Overriding_Decl => True));
-            end loop;
-
-            if Value.context.includeDeclaration then
-               Append_Location
-                 (Response.result,
-                  Definition,
-                  Get_Reference_Kind (Definition.As_Ada_Node));
-            end if;
-         end;
-      end Process_Context;
-
-   begin
-      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
-         Process_Context (C);
-
-         exit when Request.Canceled;
-      end loop;
-
-      if Imprecise then
-         Self.Show_Imprecise_Reference_Warning ("references");
-      end if;
-
-      Sort_And_Remove_Duplicates (Response.result);
-      return Response;
-   end On_References_Request;
-
-   --------------------------------
-   -- On_ALS_Source_Dirs_Request --
-   --------------------------------
-
-   overriding function On_ALS_Source_Dirs_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.ALS_Source_Dirs_Request)
-      return LSP.Messages.Server_Responses.ALS_SourceDirs_Response
-   is
-      Response : LSP.Messages.Server_Responses.ALS_SourceDirs_Response
-        (Is_Error => False);
-      Unit_Desc : LSP.Messages.ALS_Source_Dir_Description;
-      Source_Dirs : constant GNATCOLL.VFS.File_Array :=
-        Self.Contexts.All_Source_Directories
-          (Include_Externally_Built => True);
-   begin
-      for Dir of Source_Dirs loop
-         Unit_Desc :=
-           (name => VSS.Strings.Conversions.To_Virtual_String
-              (+Dir.Base_Dir_Name),
-            uri  =>
-              File_To_URI (Dir.Display_Full_Name));
-         Response.result.Append (Unit_Desc);
-      end loop;
-
-      Self.Trace.Trace
-        ("Response.result.length: " & Response.result.Length'Img);
-
-      return Response;
-   end On_ALS_Source_Dirs_Request;
-
-   --------------------------------------
-   -- On_ALS_Show_Dependencies_Request --
-   --------------------------------------
-
-   overriding function On_ALS_Show_Dependencies_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.ALS_Show_Dependencies_Request)
-      return LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
-   is
-      use LSP.Messages;
-
-      Params   : LSP.Messages.ALS_ShowDependenciesParams renames
-        Request.params;
-      Response : LSP.Messages.Server_Responses.ALS_ShowDependencies_Response
-        (Is_Error => False);
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Params.textDocument.uri, Force => False);
-      Context  : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Params.textDocument.uri);
-
-   begin
-      if Document = null then
-         Self.Log_Unexpected_Null_Document
-           ("On_ALS_Show_Dependencies_Request");
-         return Response;
-      end if;
-
-      case Params.kind is
-         when LSP.Messages.Show_Imported =>
-            Document.Get_Imported_Units
-              (Context       => Context.all,
-               Project_URI   => Self.From_File (Self.Root),
-               Show_Implicit => Params.showImplicit,
-               Result        => Response.result);
-
-         when LSP.Messages.Show_Importing => null;
-            declare
-               Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
-                 Self.Contexts_For_URI (Params.textDocument.uri);
-            begin
-               for Context of Contexts loop
-                  Document.Get_Importing_Units
-                    (Context       => Context.all,
-                     Project_URI   => Self.From_File (Self.Root),
-                     Show_Implicit => Params.showImplicit,
-                     Result        => Response.result);
-               end loop;
-            end;
-      end case;
-
-      return Response;
-   end On_ALS_Show_Dependencies_Request;
-
-   --------------------------
-   -- On_ALS_Debug_Request --
-   --------------------------
-
-   overriding function On_ALS_Debug_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.ALS_Debug_Request)
-      return LSP.Messages.Server_Responses.ALS_Debug_Response is
-   begin
-      case Request.params.Kind is
-         when LSP.Messages.Suspend_Execution =>
-            declare
-               Limit : constant LSP_Number := Request.params.inputQueueLength;
-            begin
-               while Self.Server.Input_Queue_Length < Integer (Limit) loop
-                  delay 0.1;
-               end loop;
-            end;
-      end case;
-
-      return Response : LSP.Messages.Server_Responses.ALS_Debug_Response
-        (Is_Error => False);
-   end On_ALS_Debug_Request;
-
-   -------------------------------
-   -- On_Signature_Help_Request --
-   -------------------------------
-
-   overriding function On_Signature_Help_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Signature_Help_Request)
-      return LSP.Messages.Server_Responses.SignatureHelp_Response
-   is
-      use Langkit_Support.Slocs;
-      use Libadalang.Analysis;
-      use type VSS.Unicode.UTF16_Code_Unit_Offset;
-
-      Value      : LSP.Messages.SignatureHelpParams renames
-        Request.params;
-      Prev_Value : LSP.Messages.SignatureHelpParams := Value;
-      Response   : LSP.Messages.Server_Responses.SignatureHelp_Response
-        (Is_Error => False);
-
-      C : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-
-      Node : Libadalang.Analysis.Ada_Node;
-      Sloc : Langkit_Support.Slocs.Source_Location;
-   begin
-      Response.result := (others => <>);
-      Sloc := Document.Get_Source_Location (Value.position);
-
-      --  Move the cursor to the previous character: this is more resilient
-      --  to invalid code.
-      if Prev_Value.position.character > 0 then
-         Prev_Value.position.character := Prev_Value.position.character - 1;
-      end if;
-      Node := C.Get_Node_At (Document, Prev_Value);
-
-      declare
-         Name_Node  : constant Libadalang.Analysis.Name :=
-           Laltools.Common.Get_Node_As_Name (Node);
-      begin
-         --  Is this a type cast?
-         if Name_Node /= No_Ada_Node
-           and then Name_Node.P_Name_Designated_Type /= No_Ada_Node
-         --  Does the cast make sense?
-         --   and then Active_Position = 0
-         --  Do we have the previous signatures?
-           and then Value.context.Is_Set
-           and then Value.context.Value.activeSignatureHelp.Is_Set
-         then
-            --  At this point, the user is writing a typecast in a previous
-            --  signature => keep showing the previous signatures.
-            Response.result := Value.context.Value.activeSignatureHelp.Value;
-            return Response;
-         end if;
-      end;
-
-      --  Try to get signatures before the cursor location
-      --  i.e "Foo (1,|" => "Foo (1|,"
-      LSP.Ada_Completions.Parameters.Propose_Signatures
-        (Context         => C,
-         Node            => Node,
-         Cursor          => Sloc,
-         Prev_Signatures => Value.context,
-         Res             => Response.result);
-
-      --  Retry to get signature in the previous non whitespace token
-      --  i.e. "Foo (1, 2 + |" => "Foo (1, 2 +|"
-      if Response.result.signatures.Is_Empty then
-         declare
-            Token : Libadalang.Common.Token_Reference :=
-              C.Get_Token_At (Document, Prev_Value);
-         begin
-            if Token /= No_Token
-              and then Kind (Data (Token)) = Ada_Whitespace
-            then
-               Token :=
-                 Libadalang.Common.Previous (Token, Exclude_Trivia => True);
-            end if;
-
-            Prev_Value.position :=
-              To_Span
-                (Langkit_Support.Slocs.Start_Sloc
-                   (Sloc_Range (Data (Token)))).first;
-         end;
-
-         Node := C.Get_Node_At (Document, Prev_Value);
-         LSP.Ada_Completions.Parameters.Propose_Signatures
-           (Context         => C,
-            Node            => Node,
-            Cursor          => Sloc,
-            Prev_Signatures => Value.context,
-            Res             => Response.result);
-      end if;
-
-      --  Retry to get signatures in the cursor position.
-      --  It handles the edge case of nested function closing
-      --  i.e. "Foo (Bar (1)|"
-      if Response.result.signatures.Is_Empty then
-         Node := C.Get_Node_At (Document, Value);
-         LSP.Ada_Completions.Parameters.Propose_Signatures
-           (Context         => C,
-            Node            => Node,
-            Cursor          => Sloc,
-            Prev_Signatures => Value.context,
-            Res             => Response.result);
-      end if;
-
-      return Response;
-   end On_Signature_Help_Request;
-
-   -----------------------------------
-   -- On_Color_Presentation_Request --
-   -----------------------------------
-
-   overriding function On_Color_Presentation_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Color_Presentation_Request)
-      return LSP.Messages.Server_Responses.ColorPresentation_Response
-   is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.ColorPresentation_Response
-        (Is_Error => True);
-   begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => "Not implemented",
-          data => <>));
-      return Response;
-   end On_Color_Presentation_Request;
-
-   -------------------------------
-   -- On_Document_Color_Request --
-   -------------------------------
-
-   overriding function On_Document_Color_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Document_Color_Request)
-      return LSP.Messages.Server_Responses.DocumentColor_Response
-   is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.DocumentColor_Response
-        (Is_Error => True);
-   begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => "Not implemented",
-          data => <>));
-      return Response;
-   end On_Document_Color_Request;
-
-   -------------------------------
-   -- On_Document_Links_Request --
-   -------------------------------
-
-   overriding function On_Document_Links_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Document_Links_Request)
-      return LSP.Messages.Server_Responses.Links_Response
-   is
-      pragma Unreferenced (Self, Request);
-      Response : LSP.Messages.Server_Responses.Links_Response
-        (Is_Error => True);
-   begin
-      Response.error :=
-        (True,
-         (code => LSP.Errors.InternalError,
-          message => "Not implemented",
-          data => <>));
-      return Response;
-   end On_Document_Links_Request;
-
-   -------------------------------------
-   -- On_Document_Tokens_Full_Request --
-   -------------------------------------
-
-   overriding function On_Document_Tokens_Full_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Document_Tokens_Full_Request)
-      return LSP.Messages.Server_Responses.SemanticTokens_Response
-   is
-      Value    : LSP.Messages.SemanticTokensParams renames Request.params;
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri, Force => False);
-
-      Context  : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Response : LSP.Messages.Server_Responses.SemanticTokens_Response
-        (Is_Error => False);
-
-      Result   : LSP.Messages.uinteger_Vector;
-   begin
-      if Document = null then
-         Self.Log_Unexpected_Null_Document
-           ("On_Document_Tokens_Full_Request");
-         return Response;
-      end if;
-
-      Result := Document.Get_Tokens (Context.all, Self.Highlighter);
-      Response.result.data.Move (Result);
-
-      return Response;
-   end On_Document_Tokens_Full_Request;
-
-   --------------------------------------
-   -- On_Document_Tokens_Range_Request --
-   --------------------------------------
-
-   overriding function On_Document_Tokens_Range_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Document_Tokens_Range_Request)
-      return LSP.Messages.Server_Responses.SemanticTokens_Response
-   is
-      Value    : LSP.Messages.SemanticTokensRangeParams renames Request.params;
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri, Force => False);
-
-      Context  : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Response : LSP.Messages.Server_Responses.SemanticTokens_Response
-        (Is_Error => False);
-
-      Result   : LSP.Messages.uinteger_Vector;
-   begin
-      if Document = null then
-         Self.Log_Unexpected_Null_Document
-           ("On_Document_Tokens_Range_Request");
-         return Response;
-      end if;
-
-      Result := Document.Get_Tokens
-        (Context.all, Self.Highlighter, Value.span);
-      Response.result.data.Move (Result);
-
-      return Response;
-   end On_Document_Tokens_Range_Request;
-
-   ---------------------------------
-   -- On_Document_Symbols_Request --
-   ---------------------------------
-
-   overriding function On_Document_Symbols_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Document_Symbols_Request)
-      return LSP.Messages.Server_Responses.Symbol_Response
-   is
-      --  The list of symbols for one document shouldn't depend
-      --  on the project: we can just choose the best context for this.
-      Value    : LSP.Messages.DocumentSymbolParams renames Request.params;
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri, Force => False);
-      Context  : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      Result   : LSP.Messages.Server_Responses.Symbol_Response :=
-        (Is_Error => False,
-         result   => <>,
-         error    => (Is_Set => False),
-         others   => <>);
-
-      Pattern : constant Search_Pattern'Class := Build
-        (Pattern        => Value.query,
-         Case_Sensitive => Value.case_sensitive = LSP.Types.True,
-         Whole_Word     => Value.whole_word = LSP.Types.True,
-         Negate         => Value.negate = LSP.Types.True,
-         Kind           =>
-           (if Value.kind.Is_Set
-            then Value.kind.Value
-            else LSP.Messages.Start_Word_Text));
-
-      package Canceled is new LSP.Generic_Cancel_Check (Request'Access, 127);
-
-   begin
-      if Document = null then
-         declare
-            Document : LSP.Ada_Documents.Document_Access :=
-              Get_Open_Document (Self, Value.textDocument.uri, Force => True);
-         begin
-            Self.Get_Symbols
-              (Document.all, Context.all, Pattern,
-               Canceled.Has_Been_Canceled'Access, Result.result);
-
-            Free (Internal_Document_Access (Document));
-         end;
-      else
-         Self.Get_Symbols
-           (Document.all, Context.all, Pattern,
-            Canceled.Has_Been_Canceled'Access, Result.result);
-      end if;
-      return Result;
-   end On_Document_Symbols_Request;
-
-   -----------------------
-   -- On_Rename_Request --
-   -----------------------
-
-   overriding function On_Rename_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Rename_Request)
-      return LSP.Messages.Server_Responses.Rename_Response
-   is
-      use Libadalang.Analysis;
-
-      Value     : LSP.Messages.RenameParams renames Request.params;
-      Position  : constant LSP.Messages.TextDocumentPositionParams :=
-        (Value.textDocument, Value.position);
-      Response  : LSP.Messages.Server_Responses.Rename_Response
-        (Is_Error => False);
-      --  If a rename problem is found when Process_Context is called,
-      --  then Edits.Diagnotics will not be empty. This Response will be
-      --  discarded and a new response with an error meessage is returned
-      --  instead.
-      --  If no problems are found, then this Response will contain all the
-      --  references to be renamed and is returned by this function.
-      Document  : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-
-      Safe_Renamer : LAL_Refactor.Safe_Rename.Safe_Renamer;
-      Algorithm    : constant LAL_Refactor.Safe_Rename.
-        Problem_Finder_Algorithm_Kind :=
-          LAL_Refactor.Safe_Rename.Analyse_AST;
-
-      Context_Edits : LAL_Refactor.Refactoring_Edits;
-      --  Edits found for a particular context
-      All_Edits     : LAL_Refactor.Refactoring_Edits;
-      --  When iterating over all contexts (and therefore all projects), it's
-      --  possible to encounter the same Text_Edit more than once, so this
-      --  stores all the unique edits
-
-      Definition_Node : Defining_Name;
-      --  Used to retrieve the definition node found for a given context
-
-      procedure Process_Context
-        (C               : Context_Access;
-         Definition_Node : out Defining_Name);
-      --  Process the rename request for the given context, and add the
-      --  edits to `All_Edits`.
-
-      function To_LSP_Diagnostic
-        (Problem         : LAL_Refactor.Refactoring_Diagnostic'Class;
-         Definition_Node : Defining_Name)
-         return LSP.Messages.Diagnostic;
-      --  Convert a laltool refactoring diagnostic into a LSP one.
-
-      ---------------------
-      -- Process_Context --
-      ---------------------
-
-      procedure Process_Context
-        (C               : Context_Access;
-         Definition_Node : out Defining_Name)
-      is
-         use LAL_Refactor.Safe_Rename;
-
-         Node       : constant Ada_Node := C.Get_Node_At (Document, Position);
-         Name_Node  : constant Libadalang.Analysis.Name :=
-           Laltools.Common.Get_Node_As_Name (Node);
-         Definition : constant Defining_Name :=
-           Laltools.Common.Resolve_Name_Precisely (Name_Node);
-
-         function Attribute_Value_Provider_Callback
-           (Attribute : GPR2.Q_Attribute_Id;
-            Index : String := "";
-            Default : String := "";
-            Use_Extended : Boolean := False)
-            return String
-          is (C.Project_Attribute_Value
-                (Attribute, Index, Default, Use_Extended));
-
-         Attribute_Value_Provider : constant
-           GPR2_Attribute_Value_Provider_Access :=
-             Attribute_Value_Provider_Callback'Unrestricted_Access;
-
-         function Analysis_Units return Analysis_Unit_Array is
-           (C.Analysis_Units);
-         --  Callback needed to provide the analysis units to the safe rename
-         --  tool.
-
-         procedure Process_Comments (Node : Ada_Node);
-         --  Iterate over all comments and include them in the response when
-         --  they contain a renamed word.
-
-         procedure Process_File_Renames;
-         --  Merges Context_Edits.File_Renames into All_Edits.File_Renames
-
-         procedure Process_References;
-         --  Merges Context_Edits.Text_Edits into All_Edits.Text_Edits and for
-         --  each Text_Edit (which represents a reference) processes its
-         --  references in comments.
-
-         -----------------------
-         --  Process_Comments --
-         -----------------------
-
-         procedure Process_Comments (Node : Ada_Node)
-         is
-            use LAL_Refactor;
-
-            File_Name : constant File_Name_Type :=
-              Node.Unit.Get_Filename;
-            Token     : Token_Reference := First_Token (Node.Unit);
-            Name      : constant Wide_Wide_String :=
-              Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
-                (Laltools.Common.Get_Last_Name (Name_Node));
-            Text_Edit : LAL_Refactor.Text_Edit;
-            Span      : Langkit_Support.Slocs.Source_Location_Range;
-            Current   : Token_Reference;
-            Diff      : Integer;
-
-            function Process_Box return Boolean;
-            --  Check whether Current is box header/footer and modify it.
-            --  Return False when the searching cycle should be stopped.
-
-            -----------------
-            -- Process_Box --
-            -----------------
-
-            function Process_Box return Boolean is
-               use Langkit_Support.Text;
-               use Langkit_Support.Slocs;
-
-            begin
-               if Current = No_Token then
-                  return False;
-               end if;
-
-               case Kind (Data (Current)) is
-                  when Ada_Whitespace =>
-                     return True;
-
-                  when Ada_Comment =>
-                     declare
-                        Value : constant Text_Type := Text (Current);
-                     begin
-                        for Idx in Value'Range loop
-                           if Value (Idx) /= '-' then
-                              return False;
-                           end if;
-                        end loop;
-
-                        if Diff > 0 then
-                           --  Increase '-', Diff is positive
-                           declare
-                              Sloc : Source_Location_Range :=
-                                Sloc_Range (Data (Current));
-
-                           begin
-                              Sloc.Start_Column := Sloc.End_Column;
-
-                              LAL_Refactor.Safe_Insert
-                                (All_Edits.Text_Edits,
-                                 File_Name,
-                                 LAL_Refactor.Text_Edit'
-                                   (Sloc,
-                                    Ada.Strings.Unbounded."*" (Diff, '-')));
-                           end;
-
-                        else
-                           --  Decrease '-', Diff is negative
-                           declare
-                              Sloc : Source_Location_Range :=
-                                Sloc_Range (Data (Current));
-
-                           begin
-                              Sloc.Start_Column :=
-                                Sloc.End_Column - Column_Number (abs Diff);
-
-                              LAL_Refactor.Safe_Insert
-                                (All_Edits.Text_Edits,
-                                 File_Name,
-                                 LAL_Refactor.Text_Edit'
-                                   (Sloc, Null_Unbounded_String));
-                           end;
-                        end if;
-
-                        return False;
-                     end;
-
-                  when others =>
-                     return False;
-               end case;
-            end Process_Box;
-
-         begin
-            Diff := Natural (Value.newName.Character_Length) - Name'Length;
-
-            while Token /= No_Token loop
-               declare
-                  This_Span : Langkit_Support.Slocs.Source_Location_Range;
-               begin
-                  if Kind (Data (Token)) = Ada_Comment
-                    and then Laltools.Common.Contains
-                      (Token, Name, True, This_Span)
-                  then
-                     Text_Edit.Location := This_Span;
-                     Text_Edit.Text :=
-                       VSS.Strings.Conversions.To_Unbounded_UTF_8_String
-                         (Value.newName);
-
-                     if Diff /= 0
-                       and then Laltools.Common.Contains
-                         (Token, "-- " & Name & " --", False, Span)
-                     then
-                        --  Can be a comment box
-                        Current := Previous (Token);
-                        loop
-                           --  Looking for the box header
-                           exit when not Process_Box;
-                           Current := Previous (Current);
-                        end loop;
-
-                        --  Include corrected comment itself
-                        LAL_Refactor.Safe_Insert
-                          (All_Edits.Text_Edits,
-                           Node.Unit.Get_Filename,
-                           Text_Edit);
-
-                        Current := Next (Token);
-                        loop
-                           --  Looking for the box footer
-                           exit when not Process_Box;
-                           Current := Next (Current);
-                        end loop;
-                     else
-                        LAL_Refactor.Safe_Insert
-                          (All_Edits.Text_Edits,
-                           Node.Unit.Get_Filename,
-                           Text_Edit);
-                     end if;
-                  end if;
-               end;
-
-               Token := Next (Token);
-            end loop;
-         end Process_Comments;
-
-         --------------------------
-         -- Process_File_Renames --
-         --------------------------
-
-         procedure Process_File_Renames is
-         begin
-            All_Edits.File_Renames.Union (Context_Edits.File_Renames);
-         end Process_File_Renames;
-
-         ------------------------
-         -- Process_References --
-         ------------------------
-
-         procedure Process_References
-         is
-            use LAL_Refactor;
-
-            Text_Edits_Cursor : Text_Edit_Ordered_Maps.Cursor :=
-              Context_Edits.Text_Edits.First;
-
-            Unit : Analysis_Unit; -- Reference Unit
-            Node : Ada_Node; -- Reference Node
-
-         begin
-            Text_Edits_Cursor := Context_Edits.Text_Edits.First;
-
-            while Text_Edit_Ordered_Maps.Has_Element (Text_Edits_Cursor) loop
-               for Text_Edit of
-                 Text_Edit_Ordered_Maps.Element (Text_Edits_Cursor)
-               loop
-                  --  Check if we've already seen this reference from another
-                  --  context.
-
-                  if not Contains
-                    (All_Edits.Text_Edits,
-                     Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor),
-                     Text_Edit)
-                  then
-                     --  First time we see this reference, so add it All_Edits
-                     --  and process comments.
-
-                     Safe_Insert
-                       (All_Edits.Text_Edits,
-                        Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor),
-                        Text_Edit);
-
-                     Unit := C.Get_AU
-                       (GNATCOLL.VFS.Create_From_UTF8
-                          (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor)));
-                     Node := Unit.Root.Lookup
-                       ((Text_Edit.Location.Start_Line,
-                         Text_Edit.Location.Start_Column));
-
-                     if Self.Options.Refactoring.Renaming.In_Comments then
-                        Process_Comments (Node);
-                     end if;
-                  end if;
-               end loop;
-
-               Text_Edits_Cursor :=
-                 Text_Edit_Ordered_Maps.Next (Text_Edits_Cursor);
-            end loop;
-         end Process_References;
-
-      begin
-         Definition_Node := Definition;
-
-         if Definition.Is_Null then
-            return;
-         end if;
-
-         Safe_Renamer := LAL_Refactor.Safe_Rename.Create_Safe_Renamer
-           (Definition               => Definition,
-            New_Name                 =>
-              Libadalang.Text.To_Unbounded_Text
-                (VSS.Strings.Conversions.To_Wide_Wide_String (Value.newName)),
-            Algorithm                => Algorithm,
-            Attribute_Value_Provider => Attribute_Value_Provider);
-
-         Context_Edits := Safe_Renamer.Refactor (Analysis_Units'Access);
-
-         --  If problems were found, do not continue processing references
-
-         if not Context_Edits.Diagnostics.Is_Empty then
-            return;
-         end if;
-
-         Process_References;
-         Process_File_Renames;
-      end Process_Context;
-
-      -----------------------
-      -- To_LSP_Diagnostic --
-      -----------------------
-
-      function To_LSP_Diagnostic
-        (Problem         : LAL_Refactor.Refactoring_Diagnostic'Class;
-         Definition_Node : Defining_Name)
-         return LSP.Messages.Diagnostic
-      is
-         Diagnostic : LSP.Messages.Diagnostic;
-      begin
-         Diagnostic := LSP.Messages.Diagnostic'
-           (span               =>
-              To_Span (Definition_Node.Sloc_Range),
-            severity           => (True, LSP.Messages.Error),
-            code               => <>,
-            codeDescription    => <>,
-            source             =>
-              (True, To_Virtual_String ("Ada")),
-            message            =>
-              (if Self.Supports_Related_Diagnostics then
-                    VSS.Strings.Conversions.To_Virtual_String
-                 ("Can't rename identifier '"
-                  & Langkit_Support.Text.To_UTF8
-                    (Definition_Node.Text)
-                  & "'")
-               else VSS.Strings.Conversions.To_Virtual_String
-              (Problem.Info)),
-            tags               => <>,
-            relatedInformation => <>);
-
-         if Self.Supports_Related_Diagnostics then
-            Diagnostic.relatedInformation.Append
-              (LSP.Messages.DiagnosticRelatedInformation'(
-               location => LSP.Messages.Location'
-                 (uri     => File_To_URI (Problem.Filename),
-                  span    => To_Span (Problem.Location),
-                  alsKind => <>),
-               message  => VSS.Strings.Conversions.To_Virtual_String
-                 (Problem.Info)));
-         end if;
-
-         return Diagnostic;
-      end To_LSP_Diagnostic;
-
-   begin
-      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
-         Process_Context (C, Definition_Node);
-
-         --  If problems were found, send an error reponse and a diagnostic for
-         --  each issue. Do not proceed with the renames.
-
-         if not Context_Edits.Diagnostics.Is_Empty then
-            return Response : LSP.Messages.Server_Responses.Rename_Response
-              (Is_Error => True)
-            do
-               declare
-                  Diag_Params : LSP.Messages.PublishDiagnosticsParams;
-                  Diagnostic  : LSP.Messages.Diagnostic;
-               begin
-                  --  For each problem detected in a given file by laltools,
-                  --  convert it to a LSP diagnostic and publish them when
-                  --  switching to another file.
-
-                  for Problem of Context_Edits.Diagnostics loop
-                     Diagnostic := To_LSP_Diagnostic
-                       (Problem, Definition_Node);
-
-                     if To_UTF_8_String (Diag_Params.uri) = "" or else
-                       To_UTF_8_String (Diag_Params.uri) = Problem.Filename
-                     then
-                        Diag_Params.diagnostics.Append (Diagnostic);
-                        Diag_Params.uri := Value.textDocument.uri;
-                     else
-                        Self.Server.On_Publish_Diagnostics (Diag_Params);
-                        Diag_Params.uri := File_To_URI ("");
-                        Diag_Params.diagnostics.Clear;
-                     end if;
-                  end loop;
-
-                  if not Diag_Params.diagnostics.Is_Empty then
-                     Self.Server.On_Publish_Diagnostics (Diag_Params);
-                  end if;
-
-                  Response.error :=
-                    (True,
-                     (code    => LSP.Errors.RequestFailed,
-                      message => <>,
-                      data    => Empty));
-               end;
-            end return;
-         end if;
-
-         exit when Request.Canceled;
-      end loop;
-
-      --  All contexts were processed, and no rename problems were found
-
-      Response.result := To_Workspace_Edit
-        (All_Edits, Self.Resource_Operations, Self.Versioned_Documents, Self);
-
-      return Response;
-
-   exception
-      when E : others =>
-         return Response : LSP.Messages.Server_Responses.Rename_Response
-           (Is_Error => True)
-         do
-            Response.error :=
-              (True,
-               (code    => LSP.Errors.InternalError,
-                message => VSS.Strings.Conversions.To_Virtual_String
-                  (Ada.Exceptions.Exception_Information (E)),
-                data    => <>));
-         end return;
-   end On_Rename_Request;
-
-   --------------------------
-   -- Change_Configuration --
-   --------------------------
-
-   procedure Change_Configuration
-     (Self    : access Message_Handler;
-      Options : GNATCOLL.JSON.JSON_Value'Class)
-   is
-      use type GNATCOLL.JSON.JSON_Value_Type;
-      use type VSS.Strings.Virtual_String;
-
-      procedure Add_Variable (Name : String; Value : GNATCOLL.JSON.JSON_Value);
-
-      relocateBuildTree                 : constant String :=
-        "relocateBuildTree";
-      rootDir                           : constant String :=
-        "rootDir";
-      projectFile                       : constant String :=
-        "projectFile";
-      scenarioVariables                 : constant String :=
-        "scenarioVariables";
-      defaultCharset                    : constant String :=
-        "defaultCharset";
-      enableDiagnostics                 : constant String :=
-        "enableDiagnostics";
-      enableIndexing                    : constant String :=
-        "enableIndexing";
-      renameInComments                  : constant String :=
-        "renameInComments";
-      namedNotationThreshold            : constant String :=
-        "namedNotationThreshold";
-      foldComments                      : constant String :=
-        "foldComments";
-      displayMethodAncestryOnNavigation : constant String :=
-        "displayMethodAncestryOnNavigation";
-      followSymlinks                    : constant String :=
-        "followSymlinks";
-      documentationStyle                : constant String :=
-        "documentationStyle";
-      useCompletionSnippets             : constant String :=
-        "useCompletionSnippets";
-      logThreshold                      : constant String :=
-        "logThreshold";
-      onTypeFormatting                  : constant String :=
-        "onTypeFormatting";
-      indentOnly                        : constant String :=
-        "indentOnly";
-
-      Variables : Scenario_Variable_List;
-
-      function Property
-        (Name    : String;
-         Default : VSS.Strings.Virtual_String)
-           return VSS.Strings.Virtual_String is
-             (if Options.Kind = GNATCOLL.JSON.JSON_Object_Type
-                and then Options.Has_Field (Name)
-              then VSS.Strings.Conversions.To_Virtual_String
-                     (String'(Options.Get (Name)))
-              else Default);
-
-      function Has_Field (Name : String) return Boolean is
-         (Options.Kind = GNATCOLL.JSON.JSON_Object_Type
-          and then Options.Has_Field (Name));
-
-      ------------------
-      -- Add_Variable --
-      ------------------
-
-      procedure Add_Variable
-        (Name : String; Value : GNATCOLL.JSON.JSON_Value) is
-      begin
-         if Value.Kind = GNATCOLL.JSON.JSON_String_Type then
-            Variables.Names.Append
-              (VSS.Strings.Conversions.To_Virtual_String (Name));
-
-            Variables.Values.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                 (String'(Value.Get)));
-         end if;
-      end Add_Variable;
-
-      File                : VSS.Strings.Virtual_String;
-      Charset             : VSS.Strings.Virtual_String;
-      Relocate_Build_Tree : VSS.Strings.Virtual_String;
-      Relocate_Root       : VSS.Strings.Virtual_String;
-
-      Has_Variables : Boolean := False;  --  settings has scenarioVariables
-
-   begin
-      Relocate_Build_Tree :=
-        Property (relocateBuildTree, Self.Relocate_Build_Tree);
-
-      Relocate_Root := Property (rootDir, Self.Relocate_Root_Dir);
-      Charset := Property (defaultCharset, Self.Charset);
-      File := Property (projectFile, Self.Project_File);
-
-      --  Drop uri scheme if present
-      if File.Starts_With ("file:") then
-         File := Self.URI_To_File (File);
-      end if;
-
-      if Has_Field (scenarioVariables) and then
-        Options.Get
-          (scenarioVariables).Kind  = GNATCOLL.JSON.JSON_Object_Type
-      then
-         Options.Get
-           (scenarioVariables).Map_JSON_Object (Add_Variable'Access);
-         Has_Variables := True;
-      end if;
-
-      --  It looks like the protocol does not allow clients to say whether
-      --  or not they want diagnostics as part of
-      --  InitializeParams.capabilities.textDocument. So we support
-      --  deactivating of diagnostics via a setting here.
-      if Has_Field (enableDiagnostics) then
-         Self.Diagnostics_Enabled := Options.Get (enableDiagnostics);
-      end if;
-
-      --  Similarly to diagnostics, we support selectively activating
-      --  indexing in the parameters to this request.
-      if Has_Field (enableIndexing) then
-         Self.Indexing_Enabled := Options.Get (enableIndexing);
-      end if;
-
-      --  Retrieve the different textDocument/rename options if specified
-
-      if Has_Field (renameInComments) then
-         Self.Options.Refactoring.Renaming.In_Comments :=
-           Options.Get (renameInComments);
-      end if;
-
-      if Has_Field (foldComments) then
-         Self.Options.Folding.Comments := Options.Get (foldComments);
-      end if;
-
-      --  Retrieve the number of parameters / components at which point
-      --  named notation is used for subprogram/aggregate completion
-      --  snippets.
-
-      if Has_Field (namedNotationThreshold) then
-         Self.Named_Notation_Threshold :=
-           Options.Get (namedNotationThreshold);
-      end if;
-
-      if Has_Field (logThreshold) then
-         Self.Log_Threshold := Options.Get (logThreshold);
-      end if;
-
-      --  Check the 'useCompletionSnippets' flag to see if we should use
-      --  snippets in completion (if the client supports it).
-      if not Self.Completion_Snippets_Enabled then
-         Self.Use_Completion_Snippets := False;
-      elsif Has_Field (useCompletionSnippets) then
-         Self.Use_Completion_Snippets :=
-           Options.Get (useCompletionSnippets);
-      end if;
-
-      --  Retrieve the policy for displaying type hierarchy on navigation
-      --  requests.
-      if Has_Field (displayMethodAncestryOnNavigation) then
-         Self.Display_Method_Ancestry_Policy :=
-           LSP.Messages.AlsDisplayMethodAncestryOnNavigationPolicy'Value
-             (Options.Get (displayMethodAncestryOnNavigation));
-      end if;
-
-      --  Retrieve the follow symlinks policy.
-
-      if Has_Field (followSymlinks) then
-         Self.Follow_Symlinks := Options.Get (followSymlinks);
-      end if;
-
-      if Has_Field (documentationStyle) then
-         begin
-            Self.Options.Documentation.Style :=
-              GNATdoc.Comments.Options.Documentation_Style'Value
-                (Options.Get (documentationStyle));
-
-         exception
-            when Constraint_Error =>
-               Self.Options.Documentation.Style :=
-                 GNATdoc.Comments.Options.GNAT;
-         end;
-      end if;
-
-      if Has_Field (onTypeFormatting) then
-         declare
-            On_Type_Formatting : constant GNATCOLL.JSON.JSON_Value'Class :=
-              Options.Get (onTypeFormatting);
-         begin
-            if On_Type_Formatting.Has_Field (indentOnly) then
-               Self.Options.On_Type_Formatting.Indent_Only :=
-                 On_Type_Formatting.Get (indentOnly);
-            end if;
-
-         exception
-            when Constraint_Error =>
-               Self.Trace.Trace
-                 ("Failed to get " & onTypeFormatting & "." & indentOnly
-                  & " option. Using True as default.");
-               Self.Options.On_Type_Formatting.Indent_Only := True;
-         end;
-      end if;
-
-      if Self.Project_File = File
-        and then Self.Charset = Charset
-        and then Self.Relocate_Build_Tree = Relocate_Build_Tree
-        and then Self.Relocate_Root_Dir = Relocate_Root
-        and then not Self.Contexts.Is_Empty
-        and then (Self.Scenario_Variables = Variables
-                   or else not Has_Variables)
-      then
-
-         --  Project and Scenario, etc are unchanged, project has been loaded.
-         --  No needs to reload the project.
-         null;
-      else
-
-         Self.Project_File := File;
-         Self.Scenario_Variables := Variables;
-         Self.Charset := Charset;
-         Self.Relocate_Build_Tree := Relocate_Build_Tree;
-         Self.Relocate_Root_Dir := Relocate_Root;
-         Self.Project_Status := Valid_Project_Configured;
-         Self.Reload_Project;
-      end if;
-   end Change_Configuration;
-
-   --------------------------------------
-   -- Change_Configuration_Before_Init --
-   --------------------------------------
-
-   procedure Change_Configuration_Before_Init
-     (Self    : access Message_Handler;
-      Options : GNATCOLL.JSON.JSON_Value'Class;
-      Root    : GNATCOLL.VFS.Virtual_File)
-   is
-      Saved_Root : constant GNATCOLL.VFS.Virtual_File := Self.Root;
-   begin
-      Self.Root := Root;
-      Self.Change_Configuration (Options);
-      Self.Root := Saved_Root;
-   end Change_Configuration_Before_Init;
+   end On_DidChange_Notification;
 
    --------------------------------------------
    -- On_DidChangeConfiguration_Notification --
    --------------------------------------------
 
    overriding procedure On_DidChangeConfiguration_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeConfigurationParams)
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeConfigurationParams)
    is
-
-      Ada       : constant LSP.Types.LSP_Any := Value.settings.Get ("ada");
-
-      --  Is client capable of dynamically registering file operations?
-      Dynamically_Register_File_Operations : constant Boolean :=
-        Self.Client.capabilities.workspace.fileOperations.Is_Set
-        and then Self.Client.capabilities.workspace.fileOperations.
-                   Value.dynamicRegistration.Is_Set = True;
-
+      Reload : Boolean;
    begin
-      Self.Change_Configuration (Ada);
+      Self.Configuration.Read_JSON (Value.settings, Reload);
 
-      --  Dynamically register file operations if supported by the client
-      if Dynamically_Register_File_Operations
-        and then not Self.Contexts.Each_Context.Is_Empty
-      then
-         declare
-            Request : LSP.Messages.Client_Requests.RegisterCapability_Request;
-            Registration : LSP.Messages.Registration;
-            Registration_Options :
-              constant LSP.Messages.FileOperationRegistrationOptions :=
-                Self.Compute_File_Operation_Registration_Options;
-            File_Operations_Client_Capabilities :
-              constant LSP.Messages.FileOperationsClientCapabilities :=
-                Self.Client.capabilities.workspace.fileOperations.Value;
+      --  Always reload project if Project_Tree isn't ready
+      Reload := Reload or not Self.Project_Tree.Is_Defined;
 
-         begin
-            Registration.registerOptions :=
-              (LSP.Types.File_Operation_Registration_Option,
-               FileOperation => Registration_Options);
-
-            if File_Operations_Client_Capabilities.willCreate = True then
-               Registration.id := "Will_Create";
-               Registration.method := "workspace/willCreateFiles";
-               Request.params.registrations.Append (Registration);
-            end if;
-
-            if File_Operations_Client_Capabilities.didCreate = True then
-               Registration.id := "Did_Create";
-               Registration.method := "workspace/didCreateFiles";
-               Request.params.registrations.Append (Registration);
-            end if;
-
-            if File_Operations_Client_Capabilities.willRename = True then
-               Registration.id := "Will_Rename";
-               Registration.method := "workspace/willRenameFiles";
-               Request.params.registrations.Append (Registration);
-            end if;
-
-            if File_Operations_Client_Capabilities.didRename = True then
-               Registration.id := "Did_Rename";
-               Registration.method := "workspace/didRenameFiles";
-               Request.params.registrations.Append (Registration);
-            end if;
-
-            if File_Operations_Client_Capabilities.willDelete = True then
-               Registration.id := "Will_Delete";
-               Registration.method := "workspace/willDeleteFiles";
-               Request.params.registrations.Append (Registration);
-            end if;
-
-            if File_Operations_Client_Capabilities.didDelete = True then
-               Registration.id := "Did_Delete";
-               Registration.method := "workspace/didDeleteFiles";
-               Request.params.registrations.Append (Registration);
-            end if;
-
-            Self.Server.On_RegisterCapability_Request (Request);
-         end;
+      if Reload then
+         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
       end if;
    end On_DidChangeConfiguration_Notification;
 
@@ -4740,10 +2236,12 @@ package body LSP.Ada_Handlers is
    -------------------------------------------
 
    overriding procedure On_DidChangeWatchedFiles_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DidChangeWatchedFilesParams)
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeWatchedFilesParams)
    is
-      URI  : LSP.Messages.DocumentUri;
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI  : LSP.Structures.DocumentUri;
       File : GNATCOLL.VFS.Virtual_File;
 
       procedure Process_Created_File;
@@ -4754,6 +2252,23 @@ package body LSP.Ada_Handlers is
 
       procedure Process_Changed_File;
       --  Processes a changed file
+
+      --------------------------
+      -- Process_Changed_File --
+      --------------------------
+
+      procedure Process_Changed_File is
+      begin
+         if Self.Get_Open_Document (URI) = null then
+            --  If there is no document, reindex the file for each
+            --  context where it is relevant.
+            File := Self.To_File (URI);
+
+            for C of Self.Contexts_For_File (File) loop
+               C.Index_File (File);
+            end loop;
+         end if;
+      end Process_Changed_File;
 
       --------------------------
       -- Process_Created_File --
@@ -4790,7 +2305,7 @@ package body LSP.Ada_Handlers is
                Context.Include_File (File);
                Context.Index_File (File);
 
-               Self.Trace.Trace
+               Self.Tracer.Trace
                  ("Included " & File.Display_Base_Name
                   & " in context " & To_UTF_8_String (Context.Id));
             end loop;
@@ -4823,645 +2338,172 @@ package body LSP.Ada_Handlers is
          end if;
       end Process_Deleted_File;
 
-      --------------------------
-      -- Process_Changed_File --
-      --------------------------
-
-      procedure Process_Changed_File is
-      begin
-         if Self.Get_Open_Document (URI) = null then
-            --  If there is no document, reindex the file for each
-            --  context where it is relevant.
-            File := Self.To_File (URI);
-
-            for C of Self.Contexts_For_File (File) loop
-               C.Index_File (File);
-            end loop;
-         end if;
-      end Process_Changed_File;
-
    begin
       --  Look through each change, filtering non Ada source files
       for Change of Value.changes loop
          URI := Change.uri;
          File := Self.To_File (URI);
+
          case Change.a_type is
-            when LSP.Messages.Created =>
+            when LSP.Enumerations.Created =>
                Process_Created_File;
-            when LSP.Messages.Deleted =>
+            when LSP.Enumerations.Deleted =>
                Process_Deleted_File;
-            when LSP.Messages.Changed =>
+            when LSP.Enumerations.Changed =>
                Process_Changed_File;
          end case;
       end loop;
    end On_DidChangeWatchedFiles_Notification;
 
-   ------------------------------------
-   -- Mark_Source_Files_For_Indexing --
-   ------------------------------------
+   -----------------------------------------------
+   -- On_DidChangeWorkspaceFolders_Notification --
+   -----------------------------------------------
 
-   procedure Mark_Source_Files_For_Indexing (Self : access Message_Handler) is
-   begin
-      Self.Files_To_Index.Clear;
-
-      --  Mark all the project's source files
-      for C of Self.Contexts.Each_Context loop
-         for F in C.List_Files loop
-            Self.Files_To_Index.Include
-              (LSP.Ada_File_Sets.File_Sets.Element (F));
-         end loop;
-      end loop;
-
-      if Runtime_Indexing.Is_Active then
-         --  Mark all the predefined sources too (runtime)
-         for F in Self.Project_Predefined_Sources.Iterate loop
-            declare
-               File : GNATCOLL.VFS.Virtual_File renames
-                 LSP.Ada_File_Sets.File_Sets.Element (F);
-            begin
-               for Context of Self.Contexts_For_File (File) loop
-                  Self.Files_To_Index.Include (File);
-               end loop;
-            end;
-         end loop;
-      end if;
-
-      Self.Total_Files_Indexed := 0;
-      Self.Total_Files_To_Index := Positive'Max
-        (1, Natural (Self.Files_To_Index.Length));
-   end Mark_Source_Files_For_Indexing;
-
-   ------------------
-   -- Load_Project --
-   ------------------
-
-   procedure Load_Project
-     (Self         : access Message_Handler;
-      Project_File : VSS.Strings.Virtual_String;
-      Scenario     : Scenario_Variable_List;
-      Environment  : GPR2.Environment.Object;
-      Charset      : VSS.Strings.Virtual_String;
-      Status       : Load_Project_Status)
+   overriding procedure On_DidChangeWorkspaceFolders_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeWorkspaceFoldersParams)
    is
-      Message  : LSP.Messages.ShowMessageParams;
-      Errors   : VSS.String_Vectors.Virtual_String_Vector;
-      Warnings : VSS.String_Vectors.Virtual_String_Vector;
+      use type LSP.Ada_Documents.Document_Access;
 
-      procedure Create_Context_For_Non_Aggregate
-        (View : GPR2.Project.View.Object);
+      URI  : LSP.Structures.DocumentUri;
+      File : GNATCOLL.VFS.Virtual_File;
 
-      procedure Append_Errors;
+      procedure Process_Created_File;
+      --  Processes a created file
 
-      function To_Virtual_File
-        (Value : VSS.Strings.Virtual_String) return Virtual_File is
-        (Create_From_UTF8 (VSS.Strings.Conversions.To_UTF_8_String (Value)));
-      --  Cast Virtual_String to Virtual_File
+      procedure Process_Deleted_File;
+      --  Processes a deleted file
 
-      -------------------
-      -- Append_Errors --
-      -------------------
+      --------------------------
+      -- Process_Created_File --
+      --------------------------
 
-      procedure Append_Errors is
-      begin
-         for Message of Self.Project_Tree.Log_Messages.all loop
-            case Message.Level is
-               when GPR2.Message.Error =>
-                  Errors.Append
-                    (VSS.Strings.Conversions.To_Virtual_String
-                       (Message.Format));
-               when GPR2.Message.Warning =>
-                  Warnings.Append
-                    (VSS.Strings.Conversions.To_Virtual_String
-                       (Message.Format));
-               when others =>
-                  null;
-            end case;
-         end loop;
-      end Append_Errors;
+      procedure Process_Created_File is
+         use VSS.Strings.Conversions;
 
-      --------------------------------------
-      -- Create_Context_For_Non_Aggregate --
-      --------------------------------------
+         Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
+           Self.Contexts_For_URI (URI);
 
-      procedure Create_Context_For_Non_Aggregate
-        (View : GPR2.Project.View.Object) is
-         C : constant Context_Access := new Context (Self.Trace);
-         Reader : LSP.Ada_Handlers.File_Readers.LSP_Reader_Interface (Self);
-
-         Default_Config : Libadalang.Preprocessing.File_Config;
-         File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map;
-
-         procedure Set_Line_Mode
-           (Config : in out Libadalang.Preprocessing.File_Config);
-         --  Used to force the preprocessing line mode to Blank_Lines, which
-         --  is needed to preserve the number of lines after preprocessing a
-         --  source file, otherwise LSP requests based on SLOCs will fail.
-
-         -------------------
-         -- Set_Line_Mode --
-         -------------------
-
-         procedure Set_Line_Mode
-           (Config : in out Libadalang.Preprocessing.File_Config) is
-         begin
-            if Config.Enabled then
-               Config.Line_Mode := Libadalang.Preprocessing.Blank_Lines;
-            end if;
-         end Set_Line_Mode;
+         function Has_Dir
+           (Context : LSP.Ada_Contexts.Context)
+            return Boolean
+         is (Context.List_Source_Directories.Contains (File.Dir));
+         --  Return True if File is in a source directory of the project held
+         --  by Context.
 
       begin
-         --  Extract the preprocessing options from the context's project
-         --  and create the file reader which will preprocess the files
-         --  accordingly.
+         --  If the file was created by the client, then the DidCreateFiles
+         --  notification might have been received from it. In that case,
+         --  Contexts wont be empty, and all we need to do is check if
+         --  there's an open document. If there is, it takes precedence over
+         --  the filesystem.
+         --  If Contexts is empty, then we need to check if is a new source
+         --  that needs to be added. For instance, a source that was moved
+         --  to the the project source directories.
 
-         Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
-           (Tree           => Self.Project_Tree,
-            Project        => View,
-            Default_Config => Default_Config,
-            File_Configs   => File_Configs);
+         if Contexts.Is_Empty then
+            for Context of Self.Contexts.Each_Context
+              (Has_Dir'Unrestricted_Access)
+            loop
+               Context.Include_File (File);
+               Context.Index_File (File);
 
-         Libadalang.Preprocessing.Iterate
-           (Default_Config => Default_Config,
-            File_Configs   => File_Configs,
-            Process        => Set_Line_Mode'Access);
+               Self.Tracer.Trace
+                 ("Included " & File.Display_Base_Name
+                  & " in context " & To_UTF_8_String (Context.Id));
+            end loop;
 
-         Reader.Preprocessing_Data :=
-           Libadalang.Preprocessing.Create_Preprocessor_Data
-             (Default_Config, File_Configs);
-
-         C.Initialize
-           (Reader,
-            Style           => Self.Options.Documentation.Style,
-            Follow_Symlinks => Self.Follow_Symlinks);
-
-         C.Load_Project
-           (Tree    => Self.Project_Tree,
-            Root    => View,
-            Charset => VSS.Strings.Conversions.To_UTF_8_String (Charset));
-         Self.Contexts.Prepend (C);
-      end Create_Context_For_Non_Aggregate;
-
-      GPR                 : Virtual_File := To_Virtual_File (Project_File);
-      Default_Environment : LSP.Ada_Handlers.Environment;
-
-      Relocate_Build_Tree : constant Virtual_File :=
-        To_Virtual_File (Self.Relocate_Build_Tree);
-
-      Root_Dir            : constant Virtual_File :=
-        To_Virtual_File (Self.Relocate_Root_Dir);
-
-   begin
-      --  The projectFile may be either an absolute path or a
-      --  relative path; if so, we're assuming it's relative
-      --  to Self.Root.
-      if not GPR.Is_Absolute_Path then
-         GPR := Join (Self.Root, GPR);
-      end if;
-
-      --  Unload the project tree and the project environment
-      Self.Release_Contexts_And_Project_Info;
-
-      --  Now load the new project
-      Self.Project_Status := Status;
-      Self.Project_Environment := Default_Environment;
-
-      if Relocate_Build_Tree /= No_File then
-         Self.Project_Environment.Build_Path :=
-           GPR2.Path_Name.Create (Relocate_Build_Tree);
-         if Root_Dir /= No_File and then GPR /= No_File then
-            if not Root_Dir.Is_Absolute_Path then
-               Self.Project_Environment.Build_Path :=
-                 GPR2.Path_Name.Create_Directory
-                   (GPR2.Path_Name.Create (GPR).Relative_Path
-                     (GPR2.Path_Name.Create (Root_Dir)).Name,
-                      GPR2.Filename_Type
-                       (Self.Project_Environment.Build_Path.Value));
+         else
+            if Self.Get_Open_Document (URI) = null then
+               for Context of Contexts loop
+                  Context.Index_File (File);
+               end loop;
             end if;
          end if;
-      end if;
+      end Process_Created_File;
 
-      --  Update scenario variables with user provided values
-      for J in 1 .. Scenario.Names.Length loop
-         Self.Project_Environment.Context.Insert
-           (GPR2.Optional_Name_Type
-              (VSS.Strings.Conversions.To_UTF_8_String (Scenario.Names (J))),
-            VSS.Strings.Conversions.To_UTF_8_String (Scenario.Values (J)));
+      ---------------------------
+      -- Process_Deleted_Files --
+      ---------------------------
+
+      procedure Process_Deleted_File is
+      begin
+         if Self.Get_Open_Document (URI) = null then
+            --  If there is no document, remove from the sources list
+            --  and reindex the file for each context where it is
+            --  relevant.
+            for C of Self.Contexts_For_URI (URI) loop
+               C.Exclude_File (File);
+               C.Index_File (File);
+            end loop;
+         end if;
+      end Process_Deleted_File;
+
+   begin
+      --  Look through each change, filtering non Ada source files
+      for Change of Value.event.added loop
+         URI  := To_DocumentUri (Change.uri);
+         File := Self.To_File (URI);
+         Process_Created_File;
       end loop;
 
-      begin
-         Self.Project_Tree.Load_Autoconf
-           (Filename    => GPR2.Path_Name.Create (GPR),
-            Context     => Self.Project_Environment.Context,
-            Build_Path  => Self.Project_Environment.Build_Path,
-            Environment => Environment);
+      for Change of Value.event.removed loop
+         URI  := To_DocumentUri (Change.uri);
+         File := Self.To_File (URI);
+         Process_Deleted_File;
+      end loop;
+   end On_DidChangeWorkspaceFolders_Notification;
 
-         Self.Project_Tree.Update_Sources (With_Runtime => True);
+   ------------------------------
+   -- On_DidClose_Notification --
+   ------------------------------
 
-      exception
-         when E : GPR2.Project_Error
-                | GPR2.Processing_Error
-                | GPR2.Attribute_Error =>
+   overriding procedure On_DidClose_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidCloseTextDocumentParams)
+   is
+      URI      : LSP.Structures.DocumentUri renames Value.textDocument.uri;
+      File     : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
+      Document : Internal_Document_Access;
+   begin
+      if Self.Open_Documents.Contains (File) then
+         Document := Self.Open_Documents.Element (File);
 
-            Self.Trace.Trace (E);
+         --  Remove the URI from the set of open documents now: this way,
+         --  the call to Flush_Document below will not attempt to reindex
+         --  from an open document, but from the file on disk.
+         Self.Open_Documents.Delete (File);
 
-            Self.Project_Status := Invalid_Project_Configured;
-      end;
+         for Context of Self.Contexts_For_URI (URI) loop
+            Context.Flush_Document (File);
+         end loop;
 
-      --  Keep errors and warnings
-      Append_Errors;
+         --  Clean diagnostics up on closing document
+         Self.Clean_Diagnostics
+           (LSP.Ada_Documents.Document_Access (Document));
 
-      if Self.Project_Status /= Status
-        or else not Self.Project_Tree.Is_Defined
-      then
-         --  The project was invalid: fallback on loading the implicit project.
-         Errors.Prepend
-           (VSS.Strings.Conversions.To_Virtual_String
-              ("Unable to load project file: " & GPR.Display_Full_Name));
-
-         Self.Load_Implicit_Project (Invalid_Project_Configured);
+         Free (Document);
 
       else
-         --  No exception during Load_Autoconf, check if we have runtime
-         if not Self.Project_Tree.Has_Runtime_Project then
-            Self.Project_Status := No_Runtime_Found;
-         end if;
+         --  We have received a didCloseTextDocument but the document was
+         --  not open: this is not supposed to happen, log it.
 
-         Update_Project_Predefined_Sources (Self);
-
-         if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
-            for View of Self.Project_Tree.Root_Project.Aggregated loop
-               Create_Context_For_Non_Aggregate (View);
-            end loop;
-         else
-            Create_Context_For_Non_Aggregate
-              (Self.Project_Tree.Root_Project);
-         end if;
+         Self.Tracer.Trace
+           ("received a On_DidClose_Notification for non-open document "
+            & "with uri: ");
+         Self.Tracer.Trace_Text (URI);
       end if;
-
-      --  Report the warnings, if any
-      if not Warnings.Is_Empty then
-         Message.message := Warnings.Join_Lines (VSS.Strings.LF);
-         Message.a_type := LSP.Messages.Warning;
-         Self.Server.On_Show_Message (Message);
-      end if;
-
-      --  Report the errors, if any
-      if not Errors.Is_Empty then
-         Message.message := Errors.Join_Lines (VSS.Strings.LF);
-         Message.a_type := LSP.Messages.Error;
-         Self.Server.On_Show_Message (Message);
-      end if;
-
-      --  Reindex all open documents immediately after project reload, so
-      --  that navigation from editors is accurate.
-      for Document of Self.Open_Documents loop
-         for Context of Self.Contexts_For_URI (Document.URI) loop
-            Context.Index_Document (Document.all);
-         end loop;
-
-         Self.Publish_Diagnostics (Document_Access (Document));
-      end loop;
-
-      if not Self.File_Monitor.Assigned then
-         Self.File_Monitor :=
-           new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
-      end if;
-
-      --  We have successfully loaded a real project: monitor the filesystem
-      --  for any changes on the sources of the project
-      Self.File_Monitor.Monitor_Directories
-        (Self.Contexts.All_Source_Directories);
-
-      --  Reindex the files from disk in the background after a project reload
-      Self.Mark_Source_Files_For_Indexing;
-   end Load_Project;
-
-   -----------------------------
-   -- Load_Project_With_Alire --
-   -----------------------------
-
-   procedure Load_Project_With_Alire
-     (Self                : access Message_Handler;
-      Project_File        : VSS.Strings.Virtual_String := "";
-      Scenario_Variables  : Scenario_Variable_List;
-      Charset             : VSS.Strings.Virtual_String)
-   is
-
-      Has_Alire   : Boolean;
-      Status      : Load_Project_Status;
-      Errors      : VSS.Strings.Virtual_String;
-      Project     : VSS.Strings.Virtual_String := Project_File;
-      UTF_8       : constant VSS.Strings.Virtual_String := "utf-8";
-
-      Environment : GPR2.Environment.Object :=
-        GPR2.Environment.Process_Environment;
-
-      Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
-        Self.Root.Create_From_Dir ("alire.toml");
-   begin
-      if Alire_TOML.Is_Regular_File
-        and Spawn.Environments.System_Environment.Value ("ALIRE") /= "True"
-      then
-
-         Self.Trace.Trace ("Check alire:");
-
-         if Project.Is_Empty then
-
-            LSP.Ada_Handlers.Alire.Run_Alire
-              (Root        => Self.Root.Display_Full_Name,
-               Has_Alire   => Has_Alire,
-               Error       => Errors,
-               Project     => Project,
-               Environment => Environment);
-
-            Status := Alire_Project;
-         else
-
-            LSP.Ada_Handlers.Alire.Run_Alire
-              (Root        => Self.Root.Display_Full_Name,
-               Has_Alire   => Has_Alire,
-               Error       => Errors,
-               Environment => Environment);
-
-            Status := Valid_Project_Configured;
-         end if;
-
-         if Has_Alire and then not Errors.Is_Empty then
-
-            --  Something wrong with alire. Report error. Don't load the
-            --  project. Fallback to implicit project.
-
-            declare
-               Error : LSP.Messages.ShowMessageParams;
-            begin
-               Error.a_type := LSP.Messages.Error;
-               Error.message := Errors;
-               Self.Server.On_Show_Message (Error);
-               Self.Trace.Trace
-                 (VSS.Strings.Conversions.To_UTF_8_String (Errors));
-
-               Self.Load_Implicit_Project (Invalid_Project_Configured);
-
-               return;
-            end;
-         elsif Has_Alire then
-
-            --  No errors means the project has been found
-            pragma Assert (not Project.Is_Empty);
-
-            Self.Trace.Trace
-              (Message => "Project:"
-                 & VSS.Strings.Conversions.To_UTF_8_String (Project));
-
-            Self.Load_Project
-              (Project_File => Project,
-               Scenario     => Scenario_Variables,
-               Environment  => Environment,
-               Charset      => (if Charset.Is_Empty then UTF_8 else Charset),
-               Status       => Status);
-            --  Alire projects tend to use utf-8
-
-            return;
-         else
-            Self.Trace.Trace (Message => "No alr in the PATH.");
-         end if;
-      end if;
-
-      --  There is no alire.toml or no alr, but we know the project, load it
-      if not Project.Is_Empty then
-
-         Self.Load_Project
-           (Project_File => Project,
-            Scenario     => Scenario_Variables,
-            Environment  => Environment,
-            Charset      => Charset,
-            Status       => Valid_Project_Configured);
-      end if;
-   end Load_Project_With_Alire;
-
-   -------------------------------
-   -- Get_Unique_Progress_Token --
-   -------------------------------
-
-   function Get_Unique_Progress_Token
-     (Self      : access Message_Handler;
-      Operation : String := "") return LSP_Number_Or_String
-   is
-      use GNAT.OS_Lib;
-
-      Pid : constant String :=
-        GNATCOLL.Utils.Image (Pid_To_Integer (Current_Process_Id), 1);
-   begin
-      Self.Token_Id := Self.Token_Id + 1;
-      --  Generate an identifier that has little risk of collision with
-      --  other language servers, or other occurrences of this server.
-      --  (There is still a very small risk of collision with PID recyclings,
-      --  but the consequences are acceptable.)
-      return
-        (Is_Number => False,
-         String    => VSS.Strings.Conversions.To_Virtual_String
-           ("ada_ls-"
-            & Pid & "-" & Operation & "-"
-            & GNATCOLL.Utils.Image (Self.Token_Id, 1)));
-   end Get_Unique_Progress_Token;
-
-   -----------------
-   -- Index_Files --
-   -----------------
-
-   procedure Index_Files (Self : access Message_Handler) is
-
-      procedure Emit_Progress_Begin;
-      procedure Emit_Progress_Report (Files_Indexed, Total_Files : Natural);
-      procedure Emit_Progress_End;
-      --  Emit a message to inform that the indexing has begun / is in
-      --  progress / has finished.
-
-      Progress_Report_Sent : Time := Clock;
-
-      -------------------------
-      -- Emit_Progress_Begin --
-      -------------------------
-
-      procedure Emit_Progress_Begin is
-         P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Begin);
-
-         Create_Progress : constant LSP.Messages.Client_Requests
-           .WorkDoneProgressCreate_Request :=
-             (params => (token => Self.Indexing_Token), others => <>);
-      begin
-         Self.Server.On_WorkDoneProgress_Create_Request
-           (Create_Progress);
-         --  FIXME: wait response before sending progress notifications.
-         --  Currenctly, we just send a `window/workDoneProgress/create`
-         --  request and immediately after this start sending notifications.
-         --  We could do better, send request, wait for client response and
-         --  start progress-report sending only after response.
-         P.Begin_Param.token := Self.Indexing_Token;
-         P.Begin_Param.value.title := "Indexing";
-         P.Begin_Param.value.percentage := (Is_Set => True, Value => 0);
-         Self.Server.On_Progress (P);
-      end Emit_Progress_Begin;
-
-      --------------------------
-      -- Emit_Progress_Report --
-      --------------------------
-
-      procedure Emit_Progress_Report (Files_Indexed, Total_Files : Natural) is
-         P : LSP.Messages.Progress_Params (LSP.Messages.Progress_Report);
-
-         function Image (N : Natural) return Wide_Wide_String;
-         function Image (N : Natural) return Wide_Wide_String is
-            S : constant Wide_Wide_String := Natural'Wide_Wide_Image (N);
-         begin
-            return S (S'First + 1 .. S'Last);
-         end Image;
-
-         Current : constant Time := Clock;
-      begin
-         if Current - Progress_Report_Sent < 0.5 then
-            --  Send only 2 notifications per second
-            return;
-         end if;
-         Progress_Report_Sent := Current;
-
-         P.Report_Param.token := Self.Indexing_Token;
-         P.Report_Param.value.percentage :=
-           (Is_Set => True, Value => LSP_Number
-              ((Files_Indexed * 100) / Total_Files));
-         P.Report_Param.value.message :=
-           (Is_Set => True,
-            Value  => VSS.Strings.To_Virtual_String
-              (Image (Files_Indexed) & "/" & Image (Total_Files) & " files"));
-         Self.Server.On_Progress (P);
-      end Emit_Progress_Report;
-
-      -----------------------
-      -- Emit_Progress_End --
-      -----------------------
-
-      procedure Emit_Progress_End is
-         P : LSP.Messages.Progress_Params (LSP.Messages.Progress_End);
-      begin
-         P.End_Param.token := Self.Indexing_Token;
-         Self.Server.On_Progress (P);
-      end Emit_Progress_End;
-
-   begin
-      --  Prevent work if the indexing has been explicitly disabled or
-      --  if we have other messages to process.
-      if not Self.Indexing_Enabled or Self.Server.Has_Pending_Work then
-         return;
-      end if;
-
-      if Self.Indexing_Token = Empty_Token then
-         Self.Indexing_Token := Self.Get_Unique_Progress_Token ("indexing");
-         Emit_Progress_Begin;
-      end if;
-
-      while not Self.Files_To_Index.Is_Empty loop
-         declare
-            Cursor : File_Sets.Cursor := Self.Files_To_Index.First;
-            File   : constant GNATCOLL.VFS.Virtual_File :=
-              File_Sets.Element (Cursor);
-         begin
-            Self.Files_To_Index.Delete (Cursor);
-            Self.Total_Files_Indexed := Self.Total_Files_Indexed + 1;
-
-            if not Self.Open_Documents.Contains (File) then
-               Emit_Progress_Report
-                 (Self.Total_Files_Indexed, Self.Total_Files_To_Index);
-
-               for Context of Self.Contexts_For_File (File) loop
-                  --  Set Reparse to False to avoid issues with LAL envs
-                  --  for now (see T226-048 for more info).
-                  Context.Index_File (File, Reparse => False);
-               end loop;
-
-               --  Check whether another request is pending. If so, pause
-               --  the indexing; it will be resumed later as part of
-               --  After_Request.
-               if not Self.Files_To_Index.Is_Empty
-                 and then Self.Server.Has_Pending_Work
-               then
-                  return;
-               end if;
-            end if;
-         end;
-      end loop;
-
-      Emit_Progress_End;
-      Self.Indexing_Token := Empty_Token;
-   end Index_Files;
-
-   ------------------------------------------
-   -- On_Workspace_Execute_Command_Request --
-   ------------------------------------------
-
-   overriding function On_Workspace_Execute_Command_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Workspace_Execute_Command_Request)
-      return LSP.Messages.Server_Responses.ExecuteCommand_Response
-   is
-      Error    : LSP.Errors.Optional_ResponseError;
-      Params   : LSP.Messages.ExecuteCommandParams renames
-        Request.params;
-      Response : LSP.Messages.Server_Responses.ExecuteCommand_Response
-        (Is_Error => True);
-   begin
-      if Params.Is_Unknown or else Params.Custom.Is_Null then
-         Response.error :=
-           (True,
-            (code => LSP.Errors.InternalError,
-             message => "Not implemented",
-             data    => <>));
-         return Response;
-      end if;
-
-      Params.Custom.Unchecked_Get.Execute
-        (Handler => Self,
-         Client  => Self.Server,
-         Error   => Error);
-
-      if Error.Is_Set then
-         Response.error := Error;
-         return Response;
-      end if;
-
-      --  No particular response in case of success.
-      return (Is_Error => False,
-              error    => (Is_Set => False),
-              others   => <>);
-   end On_Workspace_Execute_Command_Request;
-
-   --------------------------------------------
-   -- On_Workspace_Will_Create_Files_Request --
-   --------------------------------------------
-
-   overriding function On_Workspace_Will_Create_Files_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.
-                  Workspace_Will_Create_Files_Request)
-      return LSP.Messages.Server_Responses.WillCreateFiles_Response
-   is
-      Response : LSP.Messages.Server_Responses.WillCreateFiles_Response
-        (Is_Error => False);
-   begin
-      Self.Trace.Trace
-        ("Message_Handler On_Workspace_Will_Create_Files_Request");
-      return Response;
-   end On_Workspace_Will_Create_Files_Request;
+   end On_DidClose_Notification;
 
    ------------------------------------
    -- On_DidCreateFiles_Notification --
    ------------------------------------
 
    overriding procedure On_DidCreateFiles_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.CreateFilesParams) is
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.CreateFilesParams) is
    begin
-      Self.Trace.Trace
-        ("Message_Handler On_DidCreateFiles_Notification");
+      Self.Log_Method_In ("On_DidCreateFiles_Notification");
 
       --  New sources were created on this project, so recompute its view
 
@@ -5476,8 +2518,8 @@ package body LSP.Ada_Handlers is
          declare
             use VSS.Strings.Conversions;
 
-            Created_File : constant Virtual_File :=
-              Self.To_File (To_LSP_URI (File.uri));
+            Created_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (To_DocumentUri (File.uri));
 
             function Has_Dir
               (Context : LSP.Ada_Contexts.Context)
@@ -5494,51 +2536,132 @@ package body LSP.Ada_Handlers is
                Context.Include_File (Created_File);
                Context.Index_File (Created_File);
 
-               Self.Trace.Trace
+               Self.Tracer.Trace
                  ("Included " & Created_File.Display_Base_Name
                   & " in context " & To_UTF_8_String (Context.Id));
             end loop;
          end;
       end loop;
 
-      Self.Trace.Trace
-        ("Finished Message_Handler On_DidCreateFiles_Notification");
+      Self.Log_Method_Out ("On_DidCreateFiles_Notification");
    end On_DidCreateFiles_Notification;
 
-   --------------------------------------------
-   -- On_Workspace_Will_Rename_Files_Request --
-   --------------------------------------------
+   ------------------------------------
+   -- On_DidDeleteFiles_Notification --
+   ------------------------------------
 
-   overriding function On_Workspace_Will_Rename_Files_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.
-                  Workspace_Will_Rename_Files_Request)
-      return LSP.Messages.Server_Responses.WillRenameFiles_Response
-   is
-      Response : LSP.Messages.Server_Responses.WillRenameFiles_Response
-        (Is_Error => False);
+   overriding procedure On_DidDeleteFiles_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DeleteFilesParams) is
    begin
-      Self.Trace.Trace
-        ("Message_Handler On_Workspace_Will_Rename_Files_Request");
-      return Response;
-   end On_Workspace_Will_Rename_Files_Request;
+      Self.Log_Method_In ("On_DidDeleteFiles_Notification");
+
+      --  Some project sources were deleted, so recompute its view
+
+      Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+      --  For each delete file of Value.files:
+      --  - find the contexts that contains it
+      --  - remove it from those contexts
+      --  - re-index it on those contexts so that an empty unit is reparsed
+
+      for File of Value.files loop
+         declare
+            Deleted_URI : constant LSP.Structures.DocumentUri :=
+              To_DocumentUri (File.uri);
+
+            Deleted_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (Deleted_URI);
+
+         begin
+            for Context of Self.Contexts_For_File (Deleted_File) loop
+               Context.Exclude_File (Deleted_File);
+               Context.Index_File (Deleted_File);
+
+               Self.Tracer.Trace
+                 ("Excluded " & Deleted_File.Display_Base_Name
+                  & " from context "
+                  & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
+            end loop;
+         end;
+      end loop;
+
+      Self.Log_Method_Out ("On_DidDeleteFiles_Notification");
+   end On_DidDeleteFiles_Notification;
+
+   -----------------------------
+   -- On_DidOpen_Notification --
+   -----------------------------
+
+   overriding procedure On_DidOpen_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidOpenTextDocumentParams)
+   is
+      URI    : LSP.Structures.DocumentUri renames Value.textDocument.uri;
+      File   : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
+      Object : constant Internal_Document_Access :=
+        new LSP.Ada_Documents.Document (Self.Tracer);
+      Diag   : constant LSP.Diagnostic_Sources.Diagnostic_Source_Access :=
+        new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
+          (Self'Unchecked_Access);
+   begin
+      Self.Log_Method_In ("Text_Document_Did_Open", URI);
+
+      --  Some clients don't properly call initialize, or don't pass the
+      --  project to didChangeConfiguration: fallback here on loading a
+      --  project in this directory, if needed.
+      Self.Client.Set_Root_If_Empty
+        (VSS.Strings.Conversions.To_Virtual_String
+           (File.Dir.Display_Full_Name));
+
+      Project_Loading.Ensure_Project_Loaded (Self);
+
+      --  We have received a document: add it to the documents container
+      Object.Initialize (URI, Value.textDocument.text, Diag);
+      Self.Open_Documents.Include (File, Object);
+
+      --  Handle the case where we're loading the implicit project: do
+      --  we need to add the directory in which the document is open?
+
+      if Self.Project_Status in Implicit_Project_Loaded then
+         declare
+            Dir : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI).Dir;
+         begin
+            if not Self.Project_Dirs_Loaded.Contains (Dir) then
+               --  We do need to add this directory
+               Self.Project_Dirs_Loaded.Insert (Dir);
+               Project_Loading.Reload_Implicit_Project_Dirs (Self);
+            end if;
+         end;
+      end if;
+
+      --  Index the document in all the contexts where it is relevant
+      for Context of Self.Contexts_For_URI (URI) loop
+         Context.Index_Document (Object.all);
+      end loop;
+
+      --  Emit diagnostics
+      Self.Publish_Diagnostics (LSP.Ada_Documents.Document_Access (Object));
+
+      Self.Log_Method_Out ("Text_Document_Did_Open");
+   end On_DidOpen_Notification;
 
    ------------------------------------
    -- On_DidRenameFiles_Notification --
    ------------------------------------
 
    overriding procedure On_DidRenameFiles_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.RenameFilesParams)
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.RenameFilesParams)
    is
       use LSP.Ada_Context_Sets;
 
       package URI_Contexts_Maps is new
-        Ada.Containers.Indefinite_Hashed_Maps
-          (Key_Type        => LSP_URI,
+        Ada.Containers.Hashed_Maps
+          (Key_Type        => LSP.Structures.DocumentUri,
            Element_Type    => Context_Lists.List,
-           Hash            => Hash,
-           Equivalent_Keys => Equal,
+           Hash            => LSP.Structures.Get_Hash,
+           Equivalent_Keys => LSP.Structures."=",
            "="             => Context_Lists."=");
 
       subtype URI_Contexts_Map is URI_Contexts_Maps.Map;
@@ -5546,8 +2669,7 @@ package body LSP.Ada_Handlers is
       URIs_Contexts : URI_Contexts_Map;
 
    begin
-      Self.Trace.Trace
-        ("Message_Handler On_DidRenameFiles_Notification");
+      Self.Log_Method_In ("On_DidRenameFiles_Notification");
 
       --  Some project sources were renamed, so recompute its view
 
@@ -5562,33 +2684,26 @@ package body LSP.Ada_Handlers is
          declare
             use VSS.Strings.Conversions;
 
-            Old_File : constant Virtual_File :=
-              Self.To_File (To_LSP_URI (File_Rename.oldUri));
+            Old_URI : constant LSP.Structures.DocumentUri :=
+              To_DocumentUri (File_Rename.oldUri);
 
-            function Has_File
-              (Context : LSP.Ada_Contexts.Context)
-               return Boolean
-            is (Context.Is_Part_Of_Project (Old_File));
-            --  Return True if Old_File is a source of the project held by
-            --  Context.
+            Old_File : constant GNATCOLL.VFS.Virtual_File :=
+              Self.To_File (Old_URI);
 
             URI_Contexts : Context_Lists.List;
 
          begin
-            for Context of Self.Contexts.Each_Context
-              (Has_File'Unrestricted_Access)
-            loop
+            for Context of Self.Contexts_For_File (Old_File) loop
                URI_Contexts.Append (Context);
                Context.Exclude_File (Old_File);
                Context.Index_File (Old_File);
 
-               Self.Trace.Trace
+               Self.Tracer.Trace
                  ("Excluded " & Old_File.Display_Full_Name
                   & " from context " & To_UTF_8_String (Context.Id));
             end loop;
 
-            URIs_Contexts.Insert
-              (To_LSP_URI (File_Rename.oldUri), URI_Contexts);
+            URIs_Contexts.Insert (Old_URI, URI_Contexts);
          end;
       end loop;
 
@@ -5600,119 +2715,1667 @@ package body LSP.Ada_Handlers is
       for File_Rename of Value.files loop
          declare
             use VSS.Strings.Conversions;
+            use type LSP.Ada_Documents.Document_Access;
+
+            New_URI : constant LSP.Structures.DocumentUri :=
+              To_DocumentUri (File_Rename.newUri);
+
+            Old_URI : constant LSP.Structures.DocumentUri :=
+              To_DocumentUri (File_Rename.oldUri);
 
             New_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (LSP.Types.To_LSP_URI (File_Rename.newUri));
+              Self.To_File (New_URI);
+
             Document : constant LSP.Ada_Documents.Document_Access :=
-              Get_Open_Document
-                (Self,
-                 LSP.Messages.DocumentUri
-                   (LSP.Types.To_LSP_URI (File_Rename.newUri)));
+              Get_Open_Document (Self, New_URI);
+
             Is_Document_Open : constant Boolean := Document /= null;
 
          begin
-            for Context of
-              URIs_Contexts.Constant_Reference
-                (To_LSP_URI (File_Rename.oldUri))
-            loop
+            for Context of URIs_Contexts (Old_URI) loop
                Context.Include_File (New_File);
+
                if Is_Document_Open then
                   Context.Index_Document (Document.all);
                else
                   Context.Index_File (New_File);
                end if;
-               Self.Trace.Trace
+
+               Self.Tracer.Trace
                  ("Included " & New_File.Display_Base_Name & " in context "
                   & To_UTF_8_String (Context.Id));
             end loop;
          end;
       end loop;
 
-      Self.Trace.Trace
-        ("Finished Message_Handler On_DidRenameFiles_Notification");
+      Self.Log_Method_Out ("On_DidRenameFiles_Notification");
    end On_DidRenameFiles_Notification;
 
-   --------------------------------------------
-   -- On_Workspace_Will_Delete_Files_Request --
-   --------------------------------------------
+   ----------------------------------
+   -- On_DocumentHighlight_Request --
+   ----------------------------------
 
-   overriding function On_Workspace_Will_Delete_Files_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.
-                  Workspace_Will_Delete_Files_Request)
-      return LSP.Messages.Server_Responses.WillDeleteFiles_Response
+   overriding procedure On_DocumentHighlight_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentHighlightParams)
    is
-      Response : LSP.Messages.Server_Responses.WillDeleteFiles_Response
-        (Is_Error => False);
-   begin
-      Self.Trace.Trace
-        ("Message_Handler On_Workspace_Will_Delete_Files_Request");
-      return Response;
-   end On_Workspace_Will_Delete_Files_Request;
+      Response : LSP.Structures.DocumentHighlight_Vector_Or_Null;
 
-   ------------------------------------
-   -- On_DidDeleteFiles_Notification --
-   ------------------------------------
+      procedure Compute_Response;
 
-   overriding procedure On_DidDeleteFiles_Notification
-     (Self  : access Message_Handler;
-      Value : LSP.Messages.DeleteFilesParams) is
-   begin
-      Self.Trace.Trace
-        ("Message_Handler On_DidDeleteFiles_Notification");
+      function Get_Highlight_Kind
+        (Node : Libadalang.Analysis.Ada_Node)
+         return LSP.Structures.DocumentHighlightKind_Optional;
+      --  Fetch highlight kind for given node
 
-      --  Some project sources were deleted, so recompute its view
+      ----------------------
+      -- Compute_Response --
+      ----------------------
 
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      procedure Compute_Response is
 
-      --  For each delete file of Value.files:
-      --  - find the contexts that contains it
-      --  - remove it from those contexts
-      --  - re-index it on those contexts so that an empty unit is reparsed
+         use type LSP.Ada_Documents.Document_Access;
 
-      for File of Value.files loop
-         declare
-            Deleted_File : constant Virtual_File :=
-              Self.To_File (To_LSP_URI (File.uri));
+         Context       : constant LSP.Ada_Context_Sets.Context_Access :=
+           Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+         Document      : constant LSP.Ada_Documents.Document_Access :=
+           Get_Open_Document (Self, Value.textDocument.uri);
+         File          : constant GNATCOLL.VFS.Virtual_File :=
+           Self.To_File (Value.textDocument.uri);
+         Defining_Name : constant Libadalang.Analysis.Defining_Name :=
+           Imprecise_Resolve_Name (Self, Context.all, Value);
 
-            function Has_File
-              (Context : LSP.Ada_Contexts.Context)
-               return Boolean
-            is (Context.Is_Part_Of_Project (Deleted_File));
-            --  Return True if Old_File is a source of the project held by
-            --  Context.
+         procedure Append_To_Response
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean);
+         --  Called on each found reference. Used to append the reference to
+         --  the final result.
+
+         ------------------------
+         -- Append_To_Response --
+         ------------------------
+
+         procedure Append_To_Response
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean)
+         is
+            pragma Unreferenced (Kind);
+            pragma Unreferenced (Cancel);
 
          begin
-            for Context of Self.Contexts.Each_Context
-              (Has_File'Unrestricted_Access)
-            loop
-               Context.Exclude_File (Deleted_File);
-               Context.Index_File (Deleted_File);
+            if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
+               LSP.Ada_Handlers.Locations.Append_Location
+                 (Result   => Response,
+                  Document => Document,
+                  File     => File,
+                  Node     => Node,
+                  Kind     => Get_Highlight_Kind (Node.As_Ada_Node));
+            end if;
+         end Append_To_Response;
 
-               Self.Trace.Trace
-                 ("Excluded " & Deleted_File.Display_Base_Name
-                  & " from context "
-                  & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
+      begin
+         if Document = null
+           or Defining_Name.Is_Null
+           or Self.Is_Canceled.all
+         then
+            return;
+         end if;
+
+         --  Find all references will return all the references except the
+         --  declaration ...
+
+         Document.Find_All_References
+           (Context    => Context.all,
+            Definition => Defining_Name,
+            Callback   => Append_To_Response'Access);
+
+         --  ... add it manually
+
+         LSP.Ada_Handlers.Locations.Append_Location
+           (Result   => Response,
+            Document => Document,
+            File     => File,
+            Node     => Defining_Name,
+            Kind     => Get_Highlight_Kind (Defining_Name.As_Ada_Node));
+      end Compute_Response;
+
+      ------------------------
+      -- Get_Highlight_Kind --
+      ------------------------
+
+      function Get_Highlight_Kind
+        (Node : Libadalang.Analysis.Ada_Node)
+         return LSP.Structures.DocumentHighlightKind_Optional
+      is
+         Id : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Node);
+
+      begin
+         if Id.P_Is_Write_Reference then
+            return (Is_Set => True, Value => LSP.Enumerations.Write);
+
+         else
+            return (Is_Set => True, Value  => LSP.Enumerations.Read);
+         end if;
+      end Get_Highlight_Kind;
+
+   begin
+      Compute_Response;
+      Self.Sender.On_DocumentHighlight_Response (Id, Response);
+   end On_DocumentHighlight_Request;
+
+   -------------------------------
+   -- On_DocumentSymbol_Request --
+   -------------------------------
+
+   overriding procedure On_DocumentSymbol_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentSymbolParams)
+   is
+      use type LSP.Structures.Boolean_Optional;
+
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Context.Get_AU (Self.To_File (Value.textDocument.uri));
+
+      Response : LSP.Structures.DocumentSymbol_Result;
+
+      Pattern  : constant LSP.Search.Search_Pattern'Class :=
+        LSP.Search.Build
+          (Pattern        => Value.query,
+           Case_Sensitive => Value.case_sensitive = LSP.Constants.True,
+           Whole_Word     => Value.whole_word = LSP.Constants.True,
+           Negate         => Value.negate = LSP.Constants.True,
+           Kind           =>
+             (if Value.kind.Is_Set
+              then Value.kind.Value
+              else LSP.Enumerations.Start_Word_Text));
+   begin
+      if Self.Client.Hierarchical_Symbol then
+         Response := (Kind => LSP.Structures.Variant_2, Variant_2 => <>);
+
+         LSP.Ada_Handlers.Symbols.Hierarchical_Document_Symbols
+           (Self, Unit, Pattern, Response.Variant_2);
+      else
+         LSP.Ada_Handlers.Symbols.Flat_Document_Symbols
+           (Self, Unit, Pattern, Response);
+      end if;
+
+      Self.Sender.On_DocumentSymbol_Response (Id, Response);
+   end On_DocumentSymbol_Request;
+
+   -------------------------------
+   -- On_ExecuteCommand_Request --
+   -------------------------------
+
+   function Create_Command is new Ada.Tags.Generic_Dispatching_Constructor
+     (T           => LSP.Ada_Commands.Command,
+      Parameters  => LSP.Structures.LSPAny_Vector,
+      Constructor => LSP.Ada_Commands.Create);
+
+   overriding procedure On_ExecuteCommand_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.ExecuteCommandParams)
+   is
+      use type Ada.Tags.Tag;
+
+      Tag   : Ada.Tags.Tag := Ada.Tags.No_Tag;
+      Error : LSP.Errors.ResponseError_Optional;
+
+   begin
+      if not Value.command.Is_Empty then
+         Tag := Ada.Tags.Internal_Tag
+           (VSS.Strings.Conversions.To_UTF_8_String (Value.command));
+      end if;
+
+      if Tag = Ada.Tags.No_Tag then
+         Self.Sender.On_Error_Response
+           (Id, (code    => LSP.Enumerations.InternalError,
+                 message => "Unknown command"));
+         return;
+      end if;
+
+      declare
+         Command : constant LSP.Ada_Commands.Command'Class :=
+           Create_Command (Tag, Value.arguments'Unrestricted_Access);
+      begin
+         Command.Execute
+           (Handler => Self'Access,
+            Error   => Error);
+
+         if Error.Is_Set then
+            Self.Sender.On_Error_Response (Id, Error.Value);
+         else
+            --  No particular response in case of success.
+            Self.Sender.On_ExecuteCommand_Response (Id, (Is_Null => True));
+         end if;
+      end;
+   end On_ExecuteCommand_Request;
+
+   ---------------------------
+   -- On_Exits_Notification --
+   ---------------------------
+
+   overriding procedure On_Exits_Notification
+     (Self : in out Message_Handler) is
+   begin
+      LSP.Servers.Server'Class (Self.Sender.all).Stop;
+   end On_Exits_Notification;
+
+   -----------------------------
+   -- On_FoldingRange_Request --
+   -----------------------------
+
+   overriding procedure On_FoldingRange_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.FoldingRangeParams)
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Get_Open_Document (Self, Value.textDocument.uri);
+      Response : LSP.Structures.FoldingRange_Vector_Or_Null;
+
+   begin
+      if Document /= null then
+         Document.Get_Folding_Blocks
+           (Context.all,
+            Self.Client.Line_Folding_Only,
+            Self.Configuration.Folding_Comments,
+            Self.Is_Canceled,
+            Response);
+
+         if Self.Is_Canceled.all then
+            Response.Clear;
+         end if;
+         Self.Sender.On_FoldingRange_Response (Id, Response);
+
+      else
+         Self.Sender.On_Error_Response
+           (Id, (code => LSP.Enumerations.InternalError,
+                 message => "Document is not opened"));
+      end if;
+   end On_FoldingRange_Request;
+
+   ---------------------------
+   -- On_Formatting_Request --
+   ---------------------------
+
+   overriding procedure On_Formatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentFormattingParams)
+   is
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+      Error    : LSP.Errors.ResponseError;
+      Success  : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+
+   begin
+      LSP.Ada_Handlers.Formatting.Format
+        (Context.all,
+         Document,
+         LSP.Constants.Empty,
+         Value.options,
+         Success,
+         Response,
+         Messages,
+         Error);
+
+      if Success then
+         Self.Sender.On_Formatting_Response (Id, Response);
+
+         for Message of Messages loop
+            Self.Sender.On_ShowMessage_Notification
+              ((LSP.Enumerations.Info, Message));
+         end loop;
+
+      else
+         Self.Sender.On_Error_Response (Id, Error);
+      end if;
+   end On_Formatting_Request;
+
+   ----------------------
+   -- On_Hover_Request --
+   ----------------------
+
+   overriding procedure On_Hover_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.HoverParams)
+   is
+
+      Response : LSP.Structures.Hover_Or_Null;
+
+      procedure Compute_Response;
+
+      ----------------------
+      -- Compute_Response --
+      ----------------------
+
+      procedure Compute_Response is
+         Context            : constant LSP.Ada_Context_Sets.Context_Access :=
+           Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+         --  For the Hover request, we're only interested in the "best"
+         --  response value, not in the list of values for all contexts
+
+         Defining_Name_Node : constant Libadalang.Analysis.Defining_Name :=
+           Self.Imprecise_Resolve_Name (Context.all, Value);
+         Decl               : constant Libadalang.Analysis.Basic_Decl :=
+           (if Defining_Name_Node.Is_Null
+            then Libadalang.Analysis.No_Basic_Decl
+            else Defining_Name_Node.P_Basic_Decl);
+         --  Associated basic declaration, if any
+
+         Decl_Text          : VSS.Strings.Virtual_String;
+         Qualifier_Text     : VSS.Strings.Virtual_String;
+         Comments_Text      : VSS.Strings.Virtual_String;
+         Location_Text      : VSS.Strings.Virtual_String;
+         Aspects_Text       : VSS.Strings.Virtual_String;
+
+      begin
+         if Decl.Is_Null or else Self.Is_Canceled.all then
+            return;
+         end if;
+
+         LSP.Ada_Documentation.Get_Tooltip_Text
+           (BD                 => Decl,
+            Style              => Context.Get_Documentation_Style,
+            Declaration_Text   => Decl_Text,
+            Qualifier_Text     => Qualifier_Text,
+            Location_Text      => Location_Text,
+            Documentation_Text => Comments_Text,
+            Aspects_Text       => Aspects_Text);
+
+         if Decl_Text.Is_Empty then
+            return;
+         end if;
+
+         Response := (Is_Null => False, others => <>);
+         Response.Value.contents := (Is_MarkupContent => False, others => <>);
+
+         --  Append the whole declaration text to the response
+
+         Response.Value.contents.MarkedString_Vector.Append
+           (LSP.Structures.MarkedString'
+              (Is_Virtual_String => False,
+               value             => Decl_Text,
+               language          => "ada"));
+
+         --  Append qualifier text if any
+
+         if not Qualifier_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => True,
+                  Virtual_String    => Qualifier_Text));
+         end if;
+
+         --  Append the declaration's location.
+         --
+         --  In addition, append the project's name if we are dealing with an
+         --  aggregate project.
+
+         Location_Text := LSP.Utils.Node_Location_Image (Decl);
+
+         if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
+            Location_Text.Append (VSS.Characters.Latin.Line_Feed);
+            Location_Text.Append ("As defined in project ");
+            Location_Text.Append (Context.Id);
+            Location_Text.Append (" (other projects skipped).");
+         end if;
+
+         Response.Value.contents.MarkedString_Vector.Append
+           (LSP.Structures.MarkedString'
+              (Is_Virtual_String => True,
+               Virtual_String    => Location_Text));
+
+         --  Append the comments associated with the basic declaration if any.
+
+         if not Comments_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => False,
+                  language          => "plaintext",
+                  value             => Comments_Text));
+         end if;
+
+         --  Append text of aspects
+
+         if not Aspects_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => False,
+                  value             => Aspects_Text,
+                  language          => "ada"));
+         end if;
+      end Compute_Response;
+
+   begin
+      Compute_Response;
+      Self.Sender.On_Hover_Response (Id, Response);
+   end On_Hover_Request;
+
+   -------------------------------
+   -- On_Implementation_Request --
+   -------------------------------
+
+   overriding procedure On_Implementation_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.ImplementationParams)
+   is
+
+      Trace : constant GNATCOLL.Traces.Trace_Handle :=
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+
+      Response : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
+
+      Vector : LSP.Structures.Location_Vector renames Response.Variant_1;
+      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+
+      Display_Method_Policy : constant
+        LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
+          (if Value.alsDisplayMethodAncestryOnNavigation.Is_Set
+           then Value.alsDisplayMethodAncestryOnNavigation.Value
+           else Self.Configuration.Display_Method_Ancestry_Policy);
+
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Utility function to gather results on one context
+
+      ------------------------
+      -- Resolve_In_Context --
+      ------------------------
+
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+
+         use all type LSP.Enumerations
+           .AlsDisplayMethodAncestryOnNavigationPolicy;
+
+         use Libadalang.Common;
+
+         Name_Node : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
+
+         procedure Update_Response
+           (Bodies : Laltools.Common.Bodies_List.List;
+            Kinds  : AlsReferenceKind_Array);
+         --  Utility function to update response with the bodies
+
+         ---------------------
+         -- Update_Response --
+         ---------------------
+
+         procedure Update_Response
+           (Bodies : Laltools.Common.Bodies_List.List;
+            Kinds  : AlsReferenceKind_Array)
+         is
+         begin
+            for E of Bodies loop
+               Self.Append_Location (Vector, Filter, E, Kinds);
             end loop;
+         end Update_Response;
+
+         Definition : Libadalang.Analysis.Defining_Name;
+         Imprecise  : Boolean;
+         Decl       : Libadalang.Analysis.Basic_Decl;
+
+      begin
+         if Name_Node.Is_Null then
+            return;
+         end if;
+
+         --  Find the definition
+         Definition := Laltools.Common.Resolve_Name
+           (Name_Node, Trace, Imprecise);
+
+         --  If we didn't find a definition, give up for this context
+         if Definition.Is_Null then
+            return;
+         end if;
+
+         --  First list the bodies of this definition
+         Update_Response
+           (Laltools.Common.List_Bodies_Of (Definition, Trace, Imprecise),
+            LSP.Constants.Empty);
+
+         --  Then list the bodies of the parent implementations
+         Decl := Definition.P_Basic_Decl;
+
+         --  Display overriding/overridden subprograms depending on the
+         --  displayMethodAncestryOnNavigation flag.
+         if Display_Method_Policy in Definition_Only | Always
+           or else
+             (Display_Method_Policy = Usage_And_Abstract_Only
+                     and then Decl.Kind in Ada_Abstract_Subp_Decl_Range)
+         then
+            for Subp of C.Find_All_Base_Declarations (Decl, Imprecise)
+            loop
+               Update_Response
+                 (Laltools.Common.List_Bodies_Of
+                    (Subp.P_Defining_Name, Trace, Imprecise),
+                  Is_Parent);
+            end loop;
+
+            --  And finally the bodies of child implementations
+            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
+               Update_Response
+                 (Laltools.Common.List_Bodies_Of
+                    (Subp.P_Defining_Name, Trace, Imprecise),
+                  Is_Child);
+            end loop;
+         end if;
+      end Resolve_In_Context;
+
+   begin
+      --  Override the displayMethodAncestryOnNavigation global configuration
+      --  flag if there is on embedded in the request.
+      --  if Value.alsDisplayMethodAncestryOnNavigation.Is_Set then
+      --     Display_Method_Ancestry_Policy :=
+      --       Value.alsDisplayMethodAncestryOnNavigation.Value;
+      --  end if;
+
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (C);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      Locations.Sort (Vector);
+
+      Self.Sender.On_Implementation_Response (Id, Response);
+   end On_Implementation_Request;
+
+   ------------------------------
+   -- On_IncomingCalls_Request --
+   ------------------------------
+
+   overriding procedure On_IncomingCalls_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyIncomingCallsParams)
+   is
+      use Libadalang.Analysis;
+
+      procedure Process_Context (C : LSP.Ada_Contexts.Context);
+      --  Process the subprogram found in one context and append corresponding
+      --  calls to Response.
+
+      Response   : LSP.Structures.CallHierarchyIncomingCall_Vector;
+
+      Item : LSP.Structures.CallHierarchyItem renames
+        Value.item;
+
+      Position : constant LSP.Structures.TextDocumentPositionParams :=
+        (textDocument => (uri => Item.uri),
+         position     => Item.selectionRange.start);
+
+      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : LSP.Ada_Contexts.Context) is
+         Definition : Defining_Name;
+      begin
+         Definition := Self.Imprecise_Resolve_Name (C, Position);
+
+         --  Attempt to resolve the name, return no results if we can't or if
+         --  the name does not resolve to a callable object, like a subprogram
+         --  or an entry.
+
+         if not Definition.Is_Null
+           and then Definition.P_Basic_Decl.P_Is_Subprogram
+           and then not Self.Is_Canceled.all
+         then
+            Call_Hierarchy.Find_Incoming_Calls
+              (Self, Response, Filter, C, Definition);
+         end if;
+
+      end Process_Context;
+
+   begin
+      --  Find the references in all contexts
+      for C of Self.Contexts_For_URI (Item.uri) loop
+         Process_Context (C.all);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      Self.Sender.On_IncomingCalls_Response (Id, Response);
+   end On_IncomingCalls_Request;
+
+   ---------------------------
+   -- On_Initialize_Request --
+   ---------------------------
+
+   overriding procedure On_Initialize_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.InitializeParams)
+   is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (LSP.File_Monitors.File_Monitor'Class,
+         LSP.File_Monitors.File_Monitor_Access);
+
+      Response : LSP.Structures.InitializeResult;
+      Token_Types     : LSP.Structures.Virtual_String_Vector;
+      Token_Motifiers : LSP.Structures.Virtual_String_Vector;
+   begin
+      Self.Client.Initialize (Value);
+
+      Self.Highlighter.Initialize
+        (Self.Client, Token_Types, Token_Motifiers);
+
+      Response.capabilities := Self.Client.To_Server_Capabilities
+        (Self.Incremental_Text_Changes,
+         LSP.Ada_Commands.All_Commands,
+         Token_Types,
+         Token_Motifiers);
+
+      if Self.Client.didChangeWatchedFiles_dynamicRegistration then
+         Free (Self.File_Monitor);
+
+         Self.File_Monitor :=
+           new LSP.Client_Side_File_Monitors.File_Monitor
+             (Self'Unchecked_Access);
+      end if;
+
+      Self.Sender.On_Initialize_Response (Id, Response);
+   end On_Initialize_Request;
+
+   ---------------------------------
+   -- On_OnTypeFormatting_Request --
+   ---------------------------------
+
+   overriding procedure On_OnTypeFormatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentOnTypeFormattingParams)
+   is
+      use type VSS.Strings.Character_Count;
+      use type VSS.Strings.Virtual_String;
+
+      procedure Compute_Response;
+
+      procedure Handle_Document_With_Diagnostics;
+      --  Simply adds indentation to the new line
+
+      procedure Handle_Document_Without_Diagnostics;
+      --  Adds indentation to the new line and formats the previous node
+      --  if configured to do so and taking into account where the cursor
+      --  is.
+
+      Context     : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document    : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+      Response    : LSP.Structures.TextEdit_Vector_Or_Null;
+      Indentation : constant VSS.Strings.Character_Count :=
+        (declare
+            Indentation_First_Guess : constant VSS.Strings.Character_Count :=
+              Document.Get_Indentation (Context.all, Value.position.line);
+
+         begin
+           (if Indentation_First_Guess
+                 >= VSS.Strings.Character_Count (Value.position.character)
+            then Indentation_First_Guess
+                   - VSS.Strings.Character_Count (Value.position.character)
+            else 0));
+      --  Do not add any indentation if the current cursor position is greater
+      --  than the calculated one.
+      --  XXX position.character is counted as UTF-16 code units, actual
+      --  position need to be computed.
+
+      ----------------------
+      -- Compute_Response --
+      ----------------------
+
+      procedure Compute_Response is
+      begin
+         if not LSP.Ada_Configurations.On_Type_Formatting then
+            Self.Tracer.Trace
+              ("'onTypeFormatting' is not active, yet, ALS received a request - "
+               & "exiting earlier");
+
+            return;
+         end if;
+
+         if Value.ch /=
+           LSP.Ada_Configurations.On_Type_Formatting_Settings
+             .firstTriggerCharacter
+         then
+            Self.Tracer.Trace
+              ("Trigger character ch is not a new line - exiting earlier");
+
+            return;
+         end if;
+
+         if Document.Has_Diagnostics (Context.all) then
+            --  This is the unhappy path: when this Document has diagnostics.
+            --  Get the previous node (based on the previous non whitespace
+            --  token), compute the indentation and format it (if configured to
+            --  to so).
+
+            Self.Tracer.Trace ("Document has diagnostics");
+            Handle_Document_With_Diagnostics;
+
+         else
+            --  This is the happy path: when this Document does not have any
+            --  diagnostics.
+            --  Get the previous node (based on the previous non whitespace
+            --  token) and compute the indentation.
+
+            Self.Tracer.Trace ("Document does not have any diagnostics");
+            Handle_Document_Without_Diagnostics;
+         end if;
+
+         Self.Tracer.Trace ("Exiting 'onTypeFormatting' Request");
+      end Compute_Response;
+
+      --------------------------------------
+      -- Handle_Document_With_Diagnostics --
+      --------------------------------------
+
+      procedure Handle_Document_With_Diagnostics is
+      begin
+         Response.Append
+           (LSP.Structures.TextEdit'
+              (a_range   =>
+                   (start  => Value.position,
+                    an_end => Value.position),
+               newText => Indentation * VSS.Characters.Latin.Space));
+      end Handle_Document_With_Diagnostics;
+
+      -----------------------------------------
+      -- Handle_Document_Without_Diagnostics --
+      -----------------------------------------
+
+      procedure Handle_Document_Without_Diagnostics is
+
+         function Is_Between
+           (Position : LSP.Structures.Position;
+            Span     : LSP.Structures.A_Range) return Boolean;
+         --  Checks if Position is between Span
+
+         ----------------
+         -- Is_Between --
+         ----------------
+
+         function Is_Between
+           (Position : LSP.Structures.Position;
+            Span     : LSP.Structures.A_Range)
+            return Boolean
+         is ((Position.line = Span.start.line
+              and then Position.character >= Span.start.character)
+             or else (Position.line = Span.an_end.line
+                      and then Position.character <= Span.an_end.character)
+             or else (Position.line > Span.start.line
+                      and then Position.line < Span.an_end.line));
+
+         Token                    :
+           constant Libadalang.Common.Token_Reference :=
+             Document.Get_Token_At (Context.all, Value.position);
+         Previous_NWNC_Token      :
+           constant Libadalang.Common.Token_Reference :=
+             Laltools.Partial_GNATPP.Previous_Non_Whitespace_Non_Comment_Token
+               (Token);
+         Previous_NWNC_Token_Span : constant LSP.Structures.A_Range :=
+           Document.To_A_Range
+             (Libadalang.Common.Sloc_Range
+                (Libadalang.Common.Data (Previous_NWNC_Token)));
+
+         Formatting_Region :
+           constant Laltools.Partial_GNATPP.Formatting_Region_Type :=
+             Document.Get_Formatting_Region
+               (Context.all, Previous_NWNC_Token_Span.start);
+         Formatting_Span   : constant LSP.Structures.A_Range :=
+           Document.To_A_Range
+             (Libadalang.Slocs.Make_Range
+                (Libadalang.Slocs.Start_Sloc
+                   (Libadalang.Common.Sloc_Range
+                        (Libadalang.Common.Data
+                             (Formatting_Region.Start_Token))),
+                 Libadalang.Slocs.Start_Sloc
+                   (Libadalang.Common.Sloc_Range
+                        (Libadalang.Common.Data
+                             (Formatting_Region.End_Token)))));
+         --  This is the span that would be formatted based on the cursor
+         --  position.
+
+      begin
+         if Self.Configuration.Indent_Only then
+            Self.Tracer.Trace
+              ("'onTypeFormatting' request configured to indent only");
+
+            Response.Append
+              (LSP.Structures.TextEdit'
+                 (a_range =>
+                      (start  => Value.position,
+                       an_end => Value.position),
+                  newText => Indentation * ' '));
+
+            return;
+         end if;
+
+         --  onTypeFormatting is configured to also format the previous node,
+         --  however, we can only do this if the cursor is not between the
+         --  Formatting_Span.
+
+         if Is_Between (Value.position, Formatting_Span) then
+            Self.Tracer.Trace
+              ("Current position is within the Formatting_Span");
+            Self.Tracer.Trace ("Adding indentation only");
+
+            Response.Append
+              (LSP.Structures.TextEdit'
+                 (a_range =>
+                      (start  => Value.position,
+                       an_end => Value.position),
+                  newText => Indentation * ' '));
+
+            return;
+         end if;
+
+         Self.Tracer.Trace
+           ("Formatting previous node and adding indentation");
+
+         declare
+            Success : Boolean;
+            Error   : LSP.Errors.ResponseError;
+
+         begin
+            LSP.Ada_Handlers.Formatting.Range_Format
+              (Context.all,
+               Document,
+               Previous_NWNC_Token_Span,
+               Value.options,
+               Success,
+               Response,
+               Error);
+
+            if Success then
+               --  Result contains the Range_Format result.
+               --  Add indentation to the next line.
+
+               Response.Append
+                 (LSP.Structures.TextEdit'
+                    (a_range =>
+                         (start  => Value.position,
+                          an_end => Value.position),
+                     newText => Indentation * ' '));
+
+               return;
+            end if;
+
+            Self.Tracer.Trace
+              ("The 'onTypeFormatting' has failed because of a "
+               & "Range_Format error");
+
+            Response.Append
+              (LSP.Structures.TextEdit'
+                 (a_range =>
+                      (start  => Value.position,
+                       an_end => Value.position),
+                  newText => Indentation * ' '));
+         end;
+      end Handle_Document_Without_Diagnostics;
+
+   begin
+      Self.Tracer.Trace ("On 'onTypeFormatting' Request");
+
+      Compute_Response;
+
+      Self.Sender.On_OnTypeFormatting_Response (Id, Response);
+   end On_OnTypeFormatting_Request;
+
+   ------------------------------
+   -- On_OutgoingCalls_Request --
+   ------------------------------
+
+   overriding procedure On_OutgoingCalls_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyOutgoingCallsParams)
+   is
+      use Libadalang.Analysis;
+
+      procedure Process_Context (C : LSP.Ada_Contexts.Context);
+      --  Process the subprogram found in one context and append corresponding
+      --  calls to Response.
+
+      Response   : LSP.Structures.CallHierarchyOutgoingCall_Vector;
+
+      Item : LSP.Structures.CallHierarchyItem renames
+        Value.item;
+
+      Position : constant LSP.Structures.TextDocumentPositionParams :=
+        (textDocument => (uri => Item.uri),
+         position     => Item.selectionRange.start);
+
+      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : LSP.Ada_Contexts.Context) is
+         Definition : Defining_Name;
+      begin
+         Definition := Self.Imprecise_Resolve_Name (C, Position);
+
+         --  Attempt to resolve the name, return no results if we can't or if
+         --  the name does not resolve to a callable object, like a subprogram
+         --  or an entry.
+
+         if not Definition.Is_Null
+           and then Definition.P_Basic_Decl.P_Is_Subprogram
+           and then not Self.Is_Canceled.all
+         then
+            Call_Hierarchy.Find_Outgoing_Calls
+              (Self, Response, Filter, Definition);
+         end if;
+      end Process_Context;
+
+   begin
+      --  Find the references in all contexts
+      for C of Self.Contexts_For_URI (Item.uri) loop
+         Process_Context (C.all);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      Self.Sender.On_OutgoingCalls_Response (Id, Response);
+   end On_OutgoingCalls_Request;
+
+   -------------------------------------
+   -- On_PrepareCallHierarchy_Request --
+   -------------------------------------
+
+   overriding procedure On_PrepareCallHierarchy_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyPrepareParams)
+   is
+      Response  : LSP.Structures.CallHierarchyItem_Vector;
+
+      C    : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      --  For the PrepareCallHierarchy request, we're only interested in the
+      --  "best" response value, not in the list of values for all contexts
+
+      Name : constant Libadalang.Analysis.Defining_Name :=
+        Self.Imprecise_Resolve_Name (C.all, Value);
+
+      Decl : Libadalang.Analysis.Basic_Decl;
+      Next : Libadalang.Analysis.Basic_Decl;
+   begin
+      if not Name.Is_Null then
+         Decl := Name.P_Basic_Decl;
+
+         if not Decl.Is_Null and then Decl.P_Is_Subprogram then
+
+            Next := Decl.P_Next_Part_For_Decl;
+            Decl := (if Next.Is_Null then Decl else Next);
+
+            declare
+               Span : constant LSP.Structures.A_Range :=
+                 Self.To_LSP_Location (Decl).a_range;
+
+               Node : constant Libadalang.Analysis.Defining_Name :=
+                 Decl.P_Defining_Name;
+
+               Location : constant LSP.Structures.Location :=
+                 Self.To_LSP_Location (Node);
+
+               Item : constant LSP.Structures.CallHierarchyItem :=
+                 (name           => VSS.Strings.To_Virtual_String (Node.Text),
+                  kind           => Utils.Get_Decl_Kind (Decl),
+                  tags           => <>,
+                  detail         => Utils.Node_Location_Image (Node),
+                  uri            => Location.uri,
+                  a_range        => Span,
+                  selectionRange => Location.a_range,
+                  data           => <>);
+            begin
+
+               Response.Append (Item);
+            end;
+         end if;
+      end if;
+
+      Self.Sender.On_PrepareCallHierarchy_Response (Id, Response);
+   end On_PrepareCallHierarchy_Request;
+
+   ------------------------------
+   -- On_PrepareRename_Request --
+   ------------------------------
+
+   overriding procedure On_PrepareRename_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.PrepareRenameParams)
+   is
+      Trace : constant GNATCOLL.Traces.Trace_Handle :=
+        LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
+
+      Response : LSP.Structures.PrepareRenameResult_Or_Null;
+
+      Context : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      --  For the prepareRename request, we're only interested in the "best"
+      --  context to check that we are able to rename the name.
+
+      Name_Node  : constant Libadalang.Analysis.Name :=
+        Laltools.Common.Get_Node_As_Name
+          (Self.Get_Node_At (Context.all, Value));
+
+      Defining_Name : Libadalang.Analysis.Defining_Name;
+
+      Imprecise : Boolean;
+   begin
+      if not Name_Node.Is_Null then
+         Defining_Name := Laltools.Common.Resolve_Name
+           (Name_Node,
+            Trace,
+            Imprecise => Imprecise);
+      end if;
+
+      if not Name_Node.Is_Null
+        and then not Defining_Name.Is_Null
+        and then not Imprecise
+      then
+         --  Success only if the node is a name and can be resolved precisely
+         Response :=
+           (Is_Null => False,
+            Value   =>
+              (Kind      => LSP.Structures.Variant_1,
+               Variant_1 => Self.To_LSP_Location (Name_Node).a_range));
+      end if;
+
+      Self.Sender.On_PrepareRename_Response (Id, Response);
+   end On_PrepareRename_Request;
+
+   --------------------------------
+   -- On_RangeFormatting_Request --
+   --------------------------------
+
+   overriding procedure On_RangeFormatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentRangeFormattingParams)
+   is
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      Document : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+      Error    : LSP.Errors.ResponseError;
+      Success  : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+
+   begin
+      if LSP.Ada_Configurations.Partial_GNATPP then
+         LSP.Ada_Handlers.Formatting.Range_Format
+           (Context.all,
+            Document,
+            Value.a_range,
+            Value.options,
+            Success,
+            Response,
+            Error);
+
+      else
+         LSP.Ada_Handlers.Formatting.Format
+           (Context.all,
+            Document,
+            Value.a_range,
+            Value.options,
+            Success,
+            Response,
+            Messages,
+            Error);
+      end if;
+
+      if Success then
+         Self.Sender.On_RangeFormatting_Response (Id, Response);
+
+         for Message of Messages loop
+            Self.Sender.On_ShowMessage_Notification
+              ((LSP.Enumerations.Info, Message));
+         end loop;
+
+      else
+         Self.Sender.On_Error_Response (Id, Error);
+      end if;
+   end On_RangeFormatting_Request;
+
+   ---------------------------
+   -- On_References_Request --
+   ---------------------------
+
+   overriding procedure On_References_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.ReferenceParams)
+   is
+      use all type LSP.Enumerations.AlsReferenceKind;
+
+      Response   : LSP.Structures.Location_Vector_Or_Null;
+      Imprecise  : Boolean := False;
+      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+
+      Additional_Kinds : AlsReferenceKind_Array :=
+        [others => False];
+
+      procedure Process_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Process the references found in one context and append
+      --  them to Response.results.
+
+      function Get_Reference_Kind
+        (Node               : Libadalang.Analysis.Ada_Node'Class;
+         Is_Overriding_Decl : Boolean := False)
+         return AlsReferenceKind_Array;
+      --  Fetch reference kind for given node.
+
+      ------------------------
+      -- Get_Reference_Kind --
+      ------------------------
+
+      function Get_Reference_Kind
+        (Node               : Libadalang.Analysis.Ada_Node'Class;
+         Is_Overriding_Decl : Boolean := False)
+         return AlsReferenceKind_Array
+      is
+         use type AlsReferenceKind_Array;
+
+         Id     : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Node.As_Ada_Node);
+
+         Result : AlsReferenceKind_Array := [others => False];
+      begin
+         begin
+            Result (write) := Id.P_Is_Write_Reference;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         begin
+            Result (an_access) :=
+              Laltools.Common.Is_Access_Ref (Id.As_Ada_Node);
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         begin
+            Result (call) := Id.P_Is_Static_Call;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         begin
+            Result (dispatching_call) :=
+              Id.P_Is_Dispatching_Call;
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         begin
+            Result (child) :=
+              Laltools.Common.Is_Type_Derivation (Id.As_Ada_Node);
+         exception
+            when E : Libadalang.Common.Property_Error =>
+               Self.Tracer.Trace_Exception (E);
+         end;
+
+         Result (an_overriding) := Is_Overriding_Decl;
+
+         --  If the result has not any set flags at this point, flag it as a
+         --  simple reference.
+         if Result = [Result'Range => False] then
+            Result (reference) := True;
+         end if;
+
+         --  Apply additional kinds
+         Result := Result or Additional_Kinds;
+
+         return Result;
+      end Get_Reference_Kind;
+
+      ---------------------
+      -- Process_Context --
+      ---------------------
+
+      procedure Process_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+         procedure Callback
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean);
+
+         procedure Callback
+           (Node   : Libadalang.Analysis.Base_Id;
+            Kind   : Libadalang.Common.Ref_Result_Kind;
+            Cancel : in out Boolean)
+         is
+            pragma Unreferenced (Kind);
+         begin
+            if not Laltools.Common.Is_End_Label (Node.As_Ada_Node) then
+
+               Self.Append_Location
+                 (Response,
+                  Filter,
+                  Node,
+                  Get_Reference_Kind (Node));
+            end if;
+
+            Cancel := Self.Is_Canceled.all;
+         end Callback;
+
+         Definition : Libadalang.Analysis.Defining_Name;
+
+         use Libadalang.Common;
+      begin
+
+         Definition := Self.Imprecise_Resolve_Name (C.all, Value);
+
+         if Definition.Is_Null or else Self.Is_Canceled.all then
+            return;
+         end if;
+
+         --  Set additional "reference" kind for enumeration literal
+         declare
+            Decl : constant Libadalang.Analysis.Basic_Decl :=
+              Libadalang.Analysis.P_Basic_Decl (Definition);
+         begin
+            if not Decl.Is_Null
+              and then Libadalang.Analysis.Kind (Decl) = Ada_Enum_Literal_Decl
+            then
+               Additional_Kinds (reference) := True;
+            end if;
+
+            --  Find all the references
+            C.Find_All_References (Definition, Callback'Access);
+
+            --  Find all the overriding declarations, if any
+            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
+               Self.Append_Location
+                 (Response,
+                  Filter,
+                  Subp.P_Defining_Name,
+                  Get_Reference_Kind
+                    (Definition,
+                     Is_Overriding_Decl => True));
+            end loop;
+
+            if Value.context.includeDeclaration then
+               Self.Append_Location
+                 (Response,
+                  Filter,
+                  Definition,
+                  Get_Reference_Kind (Definition));
+            end if;
+         end;
+      end Process_Context;
+
+   begin
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Process_Context (C);
+
+         exit when Self.Is_Canceled.all;
+      end loop;
+
+      Locations.Sort (Response);
+
+      Self.Sender.On_References_Response (Id, Response);
+   end On_References_Request;
+
+   -----------------------
+   -- On_Rename_Request --
+   -----------------------
+
+   overriding procedure On_Rename_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.RenameParams)
+   is
+      Response : LSP.Structures.WorkspaceEdit_Or_Null (Is_Null => False);
+
+      Position : constant LSP.Structures.TextDocumentPositionParams :=
+        (textDocument => Value.textDocument,
+         position => Value.position);
+
+      Filter : LSP.Ada_Handlers.Renaming.Edit_Sets.Set;
+      --  When iterating over all contexts (and therefore all projects), it's
+      --  possible to encounter the same Text_Edit more than once, so this
+      --  stores all the unique edits
+
+      Errors : LAL_Refactor.Refactoring_Diagnostic_Vector;
+
+   begin
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         declare
+            Name_Node : constant Libadalang.Analysis.Name :=
+              Laltools.Common.Get_Node_As_Name
+                (Self.Get_Node_At (C.all, Position));
+         begin
+            LSP.Ada_Handlers.Renaming.Process_Context
+              (Self,
+               C,
+               Name_Node,
+               New_Name   => Value.newName,
+               Filter     => Filter,
+               Result     => Response.Value,
+               Errors     => Errors);
+
+            if not Errors.Is_Empty then
+               declare
+                  Template    : constant
+                    VSS.Strings.Templates.Virtual_String_Template :=
+                      "Can't rename identifier '{}'";
+                  Message     : constant VSS.Strings.Virtual_String :=
+                    Template.Format
+                      (LSP.Formatters.Texts.Image (Name_Node.Text));
+
+                  Diag_Params : LSP.Structures.PublishDiagnosticsParams;
+                  Diagnostic  : LSP.Structures.Diagnostic;
+
+               begin
+                  Diagnostic.a_range :=
+                    Self.To_LSP_Location (Name_Node).a_range;
+                  Diagnostic.severity := LSP.Constants.Error;
+                  Diagnostic.source := "Ada";
+
+                  if Self.Client.Supports_Related_Diagnostics then
+
+                     Diagnostic.message := Message;
+
+                     for Problem of Errors loop
+                        Diagnostic.relatedInformation.Append
+                          (LSP.Structures.DiagnosticRelatedInformation'
+                             (location =>
+                                LSP.Ada_Handlers.Locations.To_LSP_Location
+                                (Self,
+                                 C.all,
+                                 Problem.Filename,
+                                 Problem.Location),
+
+                              message  =>
+                                VSS.Strings.Conversions.To_Virtual_String
+                                  (Problem.Info)));
+                     end loop;
+                  else
+                     Diagnostic.message :=
+                       VSS.Strings.Conversions.To_Virtual_String
+                         (Errors.First_Element.Info);
+
+                  end if;
+
+                  Diag_Params.uri := Value.textDocument.uri;
+                  Diag_Params.diagnostics.Append (Diagnostic);
+                  Self.Sender.On_PublishDiagnostics_Notification (Diag_Params);
+                  exit;
+               end;
+            end if;
          end;
       end loop;
 
-      Self.Trace.Trace
-        ("Finished Message_Handler On_DidDeleteFiles_Notification");
-   end On_DidDeleteFiles_Notification;
+      if Errors.Is_Empty then
+         Self.Sender.On_Rename_Response (Id, Response);
+      else
+         Self.Sender.On_Error_Response
+           (Id,
+            (code    => LSP.Constants.RequestFailed,
+             message => <>));
+      end if;
+   end On_Rename_Request;
 
-   ----------------------------------
-   -- On_Workspace_Symbols_Request --
-   ----------------------------------
+   ----------------------------
+   -- On_Server_Notification --
+   ----------------------------
 
-   overriding function On_Workspace_Symbols_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Workspace_Symbols_Request)
-      return LSP.Messages.Server_Responses.Symbol_Response
+   overriding procedure On_Server_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Server_Notifications.Server_Notification'Class) is
+   begin
+      Value.Visit_Server_Receiver (Self);
+   exception
+      when E : others =>
+         Self.Tracer.Trace_Exception (E, "On_Server_Notification");
+   end On_Server_Notification;
+
+   -----------------------
+   -- On_Server_Request --
+   -----------------------
+
+   overriding procedure On_Server_Request
+     (Self  : in out Message_Handler;
+      Value : LSP.Server_Requests.Server_Request'Class)
    is
-      use type LSP.Messages.Search_Kind;
-      use type VSS.Strings.Character_Count;
+      package Canceled is new LSP.Generic_Cancel_Check (Value'Access, 127);
+   begin
+      if Value.Canceled then
+         Self.Sender.On_Error_Response
+           (Value.Id,
+            (code    => LSP.Constants.RequestCancelled,
+             message => "Request was canceled"));
+
+         return;
+      end if;
+
+      Self.Implemented := True;
+      Self.Is_Canceled := Canceled.Has_Been_Canceled'Unrestricted_Access;
+
+      Value.Visit_Server_Receiver (Self);
+
+      if not Self.Implemented then
+         Self.Sender.On_Error_Response
+           (Value.Id,
+            (code    => LSP.Enumerations.MethodNotFound,
+             message => "Not implemented"));
+      end if;
+
+   exception
+      when Libadalang.Common.Property_Error =>
+         declare
+            R : LSP.Ada_Empty_Handlers.Empty_Message_Handler (Self.Sender);
+         begin
+            Value.Visit_Server_Receiver (R);
+         end;
+
+      when E : others =>
+         declare
+            Message : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.Conversions.To_Virtual_String
+                ("Exception: " &
+                   Ada.Exceptions.Exception_Name (E) & " (" &
+                     Ada.Exceptions.Exception_Message (E) & ")");
+
+         begin
+            Self.Tracer.Trace_Exception (E, "On_Server_Request");
+
+            Self.Sender.On_Error_Response
+              (Value.Id,
+               (code    => LSP.Enumerations.InternalError,
+                message => Message));
+
+         end;
+   end On_Server_Request;
+
+   -------------------------
+   -- On_Shutdown_Request --
+   -------------------------
+
+   overriding procedure On_Shutdown_Request
+     (Self : in out Message_Handler;
+      Id   : LSP.Structures.Integer_Or_Virtual_String)
+   is
+      Result : LSP.Structures.Null_Record;
+
+   begin
+      Self.Shutdown := True;
+      Self.Sender.On_Shutdown_Response (Id, Result);
+   end On_Shutdown_Request;
+
+   ------------------------------
+   -- On_SignatureHelp_Request --
+   ------------------------------
+
+   overriding procedure On_SignatureHelp_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SignatureHelpParams)
+   is
+      procedure Compute_Response;
+
+      Response : LSP.Structures.SignatureHelp_Or_Null (Is_Null => False);
+
+      ----------------------
+      -- Compute_Response --
+      ----------------------
+
+      procedure Compute_Response is
+         Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+           Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+         Document : constant LSP.Ada_Documents.Document_Access :=
+           Self.Get_Open_Document (Value.textDocument.uri);
+         Location : constant Langkit_Support.Slocs.Source_Location :=
+           Document.To_Source_Location (Value.position);
+
+         Position : LSP.Structures.Position := Value.position;
+         Node     : Libadalang.Analysis.Ada_Node;
+
+      begin
+         --  Move the cursor to the previous character: this is more resilient
+         --  to invalid code.
+
+         if Position.character > 0 then
+            Position.character := @ - 1;
+         end if;
+
+         Node := Document.Get_Node_At (Context.all, Position);
+
+         declare
+            Name_Node : constant Libadalang.Analysis.Name :=
+              Laltools.Common.Get_Node_As_Name (Node);
+
+         begin
+            --  Is this a type cast?
+
+            if not Name_Node.Is_Null
+              and then not Name_Node.P_Name_Designated_Type.Is_Null
+            --  Does the cast make sense?
+            --   and then Active_Position = 0
+            --  Do we have the previous signatures?
+              and then Value.context.Is_Set
+              and then Value.context.Value.activeSignatureHelp.Is_Set
+            then
+               --  At this point, the user is writing a typecast in a previous
+               --  signature => keep showing the previous signatures.
+
+               Response.Value := Value.context.Value.activeSignatureHelp.Value;
+
+               return;
+            end if;
+         end;
+
+         --  Try to get signatures before the cursor location
+         --  i.e "Foo (1,|" => "Foo (1|,"
+
+         LSP.Ada_Completions.Parameters.Propose_Signatures
+           (Context         => Context,
+            Node            => Node,
+            Cursor          => Location,
+            Prev_Signatures => Value.context,
+            Res             => Response.Value);
+
+         --  Retry to get signature in the previous non whitespace token
+         --  i.e. "Foo (1, 2 + |" => "Foo (1, 2 +|"
+
+         if Response.Value.signatures.Is_Empty then
+            declare
+               use all type Libadalang.Common.Token_Kind;
+               use type Libadalang.Common.Token_Reference;
+
+               Token : Libadalang.Common.Token_Reference :=
+                 Document.Get_Token_At (Context.all, Position);
+
+            begin
+               if Token /= Libadalang.Common.No_Token
+                 and then Libadalang.Common.Kind
+                            (Libadalang.Common.Data (Token)) = Ada_Whitespace
+               then
+                  Token :=
+                    Libadalang.Common.Previous
+                      (Token, Exclude_Trivia => True);
+               end if;
+
+               Position := LSP.Ada_Handlers.Locations.Start_Position (Token);
+            end;
+
+            Node := Document.Get_Node_At (Context.all, Position);
+            LSP.Ada_Completions.Parameters.Propose_Signatures
+              (Context         => Context,
+               Node            => Node,
+               Cursor          => Location,
+               Prev_Signatures => Value.context,
+               Res             => Response.Value);
+         end if;
+
+         --  Retry to get signatures in the cursor position.
+         --  It handles the edge case of nested function closing
+         --  i.e. "Foo (Bar (1)|"
+
+         if Response.Value.signatures.Is_Empty then
+            Node := Document.Get_Node_At (Context.all, Value.position);
+            LSP.Ada_Completions.Parameters.Propose_Signatures
+              (Context         => Context,
+               Node            => Node,
+               Cursor          => Location,
+               Prev_Signatures => Value.context,
+               Res             => Response.Value);
+         end if;
+      end Compute_Response;
+
+   begin
+      Compute_Response;
+      Self.Sender.On_SignatureHelp_Response (Id, Response);
+   end On_SignatureHelp_Request;
+
+   -----------------------
+   -- On_Symbol_Request --
+   -----------------------
+
+   overriding procedure On_Symbol_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.WorkspaceSymbolParams)
+   is
       use type Ada.Containers.Count_Type;
+      use type LSP.Search.Search_Kind;
+      use type VSS.Strings.Character_Count;
+
+      procedure Send_Partial_Response;
 
       procedure On_Inaccessible_Name
         (File : GNATCOLL.VFS.Virtual_File;
@@ -5720,12 +4383,6 @@ package body LSP.Ada_Handlers is
          Stop : in out Boolean);
 
       Names : LSP.Ada_Completions.Completion_Maps.Map;
-
-      package Canceled is new LSP.Generic_Cancel_Check (Request'Access, 127);
-
-      procedure Write_Symbols is
-        new LSP.Ada_Completions.Generic_Write_Symbols
-          (Canceled.Has_Been_Canceled);
 
       --------------------------
       -- On_Inaccessible_Name --
@@ -5750,56 +4407,59 @@ package body LSP.Ada_Handlers is
                 Weight       => <>));
          end if;
 
-         Stop := Canceled.Has_Been_Canceled;
+         Stop := Self.Is_Canceled.all;
       end On_Inaccessible_Name;
-
-      Pattern : constant Search_Pattern'Class := Build
-        (Pattern        => Request.params.query,
-         Case_Sensitive => Request.params.case_sensitive = LSP.Types.True,
-         Whole_Word     => Request.params.whole_word = LSP.Types.True,
-         Negate         => Request.params.negate = LSP.Types.True,
-         Kind           =>
-           (if Request.params.kind.Is_Set
-            then Request.params.kind.Value
-            else LSP.Messages.Start_Word_Text));
-
-      Response : LSP.Messages.Server_Responses.Symbol_Response
-        (Is_Error => False);
 
       Partial_Response_Sended : Boolean := False;
 
+      ---------------------------
       -- Send_Partial_Response --
+      ---------------------------
 
-      procedure Send_Partial_Response;
-      procedure Send_Partial_Response
-      is
-         P : LSP.Messages.Progress_SymbolInformation_Vector;
-         V : LSP.Messages.Symbol_Vector;
+      procedure Send_Partial_Response is
+         P : LSP.Structures.Symbol_Progress_Report (LSP.Structures.Variant_1);
+         V : LSP.Structures.SymbolInformation_Vector renames
+           P.Variant_1;
       begin
-         if Canceled.Has_Been_Canceled then
+         if Self.Is_Canceled.all then
             return;
          end if;
 
-         Write_Symbols (Names, V);
+         LSP.Ada_Handlers.Symbols.Write_Symbols (Self, Names, V);
          Names.Clear;
 
-         P.token := Request.params.partialResultToken.Value;
-         P.value := V.Vector;
-
-         Self.Server.On_Progress_SymbolInformation_Vector (P);
+         Self.Sender.On_Symbol_Partial_Result
+           (Token => Value.partialResultToken.Value,
+            Value => P);
 
          Partial_Response_Sended := True;
       end Send_Partial_Response;
 
+      use type LSP.Structures.Boolean_Optional;
+
+      Pattern  : constant LSP.Search.Search_Pattern'Class :=
+        LSP.Search.Build
+          (Pattern        => Value.query,
+           Case_Sensitive => Value.case_sensitive = LSP.Constants.True,
+           Whole_Word     => Value.whole_word = LSP.Constants.True,
+           Negate         => Value.negate = LSP.Constants.True,
+           Kind           =>
+             (if Value.kind.Is_Set
+              then Value.kind.Value
+              else LSP.Enumerations.Start_Word_Text));
+
+      Response : LSP.Structures.Symbol_Result (LSP.Structures.Variant_1);
+
    begin
-      if Pattern.Get_Kind /= LSP.Messages.Start_Word_Text
+      if Pattern.Get_Kind /= LSP.Enumerations.Start_Word_Text
         and then Pattern.Get_Canonical_Pattern.Character_Length < 2
       then
          --  Do not process too small pattern because
          --  this produces a huge response that is useless
          --  and costs a while.
 
-         return Response;
+         Self.Sender.On_Symbol_Response (Id, Response);
+         return;
       end if;
 
       for Context of Self.Contexts.Each_Context loop
@@ -5808,10 +4468,9 @@ package body LSP.Ada_Handlers is
             Only_Public => False,
             Callback    => On_Inaccessible_Name'Access);
 
-         if Canceled.Has_Been_Canceled then
-            return Response;
+         exit when Self.Is_Canceled.all;
 
-         elsif Request.params.partialResultToken.Is_Set
+         if Value.partialResultToken.Is_Set
            and then Names.Length > 100
          then
             Send_Partial_Response;
@@ -5820,7 +4479,7 @@ package body LSP.Ada_Handlers is
 
       for Doc of Self.Open_Documents loop
          declare
-            Context : constant Context_Access :=
+            Context : constant LSP.Ada_Context_Sets.Context_Access :=
               Self.Contexts.Get_Best_Context (Doc.URI);
          begin
             Doc.Get_Any_Symbol
@@ -5828,14 +4487,13 @@ package body LSP.Ada_Handlers is
                Pattern,
                Ada.Containers.Count_Type'Last,
                False,
-               Canceled.Has_Been_Canceled'Access,
+               Self.Is_Canceled,
                Names);
          end;
 
-         if Canceled.Has_Been_Canceled then
-            return Response;
+         exit when Self.Is_Canceled.all;
 
-         elsif Request.params.partialResultToken.Is_Set
+         if Value.partialResultToken.Is_Set
            and then Names.Length > 100
          then
             Send_Partial_Response;
@@ -5845,963 +4503,166 @@ package body LSP.Ada_Handlers is
       if Partial_Response_Sended then
          Send_Partial_Response;
       else
-         Write_Symbols (Names, Response.result);
+         LSP.Ada_Handlers.Symbols.Write_Symbols
+           (Self, Names, Response.Variant_1);
       end if;
 
-      return Response;
-   end On_Workspace_Symbols_Request;
+      Self.Sender.On_Symbol_Response (Id, Response);
+   end On_Symbol_Request;
 
-   ---------------------------
-   -- On_Completion_Request --
-   ---------------------------
+   ----------------------------
+   -- On_Tokens_Full_Request --
+   ----------------------------
 
-   overriding function On_Completion_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Completion_Request)
-      return LSP.Messages.Server_Responses.Completion_Response
+   overriding procedure On_Tokens_Full_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensParams)
    is
-      --  We're completing only based on one context, ie one project
-      --  tree: this seems reasonable. One further refinement could
-      --  be to return only results that are available for all
-      --  project contexts.
-
-      Value    : LSP.Messages.TextDocumentPositionParams renames
-        Request.params;
-
-      Context  : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
+      use type LSP.Ada_Documents.Document_Access;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
+        Self.Get_Open_Document (Value.textDocument.uri);
 
-      Names     : LSP.Ada_Completions.Completion_Maps.Map;
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
 
-      --  If lazy computation for the 'detail' and 'documentation' fields is
-      --  supported by the client, set the Compute_Doc_And_Details flag to
-      --  False.
-      Compute_Doc_And_Details : constant Boolean :=
-        not
-          (Self.Completion_Resolve_Properties.Contains
-             (VSS.Strings.Conversions.To_Virtual_String ("detail"))
-           and then
-             Self.Completion_Resolve_Properties.Contains
-                (VSS.Strings.Conversions.To_Virtual_String ("documentation")));
+      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
 
-      P1 : aliased LSP.Ada_Completions.Aspects.Aspect_Completion_Provider;
-      P2 : aliased LSP.Ada_Completions.Pragmas.Pragma_Completion_Provider;
-      P3 : aliased LSP.Ada_Completions.Keywords.Keyword_Completion_Provider;
-      P4 : aliased
-        LSP.Ada_Completions.Attributes.Attributes_Completion_Provider;
-
-      P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
-        (Self.Use_Completion_Snippets);
-      P6 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
-        (Self, Context);
-      P7 : aliased
-        LSP.Ada_Completions.Parameters.Parameter_Completion_Provider
-          (Context                  => Context,
-           Document                 => Document,
-           Compute_Doc_And_Details  => Compute_Doc_And_Details,
-           Named_Notation_Threshold => Self.Named_Notation_Threshold);
-      P8 : aliased LSP.Ada_Completions.End_Names.End_Name_Completion_Provider;
-      P9 : aliased
-        LSP.Ada_Completions.Use_Clauses.Use_Clause_Completion_Provider;
-      Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
-        [P1'Unchecked_Access,
-         P2'Unchecked_Access,
-         P3'Unchecked_Access,
-         P4'Unchecked_Access,
-         P5'Unchecked_Access,
-         P6'Unchecked_Access,
-         P7'Unchecked_Access,
-         P8'Unchecked_Access,
-         P9'Unchecked_Access];
-
-      Response : LSP.Messages.Server_Responses.Completion_Response
-        (Is_Error => False);
-
-      Sloc  : Langkit_Support.Slocs.Source_Location;
-      Token : Libadalang.Common.Token_Reference;
-      Node  : Libadalang.Analysis.Ada_Node;
+      Result   : LSP.Structures.Natural_Vector renames
+        Response.Value.data;
    begin
-      Document.Get_Completion_Node
-        (Context  => Context.all,
-         Position => Value.position,
-         Sloc     => Sloc,
-         Token    => Token,
-         Node     => Node);
-
-      Document.Get_Completions_At
-        (Context   => Context.all,
-         Providers => Providers,
-         Sloc      => Sloc,
-         Token     => Token,
-         Node      => Node,
-         Names     => Names,
-         Result    => Response.result);
-
-      LSP.Ada_Completions.Write_Completions
-        (Context                  => Context.all,
-         Document                 => Document.all,
-         Sloc                     => Sloc,
-         Node                     => Node,
-         Names                    => Names,
-         Named_Notation_Threshold => Self.Named_Notation_Threshold,
-         Compute_Doc_And_Details  => Compute_Doc_And_Details,
-         Result                   => Response.result.items);
-
-      return Response;
-   end On_Completion_Request;
-
-   --------------------------------------
-   -- On_CompletionItemResolve_Request --
-   --------------------------------------
-
-   overriding function On_CompletionItemResolve_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.CompletionItemResolve_Request)
-      return LSP.Messages.Server_Responses.CompletionItemResolve_Response
-   is
-      Item      : LSP.Messages.CompletionItem :=
-        Request.params;
-      Response  : LSP.Messages.Server_Responses.CompletionItemResolve_Response
-        (Is_Error => False);
-      C         : Context_Access;
-      Node      : Libadalang.Analysis.Ada_Node;
-   begin
-      --  Return immediately if we don't have data that allows us to compute
-      --  additional information for the given item.
-      --  This is the case when all the completion item's fields have already
-      --  been computed.
-      if not Item.data.Is_Set then
-         Response.result := Item;
-         return Response;
+      if Document /= null then
+         Result := Document.Get_Tokens (Context.all, Self.Highlighter);
       end if;
 
-      C := Self.Contexts.Get_Best_Context (Item.data.Value.uri);
-      Node := Get_Node_At
-        (Self         => C.all,
-         Document     => null,
-         Project_Only => False,
-         Position     => LSP.Messages.TextDocumentPositionParams'
-           (textDocument => (uri => Item.data.Value.uri),
-            position     => Item.data.Value.span.first));
+      Self.Sender.On_Tokens_Full_Response (Id, Response);
+   end On_Tokens_Full_Request;
 
-      --  Retrieve the Basic_Decl from the completion item's SLOC
-      while not Node.Is_Null
-        and then Node.Kind not in Libadalang.Common.Ada_Basic_Decl
-      loop
-         Node := Node.Parent;
-      end loop;
+   -----------------------------
+   -- On_Tokens_Range_Request --
+   -----------------------------
 
-      --  Compute the completion item's details
-      if not Node.Is_Null then
-         declare
-            BD           : constant Libadalang.Analysis.Basic_Decl :=
-              Node.As_Basic_Decl;
-            Qual_Text    : VSS.Strings.Virtual_String;
-            Loc_Text     : VSS.Strings.Virtual_String;
-            Doc_Text     : VSS.Strings.Virtual_String;
-            Decl_Text    : VSS.Strings.Virtual_String;
-            Aspects_Text : VSS.Strings.Virtual_String;
-
-         begin
-            LSP.Ada_Documentation.Get_Tooltip_Text
-              (BD                 => BD,
-               Style              => Self.Options.Documentation.Style,
-               Qualifier_Text     => Qual_Text,
-               Location_Text      => Loc_Text,
-               Documentation_Text => Doc_Text,
-               Declaration_Text   => Decl_Text,
-               Aspects_Text       => Aspects_Text);
-
-            Item.detail := (True, Decl_Text);
-
-            if not Doc_Text.Is_Empty then
-               Loc_Text.Append
-                 (VSS.Strings.To_Virtual_String
-                    ((1 .. 2 => Ada.Characters.Wide_Wide_Latin_1.LF)));
-
-               Loc_Text.Append (Doc_Text);
-            end if;
-
-            Item.documentation :=
-              (Is_Set => True,
-               Value  => LSP.Messages.String_Or_MarkupContent'
-                 (Is_String => True,
-                  String    => Loc_Text));
-         end;
-
-         Response.result := Item;
-      end if;
-
-      return Response;
-   end On_CompletionItemResolve_Request;
-
-   ---------------------------
-   -- On_Formatting_Request --
-   ---------------------------
-
-   overriding function On_Formatting_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Formatting_Request)
-      return LSP.Messages.Server_Responses.Formatting_Response
+   overriding procedure On_Tokens_Range_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensRangeParams)
    is
-      Context  : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
+      use type LSP.Ada_Documents.Document_Access;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Request.params.textDocument.uri);
-   begin
-      if Document.Has_Diagnostics (Context.all) then
-         return Response : LSP.Messages.Server_Responses.Formatting_Response
-           (Is_Error => True)
-         do
-            Response.error :=
-              (True,
-               (code    => LSP.Errors.InternalError,
-                message => "Incorrect code can't be formatted",
-                data    => <>));
-         end return;
-      end if;
+        Self.Get_Open_Document (Value.textDocument.uri);
 
-      declare
-         use LSP.Messages;
-
-         Response : constant Server_Responses.Formatting_Response :=
-           Format
-             (Self     => Context.all,
-              Document => Document,
-              Span     => LSP.Messages.Empty_Span,
-              Options  => Request.params.options,
-              Handler  => Self);
-      begin
-         return Response;
-      end;
-   end On_Formatting_Request;
-
-   ---------------------------------------
-   -- On_Prepare_Call_Hierarchy_Request --
-   ---------------------------------------
-
-   overriding function On_Prepare_Call_Hierarchy_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Prepare_Call_Hierarchy_Request)
-      return LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
-   is
-      Value     : LSP.Messages.CallHierarchyPrepareParams renames
-        Request.params;
-
-      Response  : LSP.Messages.Server_Responses.PrepareCallHierarchy_Response
-        (Is_Error => False);
-
-      Imprecise : Boolean := False;
-
-      C         : constant Context_Access :=
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      --  For the PrepareCallHierarchy request, we're only interested in the
-      --  "best" response value, not in the list of values for all contexts
 
-      Node      : constant Libadalang.Analysis.Name :=
-        Laltools.Common.Get_Node_As_Name
-          (C.Get_Node_At
-            (Get_Open_Document (Self, Value.textDocument.uri), Value));
+      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
 
-      Name      : constant Libadalang.Analysis.Defining_Name :=
-        Laltools.Common.Resolve_Name
-          (Node,
-           Self.Trace,
-           Imprecise);
-
-      Decl      : Libadalang.Analysis.Basic_Decl;
-      Next_Part : Libadalang.Analysis.Basic_Decl;
+      Result   : LSP.Structures.Natural_Vector renames
+        Response.Value.data;
    begin
-      if Name.Is_Null then
-         return Response;
+      if Document /= null then
+         Result := Document.Get_Tokens
+           (Context.all, Self.Highlighter, Value.a_range);
       end if;
 
-      Decl := Name.P_Basic_Decl;
-
-      if Decl.Is_Null or else not Decl.P_Is_Subprogram then
-         return Response;
-      end if;
-
-      Next_Part :=
-        Laltools.Common.Find_Next_Part_For_Decl (Decl, Self.Trace);
-
-      if Next_Part.Is_Null then
-         Next_Part := Decl;
-      end if;
-
-      Response.result.Append
-        (To_Call_Hierarchy_Item (Next_Part.P_Defining_Name));
-
-      if Imprecise then
-         Self.Show_Imprecise_Reference_Warning ("prepareCallHierarchy");
-      end if;
-
-      return Response;
-   end On_Prepare_Call_Hierarchy_Request;
+      Self.Sender.On_Tokens_Full_Response (Id, Response);
+   end On_Tokens_Range_Request;
 
    -------------------------------
-   -- On_Prepare_Rename_Request --
+   -- On_TypeDefinition_Request --
    -------------------------------
 
-   overriding function On_Prepare_Rename_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Prepare_Rename_Request)
-      return LSP.Messages.Server_Responses.Prepare_Rename_Response
+   overriding procedure On_TypeDefinition_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.TypeDefinitionParams)
    is
-      Value    : LSP.Messages.TextDocumentPositionParams renames
-        Request.params;
 
-      Response : LSP.Messages.Server_Responses.Prepare_Rename_Response
-        (Is_Error => False);
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-
-      Context : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      --  For the prepareRename request, we're only interested in the "best"
-      --  context to check that we are able to rename the name.
-
-      Name_Node : constant Libadalang.Analysis.Name :=
-        Laltools.Common.Get_Node_As_Name
-          (Context.Get_Node_At (Document, Value));
-
-      Imprecise : Boolean := False;
-
-      Defining_Name : constant Libadalang.Analysis.Defining_Name :=
-        Laltools.Common.Resolve_Name (Name_Node, Self.Trace, Imprecise);
-
-   begin
-      if not Name_Node.Is_Null
-        and then not Defining_Name.Is_Null
-        and then not Imprecise
-      then
-         --  Success only if the node is a name and can be resolved precisely
-         Response.result :=
-           (Is_Set => True,
-            Value  => LSP.Lal_Utils.To_Span (Name_Node.Sloc_Range));
-
-      end if;
-
-      return Response;
-   end On_Prepare_Rename_Request;
-
-   -------------------------------
-   -- On_Incoming_Calls_Request --
-   -------------------------------
-
-   overriding function On_Incoming_Calls_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Incoming_Calls_Request)
-      return LSP.Messages.Server_Responses.IncomingCalls_Response
-   is
-      use Libadalang.Analysis;
-
-      procedure Process_Context (C : Context_Access);
-      --  Process the subprogram found in one context and append corresponding
-      --  calls to Response.results.
-
-      Item : LSP.Messages.CallHierarchyItem renames
-        Request.params.item;
-      Response   : LSP.Messages.Server_Responses.IncomingCalls_Response
-        (Is_Error => False);
+      Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
+      Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
+      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
       Imprecise  : Boolean := False;
 
-      Position : constant LSP.Messages.TextDocumentPositionParams :=
-        (textDocument => (uri => Item.uri),
-         position     => Item.selectionRange.first);
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
+      --  Utility function to gather results on one context
 
-      Filter : File_Span_Sets.Set;
+      ------------------------
+      -- Resolve_In_Context --
+      ------------------------
 
-      procedure Add_Incoming_Call
-        (Filter : in out File_Span_Sets.Set;
-         Call   : LSP.Messages.CallHierarchyIncomingCall);
-      --  Add an incoming call in results. Use Filter to prevent having
-      --  duplicates
+      procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access) is
+         Trace      : constant GNATCOLL.Traces.Trace_Handle :=
+           LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
 
-      -----------------------
-      -- Add_Incoming_Call --
-      -----------------------
+         Name_Node  : constant Libadalang.Analysis.Name :=
+           Laltools.Common.Get_Node_As_Name (Self.Get_Node_At (C.all, Value));
 
-      procedure Add_Incoming_Call
-        (Filter : in out File_Span_Sets.Set;
-         Call : LSP.Messages.CallHierarchyIncomingCall)
-      is
-         Span : constant File_Span :=
-           (Self.To_File (Call.from.uri), Call.from.span);
+         Definition : Libadalang.Analysis.Defining_Name;
+         Type_Decl  : Libadalang.Analysis.Base_Type_Decl;
       begin
-         if not Filter.Contains (Span) then
-            Response.result.Append (Call);
-            Filter.Insert (Span);
-         end if;
-      end Add_Incoming_Call;
-
-      ---------------------
-      -- Process_Context --
-      ---------------------
-
-      procedure Process_Context (C : Context_Access) is
-         Definition : Defining_Name;
-      begin
-         Self.Imprecise_Resolve_Name (C, Position, Definition);
-
-         --  Attempt to resolve the name, return no results if we can't or if
-         --  the name does not resolve to a callable object, like a subprogram
-         --  or an entry.
-
-         if Definition = No_Defining_Name
-           or else not Definition.P_Basic_Decl.P_Is_Subprogram
-           or else Request.Canceled
-         then
+         if Name_Node.Is_Null then
             return;
          end if;
 
-         declare
-            use Laltools.Common;
-
-            This_Imprecise : Boolean;
-            Incoming_Calls : constant References_By_Subprogram.Map :=
-              LSP.Lal_Utils.Find_Incoming_Calls
-                (C.all, Definition, This_Imprecise);
-            C              : References_By_Subprogram.Cursor :=
-              Incoming_Calls.First;
-         begin
-            Imprecise := Imprecise or This_Imprecise;
-
-            --  Iterate through all the results, converting them to protocol
-            --  objects.
-            while References_By_Subprogram.Has_Element (C) loop
-               declare
-                  Node     : constant Defining_Name :=
-                    References_By_Subprogram.Key (C);
-                  Refs     : constant References_Sets.Set :=
-                    References_By_Subprogram.Element (C);
-                  New_Call : LSP.Messages.CallHierarchyIncomingCall;
-               begin
-                  To_Call_Hierarchy_Result
-                    (Node  => Node,
-                     Refs  => Refs,
-                     Item  => New_Call.from,
-                     Spans => New_Call.fromRanges,
-                     Kinds => New_Call.kinds);
-
-                  Add_Incoming_Call (Filter, New_Call);
-                  References_By_Subprogram.Next (C);
-               end;
-            end loop;
-         end;
-      end Process_Context;
-
-   begin
-      --  Find the references in all contexts
-      for C of Self.Contexts_For_URI (Item.uri) loop
-         Process_Context (C);
-
-         exit when Request.Canceled;
-      end loop;
-
-      if Imprecise then
-         Self.Show_Imprecise_Reference_Warning ("incomingCalls");
-      end if;
-
-      return Response;
-   end On_Incoming_Calls_Request;
-
-   -------------------------------
-   -- On_Outgoing_Calls_Request --
-   -------------------------------
-
-   overriding function On_Outgoing_Calls_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Outgoing_Calls_Request)
-      return LSP.Messages.Server_Responses.OutgoingCalls_Response
-   is
-      use Libadalang.Analysis;
-
-      Item : LSP.Messages.CallHierarchyItem renames
-        Request.params.item;
-      Response   : LSP.Messages.Server_Responses.OutgoingCalls_Response
-        (Is_Error => False);
-      Imprecise  : Boolean := False;
-
-      Position : constant LSP.Messages.TextDocumentPositionParams :=
-           (textDocument => (uri => Item.uri),
-            position     => Item.selectionRange.first);
-
-      Filter : File_Span_Sets.Set;
-
-      procedure Add_Outgoing_Call
-        (Filter : in out File_Span_Sets.Set;
-         Call   : LSP.Messages.CallHierarchyOutgoingCall);
-      --  Add a subprogram in results. Use Filter to prevent having duplicates
-
-      procedure Process_Context (C : Context_Access);
-      --  Process the calls found in one context and append
-      --  them to Response.results.
-
-      -----------------------
-      -- Add_Outgoing_Call --
-      -----------------------
-
-      procedure Add_Outgoing_Call
-        (Filter : in out File_Span_Sets.Set;
-         Call   : LSP.Messages.CallHierarchyOutgoingCall)
-      is
-         Span : constant File_Span :=
-           (Self.To_File (Call.to.uri), Call.to.span);
-      begin
-         if not Filter.Contains (Span) then
-            Response.result.Append (Call);
-            Filter.Insert (Span);
-         end if;
-      end Add_Outgoing_Call;
-
-      ---------------------
-      -- Process_Context --
-      ---------------------
-
-      procedure Process_Context (C : Context_Access) is
-         Definition : Defining_Name;
-      begin
-         Self.Imprecise_Resolve_Name (C, Position, Definition);
-
-         --  Attempt to resolve the name, return no results if we can't or if
-         --  the name does not resolve to a callable object, like a subprogram
-         --  or an entry.
-
-         if Definition = No_Defining_Name
-           or else not Definition.P_Basic_Decl.P_Is_Subprogram
-           or else Request.Canceled
-         then
-            return;
-         end if;
-
-         declare
-            use Laltools.Common;
-
-            This_Imprecise : Boolean;
-            Outgoing_Calls : constant References_By_Subprogram.Map :=
-              LSP.Lal_Utils.Find_Outgoing_Calls
-                (C.all, Definition, This_Imprecise);
-            C              : References_By_Subprogram.Cursor :=
-              Outgoing_Calls.First;
-         begin
-            Imprecise := Imprecise or This_Imprecise;
-
-            --  Iterate through all the results, converting them to protocol
-            --  objects.
-            while References_By_Subprogram.Has_Element (C) loop
-               declare
-                  Node     : constant Defining_Name :=
-                    References_By_Subprogram.Key (C);
-                  Refs     : constant References_Sets.Set :=
-                    References_By_Subprogram.Element (C);
-                  New_Call : LSP.Messages.CallHierarchyOutgoingCall;
-               begin
-                  To_Call_Hierarchy_Result
-                    (Node  => Node,
-                     Refs  => Refs,
-                     Item  => New_Call.to,
-                     Spans => New_Call.fromRanges,
-                     Kinds => New_Call.kinds);
-
-                  Add_Outgoing_Call (Filter, New_Call);
-                  References_By_Subprogram.Next (C);
-               end;
-            end loop;
-         end;
-      end Process_Context;
-   begin
-      --  Find the references in all contexts
-      for C of Self.Contexts_For_URI (Item.uri) loop
-         Process_Context (C);
-
-         exit when Request.Canceled;
-      end loop;
-
-      if Imprecise then
-         Self.Show_Imprecise_Reference_Warning ("outgoingCalls");
-      end if;
-
-      return Response;
-   end On_Outgoing_Calls_Request;
-
-   ---------------------------------
-   -- On_Range_Formatting_Request --
-   ---------------------------------
-
-   overriding function On_Range_Formatting_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.Range_Formatting_Request)
-      return LSP.Messages.Server_Responses.Range_Formatting_Response
-   is
-      Context  : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Request.params.textDocument.uri);
-
-   begin
-      if Document.Has_Diagnostics (Context.all) then
-         return Response : LSP.Messages.Server_Responses.
-           Range_Formatting_Response (Is_Error => True)
-         do
-            Response.error :=
-              (True,
-               (code    => LSP.Errors.InternalError,
-                message => "Syntactically incorrect code can't be formatted",
-                data    => <>));
-         end return;
-      end if;
-
-      declare
-         use LSP.Messages;
-
-         Result : constant Server_Responses.Formatting_Response :=
-           (if Partial_Gnatpp_Trace.Is_Active then
-               Range_Format
-                (Self     => Context.all,
-                 Document => Document,
-                 Span     => Request.params.span,
-                 Options  => Request.params.options)
-            else
-               Format
-                 (Self     => Context.all,
-                  Document => Document,
-                  Span     => Request.params.span,
-                  Options  => Request.params.options,
-                  Handler  => Self));
-         Response : Server_Responses.Range_Formatting_Response
-                      (Is_Error => Result.Is_Error);
-
-      begin
-         if not Result.Is_Error then
-            Response.result := Result.result;
-         else
-            Response.error := Result.error;
-         end if;
-
-         return Response;
-      end;
-   end On_Range_Formatting_Request;
-
-   -----------------------------------
-   -- On_On_Type_Formatting_Request --
-   -----------------------------------
-
-   overriding function On_On_Type_Formatting_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.On_Type_Formatting_Request)
-      return LSP.Messages.Server_Responses.On_Type_Formatting_Response
-   is
-      use type VSS.Strings.Virtual_String;
-
-      Context        : constant Context_Access :=
-        Self.Contexts.Get_Best_Context (Request.params.textDocument.uri);
-      Document       : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Request.params.textDocument.uri);
-      Has_Dianostics : constant Boolean :=
-        Document.all.Has_Diagnostics (Context.all);
-
-      Indentation : constant Natural :=
-        (declare
-           Indentation_First_Guess : constant Natural :=
-             Document.all.Get_Indentation
-               (Context.all, Request.params.position.line);
-         begin
-           (if Indentation_First_Guess >=
-                 Natural (Request.params.position.character)
-            then Indentation_First_Guess -
-                   Natural (Request.params.position.character)
-            else 0));
-      --  Do not add any indentation if the current cursor position is greater
-      --  than the calculated one.
-
-      Response :
-        LSP.Messages.Server_Responses.On_Type_Formatting_Response
-          (Is_Error => False);
-
-      procedure Handle_Document_With_Diagnostics;
-      --  Simply adds indentation to the new line
-
-      procedure Handle_Document_Without_Diagnostics;
-      --  Adds indentation to the new line and formats the previous node
-      --  if configured to do so and taking into account where the cursor
-      --  is.
-
-      --------------------------------------
-      -- Handle_Document_With_Diagnostics --
-      --------------------------------------
-
-      procedure Handle_Document_With_Diagnostics is
-         use VSS.Strings.Conversions;
-
-         Result :
-           LSP.Messages.Server_Responses.Formatting_Response
-             (Is_Error => False);
-
-      begin
-         Result.result.Append
-           (LSP.Messages.TextEdit'
-              (span    =>
-                 LSP.Messages.Span'
-                   (first => Request.params.position,
-                    last  => Request.params.position),
-                 newText => To_Virtual_String (Indentation * " ")));
-
-         Response.result := Result.result;
-      end Handle_Document_With_Diagnostics;
-
-      -----------------------------------------
-      -- Handle_Document_Without_Diagnostics --
-      -----------------------------------------
-
-      procedure Handle_Document_Without_Diagnostics is
-         use Laltools.Partial_GNATPP;
-         use VSS.Strings.Conversions;
-
-         use type VSS.Unicode.UTF16_Code_Unit_Offset;
-
-         function Is_Between
-           (Position : LSP.Messages.Position;
-            Span     : LSP.Messages.Span)
-            return Boolean;
-         --  Checks if Position is between Span
-
-         ----------------
-         -- Is_Between --
-         ----------------
-
-         function Is_Between
-           (Position : LSP.Messages.Position;
-            Span     : LSP.Messages.Span)
-            return Boolean
-         is ((Position.line = Span.first.line
-              and then Position.character >= Span.first.character)
-             or else (Position.line = Span.last.line
-                      and then Position.character <= Span.last.character)
-             or else (Position.line > Span.first.line
-                      and then Position.line < Span.last.line));
-
-         Token                    : constant Token_Reference :=
-           Document.all.Get_Token_At (Context.all, Request.params.position);
-         Previous_NWNC_Token      :
-           constant Libadalang.Common.Token_Reference :=
-             Previous_Non_Whitespace_Non_Comment_Token (Token);
-         Previous_NWNC_Token_Span : constant LSP.Messages.Span :=
-           Document.all.To_LSP_Range (Sloc_Range (Data (Previous_NWNC_Token)));
-
-         Formatting_Region : constant Formatting_Region_Type :=
-           Document.all.Get_Formatting_Region
-             (Context.all, Previous_NWNC_Token_Span.first);
-         Formatting_Span   : constant LSP.Messages.Span :=
-           Document.all.To_LSP_Range
-             (Langkit_Support.Slocs.Make_Range
-                (Langkit_Support.Slocs.Start_Sloc
-                   (Sloc_Range (Data (Formatting_Region.Start_Token))),
-                 Langkit_Support.Slocs.Start_Sloc
-                   (Sloc_Range (Data (Formatting_Region.End_Token)))));
-         --  This is the span that would be formatted based on the cursor
-         --  position.
-
-      begin
-         if Self.Options.On_Type_Formatting.Indent_Only then
-            Self.Trace.Trace
-              ("'onTypeFormatting' request configured to indent only");
+         if Name_Node.P_Is_Defining then
+            --  Special case if Name_Node is defining, for instance on the X in
+            --      X : My_Type;
             declare
-               Result :
-                 LSP.Messages.Server_Responses.Formatting_Response
-                   (Is_Error => False);
+               Def_Name : constant Libadalang.Analysis.Defining_Name :=
+                 Name_Node.P_Enclosing_Defining_Name;
 
+               Type_Expr : constant Libadalang.Analysis.Type_Expr :=
+                 Def_Name.P_Basic_Decl.P_Type_Expression;
             begin
-               Result.result.Append
-                 (LSP.Messages.TextEdit'
-                    (span    =>
-                       LSP.Messages.Span'
-                         (first => Request.params.position,
-                          last  => Request.params.position),
-                     newText => To_Virtual_String (Indentation * " ")));
-
-               Response.result := Result.result;
+               if not Type_Expr.Is_Null then
+                  Definition := Laltools.Common.Resolve_Name
+                    (Type_Expr.P_Type_Name, Trace, Imprecise);
+               end if;
             end;
-
          else
-            --  onTypeFormatting is configured to also format the previous
-            --  node, however, we can only do this if the cursor is not
-            --  between the Formatting_Span.
+            --  Name_Node is not defining. In this case we can rely on
+            --  P_Expression_Type.
+            Type_Decl := Name_Node.P_Expression_Type;
 
-            if Is_Between (Request.params.position, Formatting_Span) then
-               Self.Trace.Trace
-                 ("Current position is within the Formatting_Span");
-               Self.Trace.Trace ("Adding indentation only");
-
-               declare
-                  Result :
-                  LSP.Messages.Server_Responses.Formatting_Response
-                    (Is_Error => False);
-               begin
-                  Result.result.Append
-                    (LSP.Messages.TextEdit'
-                       (span    =>
-                            LSP.Messages.Span'
-                          (first => Request.params.position,
-                           last  => Request.params.position),
-                        newText => To_Virtual_String (Indentation * " ")));
-
-                  Response.result := Result.result;
-               end;
-
-            else
-               Self.Trace.Trace
-                 ("Formatting previous node and adding indentation");
-
-               declare
-                  Result              :
-                    LSP.Messages.Server_Responses.Formatting_Response :=
-                      Range_Format
-                        (Self     => Context.all,
-                         Document => Document,
-                         Span     => Previous_NWNC_Token_Span,
-                         Options  => Request.params.options);
-               begin
-                  if Result.Is_Error then
-                     declare
-                        Result :
-                          LSP.Messages.Server_Responses.Formatting_Response
-                            (Is_Error => False);
-                     begin
-                        Result.result.Append
-                          (LSP.Messages.TextEdit'
-                             (span    =>
-                                LSP.Messages.Span'
-                                  (first => Request.params.position,
-                                   last  => Request.params.position),
-                              newText =>
-                                To_Virtual_String (Indentation * " ")));
-
-                        Response.result := Result.result;
-                     end;
-
-                     Self.Trace.Trace
-                       ("The 'onTypeFormatting' has failed because of a "
-                        & "Range_Format error");
-
-                  else
-                     --  Result contains the Range_Format result.
-                     --  Add indentation to the next line.
-                     Result.result.Append
-                       (LSP.Messages.TextEdit'
-                          (span    =>
-                             LSP.Messages.Span'
-                               (first => Request.params.position,
-                                last  => Request.params.position),
-                           newText => To_Virtual_String (Indentation * " ")));
-
-                     Response.result := Result.result;
-                  end if;
-               end;
+            --  P_Expression_Type returns the entire expression: narrow the
+            --  result down to the type declaration. Here we assume that the
+            --  first defining name in this expression is the name of the type.
+            if not Type_Decl.Is_Null then
+               Definition := Type_Decl.P_Defining_Name;
             end if;
          end if;
-      end Handle_Document_Without_Diagnostics;
+
+         if not Definition.Is_Null then
+            Self.Append_Location (Vector, Filter, Definition);
+         end if;
+      end Resolve_In_Context;
 
    begin
-      Self.Trace.Trace ("On 'onTypeFormatting' Request");
+      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+         Resolve_In_Context (C);
 
-      Self.Trace.Trace
-        ("uri       : "
-         & LSP.Types.To_UTF_8_String (Request.params.textDocument.uri));
-      Self.Trace.Trace
-        ("ch        : "
-         & VSS.Strings.Conversions.To_UTF_8_String (Request.params.ch));
-      Self.Trace.Trace
-        ("line      : " & Request.params.position.line'Image);
-      Self.Trace.Trace
-        ("character : " & Request.params.position.character'Image);
+         exit when Self.Is_Canceled.all;
+      end loop;
 
-      if not On_Type_Formatting_Trace.Is_Active then
-         Self.Trace.Trace
-           ("'onTypeFormatting' is not active, yet, ALS received a request - "
-            & "exiting earlier");
-
-         return Response;
-      end if;
-
-      if Request.params.ch /=
-        Self.On_Type_Formatting_Settings.First_Trigger_Character
-      then
-         Self.Trace.Trace
-           ("Trigger character ch is not a new line - exiting earlier");
-
-         return Response;
-      end if;
-
-      if Has_Dianostics then
-         --  This is the unhappy path: when this Document has diagnostics.
-         --  Get the previous node (based on the previous non whitespace
-         --  token), compute the indentation and format it (if configured to
-         --  to so).
-
-         Self.Trace.Trace ("Document has diagnostics");
-         Handle_Document_With_Diagnostics;
-
-      else
-         --  This is the happy path: when this Document does not have any
-         --  diagnostics.
-         --  Get the previous node (based on the previous non whitespace
-         --  token) and compute the indentation.
-
-         Self.Trace.Trace ("Document does not have any diagnostics");
-         Handle_Document_Without_Diagnostics;
-      end if;
-
-      Self.Trace.Trace ("Exiting 'onTypeFormatting' Request");
-      return Response;
-   end On_On_Type_Formatting_Request;
-
-   ------------------
-   -- Handle_Error --
-   ------------------
-
-   overriding procedure Handle_Error
-     (Self : access Message_Handler) is
-   begin
-      --  Reload the contexts in case of unexpected errors.
-      Self.Contexts.Reload_All_Contexts;
-   end Handle_Error;
-
-   function Hash (Value : File_Span) return Ada.Containers.Hash_Type is
-      use type Ada.Containers.Hash_Type;
-      Prime : constant := 271;
-      Name  : constant Ada.Containers.Hash_Type := Value.File.Full_Name_Hash;
-      From  : constant Ada.Containers.Hash_Type :=
-        Prime * Ada.Containers.Hash_Type'Mod (Value.Span.first.line)
-        + Ada.Containers.Hash_Type'Mod (Value.Span.first.character);
-      To    : constant Ada.Containers.Hash_Type :=
-        Prime * Ada.Containers.Hash_Type'Mod (Value.Span.last.line)
-        + Ada.Containers.Hash_Type'Mod (Value.Span.last.character);
-   begin
-      return Name + From + To;
-   end Hash;
+      Self.Sender.On_Definition_Response (Id, Response);
+   end On_TypeDefinition_Request;
 
    -------------------------
    -- Publish_Diagnostics --
    -------------------------
 
    procedure Publish_Diagnostics
-     (Self              : access Message_Handler'Class;
+     (Self              : in out Message_Handler'Class;
       Document          : not null LSP.Ada_Documents.Document_Access;
-      Other_Diagnostics : LSP.Messages.Diagnostic_Vector :=
-        LSP.Messages.Diagnostic_Vectors.Empty;
+      Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
+        LSP.Structures.Empty;
       Force             : Boolean := False)
    is
       Changed : Boolean;
-      Diag    : LSP.Messages.PublishDiagnosticsParams;
+      Diag    : LSP.Structures.PublishDiagnosticsParams;
    begin
-      if Self.Diagnostics_Enabled then
+      if Self.Configuration.Diagnostics_Enabled then
          Document.Get_Errors
            (Context => Self.Contexts.Get_Best_Context (Document.URI).all,
             Changed => Changed,
@@ -6812,363 +4673,180 @@ package body LSP.Ada_Handlers is
 
          if Changed or else not Other_Diagnostics.Is_Empty then
             Diag.uri := Document.URI;
-            Self.Server.On_Publish_Diagnostics (Diag);
+            Self.Sender.On_PublishDiagnostics_Notification (Diag);
          end if;
       end if;
    end Publish_Diagnostics;
 
-   ----------
-   -- Free --
-   ----------
+   -----------------------
+   -- To_Workspace_Edit --
+   -----------------------
 
-   procedure Free (Self : in out Internal_Document_Access) is
-      procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-        (LSP.Ada_Documents.Document, Internal_Document_Access);
-   begin
-      Self.Cleanup;
-      Unchecked_Free (Self);
-   end Free;
-
-   ------------------
-   -- Show_Message --
-   ------------------
-
-   procedure Show_Message
-     (Self : access Message_Handler;
-      Text : VSS.Strings.Virtual_String;
-      Mode : LSP.Messages.MessageType := LSP.Messages.Error) is
-   begin
-      Self.Server.On_Show_Message ((Mode, Text));
-   end Show_Message;
-
-   --------------------------------------
-   -- Show_Imprecise_Reference_Warning --
-   --------------------------------------
-
-   procedure Show_Imprecise_Reference_Warning
-     (Self      : access Message_Handler;
-      Operation : String) is
-   begin
-      if Notifications_For_Imprecise.Is_Active then
-         Self.Server.On_Show_Message
-           ((LSP.Messages.Warning,
-            VSS.Strings.Conversions.To_Virtual_String
-              ("The result of '" & Operation & "' is approximate.")));
-      end if;
-   end Show_Imprecise_Reference_Warning;
-
-   -----------------
-   -- Before_Work --
-   -----------------
-
-   overriding procedure Before_Work
-     (Self    : access Message_Handler;
-      Message : LSP.Messages.Message'Class) is null;
-
-   ----------------
-   -- After_Work --
-   ----------------
-
-   overriding procedure After_Work
-     (Self    : access Message_Handler;
-      Message : LSP.Messages.Message'Class)
+   function To_Workspace_Edit
+     (Self   : in out Message_Handler'Class;
+      Edits  : LAL_Refactor.Refactoring_Edits;
+      Rename : Boolean := False)
+      return LSP.Structures.WorkspaceEdit
    is
-      pragma Unreferenced (Message);
-   begin
-     --  We have finished processing a request or notification:
-     --  if it happens that indexing is required, do it now.
-      if not Self.Files_To_Index.Is_Empty then
-         Self.Index_Files;
-      end if;
-   end After_Work;
+      File_URI   : LSP.Structures.DocumentUri;
+      Text_Edits : LSP.Structures.TextEdit_Vector;
 
-   ---------------
-   -- From_File --
-   ---------------
+      use LAL_Refactor;
+      use LSP.Structures;
 
-   function From_File
-     (Self : Message_Handler'Class;
-      File : Virtual_File) return LSP.Messages.DocumentUri is
-        (LSP.Types.To_LSP_URI
-           (VSS.Strings.Conversions.To_Virtual_String
-                (URIs.Conversions.From_File (File.Display_Full_Name))));
+      Text_Edits_Cursor     : Text_Edit_Ordered_Maps.Cursor :=
+        Edits.Text_Edits.First;
 
-   -------------
-   -- To_File --
-   -------------
-
-   function To_File
-     (Self : Message_Handler'Class;
-      URI  : LSP.Types.LSP_URI) return GNATCOLL.VFS.Virtual_File
-   is
-      To     : constant URIs.URI_String := LSP.Types.To_UTF_8_String (URI);
-      Result : constant String := URIs.Conversions.To_File
-        (To, Normalize => Self.Follow_Symlinks);
-   begin
-      return GNATCOLL.VFS.Create_From_UTF8 (Result);
-   end To_File;
-
-   -----------------
-   -- URI_To_File --
-   -----------------
-
-   function URI_To_File
-     (Self : Message_Handler'Class;
-      URI  : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String
-   is
-      To     : constant URIs.URI_String :=
-        VSS.Strings.Conversions.To_UTF_8_String (URI);
-      Result : constant String := URIs.Conversions.To_File
-        (To, Normalize => Self.Follow_Symlinks);
+      function To_TextEdit
+        (E : LAL_Refactor.Text_Edit)
+         return LSP.Structures.TextEdit is
+        (LSP.Structures.TextEdit'
+           (LSP.Utils.To_Range (E.Location),
+            VSS.Strings.Conversions.To_Virtual_String (E.Text)));
 
    begin
-      return VSS.Strings.Conversions.To_Virtual_String (Result);
-   end URI_To_File;
+      return WE : LSP.Structures.WorkspaceEdit do
+         --  Text edits
 
-   ---------------------------------
-   -- On_ALS_Check_Syntax_Request --
-   ---------------------------------
+         while Text_Edit_Ordered_Maps.Has_Element (Text_Edits_Cursor) loop
+            Text_Edits.Clear;
 
-   overriding function On_ALS_Check_Syntax_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.ALS_Check_Syntax_Request)
-      return LSP.Messages.Server_Responses.ALS_Check_Syntax_Response
-   is
-      use Laltools.Common;
-      use LSP.Messages.Server_Responses;
-      use VSS.Strings;
+            for Edit of Text_Edit_Ordered_Maps.Element (Text_Edits_Cursor) loop
+               Text_Edits.Append (To_TextEdit (Edit));
+            end loop;
 
-      function "+"
-        (Item : Virtual_String'Class)
-         return Ada.Strings.UTF_Encoding.UTF_8_String
-         renames VSS.Strings.Conversions.To_UTF_8_String;
+            File_URI :=
+              Self.To_URI (Text_Edit_Ordered_Maps.Key (Text_Edits_Cursor));
 
-      function "+"
-        (Item : Virtual_String'Class)
-         return Unbounded_String
-         renames VSS.Strings.Conversions.To_Unbounded_UTF_8_String;
+            --  If `workspace.workspaceEdit.documentChanges` client capability
+            --  was true, then use `TextDocumentEdit[]` instead of
+            --  `TextEdit[]`.
 
-      Invalid_Rule_Error_Message : constant Virtual_String :=
-        "Error parsing the grammar rules for the syntax check";
+            if Self.Client.Versioned_Documents then
+               declare
+                  Annotaded_Edits : TextEdit_Or_AnnotatedTextEdit_Vector;
 
-      Input : constant Unbounded_String := +Request.params.Input;
-      Rules : Grammar_Rule_Vector;
+               begin
+                  Annotaded_Edits.Reserve_Capacity (Text_Edits.Capacity);
+                  for X of Text_Edits loop
+                     Annotaded_Edits.Append
+                       (TextEdit_Or_AnnotatedTextEdit'
+                          (Is_TextEdit       => False,
+                           AnnotatedTextEdit => (X with annotationId => <>)));
+                  end loop;
 
-      Valid : Boolean := False;
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'(
+                     (Kind     => Variant_1,
+                      Variant_1 => TextDocumentEdit'
+                        (textDocument => Self.Get_Open_Document_Version
+                           (File_URI),
+                         edits        => Annotaded_Edits))));
+               end;
+            else
+               WE.changes.Insert (File_URI, Text_Edits);
+            end if;
 
-   begin
-      if Request.params.Rules.Length = 0 then
-         --  We need at least one rule in order to validate the input
+            Text_Edit_Ordered_Maps.Next (Text_Edits_Cursor);
+         end loop;
 
-         raise Constraint_Error;
-      end if;
+         --  Resource operations are only supported if
+         --  `workspace.workspaceEdit.documentChanges` is True since they
+         --  must be sent in the `documentChanges` field.
+         --  `workspace.workspaceEdit.resourceOperations` client capability
+         --  must be checked in order to know which kind of operations are
+         --  supported.
 
-      for Rule_Image of Request.params.Rules  loop
-         --  A Constraint_Error can be raised here is an invalid rule is
-         --  received in the request parameters.
-         Rules.Append (Grammar_Rule'Value (+Rule_Image));
-      end loop;
+         --  File creations
 
-      --  The input cannot be empty and only needs to be valid against one of
-      --  the rules.
+         if Self.Client.Versioned_Documents
+           and then Self.Client.Resource_Create_Supported
+         then
+            for File_Creation of Edits.File_Creations loop
+               WE.documentChanges.Append
+                 (documentChanges_OfWorkspaceEdit_Item'(
+                  (Kind   => create,
+                   create => CreateFile'
+                     (uri    => Self.To_URI
+                        (Ada.Strings.Unbounded.To_String
+                             (File_Creation.Filepath)),
+                      others => <>))));
 
-      if Input /= "" then
-         Valid := Validate_Syntax (Input, Rules);
-      end if;
+               declare
+                  Annotaded_Edits : TextEdit_Or_AnnotatedTextEdit_Vector;
+                  Content : constant TextEdit := TextEdit'
+                    (a_range    => ((0, 0), (0, 0)),
+                     newText =>
+                       VSS.Strings.Conversions.To_Virtual_String
+                         (File_Creation.Content));
 
-      if Valid then
-         return Response : ALS_Check_Syntax_Response (Is_Error => False) do
-            Response.result := (Is_Set => False);
-         end return;
+               begin
+                  Annotaded_Edits.Append
+                    (TextEdit_Or_AnnotatedTextEdit'
+                       (Is_TextEdit => True, TextEdit => Content));
 
-      else
-         return Response : ALS_Check_Syntax_Response (Is_Error => False) do
-            Response.result := (Is_Set => True, Value => "Invalid Syntax");
-         end return;
-      end if;
-
-   exception
-      when Constraint_Error =>
-         return Response : ALS_Check_Syntax_Response (Is_Error => True) do
-            Response.error :=
-              (Is_Set => True,
-               Value  => (code    => LSP.Errors.InvalidRequest,
-                          message => Invalid_Rule_Error_Message,
-                          data    => <>));
-         end return;
-   end On_ALS_Check_Syntax_Request;
-
-   ----------------------
-   -- GLS_Mains_Request --
-   ----------------------
-
-   overriding function On_GLS_Mains_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.GLS_Mains_Request)
-      return LSP.Messages.Server_Responses.GLS_Mains_Response
-   is
-      use LSP.Messages.Server_Responses;
-      use VSS.String_Vectors;
-      Result : Virtual_String_Vector;
-      Element : GPR2.Project.View.Object;
-   begin
-      if Self.Project_Tree.Is_Defined
-      then
-         Element := Self.Project_Tree.Root_Project;
-         if Element.Has_Mains then
-            for main of Element.Mains loop
-               Result.Append
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (main.Source.Value));
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'(
+                     (Kind     => Variant_1,
+                      Variant_1 => TextDocumentEdit'
+                        (edits => Annotaded_Edits,
+                         others => <>))));
+               end;
             end loop;
          end if;
-      end if;
-      return Response : GLS_Mains_Response (Is_Error => False) do
-            Response.result := (Is_Set => True, Value => Result);
-      end return;
-   end On_GLS_Mains_Request;
 
-   ----------------------
-   -- GLS_Executables_Request --
-   ----------------------
+         --  File deletions
 
-   overriding function On_GLS_Executables_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.GLS_Executables_Request)
-      return LSP.Messages.Server_Responses.GLS_Executables_Response
-   is
-      use LSP.Messages.Server_Responses;
-      use VSS.String_Vectors;
-      Result : Virtual_String_Vector;
-      Element : GPR2.Project.View.Object;
-   begin
-      if Self.Project_Tree.Is_Defined
-      then
-         Element := Self.Project_Tree.Root_Project;
-         for exec of Element.Executables loop
-            Result.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                (exec.Value));
-         end loop;
-      end if;
-      return Response : GLS_Executables_Response (Is_Error => False) do
-            Response.result := (Is_Set => True, Value => Result);
-      end return;
-   end On_GLS_Executables_Request;
+         if Self.Client.Versioned_Documents then
+            for Item of Edits.File_Deletions loop
+               File_URI := Self.To_URI
+                 (Ada.Strings.Unbounded.To_String (Item));
 
-   --------------------------------
-   -- On_GLS_ObjectDir_Request --
-   --------------------------------
+               if Rename and then Self.Client.Resource_Rename_Supported then
 
-   overriding function On_GLS_Object_Dir_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.GLS_Object_Dir_Request)
-      return LSP.Messages.Server_Responses.GLS_Object_Dir_Response
-   is
-      use LSP.Messages.Server_Responses;
-      use VSS.Strings;
-      Result : Virtual_String;
-      Element : GPR2.Project.View.Object;
-   begin
-      if Self.Project_Tree.Is_Defined
-      then
-         Element := Self.Project_Tree.Root_Project;
-         Result := VSS.Strings.Conversions.To_Virtual_String
-                (Element.Object_Directory.Value);
-      end if;
-      return Response : GLS_Object_Dir_Response (Is_Error => False) do
-            Response.result := (Is_Set => True, Value => Result);
-      end return;
-   end On_GLS_Object_Dir_Request;
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'(
+                     (Kind   => LSP.Structures.rename,
+                      rename => LSP.Structures.RenameFile'
+                        (oldUri => File_URI,
+                         newUri => File_URI & ".bak",
+                         others => <>))));
 
-   --------------------------------
-   -- On_GLS_Project_File_Request --
-   --------------------------------
+               elsif not Rename
+                 and then Self.Client.Resource_Delete_Supported
+               then
 
-   overriding function On_GLS_Project_File_Request
-     (Self    : access Message_Handler;
-      Request : LSP.Messages.Server_Requests.GLS_Project_File_Request)
-      return LSP.Messages.Server_Responses.GLS_Project_File_Response
-   is
-      use LSP.Messages.Server_Responses;
-      use VSS.Strings;
-      Result : Virtual_String;
-      Element : GPR2.Project.View.Object;
-   begin
-      if Self.Project_Tree.Is_Defined
-      then
-         Element := Self.Project_Tree.Root_Project;
-         Result := VSS.Strings.Conversions.To_Virtual_String
-           (Element.Path_Name.Value);
-      end if;
-      return Response : GLS_Project_File_Response (Is_Error => False) do
-            Response.result := (Is_Set => True, Value => Result);
-      end return;
-   end On_GLS_Project_File_Request;
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'(
+                     (Kind   => LSP.Structures.delete,
+                      delete => LSP.Structures.DeleteFile'
+                        (uri    => File_URI,
+                         others => <>))));
 
-   -----------
-   -- Parse --
-   -----------
+               end if;
+            end loop;
+         end if;
 
-   function Parse
-     (Value : LSP.Types.Optional_LSP_Any)
-      return Experimental_Client_Capabilities is
-   begin
-      return Result : Experimental_Client_Capabilities :=
-               (Advanced_Refactorings => [others => False])
-      do
-         if Value.Is_Set then
-            if Value.Value.Has_Field ("advanced_refactorings")
-              and then Value.Value.Get ("advanced_refactorings").Kind in
-                         GNATCOLL.JSON.JSON_Array_Type
-            then
-               declare
-                  Advanced_Refactorings : constant GNATCOLL.JSON.JSON_Array :=
-                    Value.Value.Get ("advanced_refactorings");
-                  Advanced_Refactoring  :
-                    LSP.Ada_Handlers.Advanced_Refactorings;
-               begin
-                  for Refactoring of Advanced_Refactorings loop
-                     if Refactoring.Kind in GNATCOLL.JSON.JSON_String_Type then
-                        begin
-                           Advanced_Refactoring :=
-                             LSP.Ada_Handlers.Advanced_Refactorings'Value
-                               (GNATCOLL.JSON.Get (Refactoring));
-                           Result.Advanced_Refactorings
-                             (Advanced_Refactoring) := True;
-                        exception
-                           when others =>
-                              null;
-                        end;
-                     end if;
-                  end loop;
-               end;
-            end if;
+         --  File renames
+
+         if Self.Client.Versioned_Documents
+           and then Self.Client.Resource_Rename_Supported
+         then
+            for File_Rename of Edits.File_Renames loop
+               WE.documentChanges.Append
+                 (documentChanges_OfWorkspaceEdit_Item'(
+                  (Kind   => LSP.Structures.rename,
+                   rename => LSP.Structures.RenameFile'
+                     (oldUri => Self.To_URI
+                        (Ada.Strings.Unbounded.To_String
+                             (File_Rename.Filepath)),
+                      newUri => Self.To_URI
+                        (Ada.Strings.Unbounded.To_String
+                             (File_Rename.New_Name)),
+                      others => <>))));
+            end loop;
          end if;
       end return;
-   end Parse;
-
-   ---------------------------------------
-   -- Update_Project_Predefined_Sources --
-   ---------------------------------------
-
-   procedure Update_Project_Predefined_Sources (Self : access Message_Handler)
-   is
-      use GPR2;
-      use GPR2.Project.Source.Set;
-   begin
-      Self.Project_Predefined_Sources.Clear;
-
-      if Self.Project_Tree.Is_Defined
-        and then Self.Project_Tree.Has_Runtime_Project
-      then
-         for Source of Self.Project_Tree.Runtime_Project.Sources loop
-            if Source.Language = GPR2.Ada_Language then
-               Self.Project_Predefined_Sources.Include
-                 (Source.Path_Name.Virtual_File);
-            end if;
-         end loop;
-      end if;
-   end Update_Project_Predefined_Sources;
+   end To_Workspace_Edit;
 
 end LSP.Ada_Handlers;

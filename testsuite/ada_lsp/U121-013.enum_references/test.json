@@ -77,39 +77,11 @@
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
                      "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "executeCommandProvider": {},
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
                      "alsReferenceKinds": [
+                        "<HAS>",
                         "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
+                        "call"
                      ]
                   }
                }

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,11 +25,14 @@ with Langkit_Support.Text;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
+with VSS.Strings;
+
 limited with LSP.Ada_Contexts;
 limited with LSP.Ada_Documents;
+limited with LSP.Ada_Handlers;
 limited with LSP.Ada_Completions.Filters;
 
-with LSP.Messages;
+with LSP.Structures;
 
 package LSP.Ada_Completions is
 
@@ -83,7 +86,7 @@ package LSP.Ada_Completions is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList) is abstract;
+      Result : in out LSP.Structures.CompletionList) is abstract;
    --  Populate Names and Result with completions for given Source_Location.
    --  Names works for defining name completions to create snippets and to
    --  avoid duplicates. The Token's span encloses Sloc-1, but not Sloc itself.
@@ -96,14 +99,15 @@ package LSP.Ada_Completions is
    --  The Filter could be used to quick check common completion contexts.
 
    procedure Write_Completions
-     (Context                  : LSP.Ada_Contexts.Context;
+     (Handler                  : in out LSP.Ada_Handlers.Message_Handler;
+      Context                  : LSP.Ada_Contexts.Context;
       Document                 : LSP.Ada_Documents.Document;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
       Names                    : Completion_Maps.Map;
       Named_Notation_Threshold : Natural;
       Compute_Doc_And_Details  : Boolean;
-      Result                   : in out LSP.Messages.CompletionItem_Vector);
+      Result                   : in out LSP.Structures.CompletionItem_Vector);
    --  Convert all the completion Names into LSP completion items' results.
    --  Named_Notation_Threshold defines the number of parameters/components at
    --  which point named notation is used for subprogram/aggregate completion
@@ -114,24 +118,28 @@ package LSP.Ada_Completions is
 
    procedure Pretty_Print_Snippet
      (Context : LSP.Ada_Contexts.Context;
-      Prefix  : String;
+      Prefix  : VSS.Strings.Virtual_String;
       Offset  : Natural;
-      Span    : LSP.Messages.Span;
+      Span    : LSP.Structures.A_Range;
       Rule    : Libadalang.Common.Grammar_Rule;
-      Result  : in out LSP.Messages.CompletionItem);
+      Result  : in out LSP.Structures.CompletionItem);
    --  If Result is a snippet then generate a textEdit over span using GNATpp.
    --  Rule must match the content of "Prefix & Result.insertText.Value"
-
-   generic
-      with function Has_Been_Canceled return Boolean;
-   procedure Generic_Write_Symbols
-     (Names  : Completion_Maps.Map;
-      Result : in out LSP.Messages.Symbol_Vector);
 
    type Completion_Provider_Access is access all
      LSP.Ada_Completions.Completion_Provider'Class;
 
    type Completion_Provider_List is array (Positive range <>) of
      Completion_Provider_Access;
+
+private
+
+   function Skip_Dotted_Names (Node : Libadalang.Analysis.Ada_Node)
+      return Libadalang.Analysis.Ada_Node;
+   --  While Node.Kind is the Dotted_Name go up.
+
+   function Is_End_Token (Token : Libadalang.Common.Token_Reference)
+      return Boolean;
+   --  Check if Token is <end>.
 
 end LSP.Ada_Completions;

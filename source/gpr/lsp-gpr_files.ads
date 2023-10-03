@@ -27,7 +27,6 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Hash;
 with Ada.Strings.Equal_Case_Insensitive;
 
-with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with GPR2.File_Readers;
@@ -43,9 +42,11 @@ with VSS.Strings;
 with VSS.Strings.Hash;
 with VSS.String_Vectors;
 
+with LSP.Tracers;
+
 package LSP.GPR_Files is
 
-   type File (Trace : GNATCOLL.Traces.Trace_Handle) is
+   type File (Tracer : not null LSP.Tracers.Tracer_Access) is
      tagged limited private;
    --  A parsed GPR file.
 
@@ -356,7 +357,7 @@ private
      new Ada.Containers.Vectors (Positive, Project_Id);
    --  Project_Id list used for imported & limited_imported projects
 
-   type File (Trace : GNATCOLL.Traces.Trace_Handle) is tagged limited
+   type File (Tracer : not null LSP.Tracers.Tracer_Access) is tagged limited
       record
          Path : GPR2.Path_Name.Object;
          --  project path of this gpr file

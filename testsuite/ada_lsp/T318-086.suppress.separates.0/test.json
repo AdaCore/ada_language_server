@@ -33,9 +33,6 @@
                      "didChangeConfiguration": {
                         "dynamicRegistration": true
                      },
-                     "didChangeWatchedFiles": {
-                        "dynamicRegistration": true
-                     },
                      "executeCommand": {
                         "dynamicRegistration": true
                      },
@@ -142,7 +139,7 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 3,
+               "id": 1,
                "method": "window/workDoneProgress/create",
                "params": {
                   "token": "<ANY>"
@@ -253,7 +250,7 @@
          "wait": [
             {
                "jsonrpc": "2.0",
-               "id": 4,
+               "id": 2,
                "method": "workspace/applyEdit",
                "params": {
                   "label": "Suppress Separate",
@@ -296,8 +293,7 @@
                         {
                            "kind": "rename",
                            "oldUri": "$URI{test-bar.adb}",
-                           "newUri": "$URI{test-bar.adb.bak}",
-                           "options": {}
+                           "newUri": "$URI{test-bar.adb.bak}"
                         }
                      ]
                   }

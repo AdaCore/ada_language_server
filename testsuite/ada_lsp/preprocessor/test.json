@@ -77,40 +77,7 @@
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ]
+                     "definitionProvider": true
                   }
                }
             }
@@ -183,7 +150,7 @@
          "wait": [
             {
                "id": "ada-6",
-               "result": [
+               "result":
                   {
                      "uri": "$URI{mytypes.ads}",
                      "range": {
@@ -197,7 +164,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -254,7 +220,7 @@
          "wait": [
             {
                "id": "ada-14",
-               "result": [
+               "result":
                   {
                      "uri": "$URI{mytypes.ads}",
                      "range": {
@@ -268,7 +234,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -320,7 +285,7 @@
          "wait": [
             {
                "id": "ada-25",
-               "result": [
+               "result":
                   {
                      "uri": "$URI{mytypes.ads}",
                      "range": {
@@ -334,7 +299,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }

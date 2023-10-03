@@ -22,9 +22,9 @@ with VSS.String_Vectors;
 with Langkit_Support.Text;
 with Libadalang.Common;
 
-with GNATdoc.Comments.Helpers;
+with LSP.Utils;
 
-with LSP.Lal_Utils;
+with GNATdoc.Comments.Helpers;
 
 package body LSP.Ada_Documentation is
 
@@ -130,7 +130,7 @@ package body LSP.Ada_Documentation is
            Node.Parent.Text;
 
       begin
-         Result.Append (LSP.Lal_Utils.To_Virtual_String (Parent_Text));
+         Result.Append (VSS.Strings.To_Virtual_String (Parent_Text));
       end Get_Loop_Var_Hover_Text;
 
       ---------------------------
@@ -139,7 +139,7 @@ package body LSP.Ada_Documentation is
 
       procedure Get_Aspect_Hover_Text is
          Text   : constant VSS.Strings.Virtual_String :=
-           LSP.Lal_Utils.To_Virtual_String (Node.Text);
+           VSS.Strings.To_Virtual_String (Node.Text);
 
          Lines  : constant VSS.String_Vectors.Virtual_String_Vector :=
            Text.Split_Lines;
@@ -264,7 +264,7 @@ package body LSP.Ada_Documentation is
              (Document_LSP_New_Line_Function, False);
       end if;
 
-      Location_Text := LSP.Lal_Utils.Node_Location_Image (BD);
+      Location_Text := LSP.Utils.Node_Location_Image (BD);
 
       --  For subprograms, do additional analysis and construct qualifier.
 

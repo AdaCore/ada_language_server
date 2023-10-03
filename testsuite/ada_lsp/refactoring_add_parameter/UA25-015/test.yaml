@@ -1,4 +1,4 @@
-title: 'refactoring_add_parameters_UA25-015_0'
+title: 'refactoring_add_parameter/UA25-015'
 
 description: >
     Check that the Add_Parameter codeAction is avaiable when the client

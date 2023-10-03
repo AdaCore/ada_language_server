@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -20,10 +20,10 @@
 --  checking cound generate overhead. This package provides a function to
 --  avoid an extra overhread by reducing atomic flag check frequency.
 
-with LSP.Messages.Server_Requests;
+with LSP.Server_Requests;
 
 generic
-   Request : access constant LSP.Messages.Server_Requests.Server_Request'Class;
+   Request : access constant LSP.Server_Requests.Server_Request'Class;
    --  A request to check cancelation
 
    Max_Skip_Count : Natural;

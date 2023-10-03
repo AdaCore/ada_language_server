@@ -19,7 +19,7 @@ with GNATCOLL.Traces; use GNATCOLL.Traces;
 
 with VSS.Strings;
 
-with LSP.Messages;    use LSP.Messages;
+with LSP.Structures;  use LSP.Structures;
 
 package LSP.Predefined_Completion is
 

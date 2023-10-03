@@ -17,6 +17,8 @@
 
 with VSS.Strings;
 
+with LSP.Enumerations;
+
 package body LSP.Ada_Handlers.Project_Diagnostics is
 
    Single_Project_Found_Message : constant VSS.Strings.Virtual_String :=
@@ -51,14 +53,14 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
    overriding procedure Get_Diagnostic
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
-      Errors  : out LSP.Messages.Diagnostic_Vector)
+      Errors  : out LSP.Structures.Diagnostic_Vector)
    is
-      Item : LSP.Messages.Diagnostic;
+      Item : LSP.Structures.Diagnostic;
    begin
       Self.Last_Status := Self.Handler.Project_Status;
-      Item.span := ((0, 0), (0, 0));
-      Item.source := (True, "project");
-      Item.severity := (True, LSP.Messages.Error);
+      Item.a_range := ((0, 0), (0, 0));
+      Item.source := "project";
+      Item.severity := (True, LSP.Enumerations.Error);
 
       case Self.Last_Status is
          when Valid_Project_Configured | Alire_Project =>
@@ -68,7 +70,7 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
             Errors.Append (Item);
          when Single_Project_Found =>
             Item.message := Single_Project_Found_Message;
-            Item.severity := (True, LSP.Messages.Hint);
+            Item.severity := (True, LSP.Enumerations.Hint);
             Errors.Append (Item);
          when No_Project_Found =>
             Item.message := No_Project_Found_Message;

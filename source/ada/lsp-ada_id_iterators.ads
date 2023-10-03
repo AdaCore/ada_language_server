@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2020, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,10 +17,10 @@
 --
 --  This package provides iterators over Libadalang Base_Id nodes.
 
-with GNATCOLL.Traces;
-
 with Libadalang.Analysis;
 with Libadalang.Common;
+
+with LSP.Tracers;
 
 package LSP.Ada_Id_Iterators is
 
@@ -46,7 +46,7 @@ package LSP.Ada_Id_Iterators is
 
    procedure Find_All_Subp_References_In_Hierarchy
      (Hierarchy  : Libadalang.Analysis.Basic_Decl_Array;
-      Trace      : GNATCOLL.Traces.Trace_Handle;
+      Tracer     : in out LSP.Tracers.Tracer'Class;
       Callback   : not null access procedure
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;

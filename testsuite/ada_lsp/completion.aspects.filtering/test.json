@@ -223,7 +223,6 @@
                         "label": "Even_Integer",
                         "kind": 7,
                         "sortText": "<ANY>",
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "<ANY>",
                            "range": {
@@ -244,7 +243,6 @@
                         "sortText": "<ANY>",
                         "filterText": "<ANY>",
                         "insertText": "<ANY>",
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "<ANY>",
                            "range": {
@@ -284,8 +282,7 @@
                "result": {
                   "label": "Address",
                   "kind": 1,
-                  "detail": "Ada RM",
-                  "additionalTextEdits": []
+                  "detail": "Ada RM"
                }
             }
          ]

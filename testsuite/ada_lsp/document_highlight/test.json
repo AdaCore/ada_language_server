@@ -356,48 +356,7 @@
                "id": 0,
                "result": {
                   "capabilities": {
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "codeActionProvider": {
-                        "codeActionKinds": [
-			   "<HAS>",
-                           "refactor.rewrite"
-                        ]
-                     },
-                     "documentFormattingProvider": true,
-                     "renameProvider": {
-                        "prepareProvider": true
-                     },
-                     "foldingRangeProvider": true,
-                     "executeCommandProvider": {},
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ]
+                     "documentHighlightProvider": true
                   }
                }
             }

@@ -111,6 +111,8 @@ package body LSP_Gen.Outputs is
       and then Tipe.Union.an_array.element.Value.Union.Kind = reference
       and then Model.Is_Enumeration
         (Tipe.Union.an_array.element.Value.Union.reference.name)
+      and then not Model.Is_Custom_Enumeration
+        (Tipe.Union.an_array.element.Value.Union.reference.name)
       and then not Tipe.Union.an_array.element.Value.Union.reference.name
        .Starts_With ("MarkupKind"));
 
@@ -158,12 +160,12 @@ package body LSP_Gen.Outputs is
       New_Line;
       Put_Line ("with Ada.Containers;");
       Put_Line ("with Interfaces;");
+      Put_Line ("with VSS.Strings;");
       Put_Line ("with LSP.Output_Tools;");
       New_Line;
 
       Put_Line ("package body LSP.Outputs is"); New_Line;
       Put_Line ("pragma Warnings (Off, ""is not referenced"");");
-      Put_Line ("use type Interfaces.Integer_64;"); New_Line;
       Put_Line ("use type Ada.Containers.Count_Type;"); New_Line;
 
       for Cursor in Done.Iterate loop
@@ -299,6 +301,23 @@ package body LSP_Gen.Outputs is
 
       if Spec then
          Put_Line (";");
+
+      elsif Info.supportsCustomValues then
+         Put_Line (" is");
+         Put_Line ("begin");
+
+         case Info.a_type.name is
+            when LSP_Gen.Entities.Enum.string =>
+               Put ("Handler.String_Value");
+               Put_Line (" (VSS.Strings.Virtual_String (Value));");
+
+            when others =>
+               Put ("Handler.Integer_Value (LSP.Enumerations.");
+               Put_Id (Name);
+               Put_Line ("'Pos (Value));");
+         end case;
+
+         Put_Line ("end;");
       else
          Put_Line (" is");
          Put_Line ("begin");
@@ -609,7 +628,11 @@ package body LSP_Gen.Outputs is
       Done  : LSP_Gen.Dependencies.Dependency_Map;
       Name  : VSS.Strings.Virtual_String;
       Tipe  : LSP_Gen.Entities.AType;
-      Spec  : Boolean) is
+      Spec  : Boolean)
+   is
+      function Array_Element return LSP_Gen.Entities.AType is
+        (Tipe.Union.an_array.element.Value);
+
    begin
       if Name = "LSPArray" then
          return;  --  TBD
@@ -656,7 +679,16 @@ package body LSP_Gen.Outputs is
             when an_array =>
                Put_Line ("Handler.Start_Array;");
 
-               if Name.Ends_With ("_Set") then
+               if Array_Element.Union.Kind = reference
+                 and then Model.Is_Custom_Enumeration
+                   (Array_Element.Union.reference.name)
+               then
+                  Put_Line
+                       ("for J in Value.First_Index .. Value.Last_Index loop");
+                  Write_Call (Done, Array_Element, " (J)");
+                  Put_Line ("end loop;");
+
+               elsif Name.Ends_With ("_Set") then
                   Put_Line ("declare");
                   Put ("Set : LSP.Structures.");
                   Put (Name);
@@ -664,7 +696,7 @@ package body LSP_Gen.Outputs is
                   Put_Line ("begin");
                   Put_Line ("   for Value in Set'Range loop");
                   Put_Line ("      if Set (Value) then");
-                  Write_Call (Done, Tipe.Union.an_array.element.Value, "");
+                  Write_Call (Done, Array_Element, "");
                   Put_Line ("      end if;");
                   Put_Line ("   end loop;");
                   Put_Line ("end;");
@@ -678,8 +710,7 @@ package body LSP_Gen.Outputs is
                        ("for J in Value.First_Index .. Value.Last_Index loop");
                   end if;
 
-                  Write_Call
-                    (Done, Tipe.Union.an_array.element.Value, " (J)");
+                  Write_Call (Done, Array_Element, " (J)");
                   Put_Line ("end loop;");
                end if;
                Put_Line ("Handler.End_Array;");

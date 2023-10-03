@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -23,10 +23,10 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Hashed_Maps;
 
 with VSS.Strings;
+with VSS.Strings.Hash;
 
 with LSP.Ada_Contexts;
-with LSP.Messages;
-with LSP.Types;
+with LSP.Structures;
 
 package LSP.Ada_Context_Sets is
 
@@ -50,7 +50,7 @@ package LSP.Ada_Context_Sets is
 
    function Get_Best_Context
      (Self : Context_Set'Class;
-      URI  : LSP.Messages.DocumentUri) return Context_Access;
+      URI  : LSP.Structures.DocumentUri) return Context_Access;
    --  Return the first context in Contexts which contains a project
    --  which knows about file. Return the first context if no such
    --  context was found.
@@ -92,7 +92,7 @@ private
    package Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => VSS.Strings.Virtual_String,
       Element_Type    => Context_Access,
-      Hash            => LSP.Types.Hash,
+      Hash            => VSS.Strings.Hash,
       Equivalent_Keys => VSS.Strings."=",
       "="             => "=");
 

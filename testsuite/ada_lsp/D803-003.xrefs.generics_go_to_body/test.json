@@ -153,7 +153,7 @@
          "wait": [
             {
                "id": 2,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -167,7 +167,6 @@
                      },
                      "uri": "$URI{gen.ads}"
                   }
-               ]
             }
          ]
       }
@@ -191,7 +190,7 @@
          "wait": [
             {
                "id": 3,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -205,7 +204,6 @@
                      },
                      "uri": "$URI{gen.adb}"
                   }
-               ]
             }
          ]
       }
@@ -229,7 +227,7 @@
          "wait": [
             {
                "id": 4,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -243,7 +241,6 @@
                      },
                      "uri": "$URI{main.adb}"
                   }
-               ]
             }
          ]
       }

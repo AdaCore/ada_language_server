@@ -89,42 +89,7 @@
                            "("
                         ],
                         "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
-                     },
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ],
-                     "alsCheckSyntaxProvider": true
+                     }
                   }
                }
             }
@@ -237,16 +202,14 @@
                         "label": "interface",
                         "kind": 14,
                         "insertText": "interface",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Integer",
                         "kind": 7,
                         "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                         "documentation": "at __standard (4:3)",
-                        "sortText": "000&2Integer",
-                        "additionalTextEdits": []
+                        "sortText": "00&00002Integer"
                      }
                   ]
                }
@@ -265,7 +228,7 @@
                "kind": 7,
                "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                "documentation": "at __standard (4:3)",
-               "sortText": "000&2Integer",
+               "sortText": "00&00002Integer",
                "additionalTextEdits": []
             }
          },
@@ -277,8 +240,7 @@
                   "kind": 7,
                   "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                   "documentation": "at __standard (4:3)",
-                  "sortText": "000&2Integer",
-                  "additionalTextEdits": []
+                  "sortText": "00&00002Integer"
                }
             }
          ]

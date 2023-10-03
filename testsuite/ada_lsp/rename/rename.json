@@ -19,7 +19,7 @@
                 "result":{
                     "capabilities":{
                         "textDocumentSync": 2,
-                        "renameProvider":{}
+                        "renameProvider": {}
                     }
                 }
             }]
@@ -141,8 +141,6 @@
             "wait":[{
                 "id": "rename-2",
                 "result":{
-                    "changes":{
-                    }
                 }
             }]
         }
@@ -212,7 +210,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

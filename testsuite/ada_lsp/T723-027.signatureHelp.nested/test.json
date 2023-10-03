@@ -33,18 +33,7 @@
                "id": 1,
                "result": {
                   "capabilities": {
-                     "hoverProvider": true,
-                     "referencesProvider": true,
                      "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
-                        "resolveProvider": true
-                     },
                      "signatureHelpProvider": {
                         "triggerCharacters": [
                            ",",
@@ -53,8 +42,7 @@
                         "retriggerCharacters": [
                            "\b"
                         ]
-                     },
-                     "definitionProvider": true
+                     }
                   }
                }
             }]

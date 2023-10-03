@@ -31,30 +31,7 @@
                "id": 1,
                "result": {
                   "capabilities": {
-                     "typeDefinitionProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                         "access",
-                        "write",
-                        "call",
-                        "dispatching call", "parent", "child",
-                        "overriding"
-                     ],
-                     "hoverProvider": true,
-                     "definitionProvider": true,
-                     "renameProvider": {},
-                     "referencesProvider": true,
-                     "textDocumentSync": 2,
-                     "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
-                        "resolveProvider": true
-                     },
-                     "documentSymbolProvider": true
+                     "hoverProvider": true
                   }
                }
             }

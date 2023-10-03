@@ -16,14 +16,17 @@
 ------------------------------------------------------------------------------
 --  A completion provider for parameters after '(' or ','
 
-with LSP.Ada_Handlers;
+with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
+limited with LSP.Ada_Handlers;
 
 package LSP.Ada_Completions.Parameters is
 
    type Parameter_Completion_Provider
-     (Context                  : not null LSP.Ada_Handlers.Context_Access;
-      Document                 : LSP.Ada_Documents.Document_Access;
+     (Context  : not null LSP.Ada_Context_Sets.Context_Access;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler;
+      Document : LSP.Ada_Documents.Document_Access;
+
       Named_Notation_Threshold : Natural;
       Compute_Doc_And_Details  : Boolean)
    is new Completion_Provider with null record;
@@ -35,14 +38,14 @@ package LSP.Ada_Completions.Parameters is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList);
+      Result : in out LSP.Structures.CompletionList);
    --  Using the context, return the list of parameters after '(' or ','
 
    procedure Propose_Signatures
-     (Context         : not null LSP.Ada_Handlers.Context_Access;
+     (Context         : not null LSP.Ada_Context_Sets.Context_Access;
       Node            : Libadalang.Analysis.Ada_Node;
       Cursor          : Langkit_Support.Slocs.Source_Location;
-      Prev_Signatures : LSP.Messages.Optional_SignatureHelpContext;
-      Res             : in out LSP.Messages.SignatureHelp);
+      Prev_Signatures : LSP.Structures.SignatureHelpContext_Optional;
+      Res             : in out LSP.Structures.SignatureHelp);
    --  Using the context, return the possible signatures
 end LSP.Ada_Completions.Parameters;

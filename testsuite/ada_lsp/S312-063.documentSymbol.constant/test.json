@@ -105,7 +105,6 @@
                      }, 
                      "alsVisibility": 1, 
                      "alsIsDeclaration": false, 
-                     "detail": "", 
                      "range": {
                         "start": {
                            "line": 0, 
@@ -133,7 +132,6 @@
                            }, 
                            "alsVisibility": 1, 
                            "alsIsDeclaration": false, 
-                           "detail": "", 
                            "range": {
                               "start": {
                                  "line": 1, 
@@ -144,8 +142,7 @@
                                  "character": 33
                               }
                            }, 
-                           "alsIsAdaProcedure": true, 
-                           "children": []
+                           "alsIsAdaProcedure": true
                         }, 
                         {
                            "kind": 13, 
@@ -162,7 +159,6 @@
                            }, 
                            "alsVisibility": 1, 
                            "alsIsDeclaration": false, 
-                           "detail": "", 
                            "range": {
                               "start": {
                                  "line": 2, 
@@ -173,8 +169,7 @@
                                  "character": 24
                               }
                            }, 
-                           "alsIsAdaProcedure": true, 
-                           "children": []
+                           "alsIsAdaProcedure": true
                         }, 
                         {
                            "kind": 14, 
@@ -191,7 +186,6 @@
                            }, 
                            "alsVisibility": 1, 
                            "alsIsDeclaration": false, 
-                           "detail": "", 
                            "range": {
                               "start": {
                                  "line": 5, 
@@ -202,8 +196,7 @@
                                  "character": 36
                               }
                            }, 
-                           "alsIsAdaProcedure": true, 
-                           "children": []
+                           "alsIsAdaProcedure": true
                         }, 
                         {
                            "kind": 13, 
@@ -220,7 +213,6 @@
                            }, 
                            "alsVisibility": 1, 
                            "alsIsDeclaration": false, 
-                           "detail": "", 
                            "range": {
                               "start": {
                                  "line": 6, 
@@ -231,8 +223,7 @@
                                  "character": 27
                               }
                            }, 
-                           "alsIsAdaProcedure": true, 
-                           "children": []
+                           "alsIsAdaProcedure": true
                         }
                      ]
                   }
@@ -267,7 +258,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, 

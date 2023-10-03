@@ -15,12 +15,13 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Strings.Wide_Wide_Unbounded;
 with Libadalang.Common;
 
 with VSS.Strings;
 
 with LSP.Ada_Completions.Filters;
-with LSP.Lal_Utils;
+with LSP.Enumerations;
 
 package body LSP.Ada_Completions.Keywords is
 
@@ -35,7 +36,7 @@ package body LSP.Ada_Completions.Keywords is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList)
+      Result : in out LSP.Structures.CompletionList)
    is
       pragma Unreferenced (Names);
       Prev   : constant Libadalang.Common.Token_Reference :=
@@ -55,7 +56,7 @@ package body LSP.Ada_Completions.Keywords is
       end if;
 
       declare
-         Item     : LSP.Messages.CompletionItem;
+         Item     : LSP.Structures.CompletionItem;
          Prefix   : constant VSS.Strings.Virtual_String :=
            VSS.Strings.To_Virtual_String  (Node.Text);
          Keywords : constant Libadalang.Analysis.Unbounded_Text_Type_Array :=
@@ -65,16 +66,18 @@ package body LSP.Ada_Completions.Keywords is
          for Keyword of Keywords loop
             declare
                Label : constant VSS.Strings.Virtual_String :=
-                 LSP.Lal_Utils.To_Virtual_String (Keyword);
+                 VSS.Strings.To_Virtual_String
+                   (Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
+                      (Keyword));
 
             begin
                if Label.Starts_With
                     (Prefix, VSS.Strings.Identifier_Caseless)
                then
                   Item.label := Label;
-                  Item.insertTextFormat := (True, LSP.Messages.PlainText);
-                  Item.insertText := (True, Label);
-                  Item.kind := (True, LSP.Messages.Keyword);
+                  Item.insertTextFormat := (True, LSP.Enumerations.PlainText);
+                  Item.insertText := Label;
+                  Item.kind := (True, LSP.Enumerations.Keyword);
                   Result.items.Append (Item);
                end if;
             end;

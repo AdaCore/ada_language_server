@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                     Copyright (C) 2021-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,7 +25,7 @@ with Libadalang.Preprocessing;
 
 package LSP.Ada_Handlers.File_Readers is
 
-   type LSP_Reader_Interface (Handler : access Message_Handler) is new
+   type LSP_File_Reader (Handler : access Message_Handler'Class) is new
      Langkit_Support.File_Readers.File_Reader_Interface with
    record
       Preprocessing_Data : Libadalang.Preprocessing.Preprocessor_Data :=
@@ -33,7 +33,7 @@ package LSP.Ada_Handlers.File_Readers is
    end record;
 
    overriding procedure Read
-     (Self        : LSP_Reader_Interface;
+     (Self        : LSP_File_Reader;
       Filename    : String;
       Charset     : String;
       Read_BOM    : Boolean;
@@ -42,6 +42,6 @@ package LSP.Ada_Handlers.File_Readers is
         Langkit_Support.Diagnostics.Diagnostics_Vectors.Vector);
 
    overriding procedure Release
-     (Self : in out LSP_Reader_Interface) is null;
+     (Self : in out LSP_File_Reader) is null;
 
 end LSP.Ada_Handlers.File_Readers;

@@ -136,7 +136,7 @@ package body LSP_Gen.Factories is
             Put ("(Self : in out ");
             Put (Name);
             Put_Line (";");
-            Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+            Put_Line ("Token : LSP.Structures.ProgressToken;");
             Put ("Value : LSP.Structures.");
             Put (LSP_Gen.Progress_Reports.Result_Type (Model, Done, J));
             Put_Line (");");
@@ -151,7 +151,7 @@ package body LSP_Gen.Factories is
          Put ("(Self : in out ");
          Put (Name);
          Put_Line (";");
-         Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+         Put_Line ("Token : LSP.Structures.ProgressToken;");
          Put ("Value : LSP.Structures.WorkDone");
          Put (Work_Done);
          Put_Line (");");
@@ -313,7 +313,7 @@ package body LSP_Gen.Factories is
             Put ("(Self : in out ");
             Put (Name);
             Put_Line (";");
-            Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+            Put_Line ("Token : LSP.Structures.ProgressToken;");
             Put ("Value : LSP.Structures.");
             Put (LSP_Gen.Progress_Reports.Result_Type (Model, Done, J));
             Put_Line (") is");
@@ -335,7 +335,7 @@ package body LSP_Gen.Factories is
          Put ("(Self : in out ");
          Put (Name);
          Put_Line (";");
-         Put_Line ("Token : LSP.Structures.Integer_Or_Virtual_String;");
+         Put_Line ("Token : LSP.Structures.ProgressToken;");
          Put ("Value : LSP.Structures.WorkDone");
          Put (Work_Done);
          Put_Line (") is");

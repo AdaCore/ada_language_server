@@ -26,7 +26,7 @@ package LSP.Ada_Handlers.Invisibles is
 
    type Invisible_Completion_Provider
      (Handler : not null access LSP.Ada_Handlers.Message_Handler;
-      Context : not null LSP.Ada_Handlers.Context_Access)
+      Context : not null LSP.Ada_Context_Sets.Context_Access)
      is new LSP.Ada_Completions.Completion_Provider with null record;
 
    overriding procedure Propose_Completion
@@ -36,6 +36,6 @@ package LSP.Ada_Handlers.Invisibles is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Messages.CompletionList);
+      Result : in out LSP.Structures.CompletionList);
 
 end LSP.Ada_Handlers.Invisibles;

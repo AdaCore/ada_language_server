@@ -16,12 +16,17 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
+
+with GNAT.Expect.TTY;
+with GNAT.OS_Lib;
+
 with GNATCOLL.JSON;     use GNATCOLL.JSON;
 with GNATCOLL.VFS;      use GNATCOLL.VFS;
+with GNATCOLL.Utils;
 
 with VSS.Strings.Conversions;
 
-with LSP.Common;
+with LSP.Enumerations;
 with LSP.Predefined_Completion.Ada2012;
 
 package body LSP.Predefined_Completion is
@@ -43,6 +48,11 @@ package body LSP.Predefined_Completion is
       Result : in out CompletionItem_Vector);
    --  Filter all the given items using Prefix (i.e: remove the items that
    --  don't match with Prefix).
+
+   function Get_Output
+     (Exe  : Virtual_File;
+      Args : GNAT.OS_Lib.Argument_List) return String;
+   --  Run the given command line and return the output.
 
    ---------------------------
    -- Load_Predefined_Items --
@@ -76,17 +86,16 @@ package body LSP.Predefined_Completion is
            VSS.Strings.Conversions.To_Virtual_String
              (String'(Value.Get ("_name")));
          Item.detail :=
-           (True,
-            VSS.Strings.Conversions.To_Virtual_String
+           (VSS.Strings.Conversions.To_Virtual_String
               (String'(Value.Get ("_origin"))));
          Item.documentation :=
            (Is_Set => True,
-            Value  => String_Or_MarkupContent'
-              (Is_String => True,
-               String    =>
+            Value  => Virtual_String_Or_MarkupContent'
+              (Is_Virtual_String => True,
+               Virtual_String    =>
                  VSS.Strings.Conversions.To_Virtual_String
                    (String'(Value.Get ("DOC")))));
-         Item.kind := (True, Text);
+         Item.kind := (Is_Set => True, Value => LSP.Enumerations.Text);
 
          Items.Append (Item);
       end Load_Item;
@@ -156,7 +165,7 @@ package body LSP.Predefined_Completion is
       if GNATmake_Exe /= No_File then
          declare
             GNATmake_Help_Arg : aliased String := "--help";
-            GNATmake_Help     : constant String := LSP.Common.Get_Output
+            GNATmake_Help     : constant String := Get_Output
                  (Exe  => GNATmake_Exe,
                   Args => (1 => GNATmake_Help_Arg'Unrestricted_Access));
          begin
@@ -230,5 +239,42 @@ package body LSP.Predefined_Completion is
    begin
       Filter_Items (Prefix => Prefix, Items => Pragmas, Result => Result);
    end Get_Pragmas;
+
+   ----------------
+   -- Get_Output --
+   ----------------
+
+   function Get_Output
+     (Exe  : Virtual_File;
+      Args : GNAT.OS_Lib.Argument_List) return String
+   is
+   begin
+      if Exe = No_File then
+         return "";
+      end if;
+
+      declare
+         Fd : aliased GNAT.Expect.TTY.TTY_Process_Descriptor;
+      begin
+         GNAT.Expect.Non_Blocking_Spawn
+           (Descriptor  => Fd,
+            Command     => Exe.Display_Full_Name,
+            Buffer_Size => 0,
+            Args        => Args,
+            Err_To_Out  => True);
+         declare
+            S : constant String :=
+              GNATCOLL.Utils.Get_Command_Output (Fd'Access);
+         begin
+            GNAT.Expect.TTY.Close (Fd);
+
+            return S;
+         end;
+      exception
+         when GNAT.Expect.Process_Died =>
+            GNAT.Expect.TTY.Close (Fd);
+            return "";
+      end;
+   end Get_Output;
 
 end LSP.Predefined_Completion;

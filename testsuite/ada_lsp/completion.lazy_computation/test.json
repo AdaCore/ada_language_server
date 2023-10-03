@@ -150,14 +150,12 @@
                         "label": "select",
                         "kind": 14,
                         "insertText": "select",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Select_Some",
                         "kind": 3,
-                        "sortText": "100&2Select_Some",
-                        "additionalTextEdits": [],
+                        "sortText": "100&00002Select_Some",
                         "data": {
                            "uri": "$URI{test.ads}",
                            "range": {
@@ -188,8 +186,7 @@
                "label": "Select_Some",
                "insertTextFormat": 1,
                "kind": 3,
-               "sortText": "100&1Select_Some",
-               "additionalTextEdits": [],
+               "sortText": "100&00001Select_Some",
                "data": {
                   "uri": "$URI{test.ads}",
                   "range": {
@@ -213,9 +210,8 @@
                   "kind": 3,
                   "detail": "procedure Select_Some",
                   "documentation": "at test.ads (3:4)\n\nThis a very useful comment.",
-                  "sortText": "100&1Select_Some",
+                  "sortText": "100&00001Select_Some",
                   "insertTextFormat": 1,
-                  "additionalTextEdits": [],
                   "data": {
                      "uri": "$URI{test.ads}",
                      "range": {
@@ -238,75 +234,13 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 20,
-            "method": "textDocument/codeAction",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{main.adb}"
-               },
-               "range": {
-                  "start": {
-                     "line": 4,
-                     "character": 8
-                  },
-                  "end": {
-                     "line": 4,
-                     "character": 8
-                  }
-               },
-               "context": {
-                  "diagnostics": []
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": 20,
-               "result": []
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 21,
-            "method": "textDocument/codeAction",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{main.adb}"
-               },
-               "range": {
-                  "start": {
-                     "line": 4,
-                     "character": 8
-                  },
-                  "end": {
-                     "line": 4,
-                     "character": 8
-                  }
-               },
-               "context": {
-                  "diagnostics": []
-               }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
             "id": 23,
             "method": "completionItem/resolve",
             "params": {
                "label": "select",
                "insertTextFormat": 1,
                "insertText": "select",
-               "kind": 14,
-               "additionalTextEdits": []
+               "kind": 14
             }
          },
          "wait": [
@@ -316,8 +250,7 @@
                   "label": "select",
                   "kind": 14,
                   "insertText": "select",
-                  "insertTextFormat": 1,
-                  "additionalTextEdits": []
+                  "insertTextFormat": 1
                }
             }
          ]

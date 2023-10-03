@@ -162,7 +162,7 @@
          "wait": [
             {
                "id": 3,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -176,7 +176,6 @@
                      },
                      "uri": "$URI{p.ads}"
                   }
-               ]
             }
          ]
       }
@@ -281,7 +280,7 @@
          "wait": [
             {
                "id": 5,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -295,7 +294,6 @@
                      },
                      "uri": "$URI{p.ads}"
                   }
-               ]
             }
          ]
       }
@@ -359,7 +357,7 @@
          "wait": [
             {
                "id": 6,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -373,7 +371,6 @@
                      },
                      "uri": "$URI{q.ads}"
                   }
-               ]
             }
          ]
       }

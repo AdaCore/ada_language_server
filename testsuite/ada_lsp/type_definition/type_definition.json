@@ -71,7 +71,7 @@
             },
             "wait":[{
                 "id": "typedefname-1",
-                "result":[{
+                "result":{
                     "uri": "$URI{bbb.ads}",
                     "range": {
                         "start": {
@@ -83,7 +83,7 @@
                             "character": 15
                         }
                     }
-                }]
+                }
             }]
         }
     },  {
@@ -98,7 +98,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

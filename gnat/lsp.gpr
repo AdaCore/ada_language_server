@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -50,6 +50,7 @@ project LSP is
 
    for Source_Dirs use ("../source/protocol", 
                         "../source/protocol/generated",
+                        "../source/common",
                         "../source/uri");
    for Object_Dir use "../.obj/" & Superproject & "/lsp";
    for Main use ();

@@ -94,8 +94,7 @@
                             "line": 0,
                             "character": 17
                         }
-                    },
-                    "alsKind": ["reference"]
+                    }
                 }, {
                     "uri": "$URI{choices/second.adb}",
                     "range": {
@@ -107,8 +106,7 @@
                             "line": 3,
                             "character": 15
                         }
-                    },
-                    "alsKind": ["call"]
+                    }
                 }]
             }]
         }
@@ -167,8 +165,7 @@
                             "line": 0,
                             "character": 17
                         }
-                    },
-                    "alsKind": ["reference"]
+                    }
                 }, {
                     "uri": "$URI{choices/second.adb}",
                     "range": {
@@ -180,8 +177,7 @@
                             "line": 3,
                             "character": 15
                         }
-                    },
-                    "alsKind": ["call"]
+                    }
                 }, {
                     "uri": "$URI{subproject/third.adb}",
                     "range": {
@@ -193,8 +189,7 @@
                             "line": 0,
                             "character": 17
                         }
-                    },
-                    "alsKind": ["reference"]
+                    }
                 }, {
                     "uri": "$URI{subproject/third.adb}",
                     "range": {
@@ -206,8 +201,7 @@
                             "line": 3,
                             "character": 15
                         }
-                    },
-                    "alsKind": ["call"]
+                    }
                 }]
             }]
         }
@@ -223,7 +217,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

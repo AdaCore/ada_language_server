@@ -65,11 +65,6 @@ package LSP.Common is
       Message : String := "");
    --  Log an exception in the given traces, with an optional message
 
-   function Get_Output
-     (Exe  : Virtual_File;
-      Args : GNAT.OS_Lib.Argument_List) return String;
-   --  Run the given command line and return the output.
-
    function Is_Ada_Separator
      (Item : VSS.Characters.Virtual_Character) return Boolean;
    --  Return True when given character belongs to 'separator' category,

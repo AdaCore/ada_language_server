@@ -24,7 +24,7 @@ private with Libfswatch;
 
 package LSP.Servers.FS_Watch is
 
-   type FS_Watch_Monitor (Server : access LSP.Servers.Server) is
+   type FS_Watch_Monitor (Server : access LSP.Servers.Server'Class) is
      limited new LSP.File_Monitors.File_Monitor with private;
 
 private
@@ -39,7 +39,7 @@ private
 
    type LSP_Monitor_Access is access LSP_Monitor;
 
-   protected type Data_To_Monitor (Server : access LSP.Servers.Server) is
+   protected type Data_To_Monitor (Server : access LSP.Servers.Server'Class) is
       --  This is used to share data with the Filesystem_Monitoring_Task
 
       procedure Stop_Monitor;
@@ -66,7 +66,7 @@ private
    end Monitor_Task;
    type Monitor_Task_Access is access Monitor_Task;
 
-   type FS_Watch_Monitor (Server : access LSP.Servers.Server) is
+   type FS_Watch_Monitor (Server : access LSP.Servers.Server'Class) is
      limited new LSP.File_Monitors.File_Monitor with
    record
       Filesystem_Monitor_Task : Monitor_Task_Access;

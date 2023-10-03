@@ -17,13 +17,12 @@
 
 with Ada.Containers.Vectors;
 
+with GNATCOLL.Traces;
+
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 with Langkit_Support.Token_Data_Handlers;
 with Libadalang.Common; use Libadalang.Common;
-
-with LSP.Common;
-with LSP.Lal_Utils;
 
 with VSS.Strings;
 
@@ -32,7 +31,7 @@ package body LSP.Ada_Highlighters is
    Highlighter_Debug : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.HIGHLIGHTERS.DEBUG", GNATCOLL.Traces.Off);
 
-   Skip : LSP.Messages.SemanticTokenTypes renames LSP.Messages.macro;
+   Skip : LSP.Enumerations.SemanticTokenTypes renames LSP.Enumerations.macro;
    --  A dedicated token type for unsupported tokens
 
    package Highlights_Holders is
@@ -51,26 +50,26 @@ package body LSP.Ada_Highlighters is
       procedure Set_Token_Kind
         (Self  : in out Highlights_Holder'Class;
          Token : Libadalang.Common.Token_Reference;
-         Value : LSP.Messages.SemanticTokenTypes)
+         Value : LSP.Enumerations.SemanticTokenTypes)
            with Pre => not Libadalang.Common.Is_Trivia (Token);
 
       procedure Set_Token_Modifier
         (Self  : in out Highlights_Holder'Class;
          Token : Libadalang.Common.Token_Reference;
-         Value : LSP.Messages.SemanticTokenModifiers)
+         Value : LSP.Enumerations.SemanticTokenModifiers)
            with Pre => not Libadalang.Common.Is_Trivia (Token);
 
       procedure Set_Token_Modifier
         (Self  : in out Highlights_Holder'Class;
          From  : Libadalang.Common.Token_Reference;
          To    : Libadalang.Common.Token_Reference;
-         Value : LSP.Messages.SemanticTokenModifiers)
+         Value : LSP.Enumerations.SemanticTokenModifiers)
            with Pre => not Libadalang.Common.Is_Trivia (From) and then
                        not Libadalang.Common.Is_Trivia (To);
       --  Set a modifier on each token in the range From .. To
 
       type Modifier_Set is
-        array (LSP.Messages.SemanticTokenModifiers) of Boolean
+        array (LSP.Enumerations.SemanticTokenModifiers) of Boolean
           with Pack;
 
       Empty : constant Modifier_Set := (others => False);
@@ -80,7 +79,7 @@ package body LSP.Ada_Highlighters is
 
          case Is_Set is
             when True =>
-               Kind : LSP.Messages.SemanticTokenTypes;
+               Kind : LSP.Enumerations.SemanticTokenTypes;
             when False =>
                null;
          end case;
@@ -106,9 +105,8 @@ package body LSP.Ada_Highlighters is
 
    function To_Int
      (Self : Ada_Highlighter'Class;
-      Set  : Highlights_Holders.Modifier_Set)
-        return LSP.Messages.uinteger
-           with Inline;
+      Set  : Highlights_Holders.Modifier_Set) return Natural
+        with Inline;
    --  Cast set of modifiers to uinteger
 
    ------------------------
@@ -184,7 +182,7 @@ package body LSP.Ada_Highlighters is
       procedure Set_Token_Modifier
         (Self  : in out Highlights_Holder'Class;
          Token : Libadalang.Common.Token_Reference;
-         Value : LSP.Messages.SemanticTokenModifiers)
+         Value : LSP.Enumerations.SemanticTokenModifiers)
       is
          use type Langkit_Support.Token_Data_Handlers.Token_Index;
          Index : constant Langkit_Support.Token_Data_Handlers.Token_Index :=
@@ -201,7 +199,7 @@ package body LSP.Ada_Highlighters is
         (Self  : in out Highlights_Holder'Class;
          From  : Libadalang.Common.Token_Reference;
          To    : Libadalang.Common.Token_Reference;
-         Value : LSP.Messages.SemanticTokenModifiers)
+         Value : LSP.Enumerations.SemanticTokenModifiers)
       is
          use type Langkit_Support.Token_Data_Handlers.Token_Index;
 
@@ -230,7 +228,7 @@ package body LSP.Ada_Highlighters is
       procedure Set_Token_Kind
         (Self  : in out Highlights_Holder'Class;
          Token : Libadalang.Common.Token_Reference;
-         Value : LSP.Messages.SemanticTokenTypes)
+         Value : LSP.Enumerations.SemanticTokenTypes)
       is
          use type Langkit_Support.Token_Data_Handlers.Token_Index;
          Index : constant Langkit_Support.Token_Data_Handlers.Token_Index :=
@@ -251,23 +249,22 @@ package body LSP.Ada_Highlighters is
    ----------------
 
    function Get_Tokens
-     (Self  : Ada_Highlighter'Class;
-      Unit  : Libadalang.Analysis.Analysis_Unit;
-      Trace : GNATCOLL.Traces.Trace_Handle;
-      Span  : LSP.Messages.Span)
-      return LSP.Messages.uinteger_Vector
+     (Self   : Ada_Highlighter'Class;
+      Unit   : Libadalang.Analysis.Analysis_Unit;
+      Tracer : in out LSP.Tracers.Tracer'Class;
+      Span   : LSP.Structures.A_Range)
+      return LSP.Structures.Natural_Vector
    is
-      use type LSP.Types.Line_Number;
 
       First_Token : constant Libadalang.Common.Token_Reference :=
-        (if Span.last.line = 0 then Unit.First_Token
+        (if Span.an_end.line = 0 then Unit.First_Token
          else Unit.Lookup_Token
-           ((Langkit_Support.Slocs.Line_Number (Span.first.line + 1), 1)));
+           ((Langkit_Support.Slocs.Line_Number (Span.start.line + 1), 1)));
 
       Last_Token : constant Libadalang.Common.Token_Reference :=
-        (if Span.last.line = 0 then Unit.Last_Token
+        (if Span.an_end.line = 0 then Unit.Last_Token
          else Unit.Lookup_Token
-           ((Langkit_Support.Slocs.Line_Number (Span.last.line + 2), 1)));
+           ((Langkit_Support.Slocs.Line_Number (Span.an_end.line + 2), 1)));
 
       From_Token : constant Libadalang.Common.Token_Reference :=
         (if Libadalang.Common.Is_Trivia (First_Token)
@@ -285,12 +282,12 @@ package body LSP.Ada_Highlighters is
 
       procedure Highlight_Token
         (Token : Libadalang.Common.Token_Reference;
-         Kind  : LSP.Messages.SemanticTokenTypes);
+         Kind  : LSP.Enumerations.SemanticTokenTypes);
       --  Highlight given Token with token Kind
 
       procedure Highlight_Token
         (Token : Libadalang.Common.Token_Reference;
-         Kind  : LSP.Messages.SemanticTokenModifiers);
+         Kind  : LSP.Enumerations.SemanticTokenModifiers);
       --  Highlight given Token with token Kind
 
       function Highlight_Node
@@ -304,7 +301,7 @@ package body LSP.Ada_Highlighters is
 
       procedure Get_Result
         (Holder : Highlights_Holders.Highlights_Holder;
-         Result : out LSP.Messages.uinteger_Vector);
+         Result : out LSP.Structures.Natural_Vector);
 
       ----------------
       -- Get_Result --
@@ -312,13 +309,13 @@ package body LSP.Ada_Highlighters is
 
       procedure Get_Result
         (Holder : Highlights_Holders.Highlights_Holder;
-         Result : out LSP.Messages.uinteger_Vector)
+         Result : out LSP.Structures.Natural_Vector)
       is
-         use all type LSP.Messages.SemanticTokenTypes;
+         use all type LSP.Enumerations.SemanticTokenTypes;
          use type Langkit_Support.Slocs.Line_Number;
          use type Langkit_Support.Slocs.Column_Number;
 
-         subtype uint is LSP.Messages.uinteger;
+         subtype uint is Natural;
 
          Last : Langkit_Support.Slocs.Source_Location := (1, 1);
 
@@ -345,16 +342,16 @@ package body LSP.Ada_Highlighters is
                     Langkit_Support.Slocs.Start_Sloc (Sloc_Range);
 
                   Map   : constant array (Libadalang.Common.Token_Kind) of
-                    LSP.Messages.SemanticTokenTypes :=
+                    LSP.Enumerations.SemanticTokenTypes :=
                       (Ada_All .. Ada_Xor | Ada_With => keyword,
                        Ada_Par_Close .. Ada_Target => operator,
-                       Ada_String | Ada_Char => a_string,
+                       Ada_String | Ada_Char => LSP.Enumerations.string,
                        Ada_Decimal | Ada_Integer => number,
                        Ada_Comment => comment,
                        Ada_Identifier => Skip,
                        others => Skip);
 
-                  Mapped_Token : constant LSP.Messages.SemanticTokenTypes :=
+                  Mapped_Token : constant LSP.Enumerations.SemanticTokenTypes :=
                     Map (Libadalang.Common.Kind (Token_Data));
                begin
                   --  If we have no token type calculated and no modifiers then
@@ -406,12 +403,12 @@ package body LSP.Ada_Highlighters is
       --------------------
 
       procedure Highlight_Name (Node : Libadalang.Analysis.Name'Class) is
-         use all type LSP.Messages.SemanticTokenTypes;
-         use all type LSP.Messages.SemanticTokenModifiers;
+         use all type LSP.Enumerations.SemanticTokenTypes;
+         use all type LSP.Enumerations.SemanticTokenModifiers;
          use type Libadalang.Analysis.Defining_Name;
 
          function To_Kind (Decl : Libadalang.Analysis.Basic_Decl)
-           return LSP.Messages.SemanticTokenTypes;
+           return LSP.Enumerations.SemanticTokenTypes;
 
          function Has_Abstract (Decl : Libadalang.Analysis.Basic_Decl)
            return Boolean;
@@ -444,10 +441,24 @@ package body LSP.Ada_Highlighters is
          function Is_Predefined (Decl : Libadalang.Analysis.Basic_Decl)
            return Boolean
          is
+
+            function Is_Synthetic
+              (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean;
+
+            function Is_Synthetic
+              (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean
+            is
+               Std  : constant String := "__standard";
+               File : constant String := Node.Unit.Get_Filename;
+            begin
+               return File'Length >= Std'Length
+                 and then File (File'Last - Std'Length + 1 .. File'Last) = Std;
+            end Is_Synthetic;
+
             Name : Libadalang.Analysis.Name :=
               Decl.P_Enclosing_Compilation_Unit.P_Decl.P_Defining_Name.F_Name;
          begin
-            if LSP.Lal_Utils.Is_Synthetic (Decl) then
+            if Is_Synthetic (Decl) then
                return True;  --  In Standard package
             end if;
 
@@ -472,7 +483,7 @@ package body LSP.Ada_Highlighters is
          -------------
 
          function To_Kind (Decl : Libadalang.Analysis.Basic_Decl)
-           return LSP.Messages.SemanticTokenTypes is
+           return LSP.Enumerations.SemanticTokenTypes is
          begin
             case Decl.Kind is
                when Libadalang.Common.Ada_Basic_Subp_Decl =>
@@ -610,7 +621,7 @@ package body LSP.Ada_Highlighters is
          Failsafe_Def : Libadalang.Analysis.Refd_Def;
          Def  : Libadalang.Analysis.Defining_Name;
          Decl : Libadalang.Analysis.Basic_Decl;
-         Kind : LSP.Messages.SemanticTokenTypes;
+         Kind : LSP.Enumerations.SemanticTokenTypes;
       begin
          if Node.Kind not in Ada_Identifier | Ada_String_Literal then
             --  Highlight only identifiers and operator symbols
@@ -722,7 +733,7 @@ package body LSP.Ada_Highlighters is
         (Node : Libadalang.Analysis.Ada_Node'Class)
          return Libadalang.Common.Visit_Status
       is
-         use all type LSP.Messages.SemanticTokenModifiers;
+         use all type LSP.Enumerations.SemanticTokenModifiers;
       begin
          if Node.Token_End < From_Token or To_Token < Node.Token_Start then
             --  Skip uninteresting nodes to speedup traversal
@@ -745,12 +756,14 @@ package body LSP.Ada_Highlighters is
       exception
          when E : Libadalang.Common.Property_Error =>
             if Highlighter_Debug.Is_Active then
-               LSP.Common.Log
-                  (Trace,
-                   E,
-                   "In Highlight_Node at "
-                   & Langkit_Support.Text.Image (Node.Full_Sloc_Image));
+               Tracer.Trace_Exception
+                  (E,
+                   "In Highlight_Node at ");
+
+               Tracer.Trace
+                 (Langkit_Support.Text.Image (Node.Full_Sloc_Image));
             end if;
+
             return Libadalang.Common.Into;
       end Highlight_Node;
 
@@ -760,7 +773,7 @@ package body LSP.Ada_Highlighters is
 
       procedure Highlight_Token
         (Token : Libadalang.Common.Token_Reference;
-         Kind  : LSP.Messages.SemanticTokenTypes) is
+         Kind  : LSP.Enumerations.SemanticTokenTypes) is
       begin
          if Token < From_Token or To_Token < Token then
             --  Skip uninteresting tokens
@@ -779,7 +792,7 @@ package body LSP.Ada_Highlighters is
 
       procedure Highlight_Token
         (Token : Libadalang.Common.Token_Reference;
-         Kind  : LSP.Messages.SemanticTokenModifiers) is
+         Kind  : LSP.Enumerations.SemanticTokenModifiers) is
       begin
          if Token < From_Token or To_Token < Token then
             --  Skip uninteresting tokens
@@ -829,20 +842,20 @@ package body LSP.Ada_Highlighters is
         Libadalang.Common.No_Token in From_Token | To_Token
       then
          --  No tokens to highlight
-         return LSP.Messages.Empty;
+         return LSP.Structures.Empty;
       end if;
 
       Holder.Initialize (From_Token, To_Token, Empty);
 
       if Empty then
-         return LSP.Messages.Empty;
+         return LSP.Structures.Empty;
       end if;
 
       --  Traverse whole tree, look for intresting nodes and mark their
       --  tokens in Holder for further processing
       Root.Traverse (Highlight_Node'Access);
 
-      return Result : LSP.Messages.uinteger_Vector do
+      return Result : LSP.Structures.Natural_Vector do
          Get_Result (Holder, Result);
       end return;
    end Get_Tokens;
@@ -852,20 +865,21 @@ package body LSP.Ada_Highlighters is
    ----------------
 
    procedure Initialize
-     (Self   : in out Ada_Highlighter'Class;
-      Client : LSP.Messages.SemanticTokensClientCapabilities;
-      Legend : out LSP.Messages.SemanticTokensLegend)
+     (Self      : in out Ada_Highlighter'Class;
+      Client    : LSP.Ada_Client_Capabilities.Client_Capability;
+      Types     : out LSP.Structures.Virtual_String_Vector;
+      Modifiers : out LSP.Structures.Virtual_String_Vector)
    is
-      use all type LSP.Messages.SemanticTokenTypes;
-      use all type LSP.Messages.SemanticTokenModifiers;
+      use all type LSP.Enumerations.SemanticTokenTypes;
+      use all type LSP.Enumerations.SemanticTokenModifiers;
 
       procedure Append_Type
-        (Kind  : LSP.Messages.SemanticTokenTypes;
+        (Kind  : LSP.Enumerations.SemanticTokenTypes;
          Image : VSS.Strings.Virtual_String);
       --  Update Legend.tokenTypes if client understands given Kind
 
       procedure Append_Modifier
-        (Kind  : LSP.Messages.SemanticTokenModifiers;
+        (Kind  : LSP.Enumerations.SemanticTokenModifiers;
          Image : VSS.Strings.Virtual_String);
       --  Update Legend.tokenModifiers if client understands given Kind
 
@@ -873,15 +887,14 @@ package body LSP.Ada_Highlighters is
         renames Ada.Strings.Wide_Wide_Unbounded.To_Unbounded_Wide_Wide_String;
 
       procedure Append_Modifier
-        (Kind  : LSP.Messages.SemanticTokenModifiers;
+        (Kind  : LSP.Enumerations.SemanticTokenModifiers;
          Image : VSS.Strings.Virtual_String) is
       begin
-         if Client.tokenModifiers.Contains (Kind) then
+         if Client.Token_Modifiers.Contains (Image) then
             Self.Token_Modifiers.Insert
-              (Kind,
-               LSP.Messages.uinteger (2 ** Legend.tokenModifiers.Length));
+              (Kind, Natural (2 ** Modifiers.Length));
 
-            Legend.tokenModifiers.Append (Image);
+            Modifiers.Append (Image);
          end if;
       end Append_Modifier;
 
@@ -890,15 +903,13 @@ package body LSP.Ada_Highlighters is
       -----------------
 
       procedure Append_Type
-        (Kind  : LSP.Messages.SemanticTokenTypes;
+        (Kind  : LSP.Enumerations.SemanticTokenTypes;
          Image : VSS.Strings.Virtual_String) is
       begin
-         if Client.tokenTypes.Contains (Kind) then
-            Self.Token_Types.Insert
-              (Kind,
-               LSP.Messages.uinteger (Legend.tokenTypes.Length));
+         if Client.Token_Types.Contains (Image) then
+            Self.Token_Types.Insert (Kind, Types.Length);
 
-            Legend.tokenTypes.Append (Image);
+            Types.Append (Image);
          end if;
       end Append_Type;
 
@@ -921,7 +932,7 @@ package body LSP.Ada_Highlighters is
       Append_Type (keyword, "keyword");
       Append_Type (modifier, "modifier");
       Append_Type (comment, "comment");
-      Append_Type (a_string, "string");
+      Append_Type (LSP.Enumerations.string, "string");
       Append_Type (number, "number");
       --  Append_Type (regexp, "regexp");
       Append_Type (operator, "operator");
@@ -949,12 +960,10 @@ package body LSP.Ada_Highlighters is
 
    function To_Int
      (Self : Ada_Highlighter'Class;
-      Set  : Highlights_Holders.Modifier_Set)
-        return LSP.Messages.uinteger
+      Set  : Highlights_Holders.Modifier_Set) return Natural
    is
-      use type LSP.Messages.uinteger;
 
-      Result : LSP.Messages.uinteger := 0;
+      Result : Natural := 0;
    begin
       for J in Set'Range loop
          if Set (J) then

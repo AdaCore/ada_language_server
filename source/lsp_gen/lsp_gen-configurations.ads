@@ -45,6 +45,10 @@ package LSP_Gen.Configurations is
      (Self : Configuration) return VSS.String_Vectors.Virtual_String_Vector;
    --  Lines of license header to be included in each generated file
 
+   function Protocol_Extension
+     (Self : Configuration) return VSS.Strings.Virtual_String;
+   --  Name of the file with LSP extension meta model
+
 private
 
    type Message_Information is record
@@ -60,11 +64,16 @@ private
 
    type Configuration is tagged limited record
       License : VSS.String_Vectors.Virtual_String_Vector;
+      Extension : VSS.Strings.Virtual_String;
       Map : Maps.Map;
    end record;
 
    function License_Header
      (Self : Configuration) return VSS.String_Vectors.Virtual_String_Vector
        is (Self.License);
+
+   function Protocol_Extension
+     (Self : Configuration) return VSS.Strings.Virtual_String
+       is (Self.Extension);
 
 end LSP_Gen.Configurations;

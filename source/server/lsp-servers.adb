@@ -16,143 +16,116 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Latin_1;
-with Ada.Exceptions;             use Ada.Exceptions;
+with Ada.Exceptions;
 with Ada.IO_Exceptions;
-with Ada.Strings.Unbounded;      use Ada.Strings.Unbounded;
-with Ada.Tags;
 with Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
-with GNAT.Traceback.Symbolic;    use GNAT.Traceback.Symbolic;
-
-with LSP.Errors;
-with LSP.JSON_Streams;
-with LSP.Messages.Client_Notifications;
-with LSP.Servers.Decode_Notification;
-with LSP.Servers.Decode_Request;
-with LSP.Servers.Handle_Request;
-
-with GNATCOLL.Traces;           use GNATCOLL.Traces;
 
 with VSS.JSON.Pull_Readers.Simple;
+with VSS.JSON.Push_Writers;
 with VSS.JSON.Streams;
-with VSS.Stream_Element_Vectors.Conversions;
-with VSS.Strings.Conversions;
+with VSS.Strings;
 with VSS.Text_Streams.Memory_UTF8_Input;
 with VSS.Text_Streams.Memory_UTF8_Output;
+
+with LSP.Client_Message_Writers;
+with LSP.Enumerations;
+with LSP.Errors;
+with LSP.Known_Requests;
+with LSP.Lifecycle_Checkers;
+with LSP.Server_Notification_Readers;
+with LSP.Server_Request_Readers;
 
 package body LSP.Servers is
 
    New_Line : constant String :=
      (Ada.Characters.Latin_1.CR, Ada.Characters.Latin_1.LF);
 
-   Line_Feed : constant Character := Ada.Characters.Latin_1.LF;
-
    procedure Process_One_Message
-     (Self        : in out Server'Class;
-      Initialized : in out Boolean;
-      EOF         : in out Boolean);
+     (Self    : in out Server'Class;
+      Checker : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
+      Map     : in out LSP.Known_Requests.Known_Request_Map;
+      Logger  : Server_Message_Visitor_Access;
+      EOF     : in out Boolean);
    --  Read data from stdin and create a message if there is enough data.
    --  Then put the message into Self.Input_Queue.
-   --  Handle initialization logic by tracking 'initialize' request, set
-   --  Initialized parameter when the request arrives.
+   --  Handle initialization logic by tracking 'initialize' request using
+   --  Checker.
    --  Set EOF at end of stream or an "exit" notification.
 
    procedure Append
-     (Vector : in out Ada.Strings.Unbounded.Unbounded_String;
+     (Vector : in out VSS.Stream_Element_Vectors.Stream_Element_Vector;
       Buffer : Ada.Streams.Stream_Element_Array);
-
-   function To_Stream_Element_Array
-     (Vector : Ada.Strings.Unbounded.Unbounded_String)
-      return Ada.Streams.Stream_Element_Array;
-
-   type Response_Access is access all LSP.Messages.ResponseMessage'Class;
-
-   procedure Send_Response
-     (Self       : in out Server'Class;
-      Response   : in out Response_Access;
-      Request_Id : LSP.Types.LSP_Number_Or_String);
-   --  Complete Response and send it to the output queue. Response will be
-   --  deleted by Output_Task
-
-   procedure Send_Notification
-     (Self  : in out Server'Class;
-      Value : in out Message_Access);
-   --  Send given notification to client. The Notification will be deleted by
-   --  Output_Task
-
-   type Client_Request_Access is
-     access all LSP.Messages.Client_Requests.Client_Request'Class;
-
-   procedure Send_Request
-     (Self   : in out Server'Class;
-      Method : VSS.Strings.Virtual_String;
-      Value  : LSP.Messages.Client_Requests.Client_Request'Class);
-   --  Assign Method to the request and send it to the client.
 
    procedure Send_Exception_Response
      (Self       : in out Server'Class;
-      E          : Exception_Occurrence;
-      Trace_Text : String;
-      Request_Id : LSP.Types.LSP_Number_Or_String;
-      Code       : LSP.Messages.ErrorCodes := LSP.Errors.InternalError);
-   --  Send a response to the stream representing the exception. This
+      E          : Ada.Exceptions.Exception_Occurrence;
+      Message    : VSS.Strings.Virtual_String;
+      Request    : VSS.Stream_Element_Vectors.Stream_Element_Vector;
+      Request_Id : LSP.Structures.Integer_Or_Virtual_String;
+      Code       : LSP.Enumerations.ErrorCodes :=
+        LSP.Enumerations.InternalError);
+   --  Send a response representing the exception to the client. This
    --  should be called whenever an exception occurred while processing
    --  a request.
-   --  Trace_Text is the additional info to write in the traces, and
+   --  Message is the additional info to write in the traces, and
    --  Request_Id is the id of the request we were trying to process.
    --  Use given Code in the response.
 
-   procedure Send_Not_Initialized
-     (Self       : in out Server'Class;
-      Request_Id : LSP.Types.LSP_Number_Or_String);
-   --  Send "not initialized" response
-
-   procedure Send_Canceled_Request
-     (Self       : in out Server'Class;
-      Request_Id : LSP.Types.LSP_Number_Or_String);
-   --  Send RequestCancelled response
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Object => LSP.Server_Messages.Server_Message'Class,
+      Name   => Server_Message_Access);
 
    procedure Free is new Ada.Unchecked_Deallocation
-     (Object => LSP.Messages.Message'Class,
-      Name   => Message_Access);
+     (Object => LSP.Client_Messages.Client_Message'Class,
+      Name   => Client_Message_Access);
 
-   type Null_Server_Backend is limited new LSP.Server_Backends.Server_Backend
-     with null record;
-   --  Server_Backend stub
+   -------------------------
+   -- Allocate_Request_Id --
+   -------------------------
 
-   overriding procedure Before_Work
-     (Self    : access Null_Server_Backend;
-      Message : LSP.Messages.Message'Class) is null;
+   function Allocate_Request_Id
+     (Self : in out Server'Class)
+      return LSP.Structures.Integer_Or_Virtual_String is
+   begin
+      Self.Last_Request := @ + 1;
 
-   overriding procedure After_Work
-     (Self    : access Null_Server_Backend;
-      Message : LSP.Messages.Message'Class) is null;
-
-   Null_Server : aliased Null_Server_Backend;
+      return (Is_Integer => True, Integer => Self.Last_Request);
+   end Allocate_Request_Id;
 
    ------------
    -- Append --
    ------------
 
    procedure Append
-     (Vector : in out Ada.Strings.Unbounded.Unbounded_String;
-      Buffer : Ada.Streams.Stream_Element_Array) is
+     (Vector : in out VSS.Stream_Element_Vectors.Stream_Element_Vector;
+      Buffer : Ada.Streams.Stream_Element_Array)
+   is
+      use type Ada.Streams.Stream_Element_Count;
    begin
-      for X of Buffer loop
-         Ada.Strings.Unbounded.Append (Vector, Character'Val (X));
+      Vector.Set_Capacity (Vector.Length + Buffer'Length);
+
+      for Byte of Buffer loop
+         Vector.Append (Byte);
       end loop;
    end Append;
 
-   ----------------
-   -- Initialize --
-   ----------------
+   -------------
+   -- Enqueue --
+   -------------
 
-   procedure Initialize
-     (Self         : in out Server;
-      Stream       : access Ada.Streams.Root_Stream_Type'Class) is
+   procedure Enqueue
+     (Self : in out Server'Class;
+      Job  : in out LSP.Server_Jobs.Server_Jobs_Access)
+   is
+      use type LSP.Server_Jobs.Server_Jobs_Access;
+
    begin
-      Self.Stream := Stream;
-   end Initialize;
+      if Job /= null then
+         Self.Input_Queue.Enqueue (Server_Message_Access (Job));
+         Job := null;
+      end if;
+   end Enqueue;
 
    --------------
    -- Finalize --
@@ -184,37 +157,33 @@ package body LSP.Servers is
       end select;
    end Finalize;
 
-   -----------------
-   -- Log_Message --
-   -----------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   overriding procedure On_Log_Message
-     (Self   : access Server;
-      Params : LSP.Messages.LogMessageParams)
-   is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.LogMessage_Notification'
-           (method  => "window/logMessage",
-            params  => Params,
-            jsonrpc => <>);
+   procedure Initialize
+     (Self   : in out Server;
+      Stream : access Ada.Streams.Root_Stream_Type'Class) is
    begin
-      Self.Send_Notification (Message);
-   end On_Log_Message;
+      Self.Stream := Stream;
+   end Initialize;
 
    -------------------------
    -- Process_One_Message --
    -------------------------
 
    procedure Process_One_Message
-     (Self        : in out Server'Class;
-      Initialized : in out Boolean;
-      EOF         : in out Boolean)
+     (Self    : in out Server'Class;
+      Checker : in out LSP.Lifecycle_Checkers.Lifecycle_Checker;
+      Map     : in out LSP.Known_Requests.Known_Request_Map;
+      Logger  : Server_Message_Visitor_Access;
+      EOF     : in out Boolean)
    is
       use type Ada.Streams.Stream_Element_Count;
 
       procedure Parse_Header
         (Length : out Ada.Streams.Stream_Element_Count;
-         Vector : in out Ada.Strings.Unbounded.Unbounded_String);
+         Vector : in out VSS.Stream_Element_Vectors.Stream_Element_Vector);
       --  Read lines from Vector and after it from Self.Stream until empty
       --  lines is found. For each non-empty line call Parse_Line.
       --  Return any unprocessed bytes in Vector.
@@ -224,14 +193,16 @@ package body LSP.Servers is
          Length : in out Ada.Streams.Stream_Element_Count);
       --  If given Line is "Content-Length:" header then read Length from it.
 
-      procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String);
+      procedure Parse_JSON
+        (Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector);
       --  Process Vector as complete JSON document.
 
       procedure Process_JSON_Document
-        (Vector : Ada.Strings.Unbounded.Unbounded_String);
+        (Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector);
       --  Process one JSON message. Vector is corresponding text for traces.
 
       Buffer_Size : constant := 512;
+      Empty_Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector;
 
       ------------------
       -- Parse_Header --
@@ -239,21 +210,22 @@ package body LSP.Servers is
 
       procedure Parse_Header
         (Length : out Ada.Streams.Stream_Element_Count;
-         Vector : in out Ada.Strings.Unbounded.Unbounded_String)
+         Vector : in out VSS.Stream_Element_Vectors.Stream_Element_Vector)
       is
          Buffer : Ada.Streams.Stream_Element_Array (1 .. Buffer_Size);
-         Last   : Ada.Streams.Stream_Element_Count :=
-           Ada.Streams.Stream_Element_Count
-             (Ada.Strings.Unbounded.Length (Vector));
+         Last   : Ada.Streams.Stream_Element_Count := Vector.Length;
          Line   : String (1 .. 80) := (others => ' ');
          Char   : Character;
          Index  : Natural := 0;
          Empty  : Boolean := False;  --  We've just seen CR, LF
       begin
-         if Last > 0 then
-            --  Copy unprocessed bytes to Buffer
-            Buffer (1 .. Last) := To_Stream_Element_Array (Vector);
-            Vector := Ada.Strings.Unbounded.Null_Unbounded_String;
+         --  Copy unprocessed bytes to Buffer
+         for J in 1 .. Vector.Length loop
+            Buffer (J) := Vector (J);
+         end loop;
+
+         if not Vector.Is_Empty then
+            Vector := Empty_Vector;
          end if;
 
          Length := 0;
@@ -283,7 +255,12 @@ package body LSP.Servers is
                if Index > 1 and then Line (Index - 1 .. Index) = New_Line then
                   if Empty then
                      --  Put any unprocessed bytes back into Vector and exit
-                     Append (Vector, Buffer (J + 1 .. Last));
+                     Vector.Set_Capacity (Last - J);
+
+                     for Byte of Buffer (J + 1 .. Last) loop
+                        Vector.Append (Byte);
+                     end loop;
+
                      return;
                   end if;
 
@@ -302,7 +279,7 @@ package body LSP.Servers is
       ---------------------------
 
       procedure Process_JSON_Document
-        (Vector : Ada.Strings.Unbounded.Unbounded_String)
+        (Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector)
       is
          use type VSS.Strings.Virtual_String;
 
@@ -310,204 +287,203 @@ package body LSP.Servers is
            VSS.Text_Streams.Memory_UTF8_Input.Memory_UTF8_Input_Stream;
 
          procedure Decode_JSON_RPC_Headers
-           (Request_Id : out LSP.Types.LSP_Number_Or_String;
+           (Request_Id : out LSP.Structures.Integer_Or_Virtual_String;
             Version    : out VSS.Strings.Virtual_String;
-            Method     : out LSP.Types.Optional_Virtual_String;
-            Error      : out LSP.Messages.Optional_ResponseError);
+            Method     : out VSS.Strings.Virtual_String;
+            Error      : out LSP.Errors.ResponseError_Optional);
 
          procedure Decode_JSON_RPC_Headers
-           (Request_Id : out LSP.Types.LSP_Number_Or_String;
+           (Request_Id : out LSP.Structures.Integer_Or_Virtual_String;
             Version    : out VSS.Strings.Virtual_String;
-            Method     : out LSP.Types.Optional_Virtual_String;
-            Error      : out LSP.Messages.Optional_ResponseError)
+            Method     : out VSS.Strings.Virtual_String;
+            Error      : out LSP.Errors.ResponseError_Optional)
          is
             use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
 
             R  : aliased VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
-            JS : aliased LSP.JSON_Streams.JSON_Stream
-              (True, R'Unchecked_Access);
 
          begin
             R.Set_Stream (Memory'Unchecked_Access);
-            JS.R.Read_Next;
-            pragma Assert (JS.R.Is_Start_Document);
-            JS.R.Read_Next;
-            pragma Assert (JS.R.Is_Start_Object);
-            JS.R.Read_Next;
-            while not JS.R.Is_End_Object loop
-               pragma Assert (JS.R.Is_Key_Name);
+            R.Read_Next;
+            pragma Assert (R.Is_Start_Document);
+            R.Read_Next;
+            pragma Assert (R.Is_Start_Object);
+            R.Read_Next;
+            while not R.Is_End_Object loop
+               pragma Assert (R.Is_Key_Name);
                declare
-                  Key : constant String :=
-                    VSS.Strings.Conversions.To_UTF_8_String (JS.R.Key_Name);
+                  Key : constant VSS.Strings.Virtual_String := R.Key_Name;
                begin
-                  JS.R.Read_Next;
+                  R.Read_Next;
 
                   if Key = "id" then
-                     case JS.R.Element_Kind is
+                     case R.Element_Kind is
                         when String_Value =>
                            Request_Id :=
-                             (Is_Number => False,
-                              String    => JS.R.String_Value);
+                             (Is_Integer     => False,
+                              Virtual_String => R.String_Value);
                         when Number_Value =>
                            Request_Id :=
-                             (Is_Number => True,
-                              Number    => LSP.Types.LSP_Number
-                                (JS.R.Number_Value.Integer_Value));
+                             (Is_Integer => True,
+                              Integer    => Integer
+                                (R.Number_Value.Integer_Value));
                         when others =>
                            raise Constraint_Error;
                      end case;
-                     JS.R.Read_Next;
+                     R.Read_Next;
 
                   elsif Key = "jsonrpc" then
-                     pragma Assert (JS.R.Is_String_Value);
-                     Version := JS.R.String_Value;
-                     JS.R.Read_Next;
+                     pragma Assert (R.Is_String_Value);
+                     Version := R.String_Value;
+                     R.Read_Next;
 
                   elsif Key = "method" then
-                     pragma Assert (JS.R.Is_String_Value);
-                     Method := (Is_Set => True,
-                                Value  => JS.R.String_Value);
-                     JS.R.Read_Next;
+                     pragma Assert (R.Is_String_Value);
+                     Method := R.String_Value;
+                     R.Read_Next;
 
                   elsif Key = "error" then
-                     LSP.Messages.Optional_ResponseError'Read
-                       (JS'Access, Error);
+                     --  TODO: Optional_ResponseError'Read (Error);
+                     Error := (Is_Set => True, Value => <>);
+
                   else
-                     JS.Skip_Value;
+                     R.Skip_Current_Value;
                   end if;
                end;
             end loop;
 
             Memory.Rewind;
+         exception
+            when E : others =>
+               Self.Tracer.Trace_Exception (E, "JSON decoding error");
          end Decode_JSON_RPC_Headers;
 
-         Message      : Message_Access;
+         function Assigned
+           (Id : LSP.Structures.Integer_Or_Virtual_String) return Boolean is
+             (Id.Is_Integer or else not Id.Virtual_String.Is_Null);
+
+         Message      : Server_Message_Access;
          Request      : Request_Access;
          Notification : Notification_Access;
 
+         Ok : Boolean;
          Is_Exit_Notification : Boolean;
 
          Version    : VSS.Strings.Virtual_String;
-         Method     : LSP.Types.Optional_Virtual_String;
-         Request_Id : LSP.Types.LSP_Number_Or_String;
-         Error      : LSP.Messages.Optional_ResponseError;
+         Method     : VSS.Strings.Virtual_String;
+         Request_Id : LSP.Structures.Integer_Or_Virtual_String :=
+           (False, VSS.Strings.Empty_Virtual_String);
+         Error      : LSP.Errors.ResponseError_Optional;
 
       begin
-         Memory.Set_Data
-           (VSS.Stream_Element_Vectors.Conversions
-              .Unchecked_From_Unbounded_String
-                 (Vector));
+         Memory.Set_Data (Vector);
 
          --  Read request id and method if any
          Decode_JSON_RPC_Headers (Request_Id, Version, Method, Error);
 
          --  Decide if this is a request, response or notification
 
-         if not Method.Is_Set then
+         if Method.Is_Null then
             --  TODO: Process client responses here.
 
             if Error.Is_Set then
-               --  We have got error from LSP client. Save it in the trace:
-               Self.Server_Trace.Trace ("Got Error response:");
-
-               Self.Server_Trace.Trace
-                 (VSS.Strings.Conversions.To_UTF_8_String
-                    (Error.Value.message));
+               Self.Tracer.Trace ("Got Error response:");
+               Self.Tracer.Trace_Text (Error.Value.message);
             end if;
 
             return;
 
-         elsif LSP.Types.Assigned (Request_Id) then  --  This is a request
+         elsif Assigned (Request_Id) then  --  This is a request
 
-            if not Initialized then
-               if Method.Value = "initialize" then
-                  Initialized := True;
-               else
-                  Send_Not_Initialized (Self, Request_Id);
-                  return;
-               end if;
-            end if;
+            declare
+               R : VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
 
             begin
-               Request :=
-                 new LSP.Messages.Server_Requests.Server_Request'Class'
-                   (LSP.Servers.Decode_Request
-                      (Memory'Unchecked_Access, Method.Value));
+               R.Set_Stream (Memory'Unchecked_Access);
+               R.Read_Next;
+               pragma Assert (R.Is_Start_Document);
+               R.Read_Next;
 
+               Request :=
+                 new LSP.Server_Requests.Server_Request'Class'
+                   (LSP.Server_Request_Readers.Read_Request
+                      (R, Method));
+
+               if not R.Is_End_Document then
+                  Self.Tracer.Trace ("Request decoding failed:");
+                  Self.Tracer.Trace (Vector);
+                  Self.On_Error_Response
+                    (Request_Id,
+                     (code    => LSP.Enumerations.InvalidParams,
+                      message => "Unable to decode request."));
+
+                  return;
+               end if;
             exception
                when UR : Unknown_Method =>
                   Send_Exception_Response
-                    (Self, UR,
-                     To_String (Vector),
+                    (Self, UR, "Unknown method.",
+                     Vector,
                      Request_Id,
-                     LSP.Errors.MethodNotFound);
+                     LSP.Enumerations.MethodNotFound);
                   return;
 
                when E : others =>
                   --  If we reach this exception handler, this means the
                   --  request could not be decoded.
                   Send_Exception_Response
-                    (Self, E,
-                     To_String (Vector),
+                    (Self, E, "Request decoding fails:",
+                     Vector,
                      Request_Id,
-                     LSP.Errors.InvalidParams);
+                     LSP.Enumerations.InvalidParams);
                   return;
             end;
 
-            Self.Request_Map.Include (Request_Id, Request);
+            Message := Server_Message_Access (Request);
 
-            Message := Message_Access (Request);
-
-         elsif Initialized
-           or else Method.Value = "exit"
-         then
-            --  This is a notification
-            begin
-               Notification :=
-                 new Messages.Server_Notifications.Server_Notification'Class'
-                   (LSP.Servers.Decode_Notification
-                      (Memory'Unchecked_Access, Method.Value));
-
-            exception
-               when E : Unknown_Method =>
-                  Self.Server_Trace.Trace
-                    ("Unable to decode notification: "
-                     & Symbolic_Traceback (E));
-                  return;
-            end;
-
-            --  Process '$/cancelRequest' notification
-            if Notification.all in
-              LSP.Messages.Server_Notifications.Cancel_Notification
-            then
-               Request_Id :=
-                 LSP.Messages.Server_Notifications.Cancel_Notification
-                   (Notification.all).params.id;
-
-               if Self.Request_Map.Contains (Request_Id) then
-                  Self.Request_Map (Request_Id).Canceled := True;
-               end if;
-            end if;
-
-            Message := Message_Access (Notification);
          else
-            --  Ignore any notification (except 'exit') until initialization
-            return;
+            --  This is a notification
+            declare
+               R : VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
 
+            begin
+               R.Set_Stream (Memory'Unchecked_Access);
+               R.Read_Next;
+               pragma Assert (R.Is_Start_Document);
+               R.Read_Next;
+
+               Notification :=
+                 new LSP.Server_Notifications.Server_Notification'Class'
+                   (LSP.Server_Notification_Readers.Read_Notification
+                      (R, Method));
+
+               if not R.Is_End_Document then
+                  Self.Tracer.Trace ("Notification decoding failed:");
+                  Self.Tracer.Trace (Vector);
+               end if;
+            end;
+
+            Message := Server_Message_Access (Notification);
          end if;
 
-         Self.Logger.Visit (Message.all);
+         if Logger /= null then
+            Message.Visit_Server_Message_Visitor (Logger.all);
+         end if;
 
+         Checker.Check_Message (Self, Message.all, Ok, Is_Exit_Notification);
+         --  Check initialization status and send a response if this is a
+         --  request before initialization.
+         --
          --  Check whether this was an exit notification. Note: this must be
          --  done *before* the call to Enqueue, since we're not guaranteed
          --  that the memory for Message is still allocated after this call.
 
-         Is_Exit_Notification :=  Message.all in
-           LSP.Messages.Server_Notifications.Exit_Notification;
-
-         --  Now we have a message to process. Push it to the processing
-         --  task
-         Self.Input_Queue.Enqueue (Message);
+         if Ok then
+            --  Now we have a message to process. Push it to the processing
+            --  task
+            Map.Process_Message (Message.all);
+            Self.Input_Queue.Enqueue (Message);
+         end if;
 
          if Is_Exit_Notification then
             --  After "exit" notification don't read any further input.
@@ -519,24 +495,11 @@ package body LSP.Servers is
       -- Parse_JSON --
       ----------------
 
-      procedure Parse_JSON (Vector : Ada.Strings.Unbounded.Unbounded_String) is
+      procedure Parse_JSON
+        (Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector) is
       begin
-         if Self.In_Trace.Is_Active then
-            --  Avoid expensive convertion to string when trace is off
-            Self.In_Trace.Trace (To_String (Vector));
-         end if;
-
+         Self.Tracer.Trace_Input (Vector);
          Process_JSON_Document (Vector);
-
-      exception
-         when E : others =>
-            --  If we reach this exception handler, this means we are unable
-            --  to parse text as JSON.
-
-            Self.Server_Trace.Trace
-              ("Unable to parse JSON message:" & To_String (Vector));
-            Self.Server_Trace.Trace (Symbolic_Traceback (E));
-
       end Parse_JSON;
 
       ----------------
@@ -557,7 +520,7 @@ package body LSP.Servers is
          end if;
       end Parse_Line;
 
-      Vector : Ada.Strings.Unbounded.Unbounded_String := Self.Vector;
+      Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector := Self.Vector;
       Length : Ada.Streams.Stream_Element_Count := 0;  --  Message length
       Buffer : Ada.Streams.Stream_Element_Array (1 .. Buffer_Size);
       Last   : Ada.Streams.Stream_Element_Count;  --  Index the Buffer
@@ -565,10 +528,12 @@ package body LSP.Servers is
       Parse_Header (Length, Vector);  --  Find Length out of headers
 
       --  Populate Buffer with Vector content
-      Last := Ada.Streams.Stream_Element_Count
-        (Ada.Strings.Unbounded.Length (Vector));
-      Buffer (1 .. Last) := To_Stream_Element_Array (Vector);
-      Vector := Ada.Strings.Unbounded.Null_Unbounded_String;
+      Last := Vector.Length;
+      for J in 1 .. Vector.Length loop
+         Buffer (J) := Vector (J);
+      end loop;
+
+      Vector := Empty_Vector;
 
       loop
          if Last <= Length then
@@ -587,7 +552,7 @@ package body LSP.Servers is
          if Length = 0 then
             --  Complete message is ready in the Vector
             --  Copy extra data if any into Vector and exit
-            Self.Vector := Ada.Strings.Unbounded.Null_Unbounded_String;
+            Self.Vector := Empty_Vector;
             Append (Self.Vector, Buffer (1 .. Last));
             Parse_JSON (Vector);
             Vector := Self.Vector;
@@ -596,177 +561,10 @@ package body LSP.Servers is
             Self.Stream.Read (Buffer, Last);
          end if;
       end loop;
-
    exception
       when Ada.IO_Exceptions.End_Error =>
          EOF := True;
-
-      when E : others =>
-         --  Catch-all case: make sure no exception in output writing
-         --  can cause an exit of the task loop.
-         Self.Server_Trace.Trace
-           ("Exception when reading input:" & Line_Feed
-            & Exception_Name (E) & " - " &  Exception_Message (E));
-         Self.Server_Trace.Trace (Symbolic_Traceback (E));
    end Process_One_Message;
-
-   -------------------------
-   -- Publish_Diagnostics --
-   -------------------------
-
-   overriding procedure On_Publish_Diagnostics
-     (Self   : access Server;
-      Params : LSP.Messages.PublishDiagnosticsParams)
-   is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.PublishDiagnostics_Notification'
-          (jsonrpc => <>,
-           method  => "textDocument/publishDiagnostics",
-           params  => Params);
-   begin
-      Self.Send_Notification (Message);
-   end On_Publish_Diagnostics;
-
-   -----------------------
-   -- Get_Progress_Type --
-   -----------------------
-
-   overriding function Get_Progress_Type
-     (Self  : access Server;
-      Token : LSP.Types.LSP_Number_Or_String)
-      return LSP.Client_Notification_Receivers.Progress_Value_Kind
-   is
-      pragma Unreferenced (Self, Token);
-   begin
-      return LSP.Client_Notification_Receivers.ProgressParams;
-   end Get_Progress_Type;
-
-   -----------------
-   -- On_Progress --
-   -----------------
-
-   overriding procedure On_Progress
-     (Self   : access Server;
-      Params : LSP.Messages.Progress_Params)
-   is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.Progress_Notification'
-          (jsonrpc => <>,
-           method  => "$/progress",
-           params  => Params);
-   begin
-      Self.Send_Notification (Message);
-   end On_Progress;
-
-   ------------------------------------------
-   -- On_Progress_SymbolInformation_Vector --
-   ------------------------------------------
-
-   overriding procedure On_Progress_SymbolInformation_Vector
-     (Self   : access Server;
-      Params : LSP.Messages.Progress_SymbolInformation_Vector)
-   is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.
-          SymbolInformation_Vectors_Notification'
-            (jsonrpc => <>,
-             method  => "$/progress",
-             params  => Params);
-   begin
-      Self.Send_Notification (Message);
-   end On_Progress_SymbolInformation_Vector;
-
-   ----------------------------
-   -- On_ShowMessage_Request --
-   ----------------------------
-
-   overriding procedure On_ShowMessage_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.ShowMessage_Request) is
-   begin
-      Self.Send_Request ("window/showMessageRequest", Message);
-   end On_ShowMessage_Request;
-
-   -----------------------------
-   -- On_ShowDocument_Request --
-   -----------------------------
-
-   overriding procedure On_ShowDocument_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.ShowDocument_Request) is
-   begin
-      Self.Send_Request ("window/showDocument", Message);
-   end On_ShowDocument_Request;
-
-   -------------------------------------
-   -- On_Workspace_Apply_Edit_Request --
-   -------------------------------------
-
-   overriding procedure On_Workspace_Apply_Edit_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.Workspace_Apply_Edit_Request) is
-   begin
-      Self.Send_Request ("workspace/applyEdit", Message);
-   end On_Workspace_Apply_Edit_Request;
-
-   ----------------------------------------
-   -- On_Workspace_Configuration_Request --
-   ----------------------------------------
-
-   overriding procedure On_Workspace_Configuration_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.Workspace_Configuration_Request)
-   is
-   begin
-      Self.Send_Request ("workspace/configuration", Message);
-   end On_Workspace_Configuration_Request;
-
-   ----------------------------------
-   -- On_Workspace_Folders_Request --
-   ----------------------------------
-
-   overriding procedure On_Workspace_Folders_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.Workspace_Folders_Request)
-   is
-   begin
-      Self.Send_Request ("workspace/workspaceFolders", Message);
-   end On_Workspace_Folders_Request;
-
-   -----------------------------------
-   -- On_RegisterCapability_Request --
-   -----------------------------------
-
-   overriding procedure On_RegisterCapability_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.RegisterCapability_Request)
-   is
-   begin
-      Self.Send_Request ("client/registerCapability", Message);
-   end On_RegisterCapability_Request;
-
-   -------------------------------------
-   -- On_UnregisterCapability_Request --
-   -------------------------------------
-
-   overriding procedure On_UnregisterCapability_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.UnregisterCapability_Request)
-   is
-   begin
-      Self.Send_Request ("client/unregisterCapability", Message);
-   end On_UnregisterCapability_Request;
-
-   ----------------------------------------
-   -- On_WorkDoneProgress_Create_Request --
-   ----------------------------------------
-
-   overriding procedure On_WorkDoneProgress_Create_Request
-     (Self    : access Server;
-      Message : LSP.Messages.Client_Requests.WorkDoneProgressCreate_Request) is
-   begin
-      Self.Send_Request ("window/workDoneProgress/create", Message);
-   end On_WorkDoneProgress_Create_Request;
 
    ---------
    -- Run --
@@ -774,31 +572,31 @@ package body LSP.Servers is
 
    procedure Run
      (Self         : in out Server;
-      Request      : not null
-        LSP.Server_Request_Handlers.Server_Request_Handler_Access;
-      Notification : not null
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
-      Server       : LSP.Server_Backends.Server_Backend_Access;
-      On_Error     : not null Uncaught_Exception_Handler;
-      Server_Trace : GNATCOLL.Traces.Trace_Handle;
-      In_Trace     : GNATCOLL.Traces.Trace_Handle;
-      Out_Trace    : GNATCOLL.Traces.Trace_Handle)
-   is
+      Handler      : not null Server_Message_Visitor_Access;
+      Tracer       : not null LSP.Tracers.Tracer_Access;
+      In_Logger    : Server_Message_Visitor_Access;
+      Out_Logger   : Client_Message_Visitor_Access) is
    begin
-      Self.Server_Trace := Server_Trace;
-      Self.In_Trace     := In_Trace;
-      Self.Out_Trace    := Out_Trace;
-      Self.On_Error     := On_Error;
-
-      Self.Logger.Initialize (Server_Trace);
-
-      Self.Processing_Task.Start (Request, Notification, Server);
-      Self.Output_Task.Start;
-      Self.Input_Task.Start;
+      Self.Tracer := Tracer;
+      Self.Processing_Task.Start (Handler);
+      Self.Output_Task.Start (Out_Logger);
+      Self.Input_Task.Start (In_Logger);
 
       --  Wait for stop signal
-      Self.Stop.Seize;
+      Self.Stop_Signal.Seize;
    end Run;
+
+   ----------------
+   -- On_Message --
+   ----------------
+
+   overriding procedure On_Message
+     (Self    : in out Server;
+      Message : LSP.Client_Messages.Client_Message_Access)
+   is
+   begin
+      Self.Output_Queue.Enqueue (Message);
+   end On_Message;
 
    -----------------------------
    -- Send_Exception_Response --
@@ -806,142 +604,20 @@ package body LSP.Servers is
 
    procedure Send_Exception_Response
      (Self       : in out Server'Class;
-      E          : Exception_Occurrence;
-      Trace_Text : String;
-      Request_Id : LSP.Types.LSP_Number_Or_String;
-      Code       : LSP.Messages.ErrorCodes := LSP.Errors.InternalError)
-   is
-      Exception_Text : constant String :=
-        Exception_Name (E) & Line_Feed & Symbolic_Traceback (E);
-      Response       : Response_Access :=
-        new LSP.Messages.ResponseMessage'
-          (Is_Error => True,
-           jsonrpc  => <>,  --  we will set this latter
-           id       => <>,  --  we will set this latter
-           error    =>
-             (Is_Set => True,
-              Value =>
-                (code    => Code,
-                 data    => LSP.Types.Empty,
-                 message =>
-                   VSS.Strings.Conversions.To_Virtual_String
-                     (Exception_Text))));
-
+      E          : Ada.Exceptions.Exception_Occurrence;
+      Message    : VSS.Strings.Virtual_String;
+      Request    : VSS.Stream_Element_Vectors.Stream_Element_Vector;
+      Request_Id : LSP.Structures.Integer_Or_Virtual_String;
+      Code       : LSP.Enumerations.ErrorCodes :=
+        LSP.Enumerations.InternalError) is
    begin
-      --  Send the response to the output stream
-      Send_Response (Self, Response, Request_Id);
-
-      --  Log details in the traces
-      Self.Server_Trace.Trace
-        ("Exception when processing request:" & Line_Feed
-         & Trace_Text & Line_Feed
-         & Exception_Text);
+      Self.Tracer.Trace_Exception (E, Message);
+      Self.Tracer.Trace (Request);
+      Self.On_Error_Response
+        (Request_Id,
+         (code    => Code,
+          message => Message));
    end Send_Exception_Response;
-
-   --------------------------
-   -- Send_Not_Initialized --
-   --------------------------
-
-   procedure Send_Not_Initialized
-     (Self       : in out Server'Class;
-      Request_Id : LSP.Types.LSP_Number_Or_String)
-   is
-      Response : Response_Access := new LSP.Messages.ResponseMessage'
-        (Is_Error => True,
-         jsonrpc  => <>,  --  we will set this latter
-         id       => <>,  --  we will set this latter
-         error    =>
-           (Is_Set => True,
-            Value  => (code    => LSP.Errors.ServerNotInitialized,
-                       message => "No initialize request was received",
-                       others  => <>)));
-   begin
-      Send_Response (Self, Response, Request_Id);
-   end Send_Not_Initialized;
-
-   procedure Send_Canceled_Request
-     (Self       : in out Server'Class;
-      Request_Id : LSP.Types.LSP_Number_Or_String)
-   is
-      Response : Response_Access := new LSP.Messages.ResponseMessage'
-        (Is_Error => True,
-         jsonrpc  => <>,  --  we will set this latter
-         id       => <>,  --  we will set this latter
-         error    =>
-           (Is_Set => True,
-            Value  => (code    => LSP.Errors.RequestCancelled,
-                       message => "Request was canceled",
-                       others  => <>)));
-   begin
-      Send_Response (Self, Response, Request_Id);
-   end Send_Canceled_Request;
-
-   -----------------------
-   -- Send_Notification --
-   -----------------------
-
-   procedure Send_Notification
-     (Self  : in out Server'Class;
-      Value : in out Message_Access)
-   is
-   begin
-      Value.jsonrpc := "2.0";
-      Self.Output_Queue.Enqueue (Value);
-      Value := null;
-   end Send_Notification;
-
-   ------------------
-   -- Send_Request --
-   ------------------
-
-   procedure Send_Request
-     (Self   : in out Server'Class;
-      Method : VSS.Strings.Virtual_String;
-      Value  : LSP.Messages.Client_Requests.Client_Request'Class)
-   is
-      use type LSP.Types.LSP_Number;
-      Message : constant Client_Request_Access :=
-        new LSP.Messages.Client_Requests.Client_Request'Class'(Value);
-      --  The Message will be deleted by Output_Task
-   begin
-      Message.jsonrpc := "2.0";
-      Self.Last_Request := Self.Last_Request + 1;
-      Message.id := (Is_Number => True, Number => Self.Last_Request);
-      Message.method := Method;
-      Self.Output_Queue.Enqueue (Message_Access (Message));
-   end Send_Request;
-
-   -------------------
-   -- Send_Response --
-   -------------------
-
-   procedure Send_Response
-     (Self       : in out Server'Class;
-      Response   : in out Response_Access;
-      Request_Id : LSP.Types.LSP_Number_Or_String) is
-   begin
-      Response.jsonrpc := "2.0";
-      Response.id := Request_Id;
-      Self.Output_Queue.Enqueue (Message_Access (Response));
-      Response := null;
-   end Send_Response;
-
-   ------------------
-   -- Show_Message --
-   ------------------
-
-   overriding procedure On_Show_Message
-     (Self   : access Server;
-      Params : LSP.Messages.ShowMessageParams)
-   is
-      Message : Message_Access :=
-        new LSP.Messages.Client_Notifications.ShowMessage_Notification'
-          (jsonrpc => <>,
-           method  => "window/showMessage",
-           params  => Params);
-   begin
-      Self.Send_Notification (Message);
-   end On_Show_Message;
 
    ----------
    -- Stop --
@@ -949,35 +625,15 @@ package body LSP.Servers is
 
    procedure Stop (Self : in out Server) is
    begin
-      Self.Stop.Release;
+      Self.Stop_Signal.Release;
    end Stop;
-
-   -----------------------------
-   -- To_Stream_Element_Array --
-   -----------------------------
-
-   function To_Stream_Element_Array
-     (Vector : Ada.Strings.Unbounded.Unbounded_String)
-      return Ada.Streams.Stream_Element_Array
-   is
-      Last : constant Ada.Streams.Stream_Element_Count :=
-        Ada.Streams.Stream_Element_Count
-          (Ada.Strings.Unbounded.Length (Vector));
-      Buffer : Ada.Streams.Stream_Element_Array (1 .. Last);
-   begin
-      for J in 1 .. Last loop
-         Buffer (J) := Character'Pos
-           (Ada.Strings.Unbounded.Element (Vector, Positive (J)));
-      end loop;
-
-      return Buffer;
-   end To_Stream_Element_Array;
 
    ------------------------
    -- Input_Queue_Length --
    ------------------------
 
    function Input_Queue_Length (Self : Server) return Natural is
+      use type Server_Message_Access;
       Result : Natural := Natural (Self.Input_Queue.Current_Use);
    begin
       if Self.Look_Ahead /= null then
@@ -992,11 +648,15 @@ package body LSP.Servers is
    ---------------------
 
    task body Input_Task_Type is
-      Initialized : Boolean := False;
-      EOF         : Boolean := False;
-      Message     : Message_Access;
+      EOF     : Boolean := False;
+      Message : Server_Message_Access;
+      Map     : LSP.Known_Requests.Known_Request_Map;
+      Checker : LSP.Lifecycle_Checkers.Lifecycle_Checker;
+      Logger  : Server_Message_Visitor_Access;
    begin
-      accept Start;
+      accept Start (In_Logger : Server_Message_Visitor_Access) do
+         Logger := In_Logger;
+      end Start;
 
       loop
          loop
@@ -1004,7 +664,7 @@ package body LSP.Servers is
             select
                --  Process all available outputs before acceptiong Stop
                Server.Destroy_Queue.Dequeue (Message);
-               Server.Request_Map.Delete (Request_Access (Message).id);
+               Map.Remove_Request (Message.all);
                Free (Message);
 
             else
@@ -1016,7 +676,7 @@ package body LSP.Servers is
             accept Stop;
             exit;
          else
-            Server.Process_One_Message (Initialized, EOF);
+            Server.Process_One_Message (Checker, Map, Logger, EOF);
             --  This call can block reading from stream
 
             if EOF then
@@ -1033,9 +693,14 @@ package body LSP.Servers is
       --  leaving this task.
       while Natural (Server.Destroy_Queue.Current_Use) > 0 loop
          Server.Destroy_Queue.Dequeue (Message);
-         Server.Request_Map.Delete (Request_Access (Message).id);
+         Map.Remove_Request (Message.all);
          Free (Message);
       end loop;
+
+   exception
+      when E : others =>
+         Server.Tracer.Trace_Exception (E, "Input_Task died");
+         Server.Stop;  --  Ask server to stop
    end Input_Task_Type;
 
    ----------------------
@@ -1043,10 +708,11 @@ package body LSP.Servers is
    ----------------------
 
    task body Output_Task_Type is
-      Message : Message_Access;
-      Stream : access Ada.Streams.Root_Stream_Type'Class renames Server.Stream;
+      Logger : Client_Message_Visitor_Access;
 
-      Output_Queue : Message_Queues.Queue renames Server.Output_Queue;
+      Message : Client_Message_Access;
+
+      Output_Queue : Output_Message_Queues.Queue renames Server.Output_Queue;
 
       procedure Write_JSON_RPC
         (Stream : access Ada.Streams.Root_Stream_Type'Class;
@@ -1068,57 +734,49 @@ package body LSP.Servers is
            & New_Line & New_Line;
 
       begin
+         Server.Tracer.Trace_Output (Vector);
          String'Write (Stream, Header);
          VSS.Stream_Element_Vectors.Stream_Element_Vector'Write
            (Stream, Vector);
 
-         if Server.Out_Trace.Is_Active then
-            declare
-               Aux  : Ada.Strings.Unbounded.String_Access :=
-                 new String'(VSS.Stream_Element_Vectors.Conversions
-                               .Unchecked_To_String (Vector));
-            begin
-               Server.Out_Trace.Trace (Aux.all);
-               Free (Aux);
-            end;
-         end if;
+      exception
+         when E : others =>
+            Server.Tracer.Trace_Exception (E, "Can't write JSON to stdout");
+            raise;
       end Write_JSON_RPC;
 
    begin
-      accept Start;
+      accept Start (Out_Logger : Client_Message_Visitor_Access) do
+         Logger := Out_Logger;
+      end Start;
 
       loop
          select
             --  Process all available outputs before acceptiong Stop
             Output_Queue.Dequeue (Message);
-            Server.Logger.Visit (Message.all);
+
+            if Logger /= null then
+               Message.Visit_Client_Message_Visitor (Logger.all);
+            end if;
 
             declare
-               Out_Stream : aliased LSP.JSON_Streams.JSON_Stream (True, null);
-               Output     : aliased
-                 VSS.Text_Streams.Memory_UTF8_Output.Memory_UTF8_Output_Stream;
+               Stream : aliased VSS.Text_Streams.Memory_UTF8_Output
+                 .Memory_UTF8_Output_Stream;
+               Writer : aliased VSS.JSON.Push_Writers.JSON_Simple_Push_Writer;
+
+               Visitor : LSP.Client_Message_Writers.Client_Message_Writer
+                 (Writer'Unchecked_Access);
 
             begin
-               Out_Stream.Set_Stream (Output'Unchecked_Access);
+               Writer.Set_Stream (Stream'Unchecked_Access);
+               Writer.Start_Document;
 
-               LSP.Messages.Message'Class'Write
-                 (Out_Stream'Access, Message.all);
+               Message.Visit_Client_Message_Visitor (Visitor);
                Free (Message);
-               Out_Stream.End_Document;
+               Writer.End_Document;
 
                --  Send the output to the stream
-               Write_JSON_RPC (Stream, Output.Buffer);
-
-            exception
-               when E : others =>
-                  --  Catch-all case: make sure no exception in output writing
-                  --  can cause an exit of the task loop.
-                  Server.Server_Trace.Trace
-                    ("Exception when writing output:" & Line_Feed
---                     & To_String (Output) & Line_Feed
-                     & Exception_Name (E) & " - " &  Exception_Message (E));
-                  Server.Server_Trace.Trace (Symbolic_Traceback (E));
-
+               Write_JSON_RPC (Server.Stream, Stream.Buffer);
             end;
          or
             delay 0.1;
@@ -1133,6 +791,11 @@ package body LSP.Servers is
             end select;
          end select;
       end loop;
+
+   exception
+      when E : others =>
+         Server.Tracer.Trace_Exception (E, "Output_Task died");
+         Server.Stop;  --  Ask server to stop
    end Output_Task_Type;
 
    --------------------------
@@ -1141,133 +804,48 @@ package body LSP.Servers is
 
    task body Processing_Task_Type is
 
-      Req_Handler : LSP.Server_Request_Handlers.Server_Request_Handler_Access;
+      Handler : Server_Message_Visitor_Access;
 
-      Notif_Handler :
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver_Access;
-      Server_Backend : LSP.Server_Backends.Server_Backend_Access;
-
-      Input_Queue   : Message_Queues.Queue renames Server.Input_Queue;
-      Output_Queue  : Message_Queues.Queue renames Server.Output_Queue;
+      Input_Queue   : Input_Message_Queues.Queue renames Server.Input_Queue;
 
       procedure Initialize
-        (Request      : not null LSP.Server_Request_Handlers
-           .Server_Request_Handler_Access;
-         Notification : not null LSP.Server_Notification_Receivers
-           .Server_Notification_Receiver_Access;
-         Server       : LSP.Server_Backends.Server_Backend_Access);
+        (Handler : not null Server_Message_Visitor_Access);
       --  Initializes internal data structures
 
-      procedure Process_Message (Message : in out Message_Access);
+      procedure Process_Message (Message : in out Server_Message_Access);
 
       ----------------
       -- Initialize --
       ----------------
 
       procedure Initialize
-        (Request      : not null LSP.Server_Request_Handlers
-           .Server_Request_Handler_Access;
-         Notification : not null LSP.Server_Notification_Receivers
-           .Server_Notification_Receiver_Access;
-         Server       : LSP.Server_Backends.Server_Backend_Access)
-      is
-         use type LSP.Server_Backends.Server_Backend_Access;
+        (Handler : not null Server_Message_Visitor_Access) is
       begin
-         Req_Handler := Request;
-         Notif_Handler := Notification;
-
-         if Server = null then
-            Server_Backend := Null_Server'Access;
-         else
-            Server_Backend := Server;
-         end if;
+         Processing_Task_Type.Handler := Handler;
       end Initialize;
 
       ---------------------
       -- Process_Message --
       ---------------------
 
-      procedure Process_Message (Message : in out Message_Access) is
+      procedure Process_Message (Message : in out Server_Message_Access) is
       begin
-         if Message.all in
-           LSP.Messages.Server_Notifications.Server_Notification'Class
-         then
-            --  This is a notification
-            begin
-               Server_Backend.Before_Work (Message.all);
-               LSP.Messages.Server_Notifications.Server_Notification'Class
-                 (Message.all).Visit (Notif_Handler);
-               Server_Backend.After_Work (Message.all);
-            exception
-               when E : others =>
-                  --  Always log an exception in the traces
-                  Server.Server_Trace.Trace
-                    ("Exception (processing notification):" & Line_Feed
-                     & Exception_Name (E) & Line_Feed &
-                       Symbolic_Traceback (E));
-            end;
-
-            Free (Message);
-            return;
-         end if;
-
-         declare
-            --  This is a request
-            Request : LSP.Messages.Server_Requests.Server_Request'Class renames
-              LSP.Messages.Server_Requests.Server_Request'Class (Message.all);
-         begin
-
-            if Request.Canceled then
-               --  The request has been canceled
-               Server.Send_Canceled_Request (Request.id);
-               Server.Destroy_Queue.Enqueue (Message);
-               --  Request will be deleted by Input_Task
-               return;
-            end if;
-
-            Server_Backend.Before_Work (Message.all);
-            declare
-               Response : constant Message_Access :=
-                 new LSP.Messages.ResponseMessage'Class'
-                   (LSP.Servers.Handle_Request (Req_Handler, Request));
-            begin
-               Output_Queue.Enqueue (Response);
-               --  Response will be deleted by Output_Task
-            end;
-            Server_Backend.After_Work (Message.all);
-            Server.Destroy_Queue.Enqueue (Message);
-            --  Request will be deleted by Input_Task
-
-         exception
-            --  If we reach this exception handler, this means an exception
-            --  was raised when processing the request.
-            --  If this is an "exception that's expected for invalid Ada", it
-            --  should have been caught by the Error_Decorator.
-            when E : others =>
-               Send_Exception_Response
-                 (Server.all, E,
-                  Ada.Tags.External_Tag (Message'Tag), Request.id);
-               Server.Destroy_Queue.Enqueue (Message);
-         end;
-
+         Message.Visit_Server_Message_Visitor (Handler.all);
+         Server.Destroy_Queue.Enqueue (Message);
+         Message := null;
       exception
-         --  Catch-all case: make sure no exception in any message
-         --  processing can cause an exit of the task main loop.
          when E : others =>
-            Server.On_Error (E);
+            --  Message handler should never raise any exception
+            Server.Tracer.Trace_Exception (E, "Message handler raised error!");
       end Process_Message;
 
-      Request : Message_Access;
+      Request : Server_Message_Access;
    begin
       --  Perform initialization
       accept Start
-        (Request      : not null LSP.Server_Request_Handlers
-           .Server_Request_Handler_Access;
-         Notification : not null LSP.Server_Notification_Receivers
-           .Server_Notification_Receiver_Access;
-         Server       : LSP.Server_Backends.Server_Backend_Access)
+        (Handler : not null Server_Message_Visitor_Access)
       do
-         Initialize (Request, Notification, Server);
+         Initialize (Handler);
       end Start;
 
       loop
@@ -1288,7 +866,7 @@ package body LSP.Servers is
                   Continue := False;
                end select;
 
-               if Request /= null then
+               if Request.Assigned then
                   Process_Message (Request);
                end if;
             end loop;
@@ -1315,22 +893,28 @@ package body LSP.Servers is
 
       while Natural (Input_Queue.Current_Use) > 0 loop
          declare
-            X : Message_Access;
+            X : Server_Message_Access;
          begin
             Input_Queue.Dequeue (X);
             Free (X);
          end;
       end loop;
-      if Server.Look_Ahead /= null then
+
+      if Server.Look_Ahead.Assigned then
          Free (Server.Look_Ahead);
       end if;
+
+   exception
+      when E : others =>
+         Server.Tracer.Trace_Exception (E, "Processing_Task died");
+         Server.Stop;  --  Ask server to stop
    end Processing_Task_Type;
 
    ------------------------
    -- Look_Ahead_Message --
    ------------------------
 
-   function Look_Ahead_Message (Self : Server) return Message_Access is
+   function Look_Ahead_Message (Self : Server) return Server_Message_Access is
       use type Ada.Task_Identification.Task_Id;
    begin
       pragma Assert

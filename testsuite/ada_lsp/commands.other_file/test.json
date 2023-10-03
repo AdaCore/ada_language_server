@@ -42,7 +42,7 @@
             "wait":[
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
+                    "id": 1,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -84,7 +84,6 @@
             "wait":[
                 {
                     "jsonrpc": "2.0",
-                    "id": 3,
                     "method": "window/showDocument",
                     "params": {
                         "uri": "$URI{aaa.adb}",
@@ -116,7 +115,6 @@
             "wait":[
                 {
                     "jsonrpc": "2.0",
-                    "id": 4,
                     "method": "window/showDocument",
                     "params": {
                         "uri": "$URI{aaa.ads}",
@@ -142,7 +140,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

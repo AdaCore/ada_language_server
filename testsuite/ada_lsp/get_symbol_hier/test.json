@@ -82,7 +82,6 @@
                      "result": [
                        {
                          "name": "Aaa",
-                         "detail": "",
                          "kind": 4,
                          "range": {
                            "start": {
@@ -109,7 +108,6 @@
                          "children": [
                            {
                              "name": "Enum",
-                             "detail": "",
                              "kind": 5,
                              "range": {
                                "start": {
@@ -133,12 +131,10 @@
                              },
                              "alsIsDeclaration": true,
                              "alsIsAdaProcedure": true,
-                             "alsVisibility": 1,
-                             "children": []
+                             "alsVisibility": 1
                            },
                            {
                             "name": "Variable",
-                            "detail": "",
                             "kind": 13,
                             "range": {
                               "start": {
@@ -161,13 +157,10 @@
                               }
                             },
                             "alsIsDeclaration": false,
-                            "alsVisibility": 1,
-                            "children": [
-                            ]
+                            "alsVisibility": 1
                            },
                            {
                              "name": "Nested_Package",
-                             "detail": "",
                              "kind": 4,
                              "range": {
                                "start": {
@@ -218,9 +211,7 @@
                                  },
                                  "alsIsDeclaration": true,
                                  "alsIsAdaProcedure": true,
-                                 "alsVisibility": 1,
-                                 "children": [
-                                 ]
+                                 "alsVisibility": 1
                                }
                              ]
                           }
@@ -242,7 +233,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

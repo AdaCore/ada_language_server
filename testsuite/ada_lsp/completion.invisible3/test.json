@@ -148,27 +148,24 @@
                         "kind": 3,
                         "detail": "function ABC1 return Integer",
                         "documentation": "at pkg.ads (3:4)",
-                        "sortText": "~100&0ABC1",
-                        "insertText": "ABC1",
-                        "additionalTextEdits": []
+                        "sortText": "~100&00000ABC1",
+                        "insertText": "ABC1"
                      },
                      {
                         "label": "ABC14 (invisible)",
                         "kind": 9,
                         "detail": "generic\n   ABC13 : Integer;\npackage ABC14",
                         "documentation": "at pkg.ads (19:4)",
-                        "sortText": "~100&1ABC14",
-                        "insertText": "ABC14",
-                        "additionalTextEdits": []
+                        "sortText": "~100&00001ABC14",
+                        "insertText": "ABC14"
                      },
                      {
                         "label": "ABC4 (invisible)",
                         "kind": 7,
                         "detail": "type ABC4 (ABC5 : Integer) is record\n   ABC6 : Boolean := (for some ABC7 in Boolean => ABC7);\nend record;",
                         "documentation": "at pkg.ads (5:4)",
-                        "sortText": "~100&2ABC4",
-                        "insertText": "ABC4",
-                        "additionalTextEdits": []
+                        "sortText": "~100&00002ABC4",
+                        "insertText": "ABC4"
                      }
                   ]
                }

@@ -48,7 +48,7 @@ package body LSP.Search.Full_Text is
          Case_Sensitive => Case_Sensitive,
          Negate         => Negate,
          Whole_Word     => Whole_Word,
-         Kind           => LSP.Messages.Full_Text);
+         Kind           => LSP.Enumerations.Full_Text);
    end Build;
 
    --------------

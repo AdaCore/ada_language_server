@@ -675,7 +675,7 @@
          "wait": [
             {
                "id": 41,
-               "result": []
+               "result": null
             }
          ]
       }

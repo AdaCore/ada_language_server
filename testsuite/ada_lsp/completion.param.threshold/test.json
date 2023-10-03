@@ -169,20 +169,18 @@
                      {
                         "label": "Foo",
                         "kind": 3,
-                        "sortText": "100&1Foo",
+                        "sortText": "100&00001Foo",
                         "insertText": "Foo (S => ${1:String})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "detail": "procedure Foo (S : String)",
                         "documentation": "at pack.ads (4:4)"
                      },
                      {
                         "label": "Foo",
                         "kind": 3,
-                        "sortText": "100&2Foo",
+                        "sortText": "100&00002Foo",
                         "insertText": "Foo (I => ${1:Integer}, J => ${2:Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "detail": "procedure Foo (I : Integer; J : Integer)",
                         "documentation": "at pack.ads (3:4)"
                      }

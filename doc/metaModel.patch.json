@@ -1,0 +1,367 @@
+{
+    "requests": [
+        {
+            "method": "$/alsCheckSyntax",
+            "result": {
+                "kind": "reference",
+                "name": "AlsCheckSyntaxResult"
+            },
+            "params": {
+                "kind": "reference",
+                "name": "AlsCheckSyntaxParams"
+            },
+            "documentation": "query if a given input has a valid syntax according to a set of rules."
+        }
+    ],
+    "enumerations": [
+        {
+            "name": "AlsDisplayMethodAncestryOnNavigationPolicy",
+            "type": {
+                "kind": "base",
+                "name": "string"
+            },
+            "values": [
+                {
+                    "name": "Never",
+                    "value": "Never"
+                },
+                {
+                    "name": "Usage_And_Abstract_Only",
+                    "value": "Usage_And_Abstract_Only"
+                },
+                {
+                    "name": "Definition_Only",
+                    "value": "Definition_Only"
+                },
+                {
+                    "name": "Always",
+                    "value": "Always"
+                }
+            ]
+        },
+        {
+            "name": "AlsReferenceKind",
+            "type": {
+                "kind": "base",
+                "name": "string"
+            },
+            "values": [
+                {
+                    "name": "reference",
+                    "value": "reference"
+                },
+                {
+                    "name": "access",
+                    "value": "access"
+                },
+                {
+                    "name": "write",
+                    "value": "write"
+                },
+                {
+                    "name": "call",
+                    "value": "call"
+                },
+                {
+                    "name": "dispatching_call",
+                    "value": "dispatching call"
+                },
+                {
+                    "name": "parent",
+                    "value": "parent"
+                },
+                {
+                    "name": "child",
+                    "value": "child"
+                },
+                {
+                    "name": "overriding",
+                    "value": "overriding"
+                }
+            ]
+        },
+        {
+            "name": "AlsSearchKind",
+            "type": {
+                "kind": "base",
+                "name": "integer"
+            },
+            "values": [
+                {
+                    "name": "Full_Text",
+                    "value": 1
+                },
+                {
+                    "name": "Regexp",
+                    "value": 2
+                },
+                {
+                    "name": "Fuzzy",
+                    "value": 3
+                },
+                {
+                    "name": "Approximate",
+                    "value": 4
+                },
+                {
+                    "name": "Start_Word_Text",
+                    "value": 5
+                }
+            ]
+        },
+        {
+            "name": "AlsVisibility",
+            "type": {
+                "kind": "base",
+                "name": "integer"
+            },
+            "values": [
+                {
+                    "name": "Als_Public",
+                    "value": 1
+                },
+                {
+                    "name": "Als_Protected",
+                    "value": 2
+                },
+                {
+                    "name": "Als_Private",
+                    "value": 3
+                }
+            ]
+        }
+    ],
+    "structures": [
+        {
+            "name": "AlsCheckSyntaxParams",
+            "properties": [
+                {
+                    "name": "input",
+                    "type": {
+                        "kind": "base",
+                        "name": "string"
+                    },
+                    "documentation": "Text to check syntax."
+                },
+                {
+                    "name": "rules",
+                    "type":                             {
+                        "kind": "array",
+                        "element": {
+                            "kind": "base",
+                            "name": "string"
+                        }
+                    },
+                    "documentation": "Libadalang `Ada_Node_Kind_Type` values."
+                }
+            ]
+        },
+        {
+            "name": "AlsCheckSyntaxResult",
+            "properties": [
+                {
+                    "name": "diagnostic",
+                    "type": {
+                        "kind": "base",
+                        "name": "string"
+                    },
+                    "optional": true,
+                    "documentation": "Diagnostic from check syntax."
+                }
+            ]
+        },
+        {
+            "name": "DeclarationParams",
+            "properties": [
+                {
+                    "name": "alsDisplayMethodAncestryOnNavigation",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsDisplayMethodAncestryOnNavigationPolicy"
+                    },
+                    "optional": true,
+                    "documentation": "whether or now we should list overriding/overridden subprograms."
+                }
+            ]
+        },
+        {
+            "name": "DefinitionParams",
+            "properties": [
+                {
+                    "name": "alsDisplayMethodAncestryOnNavigation",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsDisplayMethodAncestryOnNavigationPolicy"
+                    },
+                    "optional": true,
+                    "documentation": "whether or now we should list overriding/overridden subprograms."
+                }
+            ]
+        },
+        {
+            "name": "ImplementationParams",
+            "properties": [
+                {
+                    "name": "alsDisplayMethodAncestryOnNavigation",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsDisplayMethodAncestryOnNavigationPolicy"
+                    },
+                    "optional": true,
+                    "documentation": "whether or now we should list overriding/overridden subprograms."
+                }
+            ]
+        },
+        {
+            "name": "DocumentSymbol",
+            "properties": [
+                {
+                    "name": "alsIsDeclaration",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true
+                },
+                {
+                    "name": "alsIsAdaProcedure",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true
+                },
+                {
+                    "name": "alsVisibility",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsVisibility"
+                    },
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "name": "DocumentSymbolParams",
+            "properties": [
+                {
+                    "name": "query",
+                    "type": {
+                        "kind": "base",
+                        "name": "string"
+                    },
+                    "optional": true,
+                    "documentation": "A query string to filter symbols by. Clients may send an empty\nstring here to request all symbols."
+                },
+                {
+                    "name": "case_sensitive",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To take letters' case into account."
+                },
+                {
+                    "name": "whole_word",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To match the whole word instead of a part of it."
+                },
+                {
+                    "name": "negate",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To invert matching."
+                },
+                {
+                    "name": "kind",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsSearchKind"
+                    },
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "name": "Location",
+            "properties": [
+                {
+                    "name": "alsKind",
+                    "type": {
+                        "kind": "array",
+                        "element": {
+                            "kind": "reference",
+                            "name": "AlsReferenceKind"
+                        }
+                    },
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "name": "ServerCapabilities",
+            "properties": [
+                {
+                    "name": "alsReferenceKinds",
+                    "type": {
+                        "kind": "array",
+                        "element": {
+                            "kind": "reference",
+                            "name": "AlsReferenceKind"
+                        }
+                    },
+                    "optional": true,
+                    "documentation": "List of reference kind supported by the server."
+                }
+            ]
+        },
+        {
+            "name": "WorkspaceSymbolParams",
+            "properties": [
+                {
+                    "name": "case_sensitive",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To take letters' case into account."
+                },
+                {
+                    "name": "whole_word",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To match the whole word instead of a part of it."
+                },
+                {
+                    "name": "negate",
+                    "type": {
+                        "kind": "base",
+                        "name": "boolean"
+                    },
+                    "optional": true,
+                    "documentation": "To invert matching."
+                },
+                {
+                    "name": "kind",
+                    "type": {
+                        "kind": "reference",
+                        "name": "AlsSearchKind"
+                    },
+                    "optional": true
+                }
+            ]
+        }
+    ]
+}

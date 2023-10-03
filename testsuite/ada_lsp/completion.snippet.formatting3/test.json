@@ -173,7 +173,6 @@
                            },
                            "newText": "Foo_Bar\n     (A      => ${1:A      : Integer;},\n      BBBBBB => ${2:BBBBBB : Float;},\n      CCCC   => ${3:CCCC   : String;},\n      Bar    => ${4:with procedure Bar (X : Integer);})$0"
                         },
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -194,8 +193,7 @@
                         "documentation": "A => ",
                         "sortText": "+1",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "BBBBBB",
@@ -203,8 +201,7 @@
                         "documentation": "BBBBBB => ",
                         "sortText": "+2",
                         "insertText": "BBBBBB => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "CCCC",
@@ -212,8 +209,7 @@
                         "documentation": "CCCC => ",
                         "sortText": "+3",
                         "insertText": "CCCC => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Bar",
@@ -221,8 +217,7 @@
                         "documentation": "Bar => ",
                         "sortText": "+4",
                         "insertText": "Bar => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -297,7 +292,6 @@
                      },
                      "newText": "Foo_Bar\n     (A      => ${1:A      : Integer;},\n      BBBBBB => ${2:BBBBBB : Float;},\n      CCCC   => ${3:CCCC   : String;},\n      Bar    => ${4:with procedure Bar (X : Integer);})$0"
                   },
-                  "additionalTextEdits": [],
                   "data": {
                      "uri": "$URI{foo.adb}",
                      "range": {

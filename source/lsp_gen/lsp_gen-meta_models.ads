@@ -71,6 +71,11 @@ package LSP_Gen.Meta_Models is
      (Self : Meta_Model'Class;
       Name : VSS.Strings.Virtual_String) return Boolean;
 
+   function Is_Custom_Enumeration
+     (Self : Meta_Model'Class;
+      Name : VSS.Strings.Virtual_String) return Boolean;
+   --  Enumeration type that supports custom values
+
    function Is_Base_Type
      (Self : Meta_Model'Class;
       Tipe : LSP_Gen.Entities.AType) return Boolean;

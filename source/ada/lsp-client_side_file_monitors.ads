@@ -19,18 +19,20 @@ with GNATCOLL.VFS;
 
 with VSS.Strings;
 
-with LSP.Client_Request_Receivers; use LSP.Client_Request_Receivers;
+with LSP.Ada_Handlers;
 with LSP.File_Monitors;
 
 package LSP.Client_Side_File_Monitors is
 
-   type File_Monitor (Client : not null access Client_Request_Receiver'Class)
-     is limited new LSP.File_Monitors.File_Monitor with private;
+   type File_Monitor
+     (Handler : not null access LSP.Ada_Handlers.Message_Handler)
+       is limited new LSP.File_Monitors.File_Monitor with private;
 
 private
 
-   type File_Monitor (Client : not null access Client_Request_Receiver'Class)
-     is limited new LSP.File_Monitors.File_Monitor with
+   type File_Monitor
+     (Handler : not null access LSP.Ada_Handlers.Message_Handler)
+       is limited new LSP.File_Monitors.File_Monitor with
    record
       Last_Id         : Positive := 1;
       Registration_Id : VSS.Strings.Virtual_String;

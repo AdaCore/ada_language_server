@@ -81,7 +81,6 @@
                      "result": [
       {
         "name": "Foo",
-        "detail": "",
         "kind": 12,
         "range": {
           "start": {
@@ -108,7 +107,6 @@
         "children": [
           {
             "name": "Bar",
-            "detail": "",
             "kind": 12,
             "range": {
               "start": {
@@ -132,9 +130,7 @@
             },
             "alsIsDeclaration": true,
             "alsIsAdaProcedure": true,
-            "alsVisibility": 1,
-            "children": [
-            ]
+            "alsVisibility": 1
           },
           {
             "name": "Bar",
@@ -161,9 +157,7 @@
               }
             },
             "alsIsDeclaration": true,
-            "alsVisibility": 1,
-            "children": [
-            ]
+            "alsVisibility": 1
           },
           {
             "name": "FooBar",
@@ -190,13 +184,10 @@
               }
             },
             "alsIsDeclaration": true,
-            "alsVisibility": 1,
-            "children": [
-            ]
+            "alsVisibility": 1
           },
           {
             "name": "Bar",
-            "detail": "",
             "kind": 12,
             "range": {
               "start": {
@@ -220,9 +211,7 @@
             },
             "alsIsDeclaration": false,
             "alsIsAdaProcedure": true,
-            "alsVisibility": 1,
-            "children": [
-            ]
+            "alsVisibility": 1
           },
           {
             "name": "Bar",
@@ -249,9 +238,7 @@
               }
             },
             "alsIsDeclaration": false,
-            "alsVisibility": 1,
-            "children": [
-            ]
+            "alsVisibility": 1
           }
         ]
       }
@@ -271,7 +258,7 @@
         }
     },  {
         "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit", "params":{}},
+            "request": {"jsonrpc":"2.0", "method":"exit"},
             "wait":[]
         }
     }, {

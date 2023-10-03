@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                        Copyright (C) 2021-2023, AdaCore                  --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,12 +18,7 @@
 --  Implementation of the refactoring command to move parameters to the left
 --  and right
 
-with Ada.Streams;
-
 private with VSS.Strings;
-
-with LSP.Client_Message_Receivers;
-with LSP.JSON_Streams;
 
 with LAL_Refactor.Subprogram_Signature;
 use LAL_Refactor.Subprogram_Signature;
@@ -40,8 +35,8 @@ package LSP.Ada_Handlers.Refactor.Move_Parameter is
 
    procedure Append_Code_Action
      (Self              : in out Command;
-      Context           : Context_Access;
-      Commands_Vector   : in out LSP.Messages.CodeAction_Vector;
+      Context           : LSP.Ada_Context_Sets.Context_Access;
+      Commands_Vector   : in out LSP.Structures.Command_Or_CodeAction_Vector;
       Target_Subp       : Libadalang.Analysis.Basic_Decl;
       Parameter_Index   : Positive;
       Move_Direction    : Move_Direction_Type);
@@ -51,39 +46,33 @@ private
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with record
       Context         : VSS.Strings.Virtual_String;
-      Where           : LSP.Messages.TextDocumentPositionParams;
-      Parameter_Index : LSP.Types.LSP_Number;
+      Where           : LSP.Structures.TextDocumentPositionParams;
+      Parameter_Index : Integer;
       Direction       : VSS.Strings.Virtual_String;
    end record;
 
    overriding function Create
-     (JS : not null access LSP.JSON_Streams.JSON_Stream'Class)
+     (Any : not null access LSP.Structures.LSPAny_Vector)
       return Command;
    --  Reads JS and creates a new Command
 
    overriding procedure Refactor
      (Self    : Command;
-      Handler : not null access
-        LSP.Server_Notification_Receivers.Server_Notification_Receiver'Class;
-      Client  : not null access
-        LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Edits   : out LAL_Refactor.Refactoring_Edits);
    --  Executes Self by computing the necessary refactorings
 
    procedure Initialize
      (Self            : in out Command'Class;
-      Context         : LSP.Ada_Contexts.Context;
-      Where           : LSP.Messages.TextDocumentPositionParams;
-      Parameter_Index : LSP.Types.LSP_Number;
+      Context         : LSP.Ada_Context_Sets.Context_Access;
+      Where           : LSP.Structures.TextDocumentPositionParams;
+      Parameter_Index : Integer;
       Direction       : VSS.Strings.Virtual_String);
    --  Initializes Self
 
-   procedure Write_Command
-     (S : access Ada.Streams.Root_Stream_Type'Class;
-      C : Command);
-   --  Writes C to S
+   function Write_Command
+     (Self : Command) return LSP.Structures.LSPAny_Vector;
 
-   for Command'Write use Write_Command;
    for Command'External_Tag use "als-refactor-move-parameter";
 
 end LSP.Ada_Handlers.Refactor.Move_Parameter;

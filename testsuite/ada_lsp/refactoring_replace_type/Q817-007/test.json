@@ -43,7 +43,6 @@
                         "codeActionLiteralSupport": {
                            "codeActionKind": {
                               "valueSet": [
-                                 "<HAS>",
                                  "refactor",
                                  "refactor.extract",
                                  "refactor.inline",
@@ -78,8 +77,7 @@
                            "<HAS>",
                            "als-refactor-replace-type"
                         ]
-                     },
-                     "alsCheckSyntaxProvider": true
+                     }
                   }
                }
             }
@@ -111,7 +109,7 @@
          "wait": [
                 {
                     "jsonrpc": "2.0",
-                    "id": 2,
+                    "id": 1,
                     "method": "window/workDoneProgress/create",
                     "params": {
                         "token": "<ANY>"
@@ -229,27 +227,6 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 2,
-            "method": "$/alsCheckSyntax",
-            "params": {
-               "input": "Fox",
-               "rules": [
-                  "Defining_Name_Rule"
-               ]
-            }
-         },
-         "wait": [
-            {
-               "id": 2,
-               "result": {}
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
             "id": 3,
             "method": "workspace/executeCommand",
             "params": {
@@ -277,7 +254,7 @@
          },
          "wait": [
             {
-               "id": 3,
+               "id": 2,
                "method": "workspace/applyEdit",
                "params": {
                   "label": "Replace Type",

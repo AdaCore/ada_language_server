@@ -92,49 +92,7 @@
                            "("
                         ],
                         "resolveProvider": true
-                     },
-                     "hoverProvider": true,
-                     "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
-                     },
-                     "declarationProvider": true,
-                     "definitionProvider": true,
-                     "typeDefinitionProvider": true,
-                     "implementationProvider": true,
-                     "referencesProvider": true,
-                     "documentHighlightProvider": true,
-                     "documentSymbolProvider": true,
-                     "codeActionProvider": {},
-                     "documentFormattingProvider": true,
-                     "documentRangeFormattingProvider": true,
-                     "renameProvider": {},
-                     "foldingRangeProvider": true,
-                     "executeCommandProvider": {
-                     "commands": [
-                           "<HAS>",
-                           "als-refactor-remove-parameters"
-                        ]
-                     },
-                     "workspaceSymbolProvider": true,
-                     "callHierarchyProvider": {},
-                     "alsShowDepsProvider": true,
-                     "alsReferenceKinds": [
-                        "reference",
-                        "access",
-                        "write",
-                        "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
-                        "overriding"
-                     ],
-                     "alsCheckSyntaxProvider": true
+                     }
                   }
                }
             }
@@ -219,8 +177,7 @@
                         "documentation": "Insert the use-clause corresponding to the with-clause on the same line.",
                         "preselect": false,
                         "sortText": "+use Ada.Text_IO;",
-                        "insertText": "use Ada.Text_IO;",
-                        "additionalTextEdits": []
+                        "insertText": "use Ada.Text_IO;"
                      }
                   ]
                }

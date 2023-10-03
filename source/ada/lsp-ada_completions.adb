@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,73 +15,111 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Latin_1;
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
-with Ada.Strings;
-with Ada.Strings.Hash;
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with GNATCOLL.Traces;
+with VSS.Characters.Latin;
+with VSS.Regular_Expressions;
+with VSS.Strings;              use VSS.Strings;
+with VSS.Strings.Conversions;
+with VSS.Strings.Cursors.Iterators.Characters;
+with VSS.Strings.Cursors.Markers;
+with VSS.Strings.Hash;
 
-with GNAT.Regpat;           use GNAT.Regpat;
-with GNAT.Strings;
-
-with Langkit_Support;
-with Libadalang.Analysis;   use Libadalang.Analysis;
-
+with LSP.Ada_Configurations;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
-with LSP.Common;
-with LSP.Lal_Utils;
-with LSP.Messages;          use LSP.Messages;
+with LSP.Enumerations;
+with LSP.Utils;
 
 with Pp.Actions;
 with Pp.Command_Lines;
 with Pp.Scanner;
-with Utils.Char_Vectors;
 with Utils.Command_Lines;
 with Utils.Command_Lines.Common;
-with VSS.Strings;
-with VSS.Strings.Conversions;
+with Utils.Char_Vectors;
 
 package body LSP.Ada_Completions is
+   pragma Warnings (Off);
 
-   Me_Formatting : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create
-       ("ALS.COMPLETION.FORMATTING", Default => GNATCOLL.Traces.On);
+   package Encoding_Maps is new Ada.Containers.Indefinite_Hashed_Maps
+     (Key_Type        => VSS.Strings.Virtual_String,
+      Element_Type    => VSS.Strings.Virtual_String,
+      Hash            => VSS.Strings.Hash,
+      Equivalent_Keys => VSS.Strings."=");
+
+   ------------------
+   -- Is_End_Token --
+   ------------------
+
+   function Is_End_Token
+     (Token : Libadalang.Common.Token_Reference)
+      return Boolean
+   is
+      use Libadalang.Common;
+      End_Token : constant Libadalang.Common.Token_Data_Type :=
+        Libadalang.Common.Data (Token);
+
+      Token_Kind : constant Libadalang.Common.Token_Kind :=
+        Libadalang.Common.Kind (End_Token);
+   begin
+      return Token_Kind = Libadalang.Common.Ada_End;
+   end Is_End_Token;
 
    ------------------------
    -- Is_Full_Sloc_Equal --
    ------------------------
 
    function Is_Full_Sloc_Equal
-     (Left, Right : Libadalang.Analysis.Defining_Name) return Boolean is
+     (Left, Right : Libadalang.Analysis.Defining_Name) return Boolean
+   is
+      use type Libadalang.Analysis.Analysis_Unit;
+      use type Langkit_Support.Slocs.Source_Location_Range;
    begin
-      return Libadalang.Analysis.Full_Sloc_Image
-          (Left) = Libadalang.Analysis.Full_Sloc_Image (Right);
+      return Left.Sloc_Range = Right.Sloc_Range
+        and then Left.Unit = Right.Unit;
    end Is_Full_Sloc_Equal;
+
+   -----------------------
+   -- Skip_Dotted_Names --
+   -----------------------
+
+   function Skip_Dotted_Names
+     (Node : Libadalang.Analysis.Ada_Node)
+      return Libadalang.Analysis.Ada_Node
+   is
+      use Libadalang.Common;
+      Parent : Libadalang.Analysis.Ada_Node := Node;
+   begin
+      while not Parent.Is_Null
+        and then Parent.Kind = Libadalang.Common.Ada_Dotted_Name
+      loop
+         Parent := Parent.Parent;
+      end loop;
+
+      return Parent;
+   end Skip_Dotted_Names;
 
    -----------------------
    -- Write_Completions --
    -----------------------
 
    procedure Write_Completions
-     (Context                  : LSP.Ada_Contexts.Context;
+     (Handler                  : in out LSP.Ada_Handlers.Message_Handler;
+      Context                  : LSP.Ada_Contexts.Context;
       Document                 : LSP.Ada_Documents.Document;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
       Names                    : Completion_Maps.Map;
       Named_Notation_Threshold : Natural;
       Compute_Doc_And_Details  : Boolean;
-      Result                   : in out LSP.Messages.CompletionItem_Vector)
+      Result                   : in out LSP.Structures.CompletionItem_Vector)
    is
-      function Hash (Value : VSS.Strings.Virtual_String)
-        return Ada.Containers.Hash_Type
-          is (Ada.Containers.Hash_Type'Mod (Value.Hash));
-
       package String_Sets is new Ada.Containers.Hashed_Sets
-        (VSS.Strings.Virtual_String, Hash, VSS.Strings."=", VSS.Strings."=");
+        (VSS.Strings.Virtual_String,
+         VSS.Strings.Hash,
+         VSS.Strings."=",
+         VSS.Strings."=");
 
       Seen   : String_Sets.Set;
       --  Set of found visible names in canonical form
@@ -104,21 +142,21 @@ package body LSP.Ada_Completions is
                Canonical : VSS.Strings.Virtual_String;
             begin
                if Visible and Info.Is_Visible then
-                  Label := LSP.Lal_Utils.To_Virtual_String (Selector.Text);
-                  Canonical := LSP.Lal_Utils.Canonicalize (Label);
+                  Label := VSS.Strings.To_Virtual_String (Selector.Text);
+                  Canonical := LSP.Utils.Canonicalize (Label);
                   Seen.Include (Canonical);
                   Append := True;
                elsif not Visible and not Info.Is_Visible then
                   --  Append invisible name on if no such visible name found
-                  Label := LSP.Lal_Utils.To_Virtual_String (Selector.Text);
-                  Canonical := LSP.Lal_Utils.Canonicalize (Label);
+                  Label := VSS.Strings.To_Virtual_String (Selector.Text);
+                  Canonical := LSP.Utils.Canonicalize (Label);
                   Append := not Seen.Contains (Canonical);
                end if;
 
                if Append then
                   Result.Append
-                    (LSP.Ada_Documents.Compute_Completion_Item
-                       (Document                 => Document,
+                    (Document.Compute_Completion_Item
+                       (Handler                  => Handler,
                         Context                  => Context,
                         Sloc                     => Sloc,
                         Node                     => Node,
@@ -144,18 +182,13 @@ package body LSP.Ada_Completions is
 
    procedure Pretty_Print_Snippet
      (Context : LSP.Ada_Contexts.Context;
-      Prefix  : String;
+      Prefix  : VSS.Strings.Virtual_String;
       Offset  : Natural;
-      Span    : LSP.Messages.Span;
+      Span    : LSP.Structures.A_Range;
       Rule    : Libadalang.Common.Grammar_Rule;
-      Result  : in out LSP.Messages.CompletionItem)
+      Result  : in out LSP.Structures.CompletionItem)
    is
-
-      package Encoding_Maps is new Ada.Containers.Indefinite_Hashed_Maps
-        (Key_Type        => String,
-         Element_Type    => String,
-         Hash            => Ada.Strings.Hash,
-         Equivalent_Keys => "=");
+      use LSP.Ada_Contexts;
 
       Encoding : Encoding_Maps.Map;
       --  Map of Snippet fake name to snippet:
@@ -163,16 +196,16 @@ package body LSP.Ada_Completions is
       --  $0 will not be replaced
 
       procedure Set_PP_Switches
-        (Cmd : in out Utils.Command_Lines.Command_Line);
+        (Cmd : in out Standard.Utils.Command_Lines.Command_Line);
       --  Force switches not enabled by default by GNATpp
 
-      function Encode_String (S : String) return String;
+      function Encode_String (S : Virtual_String) return Virtual_String;
       --  Create pseudo code for the snippet
 
-      function Decode_String (S : String) return String;
+      function Decode_String (S : Virtual_String) return Virtual_String;
       --  Recreate the snippet via the pseudo code
 
-      function Snippet_Placeholder (S : String) return String
+      function Snippet_Placeholder (S : Virtual_String) return Virtual_String
       is ("FooBar_" & S);
       --  Generate a fake entity for a snippet (S is the index of the snippet)
       --  The length of the placeholder will affect where the strings is cut
@@ -181,12 +214,13 @@ package body LSP.Ada_Completions is
       --  parameter type's name)
 
       function Find_Next_Placeholder
-        (S     : String;
-         Start : Integer)
-         return Match_Location;
+        (S     : Virtual_String;
+         Start : VSS.Strings.Cursors.Iterators.Characters.
+           Character_Iterator'Class)
+         return VSS.Regular_Expressions.Regular_Expression_Match;
       --  Find the next placeholder starting from Start in S
 
-      function Post_Pretty_Print (S : String) return String;
+      function Post_Pretty_Print (S : Virtual_String) return Virtual_String;
       --  Indent the block using the initial location and add back $0 (it has
       --  been removed to not generate invalid pseudo code)
 
@@ -195,7 +229,7 @@ package body LSP.Ada_Completions is
       ---------------------
 
       procedure Set_PP_Switches
-        (Cmd : in out Utils.Command_Lines.Command_Line) is
+        (Cmd : in out Standard.Utils.Command_Lines.Command_Line) is
 
       begin
          --  If not set by the user: align parameters and aggregates
@@ -226,39 +260,46 @@ package body LSP.Ada_Completions is
       -- Encode_String --
       -------------------
 
-      function Encode_String (S : String) return String
+      function Encode_String (S : Virtual_String) return Virtual_String
       is
-         Res           : Unbounded_String;
-         Start_Encoded : Natural := 0;
+         Res           : Virtual_String;
+         Start_Encoded : VSS.Strings.Cursors.Markers.Character_Marker;
          Search_Index  : Boolean := False;
-         Encoded_Index : Unbounded_String;
+         Encoded_Index : Virtual_String;
          In_Snippet    : Boolean := False;
 
-         procedure Add_Placeholder (Cursor : Natural);
+         procedure Add_Placeholder
+           (Cursor : VSS.Strings.Cursors.Abstract_Cursor'Class);
 
          ---------------------
          -- Add_Placeholder --
          ---------------------
 
-         procedure Add_Placeholder (Cursor : Natural) is
-            Placeholder : constant String :=
-              Snippet_Placeholder (To_String (Encoded_Index));
+         procedure Add_Placeholder
+           (Cursor : VSS.Strings.Cursors.Abstract_Cursor'Class)
+         is
+            Placeholder : constant Virtual_String :=
+              Snippet_Placeholder (Encoded_Index);
          begin
-            if Encoded_Index /= Null_Unbounded_String then
+            if not Encoded_Index.Is_Empty then
                Encoding.Insert
-                 (Placeholder, S (Start_Encoded .. Cursor));
+                 (Placeholder,
+                  S.Slice (S.At_Character (Start_Encoded), Cursor));
                Append (Res, Placeholder);
-               Encoded_Index := Null_Unbounded_String;
+               Encoded_Index.Clear;
             end if;
          end Add_Placeholder;
 
+         I     : VSS.Strings.Cursors.Iterators.Characters.
+           Character_Iterator := S.At_First_Character;
+         Dummy : Boolean;
       begin
-         for I in S'Range loop
-            case S (I) is
+         while I.Has_Element loop
+            case I.Element is
                when '$' =>
                   Search_Index := True;
-                  Start_Encoded := I;
-                  Encoded_Index := Null_Unbounded_String;
+                  Start_Encoded := I.Marker;
+                  Encoded_Index.Clear;
                when '{' =>
                   In_Snippet := True;
                when '}' =>
@@ -267,58 +308,71 @@ package body LSP.Ada_Completions is
                   Search_Index := False;
                when '0' .. '9' =>
                   if Search_Index then
-                     Append (Encoded_Index, S (I));
+                     Append (Encoded_Index, I.Element);
                   elsif not In_Snippet then
-                     Append (Res, S (I));
+                     Append (Res, I.Element);
                   end if;
                when others =>
                   Search_Index := False;
                   if not In_Snippet then
                      Add_Placeholder (I);
-                     Append (Res, S (I));
+                     Append (Res, I.Element);
                   end if;
             end case;
+            Dummy := I.Forward;
          end loop;
 
          --  Do nothing for $0 which will be removed at the end
 
-         return To_String (Res);
+         return Res;
       end Encode_String;
 
       -------------------
       -- Decode_String --
       -------------------
 
-      function Decode_String (S : String) return String
+      function Decode_String (S : Virtual_String) return Virtual_String
       is
-         Res : Unbounded_String;
-         U   : Unbounded_String := To_Unbounded_String (S);
+         use type VSS.Characters.Virtual_Character;
+
+         Res   : Virtual_String;
+         U     : Virtual_String := S;
+         Dummy : Boolean;
       begin
          --  Remove the extra whitespace at the start
-         Trim (U, Ada.Strings.Left);
+         while U.At_First_Character.Element = VSS.Characters.Latin.Space loop
+            U.Delete (U.At_First_Character, U.At_First_Character);
+         end loop;
 
          declare
-            Trimed_S  : constant String := To_String (U);
-            Cur_Index : Natural := Trimed_S'First;
+            Iterator : VSS.Strings.Cursors.Iterators.Characters.
+              Character_Iterator := U.At_First_Character;
          begin
             loop
                declare
-                  Match : constant Match_Location :=
-                    Find_Next_Placeholder (Trimed_S, Cur_Index);
+                  Match : constant VSS.Regular_Expressions.
+                    Regular_Expression_Match :=
+                      Find_Next_Placeholder (U, Iterator);
                begin
-                  exit when Match = No_Match;
-                  Append
-                    (Res, Trimed_S (Cur_Index .. Match.First - 1));
-                  Append
-                    (Res, Encoding (Trimed_S (Match.First .. Match.Last)));
-                  Cur_Index := Match.Last + 1;
+                  exit when not Match.Has_Match;
+                  declare
+                     Pos : VSS.Strings.Cursors.Iterators.Characters.
+                       Character_Iterator := U.At_Character
+                         (Match.First_Marker);
+                  begin
+                     Dummy := Pos.Backward;
+                     Append (Res, U.Slice (Iterator, Pos));
+                  end;
+                  Append (Res, Encoding (Match.Captured));
+                  Iterator.Set_At (Match.Last_Marker);
+                  Dummy := Iterator.Forward;
                end;
             end loop;
 
-            Append (Res, Trimed_S (Cur_Index .. Trimed_S'Last));
+            Append (Res, U.Slice (Iterator, U.At_Last_Character));
          end;
 
-         return To_String (Res);
+         return Res;
       end Decode_String;
 
       ---------------------------
@@ -326,73 +380,75 @@ package body LSP.Ada_Completions is
       ---------------------------
 
       function Find_Next_Placeholder
-        (S     : String;
-         Start : Integer)
-         return Match_Location
+        (S     : Virtual_String;
+         Start : VSS.Strings.Cursors.Iterators.Characters.
+           Character_Iterator'Class)
+         return VSS.Regular_Expressions.Regular_Expression_Match
       is
-         Placeholder_Regexp : constant Pattern_Matcher :=
-           Compile ("FooBar_[0-9]+");
-         Matched : Match_Array (0 .. 0);
+         Placeholder_Regexp : constant VSS.Regular_Expressions.
+           Regular_Expression := VSS.Regular_Expressions.To_Regular_Expression
+             ("FooBar_[0-9]+");
       begin
-         Match
-           (Self       => Placeholder_Regexp,
-            Data       => S,
-            Matches    => Matched,
-            Data_First => Start);
-         return Matched (0);
+         return Placeholder_Regexp.Match (S, Start);
       end Find_Next_Placeholder;
 
       -----------------------
       -- Post_Pretty_Print --
       -----------------------
 
-      function Post_Pretty_Print (S : String) return String
+      function Post_Pretty_Print (S : Virtual_String) return Virtual_String
       is
-         Res : Unbounded_String;
+         Res : Virtual_String;
       begin
          --  Remove this condition when V725-006 is fixed
-         if S (S'Last) = Ada.Characters.Latin_1.LF then
-            Append (Res, S (S'First .. S'Last - 1));
+         if Ends_With (S, New_Line_Function) then
+            declare
+               C : VSS.Strings.Cursors.Iterators.Characters.
+                 Character_Iterator := S.At_Last_Character;
+               Dummy : Boolean;
+            begin
+               Dummy := C.Backward;
+               Res := Slice (S, S.At_First_Character, C);
+            end;
          else
-            Append (Res, S);
+            Res := S;
          end if;
 
          --  Add back snippet terminator
          Append (Res, "$0");
-         return To_String (Res);
+         return Res;
       end Post_Pretty_Print;
 
+      use type LSP.Enumerations.InsertTextFormat;
    begin
-      if Me_Formatting.Active
-        and then Result.insertText.Is_Set
+      if LSP.Ada_Configurations.Completion_Formatting
+        and then not Result.insertText.Is_Empty
         and then Result.insertTextFormat.Is_Set
-        and then Result.insertTextFormat.Value = Snippet
+        and then Result.insertTextFormat.Value = LSP.Enumerations.Snippet
       then
          declare
-            Input : Utils.Char_Vectors.Char_Vector;
-            Output : Utils.Char_Vectors.Char_Vector;
+            Input       : Standard.Utils.Char_Vectors.Char_Vector;
+            Output      : Standard.Utils.Char_Vectors.Char_Vector;
             PP_Messages : Pp.Scanner.Source_Message_Vector;
-            S : GNAT.Strings.String_Access;
-            Tmp_Unit : Analysis_Unit;
-            Cmd : Utils.Command_Lines.Command_Line := Context.Get_PP_Options;
-            Tmp_Context : constant Analysis_Context :=
-              Create_Context
-                (Charset =>
-                   Utils.Command_Lines.Common.Wide_Character_Encoding (Cmd));
+            S           : Virtual_String;
+            Tmp_Unit    : Libadalang.Analysis.Analysis_Unit;
+            Cmd         : Standard.Utils.Command_Lines.Command_Line :=
+              Context.Get_PP_Options;
+            Tmp_Context : constant Libadalang.Analysis.Analysis_Context :=
+              Libadalang.Analysis.Create_Context
+                (Charset => Standard.Utils.Command_Lines.Common.
+                   Wide_Character_Encoding (Cmd));
          begin
             Set_PP_Switches (Cmd);
 
-            S :=
-              new String'
-                (VSS.Strings.Conversions.To_UTF_8_String
-                   (Result.insertText.Value));
-
             declare
-               Full : constant String := Prefix & Encode_String (S.all);
+               Full : constant String :=
+                 VSS.Strings.Conversions.To_UTF_8_String
+                   (Prefix & Encode_String (Result.insertText));
             begin
                Input.Append (Full);
                Tmp_Unit :=
-                 Get_From_Buffer
+                 Libadalang.Analysis.Get_From_Buffer
                    (Context  => Tmp_Context,
                     Filename => "",
                     Buffer   => Full,
@@ -400,7 +456,7 @@ package body LSP.Ada_Completions is
                Pp.Actions.Format_Vector
                  (Cmd                 => Cmd,
                   Input               => Input,
-                  Node                => Root (Tmp_Unit),
+                  Node                => Libadalang.Analysis.Root (Tmp_Unit),
                   Output              => Output,
                   Messages            => PP_Messages,
                   Initial_Indentation => Offset,
@@ -409,78 +465,32 @@ package body LSP.Ada_Completions is
                when E : others =>
                   --  Failed to pretty print the snippet, keep the previous
                   --  value.
-                  LSP.Common.Log (Context.Trace, E);
+                  Context.Tracer.Trace_Exception (E);
                   return;
             end;
 
-            GNAT.Strings.Free (S);
-            S := new String'(Output.To_Array);
+            S := VSS.Strings.Conversions.To_Virtual_String (Output.To_Array);
 
-            if S.all /= "" then
+            if not S.Is_Empty then
                --  The text is already formatted, don't try to indent it
                Result.insertTextMode :=
                  (Is_Set => True,
-                  Value  => asIs);
+                  Value  => LSP.Enumerations.asIs);
 
                --  Label is too verbose and can conflict with client filtering
                --  set filterText to the content of the span we are replacing.
-               Result.filterText :=
-                 (Is_Set => True,
-                  Value  =>
-                    VSS.Strings.Conversions.To_Virtual_String (Prefix));
+               Result.filterText := Prefix;
 
                Result.textEdit :=
                  (Is_Set => True,
                   Value  =>
                     (Is_TextEdit => True,
                      TextEdit    =>
-                       (span    => Span,
-                        newText =>
-                          VSS.Strings.Conversions.To_Virtual_String
-                            (Post_Pretty_Print (Decode_String (S.all))))));
+                       (a_range => Span,
+                        newText => Post_Pretty_Print (Decode_String (S)))));
             end if;
-            GNAT.Strings.Free (S);
          end;
       end if;
    end Pretty_Print_Snippet;
-
-   ---------------------------
-   -- Generic_Write_Symbols --
-   ---------------------------
-
-   procedure Generic_Write_Symbols
-     (Names  : Completion_Maps.Map;
-      Result : in out LSP.Messages.Symbol_Vector) is
-   begin
-      for Cursor in Names.Iterate loop
-         declare
-            Name : constant Libadalang.Analysis.Defining_Name :=
-              Completion_Maps.Key (Cursor);
-            Node : Libadalang.Analysis.Ada_Node := Name.As_Ada_Node;
-         begin
-            while not Node.Is_Null and then
-              Node.Kind not in Libadalang.Common.Ada_Basic_Decl
-            loop
-               Node := Node.Parent;
-            end loop;
-
-            if not Node.Is_Null then
-               Result.Vector.Append
-                 (LSP.Messages.SymbolInformation'
-                    (name     => LSP.Lal_Utils.To_Virtual_String (Name.Text),
-                     kind     => LSP.Lal_Utils.Get_Decl_Kind
-                                  (Node.As_Basic_Decl),
-                     location => LSP.Lal_Utils.Get_Node_Location
-                                  (Name.As_Ada_Node),
-                     alsIsAdaProcedure => <>,
-                     tags              => LSP.Messages.Empty,
-                     deprecated        => <>,
-                     containerName => <>));
-            end if;
-
-            exit when Has_Been_Canceled;
-         end;
-      end loop;
-   end Generic_Write_Symbols;
 
 end LSP.Ada_Completions;

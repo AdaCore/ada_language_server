@@ -173,7 +173,6 @@
                         "sortText": "+00",
                         "insertText": "A1 => ${1:String}, A2 => ${2:String}, A3 => ${3:String}, A4 => ${4:String}, A5 => ${5:String})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -193,40 +192,35 @@
                         "kind": 5,
                         "sortText": "+01",
                         "insertText": "A1 => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "A2",
                         "kind": 5,
                         "sortText": "+02",
                         "insertText": "A2 => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "A3",
                         "kind": 5,
                         "sortText": "+03",
                         "insertText": "A3 => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "A4",
                         "kind": 5,
                         "sortText": "+04",
                         "insertText": "A4 => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "A5",
                         "kind": 5,
                         "sortText": "+05",
                         "insertText": "A5 => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Bar",
@@ -234,7 +228,6 @@
                         "sortText": "+06",
                         "insertText": "A => ${1:Float}, B => ${2:Float}, C => ${3:Float}, D => ${4:Float}, E => ${5:Float}, F => ${6:Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -254,48 +247,42 @@
                         "kind": 5,
                         "sortText": "+07",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+08",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "C",
                         "kind": 5,
                         "sortText": "+09",
                         "insertText": "C => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "D",
                         "kind": 5,
                         "sortText": "+10",
                         "insertText": "D => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "E",
                         "kind": 5,
                         "sortText": "+11",
                         "insertText": "E => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "F",
                         "kind": 5,
                         "sortText": "+12",
                         "insertText": "F => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Bar",
@@ -303,7 +290,6 @@
                         "sortText": "+13",
                         "insertText": "I => ${1:Integer}, J => ${2:Integer}, K => ${3:Integer}, L => ${4:Integer}, M => ${5:Integer}, N => ${6:Integer}, O => ${7:Integer}, P => ${8:Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -323,64 +309,56 @@
                         "kind": 5,
                         "sortText": "+14",
                         "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "J",
                         "kind": 5,
                         "sortText": "+15",
                         "insertText": "J => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "K",
                         "kind": 5,
                         "sortText": "+16",
                         "insertText": "K => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "L",
                         "kind": 5,
                         "sortText": "+17",
                         "insertText": "L => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "M",
                         "kind": 5,
                         "sortText": "+18",
                         "insertText": "M => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "N",
                         "kind": 5,
                         "sortText": "+19",
                         "insertText": "N => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "O",
                         "kind": 5,
                         "sortText": "+20",
                         "insertText": "O => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "P",
                         "kind": 5,
                         "sortText": "+21",
                         "insertText": "P => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }

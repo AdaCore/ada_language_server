@@ -123,15 +123,8 @@
          },
          "wait": [
             {
-               "params": {
-                  "message": "The result of 'definition' is approximate.",
-                  "type": 2
-               },
-               "method": "window/showMessage"
-            },
-            {
                "id": 2,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -145,7 +138,6 @@
                      },
                      "uri": "$URI{p.adb}"
                   }
-               ]
             }
          ]
       }

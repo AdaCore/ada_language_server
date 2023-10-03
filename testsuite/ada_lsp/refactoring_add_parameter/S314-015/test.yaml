@@ -1,4 +1,4 @@
-title: 'refactoring_add_parameters_S314-015_0'
+title: 'refactoring_add_parameter/S314-015'
 
 description: >
     Check that the Add_Parameter codeAction is not available if the client

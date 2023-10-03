@@ -83,8 +83,7 @@
                                     "<HAS>",
                                     "als-refactor-introduce-parameter"
                                 ]
-                            },
-                            "alsCheckSyntaxProvider": true
+                            }
                         }
                     }
                 }
@@ -190,24 +189,22 @@
                             "command": {
                                 "title": "",
                                 "command": "als-refactor-introduce-parameter",
-                                "arguments": [
-                                    {
-                                        "context_id": "Default",
-                                        "where": {
-                                            "uri": "$URI{main.adb}",
-                                            "range": {
-                                                "start": {
-                                                    "line": 4,
-                                                    "character": 33
-                                                },
-                                                "end": {
-                                                    "line": 4,
-                                                    "character": 46
-                                                }
-                                            }
-                                        }
-                                    }
-                                ]
+                                "arguments": [{
+                                     "context_id": "Default",
+                                     "where": {
+                                         "uri": "$URI{main.adb}",
+                                         "range": {
+                                             "start": {
+                                                 "line": 4,
+                                                 "character": 33
+                                             },
+                                             "end": {
+                                                 "line": 4,
+                                                 "character": 46
+                                             }
+                                         }
+                                     }
+                                 }]
                             }
                         }
                     ]
@@ -223,29 +220,27 @@
                 "method": "workspace/executeCommand",
                 "params": {
                     "command": "als-refactor-introduce-parameter",
-                    "arguments": [
-                        {
-                            "context_id": "Default",
-                            "where": {
-                                "uri": "$URI{main.adb}",
-                                "range": {
-                                    "start": {
-                                        "line": 4,
-                                        "character": 33
-                                    },
-                                    "end": {
-                                        "line": 4,
-                                        "character": 46
-                                    }
-                                }
-                            }
-                        }
-                    ]
+                    "arguments": [{
+                         "context_id": "Default",
+                         "where": {
+                             "uri": "$URI{main.adb}",
+                             "range": {
+                                 "start": {
+                                     "line": 4,
+                                     "character": 33
+                                 },
+                                 "end": {
+                                     "line": 4,
+                                     "character": 46
+                                 }
+                             }
+                         }
+                     }]
                 }
             },
             "wait": [
                 {
-                    "id": 3,
+                    "id": 2,
                     "method": "workspace/applyEdit",
                     "params": {
                         "edit": {

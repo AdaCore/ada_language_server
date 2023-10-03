@@ -172,7 +172,6 @@
                         "sortText": "+0",
                         "insertText": " A => ${2:Integer}, B => ${3:Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
                         "documentation": "at bar.ads (11:4)"
                      },
@@ -182,8 +181,7 @@
                         "documentation": " A => ",
                         "sortText": "+1",
                         "insertText": " A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
@@ -191,8 +189,7 @@
                         "documentation": " B => ",
                         "sortText": "+2",
                         "insertText": " B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Hello",
@@ -200,7 +197,6 @@
                         "sortText": "+3",
                         "insertText": " ${2:B : Float})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "detail": "procedure Hello (A : Integer; B : Float)",
                         "documentation": "at bar.ads (3:4)"
                      },
@@ -210,8 +206,7 @@
                         "documentation": " B => ",
                         "sortText": "+4",
                         "insertText": " B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -280,7 +275,6 @@
                         "sortText": "+0",
                         "insertText": " A => ${2:Integer})$0",
                         "insertTextFormat": 2,
-                        "additionalTextEdits": [],
                         "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
                         "documentation": "at bar.ads (11:4)"
                      },
@@ -290,8 +284,7 @@
                         "documentation": " A => ",
                         "sortText": "+1",
                         "insertText": " A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -369,8 +362,7 @@
                         "documentation": " B => ",
                         "sortText": "+1",
                         "insertText": " B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }

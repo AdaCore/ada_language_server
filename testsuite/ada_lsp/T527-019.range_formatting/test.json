@@ -26,7 +26,8 @@
                     "id": 1,
                     "result": {
                         "capabilities": {
-                            "textDocumentSync": 2
+                            "textDocumentSync": 2,
+                            "documentRangeFormattingProvider": true
                         }
                     }
                 }

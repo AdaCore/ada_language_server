@@ -74,43 +74,10 @@ package LSP.Lal_Utils is
    --  associated Virtual_File or Node can able to return URI of the enclosing
    --  file.
 
-   procedure Sort_And_Remove_Duplicates
-     (Result : in out LSP.Messages.Location_Vector);
-   --  Sort Result and remove duplicates from it.
-
-   function Get_Location
-     (Unit : Libadalang.Analysis.Analysis_Unit;
-      Span : Langkit_Support.Slocs.Source_Location_Range;
-      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
-      return LSP.Messages.Location;
-   --  Return the location in a unit. Populate alsKind field of the result with
-   --  given Kind.
-   --  XXX Please avoid use of this subprogram, it doesn't provide Document
-   --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Document.To_LSP_Range instead, or add necessary wrapper.
-
-   function Get_Node_Location
-     (Node : Libadalang.Analysis.Ada_Node'Class;
-      Kind : LSP.Messages.AlsReferenceKind_Set := LSP.Messages.Empty_Set)
-      return LSP.Messages.Location;
-   --  Return the location of the given node. Populate alsKind field of the
-   --  result with given Kind.
-   --  XXX Please avoid use of this subprogram, it doesn't provide Document
-   --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Document.To_LSP_Range instead, or add necessary wrapper.
-
    function Get_Token_Span
      (Token : Libadalang.Common.Token_Reference)
       return LSP.Messages.Span;
    --  Return the span of the given token.
-   --  XXX Please avoid use of this subprogram, it doesn't provide Document
-   --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
-   --  use Document.To_LSP_Range instead, or add necessary wrapper.
-
-   function To_Span
-     (Value : Langkit_Support.Slocs.Source_Location_Range)
-      return LSP.Messages.Span;
-   --  Convert Source_Location_Range to Span
    --  XXX Please avoid use of this subprogram, it doesn't provide Document
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
    --  use Document.To_LSP_Range instead, or add necessary wrapper.
@@ -142,18 +109,6 @@ package LSP.Lal_Utils is
       return LSP.Messages.WorkspaceEdit
      with Pre => (if Versioned_Documents then Document_Provider /= null);
    --  Converts an Edit_Map into a WorkspaceEdit
-
-   function To_Workspace_Edit
-     (Edits               : LAL_Refactor.Refactoring_Edits;
-      Resource_Operations : LSP.Messages.Optional_ResourceOperationKindSet :=
-        LSP.Messages.Optional_ResourceOperationKindSet'(Is_Set => False);
-      Versioned_Documents : Boolean := False;
-      Document_Provider   : access LSP.Ada_Documents.Document_Provider'Class :=
-        null;
-      Rename              : Boolean := False)
-      return LSP.Messages.WorkspaceEdit;
-   --  Converts a Refactoring_Edits into a WorkspaceEdit. The Rename flag
-   --  controls if files that are supposed to be deleted, are renamed instead.
 
    ---------------
    -- Called_By --
@@ -190,25 +145,6 @@ package LSP.Lal_Utils is
    --  TODO: Reactivate these lines when libadalang supports
    --  P_Next_Part for tasks: T716-049
 
-   function Canonicalize
-     (Text : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
-   --  Return a canonicalized value for Text. This performs case folding and
-   --  brackets decoding.
-
-   function Get_Decl_Kind
-     (Node         : Libadalang.Analysis.Basic_Decl;
-      Ignore_Local : Boolean := False)
-      return LSP.Messages.SymbolKind;
-   --  Return a LSP SymbolKind for the given Libadalang Basic_Decl
-   --  When Ignore_Local it will return Is_Null for all local objects like
-   --  variables.
-
-   function Get_Call_Expr
-     (Node : Libadalang.Analysis.Ada_Node'Class)
-      return Libadalang.Analysis.Call_Expr;
-   --  From Node try to find a Call_Expr node, it will handle basic error
-   --  recovery.
-
    function To_Call_Hierarchy_Item
      (Name : Libadalang.Analysis.Defining_Name)
       return LSP.Messages.CallHierarchyItem;
@@ -223,11 +159,6 @@ package LSP.Lal_Utils is
    --  Convert the given Node and the given references to it to the
    --  corresponding CallHierarchyItem and its associated spans, which contains
    --  the references. This should be used for the callHierarchy requests.
-
-   function Node_Location_Image
-     (Node : Libadalang.Analysis.Ada_Node'Class)
-      return VSS.Strings.Virtual_String;
-   --  Return "file.adb:line:col" as a string
 
    function Containing_Entity
      (Ref       : Ada_Node;
@@ -258,26 +189,6 @@ package LSP.Lal_Utils is
       return VSS.Strings.Virtual_String;
    --  Do string type conversion.
 
-   --  Global symbol index predicates.
-
-   function Is_Restricted_Kind return Libadalang.Iterators.Ada_Node_Predicate;
-   --  A node under query doesn't participate in global symbol index. It's a
-   --  defining name of a declaration such as
-   --  * a loop parameter specification
-   --  * parameter declaration
-   --  * discriminant/component declaration
-   --  * return object declaration
-   --  * entry/entry-index declaration
-   --  * formal parameter declaration
-   --  * etc
-   --  It also includes any symbols local to some non-package body.
-   --  These symbols isn't very useful in "invisible symbol completion" and
-   --  in "Go to workspace symbol" requests.
-
-   function Is_Global_Visible return Libadalang.Iterators.Ada_Node_Predicate;
-   --  A node under query is a defined name visible at a library level, such
-   --  as declaration in a public part of a library level project.
-
    function Is_End_Token
      (Token : Libadalang.Common.Token_Reference) return Boolean;
    --  Check if Token is <end>.
@@ -285,10 +196,5 @@ package LSP.Lal_Utils is
    function Skip_Dotted_Names
      (Node : Libadalang.Analysis.Ada_Node) return Libadalang.Analysis.Ada_Node;
    --  While Node.Kind is the Dotted_Name go up.
-
-   function Is_Synthetic
-     (Node : Libadalang.Analysis.Ada_Node'Class) return Boolean;
-   --  Check if Node is in a synthetic file (like "__standard").
-   --  TODO: Replace this with LAL property as it will be available.
 
 end LSP.Lal_Utils;

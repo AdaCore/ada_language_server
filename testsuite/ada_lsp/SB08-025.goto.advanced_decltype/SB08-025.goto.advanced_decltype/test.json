@@ -122,7 +122,7 @@
          "wait": [
             {
                "id": 4,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -136,7 +136,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -161,7 +160,7 @@
          "wait": [
             {
                "id": 6,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -175,7 +174,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -200,7 +198,7 @@
          "wait": [
             {
                "id": 8,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -214,7 +212,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -239,7 +236,7 @@
          "wait": [
             {
                "id": 10,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -253,7 +250,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -278,7 +274,7 @@
          "wait": [
             {
                "id": 12,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -292,7 +288,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -317,7 +312,7 @@
          "wait": [
             {
                "id": 14,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -331,7 +326,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }

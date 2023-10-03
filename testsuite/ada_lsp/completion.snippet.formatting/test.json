@@ -161,7 +161,6 @@
                             },
                             "newText": "Bar (${1:A : Integer}, ${2:B : Integer})$0"
                         },
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -181,16 +180,14 @@
                         "kind": 5,
                         "sortText": "+01",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+02",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Bar",
@@ -212,7 +209,6 @@
                             },
                             "newText": "Bar\n     (AAAAAAAA     => ${1:Integer},\n      BB           => ${2:Integer},\n      CCCCCCCC     => ${3:Integer},\n      DDDDDDDDDDDD => ${4:Integer},\n      E            => ${5:Integer})$0"
                         },
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -232,40 +228,35 @@
                         "kind": 5,
                         "sortText": "+04",
                         "insertText": "AAAAAAAA => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "BB",
                         "kind": 5,
                         "sortText": "+05",
                         "insertText": "BB => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "CCCCCCCC",
                         "kind": 5,
                         "sortText": "+06",
                         "insertText": "CCCCCCCC => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "DDDDDDDDDDDD",
                         "kind": 5,
                         "sortText": "+07",
                         "insertText": "DDDDDDDDDDDD => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "E",
                         "kind": 5,
                         "sortText": "+08",
                         "insertText": "E => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "Params of Bar",
@@ -287,7 +278,6 @@
                             },
                             "newText": "Bar\n     (A => ${1:Integer},\n      B => ${2:Integer},\n      C => ${3:Integer},\n      D => ${4:Integer},\n      E => ${5:Integer},\n      F => ${6:Integer},\n      G => ${7:Integer},\n      H => ${8:Integer},\n      I => ${9:Integer},\n      J => ${10:Integer})$0"
                         },
-                        "additionalTextEdits": [],
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
@@ -307,80 +297,70 @@
                         "kind": 5,
                         "sortText": "+10",
                         "insertText": "A => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "B",
                         "kind": 5,
                         "sortText": "+11",
                         "insertText": "B => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "C",
                         "kind": 5,
                         "sortText": "+12",
                         "insertText": "C => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "D",
                         "kind": 5,
                         "sortText": "+13",
                         "insertText": "D => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "E",
                         "kind": 5,
                         "sortText": "+14",
                         "insertText": "E => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "F",
                         "kind": 5,
                         "sortText": "+15",
                         "insertText": "F => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "G",
                         "kind": 5,
                         "sortText": "+16",
                         "insertText": "G => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "H",
                         "kind": 5,
                         "sortText": "+17",
                         "insertText": "H => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "I",
                         "kind": 5,
                         "sortText": "+18",
                         "insertText": "I => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      },
                      {
                         "label": "J",
                         "kind": 5,
                         "sortText": "+19",
                         "insertText": "J => ",
-                        "insertTextFormat": 1,
-                        "additionalTextEdits": []
+                        "insertTextFormat": 1
                      }
                   ]
                }
