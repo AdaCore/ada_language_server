@@ -116,7 +116,7 @@ ifneq ($(COVERAGE),)
 	# are not overriden by new ones don't get in our way.
 	rm -rf .obj/*/gnatcov-instr
 	$(COVERAGE_INSTR) -XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) \
-		-Pgnat/lsp_server.gpr --projects lsp_server --projects lsp
+		-Pgnat/lsp_server.gpr --projects lsp_server --projects lsp_3_17
 	$(COVERAGE_INSTR) -Pgnat/tester.gpr --projects lsp
 	$(COVERAGE_INSTR) -Pgnat/codec_test.gpr --projects lsp
 endif
