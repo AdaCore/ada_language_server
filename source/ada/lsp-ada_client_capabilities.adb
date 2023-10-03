@@ -63,6 +63,24 @@ package body LSP.Ada_Client_Capabilities is
               else False);
    end Code_ActionLiteralSupport;
 
+   -------------------------------
+   -- Completion_SnippetSupport --
+   -------------------------------
+
+   function Completion_SnippetSupport
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        snippetSupport
+          (completionItem
+            (completion
+               (Self.Value.capabilities.textDocument)));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end Completion_SnippetSupport;
+
    -----------------------------------------------
    -- didChangeWatchedFiles_dynamicRegistration --
    -----------------------------------------------

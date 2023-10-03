@@ -1633,7 +1633,9 @@ package body LSP.Ada_Handlers is
         LSP.Ada_Completions.Attributes.Attributes_Completion_Provider;
 
       P5 : aliased LSP.Ada_Completions.Names.Name_Completion_Provider
-        (Self.Configuration.Use_Completion_Snippets);
+        (Self.Configuration.Use_Completion_Snippets
+         and then Self.Client.Completion_SnippetSupport);
+
       P6 : aliased LSP.Ada_Handlers.Invisibles.Invisible_Completion_Provider
         (Self'Access, Context);
       P7 : aliased
