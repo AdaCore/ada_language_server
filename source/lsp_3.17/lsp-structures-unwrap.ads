@@ -44,6 +44,11 @@ package LSP.Structures.Unwrap is
        return resolveSupport_OfWorkspaceSymbolClientCapabilities_Optional is
          (if X.Is_Set then X.Value.resolveSupport else (Is_Set => False));
 
+   function snippetSupport
+     (X : completionItem_OfCompletionClientCapabilities_Optional)
+       return Boolean_Optional is
+         (if X.Is_Set then X.Value.snippetSupport else (Is_Set => False));
+
    function properties
      (X : resolveSupport_OfWorkspaceSymbolClientCapabilities_Optional)
        return LSP.Structures.Virtual_String_Vector is
