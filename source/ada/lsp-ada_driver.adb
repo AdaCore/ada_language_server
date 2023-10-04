@@ -330,8 +330,10 @@ begin
          Server.Run
            (GPR_Handler'Unchecked_Access,
             Tracer'Unchecked_Access,
-            In_Logger  => In_Logger'Unchecked_Access,
-            Out_Logger => Out_Logger'Unchecked_Access);
+            In_Logger  => (if In_Trace.Is_Active
+                           then In_Logger'Unchecked_Access else null),
+            Out_Logger => (if Out_Trace.Is_Active
+                           then Out_Logger'Unchecked_Access else null));
 
       else
          Register_Commands;
@@ -339,8 +341,10 @@ begin
          Server.Run
            (Ada_Handler'Unchecked_Access,
             Tracer'Unchecked_Access,
-            In_Logger  => In_Logger'Unchecked_Access,
-            Out_Logger => Out_Logger'Unchecked_Access);
+            In_Logger  => (if In_Trace.Is_Active
+                           then In_Logger'Unchecked_Access else null),
+            Out_Logger => (if Out_Trace.Is_Active
+                           then Out_Logger'Unchecked_Access else null));
       end if;
    exception
       when E : others =>

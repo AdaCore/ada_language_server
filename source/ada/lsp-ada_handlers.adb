@@ -1722,6 +1722,7 @@ package body LSP.Ada_Handlers is
       --  been computed.
       if Value.data.Is_Empty then
          Self.Sender.On_Completion_Resolve_Response (Id, Value);
+         return;
       end if;
 
       C := Value.data.First;
