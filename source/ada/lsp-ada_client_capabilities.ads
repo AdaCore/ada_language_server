@@ -75,6 +75,10 @@ package LSP.Ada_Client_Capabilities is
      (Self : Client_Capability'Class) return Boolean;
    --  Returns textDocument.documentSymbol.hierarchicalDocumentSymbolSupport
 
+   function Completion_SnippetSupport
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns textDocument.completion.completionItem.snippetSupport
+
    function didChangeWatchedFiles_dynamicRegistration
      (Self : Client_Capability'Class) return Boolean;
    --  Returns capabilities.workspace.didChangeWatchedFiles.dynamicRegistration
