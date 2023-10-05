@@ -264,6 +264,7 @@ package body LSP.Secure_Message_Loggers is
       Value : LSP.Structures.DidChangeTextDocumentParams)
    is
       use type Ada.Containers.Count_Type;
+      use type VSS.Strings.Character_Count;
 
       Ok : Boolean := True;
 
@@ -289,6 +290,12 @@ package body LSP.Secure_Message_Loggers is
         and then not Content.rangeLength.Is_Set
       then
          Self.Output.Put ("<some text>", Ok);
+      elsif (for some Change of Value.contentChanges =>
+              Change.text.Character_Length > 80)
+        or else Value.contentChanges.Last_Index > 20
+      then
+         --  Don't dump very long changes to avoid stack overflow
+         Self.Output.Put ("<some big change>", Ok);
       else
          Self.Output.Put
            (VSS.Strings.To_Virtual_String
