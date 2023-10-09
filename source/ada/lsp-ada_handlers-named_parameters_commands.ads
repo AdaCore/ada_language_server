@@ -52,9 +52,10 @@ private
        return Command;
 
    overriding procedure Execute
-     (Self    : Command;
-      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Error   : in out LSP.Errors.ResponseError_Optional);
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional);
 
    function Write_Command
      (Self : Command) return LSP.Structures.LSPAny_Vector;
