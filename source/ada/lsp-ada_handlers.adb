@@ -3379,6 +3379,7 @@ package body LSP.Ada_Handlers is
          LSP.File_Monitors.File_Monitor_Access);
 
       Response : LSP.Structures.InitializeResult;
+      Log_Info : LSP.Structures.LogMessageParams;
       Token_Types     : LSP.Structures.Virtual_String_Vector;
       Token_Motifiers : LSP.Structures.Virtual_String_Vector;
    begin
@@ -3402,6 +3403,11 @@ package body LSP.Ada_Handlers is
       end if;
 
       Self.Sender.On_Initialize_Response (Id, Response);
+
+      Log_Info.a_type := LSP.Enumerations.Log;
+      Log_Info.message.Append ("Log directory is ");
+      Log_Info.message.Append (Self.Tracer.Location);
+      Self.Sender.On_LogMessage_Notification (Log_Info);
    end On_Initialize_Request;
 
    ---------------------------------

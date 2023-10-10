@@ -39,6 +39,17 @@ package body LSP.GNATCOLL_Tracers is
       Self.Out_Trace := Out_Trace;
    end Initialize;
 
+   --------------
+   -- Location --
+   --------------
+
+   overriding function Location
+     (Self : Tracer) return VSS.Strings.Virtual_String is
+   begin
+      return VSS.Strings.Conversions.To_Virtual_String
+        (Self.Server_Trace.Get_Stream_File.Display_Full_Name);
+   end Location;
+
    -----------
    -- Trace --
    -----------
