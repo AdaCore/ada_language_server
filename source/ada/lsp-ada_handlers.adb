@@ -2946,18 +2946,19 @@ package body LSP.Ada_Handlers is
       end if;
 
       declare
-         Command : constant LSP.Ada_Commands.Command'Class :=
+         Response : LSP.Structures.LSPAny_Or_Null;
+         Command  : constant LSP.Ada_Commands.Command'Class :=
            Create_Command (Tag, Value.arguments'Unrestricted_Access);
       begin
          Command.Execute
-           (Handler => Self'Access,
-            Error   => Error);
+           (Handler  => Self'Access,
+            Response => Response,
+            Error    => Error);
 
          if Error.Is_Set then
             Self.Sender.On_Error_Response (Id, Error.Value);
          else
-            --  No particular response in case of success.
-            Self.Sender.On_ExecuteCommand_Response (Id, (Is_Null => True));
+            Self.Sender.On_ExecuteCommand_Response (Id, Response);
          end if;
       end;
    end On_ExecuteCommand_Request;

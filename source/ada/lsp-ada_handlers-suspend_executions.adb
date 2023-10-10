@@ -72,9 +72,12 @@ package body LSP.Ada_Handlers.Suspend_Executions is
    -------------
 
    overriding procedure Execute
-     (Self    : Suspend_Execution;
-      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Error   : in out LSP.Errors.ResponseError_Optional) is
+     (Self     : Suspend_Execution;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional)
+   is
+      pragma Unreferenced (Response);
    begin
       while Handler.Server.Input_Queue_Length < Self.Input_Queue_Length loop
          delay 0.1;

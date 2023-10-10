@@ -40,16 +40,10 @@ project LSP_Server is
 
    for Source_Dirs use
      ("../source/server",
-      "../source/server/generated",
       "../source/ada",
       "../source/gpr",
       "../source/ada/generated",
       "../source/memory");
-
-   for Excluded_Source_Dirs use
-     ("../source/server/generated");
-
-   for Excluded_Source_List_File use "ignore_in_317.txt";
 
    for Object_Dir use "../.obj/server";
    for Main use ("lsp-ada_driver.adb");

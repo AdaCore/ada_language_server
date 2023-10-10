@@ -8,8 +8,8 @@ a given unit.
 
 ## Capabilities
 
-The `initialize` request returns a boolean `alsShowDepsProvider` as part of
-the `capabilities`, set to true if the server supports this functionality.
+The `initialize` request returns `als-show-dependencies` in the list of
+supported commands if the server supports this functionality.
 
 ## Change description
 
@@ -23,7 +23,7 @@ export namespace ALS_ShowDependenciesKind {
 }
 
 interface ALS_ShowDependenciesParams {
-   textDocument : TextDocumentIdentifier; /* The queried unit */
+   uri          : DocumentUri; /* The queried unit */
    kind         : ALS_ShowDependenciesKind; /* The dependencies query kind */
    showImplicit : boolean; /* True if implicit dependencies should be returned */
 }
@@ -34,15 +34,16 @@ interface ALS_Unit_Description {
 }
 ```
 
-And a new request:
+And a new command `als-show-dependencies`:
 
-  method: `textDocument/alsShowDependencies`
-  params: `ALS_ShowDependenciesParams`
+    method: `workspace/executeCommand`
+    "params": {
+       "command": "als-show-dependencies",
+       "arguments": [
+          <ALS_ShowDependenciesParams>
+       ]
+    }
 
-Returning the references to the method identified at the given position:
+It returns list of `ALS_Unit_Description`:
 
   result: `ALS_Unit_Description[]`
-
-We also introduce a new boolean field `ALS_showDepsProvider` in the
-interface `ServerCapabilities` indicating whether the server supports
-this extension.

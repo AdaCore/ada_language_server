@@ -29,9 +29,10 @@ package LSP.Ada_Handlers.Refactor is
    function Name (Self : Command) return String is abstract;
 
    overriding procedure Execute
-     (Self    : Command;
-      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Error   : in out LSP.Errors.ResponseError_Optional);
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional);
 
    procedure Refactor
      (Self    : Command;

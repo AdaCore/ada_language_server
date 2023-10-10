@@ -41,9 +41,10 @@ package LSP.Ada_Commands is
       return Command is abstract;
 
    procedure Execute
-     (Self    : Command;
-      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Error   : in out LSP.Errors.ResponseError_Optional) is abstract;
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional) is abstract;
    --  Execute given command and return Error is something went wrong.
    --  Commands are executed on the server side only.
    --  The Handler is the access to the message handler executing the command.

@@ -73,40 +73,12 @@
                   "result": {
                       "capabilities": {
                           "textDocumentSync": 2,
-                          "completionProvider": {
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ],
-                              "resolveProvider": true
-                          },
-                          "hoverProvider": true,
-                          "declarationProvider": true,
-                          "definitionProvider": true,
-                          "typeDefinitionProvider": true,
-                          "implementationProvider": true,
-                          "referencesProvider": true,
-                          "documentSymbolProvider": true,
-                          "codeActionProvider": {
-                          },
-                          "documentFormattingProvider": true,
-                          "renameProvider": {
-                          },
-                          "foldingRangeProvider": true,
-                          "executeCommandProvider": {},
-                          "alsShowDepsProvider": true,
-                          "alsReferenceKinds": [
-                              "reference",
-                              "access",
-                              "write",
-                              "call",
-                              "dispatching call",
-                              "parent",
-                              "child",
-                              "overriding"
-                          ]
+                          "executeCommandProvider": {
+                            "commands": [
+                                "<HAS>",
+                                "als-show-dependencies"
+                            ]
+                          }
                       }
                   }
               }
@@ -162,15 +134,18 @@
       "send": {
          "request": {
             "params": {
-               "textDocument": {
-                  "uri": "$URI{common/common_pack.ads}"
-               },
-               "showImplicit": false,
-               "kind": 2
+                "command": "als-show-dependencies",
+                "arguments": [
+                    {
+                       "uri": "$URI{common/common_pack.ads}",
+                       "showImplicit": false,
+                    "kind": 2
+                    }
+                ]
             },
             "jsonrpc": "2.0",
             "id": 2,
-            "method": "textDocument/alsShowDependencies"
+            "method": "workspace/executeCommand"
          },
          "sortReply": {"result": "uri"},
          "wait": [
@@ -179,19 +154,19 @@
                "result": [
                   {
                      "uri": "$URI{common/common_pack.ads}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   },
                   {
                      "uri": "$URI{common/common_pack.ads}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   },
                   {
                      "uri": "$URI{p/main.adb}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   },
                   {
                      "uri": "$URI{q/main.adb}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   }
                ]
             }
