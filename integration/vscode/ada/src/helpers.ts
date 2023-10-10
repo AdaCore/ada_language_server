@@ -17,7 +17,7 @@
 import { platform } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { LanguageClient } from 'vscode-languageclient/node';
+import { ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -181,21 +181,6 @@ export function logErrorAndThrow(msg: string, channel: vscode.OutputChannel) {
 /*
     GPR extensions helper functions
 */
-type ProjectFileResponse = {
-    projectFile: string;
-};
-
-type ObjDirResponse = {
-    objectDir: string;
-};
-
-type MainsResponse = {
-    mains: string[];
-};
-
-type ExecutablesResponse = {
-    executables: string[];
-};
 
 /**
  * Get the project file from the workspace configuration if available, or from
@@ -205,8 +190,10 @@ type ExecutablesResponse = {
  * @returns a string contains the path of the project file
  */
 export async function getProjectFile(client: LanguageClient): Promise<string> {
-    const result: ProjectFileResponse = await client.sendRequest('$/glsProjectFile');
-    return result.projectFile;
+    const result: string = (await client.sendRequest(ExecuteCommandRequest.type, {
+        command: 'als-project-file',
+    })) as string;
+    return result;
 }
 
 /**
@@ -215,8 +202,10 @@ export async function getProjectFile(client: LanguageClient): Promise<string> {
  * @returns a string path
  */
 export async function getObjectDir(client: LanguageClient): Promise<string> {
-    const result: ObjDirResponse = await client.sendRequest('$/glsObjectDir');
-    return result.objectDir;
+    const result: string = (await client.sendRequest(ExecuteCommandRequest.type, {
+        command: 'als-object-dir',
+    })) as string;
+    return result;
 }
 
 /**
@@ -225,8 +214,10 @@ export async function getObjectDir(client: LanguageClient): Promise<string> {
  * @returns a vector of string paths
  */
 export async function getMains(client: LanguageClient): Promise<string[]> {
-    const result: MainsResponse = await client.sendRequest('$/glsMains');
-    return result.mains;
+    const result: string[] = (await client.sendRequest(ExecuteCommandRequest.type, {
+        command: 'als-mains',
+    })) as string[];
+    return result;
 }
 
 /**
@@ -235,6 +226,8 @@ export async function getMains(client: LanguageClient): Promise<string[]> {
  * @returns a vector of string paths
  */
 export async function getExecutables(client: LanguageClient): Promise<string[]> {
-    const result: ExecutablesResponse = await client.sendRequest('$/glsExecutables');
-    return result.executables;
+    const result: string[] = (await client.sendRequest(ExecuteCommandRequest.type, {
+        command: 'als-executables',
+    })) as string[];
+    return result;
 }
