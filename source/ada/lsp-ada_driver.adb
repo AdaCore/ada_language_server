@@ -305,12 +305,6 @@ begin
       GNATCOLL.Memory.Configure (Activate_Monitor => True);
    end if;
 
-   if not VSS.Command_Line.Is_Specified (Language_GPR_Option) then
-      --  Load predefined completion items
-      LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
-      Register_Commands;
-   end if;
-
    Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Error);
    --  Protect stdout from pollution by accidental Put_Line calls
 
@@ -340,6 +334,10 @@ begin
 
       else
          Register_Commands;
+
+         --  Load predefined completion items
+         LSP.Predefined_Completion.Load_Predefined_Completion_Db
+           (Server_Trace);
 
          Server.Run
            (Ada_Handler'Unchecked_Access,
