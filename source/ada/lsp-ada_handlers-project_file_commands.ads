@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2019, AdaCore                       --
+--                        Copyright (C) 2021, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,23 +15,29 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
---  Define an interface for server backends
+--  Implementation of the command to get the root project file.
 
-with LSP.Messages;
+with LSP.Ada_Commands;
+with LSP.Errors;
 
-package LSP.Server_Backends is
+package LSP.Ada_Handlers.Project_File_Commands is
 
-   type Server_Backend is limited interface;
-   type Server_Backend_Access is access all Server_Backend'Class;
+   type Command is new LSP.Ada_Commands.Command with private;
 
-   procedure Before_Work
-     (Self    : access Server_Backend;
-      Message : LSP.Messages.Message'Class) is abstract;
-   --  Called before working on Message
+private
 
-   procedure After_Work
-     (Self    : access Server_Backend;
-      Message : LSP.Messages.Message'Class) is abstract;
-   --  Called after working on Message
+   type Command is new LSP.Ada_Commands.Command with null record;
 
-end LSP.Server_Backends;
+   overriding function Create
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+       return Command;
+
+   overriding procedure Execute
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional);
+
+   for Command'External_Tag use "als-project-file";
+
+end LSP.Ada_Handlers.Project_File_Commands;

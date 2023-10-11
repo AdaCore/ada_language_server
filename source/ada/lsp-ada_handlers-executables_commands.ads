@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                        Copyright (C) 2020-2023, AdaCore                  --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,12 +15,29 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Server_Request_Handlers;
+--  Implementation of the command to get list of executables for the project.
 
-function LSP.Servers.Handle_Request
-  (Self    : not null LSP.Server_Request_Handlers
-     .Server_Request_Handler_Access;
-   Request : LSP.Messages.RequestMessage'Class)
-   return LSP.Messages.ResponseMessage'Class;
---  This dispatches a Request to the appropriate
---  *_Request subprogram implemented by clients.
+with LSP.Ada_Commands;
+with LSP.Errors;
+
+package LSP.Ada_Handlers.Executables_Commands is
+
+   type Command is new LSP.Ada_Commands.Command with private;
+
+private
+
+   type Command is new LSP.Ada_Commands.Command with null record;
+
+   overriding function Create
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+       return Command;
+
+   overriding procedure Execute
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional);
+
+   for Command'External_Tag use "als-executables";
+
+end LSP.Ada_Handlers.Executables_Commands;

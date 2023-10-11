@@ -31,10 +31,12 @@ package body LSP.Ada_Handlers.Refactor is
    -------------
 
    overriding procedure Execute
-     (Self    : Command;
-      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Error   : in out LSP.Errors.ResponseError_Optional)
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional)
    is
+      pragma Unreferenced (Response);
       use LAL_Refactor;
 
       function To_LSP_Diagnostic

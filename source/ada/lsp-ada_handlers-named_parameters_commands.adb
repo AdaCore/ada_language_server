@@ -145,10 +145,12 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
    -------------
 
    overriding procedure Execute
-     (Self    : Command;
-      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Error   : in out LSP.Errors.ResponseError_Optional)
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional)
    is
+      pragma Unreferenced (Response);
       use LSP.Structures;
 
       procedure Append
@@ -158,9 +160,6 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
       Apply  : LSP.Structures.ApplyWorkspaceEditParams;
       Edits  : LSP.Structures.WorkspaceEdit renames Apply.edit;
-
-      Message_Handler : LSP.Ada_Handlers.Message_Handler renames
-        LSP.Ada_Handlers.Message_Handler (Handler.all);
 
       ------------
       -- Append --
@@ -201,10 +200,10 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
       end Append;
 
       Context  : LSP.Ada_Contexts.Context renames
-        Message_Handler.Contexts.Get (Self.Context).all;
+        Handler.Contexts.Get (Self.Context).all;
 
       Document : constant LSP.Ada_Documents.Document_Access :=
-        Message_Handler.Get_Open_Document (Self.Where.textDocument.uri);
+        Handler.Get_Open_Document (Self.Where.textDocument.uri);
 
       Node : Libadalang.Analysis.Ada_Node :=
         Document.Get_Node_At (Context, Self.Where.position);

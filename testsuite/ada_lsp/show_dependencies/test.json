@@ -73,39 +73,12 @@
                   "result": {
                       "capabilities": {
                           "textDocumentSync": 2,
-                          "completionProvider": {
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ],
-                              "resolveProvider": true
-                          },
-                          "hoverProvider": true,
-                          "declarationProvider": true,
-                          "definitionProvider": true,
-                          "typeDefinitionProvider": true,
-                          "implementationProvider": true,
-                          "referencesProvider": true,
-                          "codeActionProvider": {
-                          },
-                          "documentFormattingProvider": true,
-                          "renameProvider": {
-                          },
-                          "foldingRangeProvider": true,
-                          "executeCommandProvider": {},
-                          "alsShowDepsProvider": true,
-                          "alsReferenceKinds": [
-                              "reference",
-                              "access",
-                              "write",
-                              "call",
-                              "dispatching call",
-                              "parent",
-                              "child",
-                              "overriding"
-                          ]
+                          "executeCommandProvider": {
+                            "commands": [
+                                "<HAS>",
+                                "als-show-dependencies"
+                            ]
+                          }
                       }
                   }
               }
@@ -177,15 +150,18 @@
       "send": {
          "request": {
             "params": {
-               "textDocument": {
-                  "uri": "$URI{package_2.ads}"
-               },
-                "kind": 2,
-                "showImplicit": false
+                "command": "als-show-dependencies",
+                "arguments": [
+                    {
+                        "uri": "$URI{package_2.ads}",
+                        "kind": 2,
+                        "showImplicit": false
+                    }
+                ]
             },
             "jsonrpc": "2.0",
             "id": 2,
-            "method": "textDocument/alsShowDependencies"
+            "method": "workspace/executeCommand"
          },
          "wait": [
             {
@@ -193,15 +169,15 @@
                "result": [
                   {
                      "uri": "$URI{main.adb}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   },
                   {
                      "uri": "$URI{package_1.adb}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   },
                   {
                      "uri": "$URI{package_2.ads}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   }
                ]
             }
@@ -212,14 +188,17 @@
       "send": {
          "request": {
             "params": {
-               "textDocument": {
-                  "uri": "$URI{main.adb}"
-               },
-               "kind": 1
+                "command": "als-show-dependencies",
+                "arguments": [
+                    {
+                        "uri": "$URI{main.adb}",
+                        "kind": 1
+                    }
+                ]
             },
             "jsonrpc": "2.0",
             "id": 3,
-            "method": "textDocument/alsShowDependencies"
+            "method": "workspace/executeCommand"
          },
          "wait": [
             {
@@ -227,11 +206,11 @@
                "result": [
                   {
                      "uri": "$URI{package_1.ads}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   },
                   {
                      "uri": "$URI{package_2.ads}",
-                     "projectUri": "$URI{/}"
+                     "projectUri": "$URI{.}"
                   }
                ]
             }

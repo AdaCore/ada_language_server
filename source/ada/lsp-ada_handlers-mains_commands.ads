@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                        Copyright (C) 2020-2023, AdaCore                  --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,14 +15,29 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with VSS.Strings;
-with VSS.Text_Streams;
+--  Implementation of the command to get list of mains for the project.
 
-with LSP.Messages.Server_Notifications;
+with LSP.Ada_Commands;
+with LSP.Errors;
 
-function LSP.Servers.Decode_Notification
-  (Document : VSS.Text_Streams.Input_Text_Stream_Access;
-   Method   : VSS.Strings.Virtual_String)
-   return LSP.Messages.Server_Notifications.Server_Notification'Class;
---  Decode the request present in the input document. Document is a JSON
---  representation of the protocol string.
+package LSP.Ada_Handlers.Mains_Commands is
+
+   type Command is new LSP.Ada_Commands.Command with private;
+
+private
+
+   type Command is new LSP.Ada_Commands.Command with null record;
+
+   overriding function Create
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+       return Command;
+
+   overriding procedure Execute
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional);
+
+   for Command'External_Tag use "als-mains";
+
+end LSP.Ada_Handlers.Mains_Commands;

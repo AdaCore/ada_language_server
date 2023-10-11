@@ -15,11 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GPR2.Project.View;
+
 with VSS.JSON.Streams;
 
-with LSP.Servers;
-
-package body LSP.Ada_Handlers.Suspend_Executions is
+package body LSP.Ada_Handlers.Executables_Commands is
 
    ------------
    -- Create --
@@ -27,44 +27,10 @@ package body LSP.Ada_Handlers.Suspend_Executions is
 
    overriding function Create
      (Any : not null access LSP.Structures.LSPAny_Vector)
-      return Suspend_Execution
-   is
-      use type VSS.Strings.Virtual_String;
-      use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
-      use all type VSS.JSON.JSON_Number_Kind;
-
-      Index : Natural := Any.First_Index;
+       return Command is
    begin
-      return Result : Suspend_Execution :=
-        (Input_Queue_Length => 0)
-      do
-         if Index < Any.Last_Index
-           and then Any (Index).Kind = Start_Array
-         then
-            Index := Index + 1;
-
-            if Index < Any.Last_Index
-              and then Any (Index).Kind = Start_Object
-            then
-               Index := Index + 1;
-
-               if Index < Any.Last_Index
-                 and then Any (Index).Kind = Key_Name
-                 and then Any (Index).Key_Name = "inputQueueLength"
-               then
-                  Index := Index + 1;
-
-                  if Index < Any.Last_Index
-                    and then Any (Index).Kind = Number_Value
-                    and then Any (Index).Number_Value.Kind = JSON_Integer
-                  then
-                     Result.Input_Queue_Length :=
-                       Natural (Any (Index).Number_Value.Integer_Value);
-                  end if;
-               end if;
-            end if;
-         end if;
-      end return;
+      --  We have no arguments for this command
+      return V : Command;
    end Create;
 
    -------------
@@ -72,16 +38,38 @@ package body LSP.Ada_Handlers.Suspend_Executions is
    -------------
 
    overriding procedure Execute
-     (Self     : Suspend_Execution;
+     (Self     : Command;
       Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Response : in out LSP.Structures.LSPAny_Or_Null;
       Error    : in out LSP.Errors.ResponseError_Optional)
    is
-      pragma Unreferenced (Response);
+      procedure Append (Item : VSS.JSON.Streams.JSON_Stream_Element);
+
+      ------------
+      -- Append --
+      ------------
+
+      procedure Append (Item : VSS.JSON.Streams.JSON_Stream_Element) is
+      begin
+         Response.Value.Append (Item);
+      end Append;
+
+      Value   : VSS.Strings.Virtual_String;
+      Element : GPR2.Project.View.Object;
    begin
-      while Handler.Server.Input_Queue_Length < Self.Input_Queue_Length loop
-         delay 0.1;
-      end loop;
+      Response := (Is_Null => False, Value => <>);
+      Append ((Kind => VSS.JSON.Streams.Start_Array));
+
+      if Handler.Project_Tree.Is_Defined then
+         Element := Handler.Project_Tree.Root_Project;
+
+         for Exec of Element.Executables loop
+            Value := VSS.Strings.Conversions.To_Virtual_String (Exec.Value);
+            Append ((VSS.JSON.Streams.String_Value, Value));
+         end loop;
+      end if;
+
+      Append ((Kind => VSS.JSON.Streams.End_Array));
    end Execute;
 
-end LSP.Ada_Handlers.Suspend_Executions;
+end LSP.Ada_Handlers.Executables_Commands;

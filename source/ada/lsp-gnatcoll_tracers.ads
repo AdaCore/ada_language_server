@@ -63,6 +63,9 @@ package LSP.GNATCOLL_Tracers is
      (Self : in out Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector);
 
+   overriding function Location
+     (Self : Tracer) return VSS.Strings.Virtual_String;
+
 private
 
    type Tracer is limited new LSP.Tracers.Tracer with record

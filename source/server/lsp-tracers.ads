@@ -61,4 +61,8 @@ package LSP.Tracers is
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector) is abstract;
    --  Append raw data as text to output trace file
 
+   function Location (Self : Tracer) return VSS.Strings.Virtual_String
+     is abstract;
+   --  Return information about trace location on the filesystem.
+
 end LSP.Tracers;

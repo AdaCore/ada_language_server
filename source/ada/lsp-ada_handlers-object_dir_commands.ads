@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                        Copyright (C) 2021, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,15 +15,30 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with VSS.Strings;
-with VSS.Text_Streams;
+--  Implementation of the command to get an object directory of the root
+--  project.
 
-with LSP.Messages.Server_Requests;
+with LSP.Ada_Commands;
+with LSP.Errors;
+
+package LSP.Ada_Handlers.Object_Dir_Commands is
+
+   type Command is new LSP.Ada_Commands.Command with private;
 
 private
-function LSP.Servers.Decode_Request
-  (Document : VSS.Text_Streams.Input_Text_Stream_Access;
-   Method   : VSS.Strings.Virtual_String)
-   return LSP.Messages.Server_Requests.Server_Request'Class;
---  Decode the request present in the input document. Document is a JSON
---  representation of the protocol string.
+
+   type Command is new LSP.Ada_Commands.Command with null record;
+
+   overriding function Create
+     (Any : not null access LSP.Structures.LSPAny_Vector)
+       return Command;
+
+   overriding procedure Execute
+     (Self     : Command;
+      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Response : in out LSP.Structures.LSPAny_Or_Null;
+      Error    : in out LSP.Errors.ResponseError_Optional);
+
+   for Command'External_Tag use "als-object-dir";
+
+end LSP.Ada_Handlers.Object_Dir_Commands;

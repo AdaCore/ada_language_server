@@ -39,8 +39,12 @@ with GNATCOLL.Utils;
 
 with LSP.Ada_Commands;
 with LSP.Ada_Handlers;
+with LSP.Ada_Handlers.Executables_Commands;
+with LSP.Ada_Handlers.Mains_Commands;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
+with LSP.Ada_Handlers.Object_Dir_Commands;
 with LSP.Ada_Handlers.Other_File_Commands;
+with LSP.Ada_Handlers.Project_File_Commands;
 with LSP.Ada_Handlers.Project_Reload_Commands;
 with LSP.Ada_Handlers.Refactor.Add_Parameter;
 with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
@@ -55,6 +59,7 @@ with LSP.Ada_Handlers.Refactor.Remove_Parameter;
 with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+with LSP.Ada_Handlers.Show_Dependencies_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
@@ -88,6 +93,16 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Suspend_Executions.Suspend_Execution'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Project_Reload_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Show_Dependencies_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Executables_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Mains_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Project_File_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Object_Dir_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Named_Parameters_Commands.Command'Tag);
       LSP.Ada_Commands.Register
@@ -302,12 +317,6 @@ begin
       GNATCOLL.Memory.Configure (Activate_Monitor => True);
    end if;
 
-   if not VSS.Command_Line.Is_Specified (Language_GPR_Option) then
-      --  Load predefined completion items
-      LSP.Predefined_Completion.Load_Predefined_Completion_Db (Server_Trace);
-      Register_Commands;
-   end if;
-
    Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Error);
    --  Protect stdout from pollution by accidental Put_Line calls
 
@@ -337,6 +346,10 @@ begin
 
       else
          Register_Commands;
+
+         --  Load predefined completion items
+         LSP.Predefined_Completion.Load_Predefined_Completion_Db
+           (Server_Trace);
 
          Server.Run
            (Ada_Handler'Unchecked_Access,
