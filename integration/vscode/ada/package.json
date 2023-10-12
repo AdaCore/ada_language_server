@@ -553,13 +553,19 @@
                     "taskKind"
                 ],
                 "properties": {
+                    "type": {
+                        "type": "string",
+                        "$comment": "This pattern is intended to always fail in order to display the obsoletion message",
+                        "pattern": "^$",
+                        "patternErrorMessage": "This task type is deprecated. Use task type \"ada\" or \"spark\" instead."
+                    },
                     "taskKind": {
                         "type": "string",
                         "description": "Tool and action kind"
                     },
                     "args": {
                         "type": "array",
-                        "description": "Extra command arguments"
+                        "description": "Extra command line arguments"
                     }
                 }
             },
@@ -569,6 +575,12 @@
                     "main"
                 ],
                 "properties": {
+                    "type": {
+                        "type": "string",
+                        "$comment": "This pattern is intended to always fail in order to display the obsoletion message",
+                        "pattern": "^$",
+                        "patternErrorMessage": "This task type is deprecated. Use task type \"ada\" or \"spark\" instead."
+                    },
                     "projectFile": {
                         "type": "string",
                         "description": "The project file"
