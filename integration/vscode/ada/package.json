@@ -446,6 +446,108 @@
         ],
         "taskDefinitions": [
             {
+                "type": "ada",
+                "required": [
+                    "configuration"
+                ],
+                "properties": {
+                    "configuration": {
+                        "type": "object",
+                        "required": [
+                            "kind",
+                            "projectFile"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "type": "string",
+                                "description": "Kind of Ada task",
+                                "enum": [
+                                    "buildProject",
+                                    "checkFile",
+                                    "cleanProject",
+                                    "buildMain",
+                                    "buildAndRunMain"
+                                ]
+                            },
+                            "projectFile": {
+                                "type": "string",
+                                "description": "Path to GPR project file",
+                                "default": "${config:ada.projectFile}"
+                            },
+                            "args": {
+                                "type": "array",
+                                "description": "Extra command line arguments"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "oneOf": [
+                            {
+                                "properties": {
+                                    "kind": {
+                                        "enum": [
+                                            "buildProject",
+                                            "checkFile",
+                                            "cleanProject"
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "kind": {
+                                        "enum": [
+                                            "buildMain",
+                                            "buildAndRunMain"
+                                        ]
+                                    },
+                                    "main": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "type": "spark",
+                "properties": {
+                    "configuration": {
+                        "type": "object",
+                        "required": [
+                            "kind",
+                            "projectFile"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "description": "Kind of SPARK task",
+                                "enum": [
+                                    "cleanProjectForProof",
+                                    "examineProject",
+                                    "examineFile",
+                                    "examineSubprogram",
+                                    "proveProject",
+                                    "proveFile",
+                                    "proveSubprogram",
+                                    "proveRegion",
+                                    "proveLine"
+                                ]
+                            },
+                            "projectFile": {
+                                "type": "string",
+                                "description": "Path to GPR project file",
+                                "default": "${config:ada.projectFile}"
+                            },
+                            "args": {
+                                "type": "array",
+                                "description": "Extra command line arguments"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            {
                 "type": "gnat",
                 "required": [
                     "taskKind"
