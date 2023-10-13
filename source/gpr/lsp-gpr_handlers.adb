@@ -25,6 +25,7 @@ with GPR2.Message;
 with GPR2.Path_Name.Set;
 with GPR2.Source_Reference;
 
+with LSP.GPR_Completions;
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Generic_Cancel_Check;
@@ -33,9 +34,6 @@ with LSP.GPR_File_Readers;
 with LSP.GPR_Files.Symbols;
 with LSP.Servers;
 with LSP.Server_Notifications.DidChange;
-with URIs;
-
-with VSS.Strings.Conversions;
 
 package body LSP.GPR_Handlers is
 
@@ -43,21 +41,6 @@ package body LSP.GPR_Handlers is
      GNATCOLL.Traces.Create ("ALS.ALLOW_INCREMENTAL_TEXT_CHANGES",
                              GNATCOLL.Traces.On);
    --  Trace to activate the support for incremental text changes.
-
-   function To_File
-     (Self : Message_Handler'Class;
-      Item : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File;
-   --  Turn URI into Virtual_File
-
-   function To_File
-     (Self : Message_Handler'Class;
-      Item : LSP.Structures.DocumentUri) return GPR2.Path_Name.Object;
-   --  Turn URI into GPR2 path object.
-
-   function To_URI
-     (Self : Message_Handler'Class;
-      Item : GPR2.Path_Name.Object) return LSP.Structures.DocumentUri;
-   --  Turn GPR2 path object into URI.
 
    procedure Publish_Diagnostics
      (Self     : access Message_Handler'Class;
@@ -488,13 +471,20 @@ package body LSP.GPR_Handlers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InitializeParams)
    is
-      Response : LSP.Structures.InitializeResult;
+      Response     : LSP.Structures.InitializeResult;
       Capabilities : LSP.Structures.ServerCapabilities;
 
    begin
       Self.File_Reader := LSP.GPR_File_Readers.Create (Self'Unchecked_Access);
 
+      Self.Client.Initialize (Value);
+
       Capabilities.hoverProvider := LSP.Constants.True;
+      Capabilities.completionProvider :=
+        (Is_Set => True,
+         Value  => (triggerCharacters => [" "],
+                    resolveProvider   => LSP.Constants.True,
+                    others            => <>));
 
       Response.capabilities := Capabilities;
 
@@ -524,6 +514,61 @@ package body LSP.GPR_Handlers is
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
+
+   ---------------------------
+   -- On_Completion_Request --
+   ---------------------------
+
+   overriding procedure On_Completion_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CompletionParams)
+   is
+      --  If lazy computation for the 'detail' and 'documentation' fields is
+      --  supported by the client, set the Compute_Doc_And_Details flag to
+      --  False.
+      Compute_Doc_And_Details : constant Boolean :=
+        not Self.Client.Resolve_Lazily;
+
+      Response : LSP.Structures.Completion_Result
+        (Kind => LSP.Structures.Variant_2);
+   begin
+      Response.Variant_2.isIncomplete := False;
+
+      LSP.GPR_Completions.Fill_Completion_Response
+        (File_Provider           => Self'Unchecked_Access,
+         Value                   => Value,
+         Compute_Doc_And_Details => Compute_Doc_And_Details,
+         Response                => Response);
+
+      Self.Sender.On_Completion_Response (Id, Response);
+   end On_Completion_Request;
+
+   -----------------------------------
+   -- On_Completion_Resolve_Request --
+   -----------------------------------
+
+   overriding procedure On_Completion_Resolve_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CompletionItem)
+   is
+      Response : LSP.Structures.CompletionItem := Value;
+   begin
+      --  Return immediately if we don't have data that allows us to compute
+      --  additional information for the given item.
+      --  This is the case when all the completion item's fields have already
+      --  been computed.
+      if Value.data.Is_Empty then
+         Self.Sender.On_Completion_Resolve_Response (Id, Value);
+         return;
+      end if;
+
+      LSP.GPR_Completions.Fill_Completion_Resolve_Response
+        (Response => Response);
+
+      Self.Sender.On_Completion_Resolve_Response (Id, Response);
+   end On_Completion_Resolve_Request;
 
    ----------------------------
    -- On_Server_Notification --
@@ -668,33 +713,6 @@ package body LSP.GPR_Handlers is
       end if;
    end Publish_Diagnostics;
 
-   -------------
-   -- To_File --
-   -------------
-
-   function To_File
-     (Self : Message_Handler'Class;
-      Item : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File
-   is
-     (GNATCOLL.VFS.Create_From_UTF8
-        (URIs.Conversions.To_File
-           (URI       => VSS.Strings.Conversions.To_UTF_8_String (Item),
-            Normalize => Self.Follow_Symlinks)));
-
-   -------------
-   -- To_File --
-   -------------
-
-   function To_File
-     (Self : Message_Handler'Class;
-      Item : LSP.Structures.DocumentUri) return GPR2.Path_Name.Object
-   is
-     (GPR2.Path_Name.Create_File
-        (GPR2.Filename_Type
-             (URIs.Conversions.To_File
-                  (URI       => VSS.Strings.Conversions.To_UTF_8_String (Item),
-                   Normalize => Self.Follow_Symlinks))));
-
    ------------------------------------
    -- To_Optional_DiagnosticSeverity --
    ------------------------------------
@@ -740,16 +758,5 @@ package body LSP.GPR_Handlers is
    begin
       return Result;
    end To_Range;
-
-   ------------
-   -- To_URI --
-   ------------
-
-   function To_URI
-     (Self : Message_Handler'Class;
-      Item : GPR2.Path_Name.Object) return LSP.Structures.DocumentUri
-   is
-     (VSS.Strings.Conversions.To_Virtual_String
-        (URIs.Conversions.From_File (Item.Value)) with null record);
 
 end LSP.GPR_Handlers;

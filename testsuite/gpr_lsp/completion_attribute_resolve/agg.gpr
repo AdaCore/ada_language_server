@@ -1,0 +1,6 @@
+aggregate library project Agg is
+for Project_F
+for Ext
+package Builder is
+ for S
+ for E

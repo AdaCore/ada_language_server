@@ -25,6 +25,7 @@ private with GPR2.File_Readers;
 private with GPR2.Path_Name;
 
 with LSP.Client_Message_Receivers;
+with LSP.GPR_Client_Capabilities;
 with LSP.GPR_Documents;
 with LSP.GPR_Files;
 with LSP.Server_Message_Visitors;
@@ -35,6 +36,10 @@ with LSP.Server_Notification_Receivers;
 private with LSP.Structures;
 with LSP.Tracers;
 with LSP.Unimplemented_Handlers;
+
+with URIs;
+
+with VSS.Strings.Conversions;
 
 package LSP.GPR_Handlers is
 
@@ -84,6 +89,8 @@ private
      and LSP.GPR_Documents.Document_Provider
      and LSP.GPR_Files.File_Provider
    with record
+      Client               : LSP.GPR_Client_Capabilities.Client_Capability;
+
       Open_Documents       : Document_Maps.Map;
       --  The documents that are currently open
 
@@ -146,6 +153,16 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.HoverParams);
 
+   overriding procedure On_Completion_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CompletionParams);
+
+   overriding procedure On_Completion_Resolve_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CompletionItem);
+
    -----------------------------------------
    -- LSP.GPR_Documents.Document_Provider --
    -----------------------------------------
@@ -192,5 +209,31 @@ private
    overriding function Get_File_Reader
      (Self : access Message_Handler)
       return GPR2.File_Readers.File_Reader_Reference is (Self.File_Reader);
+
+   overriding function To_File
+     (Self : access Message_Handler;
+      Item : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File
+   is
+     (GNATCOLL.VFS.Create_From_UTF8
+        (URIs.Conversions.To_File
+             (URI       => VSS.Strings.Conversions.To_UTF_8_String (Item),
+              Normalize => Self.Follow_Symlinks)));
+
+   overriding function To_File
+     (Self : access Message_Handler;
+      Item : LSP.Structures.DocumentUri) return GPR2.Path_Name.Object
+   is
+     (GPR2.Path_Name.Create_File
+        (GPR2.Filename_Type
+             (URIs.Conversions.To_File
+                  (URI       => VSS.Strings.Conversions.To_UTF_8_String (Item),
+                   Normalize => Self.Follow_Symlinks))));
+
+   overriding function To_URI
+     (Self : access Message_Handler;
+      Item : GPR2.Path_Name.Object) return LSP.Structures.DocumentUri
+   is
+     (VSS.Strings.Conversions.To_Virtual_String
+        (URIs.Conversions.From_File (Item.Value)) with null record);
 
 end LSP.GPR_Handlers;

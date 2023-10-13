@@ -83,6 +83,9 @@ build_and_test:
     - cp -r $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
     - echo -e "\e[0Ksection_end:`date +%s`:prepare_artifacts\r\e[0K"
 
+    - if [ ! -z ${FAILED+x} ]; then cat $CI_PROJECT_DIR/als_xunit_output.xml; fi
+    - if [ ! -z ${FAILED+x} ]; then cat $CI_PROJECT_DIR/vscode_xunit_output.xml; fi
+
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 
   artifacts:
