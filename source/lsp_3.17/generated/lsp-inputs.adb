@@ -343,6 +343,10 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.TextDocumentPositionParams);
 
+   procedure Read_Boolean_Vector
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.Boolean_Vector);
+
    procedure Read_CodeLensRegistrationOptions
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.CodeLensRegistrationOptions);
@@ -1147,13 +1151,13 @@ package body LSP.Inputs is
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.DocumentSymbolClientCapabilities);
 
-   procedure Read_InitializeError
-     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Structures.InitializeError);
-
    procedure Read_LinkedEditingRangeRegistrationOptions
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
       Value   : out LSP.Structures.LinkedEditingRangeRegistrationOptions);
+
+   procedure Read_InitializeError
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.InitializeError);
 
    procedure Read_SemanticTokensClientCapabilities
      (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
@@ -8035,6 +8039,28 @@ package body LSP.Inputs is
 
       Handler.Read_Next;
    end Read_TextDocumentPositionParams;
+
+   procedure Read_Boolean_Vector
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.Boolean_Vector) is
+   begin
+      pragma Assert (Handler.Is_Start_Array);
+      Handler.Read_Next;
+
+      declare
+         Set   : LSP.Structures.Boolean_Vector renames Value;
+         Value : Standard.Boolean;
+      begin
+         Set.Clear;
+         while not Handler.Is_End_Array loop
+            Value := Handler.Boolean_Value;
+            Handler.Read_Next;
+            Set.Append (Value);
+         end loop;
+      end;
+
+      Handler.Read_Next;
+   end Read_Boolean_Vector;
 
    package DidSaveTextDocumentParams_Scope is
       package DidSaveTextDocumentParams_Map is new Minimal_Perfect_Hash
@@ -15106,7 +15132,8 @@ package body LSP.Inputs is
    package CallHierarchyIncomingCall_Scope is
       package CallHierarchyIncomingCall_Map is new Minimal_Perfect_Hash
         (["from",
-         "fromRanges"]);
+         "fromRanges",
+         "dispatching_calls"]);
 
    end CallHierarchyIncomingCall_Scope;
 
@@ -15129,6 +15156,8 @@ package body LSP.Inputs is
                   Read_CallHierarchyItem (Handler, Value.from);
                when 2 =>  --  fromRanges
                   Read_Range_Vector (Handler, Value.fromRanges);
+               when 3 =>  --  dispatching_calls
+                  Read_Boolean_Vector (Handler, Value.dispatching_calls);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -19053,7 +19082,8 @@ package body LSP.Inputs is
    package CallHierarchyOutgoingCall_Scope is
       package CallHierarchyOutgoingCall_Map is new Minimal_Perfect_Hash
         (["to",
-         "fromRanges"]);
+         "fromRanges",
+         "dispatching_calls"]);
 
    end CallHierarchyOutgoingCall_Scope;
 
@@ -19076,6 +19106,8 @@ package body LSP.Inputs is
                   Read_CallHierarchyItem (Handler, Value.to);
                when 2 =>  --  fromRanges
                   Read_Range_Vector (Handler, Value.fromRanges);
+               when 3 =>  --  dispatching_calls
+                  Read_Boolean_Vector (Handler, Value.dispatching_calls);
                when others =>
                   Handler.Skip_Current_Value;
             end case;
@@ -22001,38 +22033,6 @@ package body LSP.Inputs is
       Handler.Read_Next;
    end Read_DocumentSymbolClientCapabilities;
 
-   package InitializeError_Scope is
-      package InitializeError_Map is new Minimal_Perfect_Hash (["retry"]);
-
-   end InitializeError_Scope;
-
-   procedure Read_InitializeError
-     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
-      Value   : out LSP.Structures.InitializeError) is
-      use InitializeError_Scope;
-   begin
-      pragma Assert (Handler.Is_Start_Object);
-      Handler.Read_Next;
-
-      while not Handler.Is_End_Object loop
-         pragma Assert (Handler.Is_Key_Name);
-         declare
-            Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
-         begin
-            Handler.Read_Next;
-            case InitializeError_Map.Get_Index (Key) is
-               when 1 =>  --  retry
-                  Value.retry := Handler.Boolean_Value;
-                  Handler.Read_Next;
-               when others =>
-                  Handler.Skip_Current_Value;
-            end case;
-         end;
-      end loop;
-
-      Handler.Read_Next;
-   end Read_InitializeError;
-
    package LinkedEditingRangeRegistrationOptions_Scope is
       package LinkedEditingRangeRegistrationOptions_Map is new Minimal_Perfect_Hash
         (["documentSelector",
@@ -22095,6 +22095,38 @@ package body LSP.Inputs is
 
       Handler.Read_Next;
    end Read_LinkedEditingRangeRegistrationOptions;
+
+   package InitializeError_Scope is
+      package InitializeError_Map is new Minimal_Perfect_Hash (["retry"]);
+
+   end InitializeError_Scope;
+
+   procedure Read_InitializeError
+     (Handler : in out VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+      Value   : out LSP.Structures.InitializeError) is
+      use InitializeError_Scope;
+   begin
+      pragma Assert (Handler.Is_Start_Object);
+      Handler.Read_Next;
+
+      while not Handler.Is_End_Object loop
+         pragma Assert (Handler.Is_Key_Name);
+         declare
+            Key : constant VSS.Strings.Virtual_String := Handler.Key_Name;
+         begin
+            Handler.Read_Next;
+            case InitializeError_Map.Get_Index (Key) is
+               when 1 =>  --  retry
+                  Value.retry := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when others =>
+                  Handler.Skip_Current_Value;
+            end case;
+         end;
+      end loop;
+
+      Handler.Read_Next;
+   end Read_InitializeError;
 
    package SemanticTokensClientCapabilities_Scope is
       package SemanticTokensClientCapabilities_Map is new Minimal_Perfect_Hash

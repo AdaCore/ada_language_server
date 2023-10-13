@@ -9428,8 +9428,8 @@ package body LSP.Message_IO is
                CallHierarchyItem'Read (S, V.from);
             elsif Key = "fromRanges" then
                Span_Vector'Read (S, V.fromRanges);
-            elsif Key = "kinds" then
-               AlsReferenceKind_Vector'Read (S, V.kinds);
+            elsif Key = "dispatching_calls" then
+               LSP.Messages.Boolean_Vector'Read (S, V.dispatching_calls);
             else
                JS.Skip_Value;
             end if;
@@ -9450,8 +9450,8 @@ package body LSP.Message_IO is
       CallHierarchyItem'Write (S, V.from);
       JS.Key ("fromRanges");
       Span_Vector'Write (S, V.fromRanges);
-      JS.Key ("kinds");
-      AlsReferenceKind_Vector'Write (S, V.kinds);
+      JS.Key ("dispatching_calls");
+      LSP.Messages.Boolean_Vector'Write (S, V.dispatching_calls);
       JS.End_Object;
    end Write_CallHierarchyIncomingCall;
 
@@ -9475,8 +9475,8 @@ package body LSP.Message_IO is
                CallHierarchyItem'Read (S, V.to);
             elsif Key = "fromRanges" then
                Span_Vector'Read (S, V.fromRanges);
-            elsif Key = "kinds" then
-               AlsReferenceKind_Vector'Read (S, V.kinds);
+            elsif Key = "dispatching_calls" then
+               LSP.Messages.Boolean_Vector'Read (S, V.dispatching_calls);
             else
                JS.Skip_Value;
             end if;
@@ -9497,8 +9497,8 @@ package body LSP.Message_IO is
       CallHierarchyItem'Write (S, V.to);
       JS.Key ("fromRanges");
       Span_Vector'Write (S, V.fromRanges);
-      JS.Key ("kinds");
-      AlsReferenceKind_Vector'Write (S, V.kinds);
+      JS.Key ("dispatching_calls");
+      LSP.Messages.Boolean_Vector'Write (S, V.dispatching_calls);
       JS.End_Object;
    end Write_CallHierarchyOutgoingCall;
 

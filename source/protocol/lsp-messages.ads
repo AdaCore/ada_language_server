@@ -10122,6 +10122,10 @@ package LSP.Messages is
    for CallHierarchyIncomingCallsParams'Read use Read_CallHierarchyIncomingCallsParams;
    for CallHierarchyIncomingCallsParams'Write use Write_CallHierarchyIncomingCallsParams;
 
+   package Boolean_Vectors is new LSP.Generic_Vectors
+     (Optional_Boolean, Write_Empty => LSP.Write_Array);
+   type Boolean_Vector is new Boolean_Vectors.Vector with null record;
+
    --```typescript
    --export interface CallHierarchyIncomingCall {
    --
@@ -10135,12 +10139,18 @@ package LSP.Messages is
    --	 * denoted by [`this.from`](#CallHierarchyIncomingCall.from).
    --	 */
    --	fromRanges: Range[];
+   --
+   --	/**
+   --	 * Used to know which call listed in `fromRanges` is dispatching or not.
+   --     The array length is equal to the `fromRanges` ones.
+   --	 */
+   --	dispatching_calls?: Boolean[];
    --}
    --```
    type CallHierarchyIncomingCall is record
       from: CallHierarchyItem;
       fromRanges: Span_Vector;
-      kinds: AlsReferenceKind_Vector;
+      dispatching_calls : LSP.Messages.Boolean_Vector;
    end record;
 
    procedure Read_CallHierarchyIncomingCall
@@ -10179,12 +10189,18 @@ package LSP.Messages is
    --	 * the caller, e.g the item passed to `callHierarchy/outgoingCalls` request.
    --	 */
    --	fromRanges: Range[];
+   --
+   --	/**
+   --	 * Used to know which call listed in `fromRanges` is dispatching or not.
+   --     The array length is equal to the `fromRanges` ones.
+   --	 */
+   --	dispatching_calls?: Boolean[];
    --}
    --```
    type CallHierarchyOutgoingCall is record
       to: CallHierarchyItem;
       fromRanges: Span_Vector;
-      kinds: AlsReferenceKind_Vector;
+      dispatching_calls : LSP.Messages.Boolean_Vector;
    end record;
 
    procedure Read_CallHierarchyOutgoingCall
