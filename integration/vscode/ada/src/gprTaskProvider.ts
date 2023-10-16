@@ -18,8 +18,21 @@
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { getMains, getExecutables, getProjectFile } from './helpers';
+import { DEFAULT_PROBLEM_MATCHER } from './taskProviders';
+
+/**
+ *
+ * @deprecated This class handles the deprecated task type 'gpr'. It is kept in
+ * order to preserve support for 'gnat' task types that still exist in User
+ * workspaces.
+ */
 
 export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
+    /**
+     * This flag is used to restore the proposal of 'gpr' tasks for debugging
+     * purposes.
+     */
+    public static DEPRECATED = true;
     private readonly client: LanguageClient;
     public static gprTaskType = 'gpr';
     glsTasks: vscode.Task[] | undefined;
@@ -31,12 +44,33 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async provideTasks(): Promise<vscode.Task[] | undefined> {
-        if (!this.glsTasks) {
-            const project_file = await getProjectFile(this.client);
-            const mains: string[] = await getMains(this.client);
-            this.glsTasks = getBuildTasks(project_file, mains);
-            const execs: string[] = await getExecutables(this.client);
-            this.glsTasks = this.glsTasks.concat(getBuildAndRunTasks(project_file, mains, execs));
+        if (GprTaskProvider.DEPRECATED) {
+            // We return a single dummy task to convey an obsoletion message to Users.
+            const msg = 'The "gpr" task type is obsolete. Use "ada" tasks instead.';
+            return [
+                new vscode.Task(
+                    {
+                        type: GprTaskProvider.gprTaskType,
+                        taskKind: 'dummy',
+                        projectFile: '${config:ada.projectFile}',
+                    },
+                    vscode.TaskScope.Workspace,
+                    msg,
+                    GprTaskProvider.gprTaskType,
+                    new vscode.ShellExecution(`echo ${msg}`),
+                    DEFAULT_PROBLEM_MATCHER
+                ),
+            ];
+        } else {
+            if (!this.glsTasks) {
+                const project_file = await getProjectFile(this.client);
+                const mains: string[] = await getMains(this.client);
+                this.glsTasks = getBuildTasks(project_file, mains);
+                const execs: string[] = await getExecutables(this.client);
+                this.glsTasks = this.glsTasks.concat(
+                    getBuildAndRunTasks(project_file, mains, execs)
+                );
+            }
         }
         return this.glsTasks;
     }
@@ -86,6 +120,8 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
  * @param mainFiles - a list of main files paths
  * @param execs - a list of executable files paths
  * @returns a list of tasks
+ *
+ * @deprecated 'gpr' tasks are deprecated
  */
 function getBuildAndRunTasks(
     projectFile: string,
@@ -125,6 +161,8 @@ function getBuildAndRunTasks(
  * @param projectFile - the project file path
  * @param mainFiles - a list of main files paths
  * @returns a list of tasks
+ *
+ * @deprecated 'gpr' tasks are deprecated
  */
 function getBuildTasks(projectFile: string, mainFiles: string[]): vscode.Task[] {
     const result: vscode.Task[] = [];
@@ -184,6 +222,8 @@ function getMainBuildArgs(projectFile?: string, mainFile?: string): string[] {
  * @param command - the command to execute
  * @param args - the list of arguments
  * @returns a string
+ *
+ * @deprecated 'gpr' tasks are deprecated
  */
 export function fullCommand(command: string, args: string[]) {
     let cmd: string = command + ' ';

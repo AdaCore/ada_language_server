@@ -11,6 +11,7 @@ import { mainLogChannel } from './extension';
 import GnatTaskProvider from './gnatTaskProvider';
 import GprTaskProvider from './gprTaskProvider';
 import { logErrorAndThrow } from './helpers';
+import { registerTaskProviders } from './taskProviders';
 
 export class ContextClients {
     public readonly gprClient: LanguageClient;
@@ -57,7 +58,7 @@ export class ContextClients {
                 GprTaskProvider.gprTaskType,
                 new GprTaskProvider(this.adaClient)
             ),
-        ];
+        ].concat(registerTaskProviders());
     };
 
     public unregisterTaskProviders = (): void => {

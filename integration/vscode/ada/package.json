@@ -479,9 +479,9 @@
                                 "description": "Extra command line arguments"
                             }
                         },
-                        "additionalProperties": false,
                         "oneOf": [
                             {
+                                "$comment": "Each oneOf is evaluated regardless of the parent schema. That's why valid properties of the parent must be repeated here in order to be allowed.",
                                 "properties": {
                                     "kind": {
                                         "enum": [
@@ -489,21 +489,55 @@
                                             "checkFile",
                                             "cleanProject"
                                         ]
-                                    }
-                                }
+                                    },
+                                    "projectFile": true,
+                                    "args": true
+                                },
+                                "additionalProperties": false
                             },
                             {
+                                "required": [
+                                    "main"
+                                ],
+                                "$comment": "Each oneOf is evaluated regardless of the parent schema. That's why valid properties of the parent must be repeated here in order to be allowed.",
                                 "properties": {
                                     "kind": {
                                         "enum": [
-                                            "buildMain",
+                                            "buildMain"
+                                        ]
+                                    },
+                                    "projectFile": true,
+                                    "args": true,
+                                    "main": {
+                                        "type": "string",
+                                        "description": "Path to main source file"
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "required": [
+                                    "main"
+                                ],
+                                "$comment": "Each oneOf is evaluated regardless of the parent schema. That's why valid properties of the parent must be repeated here in order to be allowed.",
+                                "properties": {
+                                    "kind": {
+                                        "enum": [
                                             "buildAndRunMain"
                                         ]
                                     },
+                                    "projectFile": true,
+                                    "args": true,
                                     "main": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "description": "Path to main source file"
+                                    },
+                                    "executable": {
+                                        "type": "string",
+                                        "description": "Path to main executable file (if it cannot be computed automatically)"
                                     }
-                                }
+                                },
+                                "additionalProperties": false
                             }
                         ]
                     }
@@ -553,19 +587,15 @@
                     "taskKind"
                 ],
                 "properties": {
-                    "type": {
-                        "type": "string",
-                        "$comment": "This pattern is intended to always fail in order to display the obsoletion message",
-                        "pattern": "^$",
-                        "patternErrorMessage": "This task type is deprecated. Use task type \"ada\" or \"spark\" instead."
-                    },
                     "taskKind": {
                         "type": "string",
-                        "description": "Tool and action kind"
+                        "description": "Tool and action kind",
+                        "deprecationMessage": "The task type \"gnat\" is deprecated. Use task type \"ada\" or \"spark\" instead."
                     },
                     "args": {
                         "type": "array",
-                        "description": "Extra command line arguments"
+                        "description": "Extra command line arguments",
+                        "deprecationMessage": "The task type \"gnat\" is deprecated. Use task type \"ada\" or \"spark\" instead."
                     }
                 }
             },
@@ -575,23 +605,20 @@
                     "main"
                 ],
                 "properties": {
-                    "type": {
-                        "type": "string",
-                        "$comment": "This pattern is intended to always fail in order to display the obsoletion message",
-                        "pattern": "^$",
-                        "patternErrorMessage": "This task type is deprecated. Use task type \"ada\" or \"spark\" instead."
-                    },
                     "projectFile": {
                         "type": "string",
-                        "description": "The project file"
+                        "description": "The project file",
+                        "deprecationMessage": "The task type \"gpr\" is deprecated. Use task type \"ada\" instead."
                     },
                     "main": {
                         "type": "string",
-                        "description": "The main file targeted"
+                        "description": "The main file targeted",
+                        "deprecationMessage": "The task type \"gpr\" is deprecated. Use task type \"ada\" instead."
                     },
                     "executable": {
                         "type": "string",
-                        "description": "The related executable"
+                        "description": "The related executable",
+                        "deprecationMessage": "The task type \"gpr\" is deprecated. Use task type \"ada\" instead."
                     }
                 }
             }

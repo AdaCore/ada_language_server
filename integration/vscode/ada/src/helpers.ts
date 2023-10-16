@@ -14,10 +14,12 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
+import assert from 'assert';
 import { platform } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
+import { contextClients } from './extension';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -256,4 +258,51 @@ export async function getExecutables(client: LanguageClient): Promise<string[]> 
         command: 'als-executables',
     })) as string[];
     return result;
+}
+/**
+ * @returns The list of Mains defined for the current project as an array of AdaMains.
+ */
+export async function getAdaMains(): Promise<AdaMain[]> {
+    const mains = await getMains(contextClients.adaClient);
+    const execs = await getExecutables(contextClients.adaClient);
+    assert(
+        execs.length == mains.length,
+        `The ALS returned mains.length = ${mains.length} and ` +
+            `execs.length = ${execs.length}` +
+            `when they should be equal`
+    );
+
+    const result: AdaMain[] = [];
+    for (let i = 0; i < mains.length; i++) {
+        result.push(new AdaMain(mains[i], execs[i]));
+    }
+
+    return result;
+}
+/**
+ * A class that represents an Ada main entry point. It encapsulate both the
+ * source file path and the executable file path.
+ */
+
+export class AdaMain {
+    mainFullPath: string;
+    execFullPath: string;
+    constructor(mainFullPath: string, execFullPath: string) {
+        this.mainFullPath = mainFullPath;
+        this.execFullPath = execFullPath;
+    }
+
+    /**
+     * @returns path of the main source file relative to the workspace
+     */
+    mainRelPath(): string {
+        return vscode.workspace.asRelativePath(this.mainFullPath);
+    }
+
+    /**
+     * @returns path of the executable file relative to the workspace
+     */
+    execRelPath(): string {
+        return vscode.workspace.asRelativePath(this.execFullPath);
+    }
 }
