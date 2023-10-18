@@ -6,6 +6,21 @@ The Ada Language Server (ALS) supports some features that are not in the officia
 [Language Server Protocol](https://microsoft.github.io/language-server-protocol)
 specification. This document specifies how these features are documented.
 
+## Developing a custom feature
+
+Usually we tend to implement custom features through [LSP commands](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#command). These commands can then be executed by the LSP clients running the ALS (e.g: VS Code).
+
+Commands can either do something on the codebase directly (e.g: refactorings) or be used to query specific information (e.g: return all the function declarations within a scope).
+
+Commands can be directly accessible to users through [LSP codeActions](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_codeAction). This is the case for all ALS-specific refactorings.
+
+You can also use custom commands to perform queries on the code base, to develop an IDD-specific tool integration on top of the ALS for instance. In that case you can directly execute the command via the [LSP workspace/executeCommand](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_executeCommand) request and use the command's results as you want.
+
+Here are some implementations of custom features in the ALS implemented through this mechanism:
+
+* [Show Dependencies](../source/ada/lsp-ada_handlers-show_dependencies_commands.ads)
+* [Other File](../source/ada/lsp-ada_handlers-other_file_commands.ads)
+
 ## Feature description document
 
 Each feature is described in a dedicated Markdown document.
@@ -39,7 +54,7 @@ It includes TypeScript definitions, as the official specification does.
 This section includes related feature description documents and links to others
 related resources.
 
-## List of features
+## List of custom features
  * [Debug](debug.md)
  * [Other File](other_file.md)
  * [Reference kinds](reference_kinds.md)
