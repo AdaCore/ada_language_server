@@ -26,7 +26,11 @@ import { ContextClients } from './clients';
 import { registerCommands } from './commands';
 import { initializeDebugging } from './debugConfigProvider';
 import { initializeTestView } from './gnattest';
-import { assertSupportedEnvironments, getEvaluatedCustomEnv } from './helpers';
+import {
+    assertSupportedEnvironments,
+    getEvaluatedCustomEnv,
+    setCustomEnvironment,
+} from './helpers';
 
 const ADA_CONTEXT = 'ADA_PROJECT_CONTEXT';
 export let contextClients: ContextClients;
@@ -39,8 +43,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     mainLogChannel = vscode.window.createOutputChannel('Ada Extension');
     mainLogChannel.appendLine('Starting Ada extension');
 
-    assertSupportedEnvironments(mainLogChannel);
-
     // Log the environment that the extension (and all VS Code) will be using
     const customEnv = getEvaluatedCustomEnv();
 
@@ -51,6 +53,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             mainLogChannel.appendLine(`${varName}=${varValue}`);
         }
     }
+
+    // Set the custom environment into the current node process. This must be
+    // done before calling assertSupportedEnvironments in order to set the ALS
+    // environment variable if provided.
+    setCustomEnvironment();
+
+    assertSupportedEnvironments(mainLogChannel);
 
     // Create the Ada and GPR clients.
     contextClients = new ContextClients(context);
