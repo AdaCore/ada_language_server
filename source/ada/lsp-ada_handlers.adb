@@ -3351,7 +3351,6 @@ package body LSP.Ada_Handlers is
             Call_Hierarchy.Find_Incoming_Calls
               (Self, Response, Filter, C, Definition);
          end if;
-
       end Process_Context;
 
    begin
@@ -3751,14 +3750,21 @@ package body LSP.Ada_Handlers is
                Node : constant Libadalang.Analysis.Defining_Name :=
                  Decl.P_Defining_Name;
 
+               --  In case the Defining_Name is a Dotted_Name then we need
+               --  to point to the func which is the last.
                Location : constant LSP.Structures.Location :=
-                 Self.To_LSP_Location (Node);
+                 Self.To_LSP_Location
+                   (if Node.First_Child.Kind
+                       in Libadalang.Common.Ada_Dotted_Name_Range
+                    then Node.First_Child.As_Dotted_Name.F_Suffix
+                    else Node);
 
                Item : constant LSP.Structures.CallHierarchyItem :=
                  (name           => VSS.Strings.To_Virtual_String (Node.Text),
                   kind           => Utils.Get_Decl_Kind (Decl),
                   tags           => <>,
-                  detail         => Utils.Node_Location_Image (Node),
+                  detail         =>
+                    Utils.Node_Location_Image (Node),
                   uri            => Location.uri,
                   a_range        => Span,
                   selectionRange => Location.a_range,
