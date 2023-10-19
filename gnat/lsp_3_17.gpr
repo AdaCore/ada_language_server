@@ -106,6 +106,8 @@ project LSP_3_17 is
 
    package Compiler is
       for Default_Switches ("Ada") use Common_Ada_Switches & Ada_Switches;
+      for Switches ("lsp-inputs.adb") use
+        Common_Ada_Switches & Ada_Switches & ("-O0");
       for Local_Configuration_Pragmas use "gnat.adc";
    end Compiler;
 

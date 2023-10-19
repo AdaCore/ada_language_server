@@ -5,14 +5,22 @@
 set -x -e
 DEBUG=$1  # Value is '' or 'debug'
 RUNNER_OS=$2  #  ${{ runner.os }} is Linux, Windiws, maxOS
-TAG=$3 # For master it's 23.0.999, while for tag it's the tag itself
+TAG=$3 # For master it's 24.0.999, while for tag it's the tag itself
 NO_REBASE=$4 # Specify this to skip the rebase over the edge branch. Used for local debugging.
 
 prefix=/tmp/ADALIB_DIR
 
+export CPATH=/usr/local/include
+export LIBRARY_PATH=/usr/local/lib
+export DYLD_LIBRARY_PATH=/usr/local/lib
+export PATH=`ls -d $PWD/cached_gnat/*/bin |tr '\n' ':'`$PATH
+export ADAFLAGS=-g1
+
 if [ $RUNNER_OS = Windows ]; then
     prefix=/opt/ADALIB_DIR
-    mount `cygpath -w $RUNNER_TEMP|cut -d: -f1`:/opt /opt
+    export CPATH=`cygpath -w /c/msys64/mingw64/include`
+    export LIBRARY_PATH=`cygpath -w /c/msys64/mingw64/lib`
+    mount D:/opt /opt
 fi
 
 export GPR_PROJECT_PATH=$prefix/share/gpr:\
@@ -22,11 +30,6 @@ $PWD/subprojects/lal-refactor/gnat:\
 $PWD/subprojects/libadalang-tools/src:\
 $PWD/subprojects/spawn/gnat:\
 $PWD/subprojects/stubs
-export CPATH=/usr/local/include:/mingw64/include
-export LIBRARY_PATH=/usr/local/lib:/mingw64/lib
-export DYLD_LIBRARY_PATH=/usr/local/lib
-export PATH=`ls -d $PWD/cached_gnat/*/bin |tr '\n' ':'`$PATH
-export ADAFLAGS=-g1
 echo PATH=$PATH
 
 BRANCH=master
@@ -57,6 +60,7 @@ FILE=libadalang-$RUNNER_OS-$BRANCH${DEBUG:+-dbg}-static.tar.gz
 # and we don't delete it after use.
 if [ ! -f "$FILE" ]; then
    aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/$FILE . --sse=AES256
+   umask 0 # To avoid permission errors on MSYS2
    tar xzf $FILE -C $prefix
    rm -f -v $FILE
 else
