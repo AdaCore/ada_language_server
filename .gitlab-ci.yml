@@ -1,6 +1,20 @@
 stages:
   - build_and_test
+  - check
   - run_downstream_ci
+
+issue-check:
+  services:
+    - image:e3
+  stage: check
+  needs: [] # Do not wait for the other stages to execute
+  interruptible: true  # Cancel job if the branch is pushed
+  variables: # do not checkout the git repository, not needed
+    GIT_STRATEGY: none
+  rules: # Launch only on merge requests
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  script:
+    - require_issue # launch the verification
 
 .basic-setup:
   # Use generic_anod_ci here.
