@@ -9,7 +9,6 @@ from e3.testsuite import Testsuite
 from e3.testsuite.driver.diff import DiffTestDriver
 
 from drivers.basic import JsonTestDriver
-from drivers.codecs import CodecsTestDriver
 from drivers.shell import ShellTestDriver
 from drivers.gnatcov import GNATcov
 
@@ -78,7 +77,6 @@ class ALSTestsuite(Testsuite):
 
         self.env.als_home = os.path.join(self.env.repo_base, 'testsuite')
         self.env.tester_run = self.lookup_program('tester', 'tester-run')
-        self.env.codec_test = self.lookup_program('codec_test', 'codec_test')
 
         # If code coverage is requested, initialize our helper and build
         # instrumented programs.
@@ -101,7 +99,6 @@ class ALSTestsuite(Testsuite):
     @property
     def test_driver_map(self):
         return {'ada_lsp': JsonTestDriver,
-                'codecs': CodecsTestDriver,
                 'shell': ShellTestDriver}
 
     @property
