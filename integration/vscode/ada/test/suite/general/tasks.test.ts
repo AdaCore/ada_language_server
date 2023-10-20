@@ -21,17 +21,24 @@ suite('GPR Tasks Provider', function () {
         assert.notStrictEqual(tasks, undefined);
 
         const expectedTasksNames: string[] = [
-            'ada: Build current project',
-            'ada: Check current file',
-            'ada: Clean current project',
-            'ada: Build main - main1.adb',
-            'ada: Build and run main - main1.adb',
-            'ada: Build main - test.adb',
-            'ada: Build and run main - test.adb',
+            'ada: Build current project - kind: buildProject',
+            'ada: Check current file - kind: checkFile',
+            'ada: Clean current project - kind: cleanProject',
+            'ada: Build main - main1.adb - kind: buildMain',
+            'ada: Build and run main - main1.adb - kind: buildAndRunMain',
+            'ada: Build main - test.adb - kind: buildMain',
+            'ada: Build and run main - test.adb - kind: buildAndRunMain',
         ];
 
         assert.strictEqual(
-            tasks.map((t) => `${t.source}: ${t.name}`).join('\n'),
+            tasks
+                .map(
+                    (t) =>
+                        `${t.source}: ${t.name} - kind: ${
+                            (t.definition as CustomTaskDefinition).configuration.kind
+                        }`
+                )
+                .join('\n'),
             expectedTasksNames.join('\n')
         );
     });

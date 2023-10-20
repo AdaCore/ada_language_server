@@ -412,15 +412,15 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                         this.tasks = undefined;
                         break;
                     }
-                    const def: CustomTaskDefinition = {
-                        type: this.taskType,
-                        configuration: {
-                            kind: 'buildMain',
-                            projectFile: await computeProject(),
-                            main: main.mainRelPath(),
-                        },
-                    };
                     {
+                        const def: CustomTaskDefinition = {
+                            type: this.taskType,
+                            configuration: {
+                                kind: 'buildMain',
+                                projectFile: await computeProject(),
+                                main: main.mainRelPath(),
+                            },
+                        };
                         const name = `${allTaskProperties['buildMain'].title}${basename(
                             main.mainRelPath()
                         )}`;
@@ -438,7 +438,14 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                     }
 
                     {
-                        def.configuration.kind = 'buildAndRunMain';
+                        const def: CustomTaskDefinition = {
+                            type: this.taskType,
+                            configuration: {
+                                kind: 'buildAndRunMain',
+                                projectFile: await computeProject(),
+                                main: main.mainRelPath(),
+                            },
+                        };
                         const name = `${allTaskProperties['buildAndRunMain'].title}${basename(
                             main.mainRelPath()
                         )}`;
