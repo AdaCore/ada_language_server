@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
 import { existsSync } from 'fs';
+import * as vscode from 'vscode';
 import {
     Disposable,
     ExecuteCommandRequest,
@@ -7,10 +7,10 @@ import {
     LanguageClientOptions,
     ServerOptions,
 } from 'vscode-languageclient/node';
+import { mainLogChannel } from './extension';
 import GnatTaskProvider from './gnatTaskProvider';
 import GprTaskProvider from './gprTaskProvider';
-import { getEvaluatedCustomEnv, logErrorAndThrow } from './helpers';
-import { mainLogChannel } from './extension';
+import { logErrorAndThrow } from './helpers';
 
 export class ContextClients {
     public readonly gprClient: LanguageClient;
@@ -146,18 +146,6 @@ function createClient(
     // let debugOptions = { execArgv: [] };
     // If the extension is launched in debug mode then the debug server options are used
     // Otherwise the run options are used
-
-    // Retrieve the user's custom environment variables if specified in their
-    // settings/workspace: we'll then launch any child process with this custom
-    // environment
-    const custom_env = getEvaluatedCustomEnv();
-
-    if (custom_env) {
-        for (const var_name in custom_env) {
-            const var_value: string = custom_env[var_name];
-            process.env[var_name] = var_value;
-        }
-    }
 
     // Options to control the server
     const serverOptions: ServerOptions = {

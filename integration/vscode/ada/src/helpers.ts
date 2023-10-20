@@ -148,7 +148,33 @@ export function getEvaluatedCustomEnv() {
     return custom_env;
 }
 
+/**
+ * Read the environment variables specified in the vscode setting
+ * `terminal.integrated.env.<os>` and set them in the current node process so
+ * that they become inherited by any child processes.
+ */
+export function setCustomEnvironment() {
+    // Retrieve the user's custom environment variables if specified in their
+    // settings/workspace: we'll then launch any child process with this custom
+    // environment
+    const custom_env = getEvaluatedCustomEnv();
+
+    if (custom_env) {
+        for (const var_name in custom_env) {
+            const var_value: string = custom_env[var_name];
+            process.env[var_name] = var_value;
+        }
+    }
+}
+
 export function assertSupportedEnvironments(mainChannel: vscode.OutputChannel) {
+    if (process.env.ALS) {
+        // The User provided an external ALS executable. Do not perform any
+        // platform support checks because we may be on an unsupported platform
+        // where the User built and provided ALS.
+        return;
+    }
+
     type Env = {
         arch: 'arm' | 'arm64' | 'x64';
         platform: 'win32' | 'linux' | 'darwin';

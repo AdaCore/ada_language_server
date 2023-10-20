@@ -3,7 +3,7 @@ set -x -e
 DEBUG=$1 # Value is '' or 'debug'
 VSCE_TOKEN=$2
 OVSX_TOKEN=$3
-TAG=$4 # For master it's 23.0.999, while for tag it's the tag itself
+TAG=$4 # For master it's 24.0.999, while for tag it's the tag itself
 
 function make_change_log()
 {

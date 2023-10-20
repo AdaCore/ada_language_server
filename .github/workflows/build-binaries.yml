@@ -6,7 +6,7 @@ on:
       - 2*.*.*
 name: Build binaries
 env:
-  DEFAULT_TAG: 23.0.999
+  DEFAULT_TAG: 24.0.999
   AWS_DEFAULT_REGION: eu-west-1
 jobs:
   build:
@@ -18,10 +18,10 @@ jobs:
         os: [macos-11, ubuntu-20.04, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Setup Python 3.8
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
+          python-version: '3.10'
       - name: Initialize TAG and git autocrlf
         shell: bash
         run: |
@@ -31,15 +31,19 @@ jobs:
           else
               echo "TAG=$DEFAULT_TAG" >> $GITHUB_ENV
           fi
-      - name: Install iconv and gmp (Windows only)
+      - name: Force Alire use preinstalled MSYS2
+        shell: bash
         if: ${{ runner.os == 'Windows' }}
-        uses: msys2/setup-msys2@v2
-        with:
-          path-type: inherit
-          update: true
-          install: >-
-            mingw64/mingw-w64-x86_64-libiconv
-            mingw64/mingw-w64-x86_64-gmp
+        run: |
+          mkdir -p ~/.config/alire
+          echo '[msys2]' >> ~/.config/alire/config.toml
+          echo 'install_dir = "C:\\msys64"' >> ~/.config/alire/config.toml
+      - name: Install iconv and gmp (Windows only)
+        run: pacman --noconfirm -S mingw64/mingw-w64-x86_64-libiconv mingw64/mingw-w64-x86_64-gmp
+        if: ${{ runner.os == 'Windows' }}
+        shell: c:\msys64\usr\bin\bash.exe -l -e -o pipefail {0}
+        env:
+          MSYSTEM: MINGW64
       - name: Get als
         uses: actions/checkout@v3
         with:
@@ -79,16 +83,15 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ./cached_gnat
-          key: ${{ runner.os }}-alire-2022
-          restore-keys: ${{ runner.os }}-alire-2022
+          key: ${{ runner.os }}-alire-2023
+          restore-keys: ${{ runner.os }}-alire-2023
       - name: Get GNAT toolchain with alire
         uses: alire-project/setup-alire@v2
         with:
-          toolchain: gnat_native^12 gprbuild^22
+          toolchain: gnat_native^13 gprbuild^22
           toolchain_dir: ./cached_gnat
-      - name: Build (Windows)
-        if: ${{ runner.os == 'Windows' }}
-        shell: msys2 {0}
+      - name: Build
+        shell: bash
         env:
           AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
@@ -96,12 +99,6 @@ jobs:
           # This is to avoid locking .sh on win that prevents its updating
           cp .github/workflows/build-binaries.sh .github/workflows/build-binaries.sh_
           .github/workflows/build-binaries.sh_ "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
-      - name: Build (non-Windows)
-        env:
-          AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
-        if: ${{ runner.os != 'Windows' }}
-        run: .github/workflows/build-binaries.sh "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
       - name: Archive ALS binary
         if: ${{ github.event_name == 'push' }}
         uses: actions/upload-artifact@v3

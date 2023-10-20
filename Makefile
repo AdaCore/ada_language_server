@@ -30,7 +30,6 @@ export ALS=$(ROOTDIR)/.obj/server/ada_language_server$(EXE)
 
 # Tester files
 TESTER=$(ROOTDIR)/.obj/tester/tester-run$(EXE)
-CODEC_TEST=.obj/codec_test/codec_test$(EXE)
 
 # Env variable to set for update VS Code test references
 MOCHA_ALS_UPDATE=
@@ -92,12 +91,12 @@ else
 endif
 
 all: coverage-instrument
+	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS) -c lsp-inputs.adb
 	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE)
-	$(GPRBUILD) -P gnat/codec_test.gpr -p $(COVERAGE_BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS)
 ifdef NODE
 	mkdir -p integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
@@ -117,15 +116,12 @@ ifneq ($(COVERAGE),)
 	rm -rf .obj/*/gnatcov-instr
 	$(COVERAGE_INSTR) -XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) \
 		-Pgnat/lsp_server.gpr --projects lsp_server --projects lsp_3_17
-	$(COVERAGE_INSTR) -Pgnat/tester.gpr --projects lsp
-	$(COVERAGE_INSTR) -Pgnat/codec_test.gpr --projects lsp
 endif
 
 install:
 	gprinstall -f -P gnat/lsp_server.gpr -p -r --mode=usage \
 		--prefix=$(DESTDIR) $(LIBRARY_FLAGS)
 	gprinstall -f -P gnat/tester.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
-	gprinstall -f -P gnat/codec_test.gpr -p --prefix=$(DESTDIR) $(LIBRARY_FLAGS)
 	gprinstall -f -P gnat/lsp_client.gpr -p -r	\
 		--mode=dev				\
 		--prefix=$(DESTDIR)			\
@@ -140,7 +136,6 @@ clean:
 	-$(GPRCLEAN) -P gnat/lsp_3_17.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/tester.gpr $(LIBRARY_FLAGS)
-	-$(GPRCLEAN) -P gnat/codec_test.gpr $(LIBRARY_FLAGS)
 	-rm -rf integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
 
 vscode:
@@ -173,7 +168,6 @@ check: all
               (cd `dirname $$a ` ; $(TESTER) `basename $$a`) ;\
            done; \
         fi
-	${CODEC_TEST} < testsuite/codecs/index.txt
 
 deploy: check
 	integration/$(USER)/deploy.sh $(NODE_PLATFORM)
