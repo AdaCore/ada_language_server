@@ -60,6 +60,7 @@ with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Show_Dependencies_Commands;
+with LSP.Ada_Handlers.Source_Dirs_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
@@ -95,6 +96,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Project_Reload_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Show_Dependencies_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Source_Dirs_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Executables_Commands.Command'Tag);
       LSP.Ada_Commands.Register
