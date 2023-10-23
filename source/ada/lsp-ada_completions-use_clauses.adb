@@ -55,8 +55,9 @@ package body LSP.Ada_Completions.Use_Clauses is
          and then N.Kind = Ada_With_Clause);
 
       With_Node : constant Libadalang.Analysis.Ada_Node :=
-        Libadalang.Iterators.Find_First
-          (Node.Unit.Root, Has_With_Clause_Node'Unrestricted_Access);
+        (if Node.Is_Null then Node
+         else Libadalang.Iterators.Find_First
+             (Node.Unit.Root, Has_With_Clause_Node'Unrestricted_Access));
    begin
       --  Return immediately if we don't have any with-clause node on the same
       --  line or if we are still within the with-clause node.

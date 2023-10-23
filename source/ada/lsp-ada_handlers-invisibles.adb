@@ -40,6 +40,7 @@ package body LSP.Ada_Handlers.Invisibles is
    is
       pragma Unreferenced (Result);
       use all type Libadalang.Common.Token_Kind;
+      use all type Libadalang.Common.Token_Reference;
       use type Ada.Containers.Count_Type;
 
       procedure On_Inaccessible_Name
@@ -78,10 +79,13 @@ package body LSP.Ada_Handlers.Invisibles is
          end if;
       end On_Inaccessible_Name;
 
-      Dot_Token   : constant Libadalang.Common.Token_Data_Type :=
+      Previous_Tok : constant Libadalang.Common.Token_Reference :=
+         Libadalang.Common.Previous (Token, Exclude_Trivia => True);
+      Dot_Token    : constant Libadalang.Common.Token_Data_Type :=
         Libadalang.Common.Data
           (if Libadalang.Common.Is_Trivia (Token)
-           then Libadalang.Common.Previous (Token, True)
+            and then Previous_Tok /= Libadalang.Common.No_Token
+           then Previous_Tok
            else Token);
 
       function Dummy_Canceled return Boolean is (False);
