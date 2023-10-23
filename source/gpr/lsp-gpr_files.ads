@@ -42,6 +42,7 @@ with VSS.Strings;
 with VSS.Strings.Hash;
 with VSS.String_Vectors;
 
+with LSP.Structures;
 with LSP.Tracers;
 
 package LSP.GPR_Files is
@@ -103,6 +104,44 @@ package LSP.GPR_Files is
      (File_Provider : File_Provider_Access;
       Path : GPR2.Path_Name.Object) return File_Access;
    --  parse file if not yet parsed
+
+   function Get_Package
+     (Self : File; Position : LSP.Structures.Position) return GPR2.Package_Id;
+   --  return the Position's Package_Id. Returns Project_Level_Scope if
+   --  Position not inside a package.
+
+   function Token
+     (Self     : File;
+      Position : LSP.Structures.Position)
+      return Gpr_Parser.Common.Token_Reference;
+   --  Return File's Token at Position.
+
+   -------------------------------------------------
+   -- GPR Parser / LSP Slocs-Position conversions --
+   -------------------------------------------------
+
+   use Gpr_Parser_Support.Slocs;
+
+   function To_Position_Value
+     (Line : Gpr_Parser_Support.Slocs.Line_Number) return Natural is
+     (if Line = 0 then 0 else Natural (Line) - 1);
+
+   function To_Line_Number
+     (Line : Natural) return Gpr_Parser_Support.Slocs.Line_Number is
+     (Gpr_Parser_Support.Slocs.Line_Number (Line + 1));
+
+   function To_Position_Value
+     (Column : Gpr_Parser_Support.Slocs.Column_Number) return Natural is
+     (if Column = 0 then 0 else Natural (Column) - 1);
+
+   function To_Column_Number
+     (Line : Natural) return Gpr_Parser_Support.Slocs.Column_Number is
+     (Gpr_Parser_Support.Slocs.Column_Number (Line + 1));
+
+   function To_Position
+     (Location : Gpr_Parser_Support.Slocs.Source_Location)
+      return LSP.Structures.Position is
+     (To_Position_Value (Location.Line), To_Position_Value (Location.Column));
 
 private
 
@@ -310,6 +349,9 @@ private
       Last               : Gpr_Parser.Common.Token_Reference :=
                              Gpr_Parser.Common.No_Token;
       --  'Last' is at the package's end or at the end of the renaming.
+
+      Package_Range    : LSP.Structures.A_Range := ((0, 0), (0, 0));
+      --  Useful to find to what package a LSP Position belongs.
 
       Attributes         : Attribute_Maps.Map;
       --  Attributes defined in the package

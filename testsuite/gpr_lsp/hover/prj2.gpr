@@ -1,0 +1,4 @@
+project Prj2 is
+for Source_Dirs use ("src");
+--  The list of source directories of the project.
+end Prj2;

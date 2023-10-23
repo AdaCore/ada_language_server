@@ -28,6 +28,7 @@ with GPR2.Source_Reference;
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Generic_Cancel_Check;
+with LSP.GPR_Documentation;
 with LSP.GPR_File_Readers;
 with LSP.GPR_Files.Symbols;
 with LSP.Servers;
@@ -423,6 +424,60 @@ package body LSP.GPR_Handlers is
 
       Self.Sender.On_DocumentSymbol_Response (Id, Response);
    end On_DocumentSymbol_Request;
+
+   ----------------------
+   -- On_Hover_Request --
+   ----------------------
+
+   overriding procedure On_Hover_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.HoverParams)
+   is
+
+      Response : LSP.Structures.Hover_Or_Null;
+
+      procedure Compute_Response;
+
+      ----------------------
+      -- Compute_Response --
+      ----------------------
+
+      procedure Compute_Response is
+         File         : constant LSP.GPR_Files.File_Access :=
+                           LSP.GPR_Files.Parse
+                             (File_Provider => Self'Unchecked_Access,
+                              Path          => Self.To_File
+                                                 (Value.textDocument.uri));
+         Tooltip_Text : VSS.Strings.Virtual_String;
+      begin
+
+         LSP.GPR_Documentation.Get_Tooltip_Text
+           (Self         => File.all,
+            Position     => Value.position,
+            Tooltip_Text => Tooltip_Text);
+
+         if Tooltip_Text.Is_Empty then
+            return;
+         end if;
+
+         Response := (Is_Null => False, others => <>);
+         Response.Value.contents := (Is_MarkupContent => False, others => <>);
+
+         --  Append the package/attribute description
+
+         Response.Value.contents.MarkedString_Vector.Append
+           (LSP.Structures.MarkedString'
+              (Is_Virtual_String => False,
+               language          => "plaintext",
+               value             => Tooltip_Text));
+
+      end Compute_Response;
+
+   begin
+      Compute_Response;
+      Self.Sender.On_Hover_Response (Id, Response);
+   end On_Hover_Request;
 
    ---------------------------
    -- On_Initialize_Request --
