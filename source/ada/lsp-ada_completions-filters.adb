@@ -42,12 +42,11 @@ package body LSP.Ada_Completions.Filters is
    ------------------
 
    function Is_End_Label (Self : in out Filter'Class) return Boolean is
+      use Libadalang.Common;
    begin
       if not Self.Is_End_Label.Is_Set then
          declare
-            use all type Libadalang.Common.Ada_Node_Kind_Type;
-
-            Parent      : constant Libadalang.Analysis.Ada_Node :=
+            Parent : constant Libadalang.Analysis.Ada_Node :=
               (if Self.Node.Is_Null then Self.Node
                else Skip_Dotted_Names (Self.Node.Parent));
             --  Skip the outermost dotted name enclosing Node.Parent, so
@@ -69,9 +68,11 @@ package body LSP.Ada_Completions.Filters is
             elsif Is_End_Token (Self.Token) then
                Self.Is_End_Label := LSP.Constants.True;
 
-            elsif Is_End_Token
-              (Libadalang.Common.Previous
-                 (Self.Token, Exclude_Trivia => True))
+            elsif Libadalang.Common.Previous
+                (Self.Token, Exclude_Trivia => True) /=  No_Token
+              and then Is_End_Token
+                (Libadalang.Common.Previous
+                   (Self.Token, Exclude_Trivia => True))
             then
                Self.Is_End_Label := LSP.Constants.True;
 
@@ -217,11 +218,18 @@ package body LSP.Ada_Completions.Filters is
    ---------------
 
    function Is_Aspect (Self : in out Filter'Class) return Boolean is
+      use Libadalang.Common;
    begin
       if not Self.Is_Aspect.Is_Set then
-         declare
-            use Libadalang.Common;
 
+         if Libadalang.Common.Previous
+               (Self.Token, Exclude_Trivia => True) = No_Token
+         then
+            Self.Is_Aspect := (True, False);
+            return Self.Is_Aspect.Value;
+         end if;
+
+         declare
             Token_Kind : constant Libadalang.Common.Token_Kind :=
               Kind (Libadalang.Common.Previous
                     (Self.Token, Exclude_Trivia => True));
