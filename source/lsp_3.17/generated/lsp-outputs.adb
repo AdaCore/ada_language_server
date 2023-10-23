@@ -340,6 +340,10 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.TextDocumentPositionParams);
 
+   procedure Write_Boolean_Vector
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.Boolean_Vector);
+
    procedure Write_CodeLensRegistrationOptions
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.CodeLensRegistrationOptions);
@@ -1143,13 +1147,13 @@ package body LSP.Outputs is
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.DocumentSymbolClientCapabilities);
 
-   procedure Write_InitializeError
-     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Value   : LSP.Structures.InitializeError);
-
    procedure Write_LinkedEditingRangeRegistrationOptions
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.LinkedEditingRangeRegistrationOptions);
+
+   procedure Write_InitializeError
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.InitializeError);
 
    procedure Write_SemanticTokensClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -4245,6 +4249,17 @@ package body LSP.Outputs is
       Write_Position (Handler, Value.position);
       Handler.End_Object;
    end Write_TextDocumentPositionParams;
+
+   procedure Write_Boolean_Vector
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.Boolean_Vector) is
+   begin
+      Handler.Start_Array;
+      for J in Value.First_Index .. Value.Last_Index loop
+         Handler.Boolean_Value (Value (J));
+      end loop;
+      Handler.End_Array;
+   end Write_Boolean_Vector;
 
    procedure Write_DidSaveTextDocumentParams
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
@@ -7381,6 +7396,10 @@ package body LSP.Outputs is
       Write_CallHierarchyItem (Handler, Value.from);
       Handler.Key_Name ("fromRanges");
       Write_Range_Vector (Handler, Value.fromRanges);
+      if not Value.dispatching_calls.Is_Empty then
+         Handler.Key_Name ("dispatching_calls");
+         Write_Boolean_Vector (Handler, Value.dispatching_calls);
+      end if;
       Handler.End_Object;
    end Write_CallHierarchyIncomingCall;
 
@@ -9108,6 +9127,10 @@ package body LSP.Outputs is
       Write_CallHierarchyItem (Handler, Value.to);
       Handler.Key_Name ("fromRanges");
       Write_Range_Vector (Handler, Value.fromRanges);
+      if not Value.dispatching_calls.Is_Empty then
+         Handler.Key_Name ("dispatching_calls");
+         Write_Boolean_Vector (Handler, Value.dispatching_calls);
+      end if;
       Handler.End_Object;
    end Write_CallHierarchyOutgoingCall;
 
@@ -10359,16 +10382,6 @@ package body LSP.Outputs is
       Handler.End_Object;
    end Write_DocumentSymbolClientCapabilities;
 
-   procedure Write_InitializeError
-     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
-      Value   : LSP.Structures.InitializeError) is
-   begin
-      Handler.Start_Object;
-      Handler.Key_Name ("retry");
-      Handler.Boolean_Value (Value.retry);
-      Handler.End_Object;
-   end Write_InitializeError;
-
    procedure Write_LinkedEditingRangeRegistrationOptions
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
       Value   : LSP.Structures.LinkedEditingRangeRegistrationOptions) is
@@ -10401,6 +10414,16 @@ package body LSP.Outputs is
       end if;
       Handler.End_Object;
    end Write_LinkedEditingRangeRegistrationOptions;
+
+   procedure Write_InitializeError
+     (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;
+      Value   : LSP.Structures.InitializeError) is
+   begin
+      Handler.Start_Object;
+      Handler.Key_Name ("retry");
+      Handler.Boolean_Value (Value.retry);
+      Handler.End_Object;
+   end Write_InitializeError;
 
    procedure Write_SemanticTokensClientCapabilities
      (Handler : in out VSS.JSON.Content_Handlers.JSON_Content_Handler'Class;

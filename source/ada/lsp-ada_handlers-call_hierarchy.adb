@@ -117,11 +117,11 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
                   begin
                      Call.fromRanges.Append (Ref_Location.a_range);
 
-                     --  if Ref.P_Is_Dispatching_Call then
-                     --     Kinds.Append (LSP.Messages.Dispatching_Call);
-                     --  else
-                     --     Kinds.Append (LSP.Messages.Simple);
-                     --  end if;
+                     if Ref.P_Is_Dispatching_Call then
+                        Call.dispatching_calls.Append (True);
+                     else
+                        Call.dispatching_calls.Append (False);
+                     end if;
                   end;
                end loop;
 
@@ -261,11 +261,11 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
                   begin
                      Call.fromRanges.Append (Ref_Location.a_range);
 
-                     --  if Ref.P_Is_Dispatching_Call then
-                     --     Kinds.Append (LSP.Messages.Dispatching_Call);
-                     --  else
-                     --     Kinds.Append (LSP.Messages.Simple);
-                     --  end if;
+                     if Ref.P_Is_Dispatching_Call then
+                        Call.dispatching_calls.Append (True);
+                     else
+                        Call.dispatching_calls.Append (False);
+                     end if;
                   end;
                end loop;
 

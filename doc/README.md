@@ -24,7 +24,7 @@ Here are some implementations of custom features in the ALS implemented through 
 ## Feature description document
 
 Each feature is described in a dedicated Markdown document.
-There is [a list of all features](.#list-of-features) at the end of this document. 
+There is [a list of all features](.#list-of-features) at the end of this document.
 We provide a [template](./TEMPLATE.md) for convenience.
 The feature description document has the following structure:
 
@@ -61,3 +61,4 @@ related resources.
  * [Show Dependencies](show_dependencies.md)
  * [Check Syntax](check_syntax.md)
  * [Executables](executables.md)
+ * [Call Hierarchy](callhierarchy.md)
