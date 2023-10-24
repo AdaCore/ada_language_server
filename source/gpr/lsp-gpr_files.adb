@@ -47,6 +47,34 @@ package body LSP.GPR_Files is
    package Convert is new VSS.Strings.Formatters.Generic_Integers (Unit_Index);
    package Conversions renames VSS.Strings.Conversions;
 
+   function Is_Between
+     (Position : LSP.Structures.Position;
+      Span     : LSP.Structures.A_Range)
+            return Boolean
+   is ((Position.line = Span.start.line
+       and then Position.character >= Span.start.character)
+       or else (Position.line = Span.an_end.line
+         and then Position.character <= Span.an_end.character)
+       or else (Position.line > Span.start.line
+         and then Position.line < Span.an_end.line));
+   --  Checks if Position is inside Span
+
+   -----------------
+   -- Get_Package --
+   -----------------
+
+   function Get_Package
+     (Self : File; Position : LSP.Structures.Position) return GPR2.Package_Id
+   is
+   begin
+      for P of Self.Packages loop
+         if Is_Between (Position, P.Package_Range) then
+            return P.Name;
+         end if;
+      end loop;
+      return GPR2.Project_Level_Scope;
+   end Get_Package;
+
    --------
    -- Id --
    --------
@@ -315,6 +343,26 @@ package body LSP.GPR_Files is
       begin
          if Current_Package.Name /= Project_Level_Scope then
             Current_Package.Last := Last_Index;
+
+            --  Initialize Package_Range
+
+            declare
+               Location_Range : Slocs.Source_Location_Range :=
+                 Gpr_Parser.Common.Sloc_Range
+                   (Gpr_Parser.Common.Data (Current_Package.First));
+            begin
+               Current_Package.Package_Range.start.line :=
+                 To_Position_Value (Location_Range.Start_Line);
+               Current_Package.Package_Range.start.character :=
+                 To_Position_Value (Location_Range.Start_Column);
+               Location_Range := Gpr_Parser.Common.Sloc_Range
+                 (Gpr_Parser.Common.Data (Current_Package.Last));
+               Current_Package.Package_Range.an_end.line :=
+                 To_Position_Value (Location_Range.Start_Line);
+               Current_Package.Package_Range.an_end.character :=
+                 To_Position_Value (Location_Range.Start_Column);
+            end;
+
             if not File.Packages.Contains (Current_Package.Name) then
                File.Packages.Insert (Current_Package.Name, Current_Package);
             end if;
@@ -980,5 +1028,22 @@ package body LSP.GPR_Files is
          Reset (Self);
       end if;
    end Cleanup;
+
+   -----------
+   -- Token --
+   -----------
+
+   function Token
+     (Self     : File;
+      Position : LSP.Structures.Position)
+      return Gpr_Parser.Common.Token_Reference is
+      Sloc : constant Source_Location :=
+        (To_Line_Number (Position.line),
+         To_Column_Number (Position.character));
+
+   begin
+      return Self.Unit.Lookup_Token (Sloc);
+
+   end Token;
 
 end LSP.GPR_Files;

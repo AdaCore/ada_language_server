@@ -623,6 +623,11 @@ package LSP.Structures is
 
    type Range_Vector is new Range_Vectors.Vector with null record;
 
+   package Boolean_Vectors is new Ada.Containers.Vectors
+     (Positive, Boolean, "=");
+
+   type Boolean_Vector is new Boolean_Vectors.Vector with null record;
+
    type CallHierarchyIncomingCall is record
       from : LSP.Structures.CallHierarchyItem;
       --  The item that makes the call.
@@ -630,6 +635,8 @@ package LSP.Structures is
       fromRanges : LSP.Structures.Range_Vector;
       --  The ranges at which the calls appear. This is relative to the caller
       --  denoted by [`this.from`](#CallHierarchyIncomingCall.from).
+
+      dispatching_calls : LSP.Structures.Boolean_Vector;
 
    end record;
    --  Represents an incoming call, e.g. a caller of a method or constructor.
@@ -683,6 +690,8 @@ package LSP.Structures is
       --  range relative to the caller, e.g the item passed to
       --  [`provideCallHierarchyOutgoingCalls`](#CallHierarchyItemProvider.provideCallHierarchyOutgoingCalls)
       --  and not [`this.to`](#CallHierarchyOutgoingCall.to).
+
+      dispatching_calls : LSP.Structures.Boolean_Vector;
 
    end record;
    --  Represents an outgoing call, e.g. calling a getter from a method or a

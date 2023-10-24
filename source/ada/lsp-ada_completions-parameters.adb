@@ -260,6 +260,10 @@ package body LSP.Ada_Completions.Parameters is
      (N : Libadalang.Analysis.Ada_Node'Class)
       return Libadalang.Analysis.Aggregate is
    begin
+      if N.Is_Null then
+         return No_Aggregate;
+      end if;
+
       if N.Kind in Libadalang.Common.Ada_Aggregate_Range then
          return N.As_Aggregate;
       end if;
@@ -598,6 +602,10 @@ package body LSP.Ada_Completions.Parameters is
       return Libadalang.Analysis.Generic_Package_Instantiation
    is
    begin
+      if N.Is_Null then
+         return No_Generic_Package_Instantiation;
+      end if;
+
       if N.Kind in Ada_Generic_Package_Instantiation_Range then
          return N.As_Generic_Package_Instantiation;
       end if;

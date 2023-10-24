@@ -53,17 +53,23 @@ package body LSP.Ada_Completions is
    ------------------
 
    function Is_End_Token
-     (Token : Libadalang.Common.Token_Reference)
-      return Boolean
+     (Token : Libadalang.Common.Token_Reference) return Boolean
    is
       use Libadalang.Common;
-      End_Token : constant Libadalang.Common.Token_Data_Type :=
-        Libadalang.Common.Data (Token);
-
-      Token_Kind : constant Libadalang.Common.Token_Kind :=
-        Libadalang.Common.Kind (End_Token);
    begin
-      return Token_Kind = Libadalang.Common.Ada_End;
+      if Token = No_Token then
+         return False;
+      end if;
+
+      declare
+         End_Token : constant Libadalang.Common.Token_Data_Type :=
+           Libadalang.Common.Data (Token);
+
+         Token_Kind : constant Libadalang.Common.Token_Kind :=
+           Libadalang.Common.Kind (End_Token);
+      begin
+         return Token_Kind = Libadalang.Common.Ada_End;
+      end;
    end Is_End_Token;
 
    ------------------------

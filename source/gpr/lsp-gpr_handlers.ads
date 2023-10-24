@@ -141,6 +141,11 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidOpenTextDocumentParams);
 
+   overriding procedure On_Hover_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.HoverParams);
+
    -----------------------------------------
    -- LSP.GPR_Documents.Document_Provider --
    -----------------------------------------
