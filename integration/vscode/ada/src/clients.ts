@@ -1,103 +1,10 @@
 import { existsSync } from 'fs';
 import * as vscode from 'vscode';
-import {
-    Disposable,
-    ExecuteCommandRequest,
-    LanguageClient,
-    LanguageClientOptions,
-    ServerOptions,
-} from 'vscode-languageclient/node';
+import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
 import { logger } from './extension';
-import GnatTaskProvider from './gnatTaskProvider';
-import GprTaskProvider from './gprTaskProvider';
 import { logErrorAndThrow, setCustomEnvironment } from './helpers';
-import { registerTaskProviders } from './taskProviders';
 
-export class ContextClients {
-    public readonly gprClient: LanguageClient;
-    public readonly adaClient: LanguageClient;
-
-    private clientsDisposables: Disposable[];
-    private registeredTaskProviders: Disposable[];
-
-    constructor(context: vscode.ExtensionContext) {
-        this.gprClient = createClient(
-            context,
-            'gpr',
-            'GPR Language Server',
-            ['--language-gpr'],
-            '**/.{gpr}'
-        );
-        this.adaClient = createClient(
-            context,
-            'ada',
-            'Ada Language Server',
-            [],
-            '**/.{adb,ads,adc,ada}'
-        );
-        this.clientsDisposables = [];
-        this.registeredTaskProviders = [];
-    }
-
-    public start = () => {
-        this.clientsDisposables = [this.gprClient.start(), this.adaClient.start()];
-        this.registerTaskProviders();
-    };
-
-    public dispose = () => {
-        this.unregisterTaskProviders();
-        this.clientsDisposables.forEach((clientDisposable: Disposable) =>
-            clientDisposable.dispose()
-        );
-    };
-
-    public registerTaskProviders = (): void => {
-        this.registeredTaskProviders = [
-            vscode.tasks.registerTaskProvider(GnatTaskProvider.gnatType, new GnatTaskProvider()),
-            vscode.tasks.registerTaskProvider(
-                GprTaskProvider.gprTaskType,
-                new GprTaskProvider(this.adaClient)
-            ),
-        ].concat(registerTaskProviders());
-    };
-
-    public unregisterTaskProviders = (): void => {
-        for (const item of this.registeredTaskProviders) {
-            item.dispose();
-        }
-        this.registeredTaskProviders = [];
-    };
-
-    //  React to changes in configuration to recompute predefined tasks if the user
-    //  changes scenario variables' values.
-    public configChanged = (e: vscode.ConfigurationChangeEvent) => {
-        if (
-            e.affectsConfiguration('ada.scenarioVariables') ||
-            e.affectsConfiguration('ada.projectFile')
-        ) {
-            this.unregisterTaskProviders();
-            this.registerTaskProviders();
-        }
-    };
-
-    //  Take active editor URI and call execute 'als-other-file' command in LSP
-    public otherFileHandler = () => {
-        const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) {
-            return;
-        }
-        void this.adaClient.sendRequest(ExecuteCommandRequest.type, {
-            command: 'als-other-file',
-            arguments: [
-                {
-                    uri: activeEditor.document.uri.toString(),
-                },
-            ],
-        });
-    };
-}
-
-function createClient(
+export function createClient(
     context: vscode.ExtensionContext,
     id: string,
     name: string,

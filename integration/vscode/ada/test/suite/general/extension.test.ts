@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { contextClients } from '../../../src/extension';
+import { adaExtState } from '../../../src/extension';
 import { suite, test } from 'mocha';
 import { getProjectFile, getObjectDir } from '../../../src/helpers';
 import { assertEqualToFileContent, activate } from '../utils';
@@ -13,8 +13,8 @@ suite('Extensions Test Suite', function () {
     });
     test('Project File Response', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
-            await contextClients.adaClient.onReady();
-            const result: string = await getProjectFile(contextClients.adaClient);
+            await adaExtState.adaClient.onReady();
+            const result: string = await getProjectFile(adaExtState.adaClient);
             const name = result.replace(/^.*[\\/]/, '');
             assert.strictEqual(name, 'default.gpr');
         } else {
@@ -23,8 +23,8 @@ suite('Extensions Test Suite', function () {
     });
     test('Object Directory Response', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
-            await contextClients.adaClient.onReady();
-            const result: string = await getObjectDir(contextClients.adaClient);
+            await adaExtState.adaClient.onReady();
+            const result: string = await getObjectDir(adaExtState.adaClient);
             const name = result?.replace(/^.*[\\/]/, '');
             assert.strictEqual(name, 'obj');
         } else {
@@ -33,7 +33,7 @@ suite('Extensions Test Suite', function () {
     });
     test('Test Add Subprogram Box', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
-            await contextClients.adaClient.onReady();
+            await adaExtState.adaClient.onReady();
             const cursorPositions: vscode.Position[] = [
                 new vscode.Position(9, 1),
                 new vscode.Position(4, 1),

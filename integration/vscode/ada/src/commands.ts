@@ -3,16 +3,15 @@ import { existsSync } from 'fs';
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
-import { ContextClients } from './clients';
+import { ExecuteCommandRequest } from 'vscode-languageclient';
+import { ExtensionState } from './ExtensionState';
 import { getOrAskForProgram } from './debugConfigProvider';
-import { mainOutputChannel } from './extension';
+import { adaExtState, mainOutputChannel } from './extension';
 import { getProjectFileRelPath } from './helpers';
 import { CustomTaskDefinition, getEnclosingSymbol } from './taskProviders';
 
-export function registerCommands(context: vscode.ExtensionContext, clients: ContextClients) {
-    context.subscriptions.push(
-        vscode.commands.registerCommand('ada.otherFile', clients.otherFileHandler)
-    );
+export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
+    context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBoxCommand)
     );
@@ -320,3 +319,19 @@ async function getBuildAndRunTasks() {
             )
         );
 }
+
+//  Take active editor URI and call execute 'als-other-file' command in LSP
+const otherFileHandler = () => {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor) {
+        return;
+    }
+    void adaExtState.adaClient.sendRequest(ExecuteCommandRequest.type, {
+        command: 'als-other-file',
+        arguments: [
+            {
+                uri: activeEditor.document.uri.toString(),
+            },
+        ],
+    });
+};

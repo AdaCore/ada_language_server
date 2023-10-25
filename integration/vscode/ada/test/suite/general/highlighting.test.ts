@@ -5,7 +5,7 @@ import { suite, test } from 'mocha';
 import { existsSync, opendirSync, renameSync } from 'fs';
 import path, { basename, dirname } from 'path';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
-import { contextClients } from '../../../src/extension';
+import { adaExtState } from '../../../src/extension';
 import { assertEqualToFileContent, update, activate } from '../utils';
 
 let adaFilePaths: string[] = [];
@@ -87,7 +87,7 @@ suite('Highlighting', function () {
 async function testSemanticHighlighting(docUri: vscode.Uri) {
     const expectedUri = docUri.with({ path: docUri.path + '.sem.tokens' });
 
-    const initResult = contextClients.adaClient.initializeResult;
+    const initResult = adaExtState.adaClient.initializeResult;
     const legend = initResult?.capabilities.semanticTokensProvider?.legend;
 
     assert(legend);
@@ -97,7 +97,7 @@ async function testSemanticHighlighting(docUri: vscode.Uri) {
     const request: SemanticTokensParams = {
         textDocument: { uri: docUri.toString() },
     };
-    const semanticTokens = await contextClients.adaClient.sendRequest(
+    const semanticTokens = await adaExtState.adaClient.sendRequest(
         SemanticTokensRequest.type,
         request
     );

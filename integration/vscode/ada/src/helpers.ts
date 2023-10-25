@@ -20,7 +20,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
 import winston from 'winston';
-import { contextClients, logger } from './extension';
+import { adaExtState, logger } from './extension';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -239,7 +239,7 @@ export function logErrorAndThrow(msg: string, logger: winston.Logger) {
  */
 export async function getProjectFile(client?: LanguageClient): Promise<string> {
     if (!client) {
-        client = contextClients.adaClient;
+        client = adaExtState.adaClient;
     }
     const result: string = (await client.sendRequest(ExecuteCommandRequest.type, {
         command: 'als-project-file',
@@ -294,8 +294,8 @@ export async function getExecutables(client: LanguageClient): Promise<string[]> 
  * @returns The list of Mains defined for the current project as an array of AdaMains.
  */
 export async function getAdaMains(): Promise<AdaMain[]> {
-    const mains = await getMains(contextClients.adaClient);
-    const execs = await getExecutables(contextClients.adaClient);
+    const mains = await getMains(adaExtState.adaClient);
+    const execs = await getExecutables(adaExtState.adaClient);
     assert(
         execs.length == mains.length,
         `The ALS returned mains.length = ${mains.length} and ` +
