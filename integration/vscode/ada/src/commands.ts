@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
 import { ContextClients } from './clients';
 import { getOrAskForProgram } from './debugConfigProvider';
-import { mainLogChannel } from './extension';
+import { mainOutputChannel } from './extension';
 import { getEnclosingSymbol } from './taskProviders';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ContextClients) {
@@ -13,7 +13,7 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Cont
         vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBoxCommand)
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.showExtensionOutput', () => mainLogChannel.show())
+        vscode.commands.registerCommand('ada.showExtensionOutput', () => mainOutputChannel.show())
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.showAdaLSOutput', () =>

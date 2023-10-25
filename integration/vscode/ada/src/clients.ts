@@ -7,7 +7,7 @@ import {
     LanguageClientOptions,
     ServerOptions,
 } from 'vscode-languageclient/node';
-import { mainLogChannel } from './extension';
+import { logger } from './extension';
 import GnatTaskProvider from './gnatTaskProvider';
 import GprTaskProvider from './gprTaskProvider';
 import { logErrorAndThrow } from './helpers';
@@ -128,7 +128,7 @@ function createClient(
             logErrorAndThrow(
                 `The Ada language server given in the ALS environment ` +
                     `variable does not exist: ${serverExecPath}`,
-                mainLogChannel
+                logger
             );
         }
     } else {
@@ -138,10 +138,12 @@ function createClient(
                     `language server for your architecture (${process.arch}) ` +
                     `and platform (${process.platform}) ` +
                     `at the expected location: ${serverExecPath}`,
-                mainLogChannel
+                logger
             );
         }
     }
+
+    logger.debug(`Using ALS at: ${serverExecPath}`);
 
     // The debug options for the server
     // let debugOptions = { execArgv: [] };
