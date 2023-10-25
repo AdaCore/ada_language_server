@@ -3,7 +3,7 @@ import { SymbolKind } from 'vscode';
 import { ContextClients } from './clients';
 import { getOrAskForProgram } from './debugConfigProvider';
 import { mainLogChannel } from './extension';
-import { getEnclosingSymbol } from './gnatTaskProvider';
+import { getEnclosingSymbol } from './taskProviders';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ContextClients) {
     context.subscriptions.push(
