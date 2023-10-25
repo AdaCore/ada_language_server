@@ -127,6 +127,7 @@ export interface CustomTaskDefinition extends vscode.TaskDefinition {
         args?: string[];
         main?: string;
         executable?: string;
+        mainArgs?: string[];
     };
 }
 
@@ -621,6 +622,9 @@ async function buildFullCommandLine(
                 // The "executable" property is either set explicitly by the
                 // User, or automatically by querying the ALS in previous code.
                 cmd = cmd.concat('&&', taskDef.configuration.executable);
+                if (taskDef.configuration.mainArgs) {
+                    cmd = cmd.concat(taskDef.configuration.mainArgs);
+                }
             } else {
                 if (taskProjectIsALSProject) {
                     // The task project is the same as the ALS project, and apparently we were

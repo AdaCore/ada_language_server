@@ -476,7 +476,10 @@
                             },
                             "args": {
                                 "type": "array",
-                                "description": "Extra command line arguments"
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Extra build command line arguments"
                             }
                         },
                         "oneOf": [
@@ -535,6 +538,13 @@
                                     "executable": {
                                         "type": "string",
                                         "description": "Path to main executable file (if it cannot be computed automatically)"
+                                    },
+                                    "mainArgs": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "description": "Arguments passed to the main executable invocation"
                                     }
                                 },
                                 "additionalProperties": false
@@ -574,6 +584,9 @@
                             },
                             "args": {
                                 "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
                                 "description": "Extra command line arguments"
                             }
                         },
@@ -630,7 +643,8 @@
             },
             {
                 "command": "als-reload-project",
-                "title": "Ada: Reload project"
+                "title": "Ada: Reload project",
+                "icon": "$(refresh)"
             },
             {
                 "command": "ada.subprogramBox",
@@ -638,17 +652,29 @@
             },
             {
                 "command": "ada.showExtensionOutput",
-                "title": "Ada: Show Output",
+                "title": "Ada: Show extension output",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.showAdaLSOutput",
-                "title": "Ada: Show Ada Language Server Output",
+                "title": "Ada: Show Ada Language Server output",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.showGprLSOutput",
-                "title": "Ada: Show GPR Language Server Output",
+                "title": "Ada: Show GPR Language Server output",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.runMainAsk",
+                "title": "Ada: Build and run project main...",
+                "icon": "$(run-all)",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.runMainLast",
+                "title": "Ada: Build and run last used main",
+                "icon": "$(run)",
                 "when": "ADA_PROJECT_CONTEXT"
             }
         ],
@@ -673,6 +699,18 @@
                 {
                     "command": "ada.subprogramBox",
                     "when": "ADA_PROJECT_CONTEXT"
+                }
+            ],
+            "editor/title/run": [
+                {
+                    "command": "ada.runMainLast",
+                    "when": "editorLangId == ada",
+                    "group": "navigation@0"
+                },
+                {
+                    "command": "ada.runMainAsk",
+                    "when": "editorLangId == ada",
+                    "group": "navigation@1"
                 }
             ]
         },

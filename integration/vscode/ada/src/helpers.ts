@@ -233,14 +233,26 @@ export function logErrorAndThrow(msg: string, logger: winston.Logger) {
  * Get the project file from the workspace configuration if available, or from
  * the ALS if not.
  *
- * @param client - the client to send the request to
- * @returns a string contains the path of the project file
+ * @param client - the client to send the request to. If not provided, the main
+ * Ada client of the extension is used.
+ * @returns the full path of the currently loaded project file
  */
-export async function getProjectFile(client: LanguageClient): Promise<string> {
+export async function getProjectFile(client?: LanguageClient): Promise<string> {
+    if (!client) {
+        client = contextClients.adaClient;
+    }
     const result: string = (await client.sendRequest(ExecuteCommandRequest.type, {
         command: 'als-project-file',
     })) as string;
     return result;
+}
+
+/**
+ *
+ * @returns The path of the project file loaded by the ALS relative to the workspace
+ */
+export async function getProjectFileRelPath(): Promise<string> {
+    return vscode.workspace.asRelativePath(await getProjectFile());
 }
 
 /**
