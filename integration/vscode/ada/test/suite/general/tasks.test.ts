@@ -140,7 +140,7 @@ suite('GPR Tasks Provider', function () {
         // via project attributes
         const expectedCmd = `gprbuild -P ${def.configuration.projectFile} ${
             def.configuration.main ?? ''
-        } -cargs -gnatef && obj/main1exec`;
+        } -cargs -gnatef && obj/main1exec${process.platform == 'win32' ? '.exe' : ''}`;
 
         assert.strictEqual(actualCmd, expectedCmd);
     });
