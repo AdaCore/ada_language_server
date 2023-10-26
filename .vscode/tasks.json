@@ -24,7 +24,7 @@
          "script": "compile",
          "path": "integration/vscode/ada",
          "group": "build",
-         "problemMatcher": [],
+         "problemMatcher": ["$tsc"],
          "label": "npm: compile",
          "detail": "node ./node_modules/typescript/bin/tsc",
          "presentation": {

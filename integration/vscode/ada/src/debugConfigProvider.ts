@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { contextClients } from './extension';
-import { getExecutables, getMains, getProjectFile } from './helpers';
+import { AdaMain, getAdaMains, getProjectFile } from './helpers';
 
 /**
  * Ada Configuration for a debug session
@@ -243,54 +243,6 @@ const setupCmd = [
         ignoreFailures: true,
     },
 ];
-
-/**
- * A class that represents an Ada main entry point. It encapsulate both the
- * source file path and the executable file path.
- */
-class AdaMain {
-    mainFullPath: string;
-    execFullPath: string;
-    constructor(mainFullPath: string, execFullPath: string) {
-        this.mainFullPath = mainFullPath;
-        this.execFullPath = execFullPath;
-    }
-
-    /**
-     * @returns path of the main source file relative to the workspace
-     */
-    mainRelPath(): string {
-        return vscode.workspace.asRelativePath(this.mainFullPath);
-    }
-
-    /**
-     * @returns path of the executable file relative to the workspace
-     */
-    execRelPath(): string {
-        return vscode.workspace.asRelativePath(this.execFullPath);
-    }
-}
-
-/**
- * @returns The list of Mains defined for the current project as an array of AdaMains.
- */
-async function getAdaMains(): Promise<AdaMain[]> {
-    const mains = await getMains(contextClients.adaClient);
-    const execs = await getExecutables(contextClients.adaClient);
-    assert(
-        execs.length == mains.length,
-        `The ALS returned mains.length = ${mains.length} and ` +
-            `execs.length = ${execs.length}` +
-            `when they should be equal`
-    );
-
-    const result: AdaMain[] = [];
-    for (let i = 0; i < mains.length; i++) {
-        result.push(new AdaMain(mains[i], execs[i]));
-    }
-
-    return result;
-}
 
 type QuickPickAdaMain = {
     label: string;

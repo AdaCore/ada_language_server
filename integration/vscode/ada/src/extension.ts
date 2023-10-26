@@ -19,7 +19,10 @@
 import * as process from 'process';
 import * as vscode from 'vscode';
 
-import { LanguageClient, Middleware } from 'vscode-languageclient/node';
+import { MESSAGE } from 'triple-beam';
+import { ExecuteCommandRequest, LanguageClient, Middleware } from 'vscode-languageclient/node';
+import winston, { format, transports } from 'winston';
+import Transport from 'winston-transport';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { ContextClients } from './clients';
@@ -28,31 +31,108 @@ import { initializeDebugging } from './debugConfigProvider';
 import { initializeTestView } from './gnattest';
 import {
     assertSupportedEnvironments,
+    getCustomEnvSettingName,
     getEvaluatedCustomEnv,
     setCustomEnvironment,
+    startedInDebugMode,
 } from './helpers';
-import { ExecuteCommandRequest } from 'vscode-languageclient/node';
 
 const ADA_CONTEXT = 'ADA_PROJECT_CONTEXT';
 export let contextClients: ContextClients;
-export let mainLogChannel: vscode.OutputChannel;
+
+/**
+ * The `vscode.OutputChannel` that hosts messages from the extension. This is
+ * different from the channels associated with the language servers.
+ */
+export let mainOutputChannel: vscode.OutputChannel;
+
+/**
+ * A Winston logger object associated with the main output channel that allows
+ * logging messages in a uniform format.
+ */
+export const logger: winston.Logger = winston.createLogger({
+    format: format.combine(
+        // Include a timestamp
+        format.timestamp({
+            format: 'YYYY-MM-DD HH:mm:ss.SSS',
+        }),
+        // Annotate log messages with a label
+        format.label({ label: 'Ada Extension' }),
+        // Pad message levels for alignment
+        format.padLevels(),
+        // Include a stack trace for logged Error objects
+        format.errors({ stack: true }),
+        // Perform printf-style %s,%d replacements
+        format.splat()
+    ),
+});
+
+/**
+ * This is a custom Winston transport that forwards logged messages onto a given
+ * `vscode.OutputChannel`.
+ */
+class VSCodeOutputChannelTransport extends Transport {
+    outputChannel: vscode.OutputChannel;
+
+    constructor(channel: vscode.OutputChannel, opts?: Transport.TransportStreamOptions) {
+        super(opts);
+        this.outputChannel = channel;
+    }
+
+    /**
+     * This implementation is based on the Winston documentation for custom transports.
+     *
+     * @param info - the log entry info object
+     * @param next - a callback
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public log(info: any, next: () => void) {
+        setImmediate(() => {
+            this.emit('logged', info);
+        });
+
+        /*
+         * The formatted message is stored under the 'message' symbol in the info object.
+         */
+        // eslint-disable-next-line max-len
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+        this.outputChannel.appendLine(info[MESSAGE]);
+
+        if (next) {
+            next();
+        }
+    }
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-    // Create an output channel for the extension. There are dedicated channels
-    // for the Ada and Gpr language servers, and this one is a general channel
-    // for non-LSP features of the extension.
-    mainLogChannel = vscode.window.createOutputChannel('Ada Extension');
-    mainLogChannel.appendLine('Starting Ada extension');
+    setUpLogging();
+
+    logger.info('Starting Ada extension');
+
+    try {
+        await activateExtension(context);
+    } catch (error) {
+        logger.error('Error while starting Ada extension. ', error);
+        throw error;
+    }
+
+    logger.info('Finished starting Ada extension');
+}
+
+async function activateExtension(context: vscode.ExtensionContext) {
+    assertSupportedEnvironments(logger);
 
     // Log the environment that the extension (and all VS Code) will be using
     const customEnv = getEvaluatedCustomEnv();
 
     if (customEnv && Object.keys(customEnv).length > 0) {
-        mainLogChannel.appendLine('Setting environment variables:');
+        logger.info('Setting environment variables:');
         for (const varName in customEnv) {
             const varValue: string = customEnv[varName];
-            mainLogChannel.appendLine(`${varName}=${varValue}`);
+            logger.info(`${varName}=${varValue}`);
         }
+    } else {
+        logger.debug('No custom environment variables set in %s', getCustomEnvSettingName());
     }
 
     // Set the custom environment into the current node process. This must be
@@ -60,7 +140,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // environment variable if provided.
     setCustomEnvironment();
 
-    assertSupportedEnvironments(mainLogChannel);
+    assertSupportedEnvironments(logger);
 
     // Create the Ada and GPR clients.
     contextClients = new ContextClients(context);
@@ -72,6 +152,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     contextClients.adaClient.registerFeature(new ALSClientFeatures());
 
     contextClients.start();
+
     context.subscriptions.push(contextClients);
 
     context.subscriptions.push(
@@ -91,8 +172,56 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     initializeDebugging(context);
 
     registerCommands(context, contextClients);
+}
 
-    mainLogChannel.appendLine('Started Ada extension');
+function setUpLogging() {
+    // Create an output channel for the extension. There are dedicated channels
+    // for the Ada and Gpr language servers, and this one is a general channel
+    // for non-LSP features of the extension.
+    mainOutputChannel = vscode.window.createOutputChannel('Ada Extension');
+
+    /*
+     * This is a printing formatter that converts log entries to a string. It
+     * used both for logging to the output channel and to the console.
+     */
+    const printfFormatter = format.printf((info) => {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        return `${info.timestamp} [${info.label}] ${info.level.toUpperCase()} ${info.message} ${
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+            info.stack ?? ''
+        }`;
+    });
+
+    /*
+     * Add a transport to direct log messages to the main
+     * `vscode.OutputChannel`. Set the log level to 'info' to include 'error',
+     * 'warn' and 'info'. See winston documentation for log levels:
+     * https://github.com/winstonjs/winston#logging-levels
+     *
+     * TODO consider making the log level configurable through a verbosity
+     * extension setting
+     */
+    logger.add(
+        new VSCodeOutputChannelTransport(mainOutputChannel, {
+            format: printfFormatter,
+            level: 'info',
+        })
+    );
+
+    if (startedInDebugMode()) {
+        // In debug mode, print log messages to the console with colors. Use
+        // level 'debug' for more verbosity.
+        logger.add(
+            new transports.Console({
+                format: format.combine(
+                    printfFormatter,
+                    // Colorization must be applied after the finalizing printf formatter
+                    format.colorize({ all: true })
+                ),
+                level: 'debug',
+            })
+        );
+    }
 }
 
 export async function deactivate() {

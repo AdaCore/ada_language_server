@@ -446,6 +446,142 @@
         ],
         "taskDefinitions": [
             {
+                "type": "ada",
+                "required": [
+                    "configuration"
+                ],
+                "properties": {
+                    "configuration": {
+                        "type": "object",
+                        "required": [
+                            "kind",
+                            "projectFile"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "type": "string",
+                                "description": "Kind of Ada task",
+                                "enum": [
+                                    "buildProject",
+                                    "checkFile",
+                                    "cleanProject",
+                                    "buildMain",
+                                    "buildAndRunMain"
+                                ]
+                            },
+                            "projectFile": {
+                                "type": "string",
+                                "description": "Path to GPR project file",
+                                "default": "${config:ada.projectFile}"
+                            },
+                            "args": {
+                                "type": "array",
+                                "description": "Extra command line arguments"
+                            }
+                        },
+                        "oneOf": [
+                            {
+                                "$comment": "Each oneOf is evaluated regardless of the parent schema. That's why valid properties of the parent must be repeated here in order to be allowed.",
+                                "properties": {
+                                    "kind": {
+                                        "enum": [
+                                            "buildProject",
+                                            "checkFile",
+                                            "cleanProject"
+                                        ]
+                                    },
+                                    "projectFile": true,
+                                    "args": true
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "required": [
+                                    "main"
+                                ],
+                                "$comment": "Each oneOf is evaluated regardless of the parent schema. That's why valid properties of the parent must be repeated here in order to be allowed.",
+                                "properties": {
+                                    "kind": {
+                                        "enum": [
+                                            "buildMain"
+                                        ]
+                                    },
+                                    "projectFile": true,
+                                    "args": true,
+                                    "main": {
+                                        "type": "string",
+                                        "description": "Path to main source file"
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "required": [
+                                    "main"
+                                ],
+                                "$comment": "Each oneOf is evaluated regardless of the parent schema. That's why valid properties of the parent must be repeated here in order to be allowed.",
+                                "properties": {
+                                    "kind": {
+                                        "enum": [
+                                            "buildAndRunMain"
+                                        ]
+                                    },
+                                    "projectFile": true,
+                                    "args": true,
+                                    "main": {
+                                        "type": "string",
+                                        "description": "Path to main source file"
+                                    },
+                                    "executable": {
+                                        "type": "string",
+                                        "description": "Path to main executable file (if it cannot be computed automatically)"
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "type": "spark",
+                "properties": {
+                    "configuration": {
+                        "type": "object",
+                        "required": [
+                            "kind",
+                            "projectFile"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "description": "Kind of SPARK task",
+                                "enum": [
+                                    "cleanProjectForProof",
+                                    "examineProject",
+                                    "examineFile",
+                                    "examineSubprogram",
+                                    "proveProject",
+                                    "proveFile",
+                                    "proveSubprogram",
+                                    "proveRegion",
+                                    "proveLine"
+                                ]
+                            },
+                            "projectFile": {
+                                "type": "string",
+                                "description": "Path to GPR project file",
+                                "default": "${config:ada.projectFile}"
+                            },
+                            "args": {
+                                "type": "array",
+                                "description": "Extra command line arguments"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                }
+            },
+            {
                 "type": "gnat",
                 "required": [
                     "taskKind"
@@ -453,11 +589,13 @@
                 "properties": {
                     "taskKind": {
                         "type": "string",
-                        "description": "Tool and action kind"
+                        "description": "Tool and action kind",
+                        "deprecationMessage": "The task type \"gnat\" is deprecated. Use task type \"ada\" or \"spark\" instead."
                     },
                     "args": {
                         "type": "array",
-                        "description": "Extra command arguments"
+                        "description": "Extra command line arguments",
+                        "deprecationMessage": "The task type \"gnat\" is deprecated. Use task type \"ada\" or \"spark\" instead."
                     }
                 }
             },
@@ -469,15 +607,18 @@
                 "properties": {
                     "projectFile": {
                         "type": "string",
-                        "description": "The project file"
+                        "description": "The project file",
+                        "deprecationMessage": "The task type \"gpr\" is deprecated. Use task type \"ada\" instead."
                     },
                     "main": {
                         "type": "string",
-                        "description": "The main file targeted"
+                        "description": "The main file targeted",
+                        "deprecationMessage": "The task type \"gpr\" is deprecated. Use task type \"ada\" instead."
                     },
                     "executable": {
                         "type": "string",
-                        "description": "The related executable"
+                        "description": "The related executable",
+                        "deprecationMessage": "The task type \"gpr\" is deprecated. Use task type \"ada\" instead."
                     }
                 }
             }
@@ -649,10 +790,11 @@
     "dependencies": {
         "@types/command-exists": "1.2.0",
         "command-exists": "1.2.9",
+        "fast-xml-parser": "4.2.5",
         "fp-ts": "2.12.0",
         "process": "0.11.10",
         "vscode-languageclient": "7.0.0",
-        "ws": "8.13.0",
-        "fast-xml-parser": "4.2.5"
+        "winston": "3.10.0",
+        "ws": "8.13.0"
     }
 }
