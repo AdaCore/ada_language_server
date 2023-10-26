@@ -33,7 +33,6 @@ import {
     assertSupportedEnvironments,
     getCustomEnvSettingName,
     getEvaluatedCustomEnv,
-    setCustomEnvironment,
     startedInDebugMode,
 } from './helpers';
 
@@ -124,9 +123,8 @@ async function activateExtension(context: vscode.ExtensionContext) {
 
     // Log the environment that the extension (and all VS Code) will be using
     const customEnv = getEvaluatedCustomEnv();
-
     if (customEnv && Object.keys(customEnv).length > 0) {
-        logger.info('Setting environment variables:');
+        logger.info('Custom environment variables:');
         for (const varName in customEnv) {
             const varValue: string = customEnv[varName];
             logger.info(`${varName}=${varValue}`);
@@ -134,13 +132,6 @@ async function activateExtension(context: vscode.ExtensionContext) {
     } else {
         logger.debug('No custom environment variables set in %s', getCustomEnvSettingName());
     }
-
-    // Set the custom environment into the current node process. This must be
-    // done before calling assertSupportedEnvironments in order to set the ALS
-    // environment variable if provided.
-    setCustomEnvironment();
-
-    assertSupportedEnvironments(logger);
 
     // Create the Ada and GPR clients.
     contextClients = new ContextClients(context);

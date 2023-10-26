@@ -10,7 +10,7 @@ import {
 import { logger } from './extension';
 import GnatTaskProvider from './gnatTaskProvider';
 import GprTaskProvider from './gprTaskProvider';
-import { logErrorAndThrow } from './helpers';
+import { logErrorAndThrow, setCustomEnvironment } from './helpers';
 import { registerTaskProviders } from './taskProviders';
 
 export class ContextClients {
@@ -145,15 +145,15 @@ function createClient(
 
     logger.debug(`Using ALS at: ${serverExecPath}`);
 
-    // The debug options for the server
-    // let debugOptions = { execArgv: [] };
-    // If the extension is launched in debug mode then the debug server options are used
-    // Otherwise the run options are used
+    // Copy this process's environment
+    const serverEnv: NodeJS.ProcessEnv = { ...process.env };
+    // Set custom environment
+    setCustomEnvironment(serverEnv);
 
     // Options to control the server
     const serverOptions: ServerOptions = {
-        run: { command: serverExecPath, args: extra },
-        debug: { command: serverExecPath, args: extra },
+        run: { command: serverExecPath, args: extra, options: { env: serverEnv } },
+        debug: { command: serverExecPath, args: extra, options: { env: serverEnv } },
     };
 
     // Options to control the language client
