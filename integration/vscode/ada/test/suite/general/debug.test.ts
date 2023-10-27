@@ -1,11 +1,93 @@
 import assert from 'assert';
 import { suite, test } from 'mocha';
-import { AdaConfig, adaDynamicDebugConfigProvider } from '../../../src/debugConfigProvider';
+import {
+    AdaConfig,
+    adaDynamicDebugConfigProvider,
+    createQuickPicksInitialLaunch,
+    getOrFindGdb,
+} from '../../../src/debugConfigProvider';
+import { exe } from '../../../src/helpers';
 import { activate } from '../utils';
+import { adaExtState } from '../../../src/extension';
 
 suite('Debug Configurations', function () {
+    let expectedConfigs: string;
+
     this.beforeAll(async () => {
         await activate();
+        expectedConfigs = `
+[
+  {
+    "type": "cppdbg",
+    "name": "Ada: Debug main - src/main1.adb",
+    "request": "launch",
+    "targetArchitecture": "x64",
+    "cwd": "\${workspaceFolder}",
+    "program": "\${workspaceFolder}/obj/main1exec${exe}",
+    "stopAtEntry": false,
+    "externalConsole": false,
+    "args": [],
+    "MIMode": "gdb",
+    "preLaunchTask": "ada: Build main - src/main1.adb",
+    "setupCommands": [
+      {
+        "description": "Catch all Ada exceptions",
+        "text": "catch exception",
+        "ignoreFailures": true
+      },
+      {
+        "description": "Enable pretty-printing for gdb",
+        "text": "-enable-pretty-printing",
+        "ignoreFailures": true
+      }
+    ],
+    "miDebuggerPath": "${getOrFindGdb() ?? '<undefined>'}"
+  },
+  {
+    "name": "Ada: Attach debugger to running process - src/main1.adb",
+    "type": "cppdbg",
+    "request": "attach",
+    "program": "\${workspaceFolder}/obj/main1exec${exe}",
+    "processId": "\${command:pickProcess}",
+    "MIMode": "gdb",
+    "miDebuggerPath": "${getOrFindGdb() ?? '<undefined>'}"
+  },
+  {
+    "type": "cppdbg",
+    "name": "Ada: Debug main - src/test.adb",
+    "request": "launch",
+    "targetArchitecture": "x64",
+    "cwd": "\${workspaceFolder}",
+    "program": "\${workspaceFolder}/obj/test${exe}",
+    "stopAtEntry": false,
+    "externalConsole": false,
+    "args": [],
+    "MIMode": "gdb",
+    "preLaunchTask": "ada: Build main - src/test.adb",
+    "setupCommands": [
+      {
+        "description": "Catch all Ada exceptions",
+        "text": "catch exception",
+        "ignoreFailures": true
+      },
+      {
+        "description": "Enable pretty-printing for gdb",
+        "text": "-enable-pretty-printing",
+        "ignoreFailures": true
+      }
+    ],
+    "miDebuggerPath": "${getOrFindGdb() ?? '<undefined>'}"
+  },
+  {
+    "name": "Ada: Attach debugger to running process - src/test.adb",
+    "type": "cppdbg",
+    "request": "attach",
+    "program": "\${workspaceFolder}/obj/test${exe}",
+    "processId": "\${command:pickProcess}",
+    "MIMode": "gdb",
+    "miDebuggerPath": "${getOrFindGdb() ?? '<undefined>'}"
+  }
+]`;
     });
 
     test('GDB path is explicitely set in offered debug config', async () => {
@@ -17,8 +99,7 @@ suite('Debug Configurations', function () {
     });
 
     test('GDB path is the same for all configs', async () => {
-        const configs =
-            (await adaDynamicDebugConfigProvider.provideDebugConfigurations()) as AdaConfig[];
+        const configs = await adaDynamicDebugConfigProvider.provideDebugConfigurations();
 
         assert(configs.length > 1);
         const miDebuggerPath = configs.at(0)?.miDebuggerPath;
@@ -30,13 +111,50 @@ suite('Debug Configurations', function () {
     });
 
     test('Two debug configs per main are proposed', async () => {
-        const configs =
-            (await adaDynamicDebugConfigProvider.provideDebugConfigurations()) as AdaConfig[];
+        const configs = await adaDynamicDebugConfigProvider.provideDebugConfigurations();
         const expected = `
 Ada: Debug main - src/main1.adb
 Ada: Attach debugger to running process - src/main1.adb
 Ada: Debug main - src/test.adb
 Ada: Attach debugger to running process - src/test.adb`.trim();
         assert.equal(configs.map((v) => `${v.name}`).join('\n'), expected);
+    });
+
+    test('Initial', async () => {
+        const { quickpick } = await createQuickPicksInitialLaunch();
+
+        const expected = `
+Ada: Debug main - src/main1.adb
+Ada: Attach debugger to running process - src/main1.adb
+Ada: Debug main - src/test.adb
+Ada: Attach debugger to running process - src/test.adb
+
+All of the above - Create all of the above configurations in the launch.json file`;
+        assert.equal(
+            quickpick
+                .map((e) => `${e.label}${e.description ? ' - ' + e.description : ''}`)
+                .join('\n'),
+            expected.trim()
+        );
+
+        assert.equal(
+            JSON.stringify(
+                quickpick
+                    .filter((e) => 'conf' in e)
+                    .map((e) => {
+                        assert('conf' in e);
+                        return e.conf;
+                    }),
+                null,
+                2
+            ).trim(),
+            expectedConfigs.trim()
+        );
+    });
+
+    test('Dynamic', async () => {
+        const configs = await adaExtState.dynamicDebugConfigProvider.provideDebugConfigurations();
+
+        assert.equal(JSON.stringify(configs, undefined, 2).trim(), expectedConfigs.trim());
     });
 });
