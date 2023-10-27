@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { suite, test } from 'mocha';
 import * as vscode from 'vscode';
-import { contextClients } from '../../../src/extension';
+import { adaExtState } from '../../../src/extension';
 import {
     CustomTaskDefinition,
     PROJECT_FROM_CONFIG,
@@ -44,7 +44,7 @@ suite('GPR Tasks Provider', function () {
     });
 
     test('Spark tasks list', async () => {
-        await contextClients.adaClient.onReady();
+        await adaExtState.adaClient.onReady();
         const prov = createSparkTaskProvider();
         const tasks = await prov.provideTasks();
         assert.notStrictEqual(tasks, undefined);
