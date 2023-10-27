@@ -158,10 +158,15 @@ export function getEvaluatedCustomEnv() {
 
 /**
  * Read the environment variables specified in the vscode setting
- * `terminal.integrated.env.<os>` and set them in the current node process so
- * that they become inherited by any child processes.
+ * `terminal.integrated.env.<os>` and set them in the given ProcessEnv object.
+ *
+ * If no targetEnv is given, `process.env` is used as a target environment.
  */
-export function setCustomEnvironment() {
+export function setCustomEnvironment(targetEnv?: NodeJS.ProcessEnv) {
+    if (!targetEnv) {
+        targetEnv = process.env;
+    }
+
     // Retrieve the user's custom environment variables if specified in their
     // settings/workspace: we'll then launch any child process with this custom
     // environment
@@ -170,13 +175,17 @@ export function setCustomEnvironment() {
     if (custom_env) {
         for (const var_name in custom_env) {
             const var_value: string = custom_env[var_name];
-            process.env[var_name] = var_value;
+            targetEnv[var_name] = var_value;
         }
     }
 }
 
 export function assertSupportedEnvironments(mainChannel: winston.Logger) {
-    if (process.env.ALS) {
+    // Get the ALS environment variable from the custom environment, or from the
+    // process environment
+    const customEnv = getEvaluatedCustomEnv();
+    const als = customEnv?.ALS ?? process.env.ALS;
+    if (als) {
         // The User provided an external ALS executable. Do not perform any
         // platform support checks because we may be on an unsupported platform
         // where the User built and provided ALS.
@@ -224,14 +233,26 @@ export function logErrorAndThrow(msg: string, logger: winston.Logger) {
  * Get the project file from the workspace configuration if available, or from
  * the ALS if not.
  *
- * @param client - the client to send the request to
- * @returns a string contains the path of the project file
+ * @param client - the client to send the request to. If not provided, the main
+ * Ada client of the extension is used.
+ * @returns the full path of the currently loaded project file
  */
-export async function getProjectFile(client: LanguageClient): Promise<string> {
+export async function getProjectFile(client?: LanguageClient): Promise<string> {
+    if (!client) {
+        client = contextClients.adaClient;
+    }
     const result: string = (await client.sendRequest(ExecuteCommandRequest.type, {
         command: 'als-project-file',
     })) as string;
     return result;
+}
+
+/**
+ *
+ * @returns The path of the project file loaded by the ALS relative to the workspace
+ */
+export async function getProjectFileRelPath(): Promise<string> {
+    return vscode.workspace.asRelativePath(await getProjectFile());
 }
 
 /**
