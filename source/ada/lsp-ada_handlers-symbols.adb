@@ -302,12 +302,47 @@ package body LSP.Ada_Handlers.Symbols is
 
          for Child of Node.Children loop
             if not Child.Is_Null then
-               Walk (Child, Next_Level, Children);
+               Walk
+                 (Node         => Child,
+                  Nested_Level => Next_Level,
+                  Vector       => Children);
                exit when Self.Is_Canceled.all;
             end if;
          end loop;
 
          case Node.Kind is
+         when Libadalang.Common.Ada_Ada_Node_List_Range =>
+
+            --  Check if we are dealing with a list of with-clauses nodes
+            --  ('namespace' symbol kind). If yes, create a 'fake' parent
+            --  item called 'With clauses' and put every with-clause within it.
+            if Children.Length > 0 then
+               declare
+                  First_Item : constant LSP.Structures.DocumentSymbol :=
+                    LSP.Structures.Get_DocumentSymbol_Constant_Reference
+                      (Children, 1);
+                  Package_Deps_Item : LSP.Structures.DocumentSymbol;
+               begin
+                  if First_Item.kind = Namespace then
+                     Package_Deps_Item :=
+                       (name              => VSS.Strings.To_Virtual_String
+                          ("With clauses"),
+                        detail            => VSS.Strings.Empty_Virtual_String,
+                        kind              => Namespace,
+                        deprecated        => (Is_Set => False),
+                        tags              => LSP.Constants.Empty,
+                        a_range           => First_Item.a_range,
+                        selectionRange    => First_Item.a_range,
+                        children          => Children,
+                        others            => <>);
+                     Vector.Append (Package_Deps_Item);
+                  else
+                     for J in 1 .. Children.Length loop
+                        Vector.Append (Children (J));
+                     end loop;
+                  end if;
+               end;
+            end if;
          when Libadalang.Common.Ada_Basic_Decl =>
             declare
                Decl : constant Libadalang.Analysis.Basic_Decl :=
