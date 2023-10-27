@@ -35,11 +35,10 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.runMainLast', () => runMainLast())
+        vscode.commands.registerCommand('ada.buildAndRunMainLast', buildAndRunMainLast)
     );
-
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.runMainAsk', () => runMainAsk())
+        vscode.commands.registerCommand('ada.buildAndRunMainAsk', buildAndRunMainAsk)
     );
 
     // This is a hidden command that gets called in the default debug
@@ -125,13 +124,13 @@ async function addSupbrogramBoxCommand() {
 let lastUsedTaskInfo: { source: string; name: string } | undefined;
 
 /**
- * If a task was previously run through the commands `ada.runMainAsk` or
- * `ada.runMainLast`, re-run the same task. If not, defer to {@link runMainAsk}
+ * If a task was previously run through the commands `ada.buildAndRunMainAsk` or
+ * `ada.buildAndRunMainLast`, re-run the same task. If not, defer to {@link buildAndRunMainAsk}
  * to ask the User to select a task to run.
  *
  * @returns the TaskExecution corresponding to the task.
  */
-async function runMainLast() {
+async function buildAndRunMainLast() {
     const buildAndRunTasks = await getBuildAndRunTasks();
     if (lastUsedTaskInfo) {
         const matchingTasks = buildAndRunTasks.filter(matchesLastUsedTask);
@@ -143,7 +142,7 @@ async function runMainLast() {
     }
 
     // No task was run so far, or the last one run no longer exists
-    return runMainAsk();
+    return buildAndRunMainAsk();
 }
 
 /**
@@ -179,7 +178,7 @@ interface TaskQuickPickItem extends vscode.QuickPickItem {
  * button to add the task to tasks.json (if not already there) and configure it
  * there.
  */
-async function runMainAsk() {
+async function buildAndRunMainAsk() {
     function createQuickPickItem(task: vscode.Task): TaskQuickPickItem {
         return {
             // Mark the last used task with a leading star

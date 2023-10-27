@@ -723,13 +723,13 @@
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
-                "command": "ada.runMainAsk",
+                "command": "ada.buildAndRunMainAsk",
                 "title": "Ada: Build and run project main...",
                 "icon": "$(run-all)",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
-                "command": "ada.runMainLast",
+                "command": "ada.buildAndRunMainLast",
                 "title": "Ada: Build and run last used main",
                 "icon": "$(run)",
                 "when": "ADA_PROJECT_CONTEXT"
@@ -760,12 +760,12 @@
             ],
             "editor/title/run": [
                 {
-                    "command": "ada.runMainLast",
+                    "command": "ada.buildAndRunMainLast",
                     "when": "editorLangId == ada",
                     "group": "navigation@0"
                 },
                 {
-                    "command": "ada.runMainAsk",
+                    "command": "ada.buildAndRunMainAsk",
                     "when": "editorLangId == ada",
                     "group": "navigation@1"
                 }
