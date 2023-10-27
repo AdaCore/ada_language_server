@@ -283,9 +283,12 @@ export async function getObjectDir(client: LanguageClient): Promise<string> {
 /**
  * Get the mains in the project
  * @param client - the client to send the request to
- * @returns a vector of string paths
+ * @returns an array of full paths to the main sources
  */
-export async function getMains(client: LanguageClient): Promise<string[]> {
+export async function getMains(client?: LanguageClient): Promise<string[]> {
+    if (!client) {
+        client = adaExtState.adaClient;
+    }
     const result: string[] = (await client.sendRequest(ExecuteCommandRequest.type, {
         command: 'als-mains',
     })) as string[];
@@ -303,6 +306,7 @@ export async function getExecutables(client: LanguageClient): Promise<string[]> 
     })) as string[];
     return result;
 }
+
 /**
  * @returns The list of Mains defined for the current project as an array of AdaMains.
  */
@@ -323,11 +327,11 @@ export async function getAdaMains(): Promise<AdaMain[]> {
 
     return result;
 }
+
 /**
  * A class that represents an Ada main entry point. It encapsulate both the
  * source file path and the executable file path.
  */
-
 export class AdaMain {
     mainFullPath: string;
     execFullPath: string;
@@ -370,3 +374,18 @@ export function startedInDebugMode() {
  * compatible with the running platform.
  */
 export const exe: '.exe' | '' = process.platform == 'win32' ? '.exe' : '';
+
+/**
+ *
+ * @param mainPath - full or relative path to a source file
+ * @returns the {@link AdaMain} representing that main if the given path matches
+ * one of the Mains defined in the project file. Otherwise `undefined` is
+ * returned.
+ */
+export async function findAdaMain(mainPath: string): Promise<AdaMain | undefined> {
+    const projectMains = await getAdaMains();
+    const adaMain = projectMains.find(
+        (val) => val.mainRelPath() == mainPath || val.mainFullPath == mainPath
+    );
+    return adaMain;
+}

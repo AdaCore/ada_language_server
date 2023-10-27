@@ -10,6 +10,7 @@ import { adaExtState, mainOutputChannel } from './extension';
 import { getProjectFileRelPath } from './helpers';
 import {
     CustomTaskDefinition,
+    getBuildAndRunTasks,
     getConventionalTaskLabel,
     getEnclosingSymbol,
     isFromWorkspace,
@@ -300,23 +301,6 @@ async function buildAndRunMainAsk() {
         );
         return undefined;
     }
-}
-
-/**
- *
- * @returns Array of tasks of type `ada` and kind `buildAndRunMain`. This
- * includes tasks automatically provided by the extension as well as
- * user-defined tasks in tasks.json.
- */
-async function getBuildAndRunTasks() {
-    return await vscode.tasks
-        .fetchTasks({ type: 'ada' })
-        .then((tasks) =>
-            tasks.filter(
-                (t) =>
-                    (t.definition as CustomTaskDefinition).configuration.kind == 'buildAndRunMain'
-            )
-        );
 }
 
 //  Take active editor URI and call execute 'als-other-file' command in LSP
