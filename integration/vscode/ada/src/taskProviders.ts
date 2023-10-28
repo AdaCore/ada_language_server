@@ -20,7 +20,7 @@ import commandExists from 'command-exists';
 import { basename } from 'path';
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
-import { contextClients } from './extension';
+import { adaExtState } from './extension';
 import { getAdaMains, getProjectFile } from './helpers';
 
 /**
@@ -217,7 +217,7 @@ export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
 async function getProjectFromConfigOrALS(): Promise<string> {
     return vscode.workspace.getConfiguration('ada').get('projectFile')
         ? PROJECT_FROM_CONFIG
-        : await getProjectFile(contextClients.adaClient);
+        : await getProjectFile(adaExtState.adaClient);
 }
 
 export function getScenarioArgs() {
@@ -548,7 +548,7 @@ async function buildFullCommandLine(
         cmd = cmd.concat(await task.extra());
     }
 
-    const alsProjectFullPath = await getProjectFile(contextClients.adaClient);
+    const alsProjectFullPath = await getProjectFile(adaExtState.adaClient);
     const alsProjectRelPath = vscode.workspace.asRelativePath(alsProjectFullPath);
     const taskProject = taskDef.configuration.projectFile;
 

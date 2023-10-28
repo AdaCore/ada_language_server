@@ -1,10 +1,10 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import { XMLParser } from 'fast-xml-parser';
-import { ContextClients } from './clients';
-import { getProjectFile, getObjectDir } from './helpers';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { integer } from 'vscode-languageclient';
+import { ExtensionState } from './ExtensionState';
+import { getObjectDir, getProjectFile } from './helpers';
 
 export let controller: vscode.TestController;
 export let testRunProfile: vscode.TestRunProfile;
@@ -54,7 +54,7 @@ type Test = {
 */
 export async function initializeTestView(
     context: vscode.ExtensionContext,
-    clients: ContextClients
+    clients: ExtensionState
 ) {
     if (vscode.workspace.workspaceFolders !== undefined) {
         controller = vscode.tests.createTestController(

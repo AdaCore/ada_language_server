@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { contextClients } from '../../../src/extension';
+import { adaExtState } from '../../../src/extension';
 import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../../../src/alsProtocolExtensions';
 import { suite, test } from 'mocha';
 import { activate } from '../utils';
@@ -15,8 +15,8 @@ suite('Syntax Check Test Suite', function () {
             false_statement: string,
             true_statement: string
         ) {
-            await contextClients.adaClient.onReady();
-            const syntaxProvider = new AdaSyntaxCheckProvider(contextClients.adaClient, [rule]);
+            await adaExtState.adaClient.onReady();
+            const syntaxProvider = new AdaSyntaxCheckProvider(adaExtState.adaClient, [rule]);
             let result = await syntaxProvider.sendCheckSyntaxRequest(true_statement);
             assert.deepStrictEqual(result, undefined);
             result = await syntaxProvider.sendCheckSyntaxRequest(false_statement);

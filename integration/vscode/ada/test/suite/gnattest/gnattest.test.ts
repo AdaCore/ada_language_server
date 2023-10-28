@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as cp from 'child_process';
 import { suite, test } from 'mocha';
 import * as gnattest from '../../../src/gnattest';
-import { contextClients } from '../../../src/extension';
+import { adaExtState } from '../../../src/extension';
 import { getObjectDir, getProjectFile } from '../../../src/helpers';
 import { activate, assertEqualToFileContent } from '../utils';
 
@@ -13,8 +13,8 @@ suite('GNATtest Integration Tests', function () {
         await activate();
     });
     test('Generate Tests', async () => {
-        await contextClients.adaClient.onReady();
-        const projectFile = await getProjectFile(contextClients.adaClient);
+        await adaExtState.adaClient.onReady();
+        const projectFile = await getProjectFile(adaExtState.adaClient);
         // Generate tests and redirect the stderr to stdout if command failed
         cp.execSync('gnattest -P ' + projectFile + ' 2>&1', { timeout: 60000 });
     });
@@ -40,7 +40,7 @@ suite('GNATtest Integration Tests', function () {
     test('Expected Tests discovered', async () => {
         const root = await gnattest.discoverTests(
             gnattest.controller,
-            path.join(await getObjectDir(contextClients.adaClient), 'gnattest')
+            path.join(await getObjectDir(adaExtState.adaClient), 'gnattest')
         );
         assert.notStrictEqual(root, undefined);
         const tests = gnattest.gatherChildTestItems(gnattest.controller.items);

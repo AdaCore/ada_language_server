@@ -23,9 +23,9 @@ import { MESSAGE } from 'triple-beam';
 import { ExecuteCommandRequest, LanguageClient, Middleware } from 'vscode-languageclient/node';
 import winston, { format, transports } from 'winston';
 import Transport from 'winston-transport';
+import { ExtensionState } from './ExtensionState';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
-import { ContextClients } from './clients';
 import { registerCommands } from './commands';
 import { initializeDebugging } from './debugConfigProvider';
 import { initializeTestView } from './gnattest';
@@ -37,7 +37,13 @@ import {
 } from './helpers';
 
 const ADA_CONTEXT = 'ADA_PROJECT_CONTEXT';
-export let contextClients: ContextClients;
+
+/**
+ * A global object encapsulating extension state. This includes the Ada and GPR
+ * LSP clients and other state used to provide tasks, commands and other
+ * functionality.
+ */
+export let adaExtState: ExtensionState;
 
 /**
  * The `vscode.OutputChannel` that hosts messages from the extension. This is
@@ -134,35 +140,34 @@ async function activateExtension(context: vscode.ExtensionContext) {
     }
 
     // Create the Ada and GPR clients.
-    contextClients = new ContextClients(context);
+    adaExtState = new ExtensionState(context);
+    context.subscriptions.push(adaExtState);
 
     const alsMiddleware: Middleware = {
-        executeCommand: alsCommandExecutor(contextClients.adaClient),
+        executeCommand: alsCommandExecutor(adaExtState.adaClient),
     };
-    contextClients.adaClient.clientOptions.middleware = alsMiddleware;
-    contextClients.adaClient.registerFeature(new ALSClientFeatures());
+    adaExtState.adaClient.clientOptions.middleware = alsMiddleware;
+    adaExtState.adaClient.registerFeature(new ALSClientFeatures());
 
-    contextClients.start();
-
-    context.subscriptions.push(contextClients);
+    adaExtState.start();
 
     context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(contextClients.configChanged)
+        vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged)
     );
 
-    await Promise.all([contextClients.adaClient.onReady(), contextClients.gprClient.onReady()]);
+    await Promise.all([adaExtState.adaClient.onReady(), adaExtState.gprClient.onReady()]);
 
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, true);
 
-    await checkSrcDirectories(contextClients.adaClient);
+    await checkSrcDirectories(adaExtState.adaClient);
 
-    await initializeTestView(context, contextClients);
+    await initializeTestView(context, adaExtState);
 
-    await Promise.all([contextClients.adaClient.onReady(), contextClients.gprClient.onReady()]);
+    await Promise.all([adaExtState.adaClient.onReady(), adaExtState.gprClient.onReady()]);
 
     initializeDebugging(context);
 
-    registerCommands(context, contextClients);
+    registerCommands(context, adaExtState);
 }
 
 function setUpLogging() {

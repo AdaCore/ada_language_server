@@ -1,6 +1,6 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
-import { contextClients } from './extension';
+import { adaExtState } from './extension';
 import { AdaMain, getAdaMains, getProjectFile } from './helpers';
 
 /**
@@ -284,7 +284,7 @@ async function assertProjectHasMains(mains?: AdaMain[]) {
     if (mains.length == 0) {
         const msg =
             `The Ada project '${await getProjectFile(
-                contextClients.adaClient
+                adaExtState.adaClient
             )}' does not define a 'Main' attribute. ` + 'Debugging is not possible without it.';
 
         // Display a warning message
