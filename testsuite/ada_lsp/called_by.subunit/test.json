@@ -1,0 +1,631 @@
+[
+   {
+      "comment": [
+         "test incomingCalls on subunit defined in a separate file"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-1",
+            "method": "initialize",
+            "params": {
+               "processId": 220067,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {},
+                     "didChangeConfiguration": {},
+                     "didChangeWatchedFiles": {},
+                     "executeCommand": {}
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ]
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "references": {},
+                     "documentHighlight": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "codeLens": {},
+                     "colorProvider": {},
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     },
+                     "selectionRange": {},
+                     "linkedEditingRange": {},
+                     "callHierarchy": {},
+                     "moniker": {}
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-1",
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": true,
+                     "codeActionProvider": {},
+                     "documentFormattingProvider": true,
+                     "renameProvider": {},
+                     "foldingRangeProvider": true,
+                     "workspaceSymbolProvider": true,
+                     "callHierarchyProvider": {},
+                     "alsShowDepsProvider": true,
+                     "alsReferenceKinds": [
+                        "reference",
+                        "access",
+                        "write",
+                        "call",
+                        "dispatching call",
+                        "parent",
+                        "child",
+                        "overriding"
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": false,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Root.Child;\nwith Root.Child.Do_Something;\nprocedure Main is\nbegin\n   Root.Child.Do_Something;\n   Root.Child.Hello;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/root-child-do_something.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Root.Child.Do_Something is\nbegin\n   null;\nend Root.Child.Do_Something;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "textDocument/prepareCallHierarchy",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               },
+               "position": {
+                  "line": 5,
+                  "character": 14
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 10,
+               "result": [
+                  {
+                     "name": "Hello",
+                     "kind": 12,
+                     "detail": "at root-child.ads (3:14)",
+                     "uri": "$URI{src/root-child.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 27
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 2,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "callHierarchy/incomingCalls",
+            "params": {
+               "item": {
+                  "name": "",
+                  "kind": 12,
+                  "uri": "$URI{src/root-child.ads}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 2,
+                        "character": 13
+                     }
+                  },
+                  "selectionRange": {
+                     "start": {
+                        "line": 2,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 2,
+                        "character": 13
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 11,
+               "result": [
+                  {
+                     "from": {
+                        "name": "Main",
+                        "kind": 12,
+                        "uri": "$URI{src/main.adb}",
+                        "range": {
+                           "start": {
+                              "line": 2,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 14
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 2,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 14
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 5,
+                              "character": 14
+                           },
+                           "end": {
+                              "line": 5,
+                              "character": 19
+                           }
+                        }
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "textDocument/prepareCallHierarchy",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 14
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 14,
+               "result": [
+                  {
+                     "name": "Root.Child.Do_Something",
+                     "kind": 12,
+                     "detail": "at root-child-do_something.adb (1:11)",
+                     "uri": "$URI{src/root-child-do_something.adb}",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 28
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 0,
+                           "character": 21
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 33
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 15,
+            "method": "callHierarchy/incomingCalls",
+            "params": {
+               "item": {
+                  "name": "",
+                  "kind": 12,
+                  "uri": "$URI{src/root-child-do_something.adb}",
+                  "range": {
+                     "start": {
+                        "line": 0,
+                        "character": 21
+                     },
+                     "end": {
+                        "line": 0,
+                        "character": 21
+                     }
+                  },
+                  "selectionRange": {
+                     "start": {
+                        "line": 0,
+                        "character": 21
+                     },
+                     "end": {
+                        "line": 0,
+                        "character": 21
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 15,
+               "result": [
+                  {
+                     "from": {
+                        "name": "Main",
+                        "kind": 12,
+                        "uri": "$URI{src/main.adb}",
+                        "range": {
+                           "start": {
+                              "line": 2,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 14
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 2,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 14
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 4,
+                              "character": 14
+                           },
+                           "end": {
+                              "line": 4,
+                              "character": 26
+                           }
+                        }
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 20,
+            "method": "textDocument/prepareCallHierarchy",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/root-child-do_something.adb}"
+               },
+               "position": {
+                  "line": 0,
+                  "character": 21
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 20,
+               "result": [
+                  {
+                     "name": "Root.Child.Do_Something",
+                     "kind": 12,
+                     "detail": "at root-child-do_something.adb (1:11)",
+                     "uri": "$URI{src/root-child-do_something.adb}",
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 28
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 0,
+                           "character": 21
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 33
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 21,
+            "method": "callHierarchy/incomingCalls",
+            "params": {
+               "item": {
+                  "name": "",
+                  "kind": 12,
+                  "uri": "$URI{src/root-child-do_something.adb}",
+                  "range": {
+                     "start": {
+                        "line": 0,
+                        "character": 21
+                     },
+                     "end": {
+                        "line": 0,
+                        "character": 21
+                     }
+                  },
+                  "selectionRange": {
+                     "start": {
+                        "line": 0,
+                        "character": 21
+                     },
+                     "end": {
+                        "line": 0,
+                        "character": 21
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 21,
+               "result": [
+                  {
+                     "from": {
+                        "name": "Main",
+                        "kind": 12,
+                        "uri": "$URI{src/main.adb}",
+                        "range": {
+                           "start": {
+                              "line": 2,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 14
+                           }
+                        },
+                        "selectionRange": {
+                           "start": {
+                              "line": 2,
+                              "character": 10
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 14
+                           }
+                        }
+                     },
+                     "fromRanges": [
+                        {
+                           "start": {
+                              "line": 4,
+                              "character": 14
+                           },
+                           "end": {
+                              "line": 4,
+                              "character": 26
+                           }
+                        }
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/root-child-do_something.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 22,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 22,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
