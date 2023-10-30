@@ -937,6 +937,14 @@ package body LSP.Lal_Utils is
       Main_Item : constant Libadalang.Analysis.Basic_Decl :=
         Name.P_Basic_Decl;
 
+      --  In case the Defining_Name is a Dotted_Name then we need
+      --  to point to the func which is the last.
+      Node      : constant Libadalang.Analysis.Ada_Node'Class :=
+        (if Name.First_Child.Kind
+         in Libadalang.Common.Ada_Dotted_Name_Range
+         then Name.First_Child.As_Dotted_Name.F_Suffix
+         else Name);
+
       Where     : constant LSP.Messages.Location :=
         LSP.Lal_Utils.Get_Node_Location (Main_Item);
    begin
@@ -947,7 +955,7 @@ package body LSP.Lal_Utils is
          detail         => (True, LSP.Lal_Utils.Node_Location_Image (Name)),
          uri            => Where.uri,
          span           => Where.span,
-         selectionRange => LSP.Lal_Utils.To_Span (Name.Sloc_Range));
+         selectionRange => LSP.Lal_Utils.To_Span (Node.Sloc_Range));
    end To_Call_Hierarchy_Item;
 
    ------------------------------
