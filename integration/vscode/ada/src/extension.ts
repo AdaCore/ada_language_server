@@ -110,7 +110,7 @@ class VSCodeOutputChannelTransport extends Transport {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-    setUpLogging();
+    setUpLogging(context);
 
     logger.info('Starting Ada extension');
 
@@ -170,7 +170,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
     registerCommands(context, adaExtState);
 }
 
-function setUpLogging() {
+function setUpLogging(context: vscode.ExtensionContext) {
     // Create an output channel for the extension. There are dedicated channels
     // for the Ada and Gpr language servers, and this one is a general channel
     // for non-LSP features of the extension.
@@ -204,6 +204,21 @@ function setUpLogging() {
         })
     );
 
+    /**
+     * Set logging level according to configuration
+     */
+    updateLogLevel();
+    /**
+     * Listen to configuration changes and update the transport level
+     */
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration((e) => {
+            if (e.affectsConfiguration('ada.trace.server')) {
+                updateLogLevel();
+            }
+        })
+    );
+
     if (startedInDebugMode()) {
         // In debug mode, print log messages to the console with colors. Use
         // level 'debug' for more verbosity.
@@ -217,6 +232,17 @@ function setUpLogging() {
                 level: 'debug',
             })
         );
+    }
+
+    function updateLogLevel() {
+        /**
+         * Decide the log level from configuration.
+         */
+        const adaTraceServer: 'off' | 'messages' | 'verbose' =
+            vscode.workspace.getConfiguration('ada').get('trace.server') ?? 'off';
+        const logLevel: 'info' | 'debug' = adaTraceServer == 'off' ? 'info' : 'debug';
+        logger.transports.forEach((t) => (t.level = logLevel));
+        logger.info('Setting log level to: ' + logLevel);
     }
 }
 
