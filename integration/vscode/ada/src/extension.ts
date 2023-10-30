@@ -130,7 +130,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
     // Log the environment that the extension (and all VS Code) will be using
     const customEnv = getEvaluatedCustomEnv();
     if (customEnv && Object.keys(customEnv).length > 0) {
-        logger.info('Custom environment variables:');
+        logger.info(`Custom environment variables from ${getCustomEnvSettingName()}`);
         for (const varName in customEnv) {
             const varValue: string = customEnv[varName];
             logger.info(`${varName}=${varValue}`);
