@@ -155,19 +155,24 @@ async function activateExtension(context: vscode.ExtensionContext) {
         vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged)
     );
 
+    /**
+     * Register commands first so that commands such as displaying the extension
+     * Output become available even if the language servers fail to start.
+     */
+    registerCommands(context, adaExtState);
+
     await Promise.all([adaExtState.adaClient.onReady(), adaExtState.gprClient.onReady()]);
 
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, true);
 
-    await checkSrcDirectories(adaExtState.adaClient);
-
     await initializeTestView(context, adaExtState);
-
-    await Promise.all([adaExtState.adaClient.onReady(), adaExtState.gprClient.onReady()]);
 
     initializeDebugging(context);
 
-    registerCommands(context, adaExtState);
+    /**
+     * This can display a dialog to the User so don't wait on the result.
+     */
+    void checkSrcDirectories(adaExtState.adaClient);
 }
 
 function setUpLogging(context: vscode.ExtensionContext) {
