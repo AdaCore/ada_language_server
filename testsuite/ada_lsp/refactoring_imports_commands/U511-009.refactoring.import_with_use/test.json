@@ -1,16 +1,12 @@
 [
    {
-      "comment": [
-         "Test codeaction import refactor"
-      ]
-   }, 
+      "comment": ["Test codeaction import refactor"]
+   },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -27,7 +23,8 @@
             "id": 1,
             "method": "initialize"
          },
-         "wait": [{
+         "wait": [
+            {
                "id": 1,
                "result": {
                   "capabilities": {
@@ -35,22 +32,12 @@
                      "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
+                        "triggerCharacters": [".", ",", "'", "("],
                         "resolveProvider": true
                      },
                      "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
+                        "triggerCharacters": [",", "("],
+                        "retriggerCharacters": ["\b"]
                      },
                      "definitionProvider": true
                   }
@@ -62,27 +49,27 @@
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "$URI{default.gpr}", 
+                     "projectFile": "$URI{default.gpr}",
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -94,7 +81,7 @@
             }
          ]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -215,25 +202,27 @@
                "id": "ada-9",
                "result": [
                   {
-                     "title": "Add 'with' clause for Bar and prefix the object with Bar.",
-                     "kind": "refactor.rewrite",
+                     "title": "Qualify with Bar",
+                     "kind": "quickfix",
                      "command": {
                         "title": "",
-                        "command": "als-refactor-imports",
-                        "arguments": [{
-                           "context": "Default",
-                           "where": {
-                              "textDocument": {
-                                 "uri": "$URI{foo.adb}"
+                        "command": "als-auto-import",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{foo.adb}"
+                                 },
+                                 "position": {
+                                    "line": 8,
+                                    "character": 28
+                                 }
                               },
-                              "position": {
-                                 "line": 8,
-                                 "character": 28
-                              }
-                           },
-                           "with_clause": "Bar",
-                           "prefix": "Bar."
-                        }]
+                              "import": "Bar",
+                              "qualifier": "Bar"
+                           }
+                        ]
                      }
                   }
                ]
@@ -248,8 +237,9 @@
             "id": "ada-11",
             "method": "workspace/executeCommand",
             "params": {
-               "command": "als-refactor-imports",
-               "arguments": [{
+               "command": "als-auto-import",
+               "arguments": [
+                  {
                      "context": "Default",
                      "where": {
                         "textDocument": {
@@ -260,9 +250,10 @@
                            "character": 28
                         }
                      },
-                     "with_clause": "Bar",
-                     "prefix": "Bar."
-                  }]
+                     "import": "Bar",
+                     "qualifier": "Bar"
+                  }
+               ]
             }
          },
          "wait": [
@@ -270,21 +261,22 @@
                "id": 2,
                "method": "workspace/applyEdit",
                "params": {
+                  "label": "Auto Import",
                   "edit": {
                      "changes": {
                         "$URI{foo.adb}": [
                            {
                               "range": {
                                  "start": {
-                                    "line": 1,
-                                    "character": 34
+                                    "line": 2,
+                                    "character": 0
                                  },
                                  "end": {
-                                    "line": 1,
-                                    "character": 34
+                                    "line": 2,
+                                    "character": 0
                                  }
                               },
-                              "newText": "\nwith Bar;"
+                              "newText": "with Bar;\n"
                            },
                            {
                               "range": {
@@ -364,8 +356,7 @@
                ]
             }
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
    {
@@ -426,25 +417,27 @@
                "id": "ada-17",
                "result": [
                   {
-                     "title": "Prefix the object with Nested.",
-                     "kind": "refactor.rewrite",
+                     "title": "Qualify with Foo.Nested",
+                     "kind": "quickfix",
                      "command": {
                         "title": "",
-                        "command": "als-refactor-imports",
-                        "arguments": [{
-                           "context": "Default",
-                           "where": {
-                              "textDocument": {
-                                 "uri": "$URI{foo.adb}"
+                        "command": "als-auto-import",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "textDocument": {
+                                    "uri": "$URI{foo.adb}"
+                                 },
+                                 "position": {
+                                    "line": 9,
+                                    "character": 20
+                                 }
                               },
-                              "position": {
-                                 "line": 9,
-                                 "character": 20
-                              }
-                           },
-                           "with_clause": "",
-                           "prefix": "Nested."
-                        }]
+                              "import": "Foo",
+                              "qualifier": "Foo.Nested"
+                           }
+                        ]
                      }
                   }
                ]
@@ -459,21 +452,23 @@
             "id": "ada-19",
             "method": "workspace/executeCommand",
             "params": {
-               "command": "als-refactor-imports",
-               "arguments": [{
-                  "context": "Default",
-                  "where": {
-                     "textDocument": {
-                        "uri": "$URI{foo.adb}"
+               "command": "als-auto-import",
+               "arguments": [
+                  {
+                     "context": "Default",
+                     "where": {
+                        "textDocument": {
+                           "uri": "$URI{foo.adb}"
+                        },
+                        "position": {
+                           "line": 9,
+                           "character": 20
+                        }
                      },
-                     "position": {
-                        "line": 9,
-                        "character": 20
-                     }
-                  },
-                  "with_clause": "",
-                  "prefix": "Nested."
-               }]
+                     "import": "Foo",
+                     "prefix": "Foo.Nested"
+                  }
+               ]
             }
          },
          "wait": [
@@ -487,6 +482,19 @@
                            {
                               "range": {
                                  "start": {
+                                    "line": 3,
+                                    "character": 0
+                                 },
+                                 "end": {
+                                    "line": 3,
+                                    "character": 0
+                                 }
+                              },
+                              "newText": "with Foo;\n"
+                           },
+                           {
+                              "range": {
+                                 "start": {
                                     "line": 9,
                                     "character": 20
                                  },
@@ -495,7 +503,7 @@
                                     "character": 20
                                  }
                               },
-                              "newText": "Nested."
+                              "newText": ""
                            }
                         ]
                      }
@@ -519,6 +527,19 @@
                   {
                      "range": {
                         "start": {
+                           "line": 3,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 0
+                        }
+                     },
+                     "text": "with Foo;\n"
+                  },
+                  {
+                     "range": {
+                        "start": {
                            "line": 9,
                            "character": 20
                         },
@@ -527,7 +548,7 @@
                            "character": 20
                         }
                      },
-                     "text": "Nested."
+                     "text": ""
                   }
                ]
             }

@@ -39,7 +39,7 @@ build_and_test:
     - !reference [.basic-setup]
 
     - echo -e "\e[0Ksection_start:`date +%s`:build_als[collapsed=true]\r\e[0Kanod build als"
-    - anod build als $ACI_TRACK_QUALIFIER --minimal
+    - anod build als $ACI_TRACK_QUALIFIER
     - echo -e "\e[0Ksection_end:`date +%s`:build_als\r\e[0K"
 
     - echo -e "\e[0Ksection_start:`date +%s`:build_vscode[collapsed=true]\r\e[0Kanod build vscode-extension"
@@ -51,7 +51,7 @@ build_and_test:
 
     - echo -e "\e[0Ksection_start:`date +%s`:test_als[collapsed=true]\r\e[0Kanod test als"
     # Run ALS tests
-    - anod test als $ACI_TRACK_QUALIFIER --minimal
+    - anod test als $ACI_TRACK_QUALIFIER
 
     # TODO: it would be nice to have a simpler way of getting this info
     - ALS_BUILD_SPACE_NAME=`anod eval als --primitive test build_space_name $ACI_TRACK_QUALIFIER | tr -d "'"`
