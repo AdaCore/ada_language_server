@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "test automatically generated"
-      ]
+      "comment": ["test automatically generated"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -31,11 +27,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "create",
-                           "rename",
-                           "delete"
-                        ],
+                        "resourceOperations": ["create", "rename", "delete"],
                         "failureHandling": "textOnlyTransactional",
                         "normalizesLineEndings": true,
                         "changeAnnotationSupport": {
@@ -52,38 +44,12 @@
                         "dynamicRegistration": true,
                         "symbolKind": {
                            "valueSet": [
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                              6,
-                              7,
-                              8,
-                              9,
-                              10,
-                              11,
-                              12,
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                              20,
-                              21,
-                              22,
-                              23,
-                              24,
-                              25,
-                              26
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
                            ]
                         },
                         "tagSupport": {
-                           "valueSet": [
-                              1
-                           ]
+                           "valueSet": [1]
                         }
                      },
                      "codeLens": {
@@ -112,10 +78,7 @@
                         "relatedInformation": true,
                         "versionSupport": false,
                         "tagSupport": {
-                           "valueSet": [
-                              1,
-                              2
-                           ]
+                           "valueSet": [1, 2]
                         },
                         "codeDescriptionSupport": true,
                         "dataSupport": true
@@ -132,16 +95,11 @@
                         "completionItem": {
                            "snippetSupport": true,
                            "commitCharactersSupport": true,
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ],
+                           "documentationFormat": ["markdown", "plaintext"],
                            "deprecatedSupport": true,
                            "preselectSupport": true,
                            "tagSupport": {
-                              "valueSet": [
-                                 1
-                              ]
+                              "valueSet": [1]
                            },
                            "insertReplaceSupport": true,
                            "resolveSupport": {
@@ -152,56 +110,24 @@
                               ]
                            },
                            "insertTextModeSupport": {
-                              "valueSet": [
-                                 1,
-                                 2
-                              ]
+                              "valueSet": [1, 2]
                            }
                         },
                         "completionItemKind": {
                            "valueSet": [
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                              6,
-                              7,
-                              8,
-                              9,
-                              10,
-                              11,
-                              12,
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                              20,
-                              21,
-                              22,
-                              23,
-                              24,
-                              25
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25
                            ]
                         }
                      },
                      "hover": {
                         "dynamicRegistration": true,
-                        "contentFormat": [
-                           "markdown",
-                           "plaintext"
-                        ]
+                        "contentFormat": ["markdown", "plaintext"]
                      },
                      "signatureHelp": {
                         "dynamicRegistration": true,
                         "signatureInformation": {
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ],
+                           "documentationFormat": ["markdown", "plaintext"],
                            "parameterInformation": {
                               "labelOffsetSupport": true
                            },
@@ -223,39 +149,13 @@
                         "dynamicRegistration": true,
                         "symbolKind": {
                            "valueSet": [
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                              6,
-                              7,
-                              8,
-                              9,
-                              10,
-                              11,
-                              12,
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                              20,
-                              21,
-                              22,
-                              23,
-                              24,
-                              25,
-                              26
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
                            ]
                         },
                         "hierarchicalDocumentSymbolSupport": true,
                         "tagSupport": {
-                           "valueSet": [
-                              1
-                           ]
+                           "valueSet": [1]
                         },
                         "labelSupport": true
                      },
@@ -265,9 +165,7 @@
                         "disabledSupport": true,
                         "dataSupport": true,
                         "resolveSupport": {
-                           "properties": [
-                              "edit"
-                           ]
+                           "properties": ["edit"]
                         },
                         "codeActionLiteralSupport": {
                            "codeActionKind": {
@@ -368,9 +266,7 @@
                            "documentation",
                            "defaultLibrary"
                         ],
-                        "formats": [
-                           "relative"
-                        ],
+                        "formats": ["relative"],
                         "requests": {
                            "range": true,
                            "full": {
@@ -426,18 +322,18 @@
                      "workspace": {
                         "fileOperations": {
                            "didCreate": {
-                             "filters": [
-                               {
-                                 "scheme": "file",
-                                 "pattern": {
-                                   "glob": "**/*.ad{a,s,b,c}",
-                                   "matches": "file",
-                                   "options": {
-                                     "ignoreCase": true
-                                   }
+                              "filters": [
+                                 {
+                                    "scheme": "file",
+                                    "pattern": {
+                                       "glob": "**/*.ad{a,s,b,c}",
+                                       "matches": "file",
+                                       "options": {
+                                          "ignoreCase": true
+                                       }
+                                    }
                                  }
-                               }
-                             ]
+                              ]
                            }
                         }
                      }
@@ -544,10 +440,11 @@
          },
          "wait": [
             {
+               "jsonrpc": "2.0",
                "id": 7,
                "result": [
                   {
-                     "name": "Foo",
+                     "name": "With clauses",
                      "kind": 3,
                      "range": {
                         "start": {
@@ -562,37 +459,63 @@
                      "selectionRange": {
                         "start": {
                            "line": 0,
-                           "character": 5
-                        },
-                        "end": {
-                           "line": 0,
-                           "character": 8
-                        }
-                     }
-                  },
-                  {
-                     "name": "Qux",
-                     "kind": 3,
-                     "range": {
-                        "start": {
-                           "line": 1,
                            "character": 0
                         },
                         "end": {
-                           "line": 1,
+                           "line": 0,
                            "character": 9
                         }
                      },
-                     "selectionRange": {
-                        "start": {
-                           "line": 1,
-                           "character": 5
+                     "children": [
+                        {
+                           "name": "Foo",
+                           "kind": 3,
+                           "range": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 9
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 5
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 8
+                              }
+                           }
                         },
-                        "end": {
-                           "line": 1,
-                           "character": 8
+                        {
+                           "name": "Qux",
+                           "kind": 3,
+                           "range": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 1,
+                                 "character": 9
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 5
+                              },
+                              "end": {
+                                 "line": 1,
+                                 "character": 8
+                              }
+                           }
                         }
-                     }
+                     ]
                   },
                   {
                      "name": "Main",
@@ -741,10 +664,11 @@
          },
          "wait": [
             {
+               "jsonrpc": "2.0",
                "id": 13,
                "result": [
                   {
-                     "name": "Foo",
+                     "name": "With clauses",
                      "kind": 3,
                      "range": {
                         "start": {
@@ -759,13 +683,39 @@
                      "selectionRange": {
                         "start": {
                            "line": 0,
-                           "character": 5
+                           "character": 0
                         },
                         "end": {
                            "line": 0,
-                           "character": 8
+                           "character": 9
                         }
-                     }
+                     },
+                     "children": [
+                        {
+                           "name": "Foo",
+                           "kind": 3,
+                           "range": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 9
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 5
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 8
+                              }
+                           }
+                        }
+                     ]
                   },
                   {
                      "name": "Qux",
@@ -790,9 +740,6 @@
                            "character": 11
                         }
                      },
-                     "alsIsDeclaration": true,
-                     "alsIsAdaProcedure": true,
-                     "alsVisibility": 1,
                      "children": [
                         {
                            "name": "Bar",
@@ -821,7 +768,10 @@
                            "alsIsAdaProcedure": true,
                            "alsVisibility": 1
                         }
-                     ]
+                     ],
+                     "alsIsDeclaration": true,
+                     "alsIsAdaProcedure": true,
+                     "alsVisibility": 1
                   }
                ]
             }
@@ -842,10 +792,11 @@
          },
          "wait": [
             {
+               "jsonrpc": "2.0",
                "id": 16,
                "result": [
                   {
-                     "name": "Foo",
+                     "name": "With clauses",
                      "kind": 3,
                      "range": {
                         "start": {
@@ -860,37 +811,63 @@
                      "selectionRange": {
                         "start": {
                            "line": 0,
-                           "character": 5
-                        },
-                        "end": {
-                           "line": 0,
-                           "character": 8
-                        }
-                     }
-                  },
-                  {
-                     "name": "Qux",
-                     "kind": 3,
-                     "range": {
-                        "start": {
-                           "line": 1,
                            "character": 0
                         },
                         "end": {
-                           "line": 1,
+                           "line": 0,
                            "character": 9
                         }
                      },
-                     "selectionRange": {
-                        "start": {
-                           "line": 1,
-                           "character": 5
+                     "children": [
+                        {
+                           "name": "Foo",
+                           "kind": 3,
+                           "range": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 9
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 5
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 8
+                              }
+                           }
                         },
-                        "end": {
-                           "line": 1,
-                           "character": 8
+                        {
+                           "name": "Qux",
+                           "kind": 3,
+                           "range": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 1,
+                                 "character": 9
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 5
+                              },
+                              "end": {
+                                 "line": 1,
+                                 "character": 8
+                              }
+                           }
                         }
-                     }
+                     ]
                   },
                   {
                      "name": "Main",
@@ -943,20 +920,19 @@
          "wait": [
             {
                "id": 20,
-               "result":
-                  {
-                     "uri": "$URI{qux.ads}",
-                     "range": {
-                        "start": {
-                           "line": 1,
-                           "character": 8
-                        },
-                        "end": {
-                           "line": 1,
-                           "character": 11
-                        }
+               "result": {
+                  "uri": "$URI{qux.ads}",
+                  "range": {
+                     "start": {
+                        "line": 1,
+                        "character": 8
+                     },
+                     "end": {
+                        "line": 1,
+                        "character": 11
                      }
                   }
+               }
             }
          ]
       }
@@ -975,10 +951,11 @@
          },
          "wait": [
             {
+               "jsonrpc": "2.0",
                "id": 23,
                "result": [
                   {
-                     "name": "Foo",
+                     "name": "With clauses",
                      "kind": 3,
                      "range": {
                         "start": {
@@ -993,13 +970,39 @@
                      "selectionRange": {
                         "start": {
                            "line": 0,
-                           "character": 5
+                           "character": 0
                         },
                         "end": {
                            "line": 0,
-                           "character": 8
+                           "character": 9
                         }
-                     }
+                     },
+                     "children": [
+                        {
+                           "name": "Foo",
+                           "kind": 3,
+                           "range": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 9
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 5
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 8
+                              }
+                           }
+                        }
+                     ]
                   },
                   {
                      "name": "Qux",
@@ -1024,9 +1027,6 @@
                            "character": 11
                         }
                      },
-                     "alsIsDeclaration": true,
-                     "alsIsAdaProcedure": true,
-                     "alsVisibility": 1,
                      "children": [
                         {
                            "name": "Bar",
@@ -1055,7 +1055,10 @@
                            "alsIsAdaProcedure": true,
                            "alsVisibility": 1
                         }
-                     ]
+                     ],
+                     "alsIsDeclaration": true,
+                     "alsIsAdaProcedure": true,
+                     "alsVisibility": 1
                   }
                ]
             }
@@ -1081,20 +1084,19 @@
          "wait": [
             {
                "id": 31,
-               "result":
-                  {
-                     "uri": "$URI{foo.ads}",
-                     "range": {
-                        "start": {
-                           "line": 0,
-                           "character": 8
-                        },
-                        "end": {
-                           "line": 0,
-                           "character": 11
-                        }
+               "result": {
+                  "uri": "$URI{foo.ads}",
+                  "range": {
+                     "start": {
+                        "line": 0,
+                        "character": 8
+                     },
+                     "end": {
+                        "line": 0,
+                        "character": 11
                      }
                   }
+               }
             }
          ]
       }

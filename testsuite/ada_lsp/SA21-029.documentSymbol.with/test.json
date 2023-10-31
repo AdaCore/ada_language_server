@@ -1,240 +1,279 @@
 [
-    {
+   {
       "comment": [
-          "test check the documentSymbol content: global variables and with",
-          " clauses"
+         "test check the documentSymbol content: global variables and with",
+         " clauses"
       ]
-    },
-    {
-        "start": {
-            "cmd": ["${ALS}"]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0","id":0,"method":"initialize",
-                "params":{
-                    "processId":1,
-                    "rootUri":"$URI{.}",
-                    "capabilities":{
-                        "textDocument": {
-                            "documentSymbol":{
-                                "hierarchicalDocumentSymbolSupport":true
-                            }
-                        }
-                    }
-                }
-            },
-            "wait":[{ "id": 0,
-                      "result":{
-                          "capabilities":{
-                              "textDocumentSync": 2,
-                              "documentSymbolProvider":true
-                          }
-                      }
-            }]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "method":"workspace/didChangeConfiguration",
-                "params":{
-                    "settings":{
-                        "ada":{
-                        }
-                    }
-                }
-            },
-            "wait":[]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "method":"textDocument/didOpen",
-                "params":{
-                    "textDocument": {
-                        "uri": "$URI{foo.adb}",
-                        "languageId": "ada",
-                        "version": 1,
-                        "text": "with Ada.Text_IO; --  With statement => visible\n\nprocedure Foo is\n   I : Integer; --  Nested level = 1 => visible\n\n   procedure Bar;\n\n   procedure Bar is\n      J : Integer; --  Nested level = 2 => invisible\n   begin\n      Ada.Text_IO.Put_Line (\"Bar\");\n   end Bar;\nbegin\n   Ada.Text_IO.Put_Line (\"Foo\");\nend Foo;\n"
-                    }
-                }
-            },
-            "wait":[]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id":"docSymbol",
-                "method":"textDocument/documentSymbol",
-                "params":{
-                    "textDocument": {
-                        "uri": "$URI{foo.adb}"
-                    }
-                }
-            },
-            "wait":[{
-                     "jsonrpc": "2.0",
-                     "id": "docSymbol",
-                     "result": [
-                       {
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "textDocument": {
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {}
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Ada.Text_IO; --  With statement => visible\n\nprocedure Foo is\n   I : Integer; --  Nested level = 1 => visible\n\n   procedure Bar;\n\n   procedure Bar is\n      J : Integer; --  Nested level = 2 => invisible\n   begin\n      Ada.Text_IO.Put_Line (\"Bar\");\n   end Bar;\nbegin\n   Ada.Text_IO.Put_Line (\"Foo\");\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "docSymbol",
+            "method": "textDocument/documentSymbol",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "docSymbol",
+               "result": [
+                  {
+                     "name": "With clauses",
+                     "kind": 3,
                      "range": {
                         "start": {
-                           "line": 0, 
+                           "line": 0,
                            "character": 0
-                        }, 
+                        },
                         "end": {
-                           "line": 0, 
+                           "line": 0,
                            "character": 17
                         }
-                     }, 
-                     "kind": 3, 
-                     "name": "Ada.Text_IO", 
+                     },
                      "selectionRange": {
                         "start": {
-                           "line": 0, 
-                           "character": 5
-                        }, 
-                        "end": {
-                           "line": 0, 
-                           "character": 16
-                        }
-                     }
-                  }, 
-                  {
-                     "kind": 12,
-                     "name": "Foo", 
-                     "selectionRange": {
-                        "start": {
-                           "line": 2, 
-                           "character": 10
-                        }, 
-                        "end": {
-                           "line": 2, 
-                           "character": 13
-                        }
-                     }, 
-                     "alsVisibility": 1,
-                     "alsIsAdaProcedure": true,
-                     "alsIsDeclaration": false, 
-                     "range": {
-                        "start": {
-                           "line": 2, 
+                           "line": 0,
                            "character": 0
-                        }, 
+                        },
                         "end": {
-                           "line": 14, 
-                           "character": 8
+                           "line": 0,
+                           "character": 17
                         }
-                     }, 
+                     },
                      "children": [
                         {
-                           "kind": 13, 
-                           "name": "I", 
-                           "selectionRange": {
-                              "start": {
-                                 "line": 3, 
-                                 "character": 3
-                              }, 
-                              "end": {
-                                 "line": 3, 
-                                 "character": 4
-                              }
-                           }, 
-                           "alsVisibility": 1, 
-                           "alsIsDeclaration": false, 
+                           "name": "Ada.Text_IO",
+                           "kind": 3,
                            "range": {
                               "start": {
-                                 "line": 3, 
-                                 "character": 3
-                              }, 
+                                 "line": 0,
+                                 "character": 0
+                              },
                               "end": {
-                                 "line": 3, 
-                                 "character": 15
-                              }
-                           }
-                        }, 
-                        {
-                           "kind": 12,
-                           "name": "Bar", 
-                           "selectionRange": {
-                              "start": {
-                                 "line": 5, 
-                                 "character": 13
-                              }, 
-                              "end": {
-                                 "line": 5, 
-                                 "character": 16
-                              }
-                           }, 
-                           "alsVisibility": 1,
-                           "alsIsAdaProcedure": true,
-                           "alsIsDeclaration": true, 
-                           "range": {
-                              "start": {
-                                 "line": 5, 
-                                 "character": 3
-                              }, 
-                              "end": {
-                                 "line": 5, 
+                                 "line": 0,
                                  "character": 17
                               }
-                           }
-                        }, 
-                        {
-                           "kind": 12,
-                           "name": "Bar", 
+                           },
                            "selectionRange": {
                               "start": {
-                                 "line": 7, 
-                                 "character": 13
-                              }, 
+                                 "line": 0,
+                                 "character": 5
+                              },
                               "end": {
-                                 "line": 7, 
+                                 "line": 0,
                                  "character": 16
-                              }
-                           }, 
-                           "alsVisibility": 1,
-                           "alsIsAdaProcedure": true,
-                           "alsIsDeclaration": false, 
-                           "range": {
-                              "start": {
-                                 "line": 7, 
-                                 "character": 3
-                              }, 
-                              "end": {
-                                 "line": 11, 
-                                 "character": 11
                               }
                            }
                         }
                      ]
+                  },
+                  {
+                     "name": "Foo",
+                     "kind": 12,
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 14,
+                           "character": 8
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 2,
+                           "character": 10
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 13
+                        }
+                     },
+                     "children": [
+                        {
+                           "name": "I",
+                           "kind": 13,
+                           "range": {
+                              "start": {
+                                 "line": 3,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 3,
+                                 "character": 15
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 3,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 3,
+                                 "character": 4
+                              }
+                           },
+                           "alsIsDeclaration": false,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Bar",
+                           "kind": 12,
+                           "range": {
+                              "start": {
+                                 "line": 5,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 5,
+                                 "character": 17
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 5,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 5,
+                                 "character": 16
+                              }
+                           },
+                           "alsIsDeclaration": true,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Bar",
+                           "kind": 12,
+                           "range": {
+                              "start": {
+                                 "line": 7,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 11,
+                                 "character": 11
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 7,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 7,
+                                 "character": 16
+                              }
+                           },
+                           "alsIsDeclaration": false,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        }
+                     ],
+                     "alsIsDeclaration": false,
+                     "alsIsAdaProcedure": true,
+                     "alsVisibility": 1
                   }
                ]
             }
          ]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": "shutdown",
-                "method":"shutdown",
-                "params":null
-            },
-            "wait":[{ "id": "shutdown", "result": null }]
-        }
-    },  {
-        "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit"},
-            "wait":[]
-        }
-    }, {
-        "stop": {
-            "exit_code": 0
-        }
-    }
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
 ]

@@ -2,11 +2,31 @@
 
 ## Dependencies
 
-The Ada Language Server depends on the following:
+The Ada Language Server depends on a number of tools and libraries listed [on the main page](https://github.com/AdaCore/ada_language_server#dependencies).
 
- * VSS: https://github.com/AdaCore/VSS
- * (optional) ada_libfswatch: https://github.com/AdaCore/ada_libfswatch,
-   to activate filesystem monitoring.
+## Coding
+
+The ALS repository includes a template VS Code workspace at
+`.vscode/settings.json.tmpl`. This allows developers to instantiate the
+workspace locally and customize it to their liking, in particular the
+`terminal.integrated.env.<os>` setting to set `PATH` and `GPR_PROJECT_PATH` as
+needed to provided tools and dependencies to the development environment.
+
+To instantiate the VS Code workspace, simply run `make configure`. Then open VS
+Code at the root of the ALS repository.
+
+At the first run, the workspace will recommend installing a set of extensions
+including a released version of the `Language Support for Ada` extension which
+is produced from this repository. That allows you to work with the Ada codebase
+of the ALS.
+
+## Building
+
+To build the ALS, run:
+
+```sh
+make
+```
 
 ## Debugging
 
@@ -40,7 +60,7 @@ This is very useful to resolve unexpected memory consumption issues.
 
 To get a symbolic backtrace you need the debug information files. For the
 release you can download them from
-[GitHub Release](https://github.com/AdaCore/ada_language_server/releases) 
+[GitHub Release](https://github.com/AdaCore/ada_language_server/releases)
 Assets. Assets contain an archive per platform with the ALS
 executable and debug information files (`.debug` file on Linux/Windows and
 `.dSYM` directory for Mac OS X). Extract the debug information to the directory
@@ -84,30 +104,11 @@ To write a functional test for Ada Language Server:
 
 Run `make vscode-test` to run the VS Code testsuite.
 
-### VS Code grammar tests
+If you open the ALS repository in VS Code, it is also possible to run VS Code
+integration tests using the provided launch configurations:
 
-The following is under `integration/vscode/ada/`.
-
-The grammars under `syntaxes/` are in production. An advanced classifier for Ada
-is under `advanced/`; this one is not in production at the moment. The testsuite
-supports testing all grammars.
-
-Tests for the grammars are in `testsuite_grammar`, with one test per subdirectory.
-
- * To run the full testsuite, call `./run_grammar_tests.sh`
- * To run one individual test, pass its directory as parameter to
-   that script, for instance `./run_grammar_tests.sh testsuite_grammar/hello`
-
-To create new tests, do the following:
-
-  * Create a directory for it, for instance `testsuite_grammar/newtest`
-  * Add `.ads`, `.adb` or `.gpr` sources in that directory
-  * Run the driver: the first run will create the baselines under the form
-    of `.snap.syntaxes` and `.snap.advanced` files.
-
-The engine for the test driver is implemented using
-[vscode-tmgrammartest](https://github.com/PanAeon/vscode-tmgrammar-test):
-see the full documentation there.
+- `(vscode) Run testsuite 'general'`
+- `(vscode) Run testsuite 'gnattest'`
 
 ### Other tests
 
