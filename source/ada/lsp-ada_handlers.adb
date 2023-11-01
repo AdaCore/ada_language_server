@@ -43,7 +43,7 @@ with Langkit_Support.Slocs;
 with LAL_Refactor.Extract_Subprogram;
 with LAL_Refactor.Introduce_Parameter;
 with LAL_Refactor.Pull_Up_Declaration;
-with LAL_Refactor.Refactor_Imports;
+with LAL_Refactor.Auto_Import;
 with LAL_Refactor.Replace_Type;
 with LAL_Refactor.Sort_Dependencies;
 with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
@@ -75,7 +75,7 @@ with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
-with LSP.Ada_Handlers.Refactor.Imports_Commands;
+with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
 with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
@@ -559,10 +559,11 @@ package body LSP.Ada_Handlers is
       --  ParamAssoc without a designator.
 
       procedure Analyse_Node
-        (Context : LSP.Ada_Context_Sets.Context_Access;
-         Node    : Libadalang.Analysis.Ada_Node;
-         Result  : out LSP.Structures.Command_Or_CodeAction_Vector;
-         Found   : in out Boolean);
+        (Context  : LSP.Ada_Context_Sets.Context_Access;
+         Document : LSP.Ada_Documents.Document_Access;
+         Node     : Libadalang.Analysis.Ada_Node;
+         Result   : out LSP.Structures.Command_Or_CodeAction_Vector;
+         Found    : in out Boolean);
       --  Look for a possible refactoring in given Node.
       --  Return Found = True if some refactoring is possible. Populate
       --  Result with Code_Actions in this case. Return Done = True if futher
@@ -590,7 +591,7 @@ package body LSP.Ada_Handlers is
             return;
          end if;
 
-         Analyse_Node (Context, Node, Result, Found);
+         Analyse_Node (Context, Document, Node, Result, Found);
       end Analyse_In_Context;
 
       ------------------
@@ -598,10 +599,11 @@ package body LSP.Ada_Handlers is
       ------------------
 
       procedure Analyse_Node
-        (Context : LSP.Ada_Context_Sets.Context_Access;
-         Node    : Libadalang.Analysis.Ada_Node;
-         Result  : out LSP.Structures.Command_Or_CodeAction_Vector;
-         Found   : in out Boolean)
+        (Context  : LSP.Ada_Context_Sets.Context_Access;
+         Document : LSP.Ada_Documents.Document_Access;
+         Node     : Libadalang.Analysis.Ada_Node;
+         Result   : out LSP.Structures.Command_Or_CodeAction_Vector;
+         Found    : in out Boolean)
       is
          procedure Change_Parameters_Type_Code_Action;
          --  Checks if the Change Parameters Type refactoring tool is avaiable,
@@ -781,7 +783,7 @@ package body LSP.Ada_Handlers is
 
          procedure Import_Package_Code_Action is
             use Libadalang.Analysis;
-            use LAL_Refactor.Refactor_Imports;
+            use LAL_Refactor.Auto_Import;
             use LSP.Structures;
 
             Single_Location : constant Boolean :=
@@ -791,132 +793,53 @@ package body LSP.Ada_Handlers is
             Units_Array  : constant Analysis_Unit_Array :=
               Context.Analysis_Units;
 
-            Import_Suggestions : Import_Suggestions_Vector.Vector;
-
-            function Is_Import_Suggestions_Available
-              (This_Node : Ada_Node'Class)
-               return Boolean;
-            --  Checks if This_Node is a suitable node to get import
-            --  suggestions. A suitable node must be an identifier, non
-            --  defining and if it resolves, it must be to a declaration not
-            --  declared in the standard package.
-            --  This function also prepares Units_Vector with the right units
-            --  where suggestions should be searched for.
-
-            -------------------------------------
-            -- Is_Import_Suggestions_Available --
-            -------------------------------------
-
-            function Is_Import_Suggestions_Available
-              (This_Node : Ada_Node'Class)
-               return Boolean
-            is
-               Aux_Node              : Ada_Node :=
-                 (if This_Node.Is_Null then No_Ada_Node
-                  else This_Node.As_Ada_Node);
-               Referenced_Definition : Defining_Name := No_Defining_Name;
-
-            begin
-               --  Only get suggestions for Identifiers or Dotted_Names
-               if Aux_Node.Is_Null
-                 or else Aux_Node.Kind not in
-                   Ada_Identifier_Range | Ada_Dotted_Name_Range
-               then
-                  return False;
-               end if;
-
-               --  Get the full Dotted_Name if applicable
-               while not Aux_Node.Is_Null
-                 and then not Aux_Node.Parent.Is_Null
-                 and then Aux_Node.Parent.Kind in Ada_Dotted_Name_Range
-               loop
-                  Aux_Node := Aux_Node.Parent;
-               end loop;
-
-               --  Defining names do not need prefixes
-               if Aux_Node.Is_Null or else Aux_Node.As_Name.P_Is_Defining then
-                  return False;
-               end if;
-
-               Referenced_Definition :=
-                 Aux_Node.As_Name.P_Referenced_Defining_Name;
-
-               --  Declarations in the standard package do not need prefixes
-               if not Referenced_Definition.Is_Null then
-                  if Referenced_Definition.Unit = Node.P_Standard_Unit then
-                     return False;
-                  end if;
-               end if;
-
-               if Referenced_Definition.Is_Null then
-                  --  The name could not be resolved so a full search needs to
-                  --  be done.
-
-                  for U of Units_Array loop
-                     Units_Vector.Append (U);
-                  end loop;
-
-                  --  Add runtime analysis units for this context
-                  --  ??? If possible, this should be cached.
-
-                  for F in Self.Project_Predefined_Sources.Iterate loop
-                     declare
-                        VF : GNATCOLL.VFS.Virtual_File renames
-                          LSP.Ada_File_Sets.File_Sets.Element (F);
-                     begin
-                        Units_Vector.Append
-                          (Context.LAL_Context.Get_From_File
-                             (VF.Display_Full_Name,
-                              --  ??? What is the charset for predefined
-                              --  files?
-                              ""));
-                     end;
-                  end loop;
-
-               else
-                  --  Libadalang sometimes can resolve names that are not
-                  --  withed.
-                  --  For instance, with Ada.Text_IO, resolve
-                  --  Ada.Text_IO.Put_Line, remove the Ada.Text_IO and then
-                  --  resolve again Ada.Text_IO.Put_Line. Even though
-                  --  Ada.Text_IO is no longer withed, Libadalang is still
-                  --  able to resolve Put_Line.
-                  --  For such cases, include only Referenced_Definition's
-                  --  Analysis_Units and the tool will suggest the prefixes
-                  --  (there can be more than one, for instance, when there
-                  --  are nested packages.
-                  Units_Vector.Append (Referenced_Definition.Unit);
-               end if;
-
-               return True;
-            exception
-               when others => return False;
-            end Is_Import_Suggestions_Available;
+            Name               : Libadalang.Analysis.Name := No_Name;
+            Import_Suggestions : Import_Type_Ordered_Set;
 
          begin
-            if not Single_Location
-              or else not Is_Import_Suggestions_Available (Node)
+            if not Single_Location then
+               return;
+            end if;
+
+            for Unit of Units_Array loop
+               Units_Vector.Append (Unit);
+            end loop;
+
+            for F in Self.Project_Predefined_Sources.Iterate loop
+               declare
+                  VF : GNATCOLL.VFS.Virtual_File renames
+                    LSP.Ada_File_Sets.File_Sets.Element (F);
+               begin
+                  Units_Vector.Append
+                    (Context.LAL_Context.Get_From_File
+                       (VF.Display_Full_Name,
+                        --  ??? What is the charset for predefined
+                        --  files?
+                        ""));
+               end;
+            end loop;
+
+            if not Is_Auto_Import_Available
+              (Node.Unit,
+               Document.To_Source_Location (Value.a_range.start),
+               Units_Vector,
+               Name,
+               Import_Suggestions)
             then
                return;
             end if;
 
-            --  Get suggestions for all reachable declarations.
-            --  Each suggestion contains a with clause and a
-            --  prefix.
-
-            Import_Suggestions :=
-              Get_Import_Suggestions (Node, Units_Vector);
-
-            --  Create a new codeAction command for each suggestion
-
             for Suggestion of Import_Suggestions loop
                declare
-                  Command : LSP.Ada_Handlers.Refactor.Imports_Commands.Command;
+                  Name_Location : constant LSP.Structures.Location :=
+                    LSP.Utils.Get_Node_Location (Name);
+                  Command       :
+                    LSP.Ada_Handlers.Refactor.Auto_Import.Command;
+
                begin
                   Command.Append_Suggestion
                     (Context         => Context,
-                     Where           =>
-                       LSP.Utils.Get_Node_Location (Node),
+                     Where           => Name_Location,
                      Commands_Vector => Result,
                      Suggestion      => Suggestion);
                end;

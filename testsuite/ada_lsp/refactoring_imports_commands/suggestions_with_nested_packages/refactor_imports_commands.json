@@ -39,7 +39,7 @@
                             "executeCommandProvider": {
                                 "commands": [
                                     "<HAS>",
-                                    "als-refactor-imports"
+                                    "als-auto-import"
                                 ]
                             }
                         }
@@ -143,11 +143,11 @@
                     "id": 2,
                     "result": [
                         {
-                            "title": "Add 'with' clause for A and prefix the object with A.",
-                            "kind": "refactor.rewrite",
+                            "title": "Qualify with A",
+                            "kind": "quickfix",
                             "command": {
                                 "title": "",
-                                "command": "als-refactor-imports",
+                                "command": "als-auto-import",
                                 "arguments": [{
                                      "context": "Default",
                                      "where": {
@@ -159,17 +159,17 @@
                                              "character": 3
                                          }
                                      },
-                                     "with_clause": "A",
-                                     "prefix": "A."
+                                     "import": "A",
+                                     "qualifier": "A"
                                  }]
                             }
                         },
                         {
-                            "title": "Add 'with' clause for A and prefix the object with A.B.",
-                            "kind": "refactor.rewrite",
+                            "title": "Qualify with A.B",
+                            "kind": "quickfix",
                             "command": {
                                 "title": "",
-                                "command": "als-refactor-imports",
+                                "command": "als-auto-import",
                                 "arguments": [{
                                      "context": "Default",
                                      "where": {
@@ -181,17 +181,17 @@
                                              "character": 3
                                          }
                                      },
-                                     "with_clause": "A",
-                                     "prefix": "A.B."
+                                     "import": "A",
+                                     "qualifier": "A.B"
                                  }]
                             }
                         },
                         {
-                            "title": "Add 'with' clause for E and prefix the object with E.",
-                            "kind": "refactor.rewrite",
+                            "title": "Qualify with E",
+                            "kind": "quickfix",
                             "command": {
                                 "title": "",
-                                "command": "als-refactor-imports",
+                                "command": "als-auto-import",
                                 "arguments": [{
                                      "context": "Default",
                                      "where": {
@@ -203,17 +203,17 @@
                                              "character": 3
                                          }
                                      },
-                                     "with_clause": "E",
-                                     "prefix": "E."
+                                     "import": "E",
+                                     "qualifier": "E"
                                  }]
                             }
                         },
                         {
-                            "title": "Add 'with' clause for E and prefix the object with E.B.",
-                            "kind": "refactor.rewrite",
+                            "title": "Qualify with E.B",
+                            "kind": "quickfix",
                             "command": {
                                 "title": "",
-                                "command": "als-refactor-imports",
+                                "command": "als-auto-import",
                                 "arguments": [{
                                      "context": "Default",
                                      "where": {
@@ -225,8 +225,8 @@
                                              "character": 3
                                          }
                                      },
-                                     "with_clause": "E",
-                                     "prefix": "E.B."
+                                     "import": "E",
+                                     "qualifier": "E.B"
                                  }]
                             }
                         }
@@ -242,7 +242,7 @@
                 "id": 3,
                 "method": "workspace/executeCommand",
                 "params": {
-                    "command": "als-refactor-imports",
+                    "command": "als-auto-import",
                     "arguments": [{
                          "context": "Default",
                          "where": {
@@ -254,8 +254,8 @@
                                  "character": 3
                              }
                          },
-                         "with_clause": "A",
-                         "prefix": "A.B."
+                         "import": "A",
+                         "qualifier": "A.B"
                      }]
                 }
             },

@@ -18,17 +18,17 @@
 --  Implementation of the command to refactor imports.
 
 with LAL_Refactor;
-with LAL_Refactor.Refactor_Imports;
+with LAL_Refactor.Auto_Import;
 
 with LSP.Ada_Contexts;
 
-package LSP.Ada_Handlers.Refactor.Imports_Commands is
+package LSP.Ada_Handlers.Refactor.Auto_Import is
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with private;
 
    overriding function Name (Self : Command) return String
    is
-      ("Imports Command");
+      ("Auto Import");
 
    procedure Initialize
      (Self         : in out Command'Class;
@@ -43,17 +43,16 @@ package LSP.Ada_Handlers.Refactor.Imports_Commands is
       Context           : LSP.Ada_Context_Sets.Context_Access;
       Where             : LSP.Structures.Location;
       Commands_Vector   : in out LSP.Structures.Command_Or_CodeAction_Vector;
-      Suggestion        : LAL_Refactor.Refactor_Imports.Import_Suggestion);
+      Suggestion        : LAL_Refactor.Auto_Import.Import_Type);
    --  Initializes Command based on Suggestion and appends it to
    --  Commands_Vector.
 
 private
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with record
-      Context      : VSS.Strings.Virtual_String;
-      Where        : LSP.Structures.TextDocumentPositionParams;
-      With_Clause  : VSS.Strings.Virtual_String;
-      Prefix       : VSS.Strings.Virtual_String;
+      Context    : VSS.Strings.Virtual_String;
+      Where      : LSP.Structures.TextDocumentPositionParams;
+      Suggestion : LAL_Refactor.Auto_Import.Import_Type;
    end record;
 
    overriding function Create
@@ -76,6 +75,6 @@ private
    --  Converts Self into LAL_Refactor.Refactoring_Edits that can be
    --  converted in a WorkspaceEdit.
 
-   for Command'External_Tag use "als-refactor-imports";
+   for Command'External_Tag use "als-auto-import";
 
-end LSP.Ada_Handlers.Refactor.Imports_Commands;
+end LSP.Ada_Handlers.Refactor.Auto_Import;
