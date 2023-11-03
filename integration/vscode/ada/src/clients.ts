@@ -50,12 +50,20 @@ export function createClient(
         }
     }
 
-    logger.debug(`Using ALS at: ${serverExecPath}`);
+    logger.info(`Using ALS at: ${serverExecPath}`);
 
     // Copy this process's environment
     const serverEnv: NodeJS.ProcessEnv = { ...process.env };
     // Set custom environment
     setCustomEnvironment(serverEnv);
+
+    logger.debug(`Environment for ${name}:`);
+    for (const key in serverEnv) {
+        const value = serverEnv[key];
+        if (value) {
+            logger.debug(`${key}=${value}`);
+        }
+    }
 
     // Options to control the server
     const serverOptions: ServerOptions = {

@@ -28,7 +28,7 @@
             // "${workspaceFolder}/../als-rt"
             // "${workspaceFolder}/integration/vscode/ada/test/TestWorkspace"
          ],
-         "preLaunchTask": "npm: compile",
+         "preLaunchTask": "npm: watch - integration/vscode/ada",
          "env": {
             // This is necessary to make the "child" vscode inherit the PATH
             // variable set in the workspace settings. Without it in some setups
@@ -69,7 +69,7 @@
             "MOCHA_TIMEOUT": "0",
             "MOCHA_ALS_UPDATE": "${input:updateTestRefs}"
          },
-         "preLaunchTask": "npm: pretest",
+         "preLaunchTask": "npm: pretest - integration/vscode/ada",
          "internalConsoleOptions": "openOnSessionStart"
       },
       {
@@ -103,7 +103,7 @@
             "MOCHA_TIMEOUT": "0",
             "MOCHA_ALS_UPDATE": "${input:updateTestRefs}"
          },
-         "preLaunchTask": "npm: pretest",
+         "preLaunchTask": "npm: pretest - integration/vscode/ada",
          // Switch to Debug Console to see test results
          "internalConsoleOptions": "openOnSessionStart"
       },

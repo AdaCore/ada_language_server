@@ -20,39 +20,6 @@
          "group": "test"
       },
       {
-         "type": "npm",
-         "script": "compile",
-         "path": "integration/vscode/ada",
-         "group": "build",
-         "problemMatcher": ["$tsc"],
-         "label": "npm: compile",
-         "detail": "node ./node_modules/typescript/bin/tsc",
-         "presentation": {
-            "echo": true,
-            "reveal": "silent",
-            "focus": false,
-            "panel": "shared",
-            "showReuseMessage": true,
-            "clear": false
-         }
-      },
-      {
-         "type": "npm",
-         "script": "pretest",
-         "path": "integration/vscode/ada",
-         "problemMatcher": [],
-         "label": "npm: pretest",
-         "detail": "npm run compile",
-         "presentation": {
-            "echo": true,
-            "reveal": "silent",
-            "focus": false,
-            "panel": "shared",
-            "showReuseMessage": true,
-            "clear": false
-         }
-      },
-      {
          "type": "shell",
          "label": "ada: Compile current file",
          "command": "gprbuild",
@@ -79,8 +46,25 @@
          }
       },
       {
-         "type": "gnat",
-         "taskKind": "checkFile",
+         // This task starts a background npm process that monitors changes to
+         // TS files and recompiles them as needed. It is configured to be run
+         // before the (vscode)-based launch configurations to make sure the TS
+         // files are compiled and re-compiled upon changes.
+         "type": "npm",
+         "script": "watch",
+         "path": "integration/vscode/ada",
+         "group": "build",
+         "problemMatcher": ["$tsc-watch"],
+         "label": "npm: watch - integration/vscode/ada",
+         "detail": "node ./node_modules/typescript/bin/tsc -watch",
+         "isBackground": true
+      },
+      {
+         "type": "ada",
+         "configuration": {
+            "kind": "checkFile",
+            "projectFile": "${config:ada.projectFile}"
+         },
          "problemMatcher": ["$ada"],
          "group": "build",
          "label": "ada: Check current file"
