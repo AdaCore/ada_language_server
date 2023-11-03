@@ -411,17 +411,6 @@
                         "description": "Controls if the `textDocument/onTypeFormatting` request only indents a new line, or if it additionally tries to format the previous node."
                     }
                 }
-            },
-            {
-                "title": "Shortcut Menu Bar configuration",
-                "properties": {
-                    "gpr.buildProject-icon": {
-                        "title": "Build the Ada Project",
-                        "type": "boolean",
-                        "default": true,
-                        "description": "show icon for 'Build' "
-                    }
-                }
             }
         ],
         "problemMatchers": [
