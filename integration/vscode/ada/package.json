@@ -431,7 +431,7 @@
                             "Verbose traces are emitted for each request sent and each response received, including the message content."
                         ],
                         "default": "off",
-                        "description": "Instructs the VS Code language client to log the communication with the Ada language server in the VS Code output window 'Ada Language Server'."
+                        "description": "Traces the communication between VS Code and the Ada language server in the 'Ada Language Server' Output view."
                     },
                     "gpr.trace.server": {
                         "scope": "window",
@@ -447,7 +447,7 @@
                             "Verbose traces are emitted for each request sent and each response received, including the message content."
                         ],
                         "default": "off",
-                        "description": "Instructs the VS Code language client to log the communication with the GPR language server in the VS Code output window 'GPR Language Server'."
+                        "description": "Traces the communication between VS Code and the GPR language server in the 'GPR Language Server' Output view."
                     }
                 }
             }
