@@ -33,7 +33,6 @@ with VSS.JSON.Streams;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
-with Libadalang.Helpers;
 
 with Laltools.Common;
 with Laltools.Partial_GNATPP;
@@ -166,6 +165,11 @@ package body LSP.Ada_Handlers is
       Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Structures.TextDocumentPositionParams'Class)
         return Libadalang.Analysis.Defining_Name;
+
+   function Project_Predefined_Units
+     (Self    : in out Message_Handler;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Analysis.Analysis_Unit_Array;
 
    -----------------------------
    -- Allocate_Progress_Token --
@@ -786,12 +790,13 @@ package body LSP.Ada_Handlers is
             use LAL_Refactor.Auto_Import;
             use LSP.Structures;
 
+            function Units_Provider return Analysis_Unit_Array is
+              (Self.Project_Predefined_Units (Context.all)
+               & Context.Analysis_Units);
+            --  Concatenates user units with predefined units
+
             Single_Location : constant Boolean :=
               Value.a_range.start = Value.a_range.an_end;
-
-            Units_Vector : Libadalang.Helpers.Unit_Vectors.Vector;
-            Units_Array  : constant Analysis_Unit_Array :=
-              Context.Analysis_Units;
 
             Name               : Libadalang.Analysis.Name := No_Name;
             Import_Suggestions : Import_Type_Ordered_Set;
@@ -801,30 +806,13 @@ package body LSP.Ada_Handlers is
                return;
             end if;
 
-            for Unit of Units_Array loop
-               Units_Vector.Append (Unit);
-            end loop;
-
-            for F in Self.Project_Predefined_Sources.Iterate loop
-               declare
-                  VF : GNATCOLL.VFS.Virtual_File renames
-                    LSP.Ada_File_Sets.File_Sets.Element (F);
-               begin
-                  Units_Vector.Append
-                    (Context.LAL_Context.Get_From_File
-                       (VF.Display_Full_Name,
-                        --  ??? What is the charset for predefined
-                        --  files?
-                        ""));
-               end;
-            end loop;
-
             if not Is_Auto_Import_Available
-              (Node.Unit,
-               Document.To_Source_Location (Value.a_range.start),
-               Units_Vector,
-               Name,
-               Import_Suggestions)
+                     (Unit              => Node.Unit,
+                      Location          =>
+                        Document.To_Source_Location (Value.a_range.start),
+                      Units             => Units_Provider'Access,
+                      Name              => Name,
+                      Available_Imports => Import_Suggestions)
             then
                return;
             end if;
@@ -4586,6 +4574,31 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Definition_Response (Id, Response);
    end On_TypeDefinition_Request;
+
+   ------------------------------
+   -- Project_Predefined_Units --
+   ------------------------------
+
+   function Project_Predefined_Units
+     (Self    : in out Message_Handler;
+      Context : LSP.Ada_Contexts.Context)
+      return Libadalang.Analysis.Analysis_Unit_Array
+   is
+      use Libadalang.Analysis;
+
+      Units_Count      : constant Natural :=
+        Self.Project_Predefined_Sources.Length;
+      Predefined_Units : Analysis_Unit_Array (1 .. Units_Count);
+      Index            : Natural := Predefined_Units'First;
+
+   begin
+      for Source in Self.Project_Predefined_Sources.Iterate loop
+         Predefined_Units (Index) :=
+           Context.Get_AU (LSP.Ada_File_Sets.File_Sets.Element (Source));
+         Index := @ + 1;
+      end loop;
+      return Predefined_Units;
+   end Project_Predefined_Units;
 
    -------------------------
    -- Publish_Diagnostics --
