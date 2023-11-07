@@ -23,6 +23,7 @@ with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
 with GNATCOLL.Traces;
+with GNATCOLL.Utils;
 
 with VSS.Characters.Latin;
 with VSS.Strings.Formatters.Integers;
@@ -215,6 +216,34 @@ package body LSP.Ada_Handlers is
          Self.Sender.On_PublishDiagnostics_Notification (Diag);
       end if;
    end Clean_Diagnostics;
+
+   ----------------
+   -- Clean_Logs --
+   ----------------
+
+   procedure Clean_Logs
+     (Self : access Message_Handler'Class;
+      Dir  : GNATCOLL.VFS.Virtual_File)
+   is
+      use GNATCOLL.VFS;
+      Files : File_Array_Access := Read_Dir (Dir, Files_Only);
+      Dummy : Boolean;
+      Cpt   : Integer := 0;
+   begin
+      Sort (Files.all);
+      --  Browse the log files in reverse timestamp order
+      for F of reverse Files.all loop
+         --  Filter out files like traces.cfg
+         if GNATCOLL.Utils.Ends_With (+F.Base_Name, ".log") then
+            Cpt := Cpt + 1;
+            --  Delete the old logs
+            if Cpt > Self.Configuration.Log_Threshold then
+               Delete (F, Dummy);
+            end if;
+         end if;
+      end loop;
+      Unchecked_Free (Files);
+   end Clean_Logs;
 
    -----------------------
    -- Contexts_For_File --

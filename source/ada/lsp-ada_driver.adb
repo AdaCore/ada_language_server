@@ -381,7 +381,7 @@ begin
 
    Server.Finalize;
    if Clean_ALS_Dir then
-      pragma Assert (Clean_ALS_Dir);
+      Ada_Handler.Clean_Logs (ALS_Dir);
    end if;
 
    --  Clean secondary stack up
