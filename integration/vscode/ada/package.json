@@ -1,7 +1,7 @@
 {
     "name": "ada",
-    "displayName": "Language Support for Ada",
-    "description": "A Language Server providing Ada and SPARK support in Visual Studio Code",
+    "displayName": "Ada",
+    "description": "Ada & SPARK IntelliSense, code browsing, debugging and more.",
     "version": "24.0.999",
     "publisher": "AdaCore",
     "license": "GPL-3.0",
@@ -276,50 +276,69 @@
         "configuration": [
             {
                 "type": "object",
-                "title": "Ada",
+                "title": "Project",
+                "order": 0,
                 "properties": {
-                    "ada.trace.server": {
-                        "scope": "window",
-                        "type": "string",
-                        "enum": [
-                            "off",
-                            "messages",
-                            "verbose"
-                        ],
-                        "default": "off",
-                        "description": "Traces the communication between VSCode and the Ada language server."
-                    },
-                    "gpr.trace.server": {
-                        "scope": "window",
-                        "type": "string",
-                        "enum": [
-                            "off",
-                            "messages",
-                            "verbose"
-                        ],
-                        "default": "off",
-                        "description": "Traces the communication between VSCode and the GPR language server."
-                    },
                     "ada.projectFile": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "string",
                         "default": "",
-                        "description": "Project file (*.gpr) for given workspace."
+                        "description": "GPR project file (*.gpr) for this workspace.\n\nIt is recommended to set this to a relative path starting at the root of the workspace.",
+                        "order": 0
                     },
                     "ada.scenarioVariables": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "object",
                         "default": {},
-                        "description": "Scenario variables."
+                        "description": "Scenario variables to apply to the GPR project file.\n\nThis value should be provided as an object where the property names are GPR scenario variables and the values are strings.",
+                        "patternProperties": {
+                            ".*": {
+                                "type": "string"
+                            }
+                        },
+                        "order": 1
                     },
                     "ada.defaultCharset": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "string",
                         "default": "iso-8859-1",
-                        "description": "The character set to use while reading files from disk."
+                        "description": "The character set that the Ada Language Server should use when reading files from disk."
                     },
+                    "ada.relocateBuildTree": {
+                        "scope": "window",
+                        "type": "string",
+                        "default": "",
+                        "description": "The folder for out-of-tree build.",
+                        "markdownDescription": "The path to a directory used for out-of-tree builds. This feature is related to the [--relocate-build-tree GPRbuild command line switch](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/building_with_gprbuild.html#switches)."
+                    },
+                    "ada.rootDir": {
+                        "scope": "window",
+                        "type": "string",
+                        "default": "",
+                        "markdownDescription": "This setting must be used in conjunction with the `relocateBuildTree` setting.\n\nIt specifies the root directory for artifact relocation. It corresponds to the [--root-dir GPRbuild command line switch](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/building_with_gprbuild.html#switches)."
+                    }
+                }
+            },
+            {
+                "type": "object",
+                "title": "Formatting",
+                "order": 1,
+                "properties": {
+                    "ada.onTypeFormatting.indentOnly": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": true,
+                        "markdownDescription": "If the VS Code `editor.formatOnType` setting is enabled, the Ada Language Server will format Ada code while it is being typed in the editor, in particular when a new line is typed.\n\nThis setting controls whether formatting should only perform the indentation of the new line (true) or also format the previous line (false)."
+                    }
+                }
+            },
+            {
+                "type": "object",
+                "title": "UI",
+                "order": 2,
+                "properties": {
                     "ada.documentationStyle": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "string",
                         "enum": [
                             "gnat",
@@ -330,10 +349,10 @@
                             "Documentation for the entities extracted from the comments before the entity declaration."
                         ],
                         "default": "gnat",
-                        "description": "Controls primary documentation style of entities."
+                        "description": "Controls the primary documentation style of entities."
                     },
                     "ada.displayMethodAncestryOnNavigation": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "string",
                         "enum": [
                             "never",
@@ -351,75 +370,84 @@
                         "description": "Controls the policy for displaying overriding and overridden subprograms on navigation requests such as 'Go To Definition' or 'Go To Implementations'."
                     },
                     "ada.enableDiagnostics": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "boolean",
                         "default": true,
-                        "description": "The emission of diagnostics."
-                    },
-                    "ada.enableIndexing": {
-                        "scope": "resource",
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Controls indexing the source files after loading a project."
+                        "description": "Controls whether or not the Ada Language Server should emit diagnostics into the VS Code Problems view."
                     },
                     "ada.foldComments": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "boolean",
                         "default": true,
-                        "description": "Controls the inclusion of comments in folding blocks."
-                    },
-                    "ada.followSymlinks": {
-                        "scope": "resource",
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Controls the file names normalization sent by a client."
+                        "description": "Controls whether comments should be folded like code blocks."
                     },
                     "ada.namedNotationThreshold": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "integer",
                         "default": 3,
-                        "description": "Defines the number of parameters/components at which point named notation is used for completion snippets."
-                    },
-                    "ada.relocateBuildTree": {
-                        "scope": "resource",
-                        "type": "string",
-                        "default": "",
-                        "description": "The folder for out-of-tree build."
-                    },
-                    "ada.rootDir": {
-                        "scope": "resource",
-                        "type": "string",
-                        "default": "",
-                        "description": "The root directory for artifacts for proper relocation. Used with relocateBuildTree."
+                        "description": "Defines the number of parameters/components beyond which named notation is used for completion snippets."
                     },
                     "ada.useCompletionSnippets": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "boolean",
                         "default": false,
-                        "description": "Enable snippets in completion results (e.g: subprogram calls)."
+                        "description": "Enable snippets in completion results (e.g. subprogram calls)."
                     },
                     "ada.renameInComments": {
-                        "scope": "resource",
+                        "scope": "window",
                         "type": "boolean",
                         "default": false,
-                        "description": "Enable editing Ada comments while executing `textDocument/rename` request."
-                    },
-                    "ada.onTypeFormatting.indentOnly": {
-                        "scope": "resource",
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Controls if the `textDocument/onTypeFormatting` request only indents a new line, or if it additionally tries to format the previous node."
+                        "description": "Enable editing Ada comments to update references to an entity when it is being renamed."
                     }
                 }
             },
             {
-                "title": "Shortcut Menu Bar configuration",
+                "type": "object",
+                "title": "Miscelaneous",
                 "properties": {
-                    "gpr.buildProject-icon": {
-                        "title": "Build the Ada Project",
+                    "ada.enableIndexing": {
+                        "scope": "window",
                         "type": "boolean",
                         "default": true,
-                        "description": "show icon for 'Build' "
+                        "description": "Controls whether the Ada Language Server should index the source files immediately after loading a project.\n\nIf set to false, indexing will be deferred to the time when an action requiring the index is first performed, e.g. hovering over a referenced entity to get its documentation."
+                    },
+                    "ada.followSymlinks": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Controls the Ada Language Server normalizes the file paths received from the client."
+                    },
+                    "ada.trace.server": {
+                        "scope": "window",
+                        "type": "string",
+                        "enum": [
+                            "off",
+                            "messages",
+                            "verbose"
+                        ],
+                        "enumDescriptions": [
+                            "No traces are emitted.",
+                            "Brief traces are emitted for each request sent and each response received.",
+                            "Verbose traces are emitted for each request sent and each response received, including the message content."
+                        ],
+                        "default": "off",
+                        "description": "Instructs the VS Code language client to log the communication with the Ada language server in the VS Code output window 'Ada Language Server'."
+                    },
+                    "gpr.trace.server": {
+                        "scope": "window",
+                        "type": "string",
+                        "enum": [
+                            "off",
+                            "messages",
+                            "verbose"
+                        ],
+                        "enumDescriptions": [
+                            "No traces are emitted.",
+                            "Brief traces are emitted for each request sent and each response received.",
+                            "Verbose traces are emitted for each request sent and each response received, including the message content."
+                        ],
+                        "default": "off",
+                        "description": "Instructs the VS Code language client to log the communication with the GPR language server in the VS Code output window 'GPR Language Server'."
                     }
                 }
             }
