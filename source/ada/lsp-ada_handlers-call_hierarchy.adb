@@ -312,7 +312,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          end if;
       end Callback;
 
-      Imprecise : Boolean;
+      Imprecise : Boolean := False;
       Cursor    : Laltools.Common.References_By_Subprogram.Cursor;
 
    begin
