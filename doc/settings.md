@@ -3,7 +3,24 @@
 The ALS reads initial configuration from the `initializationOptions`
 property of the `initialize` request (if any) and then updates
 the configuration with each `workspace/didChangeConfiguration`
-notification. Any setting in `workspace/didChangeConfiguration` should
+notification.
+
+In the context of Visual Studio Code, configuration settings can be set in the
+workspace `settings.json` file or the [multi-root workspace
+file](https://code.visualstudio.com/docs/editor/multi-root-workspaces) by
+prefixing each setting name with `ada.`, e.g.
+
+```json
+{
+   "ada.projectFile": "right_project.gpr",
+   "ada.scenarioVariables": {
+       "LIBRARY_TYPE": "static"
+   },
+   "ada.onTypeFormatting.indentOnly": true
+}
+```
+
+At the protocol level, any setting in `workspace/didChangeConfiguration` should
 be inside an `ada` JSON object, while there is no such wrapping object
 for `initializationOptions`. On the protocol level messages look like:
 
@@ -228,8 +245,19 @@ For more information about documentation styles see GNATdoc User's Manual.
 
 ## trace.server
 
-This option controls the tracing of the communication between VSCode and the Ada language server.
-The separate setting `gpr.trace.server` controls tracing for GPR language server.
+This option controls the tracing of the communication between VS Code and the Ada
+language server. It causes the client to trace each message sent and received
+to/from the Ada language server in the `Ada Language Server` Output view.
+
+The possible values are:
+
+* `off`: no tracing.
+* `messages`: brief traces are emitted for each request sent and each response received.
+* `verbose`: verbose traces are emitted for each request sent and each response received, including the message content.
+
+On the server side this option does not trigger any additional logging.
+
+An equivalent setting `gpr.trace.server` exists for tracing the communcation between VS Code and the GPR language server.
 
 ## onTypeFormatting.indentOnly
 
