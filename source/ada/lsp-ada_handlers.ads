@@ -87,9 +87,9 @@ package LSP.Ada_Handlers is
       return LSP.Structures.ProgressToken;
    --  Return an unique token for indicating progress
 
-   ----------------------------
-   --  Open Document Manger  --
-   ----------------------------
+   -----------------------------
+   --  Open Document Manager  --
+   -----------------------------
 
    function Get_Open_Document
      (Self  : in out Message_Handler;
@@ -124,6 +124,15 @@ package LSP.Ada_Handlers is
    --  Return the version of an open document for the given URI.
    --  If the document is not opened, then it returns a
    --  OptionalVersionedTextDocumentIdentifier with a null version.
+
+   -----------------
+   -- Log Manager --
+   -----------------
+
+   procedure Clean_Logs
+     (Self : access Message_Handler'Class;
+      Dir  : GNATCOLL.VFS.Virtual_File);
+   --  Remove the oldest logs in Dir
 
 private
 

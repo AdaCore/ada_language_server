@@ -205,6 +205,14 @@ package body LSP.Ada_Configurations is
            and then JSON (Index).Kind = Start_Object
          then
             Parse_Variables (Index);
+            Sort_Variables (1, Variables_Names.Length);
+
+            Reload := Reload or else
+              Variables_Names /= Self.Variables_Names or else
+              Variables_Values /= Self.Variables_Values;
+
+            Self.Variables_Names := Variables_Names;
+            Self.Variables_Values := Variables_Values;
 
          elsif Name = "defaultCharset"
            and then JSON (Index).Kind = String_Value
@@ -288,15 +296,6 @@ package body LSP.Ada_Configurations is
 
          Skip_Value (JSON, Index);
       end loop;
-
-      Sort_Variables (1, Variables_Names.Length);
-
-      Reload := Reload or else
-        Variables_Names /= Self.Variables_Names or else
-        Variables_Values /= Self.Variables_Values;
-
-      Self.Variables_Names := Variables_Names;
-      Self.Variables_Values := Variables_Values;
    end Parse_Ada;
 
    --------------------
