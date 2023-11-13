@@ -39,6 +39,7 @@ package body LSP.Ada_Completions.Names is
       use all type Libadalang.Analysis.Base_Id;
       use all type Libadalang.Common.Ada_Node_Kind_Type;
       use type Libadalang.Common.Token_Kind;
+      use type Libadalang.Common.Token_Reference;
 
       Parent   : Libadalang.Analysis.Ada_Node;
       --  The parent of the node to complete.
@@ -55,16 +56,17 @@ package body LSP.Ada_Completions.Names is
       --  - CallStmt
       --     - Dotted_Name
       --  - ErrorStmt/LoopStmt/etc.
+      Previous_Token : constant Libadalang.Common.Token_Reference :=
+        Libadalang.Common.Previous
+          (Token, Exclude_Trivia => True);
       Error_Dotted_Recovery : constant Boolean :=
         Libadalang.Analysis.Is_Keyword
           (Token   => Token,
            Version => Libadalang.Common.Ada_2012)
         and then
-          Libadalang.Common.Kind
-            (Libadalang.Common.Data
-               (Libadalang.Common.Previous
-                  (Token, Exclude_Trivia => True)))
-          = Libadalang.Common.Ada_Dot;
+          (Previous_Token /= Libadalang.Common.No_Token and then
+           Libadalang.Common.Kind (Libadalang.Common.Data (Previous_Token))
+           = Libadalang.Common.Ada_Dot);
    begin
 
       --  Get the outermost dotted name of which node is a prefix, so that when
