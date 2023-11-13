@@ -54,7 +54,6 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
      * Check that the list of offered SPARK tasks is expected.
      */
     test('Spark tasks list', async () => {
-        await adaExtState.adaClient.onReady();
         const prov = createSparkTaskProvider();
         const tasks = await prov.provideTasks();
         assert.notStrictEqual(tasks, undefined);
