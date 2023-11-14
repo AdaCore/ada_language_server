@@ -324,18 +324,31 @@ package body LSP.Ada_Handlers.Symbols is
                   Package_Deps_Item : LSP.Structures.DocumentSymbol;
                begin
                   if First_Item.kind = Namespace then
-                     Package_Deps_Item :=
-                       (name              => VSS.Strings.To_Virtual_String
-                          ("With clauses"),
-                        detail            => VSS.Strings.Empty_Virtual_String,
-                        kind              => Namespace,
-                        deprecated        => (Is_Set => False),
-                        tags              => LSP.Constants.Empty,
-                        a_range           => First_Item.a_range,
-                        selectionRange    => First_Item.a_range,
-                        children          => Children,
-                        others            => <>);
-                     Vector.Append (Package_Deps_Item);
+                     declare
+                        Last_Item     : constant LSP.Structures.DocumentSymbol :=
+                          LSP.Structures.Get_DocumentSymbol_Constant_Reference
+                            (Children, Children.Length);
+                        With_Range     : constant LSP.Structures.A_Range :=
+                          (First_Item.a_range.start, Last_Item.a_range.an_end);
+                        With_Selection : constant LSP.Structures.A_Range :=
+                          (First_Item.a_range.start,
+                           (First_Item.a_range.start.line,
+                            First_Item.a_range.start.character + 4));
+                     begin
+                        Package_Deps_Item :=
+                          (name              =>
+                             VSS.Strings.To_Virtual_String ("With clauses"),
+                           detail            =>
+                             VSS.Strings.Empty_Virtual_String,
+                           kind              => Namespace,
+                           deprecated        => (Is_Set => False),
+                           tags              => LSP.Constants.Empty,
+                           a_range           => With_Range,
+                           selectionRange    => With_Selection,
+                           children          => Children,
+                           others            => <>);
+                        Vector.Append (Package_Deps_Item);
+                     end;
                   else
                      for J in 1 .. Children.Length loop
                         Vector.Append (Children (J));
