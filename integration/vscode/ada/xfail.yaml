@@ -6,3 +6,10 @@ xfails: # Format is <testname>, <expectedstatus CRASH|DIFF> [, <platform>, <irre
           '',
           'Fails in GitLab CI but not locally',
       ]
+    - [
+          'lsp-ada_handlers-lsp-ada_handlers-adb-semantic',
+          'DIFF',
+          '',
+          '',
+          'Fails in GitLab CI but not locally',
+      ]
