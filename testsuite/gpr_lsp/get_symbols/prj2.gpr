@@ -1,4 +1,4 @@
-with "doesnotexist";
+
 project Prj2 is
  type T2 is ("a", "b");
  V2_1 : T2 := "a";
@@ -7,4 +7,8 @@ project Prj2 is
   V2_2 : T2 := "b";
   for A2 use V2_2;
  end P2;
+ case A.B'C is
+  when "D" | "E" =>
+  when others =>
+ end case;
 end Prj2;
