@@ -33,14 +33,19 @@ extension at
     - [Dependencies](#dependencies)
   - [Usage](#usage)
   - [Supported LSP Server Requests](#supported-lsp-server-requests)
-    - [Protocol extensions](#protocol-extensions)
-  - [How to use the VScode extension](#how-to-use-the-vscode-extension)
-    - [Getting started](#getting-started)
-    - [Auto-detected tasks](#auto-detected-tasks)
-      - [Short demo](#short-demo)
-    - [Commands and shortcuts](#commands-and-shortcuts)
-    - [Launch the extension to debug it](#launch-the-extension-to-debug-it)
+    - [Protocol Extensions](#protocol-extensions)
+  - [VS Code Extension](#vs-code-extension)
+    - [Getting Started](#getting-started)
     - [Configuration](#configuration)
+    - [Refactoring](#refactoring)
+    - [Tasks](#tasks)
+      - [Task Customization](#task-customization)
+    - [Commands and Shortcuts](#commands-and-shortcuts)
+      - [Ada: Go to other file](#ada-go-to-other-file)
+      - [Ada: Add subprogram box](#ada-add-subprogram-box)
+      - [Ada: Reload project](#ada-reload-project)
+    - [Bug Reporting](#bug-reporting)
+    - [Limitations and Differences with GNAT Studio](#limitations-and-differences-with-gnat-studio)
   - [Integration with other editors and IDEs](#integration-with-other-editors-and-ides)
     - [Integration with Coc.NVim](#integration-with-cocnvim)
     - [Integration with vim-lsp](#integration-with-vim-lsp)
@@ -49,9 +54,10 @@ extension at
     - [Integration with emacs lsp-mode](#integration-with-emacs-lsp-mode)
     - [Integration with QtCreator](#integration-with-qtcreator)
   - [Refactoring Tools](#refactoring-tools)
-  - [Authors & Contributors](#authors--contributors)
+  - [Authors \& Contributors](#authors--contributors)
   - [Contribute](#contribute)
   - [License](#license)
+
 
 ## Install
 
@@ -114,64 +120,62 @@ instead of specifying it via the requests listed just above.
 See [WiKi page](https://github.com/AdaCore/ada_language_server/wiki/Supported-LSP-requests)
 for the list of supported requests.
 
-### Protocol extensions
+### Protocol Extensions
 
 The Ada Language Server supports some features that are not in the official
 [Language Server Protocol](https://microsoft.github.io/language-server-protocol)
 specification. See [corresponding document](doc/README.md).
 
-## How to use the VScode extension
+## VS Code Extension
 
-### Current limitations and differences compared to GNAT Studio
+A VS Code extension based on this Ada Language Server is available on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=AdaCore.ada).
+It provides a full set of features including syntax highlighting, navigation, building and debugging.
 
-The VSCode extension has a few limitations and some differences compared to [GNAT Studio](https://github.com/AdaCore/gnatstudio):
-
-* **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
-formatting might no succeed on incomplete/illegal code.
-
-* **Toooling support**: we currently provide minimal support for *SPARK* (see *Prove/Examine* tasks in the [Auto-detected tasks](#auto-detected-tasks) section), but there is no support for tools such as *CodePeer*, *GNATcheck*, *GNATtest* or *GNATcoverage*.
-
-* **Alire support**: if the root folder contains an `alire.toml` file and
-  there is `alr` executable in the `PATH`, then the language server fetches
-  the project's search path, environment variables and the project's file
-  name from the crate description.
-
-* **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/refactoring_tools.md)). You can execute the *Ada: Reload project* command to reload your project after saving the new scenario values (use the *Ctrl+P* shortcut to invoke the **Command Palette**, allowing you to execute commands).
-
-  Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.
-
-### Bug Reporting
-
-You can use the VS Code `Issue Reporter` to report issues. Just click on the `Help -> Report Issue` menu, select `An extension` for the `File on` entry and `Language Support for Ada` for the extension name. Put as many information you can in the description, like steps to reproduce, stacktraces or system information (VS Code automatically includes it by default). This will create a GitHub issue in the [Ada Language Server](https://github.com/AdaCore/ada_language_server/) repository.
-
-ALS log files can be found under the `~/.als` directory (`%USERPROFILE%/.als` on Windows). Feel free to attach them on the issues, it helps a lot for further investigation, specially when the `ALS.IN` and `ALS.OUT` traces are enabled (more info about traces configuration can be found [here](doc/traces.md).)
-
-
-### Getting started
+### Getting Started
 
 [Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started).
+
+### Configuration
+
+You can configure the extension via the `.vscode/settings.json` workspace settings file or the [multi-root workspace file](https://code.visualstudio.com/docs/editor/multi-root-workspaces).
+See the setting list [here](doc/settings.md).
+
+Here is an example config file:
+
+```json
+{
+   "ada.projectFile": "gnatcov.gpr",
+   "ada.scenarioVariables": {
+      "BINUTILS_BUILD_DIR": "/null",
+      "BINUTILS_SRC_DIR": "/null"
+   },
+   "ada.defaultCharset": "utf-8",
+   "ada.enableDiagnostics": false,
+   "ada.renameInComments": false
+}
+```
 
 ### Refactoring
 
 See a [dedicated document](doc/refactoring_tools.md) with the list of available refactorings.
 
-### Auto-detected tasks
+### Tasks
 
-The extension includes a task provider. It provides the following "auto-detected" tasks
+The extension provides the following auto-detected tasks
 (under `/Terminal/Run Task...` menu):
 
-* "ada: Build current project" - launch `gprbuild` to build the current GPR project
-* "ada: Check current file" - launch `gprbuild` to check errors in the current editor
-* "ada: Clean current project" - launch `gprclean` to clean the current GPR project
-* "ada: Examine project" - launch `gnatprove` in flow analysis mode on the current GPR project
-* "ada: Examine file" - launch `gnatprove` in flow analysis mode on the file in the current editor
-* "ada: Examine subprogram" - launch `gnatprove` in flow analysis mode on the current subprogram in the current editor
-* "ada: Prove project" - launch `gnatprove` on the current GPR project
-* "ada: Prove file" - launch `gnatprove` on the file in the current editor
-* "ada: Prove subprogram" - launch `gnatprove` on the current subprogram in the current editor
-* "ada: Prove selected region" - launch `gnatprove` on the selected region in the current editor
-* "ada: Prove line" - launch `gnatprove` on the cursor line in the current editor
-* "ada: Clean project for proof" - launch `gnatprove` on the current GPR project to clean proof artefacts
+* `ada: Build current project` - launch `gprbuild` to build the current GPR project
+* `ada: Check current file` - launch `gprbuild` to check errors in the current editor
+* `ada: Clean current project` - launch `gprclean` to clean the current GPR project
+* `spark: Examine project` - launch `gnatprove` in flow analysis mode on the current GPR project
+* `spark: Examine file` - launch `gnatprove` in flow analysis mode on the file in the current editor
+* `spark: Examine subprogram` - launch `gnatprove` in flow analysis mode on the current subprogram in the current editor
+* `spark: Prove project` - launch `gnatprove` on the current GPR project
+* `spark: Prove file` - launch `gnatprove` on the file in the current editor
+* `spark: Prove subprogram` - launch `gnatprove` on the current subprogram in the current editor
+* `spark: Prove selected region` - launch `gnatprove` on the selected region in the current editor
+* `spark: Prove line` - launch `gnatprove` on the cursor line in the current editor
+* `spark: Clean project for proof` - launch `gnatprove` on the current GPR project to clean proof artefacts
 
 You can bind keyboard shortcuts to them by adding to the `keybindings.json` file:
 
@@ -184,35 +188,34 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
 }
 ```
 
-#### Short demo
+#### Task Customization
 
-[A demo for auto-detected tasks](https://github.com/AdaCore/ada_language_server/wiki/auto_detected_tasks.mp4)
-
-#### Task customization
-You can [customize autodetected tasks](https://code.visualstudio.com/docs/editor/tasks#_customizing-autodetected-tasks)
-by providing extra tool command line options via `args` property in the `tasks.json`:
+You can [customize auto-detected tasks](https://code.visualstudio.com/docs/editor/tasks#_customizing-autodetected-tasks)
+by providing extra tool command line options via the `args` property of the `configuration` object in the `tasks.json`:
 
 ```json
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "gnat",
-			"taskKind": "buildProject",
-			"problemMatcher": [
-				"$ada"
-			],
-			"group": "build",
-			"label": "ada: Build project",
-			"args": ["-gargs", "-vh"]
-		}
-	]
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "type": "ada",
+         "configuration": {
+            "kind": "buildProject",
+            "projectFile": "${config:ada.projectFile}",
+            "args": ["-gargs", "-vh"]
+         },
+         "problemMatcher": ["$ada"],
+         "group": "build",
+         "label": "ada: Build current project with custom options"
+      }
+   ]
 }
 ```
 
-### Commands and shortcuts
+### Commands and Shortcuts
 
-The extension contributes a few commands and corresponding key bindings.
+The extension contributes commands and a few default key bindings.
+Below are a few examples, and other commands can be found by searching for `Ada:` in the command list.
 
 #### Ada: Go to other file
 
@@ -229,36 +232,29 @@ The default shortcut is `Alt+Shift+B`.
 This command reloads the current project.
 The default shortcut is `None`.
 
-### Launch the extension to debug it
+### Bug Reporting
 
-For the moment, this repository includes a vscode extension that is used as the
-reference extension for this implementation.
+You can use the VS Code `Issue Reporter` to report issues. Just click on the `Help -> Report Issue` menu, select `An extension` for the `File on` entry and `Language Support for Ada` for the extension name. Put as many information you can in the description, like steps to reproduce, stacktraces or system information (VS Code automatically includes it by default). This will create a GitHub issue in the [Ada Language Server](https://github.com/AdaCore/ada_language_server/) repository.
 
-You can try it by running:
+ALS log files can be found under the `~/.als` directory (`%USERPROFILE%/.als` on Windows). Feel free to attach them on the issues, it helps a lot for further investigation, specially when the `ALS.IN` and `ALS.OUT` traces are enabled (more info about traces configuration can be found [here](doc/traces.md).)
 
-```sh
-code --extensionDevelopmentPath=<path_to_this_repo>/integration/vscode/ada <workspace directory>
-```
+### Limitations and Differences with GNAT Studio
 
-### Configuration
+The VS Code extension has a few limitations and some differences compared to [GNAT Studio](https://github.com/AdaCore/gnatstudio):
 
-You can configure the extension via the `.vscode/settings.json` settings file.
-See the setting list [here](doc/settings.md).
+* **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
+formatting might no succeed on incomplete/illegal code.
 
-Here is an example config file from the gnatcov project:
+* **Tooling support**: we currently provide minimal support for *SPARK* (see *Prove/Examine* tasks in the [Auto-detected tasks](#auto-detected-tasks) section), but there is no support for tools such as *CodePeer*, *GNATcheck*, *GNATtest* or *GNATcoverage*.
 
-```json
-{
-    "ada.projectFile": "gnatcov.gpr",
-    "ada.scenarioVariables": {
-        "BINUTILS_BUILD_DIR": "/null",
-        "BINUTILS_SRC_DIR": "/null"
-    },
-   "ada.defaultCharset": "utf-8",
-   "ada.enableDiagnostics": false,
-   "ada.renameInComments": false
-}
-```
+* **Alire support**: if the root folder contains an `alire.toml` file and
+  there is `alr` executable in the `PATH`, then the language server fetches
+  the project's search path, environment variables and the project's file
+  name from the crate description.
+
+* **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/refactoring_tools.md)). You can execute the *Ada: Reload project* command to reload your project after saving the new scenario values (use the *Ctrl+P* shortcut to invoke the **Command Palette**, allowing you to execute commands).
+
+  Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.
 
 ## Integration with other editors and IDEs
 
