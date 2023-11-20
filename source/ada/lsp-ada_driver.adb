@@ -65,6 +65,7 @@ with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
 with LSP.GPR_Handlers;
+with LSP.GPR_External_Tools;
 with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
 with LSP.Secure_Message_Loggers;
@@ -339,6 +340,9 @@ begin
 
    begin
       if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
+
+         LSP.GPR_External_Tools.Initialize_Extra_Packages_Attributes;
+
          Server.Run
            (GPR_Handler'Unchecked_Access,
             Tracer'Unchecked_Access,
