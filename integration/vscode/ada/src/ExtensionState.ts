@@ -4,6 +4,7 @@ import { createClient } from './clients';
 import GnatTaskProvider from './gnatTaskProvider';
 import GprTaskProvider from './gprTaskProvider';
 import { registerTaskProviders } from './taskProviders';
+import { getCustomEnvSettingName } from './helpers';
 
 /**
  * This class encapsulates all state that should be maintained throughout the
@@ -71,6 +72,26 @@ export class ExtensionState {
         this.registeredTaskProviders = [];
     };
 
+    /**
+     * Show a popup asking the user to reload the VS Code window after
+     * changes made in the VS Code environment settings
+     * (e.g: terminal.integrated.env.linux).
+     */
+    public showReloadWindowPopup = async () => {
+        const selection = await vscode.window.showWarningMessage(
+            `The workspace environment has changed: the VS Code window needs
+            to be reloaded in order for the Ada Language Server to take the
+            new environment into account.
+            Do you want to reload the VS Code window?`,
+            'Reload Window'
+        );
+
+        // Reload the VS Code window if the user selected 'Yes'
+        if (selection == 'Reload Window') {
+            void vscode.commands.executeCommand('workbench.action.reloadWindow');
+        }
+    };
+
     //  React to changes in configuration to recompute predefined tasks if the user
     //  changes scenario variables' values.
     public configChanged = (e: vscode.ConfigurationChangeEvent) => {
@@ -80,6 +101,15 @@ export class ExtensionState {
         ) {
             this.unregisterTaskProviders();
             this.registerTaskProviders();
+        }
+
+        //  React to changes made in the environment variables, showing
+        //  a popup to reload the VS Code window and thus restart the
+        //  Ada extension.
+        const env_config_name = getCustomEnvSettingName();
+
+        if (e.affectsConfiguration(env_config_name)) {
+            void this.showReloadWindowPopup();
         }
     };
 }
