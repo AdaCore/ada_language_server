@@ -18,7 +18,7 @@
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { getMains, getExecutables, getProjectFile } from './helpers';
-import { DEFAULT_PROBLEM_MATCHER } from './taskProviders';
+import { DEFAULT_PROBLEM_MATCHER, WarningMessageExecution } from './taskProviders';
 
 /**
  *
@@ -27,7 +27,7 @@ import { DEFAULT_PROBLEM_MATCHER } from './taskProviders';
  * workspaces.
  */
 
-export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
+export class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
     /**
      * This flag is used to restore the proposal of 'gpr' tasks for debugging
      * purposes.
@@ -36,6 +36,11 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
     private readonly client: LanguageClient;
     public static gprTaskType = 'gpr';
     glsTasks: vscode.Task[] | undefined;
+
+    private readonly obsoletionMsg =
+        "The 'gpr' task type is obsolete. Please use 'ada' tasks instead.";
+
+    private readonly obsoleteWarningExecution = new WarningMessageExecution(this.obsoletionMsg);
 
     constructor(client: LanguageClient) {
         this.glsTasks = undefined;
@@ -46,7 +51,7 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
     async provideTasks(): Promise<vscode.Task[] | undefined> {
         if (GprTaskProvider.DEPRECATED) {
             // We return a single dummy task to convey an obsoletion message to Users.
-            const msg = 'The "gpr" task type is obsolete. Use "ada" tasks instead.';
+            const msg = this.obsoletionMsg;
             return [
                 new vscode.Task(
                     {
@@ -57,7 +62,7 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
                     vscode.TaskScope.Workspace,
                     msg,
                     GprTaskProvider.gprTaskType,
-                    new vscode.ShellExecution(`echo ${msg}`),
+                    this.obsoleteWarningExecution,
                     DEFAULT_PROBLEM_MATCHER
                 ),
             ];
@@ -75,42 +80,20 @@ export default class GprTaskProvider implements vscode.TaskProvider<vscode.Task>
         return this.glsTasks;
     }
 
-    async resolveTask(task: vscode.Task): Promise<vscode.Task | undefined> {
-        const definition = task.definition;
-        // Make sure that this looks like a execute task by checking that there is a projectFile.
-        if (definition.type == GprTaskProvider.gprTaskType) {
-            //  Refresh gprbuild command line
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const projectFile: string =
-                definition.projectFile != undefined
-                    ? definition.projectFile
-                    : await getProjectFile(this.client);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            const args = getMainBuildArgs(projectFile, definition.main);
-            let shell: vscode.ShellExecution;
-            let title: string;
-            if (definition.executable != undefined) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                args.push('&&', 'clear', '&&', definition.executable);
-                shell = new vscode.ShellExecution(fullCommand('gprbuild', args));
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                title = `Build And Run Main: ${definition.main}`;
-            } else {
-                shell = new vscode.ShellExecution(fullCommand('gprbuild', args));
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                title = `Build Main: ${definition.main}`;
-            }
-            // resolveTask requires that the same definition object be used.
-            return new vscode.Task(
-                definition,
-                vscode.TaskScope.Workspace,
-                title,
-                'gpr',
-                shell,
-                '$gpr'
-            );
-        }
-        return undefined;
+    resolveTask(task: vscode.Task) {
+        /**
+         * Here we resolve 'gpr' tasks still defined in User workspaces. We
+         * handle them by displaying an obsoletion warning if the task gets
+         * executed.
+         */
+        return new vscode.Task(
+            task.definition,
+            task.scope ?? vscode.TaskScope.Workspace,
+            task.name,
+            GprTaskProvider.gprTaskType,
+            this.obsoleteWarningExecution,
+            DEFAULT_PROBLEM_MATCHER
+        );
     }
 }
 

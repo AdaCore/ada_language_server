@@ -22,6 +22,7 @@ import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
 import { adaExtState } from './extension';
 import { getAdaMains, getProjectFile } from './helpers';
+import { task } from 'fp-ts';
 
 /**
  * Callback to provide an extra argument for a tool
@@ -641,7 +642,7 @@ async function buildFullCommandLine(
                     // field must be specified.
                     const msg =
                         `Task '${name}': ` +
-                        `The project file specied in this task is different than the workspace ` +
+                        `The project file specified in this task is different than the workspace ` +
                         `project. It is not possible to automatically compute the path to the ` +
                         `executable to run. Please specify the 'executable' attribute in the ` +
                         `task definition.`;
@@ -660,4 +661,58 @@ async function buildFullCommandLine(
     return alire().then((alr) => {
         return alr.concat(cmd);
     });
+}
+
+/**
+ * This class is a {@link vscode.CustomExecution} that displays a warning
+ * message as a popup message and in the terminal associated with the task
+ * execution. In particular, it is useful for displaying a warning when the User
+ * tries to execute an obsolete or malformed task.
+ */
+export class WarningMessageExecution extends vscode.CustomExecution {
+    warningMsg: string;
+
+    constructor(warningMsg: string) {
+        super(() => {
+            return this.callback();
+        });
+        this.warningMsg = warningMsg;
+    }
+
+    /**
+     * This callback is called when the task is executed.
+     *
+     * @returns a Pseudoterminal object that controls a Terminal in the VS Code UI.
+     */
+    callback(): Thenable<vscode.Pseudoterminal> {
+        return new Promise((resolve) => {
+            const writeEmitter = new vscode.EventEmitter<string>();
+            const closeEmitter = new vscode.EventEmitter<number>();
+            const msg = this.warningMsg;
+            const pseudoTerminal: vscode.Pseudoterminal = {
+                onDidWrite: writeEmitter.event,
+                onDidClose: closeEmitter.event,
+                open() {
+                    /**
+                     * Printing to the terminal is done by firing the onDidWrite event.
+                     */
+                    writeEmitter.fire(msg + '\r\n\r\n');
+
+                    /**
+                     * Display the warning in a popup without awaiting the dismissal of the popup.
+                     */
+                    void vscode.window.showWarningMessage(msg);
+
+                    /**
+                     * Firing the onDidClose event causes the Terminal to end.
+                     */
+                    closeEmitter.fire(0);
+                },
+                close() {
+                    //
+                },
+            };
+            resolve(pseudoTerminal);
+        });
+    }
 }
