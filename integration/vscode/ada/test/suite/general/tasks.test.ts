@@ -61,7 +61,10 @@ suite('GPR Tasks Provider', function () {
         assert.notStrictEqual(resolved, undefined);
         if (resolved != undefined && resolved.execution) {
             const exec = resolved.execution as vscode.ShellExecution;
-            assert.strictEqual(exec.commandLine, expectedCmd);
+
+            //  Comparing the cmd lines in lower-case since VS Code URI API returns drive letters
+            //  (e.g: "C/") in lower-case mode, as defined in their doc.
+            assert.strictEqual(exec.commandLine?.toLowerCase(), expectedCmd.toLowerCase());
         }
     });
 });
