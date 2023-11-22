@@ -30,6 +30,9 @@ make
 
 ## Debugging
 
+One way to run the ALS is by running the VS Code extension in development mode.
+You can do that using the VS Code workspace at the root of this repository and the launch configuration `(vscode) Launch vscode with the Ada extension`.
+
 You can activate traces that show all the server input/output. This is done
 by creating a file `$HOME/.als/traces.cfg` with the following contents:
 

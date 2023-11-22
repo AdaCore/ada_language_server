@@ -6,6 +6,7 @@
       "editorconfig.editorconfig",
       "dbaeumer.vscode-eslint",
       "esbenp.prettier-vscode",
-      "gruntfuggly.triggertaskonsave"
+      "gruntfuggly.triggertaskonsave",
+      "davidanson.vscode-markdownlint"
    ]
 }

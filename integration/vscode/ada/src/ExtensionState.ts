@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { Disposable, LanguageClient } from 'vscode-languageclient/node';
 import { createClient } from './clients';
-import GnatTaskProvider from './gnatTaskProvider';
-import GprTaskProvider from './gprTaskProvider';
+import { GnatTaskProvider } from './gnatTaskProvider';
+import { GprTaskProvider } from './gprTaskProvider';
 import { registerTaskProviders } from './taskProviders';
 import { getCustomEnvSettingName } from './helpers';
 

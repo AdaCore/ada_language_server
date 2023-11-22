@@ -19,6 +19,7 @@ import * as vscode from 'vscode';
 import {
     AllTaskKinds,
     DEFAULT_PROBLEM_MATCHER,
+    WarningMessageExecution,
     TaskProperties,
     alire,
     allTaskProperties,
@@ -45,7 +46,7 @@ interface GnatTaskDefinition extends vscode.TaskDefinition {
  * order to preserve support for 'gnat' task types that still exist in User
  * workspaces.
  */
-export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task> {
+export class GnatTaskProvider implements vscode.TaskProvider<vscode.Task> {
     /**
      * This flag is used to restore the proposal of 'gnat' tasks for debugging
      * purposes.
@@ -55,6 +56,11 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
     public static gnatType = 'gnat' as const; // Task provider name
     gnatTasks: vscode.Task[] | undefined; // Known tasks
 
+    private readonly obsoletionMsg =
+        "Tasks of type 'gnat' are obsolete. Please use tasks of type 'ada' or 'spark'.";
+
+    private readonly obsoleteWarningExecution = new WarningMessageExecution(this.obsoletionMsg);
+
     constructor() {
         this.gnatTasks = undefined; //  Do we really need this???
     }
@@ -63,7 +69,7 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
     provideTasks(_token: vscode.CancellationToken): vscode.ProviderResult<vscode.Task[]> {
         if (GnatTaskProvider.DEPRECATED) {
             // We return a single dummy task to convey an obsoletion message to Users.
-            const msg = 'The "gnat" task type is obsolete. Use "ada" tasks instead.';
+            const msg = this.obsoletionMsg;
             return [
                 new vscode.Task(
                     {
@@ -74,7 +80,7 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
                     vscode.TaskScope.Workspace,
                     msg,
                     GnatTaskProvider.gnatType,
-                    new vscode.ShellExecution(`echo ${msg}`),
+                    this.obsoleteWarningExecution,
                     DEFAULT_PROBLEM_MATCHER
                 ),
             ];
@@ -95,42 +101,19 @@ export default class GnatTaskProvider implements vscode.TaskProvider<vscode.Task
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _token: vscode.CancellationToken
     ): vscode.ProviderResult<vscode.Task> {
-        // We keep the previous task resolution code so that tasks in User
-        // workspaces still work like before. Such tasks are also flagged as
-        // obsolete in the tasks.json file to encourage Users to migrate to the
-        // 'ada' task type.
-        const definition = task.definition as GnatTaskDefinition;
-
-        // Check if the task in our known task
-        if (definition.taskKind in allTaskProperties) {
-            const taskKind = definition.taskKind as AllTaskKinds;
-            const item: TaskProperties = allTaskProperties[taskKind];
-            const extraArgsFromUser: string[] = Array.isArray(definition.args)
-                ? definition.args.map((x) => String(x))
-                : [];
-            const extraArgsFromTask = item.extra ? item.extra() : [];
-            return alire().then(async (alr) => {
-                const cmd = alr.concat(
-                    item.command,
-                    await getProjectArgs(),
-                    getScenarioArgs(),
-                    extraArgsFromUser,
-                    await extraArgsFromTask,
-                    getDiagnosticArgs()
-                );
-                const shell = new vscode.ShellExecution(cmd[0], cmd.slice(1));
-                return new vscode.Task(
-                    definition,
-                    task.scope ?? vscode.TaskScope.Workspace,
-                    task.name,
-                    'ada',
-                    shell,
-                    DEFAULT_PROBLEM_MATCHER // problemMatchers
-                );
-            });
-        } else {
-            return task;
-        }
+        /**
+         * Here we resolve 'gnat' tasks still defined in User workspaces. We
+         * handle them by displaying an obsoletion warning if the task gets
+         * executed.
+         */
+        return new vscode.Task(
+            task.definition,
+            task.scope ?? vscode.TaskScope.Workspace,
+            task.name,
+            GnatTaskProvider.gnatType,
+            this.obsoleteWarningExecution,
+            DEFAULT_PROBLEM_MATCHER
+        );
     }
 }
 
