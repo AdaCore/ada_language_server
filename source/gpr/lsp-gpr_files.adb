@@ -328,12 +328,41 @@ package body LSP.GPR_Files is
       end Add_Symbol;
 
       function Next_Token
-        (Ref : GPC.Token_Reference) return GPC.Token_Reference
-      is (Next (Ref, True));
+        (Ref : GPC.Token_Reference) return GPC.Token_Reference;
+
+      function Previous_Token
+        (Ref : GPC.Token_Reference) return GPC.Token_Reference;
+
+      ----------------
+      -- Next_Token --
+      ----------------
+
+      function Next_Token
+        (Ref : GPC.Token_Reference) return GPC.Token_Reference is
+         Result : constant GPC.Token_Reference := Next (Ref, True);
+      begin
+         if Result = GPC.No_Token then
+            return File.Unit.Last_Token;
+         else
+            return Result;
+         end if;
+      end Next_Token;
+
+      --------------------
+      -- Previous_Token --
+      --------------------
 
       function Previous_Token
         (Ref : GPC.Token_Reference) return GPC.Token_Reference
-      is (Previous (Ref, True));
+      is
+         Result : constant GPC.Token_Reference := Previous (Ref, True);
+      begin
+         if Result = GPC.No_Token then
+            return File.Unit.First_Token;
+         else
+            return Result;
+         end if;
+      end Previous_Token;
 
       ---------------------------
       -- Close_Current_Package --
@@ -445,6 +474,26 @@ package body LSP.GPR_Files is
          procedure Parse_Variable (Variable_Token : GPR_Token);
          procedure Parse_Package;
          procedure Parse_End;
+         procedure Previous_Token_If_Needed;
+
+         ------------------------------
+         -- Previous_Token_If_Needed --
+         ------------------------------
+
+         procedure Previous_Token_If_Needed is
+            Token : constant GPR_Token := Get_GPR_Token (Index);
+         begin
+            if Token.Kind in
+              Gpr_Parser.Common.Gpr_Package
+                | Gpr_Parser.Common.Gpr_Type
+                  | Gpr_Parser.Common.Gpr_For
+                    | Gpr_Parser.Common.Gpr_End
+                      | Gpr_Parser.Common.Gpr_Case
+                        | Gpr_Parser.Common.Gpr_When
+            then
+               Index := Previous_Token (Index);
+            end if;
+         end Previous_Token_If_Needed;
 
          ---------------------
          -- Parse_Attribute --
@@ -469,6 +518,7 @@ package body LSP.GPR_Files is
                Attribute_Token := Get_GPR_Token (Index);
                if Attribute_Token.Kind /= Gpr_Parser.Common.Gpr_Identifier
                then
+                  Previous_Token_If_Needed;
                   return;
                end if;
             else
@@ -533,6 +583,7 @@ package body LSP.GPR_Files is
                     (To_Unbounded_String (Image (Name))) & Image (Attr_Index),
                   Children => GPC.No_Token);
             end;
+            Previous_Token_If_Needed;
          end Parse_Attribute;
 
          ---------------
@@ -547,6 +598,8 @@ package body LSP.GPR_Files is
                Token := Get_GPR_Token (Index);
                if Token.Kind = Gpr_Parser.Common.Gpr_Identifier then
                   Close_Current_Package (Index);
+               elsif Token.Kind /= Gpr_Parser.Common.Gpr_Case then
+                  Previous_Token_If_Needed;
                end if;
             end if;
          end Parse_End;
@@ -624,6 +677,7 @@ package body LSP.GPR_Files is
                      Current_Symbols.Clear;
                   end if;
                else
+                  Previous_Token_If_Needed;
                   return;
                end if;
             else
@@ -651,6 +705,7 @@ package body LSP.GPR_Files is
                   when others =>
                      null;
                end case;
+               Previous_Token_If_Needed;
             else
                return;
             end if;
@@ -686,6 +741,7 @@ package body LSP.GPR_Files is
                   end if;
                   Index := Next_Token (Index);
                end if;
+               Previous_Token_If_Needed;
             end if;
          end Parse_Type;
 
@@ -728,6 +784,7 @@ package body LSP.GPR_Files is
                end case;
                Index := Next_Token (Index);
             end loop;
+            Previous_Token_If_Needed;
          end Parse_Variable;
 
          Previous_Token : GPR_Token;
@@ -914,6 +971,9 @@ package body LSP.GPR_Files is
       end Parse_Project_Declaration;
 
    begin
+
+      --  Reset project kind to default value.
+      File.Kind := GPR2.K_Standard;
 
       Search_Paths.Prepend (File.Path.Containing_Directory);
       File.Name := +To_String (Project_Name);
