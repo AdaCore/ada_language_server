@@ -489,9 +489,14 @@ package body LSP.GPR_Handlers is
       Value : LSP.Structures.InitializeParams)
    is
       Response : LSP.Structures.InitializeResult;
+      Capabilities : LSP.Structures.ServerCapabilities;
 
    begin
       Self.File_Reader := LSP.GPR_File_Readers.Create (Self'Unchecked_Access);
+
+      Capabilities.hoverProvider := LSP.Constants.True;
+
+      Response.capabilities := Capabilities;
 
       Response.capabilities.textDocumentSync :=
         (Is_Set => True,
