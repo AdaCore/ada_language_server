@@ -38,7 +38,10 @@
 		"scope": "ada",
 		"body": [
 			"case ${1:Variable} is",
-			"\t$0",
+			"\twhen ${3:Condition} =>",
+			"\t\t$0",
+			"\twhen others =>",
+			"\t\t$2",
 			"end case;"
 		],
 		"description": "Case Statement"
