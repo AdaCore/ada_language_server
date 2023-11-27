@@ -401,7 +401,7 @@ package body LSP.Ada_Handlers.Project_Loading is
                Project_Environment.Build_Path :=
                  GPR2.Path_Name.Create_Directory
                    (GPR2.Path_Name.Create (GPR).Relative_Path
-                     (GPR2.Path_Name.Create (Root_Dir)).Name,
+                     (GPR2.Path_Name.Create (Root_Dir)),
                       GPR2.Filename_Type
                        (Project_Environment.Build_Path.Value));
             end if;
