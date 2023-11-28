@@ -7,8 +7,11 @@ DEBUG=$1  # Value is '' or 'debug'
 RUNNER_OS=$2  #  ${{ runner.os }} is Linux, Windiws, maxOS
 TAG=$3 # For master it's 24.0.999, while for tag it's the tag itself
 NO_REBASE=$4 # Specify this to skip the rebase over the edge branch. Used for local debugging.
+CROSS=$5 # '' for native, aarch64 for ARM cross
 
 prefix=/tmp/ADALIB_DIR
+TARGET=${CROSS:+$CROSS-linux} # '' or aarch64-linux
+TARGET_OPTION=${TARGET:+--target=$TARGET}  # '' or --target=aarch64-linux
 
 export CPATH=/usr/local/include
 export LIBRARY_PATH=/usr/local/lib
@@ -24,6 +27,7 @@ if [ $RUNNER_OS = Windows ]; then
 fi
 
 export GPR_PROJECT_PATH=$prefix/share/gpr:\
+$prefix/$TARGET/share/gpr:\
 $PWD/subprojects/VSS/gnat:\
 $PWD/subprojects/gnatdoc/gnat:\
 $PWD/subprojects/lal-refactor/gnat:\
@@ -52,7 +56,7 @@ cd -
 
 # Get libadalang binaries
 mkdir -p $prefix
-FILE=libadalang-$RUNNER_OS-$BRANCH${DEBUG:+-dbg}-static.tar.gz
+FILE=libadalang-$RUNNER_OS-$BRANCH${CROSS:+-$CROSS}${DEBUG:+-dbg}-static.tar.gz
 # If the script is run locally for debugging, it is not always possible
 # to download libadalang from AWS S3. Instead, allow for the file to
 # be obtained otherwise and placed in the current directory for the script
@@ -82,11 +86,22 @@ fi
 # Log info about the compiler and library paths
 gnatls -v
 
+# Get architecture and platform information from node.
+NODE_PLATFORM=$(node -e "console.log(process.platform)")
+
+if [ "$CROSS" = "aarch64" ]; then
+   NODE_ARCH=arm64
+else
+   NODE_ARCH=$(node -e "console.log(process.arch)")
+fi
+
 make -C subprojects/templates-parser setup prefix=$prefix \
- ENABLE_SHARED=no \
+ ENABLE_SHARED=no ${TARGET:+TARGET=$TARGET} \
  ${DEBUG:+BUILD=debug} build-static install-static
 
-make LIBRARY_TYPE=static VERSION=$TAG all check
+make LIBRARY_TYPE=static VERSION=$TAG all GPRBUILD_EXTRA=$TARGET_OPTION NODE_ARCH=$NODE_ARCH
+[ -z "$CROSS" ] && make LIBRARY_TYPE=static check
+
 
 function fix_rpath ()
 {
@@ -97,9 +112,6 @@ function fix_rpath ()
     install_name_tool -add_rpath @executable_path $1
 }
 
-# Get architecture and platform information from node.
-NODE_ARCH=$(node -e "console.log(process.arch)")
-NODE_PLATFORM=$(node -e "console.log(process.platform)")
 ALS_EXEC_DIR=integration/vscode/ada/$NODE_ARCH/$NODE_PLATFORM
 
 if [ $RUNNER_OS = macOS ]; then
@@ -123,6 +135,10 @@ if [ "$DEBUG" != "debug" ]; then
         # system (or by XCode).
         dsymutil "$ALS"
         strip "$ALS"
+    elif [ "$CROSS" = "aarch64" ]; then
+        aarch64-linux-gnu-objcopy --only-keep-debug ${ALS} ${ALS}.debug
+        aarch64-linux-gnu-objcopy --strip-all ${ALS}
+        aarch64-linux-gnu-objcopy --add-gnu-debuglink=${ALS}.debug ${ALS}
     else
         objcopy --only-keep-debug ${ALS} ${ALS}.debug
         objcopy --strip-all ${ALS}

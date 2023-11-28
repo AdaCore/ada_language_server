@@ -200,6 +200,7 @@ export function assertSupportedEnvironments(mainChannel: winston.Logger) {
         { arch: 'x64', platform: 'linux' },
         { arch: 'x64', platform: 'win32' },
         { arch: 'x64', platform: 'darwin' },
+        { arch: 'arm64', platform: 'linux' },
         { arch: 'arm64', platform: 'darwin' },
     ];
 

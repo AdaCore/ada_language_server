@@ -17,11 +17,13 @@ function make_change_log()
     done
 }
 
-chmod -R -v +x als-*-$DEBUG
+chmod -R -v +x als-*-$DEBUG als-Linux-${DEBUG}aarch64
 
 for X in Linux macOS Windows ; do
     rsync -rva als-$X-$DEBUG/ integration/vscode/ada/
 done
+
+rsync -rva als-Linux-${DEBUG}aarch64/ integration/vscode/ada/
 
 # VS Code is supported on arm, arm64 and x64 so we only consider those
 # architectures
