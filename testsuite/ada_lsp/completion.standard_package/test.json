@@ -1,0 +1,253 @@
+[
+   {
+      "comment": [
+         "This test checks that we don't have any exception when computing",
+         "completion's documentation for the 'Standard' package."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 1901882,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": ["rename"]
+                     }
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": false,
+                           "documentationFormat": ["plaintext", "markdown"],
+                           "resolveSupport": {
+                              "properties": ["detail", "documentation"]
+                           }
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "codeAction": {
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": ["<HAS>", "quickfix"]
+                           }
+                        }
+                     },
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "publishDiagnostics": {
+                        "relatedInformation": true
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     }
+                  },
+                  "experimental": {
+                     "advanced_refactorings": ["add_parameter"]
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "signatureHelpProvider": {
+                        "triggerCharacters": [",", "("],
+                        "retriggerCharacters": ["\b"]
+                     },
+                     "declarationProvider": true,
+                     "definitionProvider": true,
+                     "typeDefinitionProvider": true,
+                     "implementationProvider": true,
+                     "referencesProvider": true,
+                     "documentHighlightProvider": true,
+                     "documentSymbolProvider": true,
+                     "codeActionProvider": {
+                        "workDoneProgress": false,
+                        "codeActionKinds": ["quickfix", "refactor.rewrite"],
+                        "resolveProvider": false
+                     },
+                     "workspaceSymbolProvider": true,
+                     "documentFormattingProvider": true,
+                     "documentRangeFormattingProvider": true,
+                     "documentOnTypeFormattingProvider": {
+                        "firstTriggerCharacter": "\n"
+                     },
+                     "renameProvider": {
+                        "prepareProvider": true
+                     },
+                     "foldingRangeProvider": true,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-other-file"]
+                     },
+                     "callHierarchyProvider": true,
+                     "semanticTokensProvider": {
+                        "legend": {
+                           "tokenTypes": [],
+                           "tokenModifiers": []
+                        },
+                        "range": true,
+                        "full": true
+                     },
+                     "workspace": {},
+                     "alsReferenceKinds": ["<HAS>", "reference"]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": false,
+                     "followSymlinks": false,
+                     "documentationStyle": "gnat",
+                     "namedNotationThreshold": 3,
+                     "foldComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Main is\nbegin\n   Stand\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 4,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Standard",
+                        "kind": 9,
+                        "detail": "package Standard",
+                        "documentation": "at __standard (1:1)",
+                        "sortText": "100&00001Standard"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "shutdown"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
