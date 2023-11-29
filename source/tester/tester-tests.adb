@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Streams;
@@ -84,6 +85,27 @@ package body Tester.Tests is
      (List : GNATCOLL.JSON.JSON_Array)
       return Boolean;
    --  Check if List in form of ["<DOES_NOT_HAVE>", item1, item2, ...]
+
+   function Generate_Diff
+     (Left, Right : GNATCOLL.JSON.JSON_Value;
+      Indent  : Natural;
+      Minimal : Boolean)
+      return Unbounded_String;
+   --  Result is a json like representation of the diff between Left and Right.
+   --  Indent represents the current indentation level.
+   --  Minimal will only show the different lines.
+
+   procedure Generate_Diff_Internal
+     (Left, Right : GNATCOLL.JSON.JSON_Value;
+      Indent  : Natural;
+      Minimal : Boolean;
+      Result  : in out Unbounded_String);
+   --  Internal recursive implementation of Generate_Diff. Don't call directly.
+
+   procedure On_Failed
+     (Self    : in out Test'Class;
+      Request : GNATCOLL.JSON.JSON_Value);
+   --  React differently depending on On_Failed_Out
 
    type Process_Listener is limited new
      Spawn.Process_Listeners.Process_Listener with
@@ -269,6 +291,8 @@ package body Tester.Tests is
 
       Timeout : constant Duration := Max_Wait * Self.Wait_Factor (Command);
    begin
+      Clear (Self.Recent_Server_Output);
+
       if Request.Has_Field ("id") and Request.Has_Field ("method") then
          Check_Unique_Id (Request.Get ("id"));
       end if;
@@ -286,24 +310,8 @@ package body Tester.Tests is
             and then not Self.In_Debug
          then
             Self.Do_Test_Hanged;
-            declare
-               Text : Spawn.String_Vectors.UTF_8_String_Vector;
-            begin
-               Text.Append ("Timed out waiting for the answer to:");
-               Text.Append (GNATCOLL.JSON.Write (Request, False));
-               Text.Append ("");
-               Text.Append ("Remaining waits:");
-               Text.Append
-                 (GNATCOLL.JSON.Write
-                    (GNATCOLL.JSON.Create (Self.Waits), False));
-               Text.Append ("");
-               Text.Append ("Full output from server:");
-               Text.Append
-                 (GNATCOLL.JSON.Write
-                    (GNATCOLL.JSON.Create (Self.Full_Server_Output), False));
-               Self.Do_Fail (Text);
-               exit;
-            end;
+            Self.On_Failed (Request);
+            exit;
          end if;
       end loop;
    end Do_Send;
@@ -883,8 +891,400 @@ package body Tester.Tests is
          Sort_Reply_In_JSON (JSON, Self.Sort_Reply);
       end if;
 
+      GNATCOLL.JSON.Append (Self.Recent_Server_Output, JSON);
+
       Sweep_Waits (JSON);
    end On_Raw_Message;
+
+   -------------------
+   -- Generate_Diff --
+   -------------------
+
+   function Generate_Diff
+     (Left, Right : GNATCOLL.JSON.JSON_Value;
+      Indent  : Natural;
+      Minimal : Boolean)
+      return Unbounded_String
+   is
+      Result : Unbounded_String;
+   begin
+      if Left.Kind = Right.Kind
+        and then Left.Kind = GNATCOLL.JSON.JSON_Array_Type
+      then
+         --  At this point L which contains one expected object and possibly
+         --  multiple answers from the server. Some answer like logMessage or
+         --  diagnostics can have leaked in the recent output.
+
+         declare
+            L        : constant GNATCOLL.JSON.JSON_Array := Left.Get;
+            Expected : constant GNATCOLL.JSON.JSON_Value :=
+              GNATCOLL.JSON.Get (L, 1);
+            R        : constant GNATCOLL.JSON.JSON_Array := Right.Get;
+         begin
+            for J in 1 .. GNATCOLL.JSON.Length (R) loop
+               Generate_Diff_Internal
+                 (Left    => Expected,
+                  Right   => GNATCOLL.JSON.Get (R, J),
+                  Indent  => Indent,
+                  Minimal => Minimal,
+                  Result  => Result);
+            end loop;
+         end;
+      else
+         --  This case should happen rarely, most objects are arrays.
+         Generate_Diff_Internal
+           (Left    => Left,
+            Right   => Right,
+            Indent  => Indent,
+            Minimal => Minimal,
+            Result  => Result);
+      end if;
+
+      return Result;
+   end Generate_Diff;
+
+   ----------------------------
+   -- Generate_Diff_Internal --
+   ----------------------------
+
+   procedure Generate_Diff_Internal
+     (Left, Right : GNATCOLL.JSON.JSON_Value;
+      Indent  : Natural;
+      Minimal : Boolean;
+      Result  : in out Unbounded_String)
+   is
+      Added_Prefix     : constant String := "+ ";
+      Expected_Prefix  : constant String := "- ";
+      No_Change_Prefix : constant String := "";
+
+      procedure Add_Indent (Lvl : Natural);
+      --  Indent to Lvl
+
+      procedure Add_To_Result
+        (Data, Prefix : String;
+         New_Line     : Boolean := True);
+      --  Directly add Data to result
+
+      procedure Diff (L, R : GNATCOLL.JSON.JSON_Value);
+      --  Check if L and R are different and update Result
+
+      procedure Add_Issue
+        (Val    : GNATCOLL.JSON.JSON_Value;
+         Reason : String);
+      --  Log an issue related to Val.
+      --  Reason should explain why Val is wrong.
+
+      procedure Add_Unchanged (S : String; New_Line : Boolean := False);
+      --  Add unchanged output
+
+      procedure Match_Property
+        (Name  : String;
+         Value : GNATCOLL.JSON.JSON_Value);
+      --  Match one property in JSON object
+
+      ----------------
+      -- Add_Indent --
+      ----------------
+
+      procedure Add_Indent (Lvl : Natural) is
+      begin
+         Add_Unchanged ((1 .. 2 * Lvl => ' '));
+      end Add_Indent;
+
+      -------------------
+      -- Add_To_Result --
+      -------------------
+
+      procedure Add_To_Result
+        (Data, Prefix : String;
+         New_Line     : Boolean := True) is
+      begin
+         Result.Append (Prefix);
+         for C of Data loop
+            Result.Append (C);
+            if C = Ada.Characters.Latin_1.LF then
+               Result.Append (Prefix);
+            end if;
+         end loop;
+         if New_Line then
+            Result.Append (Ada.Characters.Latin_1.LF);
+         end if;
+      end Add_To_Result;
+
+      ----------
+      -- Diff --
+      ----------
+
+      procedure Diff (L, R : GNATCOLL.JSON.JSON_Value) is
+      begin
+         if L.Kind /= R.Kind or else L /= R then
+            Add_Unchanged ("", New_Line => True);
+            Add_To_Result
+              (Data   => Write (L, False),
+               Prefix => Expected_Prefix);
+            Add_To_Result
+              (Data   => Write (R, False),
+               Prefix => Added_Prefix);
+         else
+            Add_Unchanged (Write (L, False));
+         end if;
+      end Diff;
+
+      -----------------
+      -- Add_Removed --
+      -----------------
+
+      procedure Add_Issue
+        (Val    : GNATCOLL.JSON.JSON_Value;
+         Reason : String) is
+      begin
+         Add_To_Result
+           (Data   => Reason,
+            Prefix => Expected_Prefix);
+         Add_To_Result
+           (Data   => Write (Val, False),
+            Prefix => Added_Prefix);
+      end Add_Issue;
+
+      --------------------
+      -- Match_Property --
+      --------------------
+
+      procedure Match_Property
+        (Name  : String;
+         Value : GNATCOLL.JSON.JSON_Value) is
+      begin
+         if Value.Kind = GNATCOLL.JSON.JSON_String_Type
+           and then String'(GNATCOLL.JSON.Get (Value)) = "<ABSENT>"
+         then
+            if Left.Has_Field (Name) then
+               Add_Issue
+                 (Val    => Left,
+                  Reason => "Should not have the field: " & Name);
+            end if;
+
+         elsif Left.Has_Field (Name) then
+
+            declare
+               Prop : constant GNATCOLL.JSON.JSON_Value := Left.Get (Name);
+            begin
+               Add_Indent (Indent + 1);
+               Add_Unchanged (Name & ": ");
+               Generate_Diff_Internal
+                 (Prop, Value, Indent + 1, Minimal, Result);
+               Add_Unchanged ("", New_Line => True);
+            end;
+         end if;
+      end Match_Property;
+
+      -------------------
+      -- Add_Unchanged --
+      -------------------
+
+      procedure Add_Unchanged (S : String; New_Line : Boolean := False) is
+      begin
+         if not Minimal then
+            Add_To_Result (S, No_Change_Prefix, New_Line => New_Line);
+         end if;
+      end Add_Unchanged;
+
+   begin
+      if Left.Kind /= Right.Kind then
+         Diff (Left, Right);
+      end if;
+
+      case Left.Kind is
+         when GNATCOLL.JSON.JSON_Object_Type =>
+            Add_Unchanged ("{", New_Line => True);
+            Right.Map_JSON_Object (Match_Property'Access);
+
+            Add_Indent (Indent);
+            Add_Unchanged ("}");
+         when GNATCOLL.JSON.JSON_Array_Type =>
+            Add_Unchanged ("[", New_Line => True);
+            declare
+               L : constant GNATCOLL.JSON.JSON_Array := Left.Get;
+               R : constant GNATCOLL.JSON.JSON_Array := Right.Get;
+               Len : constant Natural := GNATCOLL.JSON.Length (L);
+            begin
+               if Is_Has_Pattern (R) then
+                  --  Found: "<HAS>", item1, item2. Check all item1, item2,
+                  --  etc... in the Left
+                  for R_Index in 2 .. GNATCOLL.JSON.Length (R) loop
+                     declare
+                        R_Item : constant GNATCOLL.JSON.JSON_Value :=
+                          GNATCOLL.JSON.Get (R, R_Index);
+                        Found  : Boolean := False;
+                     begin
+                        for J in 1 .. Len loop
+                           declare
+                              L_Item : constant GNATCOLL.JSON.JSON_Value :=
+                                GNATCOLL.JSON.Get (L, J);
+                           begin
+                              if L_Item = R_Item then
+                                 Found := True;
+                                 exit;
+                              end if;
+                           end;
+                        end loop;
+
+                        if not Found then
+                           Add_Issue
+                             (Val      => Left,
+                              Reason   =>
+                                "Failed <HAS> condition"
+                                & Ada.Characters.Latin_1.LF
+                                & GNATCOLL.JSON.Write (R_Item, False));
+                        end if;
+                     end;
+                  end loop;
+
+               elsif Is_Does_Not_Have_Pattern (R) then
+                  --  Found: "<DOES_NOT_HAVE>", item1, item2. Check all
+                  --  item1, item2, etc... are not in the Left
+                  for R_Index in 2 .. GNATCOLL.JSON.Length (R) loop
+                     declare
+                        R_Item : constant GNATCOLL.JSON.JSON_Value :=
+                          GNATCOLL.JSON.Get (R, R_Index);
+                        Found  : Boolean := False;
+                     begin
+                        for J in 1 .. Len loop
+                           declare
+                              L_Item : constant GNATCOLL.JSON.JSON_Value :=
+                                GNATCOLL.JSON.Get (L, J);
+                           begin
+                              if L_Item = R_Item then
+                                 Found := True;
+                                 exit;
+                              end if;
+                           end;
+                        end loop;
+
+                        if Found then
+                           Add_Issue
+                             (Val    => Left,
+                              Reason =>
+                                "Failed <DOES_NOT_HAVE> condition"
+                                & Ada.Characters.Latin_1.LF
+                              & GNATCOLL.JSON.Write (R_Item, False));
+                        end if;
+                     end;
+                  end loop;
+
+               elsif Len /= GNATCOLL.JSON.Length (R) then
+                  Add_Issue
+                    (Val    => Left,
+                     Reason =>
+                       "Received array doesn't match the size"
+                     & Ada.Characters.Latin_1.LF
+                     & GNATCOLL.JSON.Write (Right, False));
+               else
+                  for J in 1 .. Len loop
+                     Add_Indent (Indent + 1);
+                     Generate_Diff_Internal
+                       (GNATCOLL.JSON.Get (L, J),
+                        GNATCOLL.JSON.Get (R, J),
+                        Indent + 1,
+                        Minimal,
+                        Result);
+                     if J /= Len then
+                        Add_Unchanged (",");
+                     end if;
+                  end loop;
+               end if;
+            end;
+
+            Add_Unchanged ("", New_Line => True);
+            Add_Indent (Indent);
+            Add_Unchanged ("]");
+         when GNATCOLL.JSON.JSON_String_Type =>
+            Diff (Left, Right);
+
+         when others =>
+            Diff (Left, Right);
+      end case;
+   end Generate_Diff_Internal;
+
+   ---------------
+   -- On_Failed --
+   ---------------
+
+   procedure On_Failed
+     (Self    : in out Test'Class;
+      Request : GNATCOLL.JSON.JSON_Value)
+   is
+      Text          : Spawn.String_Vectors.UTF_8_String_Vector;
+      Waits         : constant GNATCOLL.JSON.JSON_Value :=
+        GNATCOLL.JSON.Create (Self.Waits);
+      Output        : constant GNATCOLL.JSON.JSON_Value :=
+        GNATCOLL.JSON.Create (Self.Recent_Server_Output);
+      On_Failed_Val : constant String :=
+        VSS.Strings.Conversions.To_UTF_8_String (Self.Output_Format);
+      Waits_Output  : constant String :=
+        GNATCOLL.JSON.Write (Waits, False);
+      Full_Output   : constant String :=
+        GNATCOLL.JSON.Write
+          (GNATCOLL.JSON.Create (Self.Full_Server_Output), False);
+
+   begin
+      Text.Append ("Timed out waiting for the answer to:");
+      Text.Append (GNATCOLL.JSON.Write (Request, False));
+      Text.Append ("");
+
+      if On_Failed_Val = "verbose" then
+         Text.Append ("Remaining waits:");
+         Text.Append (Waits_Output);
+         Text.Append ("");
+         Text.Append ("Full output from server:");
+         Text.Append (Full_Output);
+
+      elsif On_Failed_Val = "min_diff" then
+         declare
+            Diff : Unbounded_String;
+         begin
+            Diff := Generate_Diff
+              (Left    => Output,
+               Right   => Waits,
+               Indent  => 0,
+               Minimal => True);
+            Text.Append ("Diff:");
+            Text.Append (To_String (Diff));
+         end;
+
+      elsif On_Failed_Val = "recent" then
+         Text.Append ("Remaining waits:");
+         Text.Append (GNATCOLL.JSON.Write (Waits, False));
+         Text.Append ("");
+         Text.Append ("Recent output from server:");
+         Text.Append (GNATCOLL.JSON.Write (Output, False));
+
+      else --  Default behaviour is "diff"
+         declare
+            Diff : Unbounded_String;
+         begin
+            Diff := Generate_Diff
+              (Left    => Output,
+               Right   => Waits,
+               Indent  => 0,
+               Minimal => True);
+            Text.Append ("Diff:");
+            Text.Append (To_String (Diff));
+         end;
+      end if;
+
+      Text.Append ("");
+
+      --  Always log the full output from the server, the python layer will
+      --  hide it.
+      Text.Append ("Log:");
+      Text.Append ("Remaining waits:");
+      Text.Append (Waits_Output);
+      Text.Append ("");
+      Text.Append ("Full output from server:");
+      Text.Append (Full_Output);
+
+      Self.Do_Fail (Text);
+   end On_Failed;
 
    --------------------
    -- Error_Occurred --
@@ -1014,15 +1414,17 @@ package body Tester.Tests is
    ---------
 
    procedure Run
-     (Self     : in out Test;
-      File     : VSS.Strings.Virtual_String;
-      Commands : GNATCOLL.JSON.JSON_Array;
-      On_Hang  : VSS.Strings.Virtual_String;
-      Debug    : Boolean) is
+     (Self          : in out Test;
+      File          : VSS.Strings.Virtual_String;
+      Commands      : GNATCOLL.JSON.JSON_Array;
+      On_Hang       : VSS.Strings.Virtual_String;
+      Debug         : Boolean;
+      Output_Format : VSS.Strings.Virtual_String) is
    begin
       Self.File := File;
       Self.In_Debug := Debug;
       Self.On_Hang := On_Hang;
+      Self.Output_Format := Output_Format;
 
       while Self.Index <= GNATCOLL.JSON.Length (Commands) loop
          declare

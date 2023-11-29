@@ -27,8 +27,11 @@ class JsonTestDriver(ALSTestDriver):
         status = TestStatus.PASS
 
         for json in glob.glob(os.path.join(wd, "*.json")):
+            cmd = [self.env.tester_run, json]
+            if self.env.options.format:
+                cmd.append("--format=%s" % self.env.options.format)
             process = self.run_and_log(
-                [self.env.tester_run, json],
+                cmd,
                 cwd=wd,
                 env={
                     "ALS": self.env.als,
@@ -37,7 +40,6 @@ class JsonTestDriver(ALSTestDriver):
                 },
                 ignore_environ=False,
             )
-            output += process.out
 
             if process.status:
                 # Nonzero status?
@@ -45,8 +47,4 @@ class JsonTestDriver(ALSTestDriver):
                 break
 
         self.result.set_status(status)
-        if output:
-            # If there's an output, capture it as log
-            self.result.log = output
-
         self.push_result()

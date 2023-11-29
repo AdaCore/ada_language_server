@@ -89,15 +89,20 @@ class ALSTestDriver(TestDriver):
             'status': process.status,
             'output': Log(process.out)})
 
+        if "Log:" in process.out:
+            output, log = process.out.split("Log:")
+        else:
+            output = process.out
+            log = ""
+
         cwd = kwargs.get("cwd", os.getcwd())
         self.result.log += f"Run: cd {cwd}; {process.command_line_image()}\n"
         self.result.log += f"Status code: {process.status}\n"
-        self.result.log += "Output:\n"
-        self.result.log += process.out
+        self.result.log += log
 
         if self.result.out is None:
-            self.result.out = process.out
+            self.result.out = output
         else:
-            self.result.out += process.out
+            self.result.out += output
 
         return process

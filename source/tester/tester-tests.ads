@@ -34,11 +34,12 @@ package Tester.Tests is
    type Test is tagged limited private;
 
    procedure Run
-     (Self     : in out Test;
-      File     : VSS.Strings.Virtual_String;
-      Commands : GNATCOLL.JSON.JSON_Array;
-      On_Hang  : VSS.Strings.Virtual_String;
-      Debug    : Boolean);
+     (Self          : in out Test;
+      File          : VSS.Strings.Virtual_String;
+      Commands      : GNATCOLL.JSON.JSON_Array;
+      On_Hang       : VSS.Strings.Virtual_String;
+      Debug         : Boolean;
+      Output_Format : VSS.Strings.Virtual_String);
    --  Execute the test (provided as JSON array). If the test hangs then
    --  spawn On_Hang command. If Debug=True then execute the test in a debug
    --  mode: suppress timeouts and pause test execution after the server
@@ -72,6 +73,8 @@ private
       --  In debug mode (disable timeout, pause after start)
       On_Hang     : VSS.Strings.Virtual_String;
       --  A command to execute if the test hangs
+      Output_Format : VSS.Strings.Virtual_String;
+      --  A string in the list ["verbose", "recent", "diff", "min_diff"]
       Watch_Dog    : Watch_Dog_Task;
       --  Task to restrict a command execution time
       Started      : Ada.Calendar.Time;
@@ -81,6 +84,8 @@ private
 
       Full_Server_Output : GNATCOLL.JSON.JSON_Array;
       --  Complete output received from the server
+
+      Recent_Server_Output : GNATCOLL.JSON.JSON_Array;
 
       Environment  : Spawn.Environments.Process_Environment :=
         Spawn.Environments.System_Environment;

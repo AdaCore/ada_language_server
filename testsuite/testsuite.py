@@ -18,7 +18,7 @@ VALGRIND_OPTIONS = [
         "--leak-check=full",         # report memory leaks
         # "--num-callers=100",       # more frames in call stacks
         # "--gen-suppressions=all",  # use this to generate suppression entries
-        "--suppressions={base}/testsuite/leaks.supp", # the suppressions file
+        "--suppressions={base}/testsuite/leaks.supp",  # the suppressions file
         ]
 
 
@@ -35,6 +35,14 @@ class ALSTestsuite(Testsuite):
             "--valgrind_memcheck", action="store_true",
             help="Runs the Ada Language Server under valgrind, in memory"
                  " check mode. This requires valgrind on the PATH.")
+        parser.add_argument(
+            "--format",
+            help="""[diff | recent | verbose | min_diff]
+diff: on the fly computed diff using a pseudo json format (default)
+recent: recent output from server
+verbose: full output from server
+min_diff: on the fly computed diff of the different values
+""")
 
     def lookup_program(self, *args):
         """
@@ -70,7 +78,8 @@ class ALSTestsuite(Testsuite):
 
         # Absolute paths to programs that test drivers can use
         if self.env.options.valgrind_memcheck:
-            self.env.als = os.path.join(self.env.repo_base, 'testsuite', 'valgrind_wrapper.sh')
+            self.env.als = os.path.join(self.env.repo_base, 'testsuite',
+                                        'valgrind_wrapper.sh')
             self.env.wait_factor = 40  # valgrind is slow
         else:
             self.env.als = self.lookup_program('server', 'ada_language_server')
