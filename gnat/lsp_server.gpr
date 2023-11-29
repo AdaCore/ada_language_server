@@ -47,6 +47,7 @@ project LSP_Server is
 
    for Object_Dir use "../.obj/server";
    for Main use ("lsp-ada_driver.adb");
+   for Languages use ("Ada", "C++");
 
    package Compiler is
       for Default_Switches ("Ada") use
@@ -54,13 +55,12 @@ project LSP_Server is
       for Switches ("lsp-ada_driver.adb") use
         LSP_3_17.Compiler'Default_Switches ("Ada")
           & ("-gnateDVERSION=""" & VERSION & """",
-	     "-gnateDBUILD_DATE=""" & BUILD_DATE & """");
+             "-gnateDBUILD_DATE=""" & BUILD_DATE & """");
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
       for Local_Configuration_Pragmas use "gnat.adc";
    end Compiler;
 
    package Linker is
-      for Driver use "g++";
       case Library_Type is
          when "static" | "static-pic" =>
             case OS is

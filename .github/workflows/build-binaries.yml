@@ -16,6 +16,12 @@ jobs:
       matrix: # Build debug and/or production
         debug: ['']      # '' if production, 'debug' for debug
         os: [macos-11, ubuntu-20.04, windows-latest]
+        cross: ['', aarch64]
+        exclude:
+          - os: windows-latest
+            cross: aarch64
+          - os: macos-11
+            cross: aarch64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python
@@ -31,6 +37,18 @@ jobs:
           else
               echo "TAG=$DEFAULT_TAG" >> $GITHUB_ENV
           fi
+      - name: Unpack cross toolchain from AWS S3
+        if: ${{ matrix.cross != '' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
+          AWS_DEFAULT_REGION: eu-west-1
+        run: |
+            aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2 . --sse=AES256
+            aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 . --sse=AES256
+            sudo apt install -y libc6-dev-arm64-cross linux-libc-dev-arm64-cross binutils-aarch64-linux-gnu
+            sudo tar xavf ${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2 -C /
+            sudo tar xavf ${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 -C /
       - name: Force Alire use preinstalled MSYS2
         shell: bash
         if: ${{ runner.os == 'Windows' }}
@@ -98,12 +116,12 @@ jobs:
         run: |
           # This is to avoid locking .sh on win that prevents its updating
           cp .github/workflows/build-binaries.sh .github/workflows/build-binaries.sh_
-          .github/workflows/build-binaries.sh_ "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }}
+          .github/workflows/build-binaries.sh_ "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }} "" "${{ matrix.cross }}"
       - name: Archive ALS binary
         if: ${{ github.event_name == 'push' }}
         uses: actions/upload-artifact@v3
         with:
-          name: als-${{ runner.os }}-${{ matrix.debug }}
+          name: als-${{ runner.os }}-${{ matrix.debug }}${{ matrix.cross }}
           # We know that only one of the following entries will match on a given
           # run, so we use globs here to try to avoid warnings on unmatched
           # entries
