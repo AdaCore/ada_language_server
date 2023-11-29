@@ -20,6 +20,7 @@ with GNATCOLL.Traces; use GNATCOLL.Traces;
 with VSS.Strings;
 
 with LSP.Structures;  use LSP.Structures;
+with Libadalang.Analysis;
 
 package LSP.Predefined_Completion is
 
@@ -42,5 +43,20 @@ package LSP.Predefined_Completion is
      (Prefix : VSS.Strings.Virtual_String;
       Result : in out CompletionItem_Vector);
    --  Return completion for pragmas, filtering the results using Prefix.
+
+   procedure Get_Tooltip_Text
+     (Node               : Libadalang.Analysis.Identifier;
+      Declaration_Text   : out VSS.Strings.Virtual_String;
+      Documentation_Text : out VSS.Strings.Virtual_String);
+   --  Get all the information needed to produce tooltips (hover and completion
+   --  requests) for the given node, if it's a predefined entity (e.g: aspect,
+   --  pragma or attribute).
+   --
+   --  @param Node
+   --    The predefined entity's node.
+   --  @param Declaration_Text
+   --    Contains the code corresponding to the predefined entity's declaration.
+   --  @param Documentation_Text
+   --    Contains the documentation associated to the predefined entity.
 
 end LSP.Predefined_Completion;
