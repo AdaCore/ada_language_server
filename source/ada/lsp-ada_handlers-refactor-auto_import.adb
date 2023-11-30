@@ -135,7 +135,10 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
          use Ada.Strings.Wide_Wide_Unbounded;
 
          Title : constant Langkit_Support.Text.Unbounded_Text_Type :=
-           "Qualify with " & Suggestion.Qualifier;
+           (if Suggestion.Qualifier = Null_Unbounded_Wide_Wide_String then
+              "Import from " & Suggestion.Import
+            else
+              "Qualify with " & Suggestion.Qualifier);
       begin
          return
            VSS.Strings.To_Virtual_String
