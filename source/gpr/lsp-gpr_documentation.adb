@@ -41,23 +41,31 @@ package body LSP.GPR_Documentation is
 
       Tooltip_Text.Clear;
 
-      if Token.Data.Kind = Gpr_Identifier then
-         case Token.Previous (Exclude_Trivia => True).Data.Kind is
-            when Gpr_Package | Gpr_End =>
-               Tooltip_Text.Append
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (Get_Package_Description (Self.Get_Package (Position))));
+      if Token /= No_Token and then Token.Data.Kind = Gpr_Identifier then
+         declare
+            Previous : constant Token_Reference :=
+                         Token.Previous (Exclude_Trivia => True);
+         begin
+            if Previous /= No_Token then
+               case Previous.Data.Kind is
+               when Gpr_Package | Gpr_End =>
+                  Tooltip_Text.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (Get_Package_Description
+                            (Self.Get_Package (Position))));
 
-            when Gpr_For =>
-               Tooltip_Text.Append
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (Get_Attribute_Description ((
-                     Self.Get_Package (Position),
-                     +(Optional_Name_Type (To_String (Token.Text)))))));
+               when Gpr_For =>
+                  Tooltip_Text.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (Get_Attribute_Description ((
+                        Self.Get_Package (Position),
+                        +(Optional_Name_Type (To_String (Token.Text)))))));
 
-            when others =>
-               null;
-         end case;
+               when others =>
+                  null;
+               end case;
+            end if;
+         end;
       end if;
    end Get_Tooltip_Text;
 

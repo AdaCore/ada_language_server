@@ -82,8 +82,25 @@ package LSP.GPR_Files is
    function Get_File_Reader
      (Self : access File_Provider)
       return GPR2.File_Readers.File_Reader_Reference is abstract;
-
    --  Reader used to access opened document buffer or disk.
+
+   function To_File
+     (Self : access File_Provider;
+      Item : LSP.Structures.DocumentUri)
+      return GNATCOLL.VFS.Virtual_File is abstract;
+   --  Turn URI into Virtual_File
+
+   function To_File
+     (Self : access File_Provider;
+      Item : LSP.Structures.DocumentUri)
+      return GPR2.Path_Name.Object is abstract;
+   --  Turn URI into GPR2 path object.
+
+   function To_URI
+     (Self : access File_Provider;
+      Item : GPR2.Path_Name.Object)
+      return LSP.Structures.DocumentUri is abstract;
+   --  Turn GPR2 path object into URI.
 
    procedure Initialize
      (Self          : in out File;
@@ -110,11 +127,38 @@ package LSP.GPR_Files is
    --  return the Position's Package_Id. Returns Project_Level_Scope if
    --  Position not inside a package.
 
+   function Kind (Self : File) return GPR2.Project_Kind;
+   --  return project kind as defined in project qualifier
+
    function Token
      (Self     : File;
       Position : LSP.Structures.Position)
       return Gpr_Parser.Common.Token_Reference;
    --  Return File's Token at Position.
+
+   function In_Packages
+     (Self  : File;
+      Name : GPR2.Package_Id) return Boolean;
+   --  Return True is Name is part of File's packages.
+
+   function Position_Is_In_Comment
+     (Token    : Gpr_Parser.Common.Token_Reference;
+      Position : LSP.Structures.Position) return Boolean;
+   --  Return True if Token's Position is inside a comment
+
+   function Position_At_Identifier_End
+     (Token    : Gpr_Parser.Common.Token_Reference;
+      Position : LSP.Structures.Position) return Boolean;
+   --  Return True if Token is an identifier & Position is at end of Token or
+   --  Token is white space
+
+   function Token_In_Import_Partition
+     (Self  : File;
+      Token : Gpr_Parser.Common.Token_Reference) return Boolean;
+
+   function Token_At_Import_Partition_End
+     (Self  : File;
+      Token : Gpr_Parser.Common.Token_Reference) return Boolean;
 
    -------------------------------------------------
    -- GPR Parser / LSP Slocs-Position conversions --
@@ -142,6 +186,32 @@ package LSP.GPR_Files is
      (Location : Gpr_Parser_Support.Slocs.Source_Location)
       return LSP.Structures.Position is
      (To_Position_Value (Location.Line), To_Position_Value (Location.Column));
+
+   function At_Start
+     (Sloc_Range : Gpr_Parser_Support.Slocs.Source_Location_Range;
+      Position : LSP.Structures.Position) return Boolean is
+     (Sloc_Range.Start_Line = To_Line_Number (Position.line) and then
+      Sloc_Range.Start_Column = To_Column_Number (Position.character));
+   --  Return True if Position at Sloc_Range's beginning
+
+   function At_Start
+     (Token    : Gpr_Parser.Common.Token_Reference;
+      Position : LSP.Structures.Position) return Boolean is
+     (At_Start (Token.Data.Sloc_Range, Position));
+   --  Return True if Position at Token's beginning
+
+   function At_End
+     (Sloc_Range : Gpr_Parser_Support.Slocs.Source_Location_Range;
+      Position : LSP.Structures.Position) return Boolean is
+     (Sloc_Range.End_Line = To_Line_Number (Position.line) and then
+      Sloc_Range.End_Column = To_Column_Number (Position.character));
+   --  Return True if Position at Sloc_Range's end
+
+   function At_End
+     (Token    : Gpr_Parser.Common.Token_Reference;
+      Position : LSP.Structures.Position) return Boolean is
+     (At_End (Token.Data.Sloc_Range, Position));
+   --  Return True if Position at Token's end
 
 private
 
@@ -410,6 +480,12 @@ private
          File_Provider : File_Provider_Access;
          --  provider used to get referenced gpr files
 
+         Import_Partition_End : TDH.Token_Index := TDH.No_Token_Index;
+         --  First token not in import partition.
+
+         Project_Definition_Start : TDH.Token_Index := TDH.No_Token_Index;
+         --  project definition first token (project, abstract, library, ... )
+
          Name : Project_Id := No_Project;
          --  project_id of this gpr file
 
@@ -502,5 +578,12 @@ private
      (Project_Id (Id (Project_List, GPR2.Optional_Name_Type (Name))));
    function Image (Id : Project_Id) return  VSS.Strings.Virtual_String is
      (Image (Project_List, Natural (Id)));
+
+   function In_Packages
+     (Self  : File;
+      Name : Package_Id) return Boolean is
+      (Self.Packages.Contains (Name));
+
+   function Kind (Self : File) return GPR2.Project_Kind is (Self.Kind);
 
 end LSP.GPR_Files;
