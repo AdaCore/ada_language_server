@@ -28,6 +28,7 @@ with VSS.Strings.Conversions;
 
 with LSP.Enumerations;
 with LSP.Predefined_Completion.Ada2012;
+with Libadalang.Common;
 
 package body LSP.Predefined_Completion is
 
@@ -276,5 +277,53 @@ package body LSP.Predefined_Completion is
             return "";
       end;
    end Get_Output;
+
+   ----------------------
+   -- Get_Tooltip_Text --
+   ----------------------
+
+   procedure Get_Tooltip_Text
+     (Node               : Libadalang.Analysis.Identifier;
+      Declaration_Text   : out VSS.Strings.Virtual_String;
+      Documentation_Text : out VSS.Strings.Virtual_String)
+   is
+      use Libadalang.Common;
+
+      Filtered_Items : CompletionItem_Vector;
+      Prefix         : VSS.Strings.Virtual_String;
+      Parent         : constant Libadalang.Analysis.Ada_Node :=
+        (if Node.Is_Null then Libadalang.Analysis.No_Ada_Node
+         else Node.Parent);
+      Item           : CompletionItem;
+   begin
+      --  Return immediately if the node is null of if its parent is null
+      if Node.Is_Null or else Parent.Is_Null then
+         return;
+      end if;
+
+      --  Get the attribute/aspect/pragma completion item corresponding to the
+      --  given node
+
+      Prefix := VSS.Strings.To_Virtual_String (Node.Text);
+
+      case Parent.Kind is
+         when Ada_Attribute_Ref_Range =>
+            Get_Attributes (Prefix => Prefix, Result => Filtered_Items);
+
+         when Ada_Aspect_Assoc_Range =>
+            Get_Aspects (Prefix => Prefix, Result => Filtered_Items);
+
+         when Ada_Pragma_Node_Range =>
+            Get_Pragmas (Prefix => Prefix, Result => Filtered_Items);
+
+         when others =>
+            return;
+      end case;
+
+      Item := Filtered_Items.First_Element;
+
+      Declaration_Text := Item.detail;
+      Documentation_Text := Item.documentation.Value.Virtual_String;
+   end Get_Tooltip_Text;
 
 end LSP.Predefined_Completion;
