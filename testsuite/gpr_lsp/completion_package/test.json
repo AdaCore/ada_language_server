@@ -1,0 +1,133 @@
+[
+  {
+    "comment": [
+      "package completion (resolve disabled)"
+    ]
+  },
+  {
+    "start": {
+      "cmd": [
+        "${ALS}",
+        "--language-gpr"
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "capabilities": {},
+          "rootUri": "$URI{.}"
+        },
+        "id": 1,
+        "method": "initialize"
+      },
+      "wait": [
+        {
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "documentSymbolProvider": {}
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "initialized"
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "textDocument": {
+            "text": "aggregate library project Agg is\npackage \npackage Bu\npackage -- \n",
+            "version": 0,
+            "uri": "$URI{agg.gpr}",
+            "languageId": "Gpr"
+          }
+        },
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen"
+      },
+      "wait": [
+        {
+          "method": "textDocument/publishDiagnostics",
+          "params": {
+            "uri": "$URI{agg.gpr}",
+            "diagnostics": [
+              {
+                "range": {
+                  "start": {
+                    "line": 2,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 2,
+                    "character": 0
+                  }
+                },
+                "severity": 1,
+                "message": "Expected Identifier, got 'package'"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "textDocument/completion",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{agg.gpr}"
+          },
+          "position": {
+            "line": 2,
+            "character": 10
+          },
+          "context": {
+            "triggerKind": 1
+          }
+        }
+      },
+      "wait": [
+        {
+          "id": 2,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              {
+                "label": "Builder",
+                "documentation": "This package specifies the compilation options used when building an executable or a library for a project. Most of the options should be set in one of Compiler, Binder or Linker packages, but there are some general options that should be defined in this package.",
+                "data": [
+                  "Builder"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "stop": {
+      "exit_code": 0
+    }
+  }
+]

@@ -884,6 +884,7 @@ package body LSP.GPR_Files is
             end;
             Index := Next_Token (Index);
          end loop;
+         File.Import_Partition_End := Index.Data.Index;
       end Parse_Imported_Partition;
 
       -------------------------------
@@ -897,10 +898,26 @@ package body LSP.GPR_Files is
          Extended_Index : GPC.Token_Reference;
          Name : Unbounded_String;
          Project_Token : GPR_Token;
+
       begin
+         File.Project_Definition_Start := No_Token_Index;
          while Index < Last loop
             declare
                Token : constant GPR_Token := Get_GPR_Token (Index);
+
+               procedure Set_Project_Definition_Start;
+
+               ----------------------------------
+               -- Set_Project_Definition_Start --
+               ----------------------------------
+
+               procedure Set_Project_Definition_Start is
+               begin
+                  if File.Project_Definition_Start = No_Token_Index then
+                     File.Project_Definition_Start := Token.Index;
+                  end if;
+               end Set_Project_Definition_Start;
+
             begin
                case Token.Kind is
                   when Gpr_Parser.Common.Gpr_Identifier =>
@@ -909,25 +926,30 @@ package body LSP.GPR_Files is
                           To_Lower_String (Token.Ref);
                      begin
                         if Identifier = "project" then
+                           Set_Project_Definition_Start;
                            Project_Token := Token;
                         elsif Identifier = "library" then
+                           Set_Project_Definition_Start;
                            if File.Kind = GPR2.K_Aggregate then
                               File.Kind := GPR2.K_Aggregate_Library;
                            else
                               File.Kind := GPR2.K_Library;
                            end if;
                         elsif Identifier = "aggregate" then
+                           Set_Project_Definition_Start;
                            File.Kind := GPR2.K_Aggregate;
                         elsif Identifier = "configuration" then
+                           Set_Project_Definition_Start;
                            File.Kind := GPR2.K_Configuration;
                         elsif Identifier = "standard" then
-                           null;
+                           Set_Project_Definition_Start;
                         else
                            Ada.Strings.Unbounded.Append
                              (Name, To_String (Token.Ref));
                         end if;
                      end;
                   when Gpr_Parser.Common.Gpr_Abstract =>
+                     Set_Project_Definition_Start;
                      File.Kind := GPR2.K_Abstract;
                   when Gpr_Parser.Common.Gpr_Dot =>
                      Ada.Strings.Unbounded.Append (Name, ".");
@@ -1105,5 +1127,81 @@ package body LSP.GPR_Files is
       return Self.Unit.Lookup_Token (Sloc);
 
    end Token;
+
+   ----------------------------
+   -- Position_Is_In_Comment --
+   ----------------------------
+
+   function Position_Is_In_Comment
+     (Token    : Gpr_Parser.Common.Token_Reference;
+      Position : LSP.Structures.Position) return Boolean is
+      Token_Kind : constant Gpr_Parser.Common.Token_Kind :=
+                     Gpr_Parser.Common.Kind (Token.Data);
+   begin
+      if Token_Kind = GPC.Gpr_Comment then
+         return not At_Start (Token, Position);
+      elsif Token_Kind in GPC.Gpr_Whitespace | GPC.Gpr_Termination then
+         declare
+            Previous : constant GPC.Token_Reference := Token.Previous;
+         begin
+            if Previous /= GPC.No_Token and then
+              Previous.Data.Kind = GPC.Gpr_Comment and then
+              Previous.Data.Sloc_Range.End_Line = To_Line_Number (Position.line)
+            then
+               return True;
+            end if;
+         end;
+      end if;
+      return False;
+   end Position_Is_In_Comment;
+
+   -------------------------------
+   -- Token_In_Import_Partition --
+   -------------------------------
+
+   function Token_In_Import_Partition
+     (Self  : File;
+      Token : Gpr_Parser.Common.Token_Reference) return Boolean is
+   begin
+      return Token.Data.Index < Self.Import_Partition_End;
+   end Token_In_Import_Partition;
+
+   -----------------------------------
+   -- Token_At_Import_Partition_End --
+   -----------------------------------
+
+   function Token_At_Import_Partition_End
+     (Self  : File;
+      Token : Gpr_Parser.Common.Token_Reference) return Boolean is
+   begin
+      return Self.Token_In_Import_Partition (Token) and then
+        Next (Token).Data.Index = Self.Import_Partition_End;
+   end Token_At_Import_Partition_End;
+
+   --------------------------------
+   -- Position_At_Identifier_End --
+   --------------------------------
+
+   function Position_At_Identifier_End
+     (Token    : Gpr_Parser.Common.Token_Reference;
+      Position : LSP.Structures.Position) return Boolean is
+      Data : constant GPC.Token_Data_Type := Token.Data;
+      Kind : constant GPC.Token_Kind := Data.Kind;
+      Sloc_Range : constant Source_Location_Range := Data.Sloc_Range;
+   begin
+      if Kind in GPC.Gpr_Whitespace | GPC.Gpr_Comment | GPC.Gpr_Termination
+      then
+         declare
+            Previous : constant GPC.Token_Reference :=  Token.Previous;
+         begin
+            return Previous /= GPC.No_Token
+              and then Previous.Data.Kind = GPC.Gpr_Identifier
+              and then At_Start (Sloc_Range, Position);
+         end;
+      elsif Kind = GPC.Gpr_Identifier then
+         return At_End (Sloc_Range, Position);
+      end if;
+      return False;
+   end Position_At_Identifier_End;
 
 end LSP.GPR_Files;

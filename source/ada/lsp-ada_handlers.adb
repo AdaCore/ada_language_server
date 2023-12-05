@@ -94,6 +94,7 @@ with LSP.Errors;
 with LSP.Formatters.Texts;
 with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
+with LSP.Predefined_Completion;
 with LSP.Search;
 with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
@@ -3028,24 +3029,48 @@ package body LSP.Ada_Handlers is
 
          Decl_Text          : VSS.Strings.Virtual_String;
          Qualifier_Text     : VSS.Strings.Virtual_String;
-         Comments_Text      : VSS.Strings.Virtual_String;
+         Documentation_Text : VSS.Strings.Virtual_String;
          Location_Text      : VSS.Strings.Virtual_String;
          Aspects_Text       : VSS.Strings.Virtual_String;
 
       begin
-         if Decl.Is_Null or else Self.Is_Canceled.all then
+         --  Return immediately if the request has been canceled
+         if Self.Is_Canceled.all then
             return;
          end if;
 
-         LSP.Ada_Documentation.Get_Tooltip_Text
-           (BD                 => Decl,
-            Style              => Context.Get_Documentation_Style,
-            Declaration_Text   => Decl_Text,
-            Qualifier_Text     => Qualifier_Text,
-            Location_Text      => Location_Text,
-            Documentation_Text => Comments_Text,
-            Aspects_Text       => Aspects_Text);
+         if Decl.Is_Null then
 
+            --  There is no declaration for the hovered node: ask the predefined
+            --  entities' completion provider (attributes, pragmas, aspects) for
+            --  a tooltip text if it can.
+            declare
+               Node : constant Libadalang.Analysis.Ada_Node := Self.Get_Node_At
+                 (Context.all, Value);
+            begin
+               if not Node.Is_Null
+                 and then Node.Kind in Libadalang.Common.Ada_Identifier_Range
+               then
+                  LSP.Predefined_Completion.Get_Tooltip_Text
+                    (Node               => Node.As_Identifier,
+                     Declaration_Text   => Decl_Text,
+                     Documentation_Text => Documentation_Text);
+               end if;
+            end;
+         else
+            --  We have resolved the hovered node to its declaration: use
+            --  the default tooltip provider, based on GNATdoc.
+            LSP.Ada_Documentation.Get_Tooltip_Text
+              (BD                 => Decl,
+               Style              => Context.Get_Documentation_Style,
+               Declaration_Text   => Decl_Text,
+               Qualifier_Text     => Qualifier_Text,
+               Location_Text      => Location_Text,
+               Documentation_Text => Documentation_Text,
+               Aspects_Text       => Aspects_Text);
+         end if;
+
+         --  Return if no provider has been able to compute text for a tooltip.
          if Decl_Text.Is_Empty then
             return;
          end if;
@@ -3075,28 +3100,30 @@ package body LSP.Ada_Handlers is
          --  In addition, append the project's name if we are dealing with an
          --  aggregate project.
 
-         Location_Text := LSP.Utils.Node_Location_Image (Decl);
+         if not Decl.Is_Null then
+            Location_Text := LSP.Utils.Node_Location_Image (Decl);
 
-         if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
-            Location_Text.Append (VSS.Characters.Latin.Line_Feed);
-            Location_Text.Append ("As defined in project ");
-            Location_Text.Append (Context.Id);
-            Location_Text.Append (" (other projects skipped).");
+            if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
+               Location_Text.Append (VSS.Characters.Latin.Line_Feed);
+               Location_Text.Append ("As defined in project ");
+               Location_Text.Append (Context.Id);
+               Location_Text.Append (" (other projects skipped).");
+            end if;
+
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => True,
+                  Virtual_String    => Location_Text));
          end if;
-
-         Response.Value.contents.MarkedString_Vector.Append
-           (LSP.Structures.MarkedString'
-              (Is_Virtual_String => True,
-               Virtual_String    => Location_Text));
 
          --  Append the comments associated with the basic declaration if any.
 
-         if not Comments_Text.Is_Empty then
+         if not Documentation_Text.Is_Empty then
             Response.Value.contents.MarkedString_Vector.Append
               (LSP.Structures.MarkedString'
                  (Is_Virtual_String => False,
                   language          => "plaintext",
-                  value             => Comments_Text));
+                  value             => Documentation_Text));
          end if;
 
          --  Append text of aspects
