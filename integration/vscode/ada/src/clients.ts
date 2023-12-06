@@ -13,20 +13,6 @@ export function createClient(
 ) {
     let serverExecPath: string;
 
-    if (process.arch == 'arm64' && process.platform == 'darwin') {
-        // On arm64 darwin use the x64 darwin executable thanks to Apple Rosetta.
-        serverExecPath = context.asAbsolutePath(`x64/darwin/ada_language_server`);
-    } else {
-        serverExecPath = context.asAbsolutePath(
-            `${process.arch}/${process.platform}/ada_language_server`
-        );
-    }
-
-    if (process.platform == 'win32') {
-        // Add the extension for the file lookup further below
-        serverExecPath = `${serverExecPath}.exe`;
-    }
-
     // If the ALS environment variable is specified, use it as the path of the
     // server executable.
     if (process.env.ALS) {
@@ -39,6 +25,28 @@ export function createClient(
             );
         }
     } else {
+        serverExecPath = context.asAbsolutePath(
+            `${process.arch}/${process.platform}/ada_language_server`
+        );
+
+        if (process.arch == 'arm64' && process.platform == 'darwin') {
+            // On arm64 darwin check if the executable exists, and if not, try to
+            // fallback to the x64 darwin executable thanks to Apple Rosetta.
+            if (!existsSync(serverExecPath)) {
+                // The arm64 executable doesn't exist. Try x86.
+                const alternateExecPath = context.asAbsolutePath(
+                    `x64/${process.platform}/ada_language_server`
+                );
+                if (existsSync(alternateExecPath)) {
+                    // The x86 executable exists, use that instead.
+                    serverExecPath = alternateExecPath;
+                }
+            }
+        } else if (process.platform == 'win32') {
+            // Add the extension for the file lookup further below
+            serverExecPath = `${serverExecPath}.exe`;
+        }
+
         if (!existsSync(serverExecPath)) {
             logErrorAndThrow(
                 `This installation of the Ada extension does not have the Ada ` +
