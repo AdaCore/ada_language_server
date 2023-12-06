@@ -10,7 +10,12 @@ NO_REBASE=$4 # Specify this to skip the rebase over the edge branch. Used for lo
 CROSS=$5 # '' for native, aarch64 for ARM cross
 
 prefix=/tmp/ADALIB_DIR
-TARGET=${CROSS:+$CROSS-linux} # '' or aarch64-linux
+if [ $RUNNER_OS = Linux ] ; then
+  TARGET=${CROSS:+$CROSS-linux} # '' or aarch64-linux
+else
+  TARGET=${CROSS:+$CROSS-darwin} # '' or aarch64-darwin
+fi
+
 TARGET_OPTION=${TARGET:+--target=$TARGET}  # '' or --target=aarch64-linux
 
 export CPATH=/usr/local/include
@@ -114,7 +119,7 @@ function fix_rpath ()
 
 ALS_EXEC_DIR=integration/vscode/ada/$NODE_ARCH/$NODE_PLATFORM
 
-if [ $RUNNER_OS = macOS ]; then
+if [ $RUNNER_OS = macOS -a -z "$CROSS" ]; then
     cp -v -f /usr/local/opt/gmp/lib/libgmp.10.dylib $ALS_EXEC_DIR
     fix_rpath $ALS_EXEC_DIR/ada_language_server
 fi

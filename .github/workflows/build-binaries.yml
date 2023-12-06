@@ -20,8 +20,6 @@ jobs:
         exclude:
           - os: windows-latest
             cross: aarch64
-          - os: macos-11
-            cross: aarch64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python
@@ -37,18 +35,29 @@ jobs:
           else
               echo "TAG=$DEFAULT_TAG" >> $GITHUB_ENV
           fi
-      - name: Unpack cross toolchain from AWS S3
-        if: ${{ matrix.cross != '' }}
+      - name: Install cross toolchain (Linux)
+        if: ${{ matrix.cross != '' && runner.os == 'Linux' }}
         env:
           AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
           AWS_DEFAULT_REGION: eu-west-1
         run: |
-            aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2 . --sse=AES256
-            aws s3 cp s3://adacore-gha-tray-eu-west-1/libadalang/${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 . --sse=AES256
             sudo apt install -y libc6-dev-arm64-cross linux-libc-dev-arm64-cross binutils-aarch64-linux-gnu
-            sudo tar xavf ${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2 -C /
-            sudo tar xavf ${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 -C /
+            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2 . --sse=AES256
+            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 . --sse=AES256
+            sudo tar xjf ${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2  -C /
+            sudo tar xjf ${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 -C /
+      - name: Install cross toolchain (MacOS)
+        if: ${{ matrix.cross != '' && runner.os != 'Linux' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
+          AWS_DEFAULT_REGION: eu-west-1
+        run: |
+            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2 . --sse=AES256
+            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 . --sse=AES256
+            sudo tar xjf ${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2  --strip-components=3 -C /usr/local
+            sudo tar xjf ${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 --strip-components=3 -C /usr/local
       - name: Force Alire use preinstalled MSYS2
         shell: bash
         if: ${{ runner.os == 'Windows' }}
