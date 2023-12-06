@@ -1,2 +1,11 @@
-project Prj1 is
+with "imported", "doesnotexist";
+limited with "limited_imported";
+abstract project Prj1 is
+type T is ("V");
+V : T := "V";
+for Object_Dir use "obj";
+package P is
+VP : T := "V";
+for A use "";
+end P;
 end Prj1;
