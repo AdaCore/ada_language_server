@@ -133,7 +133,7 @@ It provides a full set of features including syntax highlighting, navigation, bu
 
 ### Getting Started
 
-Here are some links that will help you to get familiar with the VS Code extension for Ada & SPARK:
+Here are some links that will help you get familiar with the VS Code extension for Ada & SPARK:
 
 * [Ada & SPARK for VS Code](integration/vscode/ada/README.md).
 * [Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started).
