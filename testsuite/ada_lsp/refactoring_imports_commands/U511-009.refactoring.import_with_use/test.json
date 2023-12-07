@@ -1,10 +1,14 @@
 [
    {
-      "comment": ["Test codeaction import refactor"]
+      "comment": [
+         "Test codeaction import refactor"
+      ]
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -32,12 +36,22 @@
                      "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [".", ",", "'", "("],
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
                         "resolveProvider": true
                      },
                      "signatureHelpProvider": {
-                        "triggerCharacters": [",", "("],
-                        "retriggerCharacters": ["\b"]
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
                      },
                      "definitionProvider": true
                   }
@@ -491,19 +505,6 @@
                                  }
                               },
                               "newText": "with Foo;\n"
-                           },
-                           {
-                              "range": {
-                                 "start": {
-                                    "line": 9,
-                                    "character": 20
-                                 },
-                                 "end": {
-                                    "line": 9,
-                                    "character": 20
-                                 }
-                              },
-                              "newText": ""
                            }
                         ]
                      }
