@@ -2,7 +2,7 @@
 --                         Language Server Protocol                         --
 --                                                                          --
 --                       Copyright (C) 2023, AdaCore                        --
---                                                                          --
+-- procedyur                                                                         --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 3,  or (at your option) any later ver- --
@@ -40,8 +40,10 @@ package body LSP.GPR_Files is
        System.Soft_Links.Task_Lock_NT'Access;
 
    function To_Mixed (A : String) return String;
+   --  Lower 'A' except character after underline, dot & space
 
    procedure Reset (Self : in out LSP.GPR_Files.File);
+   --  clean up 'Self' before using it for a new gpr parsing
 
    package GPC renames Gpr_Parser.Common;
    package Convert is new VSS.Strings.Formatters.Generic_Integers (Unit_Index);
@@ -57,7 +59,64 @@ package body LSP.GPR_Files is
          and then Position.character <= Span.an_end.character)
        or else (Position.line > Span.start.line
          and then Position.line < Span.an_end.line));
-   --  Checks if Position is inside Span
+   --  Checks if 'Position' is inside 'Span'
+
+   function New_Id return Symbol_Id;
+   --  allocate a new symbol id
+
+   package Slocs renames Gpr_Parser_Support.Slocs;
+
+   use Gpr_Parser.Common;
+   use Gpr_Parser_Support.Token_Data_Handlers;
+
+   function To_Text_Type
+     (Ref : GPC.Token_Reference)
+      return Gpr_Parser_Support.Text.Text_Type
+   is (GPC.Text (Ref));
+   --  convert a token reference to a wide_wide_string
+
+   function To_Lower_Text_Type
+     (Ref : GPC.Token_Reference) return Gpr_Parser_Support.Text.Text_Type
+   is (Gpr_Parser_Support.Text.To_Lower (To_Text_Type (Ref)));
+   --  convert a token reference to a lowered wide_wide_string
+
+   function To_String (Ref : GPC.Token_Reference) return String
+   is (Gpr_Parser_Support.Text.To_UTF8 (GPC.Text (Ref)));
+   --  convert a token reference to an utf8 string
+
+   function To_Optional_Name_Type
+     (Ref : GPC.Token_Reference) return Optional_Name_Type
+   is
+     (Optional_Name_Type
+        (Gpr_Parser_Support.Text.To_UTF8 (GPC.Text (Ref))));
+   --  convert a token reference to a gpr2 string
+
+   function Remove_Quote (S : String) return String is
+     (if S'Length >= 2 and then S (S'First) = '"' and then S (S'Last) = '"'
+      then S (S'First + 1 .. S'Last - 1)
+      else S);
+   --  remove leading & trailing '"' (useful for string tokens)
+
+   function To_Lower_String (Ref : GPC.Token_Reference) return String
+   is (Gpr_Parser_Support.Text.To_UTF8 (To_Lower_Text_Type (Ref)));
+   --  convert a token reference to a lowered string
+
+   procedure Internal_Parse (File : in out LSP.GPR_Files.File);
+   --  parse GPR 'File'
+
+   function Image (Index : Index_Type) return VSS.Strings.Virtual_String;
+   --  convert a GPR2 index to a LSP string
+
+   ------------
+   -- New_Id --
+   ------------
+
+   function New_Id return Symbol_Id is
+      Result : constant Symbol_Id := Next_Symbol_Id;
+   begin
+      Next_Symbol_Id := Next_Symbol_Id + 1;
+      return Result;
+   end New_Id;
 
    -----------------
    -- Get_Package --
@@ -85,7 +144,7 @@ package body LSP.GPR_Files is
       C          : Name_Maps.Cursor;
       Result     : Natural;
       Value      : constant String :=
-        Ada.Characters.Handling.To_Lower (String (Name));
+                     Ada.Characters.Handling.To_Lower (String (Name));
    begin
       if Name'Length = 0 then
          return 0;
@@ -174,41 +233,6 @@ package body LSP.GPR_Files is
       return List.Id_To_Name.Element (Id);
    end Image;
 
-   package Slocs renames Gpr_Parser_Support.Slocs;
-
-   use Gpr_Parser.Common;
-   use Gpr_Parser_Support.Token_Data_Handlers;
-
-   function To_Text_Type
-     (Ref : GPC.Token_Reference)
-      return Gpr_Parser_Support.Text.Text_Type
-   is (GPC.Text (Ref));
-
-   function To_Lower_Text_Type
-     (Ref : GPC.Token_Reference) return Gpr_Parser_Support.Text.Text_Type
-   is (Gpr_Parser_Support.Text.To_Lower (To_Text_Type (Ref)));
-
-   function To_String (Ref : GPC.Token_Reference) return String
-   is (Gpr_Parser_Support.Text.To_UTF8 (GPC.Text (Ref)));
-
-   function To_Optional_Name_Type
-     (Ref : GPC.Token_Reference) return Optional_Name_Type
-   is
-     (Optional_Name_Type
-        (Gpr_Parser_Support.Text.To_UTF8 (GPC.Text (Ref))));
-
-   function Remove_Quote (S : String) return String is
-     (if S'Length >= 2 and then S (S'First) = '"' and then S (S'Last) = '"'
-      then S (S'First + 1 .. S'Last - 1)
-      else S);
-
-   function To_Lower_String (Ref : GPC.Token_Reference) return String
-   is (Gpr_Parser_Support.Text.To_UTF8 (To_Lower_Text_Type (Ref)));
-
-   procedure Internal_Parse (File : in out LSP.GPR_Files.File);
-
-   function Image (Index : Index_Type) return VSS.Strings.Virtual_String;
-
    ------------
    -- Create --
    ------------
@@ -275,8 +299,13 @@ package body LSP.GPR_Files is
            "."));
 
       Current_Package    : Package_Definition;
+      --  package_definition used during a package parsing
+
+      Current_Symbol  : Symbol;
+      --  symbol used as root symbol can be project/package/case/when symbol
 
       Current_Symbols : Symbol_List;
+      --  list where new symbols should be appended
 
       type GPR_Token is record
          Ref   : Gpr_Parser.Common.Token_Reference;
@@ -287,10 +316,10 @@ package body LSP.GPR_Files is
 
       function Get_GPR_Token
         (Ref : Gpr_Parser.Common.Token_Reference) return GPR_Token;
-      function Get_Referenced_GPR (Token : GPR_Token) return Path_Name.Object;
+      --  token reference to gpr token converter
 
-      function Is_Defined (Token : GPR_Token) return Boolean is
-        (Token.Ref /= GPC.No_Token);
+      function Get_Referenced_GPR (Token : GPR_Token) return Path_Name.Object;
+      --  find file pointed by gpr token useful for imported & extended files
 
       procedure Load;
       --  Extract tokens using UTF-8 and then CP-1252 encoding.
@@ -299,39 +328,217 @@ package body LSP.GPR_Files is
       procedure Add_Symbol
         (Token    : GPR_Token;
          Kind     : Symbol_Kind;
-         Name     : VSS.Strings.Virtual_String;
-         Children : GPC.Token_Reference);
+         Name     : VSS.Strings.Virtual_String);
+      --  add a symbol to symbols tree
 
       procedure Parse_Declarations;
+      --  parse type/variable/package/case/when/attributes & end statements
       procedure Parse_Imported_Partition;
+      --  parse (limited) with statements
+
       procedure Parse_Project_Declaration;
+      --  parse project statement (including qualifiers & extends)
+
       procedure Close_Current_Package (Last_Index : GPC.Token_Reference);
+      --  close current package if we are in a package.
+
+      function Next_Token
+        (Ref : GPC.Token_Reference) return GPC.Token_Reference;
+      --  go to next token if any or stay at last
+
+      function Previous_Token
+        (Ref : GPC.Token_Reference) return GPC.Token_Reference;
+      --  go to previous token if any or stay at first
+
+      function Get_Parent return Symbol;
+      --  Return parent of current_symbol (default is project symbol)
+
+      procedure Open_Scope (New_Scope : Symbol);
+      --  Open a package/case/when scope
+      --  Change Current_Symbol and Current_Symbols list
+
+      procedure Close_Scope;
+      --  Close current scope go up to current scope parent.
+
+      procedure Close_Case_Scope;
+      --  Close scope if current scope is a case scope
+
+      procedure Close_When_Scope;
+      --  Close scope if current scope is a when scope
+
+      procedure Update_Current;
+      --  update Children_Map (Current_Symbol) using Current_Symbols
+
+      --------------------
+      -- Update_Current --
+      --------------------
+
+      procedure Update_Current is
+         Position : constant Symbol_List_Maps.Cursor :=
+                      File.Document_Symbols.Children_Map.Find
+                        (Current_Symbol.Id);
+      begin
+         if Symbol_List_Maps.Has_Element (Position) then
+            File.Document_Symbols.Children_Map.Replace_Element
+              (Position => Position,
+               New_Item => Current_Symbols);
+         else
+            File.Document_Symbols.Children_Map.Insert
+              (Key      => Current_Symbol.Id,
+               New_Item => Current_Symbols);
+         end if;
+      end Update_Current;
+
+      ----------------
+      -- Get_Parent --
+      ----------------
+
+      function Get_Parent return Symbol is
+      begin
+         if Current_Symbol.Id > Project_Symbol_Id then
+            declare
+               Position : constant Symbol_Maps.Cursor :=
+                            File.Document_Symbols.Symbols.Find
+                              (Current_Symbol.Parent_Id);
+            begin
+               if Symbol_Maps.Has_Element (Position) then
+                  return Symbol_Maps.Element (Position);
+               end if;
+
+            end;
+         end if;
+         return File.Document_Symbols.Project;
+      end Get_Parent;
+
+      -----------------
+      -- Close_Scope --
+      -----------------
+
+      procedure Close_Scope is
+      begin
+         --  Save current symbol children list
+         Update_Current;
+
+         if Current_Symbol.Id > Project_Symbol_Id then
+
+            --  Move to parent
+            Current_Symbol := Get_Parent;
+
+            --  Restore current children list
+            declare
+               C : constant Symbol_List_Maps.Cursor :=
+                     File.Document_Symbols.Children_Map.Find
+                       (Current_Symbol.Id);
+            begin
+               if Symbol_List_Maps.Has_Element (C)
+               then
+                  Current_Symbols := Symbol_List_Maps.Element (C);
+               else
+                  Current_Symbols.Clear;
+               end if;
+            end;
+         end if;
+      end Close_Scope;
+
+      ----------------------
+      -- Close_When_Scope --
+      ----------------------
+
+      procedure Close_When_Scope is
+      begin
+         if Current_Symbol.Kind = K_When then
+            Close_Scope;
+         end if;
+      end Close_When_Scope;
+
+      ----------------------
+      -- Close_Case_Scope --
+      ----------------------
+
+      procedure Close_Case_Scope is
+      begin
+         if Current_Symbol.Kind = K_Case then
+            Close_Scope;
+         end if;
+      end Close_Case_Scope;
+
+      ----------------
+      -- Open_Scope --
+      ----------------
+
+      procedure Open_Scope (New_Scope : Symbol) is
+         Position : constant Symbol_Maps.Cursor :=
+                      File.Document_Symbols.Symbols.Find
+                        (New_Scope.Id);
+      begin
+         if not Symbol_Maps.Has_Element (Position) then
+            File.Document_Symbols.Symbols.Insert
+              (Key      => New_Scope.Id,
+               New_Item => New_Scope);
+         end if;
+         Update_Current;
+         Current_Symbol := New_Scope;
+         Current_Symbols.Clear;
+      end Open_Scope;
+
+      ----------------
+      -- Add_Symbol --
+      ----------------
 
       procedure Add_Symbol
         (Token    : GPR_Token;
          Kind     : Symbol_Kind;
-         Name     : VSS.Strings.Virtual_String;
-         Children : GPC.Token_Reference) is
+         Name     : VSS.Strings.Virtual_String) is
          Location_Range : constant Slocs.Source_Location_Range :=
-           Gpr_Parser.Common.Sloc_Range (Gpr_Parser.Common.Data (Token.Ref));
-         New_Symbol     : constant Symbol :=
-           (Token.Ref,
-            Kind,
-            Name,
-            (Integer (Location_Range.Start_Line),
-             Integer (Location_Range.Start_Column)),
-            (Integer (Location_Range.End_Line),
-             Integer (Location_Range.End_Column)),
-            Children);
+                            Gpr_Parser.Common.Sloc_Range
+                              (Gpr_Parser.Common.Data (Token.Ref));
+         New_Symbol     : Symbol :=
+                            (New_Id,
+                             Current_Symbol.Id,
+                             Token.Ref,
+                             Kind,
+                             Name,
+                             (Integer (Location_Range.Start_Line),
+                              Integer (Location_Range.Start_Column)),
+                             (Integer (Location_Range.End_Line),
+                              Integer (Location_Range.End_Column)));
+
+         procedure Append_New_To_Current (New_Symbol : Symbol);
+         --  Append New_Symbol to current list.
+
+         ---------------------------
+         -- Append_New_To_Current --
+         ---------------------------
+
+         procedure Append_New_To_Current (New_Symbol : Symbol) is
+         begin
+            Current_Symbols.Append (New_Symbol);
+         end Append_New_To_Current;
+
       begin
-         Current_Symbols.Append (New_Symbol);
+         case Kind is
+            when K_Imported =>
+               New_Symbol.Parent_Id := With_Clauses_Symbol_Id;
+               File.Document_Symbols.Imported_Symbols.Append (New_Symbol);
+            when K_Project =>
+               New_Symbol.Id := Project_Symbol_Id;
+               New_Symbol.Parent_Id := Project_Symbol_Id;
+               File.Document_Symbols.Project := New_Symbol;
+               Open_Scope (New_Symbol);
+            when K_Type | K_Variable | K_Attribute =>
+               Append_New_To_Current (New_Symbol);
+            when K_Package =>
+               Append_New_To_Current (New_Symbol);
+               Open_Scope (New_Symbol);
+            when K_Case =>
+               Append_New_To_Current (New_Symbol);
+               Open_Scope (New_Symbol);
+            when K_When =>
+               Close_When_Scope;
+               Append_New_To_Current (New_Symbol);
+               Open_Scope (New_Symbol);
+         end case;
       end Add_Symbol;
-
-      function Next_Token
-        (Ref : GPC.Token_Reference) return GPC.Token_Reference;
-
-      function Previous_Token
-        (Ref : GPC.Token_Reference) return GPC.Token_Reference;
 
       ----------------
       -- Next_Token --
@@ -395,18 +602,15 @@ package body LSP.GPR_Files is
             if not File.Packages.Contains (Current_Package.Name) then
                File.Packages.Insert (Current_Package.Name, Current_Package);
             end if;
-            if not File.Document_Symbols.Children.Contains
-              (Current_Package.First)
-            then
-               File.Document_Symbols.Children.Insert
-                 (Key      => Current_Package.First,
-                  New_Item => Current_Symbols);
-            end if;
+
             Current_Package := File.Project_Level_Scope_Defs;
-            Current_Symbols := File.Document_Symbols.Document_Symbols;
-         else
-            File.Document_Symbols.Document_Symbols := Current_Symbols;
          end if;
+
+         while Current_Symbol.Id > Project_Symbol_Id loop
+            Close_Scope;
+         end loop;
+         Update_Current;
+
       end Close_Current_Package;
 
       -------------------
@@ -474,7 +678,12 @@ package body LSP.GPR_Files is
          procedure Parse_Variable (Variable_Token : GPR_Token);
          procedure Parse_Package;
          procedure Parse_End;
+         procedure Parse_Case;
+         procedure Parse_When;
+
          procedure Previous_Token_If_Needed;
+         --  Go to previous token if we are on a start statement token
+         --  Used to allow for example 'package package Compiler' sequence
 
          ------------------------------
          -- Previous_Token_If_Needed --
@@ -580,8 +789,7 @@ package body LSP.GPR_Files is
                  (Token    => Attribute_Token,
                   Kind     => K_Attribute,
                   Name     => Conversions.To_Virtual_String
-                    (To_Unbounded_String (Image (Name))) & Image (Attr_Index),
-                  Children => GPC.No_Token);
+                    (To_Unbounded_String (Image (Name))) & Image (Attr_Index));
             end;
             Previous_Token_If_Needed;
          end Parse_Attribute;
@@ -598,7 +806,10 @@ package body LSP.GPR_Files is
                Token := Get_GPR_Token (Index);
                if Token.Kind = Gpr_Parser.Common.Gpr_Identifier then
                   Close_Current_Package (Index);
-               elsif Token.Kind /= Gpr_Parser.Common.Gpr_Case then
+               elsif Token.Kind = Gpr_Parser.Common.Gpr_Case then
+                  Close_When_Scope;
+                  Close_Case_Scope;
+               else
                   Previous_Token_If_Needed;
                end if;
             end if;
@@ -613,6 +824,7 @@ package body LSP.GPR_Files is
             Empty_Package : Package_Definition;
 
             procedure Handle_Package_Reference;
+            --  Handle package renames & extends statement.
 
             ------------------------------
             -- Handle_Package_Reference --
@@ -671,10 +883,7 @@ package body LSP.GPR_Files is
                        (Token    => Token,
                         Kind     => K_Package,
                         Name     => Conversions.To_Virtual_String
-                          (To_Unbounded_String (Image (Current_Package.Name))),
-                        Children => Current_Package.First);
-                     File.Document_Symbols.Document_Symbols := Current_Symbols;
-                     Current_Symbols.Clear;
+                          (To_Unbounded_String (Image (Current_Package.Name))));
                   end if;
                else
                   Previous_Token_If_Needed;
@@ -712,6 +921,70 @@ package body LSP.GPR_Files is
          end Parse_Package;
 
          ----------------
+         -- Parse_Case --
+         ----------------
+
+         procedure Parse_Case is
+            Token      : GPR_Token;
+            Case_Token : constant GPR_Token := Get_GPR_Token (Index);
+            Name       : Unbounded_String :=
+                           Ada.Strings.Unbounded.To_Unbounded_String ("case ");
+         begin
+            Index := Next_Token (Index);
+            while Index < Last loop
+               Token := Get_GPR_Token (Index);
+               case Token.Kind is
+               when Gpr_Parser.Common.Gpr_Identifier =>
+                  Ada.Strings.Unbounded.Append (Name, To_String (Token.Ref));
+               when Gpr_Parser.Common.Gpr_Dot =>
+                  Ada.Strings.Unbounded.Append (Name, To_String (Token.Ref));
+               when  Gpr_Parser.Common.Gpr_Tick =>
+                  Ada.Strings.Unbounded.Append (Name, To_String (Token.Ref));
+               when others =>
+                  exit;
+               end case;
+               Index := Next_Token (Index);
+            end loop;
+            Add_Symbol
+              (Token    => Case_Token,
+               Kind     => K_Case,
+               Name     => Conversions.To_Virtual_String (Name));
+            Previous_Token_If_Needed;
+         end Parse_Case;
+
+         ----------------
+         -- Parse_When--
+         ----------------
+
+         procedure Parse_When is
+            Token      : GPR_Token;
+            Name       : Unbounded_String :=
+                           Ada.Strings.Unbounded.To_Unbounded_String ("when ");
+            When_Token : constant GPR_Token := Get_GPR_Token (Index);
+         begin
+            Index := Next_Token (Index);
+            while Index < Last loop
+               Token := Get_GPR_Token (Index);
+               case Token.Kind is
+               when Gpr_Parser.Common.Gpr_String =>
+                  Ada.Strings.Unbounded.Append (Name, To_String (Token.Ref));
+               when Gpr_Parser.Common.Gpr_Others =>
+                  Ada.Strings.Unbounded.Append (Name, To_String (Token.Ref));
+               when Gpr_Parser.Common.Gpr_Pipe =>
+                  Ada.Strings.Unbounded.Append (Name, To_String (Token.Ref));
+               when others =>
+                  exit;
+               end case;
+               Index := Next_Token (Index);
+            end loop;
+            Add_Symbol
+              (Token    => When_Token,
+               Kind     => K_When,
+               Name     => Conversions.To_Virtual_String (Name));
+            Previous_Token_If_Needed;
+         end Parse_When;
+
+         ----------------
          -- Parse_Type --
          ----------------
 
@@ -735,8 +1008,7 @@ package body LSP.GPR_Files is
                         Add_Symbol
                           (Token    => Token,
                            Kind     => K_Type,
-                           Name     => Image (Typ.Name),
-                           Children => GPC.No_Token);
+                           Name     => Image (Typ.Name));
                      end;
                   end if;
                   Index := Next_Token (Index);
@@ -764,8 +1036,7 @@ package body LSP.GPR_Files is
                   Add_Symbol
                     (Token    => Variable_Token,
                      Kind     => K_Variable,
-                     Name     => Image (Variable.Name),
-                     Children => GPC.No_Token);
+                     Name     => Image (Variable.Name));
                end;
             end if;
             while Index < Last loop
@@ -795,6 +1066,10 @@ package body LSP.GPR_Files is
             case Token.Kind is
                when Gpr_Parser.Common.Gpr_Package =>
                   Parse_Package;
+               when Gpr_Parser.Common.Gpr_Case =>
+                  Parse_Case;
+               when Gpr_Parser.Common.Gpr_When =>
+                  Parse_When;
                when Gpr_Parser.Common.Gpr_End =>
                   Parse_End;
                when Gpr_Parser.Common.Gpr_Type =>
@@ -820,7 +1095,6 @@ package body LSP.GPR_Files is
          Close_Current_Package (Last);
          if Current_Package.Name = GPR2.Project_Level_Scope then
             File.Project_Level_Scope_Defs := Current_Package;
-            Current_Symbols := File.Document_Symbols.Document_Symbols;
          end if;
       end Parse_Declarations;
 
@@ -859,16 +1133,39 @@ package body LSP.GPR_Files is
                               Add_Symbol
                                 (Token    => Token,
                                  Kind     => K_Imported,
-                                 Name     => Image (Imported.Name),
-                                 Children => GPC.No_Token);
+                                 Name     => Image (Imported.Name));
                            else
                               Add_Symbol
                                 (Token    => Token,
                                  Kind     => K_Imported,
                                  Name     => "limited " &
-                                               Image (Imported.Name),
-                                 Children => GPC.No_Token);
+                                               Image (Imported.Name));
                            end if;
+                        else
+                           declare
+                              Name : constant Unbounded_String :=
+                                       To_Unbounded_String
+                                         (GNATCOLL.Utils.Replace
+                                            (Remove_Quote
+                                               (To_String (Token.Ref)),
+                                             "-",
+                                             "."));
+                              use VSS.Strings.Conversions;
+
+                           begin
+                              if not Limited_Import then
+                                 Add_Symbol
+                                   (Token    => Token,
+                                    Kind     => K_Imported,
+                                    Name     => To_Virtual_String (Name));
+                              else
+                                 Add_Symbol
+                                   (Token    => Token,
+                                    Kind     => K_Imported,
+                                    Name     => "limited " &
+                                      To_Virtual_String (Name));
+                              end if;
+                           end;
                         end if;
                      end;
 
@@ -897,8 +1194,7 @@ package body LSP.GPR_Files is
          Extended_Path : Path_Name.Object;
          Extended_Index : GPC.Token_Reference;
          Name : Unbounded_String;
-         Project_Token : GPR_Token;
-
+         Project_Token : GPR_Token := Get_GPR_Token (Index);
       begin
          File.Project_Definition_Start := No_Token_Index;
          while Index < Last loop
@@ -923,7 +1219,7 @@ package body LSP.GPR_Files is
                   when Gpr_Parser.Common.Gpr_Identifier =>
                      declare
                         Identifier : constant String :=
-                          To_Lower_String (Token.Ref);
+                                       To_Lower_String (Token.Ref);
                      begin
                         if Identifier = "project" then
                            Set_Project_Definition_Start;
@@ -982,14 +1278,10 @@ package body LSP.GPR_Files is
             end;
          end if;
 
-         if Is_Defined (Project_Token) then
-            Add_Symbol
-              (Token    => Project_Token,
-               Kind     => K_Project,
-               Name     => Conversions.To_Virtual_String
-                             (Project_Name),
-               Children => GPC.No_Token);
-         end if;
+         Add_Symbol
+           (Token    => Project_Token,
+            Kind     => K_Project,
+            Name     => Conversions.To_Virtual_String (Project_Name));
       end Parse_Project_Declaration;
 
    begin
@@ -1062,8 +1354,10 @@ package body LSP.GPR_Files is
          Self.Types.Clear;
          Self.Project_Level_Scope_Defs := Empty_Package_Definition;
          Self.Packages.Clear;
-         Self.Document_Symbols.Document_Symbols.Clear;
-         Self.Document_Symbols.Children.Clear;
+
+         Self.Document_Symbols.Imported_Symbols.Clear;
+         Self.Document_Symbols.Project := No_Symbol;
+         Self.Document_Symbols.Children_Map.Clear;
 
          Self.Unit := Gpr_Parser.Analysis.No_Analysis_Unit;
       end if;

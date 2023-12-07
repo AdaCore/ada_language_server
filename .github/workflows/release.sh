@@ -38,9 +38,10 @@ echo "upload_url=$upload_url"
 
 chmod -R -v +x als-*-$DEBUG
 
+for CROSS in "" "aarch64" ; do
 for X in Linux macOS Windows ; do
-  FILE=als-$TAG-$X${DEBUG:+-debug}_amd64.zip
-  cd als-$X-$DEBUG
+  FILE=als-$TAG-$X${DEBUG:+-debug}_${CROSS:-amd64}.zip
+  cd als-$X-$DEBUG$CROSS
   zip -9 -r ../$FILE .
   cd ..
 
@@ -53,4 +54,5 @@ for X in Linux macOS Windows ; do
     --data-binary @$FILE \
     $upload_url?name=$FILE
   rm -v -f $FILE
+done
 done

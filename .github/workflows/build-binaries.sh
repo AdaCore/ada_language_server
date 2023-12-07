@@ -10,7 +10,12 @@ NO_REBASE=$4 # Specify this to skip the rebase over the edge branch. Used for lo
 CROSS=$5 # '' for native, aarch64 for ARM cross
 
 prefix=/tmp/ADALIB_DIR
-TARGET=${CROSS:+$CROSS-linux} # '' or aarch64-linux
+if [ $RUNNER_OS = Linux ] ; then
+  TARGET=${CROSS:+$CROSS-linux} # '' or aarch64-linux
+else
+  TARGET=${CROSS:+$CROSS-darwin} # '' or aarch64-darwin
+fi
+
 TARGET_OPTION=${TARGET:+--target=$TARGET}  # '' or --target=aarch64-linux
 
 export CPATH=/usr/local/include
@@ -103,20 +108,37 @@ make LIBRARY_TYPE=static VERSION=$TAG all GPRBUILD_EXTRA=$TARGET_OPTION NODE_ARC
 [ -z "$CROSS" ] && make LIBRARY_TYPE=static check
 
 
-function fix_rpath ()
-{
-    for R in `otool -l $1 |grep -A2 LC_RPATH |awk '/ path /{ print $2 }'`; do
-        install_name_tool -delete_rpath $R $1
+# Find the path to libgmp as linked in the given executable
+function get_gmp_full_path() {
+    otool -l "$1" | grep '^\s*name.*libgmp.10.dylib' | awk '/ name /{print $2 }'
+}
+
+function fix_rpath() {
+    # Remove all rpath entries
+    for R in $(otool -l "$1" | grep -A2 LC_RPATH | awk '/ path /{ print $2 }'); do
+        install_name_tool -delete_rpath "$R" "$1"
     done
-    install_name_tool -change /usr/local/opt/gmp/lib/libgmp.10.dylib @rpath/libgmp.10.dylib $1
-    install_name_tool -add_rpath @executable_path $1
+    # Change reference to full path of libgmp into a reference to the rpath.
+    gmp_full_path=$(get_gmp_full_path "$1")
+    if [ -n "$gmp_full_path" ]; then
+        install_name_tool -change "$gmp_full_path" @rpath/libgmp.10.dylib "$1"
+    fi
+    # Add the executable directory to rpath so it can find shared libraries
+    # packaged alongside the executable.
+    install_name_tool -add_rpath @executable_path "$1"
 }
 
 ALS_EXEC_DIR=integration/vscode/ada/$NODE_ARCH/$NODE_PLATFORM
 
 if [ $RUNNER_OS = macOS ]; then
-    cp -v -f /usr/local/opt/gmp/lib/libgmp.10.dylib $ALS_EXEC_DIR
-    fix_rpath $ALS_EXEC_DIR/ada_language_server
+    # Get full path of libgmp as linked in the ALS exec
+    gmp_full_path=$(get_gmp_full_path $ALS_EXEC_DIR/ada_language_server)
+    if [ -f "$gmp_full_path" ]; then
+        # Copy libgmp alongside the ALS exec
+        cp -v -f "$gmp_full_path" "$ALS_EXEC_DIR"
+    fi
+    # Fix rpath entries of the ALS exec so it can find libgmp alongside it
+    fix_rpath "$ALS_EXEC_DIR/ada_language_server"
 fi
 
 if [ "$DEBUG" != "debug" ]; then

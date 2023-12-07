@@ -224,38 +224,76 @@ private
    --  a line/column position in a gpr file
 
    type Symbol_Kind is
-     (K_Imported, K_Project, K_Type, K_Variable, K_Attribute, K_Package);
+     (K_Imported,
+      K_Project,
+      K_Package,
+      K_Type,
+      K_Variable,
+      K_Attribute,
+      K_Case,
+      K_When);
+
    --  symbol's type in a gpr document.
 
+   subtype Symbol_Id is Integer;
+   Invalid_Symbol_Id : constant Symbol_Id := 0;
+   With_Clauses_Symbol_Id : constant Symbol_Id := 1;
+   Project_Symbol_Id : constant Symbol_Id := With_Clauses_Symbol_Id + 1;
+   Next_Symbol_Id : Symbol_Id := Project_Symbol_Id + 1;
+
    type Symbol is record
-      Ref            : Gpr_Parser.Common.Token_Reference;
-      Kind           : Symbol_Kind;
-      Name           : VSS.Strings.Virtual_String;
+      Id             : Symbol_Id := Invalid_Symbol_Id;
+      Parent_Id      : Symbol_Id := Invalid_Symbol_Id;
+      Ref            : Gpr_Parser.Common.Token_Reference :=
+                         Gpr_Parser.Common.No_Token;
+      Kind           : Symbol_Kind := K_Project;
+      Name           : VSS.Strings.Virtual_String :=
+                         VSS.Strings.Empty_Virtual_String;
       Start_Position : Source_Position;
       End_Position   : Source_Position;
-      Children       : Gpr_Parser.Common.Token_Reference;
-      --  children list Id. 0 means that symbol has no child.
    end record;
+
+   No_Symbol : constant Symbol :=
+                 (Id             => Invalid_Symbol_Id,
+                  Parent_Id      => Invalid_Symbol_Id,
+                  Ref            => Gpr_Parser.Common.No_Token,
+                  Kind           => K_Project,
+                  Name           => VSS.Strings.Empty_Virtual_String,
+                  Start_Position => (1, 1),
+                  End_Position   => (1, 1));
+
+   use type Gpr_Parser.Common.Token_Reference;
 
    package Symbol_Lists is
      new Ada.Containers.Vectors (Positive, Symbol);
    subtype Symbol_List is Symbol_Lists.Vector;
-   --  Project scope or package's symbols
+   --  with clause's, project's, package's, case & when symbols
 
    use type Symbol_List;
 
-   use type Gpr_Parser.Common.Token_Reference;
-   package Symbols_Maps is new Ada.Containers.Ordered_Maps
-     (Key_Type     => Gpr_Parser.Common.Token_Reference,
+   package Symbol_List_Maps is new Ada.Containers.Ordered_Maps
+     (Key_Type     => Symbol_Id,
       Element_Type => Symbol_List);
+   subtype Symbol_List_Map is Symbol_List_Maps.Map;
+
+   package Symbol_Maps is new Ada.Containers.Ordered_Maps
+     (Key_Type     => Symbol_Id,
+      Element_Type => Symbol);
+   subtype Symbol_Map is Symbol_Maps.Map;
 
    type GPR_Symbols is record
-      Document_Symbols : Symbol_List;
-      --  root symbols list containing variable types,
-      --  project scope variables & attributes, packages
+      Imported_Symbols : Symbol_List;
+      --  with clauses symbols
 
-      Children         : Symbols_Maps.Map;
+      Project          : Symbol;
+      --  root projet symbol
+
+      Symbols          : Symbol_Map;
+      --  GPR file symbols
+
+      Children_Map     : Symbol_List_Map;
       --  map containing all children symbol lists
+
    end record;
    --  Type used for gpr file outline.
 
