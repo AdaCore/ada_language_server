@@ -112,10 +112,16 @@ package LSP.Raw_Clients is
 
    function Can_Send_Message (Self : Raw_Client'Class) return Boolean;
    --  Return True when server's process is running and send queue is empty,
-   --  thus send operation can start immidiately.
+   --  thus send operation can start immediately.
 
    function Server_PID (Self : Raw_Client'Class) return String;
    --  Return server process id (pid) if the server has been started.
+
+   procedure Kill_Process (Self : in out Raw_Client'Class);
+   --  Kill current server process. Process will exit immediately.
+   --
+   --  On Windows, TerminateProcess() is called, and on POSIX, the SIGKILL
+   --  signal is sent.
 
 private
    type Listener (Client : access Raw_Client'Class) is limited
