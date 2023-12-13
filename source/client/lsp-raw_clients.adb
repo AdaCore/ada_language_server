@@ -139,6 +139,15 @@ package body LSP.Raw_Clients is
       return Self.Server.Identifier;
    end Server_PID;
 
+   ------------------
+   -- Kill_Process --
+   ------------------
+
+   procedure Kill_Process (Self : in out Raw_Client'Class) is
+   begin
+      Self.Server.Kill_Process;
+   end Kill_Process;
+
    -------------------
    -- Set_Arguments --
    -------------------
