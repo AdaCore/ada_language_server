@@ -84,7 +84,7 @@ suite('GPR Tasks Provider', function () {
         const exec = resolved.execution as vscode.ShellExecution;
         const actualCmd = [exec.command].concat(exec.args).join(' ');
 
-        const expectedCmd = `gprbuild -P ${def.configuration.projectFile} -cargs -gnatef`;
+        const expectedCmd = `gprbuild -P ${def.configuration.projectFile} "-cargs:ada" -gnatef`;
 
         assert.strictEqual(actualCmd, expectedCmd);
     });
@@ -111,7 +111,7 @@ suite('GPR Tasks Provider', function () {
 
         const expectedCmd = `gprbuild -P ${def.configuration.projectFile} ${
             def.configuration.main ?? ''
-        } -cargs -gnatef`;
+        } "-cargs:ada" -gnatef`;
 
         assert.strictEqual(actualCmd, expectedCmd);
     });
@@ -140,7 +140,7 @@ suite('GPR Tasks Provider', function () {
         // via project attributes
         const expectedCmd = `gprbuild -P ${def.configuration.projectFile} ${
             def.configuration.main ?? ''
-        } -cargs -gnatef && obj/main1exec${process.platform == 'win32' ? '.exe' : ''}`;
+        } "-cargs:ada" -gnatef && obj/main1exec${process.platform == 'win32' ? '.exe' : ''}`;
 
         assert.strictEqual(actualCmd, expectedCmd);
     });
