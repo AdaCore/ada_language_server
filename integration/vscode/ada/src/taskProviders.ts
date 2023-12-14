@@ -80,7 +80,8 @@ async function computeProject(taskDef?: CustomTaskDefinition): Promise<string> {
 
 // Call commonArgs on args and append `-gnatef` to generate full file names in errors/warnings
 export const getDiagnosticArgs = (): string[] => {
-    const p_gnatef = ['-cargs', '-gnatef'];
+    const p_gnatef = ['"-cargs:ada"', '-gnatef'];
+    //  PowerShell splits arguments on `:`, so we need extra quotes around `-cargs:ada`
     return p_gnatef;
 };
 
