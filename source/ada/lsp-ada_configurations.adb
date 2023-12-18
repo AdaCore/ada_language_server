@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,16 +25,19 @@ with VSS.JSON.Pull_Readers.Simple;
 with VSS.JSON.Streams;
 with VSS.Strings.Conversions;
 with VSS.Text_Streams.File_Input;
+with VSS.Transformers.Casing;
 
 package body LSP.Ada_Configurations is
 
    Doc_Style_Values : constant VSS.String_Vectors.Virtual_String_Vector :=
      [for Item in GNATdoc.Comments.Options.Documentation_Style =>
-        VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).To_Lowercase];
+        VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).Transform
+          (VSS.Transformers.Casing.To_Lowercase)];
 
    Display_Method_Values : constant VSS.String_Vectors.Virtual_String_Vector :=
      [for Item in LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy
-        => VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).To_Lowercase];
+        => VSS.Strings.To_Virtual_String (Item'Wide_Wide_Image).Transform
+          (VSS.Transformers.Casing.To_Lowercase)];
 
    function "+" (X : VSS.Strings.Virtual_String'Class) return String renames
      VSS.Strings.Conversions.To_UTF_8_String;
