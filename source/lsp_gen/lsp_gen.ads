@@ -17,4 +17,7 @@
 
 package LSP_Gen is
    pragma Pure;
+
+   Part_Count : constant := 32;
+
 end LSP_Gen;
