@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Characters.Latin_1;
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Strings.Unbounded;
@@ -47,6 +48,22 @@ procedure Tester.Run is
       File  : constant VSS.Command_Line.Positional_Option :=
         (Name  => "test.json",
          Description => "JSON test script");
+
+      Output_Format : constant VSS.Command_Line.Value_Option :=
+        (Short_Name  => "",
+         Long_Name   => "output-format",
+         Value_Name  => "output_format_option",
+         Description =>
+           VSS.Strings.Conversions.To_Virtual_String
+             ("[diff | recent | verbose | min_diff]"
+              & Ada.Characters.Latin_1.LF
+              & "diff: diff computed on the fly (default)"
+              & Ada.Characters.Latin_1.LF
+              & "recent: recent output from the server"
+              & Ada.Characters.Latin_1.LF
+              & "verbose: full output from the server"
+              & Ada.Characters.Latin_1.LF
+              & "min_diff: only show the different values"));
    end Options;
 
    JSON : GNATCOLL.JSON.JSON_Value;
@@ -54,6 +71,7 @@ begin
    VSS.Command_Line.Add_Option (Options.Debug);
    VSS.Command_Line.Add_Option (Options.On_Hang);
    VSS.Command_Line.Add_Option (Options.File);
+   VSS.Command_Line.Add_Option (Options.Output_Format);
    VSS.Command_Line.Process;  --  This terminates process on option's error
 
    if not Options.File.Is_Specified then
@@ -104,10 +122,11 @@ begin
          Test : Tester.Tests.Test;
       begin
          Test.Run
-           (Commands => JSON.Get,
-            File     => Options.File.Value,
-            On_Hang  => Options.On_Hang.Value,
-            Debug    => Options.Debug.Is_Specified);
+           (Commands      => JSON.Get,
+            File          => Options.File.Value,
+            On_Hang       => Options.On_Hang.Value,
+            Debug         => Options.Debug.Is_Specified,
+            Output_Format => Options.Output_Format.Value);
       end;
    end;
 end Tester.Run;
