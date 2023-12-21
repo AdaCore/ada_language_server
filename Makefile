@@ -91,7 +91,6 @@ else
 endif
 
 all: coverage-instrument
-	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS) -c lsp-inputs.adb
 	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
@@ -105,6 +104,7 @@ endif
 
 generate:
 	python scripts/generate.py
+	make -C source/lsp_gen
 
 generate_io:
 	python scripts/io_gen.py

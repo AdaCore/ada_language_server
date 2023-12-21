@@ -17,7 +17,6 @@ if __name__ == '__main__':
             print("--- {} : {} ---".format(k, status))
             test_result = entry.load()
             print(f"Output:\n{test_result.out}")
-            print(f"Log:\n{test_result.log}")
 
     if all_ok:
         print("SUCCESS")

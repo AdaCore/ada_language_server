@@ -26,6 +26,7 @@ with LSP_Gen.String_Sets;
 package body LSP_Gen.Inputs is
 
    use type VSS.Strings.Virtual_String;
+   use type VSS.Strings.Hash_Type;
    use all type LSP_Gen.Entities.Enum.AType_Variant;
    use all type LSP_Gen.Entities.Enum.BaseTypes;
 
@@ -57,7 +58,8 @@ package body LSP_Gen.Inputs is
       Done  : LSP_Gen.Dependencies.Dependency_Map;
       Name  : VSS.Strings.Virtual_String;
       Tipe  : LSP_Gen.Entities.AType;
-      Spec  : Boolean);
+      Spec  : Boolean := False;
+      Stub  : Boolean := False);
 
    function Get_Type_Map
      (Model : LSP_Gen.Meta_Models.Meta_Model;
@@ -589,10 +591,27 @@ package body LSP_Gen.Inputs is
 
    procedure Write
      (Model : LSP_Gen.Meta_Models.Meta_Model;
-      Done  : LSP_Gen.Dependencies.Dependency_Map) is
+      Done  : LSP_Gen.Dependencies.Dependency_Map)
+   is
+      function Filter_Message
+        (Item : LSP_Gen.Dependencies.Dependency_Info) return Boolean is
+           (Item.Is_Message
+            or else Item.Short_Name = "ConfigurationParams"
+            or else Item.Short_Name = "Integer_Or_Virtual_String");
+
+      function Filter_Private
+        (Tipe : LSP_Gen.Entities.AType;
+         Item : LSP_Gen.Dependencies.Dependency_Info) return Boolean is
+           (not Filter_Message (Item)
+            and then Item.Owner.Is_Empty
+            and then (Tipe.Union.Kind /= reference or else
+                      not Model.Is_Mixin (Tipe.Union.reference.name)));
+
    begin
+      --  Generating spec: LSP.Inputs
       Put_Lines (Model.License_Header, "--  ");
       New_Line;
+      Put_Line ("with Interfaces;");
       Put_Line ("with VSS.JSON.Pull_Readers;");
       New_Line;
       Put_Line ("with LSP.Enumerations;");
@@ -602,10 +621,7 @@ package body LSP_Gen.Inputs is
       --  Put_Line ("   pragma Preelaborate;"); New_Line;
 
       for Item of Done loop
-         if Item.Is_Message
-           or else Item.Short_Name = "ConfigurationParams"
-           or else Item.Short_Name = "Integer_Or_Virtual_String"
-         then
+         if Filter_Message (Item) then
             Write_Subprogram_Definition
               (Item.Short_Name,
                (if Model.Is_Enumeration (Item.Short_Name)
@@ -616,21 +632,7 @@ package body LSP_Gen.Inputs is
          end if;
       end loop;
 
-      Put_Line ("end LSP.Inputs;");
-
-      Put_Lines (Model.License_Header, "--  ");
-      New_Line;
-      Put_Line ("pragma Ada_2022;");
-      Put_Line ("with Interfaces;");
-      Put_Line ("with LSP.Input_Tools;");
-      Put_Line ("with VSS.Strings;");
-      Put_Line ("with VSS.JSON.Pull_Readers.Buffered;");
-      Put_Line ("with Minimal_Perfect_Hash;");
-      New_Line;
-
-      Put_Line ("package body LSP.Inputs is"); New_Line;
-      Put_Line ("pragma Warnings (Off, ""is not referenced"");");
-      Put_Line ("use type Interfaces.Integer_64;"); New_Line;
+      Put_Line ("private");
 
       for Cursor in Done.Iterate loop
          declare
@@ -639,18 +641,36 @@ package body LSP_Gen.Inputs is
             Item : constant LSP_Gen.Dependencies.Dependency_Info :=
               Done (Cursor);
          begin
-            if not Item.Is_Message
-              and then Item.Short_Name /= "ConfigurationParams"
-              and then Item.Short_Name /= "Integer_Or_Virtual_String"
-              and then Item.Owner.Is_Empty
-              and then (Tipe.Union.Kind /= reference or else
-                         not Model.Is_Mixin (Tipe.Union.reference.name))
-            then
+            if Filter_Private (Tipe, Item) then
                Write_Type (Model, Done, Item.Short_Name, Tipe, Spec => True);
             end if;
          end;
       end loop;
 
+      Put ("function ""-"" (L, R : Interfaces.Integer_64) ");
+      Put_Line ("return Interfaces.Integer_64");
+      Put_Line ("renames Interfaces.""-"";"); New_Line;
+
+      Put ("function ""+"" (L, R : Interfaces.Integer_64) ");
+      Put_Line ("return Interfaces.Integer_64");
+      Put_Line ("renames Interfaces.""+"";"); New_Line;
+
+      Put_Line ("end LSP.Inputs;");
+
+      --  Generating body: LSP.Inputs
+
+      Put_Lines (Model.License_Header, "--  ");
+      New_Line;
+
+      for J in 1 .. Part_Count loop
+         Put ("with LSP.Inputs.Part_");
+         Put (J);
+         Put_Line (";");
+      end loop;
+
+      New_Line;
+      Put_Line ("package body LSP.Inputs is");
+
       for Cursor in Done.Iterate loop
          declare
             Tipe : constant LSP_Gen.Entities.AType :=
@@ -658,40 +678,123 @@ package body LSP_Gen.Inputs is
             Item : constant LSP_Gen.Dependencies.Dependency_Info :=
               Done (Cursor);
          begin
-            if Tipe.Union.Kind = reference then
-               declare
-                  Value : constant LSP_Gen.Meta_Models.Top_Type :=
-                    Model.Get (Tipe.Union.reference.name);
-               begin
-                  case Value.Kind is
-                     when LSP_Gen.Meta_Models.Structure =>
-                        if not Model.Is_Mixin (Tipe.Union.reference.name) then
-                           Write_Type_Map (Model, Done, Tipe, Item.Short_Name);
-                           Write_Structure
-                             (Model, Done, Tipe.Union.reference.name);
-                        end if;
-                     when LSP_Gen.Meta_Models.Type_Alias =>
-                        Write_Type_Map
-                          (Model,
-                           Done,
-                           Value.Type_Alias.a_type,
-                           Item.Short_Name);
-
-                        Write_Type
-                          (Model, Done, Tipe.Union.reference.name,
-                           Value.Type_Alias.a_type, Spec => False);
-                     when LSP_Gen.Meta_Models.Enumeration =>
-                        Write_Enum (Value.Enumeration, Spec => False);
-                  end case;
-               end;
-            elsif Item.Owner.Is_Empty then
-               Write_Type_Map (Model, Done, Tipe, Item.Short_Name);
-               Write_Type (Model, Done, Item.Short_Name, Tipe, Spec => False);
+            if Filter_Message (Item) or else Filter_Private (Tipe, Item) then
+               --  Generate procedure NAME renames Part_X.NAME;
+               Write_Type (Model, Done, Item.Short_Name, Tipe, Stub => True);
             end if;
          end;
       end loop;
 
       Put_Line ("end LSP.Inputs;");
+
+      --  Generating spec: LSP.Inputs.Part_X
+      for J in 1 .. Part_Count loop
+         Put_Lines (Model.License_Header, "--  ");
+         New_Line;
+         Put ("package LSP.Inputs.Part_");
+         Put (J);
+         Put_Line (" is"); New_Line;
+
+         for Cursor in Done.Iterate loop
+            declare
+               Tipe : constant LSP_Gen.Entities.AType :=
+                 LSP_Gen.Dependencies.Dependency_Maps.Key (Cursor);
+               Item : constant LSP_Gen.Dependencies.Dependency_Info :=
+                 Done (Cursor);
+            begin
+               if Natural (Item.Short_Name.Hash mod Part_Count) = J - 1
+                 and then
+                   (Filter_Message (Item) or else Filter_Private (Tipe, Item))
+               then
+                  Write_Type
+                    (Model, Done, Item.Short_Name, Tipe, Spec => True);
+               end if;
+            end;
+         end loop;
+
+         Put ("end LSP.Inputs.Part_");
+         Put (J);
+         Put_Line (";");
+      end loop;
+
+      --  Generating body: LSP.Inputs.Part_X
+      for J in 1 .. Part_Count loop
+         Put_Lines (Model.License_Header, "--  ");
+         New_Line;
+         Put_Line ("pragma Ada_2022;");
+         Put_Line ("pragma Warnings (Off, ""is not referenced"");");
+         Put_Line ("with Interfaces;");
+         Put_Line ("with LSP.Input_Tools;");
+         Put_Line ("with VSS.Strings;");
+         Put_Line ("with VSS.JSON.Pull_Readers.Buffered;");
+         Put_Line ("with Minimal_Perfect_Hash;");
+         New_Line;
+
+         Put ("package body LSP.Inputs.Part_");
+         Put (J);
+         Put_Line (" is");
+         New_Line;
+
+         for Cursor in Done.Iterate loop
+            declare
+               Tipe : constant LSP_Gen.Entities.AType :=
+                 LSP_Gen.Dependencies.Dependency_Maps.Key (Cursor);
+               Item : constant LSP_Gen.Dependencies.Dependency_Info :=
+                 Done (Cursor);
+            begin
+               if Natural (Item.Short_Name.Hash mod Part_Count) /= J - 1
+                 or else
+                   (not Filter_Message (Item)
+                    and then not Filter_Private (Tipe, Item))
+               then
+                  null;  --  Skip
+
+               elsif Tipe.Union.Kind = reference then
+                  declare
+                     Value : constant LSP_Gen.Meta_Models.Top_Type :=
+                       Model.Get (Tipe.Union.reference.name);
+                  begin
+                     case Value.Kind is
+
+                     when LSP_Gen.Meta_Models.Structure =>
+                           if not
+                             Model.Is_Mixin (Tipe.Union.reference.name)
+                           then
+                              Write_Type_Map
+                                (Model, Done, Tipe, Item.Short_Name);
+
+                              Write_Structure
+                                (Model, Done, Tipe.Union.reference.name);
+                           end if;
+
+                        when LSP_Gen.Meta_Models.Type_Alias =>
+                           Write_Type_Map
+                             (Model,
+                              Done,
+                              Value.Type_Alias.a_type,
+                              Item.Short_Name);
+
+                           Write_Type
+                             (Model, Done, Tipe.Union.reference.name,
+                              Value.Type_Alias.a_type, Spec => False);
+
+                        when LSP_Gen.Meta_Models.Enumeration =>
+                           Write_Enum (Value.Enumeration, Spec => False);
+                     end case;
+                  end;
+               elsif Item.Owner.Is_Empty then
+                  Write_Type_Map (Model, Done, Tipe, Item.Short_Name);
+
+                  Write_Type
+                    (Model, Done, Item.Short_Name, Tipe, Spec => False);
+               end if;
+            end;
+         end loop;
+
+         Put ("end LSP.Inputs.Part_");
+         Put (J);
+         Put_Line (";");
+      end loop;
    end Write;
 
    ----------------
@@ -1574,7 +1677,8 @@ package body LSP_Gen.Inputs is
       Done  : LSP_Gen.Dependencies.Dependency_Map;
       Name  : VSS.Strings.Virtual_String;
       Tipe  : LSP_Gen.Entities.AType;
-      Spec  : Boolean)
+      Spec  : Boolean := False;
+      Stub  : Boolean := False)
    is
       use all type LSP_Gen.Mappings.Or_Mapping_Kind;
 
@@ -1605,6 +1709,13 @@ package body LSP_Gen.Inputs is
       end if;
 
       if Spec then
+         Put_Line (";");
+      elsif Stub then
+         New_Line;
+         Put (" renames Part_");
+         Put (Natural (Name.Hash mod Part_Count) + 1);
+         Put (".Read_");
+         Put (Name);
          Put_Line (";");
       elsif Tipe.Union.Kind = reference then
          Put_Line (" renames");
