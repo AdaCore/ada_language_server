@@ -9,6 +9,7 @@ import { getOrAskForProgram } from './debugConfigProvider';
 import { adaExtState, mainOutputChannel } from './extension';
 import { getProjectFileRelPath } from './helpers';
 import { CustomTaskDefinition, getEnclosingSymbol } from './taskProviders';
+import { LanguageClient } from 'vscode-languageclient/node';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
@@ -44,6 +45,24 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
             const p = await getOrAskForProgram();
             return p;
         })
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'ada.addMissingDirsToWorkspace',
+            async (
+                // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+                displayPopupWhenMissing: boolean = false,
+                // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+                displayPopupOnSuccess: boolean = true
+            ) => {
+                await checkSrcDirectories(
+                    clients.adaClient,
+                    displayPopupWhenMissing,
+                    displayPopupOnSuccess
+                );
+            }
+        )
     );
 }
 /**
@@ -335,3 +354,110 @@ const otherFileHandler = () => {
         ],
     });
 };
+
+/**
+ *
+ * Check if we need to add some source directories to the workspace (e.g: when imported
+ * projects' source directories are not placed under the root project's directory).
+ * Do nothing if the user did not setup any workspace file.
+ *
+ * @param alsClient - the running ALS client
+ * @param displayPopupWhenMissing - whether or not we should display a yes/no popup
+ * when missing directories
+ * @param displayPopupOnSuccess - whether or not we should display a popup to notify
+ * the user that there is no missing directory
+ */
+export async function checkSrcDirectories(
+    alsClient: LanguageClient,
+    displayPopupWhenMissing = true,
+    displayPopupOnSuccess = true
+) {
+    type ALSSourceDirDescription = {
+        name: string;
+        uri: string;
+    };
+
+    const foldersInSettings = vscode.workspace.getConfiguration().get('folders');
+
+    //  Don't propose any popup if we multi-root workspace folders are already set
+    //  explicitly in the workspace's settings.
+    if (foldersInSettings === undefined) {
+        const sourceDirs: ALSSourceDirDescription[] = (await alsClient.sendRequest(
+            ExecuteCommandRequest.type,
+            {
+                command: 'als-source-dirs',
+            }
+        )) as ALSSourceDirDescription[];
+
+        const isSubdirectory = (dir: string, parent: string) => {
+            //  Use lower-case on Windows since drives can be specified in VS Code
+            //  either with lower or upper case characters.
+            if (process.platform == 'win32') {
+                dir = dir.toLowerCase();
+                parent = parent.toLowerCase();
+            }
+
+            return dir.startsWith(parent + '/');
+        };
+
+        const workspaceFolders = vscode.workspace.workspaceFolders ?? [];
+        const workspaceDirsToAdd: { uri: vscode.Uri; name?: string | undefined }[] = [];
+
+        for (const source_dir of sourceDirs) {
+            const sourceDirURI = vscode.Uri.parse(source_dir.uri);
+            const sourceDirPath = sourceDirURI.path;
+
+            //  If the source directory is not under one of the workspace folders and
+            //  if it's not already present in the workspace's folders, push
+            //  this source directory to the workspace folders to add later.
+            if (
+                !workspaceFolders.some(
+                    (workspaceFolder) =>
+                        workspaceFolder.uri.path == sourceDirPath ||
+                        isSubdirectory(sourceDirPath, workspaceFolder.uri.path)
+                )
+            ) {
+                workspaceDirsToAdd.push({
+                    name: source_dir.name,
+                    uri: sourceDirURI,
+                });
+            }
+        }
+
+        //  If there are some source directories missing in the workspace, ask the user
+        //  to add them in his workspace.
+        if (workspaceDirsToAdd.length > 0) {
+            let doAdd = true;
+
+            if (displayPopupWhenMissing) {
+                await vscode.window
+                    .showInformationMessage(
+                        'Some project source directories are not \
+                        listed in your workspace: do you want to add them?',
+                        'Yes',
+                        'No'
+                    )
+                    .then((answer) => {
+                        if (answer !== 'Yes') {
+                            doAdd = false;
+                        }
+                    });
+            }
+
+            if (doAdd) {
+                vscode.workspace.updateWorkspaceFolders(
+                    vscode.workspace.workspaceFolders
+                        ? vscode.workspace.workspaceFolders.length
+                        : 0,
+                    null,
+                    ...workspaceDirsToAdd
+                );
+            }
+        } else if (displayPopupOnSuccess) {
+            void vscode.window.showInformationMessage(
+                "All the project's source directories are already \
+                available in the current workspace."
+            );
+        }
+    }
+}

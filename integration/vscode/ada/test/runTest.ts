@@ -9,7 +9,7 @@ async function main() {
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
-    const testsuites = ['general', 'gnattest'];
+    const testsuites = ['general', 'gnattest', 'workspace_missing_dirs'];
 
     let someTestsuiteFailed = false;
 
@@ -21,7 +21,7 @@ async function main() {
             `out/test/suite/${testsuite}`
         );
 
-        // The workspace that will be openned in VSCode
+        // The workspace that will be opened in VSCode
         // Passed as an argument
         const testWorkspace = path.resolve(
             extensionDevelopmentPath,
