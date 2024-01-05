@@ -16,11 +16,10 @@
 -- of the license.                                                          --
 ----------------------------------------------------------------------------*/
 
-import * as process from 'process';
 import * as vscode from 'vscode';
 
 import { MESSAGE } from 'triple-beam';
-import { ExecuteCommandRequest, LanguageClient, Middleware } from 'vscode-languageclient/node';
+import { Middleware } from 'vscode-languageclient/node';
 import winston, { format, transports } from 'winston';
 import Transport from 'winston-transport';
 import { ExtensionState } from './ExtensionState';
@@ -172,7 +171,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
     /**
      * This can display a dialog to the User so don't wait on the result.
      */
-    void checkSrcDirectories(adaExtState.adaClient);
+    void vscode.commands.executeCommand('ada.addMissingDirsToWorkspace', true, false);
 }
 
 function setUpLogging(context: vscode.ExtensionContext) {
@@ -253,91 +252,4 @@ function setUpLogging(context: vscode.ExtensionContext) {
 
 export async function deactivate() {
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, undefined);
-}
-
-type ALSSourceDirDescription = {
-    name: string;
-    uri: string;
-};
-
-/**
- *
- * Check if we need to add some source directories to the workspace (e.g: when imported
- * projects' source directories are not placed under the root project's directory).
- * Do nothing is the user did not setup any workspace file.
- *
- */
-async function checkSrcDirectories(alsClient: LanguageClient) {
-    const foldersInSettings = vscode.workspace.getConfiguration().get('folders') ?? [];
-
-    //  Don't propose any popup if we multi-root workspace folders are already set
-    //  explicitly in the workspace's settings.
-    if (foldersInSettings !== undefined) {
-        const sourceDirs: ALSSourceDirDescription[] = (await alsClient.sendRequest(
-            ExecuteCommandRequest.type,
-            {
-                command: 'als-source-dirs',
-            }
-        )) as ALSSourceDirDescription[];
-
-        const isSubdirectory = (dir: string, parent: string) => {
-            //  Use lower-case on Windows since drives can be specified in VS Code
-            //  either with lower or upper case characters.
-            if (process.platform == 'win32') {
-                dir = dir.toLowerCase();
-                parent = parent.toLowerCase();
-            }
-
-            return dir.startsWith(parent + '/');
-        };
-
-        const workspaceFolders = vscode.workspace.workspaceFolders ?? [];
-        const workspaceDirsToAdd: { uri: vscode.Uri; name?: string | undefined }[] = [];
-
-        for (const source_dir of sourceDirs) {
-            const sourceDirURI = vscode.Uri.parse(source_dir.uri);
-            const sourceDirPath = sourceDirURI.path;
-
-            //  If the source directory is not under one of the workspace folders and
-            //  if it's not already present in the workspace's folders, push
-            //  this source directory to the workspace folders to add later.
-            if (
-                !workspaceFolders.some(
-                    (workspaceFolder) =>
-                        workspaceFolder.uri.path == sourceDirPath ||
-                        isSubdirectory(sourceDirPath, workspaceFolder.uri.path)
-                )
-            ) {
-                workspaceDirsToAdd.push({
-                    name: source_dir.name,
-                    uri: sourceDirURI,
-                });
-            }
-        }
-
-        //  If there are some source directories missing in the workspace, ask the user
-        //  to add them in his workspace.
-        if (workspaceDirsToAdd.length > 0) {
-            await vscode.window
-                .showInformationMessage(
-                    'Some project source directories are not \
-                    listed in your workspace: do you want to add them?',
-                    'Yes',
-                    'No'
-                )
-                .then((answer) => {
-                    if (answer === 'Yes') {
-                        for (const workspaceDir of workspaceDirsToAdd) {
-                            vscode.workspace.updateWorkspaceFolders(
-                                vscode.workspace.workspaceFolders
-                                    ? vscode.workspace.workspaceFolders.length
-                                    : 0,
-                                null,
-                                workspaceDir
-                            );
-                        }
-                    }
-                });
-        }
-    }
 }

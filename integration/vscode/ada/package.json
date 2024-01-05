@@ -694,6 +694,11 @@
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
+                "command": "ada.addMissingDirsToWorkspace",
+                "title": "Ada: Add missing source directories to workspace",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
                 "command": "ada.runMainAsk",
                 "title": "Ada: Build and run project main...",
                 "icon": "$(run-all)",
