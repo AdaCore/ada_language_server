@@ -18,7 +18,7 @@ suite('Extensions Advanced Test Suite', function () {
 
             // Execute the 'ada.addMissingDirsToWorkspace' command, that imports the missing
             // source directories into the current workspace if needed
-            await vscode.commands.executeCommand('ada.addMissingDirsToWorkspace', false);
+            await vscode.commands.executeCommand('ada.addMissingDirsToWorkspace', false, false);
 
             // Check that we have 3 workspace folders after executing the command
             folders = vscode.workspace.workspaceFolders;
