@@ -1,5 +1,6 @@
 stages:
-  - build_and_test
+  - build
+  - test
   - check
   - run_downstream_ci
 
@@ -17,18 +18,41 @@ issue-check:
     - require_issue # launch the verification
 
 .basic-setup:
-  # Use generic_anod_ci here.
+  # Basic invocation of generic_anod_ci.
   - generic_anod_ci
   - cat /tmp/ci_env.sh
   - . /tmp/ci_env.sh
 
+.basic-test-setup:
+  # Use of generic_anod_ci for the purposes of testing, assuming
+  # the presence of a package containing the build.
+
+  # Unpack the built package
+  - (cd /tmp && tar -xzf $CI_PROJECT_DIR/wave-build-export.tar.gz)
+  # Make sure to remove the package, lest it be considered source by anod
+  - rm $CI_PROJECT_DIR/wave-build-export.tar.gz
+
+  # Basic invocation of generic_anod_ci.
+  - generic_anod_ci
+  - cat /tmp/ci_env.sh
+  - . /tmp/ci_env.sh
+
+  # Use the packaged components in our sandbox
+  - anod-copy-components /tmp/wave-build-export $ANOD_DEFAULT_SANDBOX_DIR
+
+  # generic_anod_ci sets the resolver to "smart_resolver" - this conflicts
+  # with our intention to use the pre-build package(s): use the "minimal"
+  # resolver for this.
+  - anod tune --minimal --plan /tmp/plans
+
+
 # Build and test with ANOD
 # TODO: add a build and test based on Alire in parallel to this.
-build_and_test:
+build:
   services:
     - image:systemgtk
     - cpu:8
-  stage: build_and_test
+  stage: build
   interruptible: true
   rules:
     - if: $CI_PIPELINE_SOURCE == 'push'
@@ -49,21 +73,36 @@ build_and_test:
     - anod build vscode-extension $ACI_TRACK_QUALIFIER --minimal --latest
     - echo -e "\e[0Ksection_end:`date +%s`:build_vscode\r\e[0K"
 
+    # Export the components and make a package out of them
+    - anod-copy-components --standalone-export $ANOD_DEFAULT_SANDBOX_DIR /tmp/wave-build-export
+    - (cd /tmp/ && tar -czf $CI_PROJECT_DIR/wave-build-export.tar.gz wave-build-export)
+
+  artifacts:
+    when: on_success
+    paths:
+      - wave-build-export.tar.gz
+
+
+test-als:
+  services:
+    - image:systemgtk
+    - cpu:8
+  stage: test
+  interruptible: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'push'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'pipeline'
+  script:
+    - !reference [.basic-test-setup]
+
     - echo -e "\e[0Ksection_start:`date +%s`:test_als[collapsed=true]\r\e[0Kanod test als"
     # Run ALS tests
     - anod test als $ACI_TRACK_QUALIFIER
 
-    # TODO: it would be nice to have a simpler way of getting this info
-    - ALS_BUILD_SPACE_NAME=`anod eval als --primitive test build_space_name $ACI_TRACK_QUALIFIER | tr -d "'"`
-    - ALS_BUILD_SPACE=$ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/$ALS_BUILD_SPACE_NAME
+    - ALS_BUILD_SPACE=$(anod info test als $ACI_TRACK_QUALIFIER --show working_dir)
     - echo -e "\e[0Ksection_end:`date +%s`:test_als\r\e[0K"
-
-    - echo -e "\e[0Ksection_start:`date +%s`:test_vscode[collapsed=true]\r\e[0Kanod test vscode-extension"
-    # Run VSCode tests
-    - anod test vscode-extension $ACI_TRACK_QUALIFIER --minimal
-    - VSCODE_BUILD_SPACE_NAME=`anod eval --primitive test $ACI_TRACK_QUALIFIER vscode-extension build_space_name | tr -d "'"`
-    - VSCODE_BUILD_SPACE=$ANOD_DEFAULT_SANDBOX_DIR/x86_64-linux/$VSCODE_BUILD_SPACE_NAME
-    - echo -e "\e[0Ksection_end:`date +%s`:test_vscode\r\e[0K"
 
     # Job artifacts must be produced in the project directory, so we do it at
     # the end of the job to avoid changing Anod checkouts halfway through the
@@ -74,6 +113,44 @@ build_and_test:
       --failure-exit-code 1
       --xunit-output $CI_PROJECT_DIR/als_xunit_output.xml
       $ALS_BUILD_SPACE/results/new/ || FAILED=true
+    # Include Anod logs
+    - cp -r $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
+    - echo -e "\e[0Ksection_end:`date +%s`:prepare_artifacts\r\e[0K"
+
+    - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
+
+  artifacts:
+    when: always #  Upload on errors too
+    reports:
+      junit: [als_xunit_output.xml]
+    paths:
+      - anod-logs/
+
+test-vscode-extension:
+  services:
+    - image:systemgtk
+    - cpu:8
+  stage: test
+  interruptible: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'push'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'pipeline'
+  script:
+    - !reference [.basic-test-setup]
+
+    # Run VSCode extension tests
+    - echo -e "\e[0Ksection_start:`date +%s`:test_vscode[collapsed=true]\r\e[0Kanod test vscode-extension"
+    - anod test vscode-extension --qualifier=$ACI_TRACK_QUALIFIER --minimal
+
+    - VSCODE_BUILD_SPACE=$(anod info test vscode-extension $ACI_TRACK_QUALIFIER --show working_dir)
+    - echo -e "\e[0Ksection_end:`date +%s`:test_vscode\r\e[0K"
+
+    # Job artifacts must be produced in the project directory, so we do it at
+    # the end of the job to avoid changing Anod checkouts halfway through the
+    # job and triggering useless rebuilds.
+    - echo -e "\e[0Ksection_start:`date +%s`:prepare_artifacts[collapsed=true]\r\e[0KPrepare job artifacts"
     # Process the vscode-extension test report
     - e3-testsuite-report
       --failure-exit-code 1
@@ -83,15 +160,12 @@ build_and_test:
     - cp -r $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
     - echo -e "\e[0Ksection_end:`date +%s`:prepare_artifacts\r\e[0K"
 
-    - if [ ! -z ${FAILED+x} ]; then cat $CI_PROJECT_DIR/als_xunit_output.xml; fi
-    - if [ ! -z ${FAILED+x} ]; then cat $CI_PROJECT_DIR/vscode_xunit_output.xml; fi
-
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 
   artifacts:
     when: always #  Upload on errors too
     reports:
-      junit: [als_xunit_output.xml, vscode_xunit_output.xml]
+      junit: [vscode_xunit_output.xml]
     paths:
       - anod-logs/
 
