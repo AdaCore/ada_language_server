@@ -39,10 +39,12 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
 
     // This is a hidden command that gets called in the default debug
     // configuration snippet that gets offered in the launch.json file.
+    // It is expected to return the relative path of the main program chosen for
+    // debugging.
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.getOrAskForProgram', async () => {
             const p = await getOrAskForProgram();
-            return p;
+            return p?.execRelPath();
         })
     );
 

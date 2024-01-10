@@ -21,8 +21,9 @@ import { basename } from 'path';
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
 import { adaExtState } from './extension';
-import { getAdaMains, getProjectFile } from './helpers';
-import { task } from 'fp-ts';
+import { AdaMain, getAdaMains, getProjectFile } from './helpers';
+
+export const ADA_TASK_TYPE = 'ada';
 
 /**
  * Callback to provide an extra argument for a tool
@@ -214,6 +215,9 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
         title: 'Build and run main - ',
     },
 };
+
+// eslint-disable-next-line max-len
+export const BUILD_PROJECT_TASK_NAME = `${ADA_TASK_TYPE}: ${allTaskProperties['buildProject'].title}`;
 
 export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
 async function getProjectFromConfigOrALS(): Promise<string> {
@@ -424,9 +428,7 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                                 main: main.mainRelPath(),
                             },
                         };
-                        const name = `${allTaskProperties['buildMain'].title}${basename(
-                            main.mainRelPath()
-                        )}`;
+                        const name = getBuildTaskPlainName(main);
                         const cmdLine = await buildFullCommandLine(name, def);
                         this.tasks?.push(
                             new vscode.Task(
@@ -448,6 +450,7 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                                 projectFile: await computeProject(),
                                 main: main.mainRelPath(),
                             },
+                            // dependsOn: getBuildTaskName(main),
                         };
                         const name = `${allTaskProperties['buildAndRunMain'].title}${basename(
                             main.mainRelPath()
@@ -510,6 +513,20 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
 
         return undefined;
     }
+}
+
+/**
+ * The name of the build task of a main, without the task type.
+ */
+function getBuildTaskPlainName(main: AdaMain) {
+    return `${allTaskProperties['buildMain'].title}${main.mainRelPath()}`;
+}
+
+/**
+ * The full name of the build task of a main, including the task type.
+ */
+export function getBuildTaskName(main: AdaMain) {
+    return `ada: ${getBuildTaskPlainName(main)}`;
 }
 
 export function createSparkTaskProvider(): ConfigurableTaskProvider {

@@ -2,6 +2,7 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
 import { AdaMain, getAdaMains, getProjectFile } from './helpers';
+import { BUILD_PROJECT_TASK_NAME, getBuildTaskName } from './taskProviders';
 
 /**
  * Ada Configuration for a debug session
@@ -9,15 +10,16 @@ import { AdaMain, getAdaMains, getProjectFile } from './helpers';
 interface AdaConfig extends vscode.DebugConfiguration {
     MIMode: string;
     program: string;
-    cwd: string;
-    targetArchitecture: string;
-    stopAtEntry: boolean;
-    args: string[];
-    setupCommands: {
+    cwd?: string;
+    targetArchitecture?: string;
+    stopAtEntry?: boolean;
+    args?: string[];
+    setupCommands?: {
         description: string;
         text: string;
         ignoreFailures: boolean;
     }[];
+    processId?: string;
 }
 
 /**
@@ -53,9 +55,9 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
                 ): Promise<vscode.DebugConfiguration[]> {
                     const quickpick = await createQuickPickItems('Build & Debug');
 
-                    const configs: vscode.DebugConfiguration[] = quickpick.map((i) => {
+                    const configs: AdaConfig[] = quickpick.flatMap((i) => {
                         assert(i.adaMain);
-                        return initializeConfig(i.adaMain.execFullPath, i.adaMain.mainRelPath());
+                        return [initializeConfig(i.adaMain), createAttachConfig(i.adaMain)];
                     });
 
                     return configs;
@@ -89,27 +91,23 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
  * 'program' parameter.
  * @returns an AdaConfig
  */
-function initializeConfig(program?: string, main?: string, name?: string): AdaConfig {
+function initializeConfig(main: AdaMain, name?: string): AdaConfig {
     // TODO it would be nice if this and the package.json configuration snippet
     // were the same.
     const config: AdaConfig = {
         type: 'cppdbg',
-        name:
-            name ??
-            (main
-                ? `Ada: Debug main - ${main}`
-                : program
-                ? `Ada: Debug executable - ${program.replace('${workspaceFolder}/', '')}`
-                : 'Ada: Debugger Launch'),
+        name: name ?? (main ? `Ada: Debug main - ${main.mainRelPath()}` : 'Ada: Debugger Launch'),
         request: 'launch',
         targetArchitecture: process.arch,
         cwd: '${workspaceFolder}',
-        program: program ?? '${workspaceFolder}/${command:ada.getOrAskForProgram}',
+        program: main
+            ? `\${workspaceFolder}/${main.execRelPath()}`
+            : '${workspaceFolder}/${command:ada.getOrAskForProgram}',
         stopAtEntry: false,
         externalConsole: false,
         args: [],
         MIMode: 'gdb',
-        preLaunchTask: 'ada: Build current project',
+        preLaunchTask: main ? getBuildTaskName(main) : BUILD_PROJECT_TASK_NAME,
         setupCommands: setupCmd,
     };
 
@@ -155,12 +153,7 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
                     const item = quickpick[i];
                     if (item != generateAll) {
                         assert(item.adaMain);
-                        configs.push(
-                            initializeConfig(
-                                `\${workspaceFolder}/${item.adaMain.execRelPath()}`,
-                                item.adaMain.mainRelPath()
-                            )
-                        );
+                        configs.push(initializeConfig(item.adaMain));
                     }
                 }
             } else if (selectedProgram) {
@@ -169,10 +162,7 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
                 // The cppdbg debug configuration exepects the executable to be
                 // a full path rather than a path relative to the specified
                 // cwd. That is why we include ${workspaceFolder}.
-                const configuration = initializeConfig(
-                    `\${workspaceFolder}/${selectedProgram.adaMain.execRelPath()}`,
-                    selectedProgram.label
-                );
+                const configuration = initializeConfig(selectedProgram.adaMain);
                 configs.push(configuration);
             } else {
                 return Promise.reject('Cancelled');
@@ -212,10 +202,10 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
             // configuration on the fly.
             return debugConfiguration;
         } else {
-            const exec = await getOrAskForProgram();
+            const main = await getOrAskForProgram();
 
-            if (exec) {
-                return initializeConfig(`\${workspaceFolder}/${exec}`);
+            if (main) {
+                return initializeConfig(main);
             }
         }
 
@@ -308,23 +298,21 @@ async function assertProjectHasMains(mains?: AdaMain[]) {
  * matches one of the mains, the corresponding executable is returned.
  *
  * Otherwise, the list of mains is offered to the user as a QuickPicker to
- * choose a main file. The executable corresponding to the selected main
- * file is returned.
- *
- * Note that paths are returned relative to the workspace.
+ * choose a main file. The object corresponding to the selected main file is
+ * returned.
  *
  * @param mains - a list of AdaMains if available at the caller site, otherwise
  * it is computed by the call.
- * @returns the path of the executable to debug *relative to the workspace*,
- * or *undefined* if no selection was made.
+ * @returns the object representing the selected main, or *undefined* if no
+ * selection was made.
  */
-export async function getOrAskForProgram(mains?: AdaMain[]): Promise<string | undefined> {
+export async function getOrAskForProgram(mains?: AdaMain[]): Promise<AdaMain | undefined> {
     // Compute list of mains if not provided by the caller
     mains = mains ?? (await getAdaMains());
 
     await assertProjectHasMains(mains);
 
-    if (mains.length == 1) return mains[0].execRelPath();
+    if (mains.length == 1) return mains[0];
 
     // Check if the current file matches one of the mains of the project. If
     // so, use it.
@@ -332,7 +320,7 @@ export async function getOrAskForProgram(mains?: AdaMain[]): Promise<string | un
     if (currentFile != undefined) {
         const adaMain = await getAdaMainForSourceFile(currentFile, mains);
         if (adaMain) {
-            return adaMain.execRelPath();
+            return adaMain;
         }
     }
 
@@ -343,7 +331,7 @@ export async function getOrAskForProgram(mains?: AdaMain[]): Promise<string | un
         placeHolder: 'Select a main file to debug',
     });
     if (selectedProgram) {
-        return selectedProgram.adaMain?.execRelPath();
+        return selectedProgram.adaMain;
     }
 
     return undefined;
@@ -365,4 +353,16 @@ async function getAdaMainForSourceFile(
     mains = mains ?? (await getAdaMains());
 
     return mains.find((val) => srcPath == val.mainFullPath);
+}
+
+function createAttachConfig(adaMain: AdaMain): AdaConfig {
+    return {
+        name: `Ada: Attach debugger to running process - ${adaMain.mainRelPath()}`,
+        type: 'cppdbg',
+        request: 'attach',
+        program: `\${workspaceFolder}/${adaMain.execRelPath()}`,
+        processId: '${command:pickProcess}',
+        MIMode: 'gdb',
+        preLaunchTask: adaMain ? getBuildTaskName(adaMain) : BUILD_PROJECT_TASK_NAME,
+    };
 }
