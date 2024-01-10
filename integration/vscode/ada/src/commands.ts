@@ -9,7 +9,6 @@ import { getOrAskForProgram } from './debugConfigProvider';
 import { adaExtState, mainOutputChannel } from './extension';
 import { getProjectFileRelPath } from './helpers';
 import { CustomTaskDefinition, getEnclosingSymbol } from './taskProviders';
-import { LanguageClient } from 'vscode-languageclient/node';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
@@ -52,15 +51,11 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
             'ada.addMissingDirsToWorkspace',
             async (
                 // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-                displayPopupWhenMissing: boolean = false,
+                atStartup: boolean = false,
                 // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-                displayPopupOnSuccess: boolean = true
+                displayYesNoPopup: boolean = true
             ) => {
-                await checkSrcDirectories(
-                    clients.adaClient,
-                    displayPopupWhenMissing,
-                    displayPopupOnSuccess
-                );
+                await checkSrcDirectories(atStartup, displayYesNoPopup);
             }
         )
     );
@@ -362,26 +357,27 @@ const otherFileHandler = () => {
  * Do nothing if the user did not setup any workspace file.
  *
  * @param alsClient - the running ALS client
- * @param displayPopupWhenMissing - whether or not we should display a yes/no popup
+ * @param atStartup - whether or not the command is triggered when activating the extension
+ * or explicitly by the user later via the Command Palette
+ * @param displayYesNoPopup - whether or not we should display a yes/no popup
  * when missing directories
- * @param displayPopupOnSuccess - whether or not we should display a popup to notify
- * the user that there is no missing directory
  */
-export async function checkSrcDirectories(
-    alsClient: LanguageClient,
-    displayPopupWhenMissing = true,
-    displayPopupOnSuccess = true
-) {
+export async function checkSrcDirectories(atStartup = false, displayYesNoPopup = true) {
     type ALSSourceDirDescription = {
         name: string;
         uri: string;
     };
 
     const foldersInSettings = vscode.workspace.getConfiguration().get('folders');
+    const alsClient = adaExtState.adaClient;
+    const doNotShowAgainKey = 'ada.addMissingDirsToWorkspace.doNotShowAgain';
+    const doNotShowAgain = adaExtState.context.workspaceState.get(doNotShowAgainKey);
 
     //  Don't propose any popup if we multi-root workspace folders are already set
-    //  explicitly in the workspace's settings.
-    if (foldersInSettings === undefined) {
+    //  explicitly in the workspace's settings, or if the command has been
+    //  triggered at startup while the user previously clicked on the
+    //  'Don't show again' button for this workspace
+    if (foldersInSettings === undefined && !(atStartup && doNotShowAgain)) {
         const sourceDirs: ALSSourceDirDescription[] = (await alsClient.sendRequest(
             ExecuteCommandRequest.type,
             {
@@ -429,17 +425,30 @@ export async function checkSrcDirectories(
         if (workspaceDirsToAdd.length > 0) {
             let doAdd = true;
 
-            if (displayPopupWhenMissing) {
+            if (displayYesNoPopup) {
+                const buttons: ('Yes' | 'No' | "Don't Show Again")[] = ['Yes', 'No'];
+
+                //  Show the 'Don't Show Again' button only at startup
+                if (atStartup) {
+                    buttons.push("Don't Show Again");
+                }
+
                 await vscode.window
                     .showInformationMessage(
                         'Some project source directories are not \
-                        listed in your workspace: do you want to add them?',
-                        'Yes',
-                        'No'
+                    listed in your workspace: do you want to add them?',
+                        ...buttons
                     )
                     .then((answer) => {
                         if (answer !== 'Yes') {
                             doAdd = false;
+
+                            if (answer === "Don't Show Again") {
+                                void adaExtState.context.workspaceState.update(
+                                    doNotShowAgainKey,
+                                    true
+                                );
+                            }
                         }
                     });
             }
@@ -453,7 +462,7 @@ export async function checkSrcDirectories(
                     ...workspaceDirsToAdd
                 );
             }
-        } else if (displayPopupOnSuccess) {
+        } else if (!atStartup) {
             void vscode.window.showInformationMessage(
                 "All the project's source directories are already \
                 available in the current workspace."

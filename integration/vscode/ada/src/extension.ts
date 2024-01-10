@@ -171,7 +171,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
     /**
      * This can display a dialog to the User so don't wait on the result.
      */
-    void vscode.commands.executeCommand('ada.addMissingDirsToWorkspace', true, false);
+    void vscode.commands.executeCommand('ada.addMissingDirsToWorkspace', true);
 }
 
 function setUpLogging(context: vscode.ExtensionContext) {
