@@ -830,6 +830,13 @@ package body LSP.Ada_Documents is
       procedure Store_Span (Span : LSP.Structures.A_Range);
       --  Include Span to the result .
 
+      function Traverse_Node
+        (Node  : Ada_Node;
+         Visit : access function (Node : Ada_Node'Class) return Visit_Status)
+           return Visit_Status;
+      --  The same as Libadalang.Analysis.Traverse, but without raising
+      --  exception on a null node.
+
       -----------
       -- Parse --
       -----------
@@ -1007,12 +1014,53 @@ package body LSP.Ada_Documents is
          end if;
       end Store_Span;
 
-      Token : Token_Reference;
-      Span  : LSP.Structures.A_Range;
+      -------------------
+      -- Traverse_Node --
+      -------------------
+
+      function Traverse_Node
+        (Node  : Ada_Node;
+         Visit : access function (Node : Ada_Node'Class) return Visit_Status)
+           return Visit_Status
+      is
+         Status : Visit_Status := Into;
+      begin
+         if not Node.Is_Null then
+            Status := Visit (Node);
+            --  Skip processing the child nodes if the returned status is Over
+            --  or Stop. In the former case the previous call to Visit has
+            --  taken care of processing the needed childs, and in the latter
+            --  case we must immediately stop processing the tree.
+            if Status = Into then
+               for I in 1 .. Children_Count (Node) loop
+                  declare
+                     Cur_Child : constant Ada_Node :=
+                       Child (Node, I);
+                  begin
+                     if not Cur_Child.Is_Null then
+                        Status := Traverse_Node (Cur_Child, Visit);
+                        exit when Status /= Into;
+                     end if;
+                  end;
+               end loop;
+            end if;
+         end if;
+
+         if Status = Stop then
+            return Stop;
+            --  At this stage the Over status has no sense and we just continue
+            --  processing the tree.
+         else
+            return Into;
+         end if;
+      end Traverse_Node;
+
+      Token  : Token_Reference;
+      Span   : LSP.Structures.A_Range;
+      Ignore : constant Visit_Status :=
+        Traverse_Node (Self.Unit (Context).Root, Parse'Access);
 
    begin
-      Traverse (Self.Unit (Context).Root, Parse'Access);
-
       if not Comments then
          --  do not process comments
          return;
