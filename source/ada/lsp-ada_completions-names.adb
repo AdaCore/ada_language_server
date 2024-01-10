@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -18,6 +18,7 @@
 with Langkit_Support.Errors;
 
 with VSS.Strings;
+with VSS.Transformers.Caseless;
 
 with LSP.Ada_Completions.Filters;
 
@@ -185,7 +186,8 @@ package body LSP.Ada_Completions.Names is
                   elsif Dotted_Node.Kind in
                        Libadalang.Common.Ada_Dotted_Name_Range
                     or else Name.Starts_With
-                      (Prefix, VSS.Strings.Identifier_Caseless)
+                      (Prefix,
+                       VSS.Transformers.Caseless.To_Identifier_Caseless)
                   then
                      Completion_Count := Completion_Count + 1;
 

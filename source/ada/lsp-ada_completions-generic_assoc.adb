@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2023, AdaCore                     --
+--                     Copyright (C) 2022-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -23,6 +23,7 @@ with LSP.Ada_Documents;
 with LSP.Enumerations;
 with VSS.Strings.Character_Iterators;
 with VSS.Strings.Conversions;
+with VSS.Transformers.Caseless;
 with VSS.Unicode;
 
 pragma Warnings (Off, "is not referenced");
@@ -265,7 +266,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                        or else
                          Name.Starts_With
                            (Completion_Prefix,
-                            VSS.Strings.Identifier_Caseless)
+                            VSS.Transformers.Caseless.To_Identifier_Caseless)
                      then
                         --  Snippet Format: "Name => "
                         Item.label := Name;
