@@ -1,8 +1,8 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
--- procedyur                                                                         --
+--                     Copyright (C) 2023-2024, AdaCore                     --
+--                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
 -- ware  Foundation;  either version 3,  or (at your option) any later ver- --
@@ -28,6 +28,7 @@ with Gpr_Parser_Support.Text;
 
 with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Generic_Integers;
+with VSS.Transformers.Casing;
 
 pragma Warnings (Off, "* is an internal GNAT unit");
 with System.Soft_Links; use System.Soft_Links;
@@ -252,7 +253,7 @@ package body LSP.GPR_Files is
          Is_Others => False,
          Compare   => (if Case_Sensitive
                        then VS_Text & "@" & Convert.Image (At_Pos).Name
-                       else VSS.Strings.To_Lowercase
+                       else VSS.Transformers.Casing.To_Lowercase.Transform
                          (VS_Text & "@" & Convert.Image (At_Pos).Name)),
          At_Pos    => At_Pos);
    end Create;
