@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2021-2023, AdaCore                     --
+--                     Copyright (C) 2021-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,6 +14,8 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
+
+with VSS.Transformers.Caseless; use VSS.Transformers.Caseless;
 
 package body LSP.Search.Start_Word is
 
@@ -54,15 +56,15 @@ package body LSP.Search.Start_Word is
    overriding function Match
      (Self : Start_Word_Search;
       Text : VSS.Strings.Virtual_String)
-      return Boolean
-   is
-      Kind : constant array (Boolean) of VSS.Strings.Case_Sensitivity :=
-        [False => VSS.Strings.Identifier_Caseless,
-         True  => VSS.Strings.Case_Sensitive];
-
+      return Boolean is
    begin
-      return Text.Starts_With (Self.Text, Kind (Self.Case_Sensitive))
-        xor Self.Negate;
+      case Self.Case_Sensitive is
+         when False =>
+            return Text.Starts_With (Self.Text, To_Identifier_Caseless)
+              xor Self.Negate;
+         when True =>
+            return Text.Starts_With (Self.Text) xor Self.Negate;
+      end case;
    end Match;
 
 end LSP.Search.Start_Word;

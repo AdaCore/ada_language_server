@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -19,6 +19,7 @@ with Ada.Strings.Wide_Wide_Unbounded;
 with Libadalang.Common;
 
 with VSS.Strings;
+with VSS.Transformers.Caseless;
 
 with LSP.Ada_Completions.Filters;
 with LSP.Enumerations;
@@ -72,7 +73,7 @@ package body LSP.Ada_Completions.Keywords is
 
             begin
                if Label.Starts_With
-                    (Prefix, VSS.Strings.Identifier_Caseless)
+                    (Prefix, VSS.Transformers.Caseless.To_Identifier_Caseless)
                then
                   Item.label := Label;
                   Item.insertTextFormat := (True, LSP.Enumerations.PlainText);
