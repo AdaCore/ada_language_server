@@ -695,7 +695,7 @@
             },
             {
                 "command": "ada.addMissingDirsToWorkspace",
-                "title": "Ada: Add missing source directories to workspace",
+                "title": "Ada: Add Missing Source Directories To Workspace",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {

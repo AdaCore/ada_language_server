@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2020-2021, AdaCore                     --
+--                     Copyright (C) 2020-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,6 +25,7 @@ with GNATCOLL.VFS;      use GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with VSS.Strings.Conversions;
+with VSS.Transformers.Caseless;
 
 with LSP.Enumerations;
 with LSP.Predefined_Completion.Ada2012;
@@ -201,7 +202,7 @@ package body LSP.Predefined_Completion is
    begin
       for Item of Items loop
          if Item.label.Starts_With
-           (Prefix, VSS.Strings.Identifier_Caseless)
+           (Prefix, VSS.Transformers.Caseless.To_Identifier_Caseless)
          then
             Result.Append (Item);
          end if;
