@@ -17,9 +17,7 @@
 
 import assert from 'assert';
 import commandExists from 'command-exists';
-import { basename } from 'path';
 import * as vscode from 'vscode';
-import { SymbolKind } from 'vscode';
 import { adaExtState } from './extension';
 import { AdaMain, getAdaMains, getProjectFile } from './helpers';
 
@@ -34,11 +32,16 @@ type ExtraArgCallback = () => Promise<string[]>;
  * Tool description
  */
 export interface TaskProperties {
-    command: string[]; //  Executable like gprbuild, gprclean, gnatprove,
-    // etc. and static list of arguments
-    extra: ExtraArgCallback | undefined; //  Dynamic argument callback if any
-    // Args and extra argument will be wrapped with getGnatArgs if this is set.
-    title: string; // Title like 'Examine project'
+    // Executable like gprbuild, gprclean, gnatprove, etc. and static list of
+    // arguments.
+    command: string[];
+    // Dynamic argument callback called at the time of task execution. Args and
+    // extra argument will be wrapped with getGnatArgs if this is set.
+    extra: ExtraArgCallback | undefined;
+    // Short title displayed in task list
+    title: string;
+    // Long description displayed in the task list on a separate line
+    description?: string;
 }
 
 /**
@@ -48,7 +51,7 @@ export interface TaskProperties {
  * or '' if not found.
  */
 const limitSubp = async (): Promise<string[]> => {
-    return getEnclosingSymbol(vscode.window.activeTextEditor, [SymbolKind.Function]).then(
+    return getEnclosingSymbol(vscode.window.activeTextEditor, [vscode.SymbolKind.Function]).then(
         (Symbol) => {
             if (Symbol) {
                 const subprogram_line: string = (Symbol.range.start.line + 1).toString();
@@ -81,8 +84,7 @@ async function computeProject(taskDef?: CustomTaskDefinition): Promise<string> {
 
 // Call commonArgs on args and append `-gnatef` to generate full file names in errors/warnings
 export const getDiagnosticArgs = (): string[] => {
-    const p_gnatef = ['"-cargs:ada"', '-gnatef'];
-    //  PowerShell splits arguments on `:`, so we need extra quotes around `-cargs:ada`
+    const p_gnatef = ['-cargs:ada', '-gnatef'];
     return p_gnatef;
 };
 
@@ -93,6 +95,7 @@ const adaTaskKinds = [
     'checkFile',
     'cleanProject',
     'buildMain',
+    'runMain',
     'buildAndRunMain',
 ] as const;
 type AdaTaskKinds = (typeof adaTaskKinds)[number];
@@ -126,11 +129,12 @@ export type AllTaskKinds = AdaTaskKinds | SparkTaskKinds;
 export interface CustomTaskDefinition extends vscode.TaskDefinition {
     configuration: {
         kind: AllTaskKinds;
-        projectFile: string;
+        projectFile?: string;
         args?: string[];
         main?: string;
-        executable?: string;
         mainArgs?: string[];
+        buildTask?: string;
+        runTask?: string;
     };
 }
 
@@ -209,10 +213,16 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
         extra: undefined,
         title: 'Build main - ',
     },
+    runMain: {
+        command: [],
+        extra: undefined,
+        title: 'Run main - ',
+    },
     buildAndRunMain: {
         command: ['gprbuild'],
         extra: undefined,
         title: 'Build and run main - ',
+        // description: 'Run the build task followed by the run task for the given main',
     },
 };
 
@@ -221,7 +231,10 @@ export const BUILD_PROJECT_TASK_NAME = `${ADA_TASK_TYPE}: ${allTaskProperties['b
 
 export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
 async function getProjectFromConfigOrALS(): Promise<string> {
-    return vscode.workspace.getConfiguration('ada').get('projectFile')
+    /**
+     * If ada.projectFile is set, use the $\{config:ada.projectFile\} macro
+     */
+    return vscode.workspace.getConfiguration().get('ada.projectFile')
         ? PROJECT_FROM_CONFIG
         : await getProjectFile(adaExtState.adaClient);
 }
@@ -258,45 +271,88 @@ export async function alire(): Promise<string[]> {
 }
 
 /**
- * Create a fully resolved task.
+ * This function returns a fully resolved task, either based on a
+ * TaskDefinition, or on an incomplete task to be resolved.
  *
- * @param taskType - the type of task to create, 'ada' or 'spark'
- * @param taskKind - the task kind
- * @param item - the TaskProperties object
- * @param commandPrefix - a prefix to use in the construction of the command line of the task
- * @returns
+ * @param definition - CustomTaskDefinition to base the new task on. If 'task'
+ * is also given, then it must be that `definition == task.definition`.
+ * @param commandPrefix - a prefix for the command of the new task
+ * @param name - the name to give the new task
+ * @param task - the task to be resolved
+ *
+ * @returns a new fully resolved task based on the definition or based on the
+ * incomplete task given.
  */
-async function createResolvedTask(
-    taskType: TaskType,
-    taskKind: AllTaskKinds,
-    item: TaskProperties,
-    commandPrefix: string[]
+async function createOrResolveTask(
+    definition: CustomTaskDefinition,
+    commandPrefix: string[] = [],
+    name?: string,
+    task?: vscode.Task
 ): Promise<vscode.Task> {
-    const title: string = item.title;
-    const definition: CustomTaskDefinition = {
-        type: taskType,
-        configuration: {
-            kind: taskKind,
-            projectFile: await getProjectFromConfigOrALS(),
-        },
-    };
+    if (task) {
+        assert(definition == task.definition);
+    }
 
-    const cmd = commandPrefix.concat(await buildFullCommandLine(title, definition));
+    name = name ?? task?.name ?? allTaskProperties[definition.configuration.kind].title;
 
-    const shell = new vscode.ShellExecution(cmd[0], cmd.slice(1));
+    let execution;
+    if (definition.configuration.kind == 'buildAndRunMain') {
+        execution = new BuildAndRunExecution(definition);
+    } else {
+        /**
+         * Quote the command line so that no shell interpretations can happen.
+         */
+        const cmd = quoteCommandLine(
+            commandPrefix.concat(await buildFullCommandLine(name, definition))
+        );
 
-    const task = new vscode.Task(
+        /**
+         * It is necessary to use a ShellExecution instead of a ProcessExecution to
+         * go through a terminal where terminal.integrated.env.* is applicable and
+         * tools can be resolved and can run according to the User's environment
+         * settings. Alternatively, a ProcessExecution could be used if the
+         * extension resolves the full path to the called executable and passes the
+         * terminal.integrated.env.* environment to the child process. But this is
+         * deemed overkill for the moment.
+         */
+        execution = new vscode.ShellExecution(cmd[0], cmd.slice(1));
+    }
+
+    /**
+     * If task was given to be resolved, use its properties in priority.
+     */
+    const newTask = new vscode.Task(
         definition,
-        vscode.TaskScope.Workspace,
-        title,
+        task?.scope ?? vscode.TaskScope.Workspace,
+        name,
         // Always use the task type as a source string in the UI for consistency
         // between the tasks.json definitions and what Users see in the UI
-        taskType,
-        shell,
-        DEFAULT_PROBLEM_MATCHER
+        definition.type,
+        execution,
+        []
     );
-    task.group = vscode.TaskGroup.Build;
-    return task;
+
+    newTask.detail = task?.detail ?? allTaskProperties[definition.configuration.kind].description;
+
+    switch (definition.configuration.kind) {
+        case 'runMain':
+        case 'buildAndRunMain':
+            break;
+
+        case 'cleanProject':
+        case 'cleanProjectForProof': {
+            newTask.group = vscode.TaskGroup.Clean;
+            newTask.problemMatchers = [DEFAULT_PROBLEM_MATCHER];
+            break;
+        }
+
+        default: {
+            newTask.group = vscode.TaskGroup.Build;
+            newTask.problemMatchers = [DEFAULT_PROBLEM_MATCHER];
+        }
+    }
+
+    return newTask;
 }
 
 /**
@@ -328,7 +384,10 @@ export async function getEnclosingSymbol(
                 if (kinds.includes(sym.kind)) {
                     filtered_symbols.push(sym);
                 }
-                if (sym.kind == SymbolKind.Function || sym.kind == SymbolKind.Module) {
+                if (
+                    sym.kind == vscode.SymbolKind.Function ||
+                    sym.kind == vscode.SymbolKind.Module
+                ) {
                     getAllSymbols(sym.children);
                 }
             }
@@ -396,20 +455,34 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
         if (!this.tasks) {
             this.tasks = [];
             const cmdPrefix = await alire();
+
+            const projectFile = await getProjectFromConfigOrALS();
             for (const kind of this.taskKinds) {
                 if (token?.isCancellationRequested) {
                     this.tasks = undefined;
                     break;
                 }
-                if (kind in allTaskProperties && kind != 'buildMain' && kind != 'buildAndRunMain') {
+                if (
+                    kind in allTaskProperties &&
+                    kind != 'buildMain' &&
+                    kind != 'buildAndRunMain' &&
+                    kind != 'runMain'
+                ) {
                     // Do not provide a task for buildMain because we provide
                     // one per project main below
 
-                    const taskProperties = allTaskProperties[kind];
+                    const definition: CustomTaskDefinition = {
+                        type: this.taskType,
+                        configuration: {
+                            kind: kind,
+                            projectFile: projectFile,
+                            args: [],
+                        },
+                    };
                     // provideTasks() is expected to provide fully resolved
                     // tasks ready for execution
-                    const task = createResolvedTask(this.taskType, kind, taskProperties, cmdPrefix);
-                    this.tasks.push(await task);
+                    const task = await createOrResolveTask(definition, cmdPrefix);
+                    this.tasks.push(task);
                 }
             }
 
@@ -419,96 +492,67 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                         this.tasks = undefined;
                         break;
                     }
-                    {
-                        const def: CustomTaskDefinition = {
-                            type: this.taskType,
-                            configuration: {
-                                kind: 'buildMain',
-                                projectFile: await computeProject(),
-                                main: main.mainRelPath(),
-                            },
-                        };
-                        const name = getBuildTaskPlainName(main);
-                        const cmdLine = await buildFullCommandLine(name, def);
-                        this.tasks?.push(
-                            new vscode.Task(
-                                def,
-                                vscode.TaskScope.Workspace,
-                                name,
-                                this.taskType,
-                                new vscode.ShellExecution(cmdLine[0], cmdLine.slice(1)),
-                                DEFAULT_PROBLEM_MATCHER
-                            )
-                        );
-                    }
 
-                    {
-                        const def: CustomTaskDefinition = {
-                            type: this.taskType,
-                            configuration: {
-                                kind: 'buildAndRunMain',
-                                projectFile: await computeProject(),
-                                main: main.mainRelPath(),
-                            },
-                            // dependsOn: getBuildTaskName(main),
-                        };
-                        const name = `${allTaskProperties['buildAndRunMain'].title}${basename(
-                            main.mainRelPath()
-                        )}`;
-                        const cmdLineBuildAndRun = await buildFullCommandLine(name, def);
-                        this.tasks?.push(
-                            new vscode.Task(
-                                def,
-                                vscode.TaskScope.Workspace,
-                                name,
-                                this.taskType,
-                                new vscode.ShellExecution(
-                                    cmdLineBuildAndRun[0],
-                                    cmdLineBuildAndRun.slice(1)
-                                ),
-                                DEFAULT_PROBLEM_MATCHER
-                            )
-                        );
-                    }
+                    let def: CustomTaskDefinition = {
+                        type: this.taskType,
+                        configuration: {
+                            kind: 'buildMain',
+                            projectFile: projectFile,
+                            main: main.mainRelPath(),
+                            args: [],
+                        },
+                    };
+                    let name = getBuildTaskPlainName(main);
+                    const buildMainTask = await createOrResolveTask(def, cmdPrefix, name);
+                    this.tasks?.push(buildMainTask);
+
+                    def = {
+                        type: this.taskType,
+                        configuration: {
+                            kind: 'runMain',
+                            projectFile: projectFile,
+                            main: main.mainRelPath(),
+                            mainArgs: [],
+                        },
+                    };
+                    name = getRunTaskPlainName(main);
+                    const runMainTask = await createOrResolveTask(def, cmdPrefix, name);
+                    this.tasks?.push(runMainTask);
+
+                    def = {
+                        type: this.taskType,
+                        configuration: {
+                            kind: 'buildAndRunMain',
+                            buildTask: getBuildTaskName(main),
+                            runTask: getRunTaskName(main),
+                        },
+                    };
+                    name = `${allTaskProperties['buildAndRunMain'].title}${main.mainRelPath()}`;
+                    const buildAndRunTask = await createOrResolveTask(def, cmdPrefix, name);
+                    this.tasks?.push(buildAndRunTask);
                 }
             }
         }
 
         return this.tasks ?? [];
     }
-    resolveTask(
+    async resolveTask(
         task: vscode.Task,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _token?: vscode.CancellationToken
-    ): vscode.ProviderResult<vscode.Task> {
+    ): Promise<vscode.Task | undefined> {
         // This is called for tasks that are not fully resolved, in particular
         // tasks that don't have an undefined 'execution' property.
         const definition = task.definition as CustomTaskDefinition;
 
-        switch (definition.configuration.kind) {
-            case 'buildMain':
-                break;
-
-            default:
-                break;
-        }
-
         // Check that the task is known
         if (definition.configuration.kind in allTaskProperties) {
-            return alire().then(async (alr) => {
-                const cmd = alr.concat(await buildFullCommandLine(task.name, definition));
-                const shell = new vscode.ShellExecution(cmd[0], cmd.slice(1));
-                return new vscode.Task(
-                    // vscode requires that the returned Task has the same
-                    // definition as the input task
-                    definition,
-                    task.scope ?? vscode.TaskScope.Workspace,
-                    task.name,
-                    this.taskType,
-                    shell,
-                    DEFAULT_PROBLEM_MATCHER
-                );
-            });
+            return createOrResolveTask(
+                task.definition as CustomTaskDefinition,
+                await alire(),
+                undefined,
+                task
+            );
         }
 
         return undefined;
@@ -527,6 +571,20 @@ function getBuildTaskPlainName(main: AdaMain) {
  */
 export function getBuildTaskName(main: AdaMain) {
     return `ada: ${getBuildTaskPlainName(main)}`;
+}
+
+/**
+ * The name of the run task of a main, without the task type.
+ */
+function getRunTaskPlainName(main: AdaMain) {
+    return `${allTaskProperties['runMain'].title}${main.mainRelPath()}`;
+}
+
+/**
+ * The full name of the build task of a main, including the task type.
+ */
+export function getRunTaskName(main: AdaMain) {
+    return `ada: ${getRunTaskPlainName(main)}`;
 }
 
 export function createSparkTaskProvider(): ConfigurableTaskProvider {
@@ -557,12 +615,16 @@ async function buildFullCommandLine(
 ): Promise<string[]> {
     const task = allTaskProperties[taskDef.configuration.kind];
 
-    let cmd = task.command;
+    let cmd = task.command.concat();
 
-    // Add project and scenario args
-    cmd = cmd.concat(await getProjectArgs(taskDef), getScenarioArgs());
+    if (taskDef.configuration.kind != 'runMain') {
+        // Add project and scenario args
+        cmd = cmd.concat(await getProjectArgs(taskDef), getScenarioArgs());
+    }
 
-    // If the task has a callback to compute extra arguments, call it
+    // If the task has a callback to compute extra arguments, call it. This is
+    // used e.g. to get the current file or location for tasks that call SPARK
+    // on a specific location.
     if (task.extra) {
         cmd = cmd.concat(await task.extra());
     }
@@ -576,26 +638,18 @@ async function buildFullCommandLine(
             (v) => v == taskProject
         ) != undefined;
 
-    // Add main argument or other task- and definition-specific args
+    // Determine main in the case of tasks based on a main
+    let adaMain;
     switch (taskDef.configuration.kind) {
-        case 'buildMain':
-        case 'buildAndRunMain': {
+        case 'runMain':
+        case 'buildMain': {
             assert(taskDef.configuration.main);
 
             if (taskProjectIsALSProject) {
                 // The task project is the same as the ALS project. Check that the main is found.
-                const projectMains = await getAdaMains();
-                const adaMain = projectMains.find(
-                    (val) =>
-                        val.mainRelPath() == taskDef.configuration.main ||
-                        val.mainFullPath == taskDef.configuration.main
-                );
+                adaMain = await getAdaMain(taskDef);
                 if (adaMain) {
-                    // A matching main was found. Set the executable field
-                    // accordingly if this is a buildAndRunMain task.
-                    if (taskDef.configuration.kind == 'buildAndRunMain') {
-                        taskDef.configuration.executable = adaMain.execRelPath();
-                    }
+                    // A matching main was found. Continue normally.
                 } else {
                     const msg =
                         `Task '${name}': ` +
@@ -609,14 +663,16 @@ async function buildFullCommandLine(
                 // cannot lookup the main using the ALS. So we can't make any checks.
             }
 
-            // Add the main source file to the build command
-            cmd = cmd.concat([taskDef.configuration.main]);
-
             break;
         }
+    }
 
-        default:
-            break;
+    // Add task- and definition-specific args
+    if (taskDef.configuration.kind == 'buildMain') {
+        assert(taskDef.configuration.main);
+
+        // Add the main source file to the build command
+        cmd = cmd.concat([taskDef.configuration.main]);
     }
 
     // Append User args before diagnostic args because the latter use `-cargs`
@@ -628,51 +684,36 @@ async function buildFullCommandLine(
     }
 
     // Append diagnostic args except for gprclean which doesn't need them
-    if (cmd[0] != 'gprclean') {
+    if (taskDef.configuration.kind != 'runMain' && cmd[0] != 'gprclean') {
         cmd = cmd.concat(getDiagnosticArgs());
     }
 
-    switch (taskDef.configuration.kind) {
-        // Append the run of the main executable
-        case 'buildAndRunMain': {
+    if (taskDef.configuration.kind == 'runMain') {
+        if (adaMain) {
+            // Append the run of the main executable
+            cmd.push(adaMain.execRelPath());
+            if (taskDef.configuration.mainArgs) {
+                cmd = cmd.concat(taskDef.configuration.mainArgs);
+            }
+        } else {
             assert(taskDef.configuration.main);
 
-            if (taskDef.configuration.executable) {
-                // The "executable" property is either set explicitly by the
-                // User, or automatically by querying the ALS in previous code.
-                cmd = cmd.concat('&&', taskDef.configuration.executable);
-                if (taskDef.configuration.mainArgs) {
-                    cmd = cmd.concat(taskDef.configuration.mainArgs);
-                }
+            if (taskProjectIsALSProject) {
+                // The task project is the same as the ALS project, and apparently we were
+                // unable to find the executable. We already warned about it before.
             } else {
-                if (taskProjectIsALSProject) {
-                    // The task project is the same as the ALS project, and apparently we were
-                    // unable to find the executable. So warn about it.
-                    const msg =
-                        `Task '${name}': ` +
-                        `Could not compute the executable corresponding to the main source file ` +
-                        `'${taskDef.configuration.main}' of the project ` +
-                        `${alsProjectRelPath}. The main executable will not be run.`;
-                    void vscode.window.showWarningMessage(msg);
-                } else {
-                    // The specified project is not the same as the ALS project. We
-                    // cannot lookup the executable using the ALS. The 'executable'
-                    // field must be specified.
-                    const msg =
-                        `Task '${name}': ` +
-                        `The project file specified in this task is different than the workspace ` +
-                        `project. It is not possible to automatically compute the path to the ` +
-                        `executable to run. Please specify the 'executable' attribute in the ` +
-                        `task definition.`;
-                    void vscode.window.showWarningMessage(msg);
-                }
+                // The specified project is not the same as the ALS project. We
+                // cannot lookup the executable using the ALS. Another task type
+                // must be used.
+                const msg =
+                    `Task '${name}': ` +
+                    `The project file specified in this task is different than the workspace ` +
+                    `project. It is not possible to automatically compute the path to the ` +
+                    `executable to run. Please use a task of type 'process' or 'shell' to ` +
+                    `invoke the executable directly.`;
+                void vscode.window.showWarningMessage(msg);
             }
-
-            break;
         }
-
-        default:
-            break;
     }
 
     // Prepend alire command if available
@@ -733,4 +774,200 @@ export class WarningMessageExecution extends vscode.CustomExecution {
             resolve(pseudoTerminal);
         });
     }
+}
+
+/**
+ * This task execution implements the 'buildAndRunMain' task kind. It is
+ * initialized with a 'buildAndRunMain' task definition. When executed, it looks
+ * up the build tasks and run tasks corresponding to the main targeted by the
+ * task definition, and runs them in sequence.
+ *
+ */
+class BuildAndRunExecution extends vscode.CustomExecution {
+    buildAndRunDef: CustomTaskDefinition;
+
+    constructor(buildAndRunDef: CustomTaskDefinition) {
+        super(() => {
+            return this.callback();
+        });
+        assert(buildAndRunDef.configuration.kind == 'buildAndRunMain');
+        this.buildAndRunDef = buildAndRunDef;
+    }
+
+    /**
+     * This callback is called when the task is executed.
+     *
+     * @returns a Pseudoterminal object that controls a Terminal in the VS Code UI.
+     */
+    callback(): Thenable<vscode.Pseudoterminal> {
+        return new Promise((resolve) => {
+            const definition = this.buildAndRunDef;
+            const writeEmitter = new vscode.EventEmitter<string>();
+            const closeEmitter = new vscode.EventEmitter<number>();
+            const pseudoTerminal: vscode.Pseudoterminal = {
+                onDidWrite: writeEmitter.event,
+                onDidClose: closeEmitter.event,
+                open() {
+                    vscode.tasks
+                        .fetchTasks({ type: 'ada' })
+                        .then(
+                            (adaTasks) => {
+                                assert(definition.configuration.buildTask);
+                                assert(definition.configuration.runTask);
+
+                                /**
+                                 * Find the tasks that match the task names
+                                 * specified in buildTask and runTask, prioritizing
+                                 * Workspace tasks.
+                                 */
+                                adaTasks.sort((a, b) => {
+                                    if (isFromWorkspace(a) && !isFromWorkspace(b)) {
+                                        return -1;
+                                    } else if (!isFromWorkspace(a) && isFromWorkspace(b)) {
+                                        return 1;
+                                    } else {
+                                        return a.name.localeCompare(b.name);
+                                    }
+                                });
+                                /**
+                                 * Task names contributed by the extension don't
+                                 * have the task type prefix while tasks coming from
+                                 * the workspace typically do since VS Code includes
+                                 * the type prefix when converting an automatic
+                                 * extension task into a configurable workspace
+                                 * task. getConventionalTaskLabel() takes care of
+                                 * that fact.
+                                 */
+                                function findTaskByName(taskName: string): vscode.Task {
+                                    const task = adaTasks.find((v) => {
+                                        return taskName == getConventionalTaskLabel(v);
+                                    });
+                                    if (task) {
+                                        return task;
+                                    } else {
+                                        const msg = `Could not find a task named: ${taskName}`;
+                                        throw new Error(msg);
+                                    }
+                                }
+                                const buildMainTask = findTaskByName(
+                                    definition.configuration.buildTask
+                                );
+                                const runMainTask = findTaskByName(
+                                    definition.configuration.runTask
+                                );
+
+                                const tasks = [buildMainTask, runMainTask];
+                                const p = runTaskSequence(tasks, writeEmitter);
+
+                                return p;
+                            },
+                            () => {
+                                writeEmitter.fire('Failed to get list of tasks\r\n');
+                                closeEmitter.fire(1);
+                            }
+                        )
+                        .then(
+                            (status) => {
+                                closeEmitter.fire(status);
+                            },
+                            (reason) => {
+                                try {
+                                    if (reason instanceof Error) {
+                                        void vscode.window.showErrorMessage(reason.message);
+                                        writeEmitter.fire(reason.message + '\r\n');
+                                    }
+                                } finally {
+                                    closeEmitter.fire(2);
+                                }
+                            }
+                        );
+                },
+                close() {
+                    //
+                },
+            };
+            resolve(pseudoTerminal);
+        });
+    }
+}
+
+/**
+ * Runs a list of tasks in sequence, as long as the execution succeeds. The
+ * sequence stops if a task ends with a failure status, or when all tasks
+ * complete successfully.
+ *
+ * @param tasks - list of tasks to run in sequence.
+ * @returns Status of the last executed task.
+ */
+function runTaskSequence(
+    tasks: vscode.Task[],
+    writeEmitter: vscode.EventEmitter<string>
+): Promise<number> {
+    let p = new Promise<number>((resolve) => resolve(0));
+    for (const t of tasks) {
+        p = p.then((status) => {
+            if (status == 0) {
+                return new Promise<number>((resolve) => {
+                    const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
+                        if (e.execution.task == t) {
+                            disposable.dispose();
+                            resolve(e.exitCode ?? 1);
+                        }
+                    });
+
+                    writeEmitter.fire(`Executing task: ${getConventionalTaskLabel(t)}\r\n`);
+                    void vscode.tasks.executeTask(t);
+                });
+            } else {
+                return status;
+            }
+        });
+    }
+    return p;
+}
+
+/**
+ *
+ * @param taskDef - a task definition with a defined main
+ * @returns the {@link AdaMain} object representing the main program
+ */
+async function getAdaMain(taskDef: CustomTaskDefinition): Promise<AdaMain | undefined> {
+    assert(taskDef.configuration.main);
+    const projectMains = await getAdaMains();
+    return projectMains.find(
+        (val) =>
+            val.mainRelPath() == taskDef.configuration.main ||
+            val.mainFullPath == taskDef.configuration.main
+    );
+}
+
+/**
+ * Convert a command line into a list of strongly quoted
+ * {@link vscode.ShellQuotedString} that would be processed verbatim by any
+ * shells without interpretation or expansion of special symbols.
+ *
+ * @param cmd - a list of strings representing a command line
+ * @returns a list of strongly quoted {@link ShellQuotedString}
+ */
+function quoteCommandLine(cmd: string[]): vscode.ShellQuotedString[] {
+    return cmd.map((v) => ({ value: v, quoting: vscode.ShellQuoting.Strong }));
+}
+/**
+ *
+ * @param task - a task
+ * @returns `true` if the task is defined explicitely in the workspace's tasks.json
+ */
+export function isFromWorkspace(task: vscode.Task): boolean {
+    return task.source == 'Workspace';
+}
+/**
+ *
+ * @param task - a task
+ * @returns the label typically generated for that task by vscode. For tasks not
+ * defined explicitely in the workspace, this is `ada: <task name>`. For tasks
+ * defined in the workspace simply return the name which should already include
+ * the convention.
+ */
+export function getConventionalTaskLabel(task: vscode.Task): string {
+    return isFromWorkspace(task) ? task.name : `${task.source}: ${task.name}`;
 }

@@ -8,7 +8,12 @@ import { ExtensionState } from './ExtensionState';
 import { getOrAskForProgram } from './debugConfigProvider';
 import { adaExtState, mainOutputChannel } from './extension';
 import { getProjectFileRelPath } from './helpers';
-import { CustomTaskDefinition, getEnclosingSymbol } from './taskProviders';
+import {
+    CustomTaskDefinition,
+    getConventionalTaskLabel,
+    getEnclosingSymbol,
+    isFromWorkspace,
+} from './taskProviders';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
@@ -157,27 +162,6 @@ function matchesLastUsedTask(t: vscode.Task): boolean {
  */
 function getTaskLabel(task: vscode.Task): string {
     return isFromWorkspace(task) ? `(From Workspace) ${task.name}` : getConventionalTaskLabel(task);
-}
-
-/**
- *
- * @param task - a task
- * @returns the label typically generated for that task by vscode. For tasks not
- * defined explicitely in the workspace, this is `ada: <task name>`. For tasks
- * defined in the workspace simply return the name which should already include
- * the convention.
- */
-function getConventionalTaskLabel(task: vscode.Task): string {
-    return isFromWorkspace(task) ? task.name : `${task.source}: ${task.name}`;
-}
-
-/**
- *
- * @param task - a task
- * @returns `true` if the task is defined explicitely in the workspace's tasks.json
- */
-function isFromWorkspace(task: vscode.Task) {
-    return task.source == 'Workspace';
 }
 
 interface TaskQuickPickItem extends vscode.QuickPickItem {

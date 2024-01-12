@@ -227,11 +227,6 @@ const setupCmd = [
         text: '-enable-pretty-printing',
         ignoreFailures: true,
     },
-    {
-        description: 'Set Disassembly Flavor to Intel',
-        text: '-gdb-set disassembly-flavor intel',
-        ignoreFailures: true,
-    },
 ];
 
 type QuickPickAdaMain = {
@@ -363,6 +358,11 @@ function createAttachConfig(adaMain: AdaMain): AdaConfig {
         program: `\${workspaceFolder}/${adaMain.execRelPath()}`,
         processId: '${command:pickProcess}',
         MIMode: 'gdb',
-        preLaunchTask: adaMain ? getBuildTaskName(adaMain) : BUILD_PROJECT_TASK_NAME,
+        /**
+         * If the User is trying to attach to a running process, we have to
+         * assume that they already built the project. It would be detrimental
+         * to trigger an unwanted rebuild, so we don't set a preLaunchTask.
+         */
+        // preLaunchTask: adaMain ? getBuildTaskName(adaMain) : BUILD_PROJECT_TASK_NAME,
     };
 }
