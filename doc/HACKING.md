@@ -75,6 +75,40 @@ and run
 
 On Mac OX X use [atos](https://www.unix.com/man-page/osx/1/atos/) instead.
 
+## Getting symbolic backtrace for TypeScript
+
+The Ada & SPARK extension for Visual Studio Code is published as minified
+JavaScript code. For that reason backtraces reported are not easily readable
+by humans. To alleviate that, the published .vsix includes a source map file
+at `out/src/extension.js.map`.
+
+To resolve a backtrace to the original TypeScript source locations:
+
+1. Unzip the .vsix
+
+2. Copy the backtrace into a plain text file *while preserving the error message
+on the first line*, for example:
+
+    ```
+    2024-01-11 10:11:54.191 [Ada Extension] ERROR    Error while starting Ada extension...
+        at Gu (/home/XXXXXXX/.vscode/extensions/adacore.ada-24.0.3/out/src/extension.js:75:5911)
+        at oS (/home/XXXXXXX/.vscode/extensions/adacore.ada-24.0.3/out/src/extension.js:75:6057)
+        at w$ (/home/XXXXXXX/.vscode/extensions/adacore.ada-24.0.3/out/src/extension.js:85:2292)
+        at b$ (/home/XXXXXXX/.vscode/extensions/adacore.ada-24.0.3/out/src/extension.js:85:2154)
+        ...
+    ```
+
+3. Run the following command to obtain source locations:
+
+   ```
+   $ npx stacktracify out/src/extension.js.map -f trace.txt
+   2024-01-11 10:11:54.191 [Ada Extension] ERROR    Error while starting Ada extension...
+       at [unknown] (../../src/helpers.ts:150:56)
+       at getEvaluatedCustomEnv (../../src/helpers.ts:186:22)
+       at assertSupportedEnvironments (../../src/extension.ts:128:4)
+       at activateExtension (../../src/extension.ts:118:14)
+   ```
+
 ### Writing tests
 
 To write a functional test for Ada Language Server:

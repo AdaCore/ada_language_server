@@ -1,3 +1,4 @@
+# This file contains patterns to exclude from the packaging into a .vsix
 .vscode-test/
 advanced/
 node_modules/
@@ -10,5 +11,6 @@ test/
 debug.code-workspace
 run_grammar_tests.sh
 tsconfig.json
-**/*.map
 **/*.ts
+**/*.ts.map
+xfail.yaml
