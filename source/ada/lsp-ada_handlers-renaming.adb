@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with Ada.Strings.Wide_Wide_Unbounded;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -188,10 +187,7 @@ package body LSP.Ada_Handlers.Renaming is
 
          Set       : LAL_Refactor.Text_Edit_Ordered_Set;
          Token     : Token_Reference := Unit.First_Token;
-         --  Name      : constant Wide_Wide_String := Name_Node.Text;
-         Name      : constant Wide_Wide_String :=
-           Ada.Strings.Wide_Wide_Unbounded.To_Wide_Wide_String
-             (Laltools.Common.Get_Last_Name (Name_Node));
+         Name      : constant Wide_Wide_String := Name_Node.Text;
          Text_Edit : LAL_Refactor.Text_Edit;
          Span      : Langkit_Support.Slocs.Source_Location_Range;
          Current   : Token_Reference;
@@ -279,7 +275,11 @@ package body LSP.Ada_Handlers.Renaming is
             begin
                if Kind (Data (Token)) = Ada_Comment
                  and then Laltools.Common.Contains
-                   (Token, Name, True, This_Span)
+                   (Token          => Token,
+                    Pattern        => Name,
+                    As_Word        => True,
+                    Span           => This_Span,
+                    Case_Sensitive => True)
                then
                   Text_Edit.Location := This_Span;
                   Text_Edit.Text :=
@@ -290,7 +290,11 @@ package body LSP.Ada_Handlers.Renaming is
 
                   if Diff /= 0
                     and then Laltools.Common.Contains
-                      (Token, "-- " & Name & " --", False, Span)
+                      (Token          => Token,
+                       Pattern        => "-- " & Name & " --",
+                       As_Word        => False,
+                       Span           => Span,
+                       Case_Sensitive => True)
                   then
                      --  Can be a comment box
                      Current := Previous (Token);
