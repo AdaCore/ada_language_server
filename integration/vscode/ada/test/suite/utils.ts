@@ -120,3 +120,4 @@ export function runMochaTestsuite(suiteName: string, suiteDirectory: string) {
         }
     });
 }
+export const exe = process.platform == 'win32' ? '.exe' : '';

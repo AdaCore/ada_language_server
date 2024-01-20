@@ -46,10 +46,6 @@
          }
       },
       {
-         // This task starts a background npm process that monitors changes to
-         // TS files and recompiles them as needed. It is configured to be run
-         // before the (vscode)-based launch configurations to make sure the TS
-         // files are compiled and re-compiled upon changes.
          "type": "npm",
          "script": "watch",
          "path": "integration/vscode/ada",
@@ -68,6 +64,24 @@
          "problemMatcher": ["$ada"],
          "group": "build",
          "label": "ada: Check current file"
+      },
+      {
+         "type": "npm",
+         "script": "watch",
+         "path": "integration/vscode/ada",
+         "group": "build",
+         "problemMatcher": [
+            {
+               "base": "$tsc-watch",
+               "fileLocation": [
+                  "relative",
+                  "${workspaceFolder}/integration/vscode/ada"
+               ]
+            }
+         ],
+         "label": "npm: watch - integration/vscode/ada",
+         "detail": "node ./node_modules/typescript/bin/tsc -watch",
+         "isBackground": true
       }
    ]
 }

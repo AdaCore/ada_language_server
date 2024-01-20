@@ -482,8 +482,7 @@
                     "configuration": {
                         "type": "object",
                         "required": [
-                            "kind",
-                            "projectFile"
+                            "kind"
                         ],
                         "properties": {
                             "kind": {
@@ -494,7 +493,16 @@
                                     "checkFile",
                                     "cleanProject",
                                     "buildMain",
+                                    "runMain",
                                     "buildAndRunMain"
+                                ],
+                                "enumDescriptions": [
+                                    "Build a GPR project",
+                                    "Run semantic checks on an Ada file",
+                                    "Clean a GPR project",
+                                    "Build a main program specified in a GPR project",
+                                    "Run a main program specified in a GPR project",
+                                    "Run a build task and a run task in sequence for a given main program"
                                 ]
                             },
                             "projectFile": {
@@ -554,18 +562,13 @@
                                 "properties": {
                                     "kind": {
                                         "enum": [
-                                            "buildAndRunMain"
+                                            "runMain"
                                         ]
                                     },
                                     "projectFile": true,
-                                    "args": true,
                                     "main": {
                                         "type": "string",
                                         "description": "Path to main source file"
-                                    },
-                                    "executable": {
-                                        "type": "string",
-                                        "description": "Path to main executable file (if it cannot be computed automatically)"
                                     },
                                     "mainArgs": {
                                         "type": "array",
@@ -573,6 +576,29 @@
                                             "type": "string"
                                         },
                                         "description": "Arguments passed to the main executable invocation"
+                                    }
+                                },
+                                "additionalProperties": false
+                            },
+                            {
+                                "required": [
+                                    "buildTask",
+                                    "runTask"
+                                ],
+                                "$comment": "Each oneOf is evaluated regardless of the parent schema. That's why valid properties of the parent must be repeated here in order to be allowed.",
+                                "properties": {
+                                    "kind": {
+                                        "enum": [
+                                            "buildAndRunMain"
+                                        ]
+                                    },
+                                    "buildTask": {
+                                        "type": "string",
+                                        "description": "Name of the task that builds the main executable"
+                                    },
+                                    "runTask": {
+                                        "type": "string",
+                                        "description": "Name of the task that runs the main executable"
                                     }
                                 },
                                 "additionalProperties": false
@@ -849,14 +875,15 @@
     },
     "scripts": {
         "check-licenses": "npx license-checker-rseidelsohn --summary --onlyAllow \"0BSD;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BlueOak-1.0.0;CC0-1.0;GPL-3.0;GPL-3.0-or-later;ISC;MIT;Python-2.0;Zlib\"",
-        "vscode:prepublish": "npm run esbuild-base -- --minify",
+        "vscode:prepublish": "npm run esbuild-base -- --minify --sourcemap",
         "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/src/extension.js --external:vscode --format=cjs --platform=node",
         "compile": "node ./node_modules/typescript/bin/tsc",
         "watch": "node ./node_modules/typescript/bin/tsc -watch",
         "pretest": "npm run compile",
         "lint": "eslint \"./src/**/*.{js,ts,tsx}\" --quiet --fix",
         "cilint": "eslint \"./src/**/*.{js,ts,tsx}\"",
-        "test": "node ./out/test/runTest.js"
+        "test": "node ./out/test/runTest.js",
+        "resolve-backtrace": "npx stacktracify"
     },
     "dependencies": {
         "@types/command-exists": "1.2.0",
