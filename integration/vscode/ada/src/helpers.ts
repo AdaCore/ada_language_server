@@ -350,3 +350,11 @@ export function startedInDebugMode() {
     }
     return false;
 }
+
+/**
+ * This constant is set to the string `.exe` on Windows, and to the empty string
+ * otherwise. It is intended for computingk executable filenames conveniently by
+ * simply appending the constant at the end of the name and obtaining a result
+ * compatible with the running platform.
+ */
+export const exe: '.exe' | '' = process.platform == 'win32' ? '.exe' : '';
