@@ -1,13 +1,15 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
-import { AdaMain, getAdaMains, getProjectFile } from './helpers';
+import { AdaMain, exe, getAdaMains, getEvaluatedTerminalEnv, getProjectFile } from './helpers';
 import { BUILD_PROJECT_TASK_NAME, getBuildTaskName } from './taskProviders';
+import path from 'path';
+import { existsSync } from 'fs';
 
 /**
  * Ada Configuration for a debug session
  */
-interface AdaConfig extends vscode.DebugConfiguration {
+export interface AdaConfig extends vscode.DebugConfiguration {
     MIMode: string;
     program: string;
     cwd?: string;
@@ -20,7 +22,24 @@ interface AdaConfig extends vscode.DebugConfiguration {
         ignoreFailures: boolean;
     }[];
     processId?: string;
+    miDebuggerPath?: string;
 }
+
+export const adaDynamicDebugConfigProvider = {
+    async provideDebugConfigurations(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _folder?: vscode.WorkspaceFolder
+    ): Promise<vscode.DebugConfiguration[]> {
+        const quickpick = await createQuickPickItems('Build & Debug');
+
+        const configs: AdaConfig[] = quickpick.flatMap((i) => {
+            assert(i.adaMain);
+            return [initializeConfig(i.adaMain), createAttachConfig(i.adaMain)];
+        });
+
+        return configs;
+    },
+};
 
 /**
  * Initialize debugging support for Ada projects.
@@ -48,21 +67,7 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
     ctx.subscriptions.push(
         vscode.debug.registerDebugConfigurationProvider(
             'ada',
-            {
-                async provideDebugConfigurations(
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    _folder: vscode.WorkspaceFolder | undefined
-                ): Promise<vscode.DebugConfiguration[]> {
-                    const quickpick = await createQuickPickItems('Build & Debug');
-
-                    const configs: AdaConfig[] = quickpick.flatMap((i) => {
-                        assert(i.adaMain);
-                        return [initializeConfig(i.adaMain), createAttachConfig(i.adaMain)];
-                    });
-
-                    return configs;
-                },
-            },
+            adaDynamicDebugConfigProvider,
             // The 'Dynamic' trigger type only works if the package.json lists
             // "onDebugDynamicConfigurations:ada" as part of the
             // activationEvents.
@@ -70,13 +75,58 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
         )
     );
 
-    // TODO it is also possible to register another provider with trigger kind
-    // 'Dynamic', however the role of such a provider is unclear. In practical
-    // experiments it ends up never being called. The above provider is enough
-    // to make it possible to launch debug sessions without a launch.json.
-
     return provider;
 }
+
+let cachedGdb: string | undefined | null = undefined;
+
+/**
+ *
+ * @returns the full path to the `gdb` executable, taking into consideration the
+ * `PATH` variable in the `terminal.integrated.env.*` setting if set. Otherwise,
+ * the `PATH` variable of the current process environment is considered.
+ *
+ * The current process environment is unlikely to change during the lifetime of
+ * the extension, and we already prompt the User to reload the window in case
+ * the `terminal.integrated.env.*` variables change. For this reason, we compute
+ * the value only on the first call, and cache it for subsequent calls to return
+ * it efficiently.
+ */
+function getOrFindGdb(): string | undefined {
+    if (cachedGdb == undefined) {
+        /**
+         * If undefined yet, try to compute it.
+         */
+        const env = getEvaluatedTerminalEnv();
+        let pathVal: string;
+        if (env && 'PATH' in env) {
+            pathVal = env.PATH;
+        } else if ('PATH' in process.env) {
+            pathVal = process.env.PATH ?? '';
+        } else {
+            pathVal = '';
+        }
+
+        const gdb = pathVal
+            .split(path.delimiter)
+            .map<string>((v) => path.join(v, 'gdb' + exe))
+            .find(existsSync);
+
+        if (gdb) {
+            // Found
+            cachedGdb = gdb;
+            return cachedGdb;
+        } else {
+            // Not found. Assign null to cache to avoid recomputing at every call.
+            cachedGdb = null;
+        }
+    }
+
+    // When returning, coerce null to undefined because the distinction doesn't
+    // matter on the caller side.
+    return cachedGdb ?? undefined;
+}
+
 /**
  * Initialize a debug configuration based on 'cppdbg' for the given executable
  * if specified. Otherwise the program field includes
@@ -109,6 +159,7 @@ function initializeConfig(main: AdaMain, name?: string): AdaConfig {
         MIMode: 'gdb',
         preLaunchTask: main ? getBuildTaskName(main) : BUILD_PROJECT_TASK_NAME,
         setupCommands: setupCmd,
+        miDebuggerPath: getOrFindGdb(),
     };
 
     return config;
@@ -364,5 +415,6 @@ function createAttachConfig(adaMain: AdaMain): AdaConfig {
          * to trigger an unwanted rebuild, so we don't set a preLaunchTask.
          */
         // preLaunchTask: adaMain ? getBuildTaskName(adaMain) : BUILD_PROJECT_TASK_NAME,
+        miDebuggerPath: getOrFindGdb(),
     };
 }

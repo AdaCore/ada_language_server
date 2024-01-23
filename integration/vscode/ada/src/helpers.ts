@@ -109,39 +109,33 @@ export function substituteVariables(str: string, recursive = false): string {
     return str;
 }
 
-/*
-    Environment setting helper functions
-*/
+/**
+ * Name of the `terminal.integrated.env.*` setting applicable to the current platform.
+ */
+export const TERMINAL_ENV_SETTING_NAME =
+    'terminal.integrated.env.' +
+    (platform() == 'darwin' ? 'osx' : platform() == 'win32' ? 'windows' : 'linux');
 
-export function getCustomEnv() {
-    const env_config_name = getCustomEnvSettingName();
-
+/**
+ *
+ * @returns the value of the applicable `terminal.integrated.env.*` setting,
+ * without evaluation of macros such as `${env:...}`.
+ */
+export function getTerminalEnv() {
     const custom_env = vscode.workspace
         .getConfiguration()
-        .get<{ [name: string]: string }>(env_config_name);
+        .get<{ [name: string]: string }>(TERMINAL_ENV_SETTING_NAME);
 
     return custom_env;
 }
 
-export function getCustomEnvSettingName() {
-    const user_platform = platform();
-    let env_config_name = 'terminal.integrated.env';
-
-    switch (user_platform) {
-        case 'darwin':
-            env_config_name += '.osx';
-            break;
-        case 'win32':
-            env_config_name += '.windows';
-            break;
-        default:
-            env_config_name += '.linux';
-    }
-    return env_config_name;
-}
-
-export function getEvaluatedCustomEnv() {
-    const custom_env = getCustomEnv();
+/**
+ *
+ * @returns the value of the applicable `terminal.integrated.env.*` setting,
+ * after evaluation of macros such as `${env:...}`.
+ */
+export function getEvaluatedTerminalEnv() {
+    const custom_env = getTerminalEnv();
 
     if (custom_env) {
         for (const var_name in custom_env) {
@@ -160,17 +154,13 @@ export function getEvaluatedCustomEnv() {
  * Read the environment variables specified in the vscode setting
  * `terminal.integrated.env.<os>` and set them in the given ProcessEnv object.
  *
- * If no targetEnv is given, `process.env` is used as a target environment.
+ * The targetEnv can be `process.env` to apply the changes to the environment of
+ * the running process.
  */
-export function setCustomEnvironment(targetEnv?: NodeJS.ProcessEnv) {
-    if (!targetEnv) {
-        targetEnv = process.env;
-    }
-
+export function setTerminalEnvironment(targetEnv: NodeJS.ProcessEnv) {
     // Retrieve the user's custom environment variables if specified in their
-    // settings/workspace: we'll then launch any child process with this custom
-    // environment
-    const custom_env = getEvaluatedCustomEnv();
+    // settings/workspace
+    const custom_env = getEvaluatedTerminalEnv();
 
     if (custom_env) {
         for (const var_name in custom_env) {
@@ -183,7 +173,7 @@ export function setCustomEnvironment(targetEnv?: NodeJS.ProcessEnv) {
 export function assertSupportedEnvironments(mainChannel: winston.Logger) {
     // Get the ALS environment variable from the custom environment, or from the
     // process environment
-    const customEnv = getEvaluatedCustomEnv();
+    const customEnv = getEvaluatedTerminalEnv();
     const als = customEnv?.ALS ?? process.env.ALS;
     if (als) {
         // The User provided an external ALS executable. Do not perform any
@@ -350,3 +340,11 @@ export function startedInDebugMode() {
     }
     return false;
 }
+
+/**
+ * This constant is set to the string `.exe` on Windows, and to the empty string
+ * otherwise. It is intended for computingk executable filenames conveniently by
+ * simply appending the constant at the end of the name and obtaining a result
+ * compatible with the running platform.
+ */
+export const exe: '.exe' | '' = process.platform == 'win32' ? '.exe' : '';
