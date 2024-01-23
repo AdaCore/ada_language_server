@@ -2,7 +2,7 @@ import { existsSync } from 'fs';
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
 import { logger } from './extension';
-import { logErrorAndThrow, setCustomEnvironment } from './helpers';
+import { logErrorAndThrow, setTerminalEnvironment } from './helpers';
 
 export function createClient(
     context: vscode.ExtensionContext,
@@ -63,7 +63,7 @@ export function createClient(
     // Copy this process's environment
     const serverEnv: NodeJS.ProcessEnv = { ...process.env };
     // Set custom environment
-    setCustomEnvironment(serverEnv);
+    setTerminalEnvironment(serverEnv);
 
     logger.debug(`Environment for ${name}:`);
     for (const key in serverEnv) {

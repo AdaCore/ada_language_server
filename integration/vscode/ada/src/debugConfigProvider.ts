@@ -1,7 +1,7 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
-import { AdaMain, exe, getAdaMains, getEvaluatedCustomEnv, getProjectFile } from './helpers';
+import { AdaMain, exe, getAdaMains, getEvaluatedTerminalEnv, getProjectFile } from './helpers';
 import { BUILD_PROJECT_TASK_NAME, getBuildTaskName } from './taskProviders';
 import path from 'path';
 import { existsSync } from 'fs';
@@ -97,7 +97,7 @@ function getOrFindGdb(): string | undefined {
         /**
          * If undefined yet, try to compute it.
          */
-        const env = getEvaluatedCustomEnv();
+        const env = getEvaluatedTerminalEnv();
         let pathVal: string;
         if (env && 'PATH' in env) {
             pathVal = env.PATH;
