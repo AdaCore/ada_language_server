@@ -79,7 +79,6 @@ line  89: column 14 - 35: function      [declaration]                    : Impre
 line  90: column  7 - 10: parameter     [declaration, readonly]          : Self
 line  90: column 27 - 41: type                                           : Message_Handler
 line  91: column  7 - 16: parameter     [declaration, readonly]          : In_Context
-line  91: column 20 - 33: type                                           : Context_Access
 line  92: column  7 - 14: parameter     [declaration, readonly]          : Position
 line  93: column  7 - 16: parameter     [declaration]                    : Definition
 line  94: column  7 - 14: parameter     [declaration, readonly]          : Msg_Type
@@ -168,7 +167,6 @@ line 275: column 14 - 35: function      [declaration]                    : Impre
 line 276: column  7 - 10: parameter     [declaration, readonly]          : Self
 line 276: column 27 - 41: type                                           : Message_Handler
 line 277: column  7 - 16: parameter     [declaration, readonly]          : In_Context
-line 277: column 20 - 33: type                                           : Context_Access
 line 278: column  7 - 14: parameter     [declaration, readonly]          : Position
 line 279: column  7 - 16: parameter     [declaration]                    : Definition
 line 280: column  7 - 14: parameter     [declaration, readonly]          : Msg_Type
@@ -241,7 +239,6 @@ line 658: column 14 - 16: namespace                                      : LSP
 line 660: column  7 - 12: variable      [declaration]                    : Params
 line 662: column 17 - 34: function      [declaration]                    : Analyse_In_Context
 line 663: column 10 - 16: parameter     [declaration, readonly]          : Context
-line 663: column 21 - 34: type                                           : Context_Access
 line 664: column 10 - 17: parameter     [declaration, readonly]          : Document
 line 664: column 21 - 23: namespace                                      : LSP
 line 665: column 10 - 15: parameter     [declaration]                    : Result
@@ -253,7 +250,6 @@ line 672: column 10 - 13: parameter     [declaration, readonly]          : Node
 line 672: column 62 - 68: enum          [static, defaultLibrary]         : Boolean
 line 676: column 17 - 28: function      [declaration]                    : Analyse_Node
 line 677: column 10 - 16: parameter     [declaration, readonly]          : Context
-line 677: column 20 - 33: type                                           : Context_Access
 line 678: column 10 - 13: parameter     [declaration, readonly]          : Node
 line 679: column 10 - 15: parameter     [declaration]                    : Result
 line 679: column 24 - 26: namespace                                      : LSP
@@ -273,7 +269,6 @@ line 720: column 13 - 16: variable      [declaration]                    : Decl
 line 746: column 11 - 38: function                                       : Has_Assoc_Without_Designator
 line 752: column 17 - 28: function      [declaration]                    : Analyse_Node
 line 753: column 10 - 16: parameter     [declaration, readonly]          : Context
-line 753: column 20 - 33: type                                           : Context_Access
 line 754: column 10 - 13: parameter     [declaration, readonly]          : Node
 line 755: column 10 - 15: parameter     [declaration]                    : Result
 line 755: column 24 - 26: namespace                                      : LSP
@@ -297,7 +292,6 @@ line 816: column 19 - 22: variable      [declaration, readonly]          : List
 line 831: column 11 - 22: function                                       : Analyse_Node
 line 837: column 17 - 34: function      [declaration]                    : Analyse_In_Context
 line 838: column 10 - 16: parameter     [declaration, readonly]          : Context
-line 838: column 21 - 34: type                                           : Context_Access
 line 839: column 10 - 17: parameter     [declaration, readonly]          : Document
 line 839: column 21 - 23: namespace                                      : LSP
 line 840: column 10 - 15: parameter     [declaration]                    : Result

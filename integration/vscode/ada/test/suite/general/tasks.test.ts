@@ -125,7 +125,6 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
         const status = await runTaskAndGetResult(task);
         assert.equal(status, 0);
 
-        console.info(`cwd=${process.cwd()}`);
         /**
          * Check that the executable is produced. The project defines a
          * different name for the executable produced by main1.adb.
