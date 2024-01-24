@@ -3,14 +3,14 @@ import { existsSync } from 'fs';
 import { suite, test } from 'mocha';
 import * as vscode from 'vscode';
 import { adaExtState } from '../../../src/extension';
-import { getProjectFile } from '../../../src/helpers';
+import { exe, getProjectFile } from '../../../src/helpers';
 import {
     CustomTaskDefinition,
     PROJECT_FROM_CONFIG,
     createAdaTaskProvider,
     createSparkTaskProvider,
 } from '../../../src/taskProviders';
-import { activate, exe } from '../utils';
+import { activate } from '../utils';
 
 suite('GPR Tasks Provider', function () {
     let projectPath: string;
@@ -125,7 +125,6 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
         const status = await runTaskAndGetResult(task);
         assert.equal(status, 0);
 
-        console.info(`cwd=${process.cwd()}`);
         /**
          * Check that the executable is produced. The project defines a
          * different name for the executable produced by main1.adb.

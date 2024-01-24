@@ -30,8 +30,8 @@ import { initializeDebugging } from './debugConfigProvider';
 import { initializeTestView } from './gnattest';
 import {
     assertSupportedEnvironments,
-    getCustomEnvSettingName,
-    getEvaluatedCustomEnv,
+    TERMINAL_ENV_SETTING_NAME,
+    getEvaluatedTerminalEnv,
     startedInDebugMode,
 } from './helpers';
 
@@ -127,15 +127,15 @@ async function activateExtension(context: vscode.ExtensionContext) {
     assertSupportedEnvironments(logger);
 
     // Log the environment that the extension (and all VS Code) will be using
-    const customEnv = getEvaluatedCustomEnv();
+    const customEnv = getEvaluatedTerminalEnv();
     if (customEnv && Object.keys(customEnv).length > 0) {
-        logger.info(`Custom environment variables from ${getCustomEnvSettingName()}`);
+        logger.info(`Custom environment variables from ${TERMINAL_ENV_SETTING_NAME}`);
         for (const varName in customEnv) {
             const varValue: string = customEnv[varName];
             logger.info(`${varName}=${varValue}`);
         }
     } else {
-        logger.debug('No custom environment variables set in %s', getCustomEnvSettingName());
+        logger.debug('No custom environment variables set in %s', TERMINAL_ENV_SETTING_NAME);
     }
 
     // Create the Ada and GPR clients.

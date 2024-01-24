@@ -4,7 +4,7 @@ import { createClient } from './clients';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { GprTaskProvider } from './gprTaskProvider';
 import { registerTaskProviders } from './taskProviders';
-import { getCustomEnvSettingName } from './helpers';
+import { TERMINAL_ENV_SETTING_NAME } from './helpers';
 
 /**
  * This class encapsulates all state that should be maintained throughout the
@@ -106,9 +106,7 @@ export class ExtensionState {
         //  React to changes made in the environment variables, showing
         //  a popup to reload the VS Code window and thus restart the
         //  Ada extension.
-        const env_config_name = getCustomEnvSettingName();
-
-        if (e.affectsConfiguration(env_config_name)) {
+        if (e.affectsConfiguration(TERMINAL_ENV_SETTING_NAME)) {
             void this.showReloadWindowPopup();
         }
     };

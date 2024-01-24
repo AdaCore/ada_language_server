@@ -1,15 +1,6 @@
-xfails: # Format is <testname>, <expectedstatus CRASH|DIFF> [, <platform>, <irrelevant field>], <reason>
-    - [
-          'Highlighting-lsp-ada_handlers-lsp-ada_handlers-adb-semantic',
-          'DIFF',
-          '',
-          '',
-          'Fails in GitLab CI but not locally',
-      ]
-    - [
-          'lsp-ada_handlers-lsp-ada_handlers-adb-semantic',
-          'DIFF',
-          '',
-          '',
-          'Fails in GitLab CI but not locally',
-      ]
+# Each XFAIL entry should be an array of strings with the following content:
+#
+#   - [<testname>, <expectedstatus CRASH|DIFF> , <platform>, '', <reason>]
+#
+# Use an empty string for the platform if the XFAIL should apply everywhere.
+xfails:
