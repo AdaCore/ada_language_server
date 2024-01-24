@@ -131,8 +131,8 @@ async function activateExtension(context: vscode.ExtensionContext) {
     if (customEnv && Object.keys(customEnv).length > 0) {
         logger.info(`Custom environment variables from ${TERMINAL_ENV_SETTING_NAME}`);
         for (const varName in customEnv) {
-            const varValue: string = customEnv[varName];
-            logger.info(`${varName}=${varValue}`);
+            const varValue = customEnv[varName];
+            logger.info(`${varName}=${varValue ?? '<null>'}`);
         }
     } else {
         logger.debug('No custom environment variables set in %s', TERMINAL_ENV_SETTING_NAME);

@@ -121,12 +121,12 @@ export const TERMINAL_ENV_SETTING_NAME =
  * @returns the value of the applicable `terminal.integrated.env.*` setting,
  * without evaluation of macros such as `${env:...}`.
  */
-export function getTerminalEnv() {
+export function getTerminalEnv(): { [name: string]: string | null } {
     const custom_env = vscode.workspace
         .getConfiguration()
-        .get<{ [name: string]: string }>(TERMINAL_ENV_SETTING_NAME);
+        .get<{ [name: string]: string | null }>(TERMINAL_ENV_SETTING_NAME);
 
-    return custom_env;
+    return custom_env ?? {};
 }
 
 /**
@@ -139,11 +139,18 @@ export function getEvaluatedTerminalEnv() {
 
     if (custom_env) {
         for (const var_name in custom_env) {
-            // Substitute VS Code variable references that might be present
-            // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
-            custom_env[var_name] = custom_env[var_name].replace(/(\$\{.*\})/, (substring) =>
-                substituteVariables(substring, false)
-            );
+            /**
+             * The User can specify `"VAR": null` in his settings, so we only
+             * apply substitution to non-null values.
+             */
+            if (custom_env[var_name] != null) {
+                // Substitute VS Code variable references that might be present
+                // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
+                custom_env[var_name] =
+                    custom_env[var_name]?.replace(/(\$\{.*\})/, (substring) =>
+                        substituteVariables(substring, false)
+                    ) ?? null;
+            }
         }
     }
 
@@ -157,15 +164,30 @@ export function getEvaluatedTerminalEnv() {
  * The targetEnv can be `process.env` to apply the changes to the environment of
  * the running process.
  */
-export function setTerminalEnvironment(targetEnv: NodeJS.ProcessEnv) {
-    // Retrieve the user's custom environment variables if specified in their
-    // settings/workspace
-    const custom_env = getEvaluatedTerminalEnv();
+export function setTerminalEnvironment(
+    targetEnv: NodeJS.ProcessEnv,
+    custom_env?: { [name: string]: string | null }
+) {
+    if (custom_env == undefined) {
+        // Retrieve the user's custom environment variables if specified in their
+        // settings/workspace
+        custom_env = getEvaluatedTerminalEnv();
+    }
 
     if (custom_env) {
         for (const var_name in custom_env) {
-            const var_value: string = custom_env[var_name];
-            targetEnv[var_name] = var_value;
+            const var_value = custom_env[var_name];
+            if (var_value == null) {
+                /**
+                 * If the value is null, delete it from the target env if it
+                 * exists.
+                 */
+                if (var_name in targetEnv) {
+                    delete targetEnv[var_name];
+                }
+            } else {
+                targetEnv[var_name] = var_value;
+            }
         }
     }
 }

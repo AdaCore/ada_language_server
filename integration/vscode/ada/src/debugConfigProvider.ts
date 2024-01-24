@@ -100,7 +100,7 @@ function getOrFindGdb(): string | undefined {
         const env = getEvaluatedTerminalEnv();
         let pathVal: string;
         if (env && 'PATH' in env) {
-            pathVal = env.PATH;
+            pathVal = env.PATH ?? '';
         } else if ('PATH' in process.env) {
             pathVal = process.env.PATH ?? '';
         } else {
