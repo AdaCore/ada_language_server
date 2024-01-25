@@ -7080,7 +7080,7 @@ package body LSP.Message_IO is
             elsif Key = "command" then
                Optional_Command'Read (S, V.command);
             elsif Key = "data" then
-               Optional_Location'Read (S, V.data);
+               Optional_LSP_Any'Read (S, V.data);
             else
                JS.Skip_Value;
             end if;
@@ -7130,7 +7130,7 @@ package body LSP.Message_IO is
       JS.Key ("command");
       Optional_Command'Write (S, V.command);
       JS.Key ("data");
-      Optional_Location'Write (S, V.data);
+      Optional_LSP_Any'Write (S, V.data);
       JS.End_Object;
    end Write_CompletionItem;
 

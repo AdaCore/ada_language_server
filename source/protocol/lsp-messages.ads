@@ -7625,7 +7625,7 @@ package LSP.Messages is
       additionalTextEdits : TextEdit_Vector;
       commitCharacters    : Optional_Virtual_String_Vector;
       command             : Optional_Command;
-      data                : Optional_Location;
+      data                : Optional_LSP_Any;
    end record;
 
    procedure Read_CompletionItem
