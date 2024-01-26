@@ -268,7 +268,8 @@ package body LSP.GPR_Completions is
    end Fill_Completion_Response;
 
    procedure Fill_Completion_Resolve_Response
-     (Response : in out LSP.Structures.CompletionItem) is
+     (Response : in out LSP.Structures.CompletionItem)
+   is
       Pack     : Package_Id;
       Attr     : Q_Optional_Attribute_Id;
       Doc_Text : VSS.Strings.Virtual_String;

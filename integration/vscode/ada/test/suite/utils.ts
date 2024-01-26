@@ -1,10 +1,10 @@
-import * as vscode from 'vscode';
 import assert from 'assert';
-import { env } from 'process';
-import path, { resolve } from 'path';
-import Mocha, { MochaOptions } from 'mocha';
-import { Glob, GlobOptionsWithFileTypesUnset } from 'glob';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { Glob, GlobOptionsWithFileTypesUnset } from 'glob';
+import Mocha, { MochaOptions } from 'mocha';
+import path from 'path';
+import { env } from 'process';
+import * as vscode from 'vscode';
 
 /**
  * This function compares some actual output to an expected referenced stored in
@@ -89,11 +89,11 @@ export function runMochaTestsuite(suiteName: string, suiteDirectory: string) {
     // Create the mocha test
     const mocha = new Mocha(mochaOptions);
 
-    return new Promise<void>((c, e) => {
+    return new Promise<void>((resolve, reject) => {
         const globOptions: GlobOptionsWithFileTypesUnset = { cwd: suiteDirectory };
         const glob = new Glob('**/*.test.js', globOptions);
         for (const file of glob) {
-            mocha.addFile(resolve(suiteDirectory, file));
+            mocha.addFile(path.resolve(suiteDirectory, file));
         }
         try {
             // This variable is set in the launch configuration (launch.json) of
@@ -110,13 +110,13 @@ export function runMochaTestsuite(suiteName: string, suiteDirectory: string) {
             // Run the mocha test
             mocha.run((failures) => {
                 if (failures > 0) {
-                    e(new Error(`${failures} tests failed.`));
+                    reject(new Error(`${failures} tests failed.`));
                 } else {
-                    c();
+                    resolve();
                 }
             });
         } catch (err) {
-            e(err);
+            reject(err);
         }
     });
 }
