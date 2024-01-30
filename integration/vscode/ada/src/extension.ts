@@ -148,7 +148,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
     adaExtState.adaClient.clientOptions.middleware = alsMiddleware;
     adaExtState.adaClient.registerFeature(new ALSClientFeatures());
 
-    adaExtState.start();
+    await adaExtState.start();
 
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged)
@@ -159,8 +159,6 @@ async function activateExtension(context: vscode.ExtensionContext) {
      * Output become available even if the language servers fail to start.
      */
     registerCommands(context, adaExtState);
-
-    await Promise.all([adaExtState.adaClient.onReady(), adaExtState.gprClient.onReady()]);
 
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, true);
 

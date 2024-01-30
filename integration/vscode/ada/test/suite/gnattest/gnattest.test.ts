@@ -13,7 +13,6 @@ suite('GNATtest Integration Tests', function () {
         await activate();
     });
     test('Generate Tests', async () => {
-        await adaExtState.adaClient.onReady();
         const projectFile = await getProjectFile(adaExtState.adaClient);
         // Generate tests and redirect the stderr to stdout if command failed
         cp.execSync('gnattest -P ' + projectFile + ' 2>&1', { timeout: 60000 });

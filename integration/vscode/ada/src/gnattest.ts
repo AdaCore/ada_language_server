@@ -63,7 +63,6 @@ export async function initializeTestView(
         );
         context.subscriptions.push(controller);
 
-        await clients.adaClient.onReady();
         // Getting Paths Information from the server
         const projectFile = await getProjectFile(clients.adaClient);
         const objectDir: string = await getObjectDir(clients.adaClient);

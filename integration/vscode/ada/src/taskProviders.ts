@@ -863,7 +863,7 @@ class BuildAndRunExecution extends vscode.CustomExecution {
                             },
                             () => {
                                 writeEmitter.fire('Failed to get list of tasks\r\n');
-                                closeEmitter.fire(1);
+                                return 1;
                             }
                         )
                         .then(

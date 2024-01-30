@@ -20,7 +20,6 @@ export class ExtensionState {
     public readonly gprClient: LanguageClient;
     public readonly context: vscode.ExtensionContext;
 
-    private clientsDisposables: Disposable[];
     private registeredTaskProviders: Disposable[];
 
     constructor(context: vscode.ExtensionContext) {
@@ -39,20 +38,16 @@ export class ExtensionState {
             [],
             '**/.{adb,ads,adc,ada}'
         );
-        this.clientsDisposables = [];
         this.registeredTaskProviders = [];
     }
 
-    public start = () => {
-        this.clientsDisposables = [this.gprClient.start(), this.adaClient.start()];
+    public start = async () => {
+        await Promise.all([this.gprClient.start(), this.adaClient.start()]);
         this.registerTaskProviders();
     };
 
     public dispose = () => {
         this.unregisterTaskProviders();
-        this.clientsDisposables.forEach((clientDisposable: Disposable) =>
-            clientDisposable.dispose()
-        );
     };
 
     public registerTaskProviders = (): void => {
