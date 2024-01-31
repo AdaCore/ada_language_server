@@ -13,7 +13,6 @@ suite('Extensions Test Suite', function () {
     });
     test('Project File Response', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
-            await adaExtState.adaClient.onReady();
             const result: string = await getProjectFile(adaExtState.adaClient);
             const name = result.replace(/^.*[\\/]/, '');
             assert.strictEqual(name, 'default.gpr');
@@ -23,7 +22,6 @@ suite('Extensions Test Suite', function () {
     });
     test('Object Directory Response', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
-            await adaExtState.adaClient.onReady();
             const result: string = await getObjectDir(adaExtState.adaClient);
             const name = result?.replace(/^.*[\\/]/, '');
             assert.strictEqual(name, 'obj');
@@ -33,7 +31,6 @@ suite('Extensions Test Suite', function () {
     });
     test('Test Add Subprogram Box', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
-            await adaExtState.adaClient.onReady();
             const cursorPositions: vscode.Position[] = [
                 new vscode.Position(9, 1),
                 new vscode.Position(4, 1),

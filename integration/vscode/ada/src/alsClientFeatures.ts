@@ -22,6 +22,7 @@
 import {
     ClientCapabilities,
     DocumentSelector,
+    FeatureState,
     InitializeParams,
     ServerCapabilities,
     StaticFeature,
@@ -78,9 +79,25 @@ export class ALSClientFeatures implements StaticFeature {
     }
 
     /**
+     * Returns the state the feature is in.
+     */
+    getState(): FeatureState {
+        return { kind: 'static' };
+    }
+
+    /**
      * Unused since there are no necessary actions when disposing an object of this class
      */
     dispose(): void {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+    }
+
+    /**
+     * Called when the client is stopped or re-started to clear this feature.
+     * Usually a feature un-registers listeners registered hooked up with the
+     * VS Code extension host.
+     */
+    clear(): void {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
     }
 }

@@ -15,7 +15,6 @@ suite('Syntax Check Test Suite', function () {
             false_statement: string,
             true_statement: string
         ) {
-            await adaExtState.adaClient.onReady();
             const syntaxProvider = new AdaSyntaxCheckProvider(adaExtState.adaClient, [rule]);
             let result = await syntaxProvider.sendCheckSyntaxRequest(true_statement);
             assert.deepStrictEqual(result, undefined);
