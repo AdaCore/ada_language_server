@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,7 +22,7 @@ with GNATCOLL.VFS;
 
 with LSP.Ada_Configurations;
 with LSP.Ada_Handlers;
-private with LSP.Server_Jobs;
+with LSP.Server_Jobs;
 private with LSP.Server_Message_Visitors;
 limited with LSP.Servers;
 private with LSP.Structures;
@@ -41,6 +41,9 @@ package LSP.Ada_Indexing is
       Configuration : LSP.Ada_Configurations.Configuration'Class;
       Project_Stamp : LSP.Ada_Handlers.Project_Stamp;
       Files         : File_Sets.Set);
+
+   type Indexing_Job (<>) is new LSP.Server_Jobs.Abstract_Server_Job
+     with private;
 
 private
 

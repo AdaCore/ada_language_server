@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,6 +35,7 @@ with LSP.Known_Requests;
 with LSP.Lifecycle_Checkers;
 with LSP.Server_Notification_Readers;
 with LSP.Server_Request_Readers;
+with LSP.Register_Fallbacks;
 
 package body LSP.Servers is
 
@@ -166,6 +167,9 @@ package body LSP.Servers is
       Stream : access Ada.Streams.Root_Stream_Type'Class) is
    begin
       Self.Stream := Stream;
+
+      LSP.Register_Fallbacks
+        (Self.Scheduler, Self.Default_Handler'Unchecked_Access);
    end Initialize;
 
    -------------------------
@@ -566,6 +570,18 @@ package body LSP.Servers is
          EOF := True;
    end Process_One_Message;
 
+   ----------------------
+   -- Register_Handler --
+   ----------------------
+
+   procedure Register_Handler
+     (Self    : in out Server'Class;
+      Tag     : Ada.Tags.Tag;
+      Handler : LSP.Server_Message_Handlers.Server_Message_Handler_Access) is
+   begin
+      Self.Scheduler.Register_Handler (Tag, Handler);
+   end Register_Handler;
+
    ---------
    -- Run --
    ---------
@@ -578,6 +594,8 @@ package body LSP.Servers is
       Out_Logger   : Client_Message_Visitor_Access) is
    begin
       Self.Tracer := Tracer;
+      Self.Default_Handler.Initialize (Handler);
+
       Self.Processing_Task.Start (Handler);
       Self.Output_Task.Start (Out_Logger);
       Self.Input_Task.Start (In_Logger);
@@ -804,25 +822,40 @@ package body LSP.Servers is
 
    task body Processing_Task_Type is
 
-      Handler : Server_Message_Visitor_Access;
-
-      Input_Queue   : Input_Message_Queues.Queue renames Server.Input_Queue;
-
-      procedure Initialize
-        (Handler : not null Server_Message_Visitor_Access);
-      --  Initializes internal data structures
+      Input_Queue : Input_Message_Queues.Queue renames Server.Input_Queue;
 
       procedure Process_Message (Message : in out Server_Message_Access);
+      --  Create a job for the message and execute all highest priority jobs
 
-      ----------------
-      -- Initialize --
-      ----------------
+      procedure Execute_Jobs (Message : in out Server_Message_Access);
+      --  Execute low priority jobs (if any) till a new message arrive
 
-      procedure Initialize
-        (Handler : not null Server_Message_Visitor_Access) is
+      ------------------
+      -- Execute_Jobs --
+      ------------------
+
+      procedure Execute_Jobs (Message : in out Server_Message_Access) is
       begin
-         Processing_Task_Type.Handler := Handler;
-      end Initialize;
+         while Server.Scheduler.Has_Jobs loop
+            select
+               Input_Queue.Dequeue (Message);
+
+               return;
+
+            else
+               declare
+                  Waste : Server_Message_Access;
+
+               begin
+                  Server.Scheduler.Process_Job (Server.all, Waste);
+
+                  if Waste.Assigned then
+                     Server.Destroy_Queue.Enqueue (Waste);
+                  end if;
+               end;
+            end select;
+         end loop;
+      end Execute_Jobs;
 
       ---------------------
       -- Process_Message --
@@ -830,9 +863,20 @@ package body LSP.Servers is
 
       procedure Process_Message (Message : in out Server_Message_Access) is
       begin
-         Message.Visit_Server_Message_Visitor (Handler.all);
-         Server.Destroy_Queue.Enqueue (Message);
-         Message := null;
+         Server.Scheduler.Create_Job (Message);
+
+         loop
+            declare
+               Waste : Server_Message_Access;
+            begin
+               Server.Scheduler.Process_High_Priority_Job (Server.all, Waste);
+
+               exit when not Waste.Assigned;
+
+               Server.Destroy_Queue.Enqueue (Waste);
+            end;
+         end loop;
+
       exception
          when E : others =>
             --  Message handler should never raise any exception
@@ -845,7 +889,7 @@ package body LSP.Servers is
       accept Start
         (Handler : not null Server_Message_Visitor_Access)
       do
-         Initialize (Handler);
+         pragma Unreferenced (Handler);
       end Start;
 
       loop
@@ -873,22 +917,30 @@ package body LSP.Servers is
          end;
 
          --  Now there are no messages in the queue and Look_Ahead is empty.
-         --  Wait for some time and then check for Stop signal
-         select
-            Input_Queue.Dequeue (Server.Look_Ahead);
-         or
-            delay 0.1;
+         --  Wait for messages executing jobs, then check Stop signal
 
-            --  If no request during some timeout, then check for Stop signal
+         Execute_Jobs (Server.Look_Ahead);
+
+         if not Server.Look_Ahead.Assigned then
+            --  there is no jobs any more, just wait for input messages
 
             select
-               accept Stop;
-               exit;
-            else
-               null;
-            end select;
+               Input_Queue.Dequeue (Server.Look_Ahead);
 
-         end select;
+            or
+               delay 0.1;
+
+               --  no request during some timeout, check for Stop signal
+
+               select
+                  accept Stop;
+                  exit;
+               else
+                  null;
+               end select;
+
+            end select;
+         end if;
       end loop;
 
       while Natural (Input_Queue.Current_Use) > 0 loop
