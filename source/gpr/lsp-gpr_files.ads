@@ -47,6 +47,8 @@ with LSP.Tracers;
 
 package LSP.GPR_Files is
 
+   use GPR2; --  temporary workaround of a coverage instrumentation problem
+
    type File (Tracer : not null LSP.Tracers.Tracer_Access) is
      tagged limited private;
    --  A parsed GPR file.
@@ -214,8 +216,6 @@ package LSP.GPR_Files is
    --  Return True if Position at Token's end
 
 private
-
-   use GPR2;
 
    type Source_Position is record
       Line   : Integer;

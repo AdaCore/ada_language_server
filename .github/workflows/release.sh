@@ -39,20 +39,22 @@ echo "upload_url=$upload_url"
 chmod -R -v +x als-*-$DEBUG
 
 for CROSS in "" "aarch64" ; do
-for X in Linux macOS Windows ; do
-  FILE=als-$TAG-$X${DEBUG:+-debug}_${CROSS:-amd64}.zip
-  cd als-$X-$DEBUG$CROSS
-  zip -9 -r ../$FILE .
-  cd ..
+  for X in Linux macOS Windows ; do
+    FILE=als-$TAG-$X${DEBUG:+-debug}_${CROSS:-amd64}.zip
+    if [ -d als-$X-$DEBUG$CROSS ] ; then
+      cd als-$X-$DEBUG$CROSS
+      zip -9 -r ../$FILE .
+      cd ..
 
-  # Upload $FILE as an asset to the release
-  curl \
-    -X POST \
-    -H "Accept: application/vnd.github+json" \
-    -H "Authorization: token $GITHUB_ACCESS_TOKEN" \
-    -H 'Content-Type: application/zip' \
-    --data-binary @$FILE \
-    $upload_url?name=$FILE
-  rm -v -f $FILE
-done
+      # Upload $FILE as an asset to the release
+      curl \
+        -X POST \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: token $GITHUB_ACCESS_TOKEN" \
+        -H 'Content-Type: application/zip' \
+        --data-binary @$FILE \
+        $upload_url?name=$FILE
+      rm -v -f $FILE
+    fi
+  done
 done
