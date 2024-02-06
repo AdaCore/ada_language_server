@@ -865,6 +865,11 @@ package body LSP.Servers is
       begin
          Server.Scheduler.Create_Job (Message);
 
+         if Message.Assigned then
+            --  Scheduler wasn't able to process message, destroy it
+            Server.Destroy_Queue.Enqueue (Message);
+         end if;
+
          loop
             declare
                Waste : Server_Message_Access;

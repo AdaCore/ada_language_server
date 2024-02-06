@@ -16,9 +16,11 @@
 ------------------------------------------------------------------------------
 
 with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Tags;
 
 with LSP.Client_Message_Receivers;
+with LSP.Server_Jobs;
 with LSP.Server_Message_Handlers;
 with LSP.Server_Messages;
 
@@ -41,6 +43,8 @@ package LSP.Job_Schedulers is
       Message : in out LSP.Server_Messages.Server_Message_Access);
    --  Create a job to process a server message. The scheduler takes ownership
    --  of the message and will return it to the server when the job is done.
+   --  If there is no handler for the message, then the scheduler doesn't
+   --  accept message and server should destroy it.
 
    procedure Process_High_Priority_Job
      (Self    : in out Job_Scheduler'Class;
@@ -56,7 +60,7 @@ package LSP.Job_Schedulers is
      (Self    : in out Job_Scheduler'Class;
       Client  :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste   : out LSP.Server_Messages.Server_Message_Access) is null;
+      Waste   : out LSP.Server_Messages.Server_Message_Access);
    --  Execute jobs with ordinal priority (Low, High).
    --  When a job is done the routine returns (in Waste) the message to be
    --  deallocated by the server. The Client is used to send messages during
@@ -73,10 +77,21 @@ private
       Ada.Tags."=",
       LSP.Server_Message_Handlers."=");
 
+   package Job_Lists is new Ada.Containers.Doubly_Linked_Lists
+     (LSP.Server_Jobs.Server_Job_Access, LSP.Server_Jobs."=");
+
+   subtype Ordinal_Priority is LSP.Server_Jobs.Job_Priority
+     range LSP.Server_Jobs.Low .. LSP.Server_Jobs.High;
+
+   type Job_List_Array is array (Ordinal_Priority) of Job_Lists.List;
+
    type Job_Scheduler is tagged limited record
-      Message  : LSP.Server_Messages.Server_Message_Access;
-      --  Last added message
+      Blocker  : LSP.Server_Jobs.Server_Job_Access;
+      --  A job with non-ordinal priority (Immediate, Fence)
+      Done     : LSP.Server_Jobs.Server_Job_Access;
+      --  A job with Fence priority to be completed
       Handlers : Handler_Maps.Map;
+      Jobs     : Job_List_Array;
    end record;
 
 end LSP.Job_Schedulers;

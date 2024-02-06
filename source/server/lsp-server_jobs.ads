@@ -34,6 +34,8 @@ package LSP.Server_Jobs is
    --  new messages until the job is done. Server execute each job in its
    --  queue before executing any Fence job.
 
+   subtype Ordinal_Priority is Job_Priority range Low .. High;
+
    type Server_Job is limited interface;
 
    function Priority (Self : Server_Job) return Job_Priority is abstract;
@@ -55,6 +57,7 @@ package LSP.Server_Jobs is
       Next : LSP.Server_Messages.Server_Message_Access) is null
        with Pre'Class => Is_Done (Self);
    --  Complete message execution. The next message is provided if any.
+   --  Currently this is called only for Fence jobs.
 
    procedure Cancel
      (Self   : in out Server_Job;
@@ -68,6 +71,7 @@ package LSP.Server_Jobs is
 
    function Message (Self : Server_Job)
      return LSP.Server_Messages.Server_Message_Access is abstract;
+   --  Message to be destroyed when the job is done
 
    function Assigned (Self : access Server_Job'Class) return Boolean is
       (Self /= null);
