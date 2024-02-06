@@ -99,11 +99,7 @@ package body LSP.Ada_Indexing is
                Emit_Progress_Report
                  (Self.Total_Files_Indexed, Self.Total_Files_To_Index);
 
-               --  Check whether another request is pending. If so, pause
-               --  the indexing; it will be resumed later as part of
-               --  After_Request.
-
-               exit when Self.Server.Has_Pending_Work;
+               exit;
             end if;
 
          end;
@@ -142,8 +138,7 @@ package body LSP.Ada_Indexing is
            Handler.Allocate_Progress_Token ("indexing");
          Job   : LSP.Server_Jobs.Server_Job_Access :=
            new Indexing_Job'
-             (Server               => Server,
-              Handler              => Handler,
+             (Handler              => Handler,
               Files_To_Index       => Files,
               Indexing_Token       => Token,
               Total_Files_Indexed  => 0,

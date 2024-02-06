@@ -63,8 +63,7 @@ private
    --        schedule new indexing job
 
    type Indexing_Job
-     (Server  : not null access LSP.Servers.Server'Class;
-      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class) is
+     (Handler : not null access LSP.Ada_Handlers.Message_Handler'Class) is
         new LSP.Server_Jobs.Server_Job with
    record
       Files_To_Index       : File_Sets.Set;

@@ -975,17 +975,4 @@ package body LSP.Servers is
       return Self.Look_Ahead;
    end Look_Ahead_Message;
 
-   ----------------------
-   -- Has_Pending_Work --
-   ----------------------
-
-   function Has_Pending_Work (Self : Server) return Boolean is
-      use type Ada.Task_Identification.Task_Id;
-   begin
-      pragma Assert
-        (Ada.Task_Identification.Current_Task = Self.Processing_Task'Identity);
-
-      return Self.Input_Queue_Length > 0;
-   end Has_Pending_Work;
-
 end LSP.Servers;
