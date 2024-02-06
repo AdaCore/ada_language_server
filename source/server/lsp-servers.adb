@@ -117,15 +117,10 @@ package body LSP.Servers is
 
    procedure Enqueue
      (Self : in out Server'Class;
-      Job  : in out LSP.Server_Jobs.Server_Jobs_Access)
-   is
-      use type LSP.Server_Jobs.Server_Jobs_Access;
-
+      Job  : in out LSP.Server_Jobs.Server_Job_Access) is
    begin
-      if Job /= null then
-         Self.Input_Queue.Enqueue (Server_Message_Access (Job));
-         Job := null;
-      end if;
+      Self.Scheduler.Enqueue (Job);
+      Job := null;
    end Enqueue;
 
    --------------

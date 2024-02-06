@@ -111,7 +111,7 @@ package LSP.Servers is
 
    procedure Enqueue
      (Self : in out Server'Class;
-      Job  : in out LSP.Server_Jobs.Server_Jobs_Access);
+      Job  : in out LSP.Server_Jobs.Server_Job_Access);
    --  Put server job into the queue.
 
    function Allocate_Request_Id

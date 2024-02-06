@@ -46,6 +46,11 @@ package LSP.Job_Schedulers is
    --  If there is no handler for the message, then the scheduler doesn't
    --  accept message and server should destroy it.
 
+   procedure Enqueue
+     (Self : in out Job_Scheduler'Class;
+      Job  : not null LSP.Server_Jobs.Server_Job_Access);
+   --  Put Job into the job queue.
+
    procedure Process_High_Priority_Job
      (Self    : in out Job_Scheduler'Class;
       Client  :

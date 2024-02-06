@@ -17,7 +17,6 @@
 
 with LSP.Client_Message_Receivers;
 with LSP.Server_Messages;
-limited with LSP.Servers;
 
 package LSP.Server_Jobs is
    pragma Preelaborate;
@@ -54,8 +53,7 @@ package LSP.Server_Jobs is
 
    procedure Complete
      (Self : in out Server_Job;
-      Next : LSP.Server_Messages.Server_Message_Access) is null
-       with Pre'Class => Is_Done (Self);
+      Next : LSP.Server_Messages.Server_Message_Access) is null;
    --  Complete message execution. The next message is provided if any.
    --  Currently this is called only for Fence jobs.
 
@@ -63,7 +61,7 @@ package LSP.Server_Jobs is
      (Self   : in out Server_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class)
-          is abstract;
+          is null;
    --  Cancel job execution. Use Client to send messages if required.
 
    --  function Progress (Self : Server_Job) return Job_Progress is abstract;
@@ -77,12 +75,5 @@ package LSP.Server_Jobs is
       (Self /= null);
 
    type Server_Job_Access is access all Server_Job'Class;
-
-   type Abstract_Server_Job
-     (Server  : not null access LSP.Servers.Server'Class) is
-     new LSP.Server_Messages.Server_Message with null record;
-   --  This type should be deleted after migration to Server_Job type.
-
-   type Server_Jobs_Access is access all Abstract_Server_Job'Class;
 
 end LSP.Server_Jobs;

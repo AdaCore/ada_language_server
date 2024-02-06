@@ -62,15 +62,25 @@ package body LSP.Job_Schedulers is
 
          if Job.Assigned then
             Message := null;
-
-            if Job.Priority in Self.Jobs'Range then
-               Self.Jobs (Job.Priority).Append (Job);
-            else
-               Self.Blocker := Job;
-            end if;
+            Self.Enqueue (Job);
          end if;
       end if;
    end Create_Job;
+
+   -------------
+   -- Enqueue --
+   -------------
+
+   procedure Enqueue
+     (Self : in out Job_Scheduler'Class;
+      Job  : not null LSP.Server_Jobs.Server_Job_Access) is
+   begin
+      if Job.Priority in Self.Jobs'Range then
+         Self.Jobs (Job.Priority).Append (Job);
+      else
+         Self.Blocker := Job;
+      end if;
+   end Enqueue;
 
    --------------
    -- Has_Jobs --
