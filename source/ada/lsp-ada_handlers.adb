@@ -412,6 +412,16 @@ package body LSP.Ada_Handlers is
          Imprecise => Imprecise);
    end Imprecise_Resolve_Name;
 
+   ---------------------------------
+   -- Increment_Project_Timestamp --
+   ---------------------------------
+
+   overriding procedure Increment_Project_Timestamp
+     (Self : in out Message_Handler) is
+   begin
+      Self.Project_Stamp := Self.Project_Stamp + 1;
+   end Increment_Project_Timestamp;
+
    ----------------
    -- Initialize --
    ----------------
@@ -2154,26 +2164,6 @@ package body LSP.Ada_Handlers is
       --  Emit diagnostics
       Self.Publish_Diagnostics (Document);
    end On_DidChange_Notification;
-
-   --------------------------------------------
-   -- On_DidChangeConfiguration_Notification --
-   --------------------------------------------
-
-   overriding procedure On_DidChangeConfiguration_Notification
-     (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeConfigurationParams)
-   is
-      Reload : Boolean;
-   begin
-      Self.Configuration.Read_JSON (Value.settings, Reload);
-
-      --  Always reload project if Project_Tree isn't ready
-      Reload := Reload or not Self.Project_Tree.Is_Defined;
-
-      if Reload then
-         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
-      end if;
-   end On_DidChangeConfiguration_Notification;
 
    -------------------------------------------
    -- On_DidChangeWatchedFiles_Notification --
@@ -4685,6 +4675,26 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
    end Publish_Diagnostics;
+
+   --------------------
+   -- Reload_Project --
+   --------------------
+
+   overriding procedure Reload_Project (Self : in out Message_Handler) is
+   begin
+      LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
+   end Reload_Project;
+
+   -----------------------
+   -- Set_Configuration --
+   -----------------------
+
+   overriding procedure Set_Configuration
+     (Self  : in out Message_Handler;
+      Value : LSP.Ada_Configurations.Configuration) is
+   begin
+      Self.Configuration := Value;
+   end Set_Configuration;
 
    -----------------------
    -- To_Workspace_Edit --

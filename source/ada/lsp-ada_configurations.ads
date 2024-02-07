@@ -26,7 +26,7 @@ with LSP.Structures;
 
 package LSP.Ada_Configurations is
 
-   type Configuration is tagged limited private;
+   type Configuration is tagged private;
 
    procedure Read_JSON
      (Self   : in out Configuration'Class;
@@ -116,7 +116,7 @@ private
 
    use type VSS.Strings.Virtual_String;
 
-   type Configuration is tagged limited record
+   type Configuration is tagged record
       Project_File             : VSS.Strings.Virtual_String;
       Charset                  : VSS.Strings.Virtual_String;
       Relocate_Build_Tree      : VSS.Strings.Virtual_String;

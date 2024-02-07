@@ -38,6 +38,7 @@ with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
 with LSP.Ada_Commands;
+with LSP.Ada_Did_Change_Configurations;
 with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Executables_Commands;
 with LSP.Ada_Handlers.Mains_Commands;
@@ -69,6 +70,7 @@ with LSP.GPR_External_Tools;
 with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
 with LSP.Secure_Message_Loggers;
+with LSP.Server_Notifications.DidChangeConfiguration;
 with LSP.Servers;
 with LSP.Stdio_Streams;
 
@@ -165,6 +167,11 @@ procedure LSP.Ada_Driver is
      (Server'Access, Server'Access, Tracer'Unchecked_Access);
    GPR_Handler : aliased LSP.GPR_Handlers.Message_Handler
      (Server'Access, Tracer'Unchecked_Access);
+
+   --  Job handlers
+   Ada_Did_Change_Handler : aliased
+     LSP.Ada_Did_Change_Configurations.Ada_Did_Change_Handler
+       (Ada_Handler'Unchecked_Access);
 
    Fuzzing_Activated      : constant Boolean :=
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
@@ -357,6 +364,10 @@ begin
          --  Load predefined completion items
          LSP.Predefined_Completion.Load_Predefined_Completion_Db
            (Server_Trace);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.DidChangeConfiguration.Notification'Tag,
+            Ada_Did_Change_Handler'Unchecked_Access);
 
          Server.Run
            (Ada_Handler'Unchecked_Access,

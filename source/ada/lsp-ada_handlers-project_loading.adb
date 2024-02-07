@@ -654,7 +654,6 @@ package body LSP.Ada_Handlers.Project_Loading is
       Self.Contexts.Cleanup;
 
       Self.Project_Tree.Unload;
-      --  Self.Project_Environment := Empty_Environment;
       Self.Project_Predefined_Sources.Clear;
       Self.Project_Dirs_Loaded.Clear;
 

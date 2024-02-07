@@ -33,6 +33,7 @@ with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
 with LSP.Ada_Highlighters;
+with LSP.Ada_Job_Contexts;
 with LSP.Client_Message_Receivers;
 with LSP.File_Monitors;
 with LSP.Server_Message_Visitors;
@@ -60,6 +61,7 @@ package LSP.Ada_Handlers is
    new LSP.Server_Message_Visitors.Server_Message_Visitor
      and LSP.Server_Request_Receivers.Server_Request_Receiver
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
+     and LSP.Ada_Job_Contexts.Ada_Job_Context
    with private;
 
    procedure Initialize
@@ -203,9 +205,10 @@ private
    new LSP.Unimplemented_Handlers.Unimplemented_Handler
      and LSP.Server_Message_Visitors.Server_Message_Visitor
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
+     and LSP.Ada_Job_Contexts.Ada_Job_Context
    with record
       Client : LSP.Ada_Client_Capabilities.Client_Capability;
-      Configuration : LSP.Ada_Configurations.Configuration;
+      Configuration : aliased LSP.Ada_Configurations.Configuration;
 
       Contexts : LSP.Ada_Context_Sets.Context_Set;
       --  There is one context in this list per loaded project.
@@ -362,10 +365,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentRangeFormattingParams);
 
-   overriding procedure On_DidChangeConfiguration_Notification
-     (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeConfigurationParams);
-
    overriding procedure On_DidChangeWatchedFiles_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeWatchedFilesParams);
@@ -487,5 +486,25 @@ private
    --  a list of all contexts where the file is known to be part of the
    --  project tree, or is a runtime file for this project. If the file
    --  is not known to any project, return an empty list.
+
+   ------------------
+   --  Job_Context --
+   ------------------
+
+   overriding function Get_Configuration (Self : Message_Handler)
+     return access constant LSP.Ada_Configurations.Configuration is
+       (Self.Configuration'Unchecked_Access);
+
+   overriding procedure Set_Configuration
+      (Self  : in out Message_Handler;
+       Value : LSP.Ada_Configurations.Configuration);
+
+   overriding procedure Increment_Project_Timestamp
+     (Self : in out Message_Handler);
+
+   overriding function Project_Tree_Is_Defined (Self : Message_Handler)
+     return Boolean is (Self.Project_Tree.Is_Defined);
+
+   overriding procedure Reload_Project (Self : in out Message_Handler);
 
 end LSP.Ada_Handlers;
