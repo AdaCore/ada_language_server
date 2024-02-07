@@ -323,8 +323,7 @@ package body LSP.Ada_Handlers is
 
    function Get_Open_Document
      (Self  : in out Message_Handler;
-      URI   : LSP.Structures.DocumentUri;
-      Force : Boolean := False)
+      URI   : LSP.Structures.DocumentUri)
       return LSP.Ada_Documents.Document_Access
    is
       File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
@@ -334,14 +333,6 @@ package body LSP.Ada_Handlers is
       if Self.Open_Documents.Contains (File) then
          return LSP.Ada_Documents.Document_Access
            (Self.Open_Documents.Element (File));
-      elsif Force then
-         declare
-            Document : constant Internal_Document_Access :=
-              new LSP.Ada_Documents.Document (Self.Tracer);
-         begin
-            Document.Initialize (URI, VSS.Strings.Empty_Virtual_String, null);
-            return LSP.Ada_Documents.Document_Access (Document);
-         end;
       else
          return null;
       end if;

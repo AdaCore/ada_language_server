@@ -142,8 +142,7 @@ package body LSP.Ada_Handlers.File_Readers is
 
       Doc := Self.Handler.Get_Open_Document
         (URI   => (VSS.Strings.Conversions.To_Virtual_String (URI)
-                     with null record),
-         Force => False);
+                     with null record));
 
       --  Preprocess the document's contents if open, or the file contents if
       --  not.

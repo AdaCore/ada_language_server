@@ -94,14 +94,11 @@ package LSP.Ada_Handlers is
    -----------------------------
 
    function Get_Open_Document
-     (Self  : in out Message_Handler;
-      URI   : LSP.Structures.DocumentUri;
-      Force : Boolean := False)
+     (Self : in out Message_Handler;
+      URI  : LSP.Structures.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
    --  Return the open document for the given URI.
-   --  If the document is not opened, then if Force a new document
-   --  will be created and must be freed by the user else null will be
-   --  returned.
+   --  If the document is not opened, then null will be returned.
 
    function Is_Open_Document
      (Self : Message_Handler;
