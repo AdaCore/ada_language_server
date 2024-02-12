@@ -25,8 +25,9 @@ package body LSP.Job_Schedulers is
      (LSP.Server_Jobs.Server_Job'Class, LSP.Server_Jobs.Server_Job_Access);
 
    procedure Complete_Last_Fence_Job
-     (Self : in out Job_Scheduler'Class;
-      Next : LSP.Server_Messages.Server_Message_Access);
+     (Self  : in out Job_Scheduler'Class;
+      Next  : LSP.Server_Messages.Server_Message_Access;
+      Waste : out LSP.Server_Messages.Server_Message_Access);
    --  Call Complete on the last done Fence job (if any) and free it
 
    -----------------------------
@@ -34,11 +35,13 @@ package body LSP.Job_Schedulers is
    -----------------------------
 
    procedure Complete_Last_Fence_Job
-     (Self : in out Job_Scheduler'Class;
-      Next : LSP.Server_Messages.Server_Message_Access) is
+     (Self  : in out Job_Scheduler'Class;
+      Next  : LSP.Server_Messages.Server_Message_Access;
+      Waste : out LSP.Server_Messages.Server_Message_Access) is
    begin
       if Self.Done.Assigned then
          Self.Done.Complete (Next);
+         Waste := Self.Done.Message;
          Free (Self.Done);
       end if;
    end Complete_Last_Fence_Job;
@@ -116,22 +119,6 @@ package body LSP.Job_Schedulers is
    is
       use all type LSP.Server_Jobs.Job_Priority;
 
-      procedure Execute (Job : LSP.Server_Jobs.Server_Job_Access);
-
-      -------------
-      -- Execute --
-      -------------
-
-      procedure Execute (Job : LSP.Server_Jobs.Server_Job_Access) is
-      begin
-         Self.Complete_Last_Fence_Job (Job.Message);
-         Waste := Job.Message;
-
-         while not Job.Is_Done loop
-            Job.Execute (Client);
-         end loop;
-      end Execute;
-
       Job : LSP.Server_Jobs.Server_Job_Access renames Self.Blocker;
    begin
       if not Job.Assigned then
@@ -149,12 +136,23 @@ package body LSP.Job_Schedulers is
                return;
             end if;
          end loop;
+      end if;
 
-         Execute (Job);
+      Self.Complete_Last_Fence_Job (Job.Message, Waste);
+
+      if Waste.Assigned and Job.Priority /= Fence then
+         return;
+      end if;
+
+      while not Job.Is_Done loop
+         Job.Execute (Client);
+      end loop;
+
+      if Job.Priority = Fence then
          Self.Done := Job;  --  keep Job live till Complete call
          Job := null;
       else
-         Execute (Job);
+         Waste := Job.Message;
          Free (Job);
       end if;
    end Process_High_Priority_Job;
@@ -173,8 +171,13 @@ package body LSP.Job_Schedulers is
          declare
             Job : LSP.Server_Jobs.Server_Job_Access := List.First_Element;
          begin
+            Self.Complete_Last_Fence_Job (Job.Message, Waste);
+
+            if Waste.Assigned then
+               return;
+            end if;
+
             List.Delete_First;
-            Self.Complete_Last_Fence_Job (Job.Message);
             Job.Execute (Client);
 
             if Job.Is_Done then
@@ -189,7 +192,7 @@ package body LSP.Job_Schedulers is
          end;
       end loop;
 
-      Self.Complete_Last_Fence_Job (null);
+      Self.Complete_Last_Fence_Job (null, Waste);
    end Process_Job;
 
    ----------------------
