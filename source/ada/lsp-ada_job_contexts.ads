@@ -18,11 +18,21 @@
 --  This package provides interface for data shared between jobs. This data
 --  includes open documents, non-aggregate project trees, settings, etc
 
+with GNATCOLL.VFS;
+
 with LSP.Ada_Configurations;
+with LSP.Ada_Documents;
+with LSP.Structures;
+with LSP.Ada_Context_Sets;
 
 package LSP.Ada_Job_Contexts is
 
    type Ada_Job_Context is limited interface;
+
+   function To_File
+     (Self : Ada_Job_Context;
+      URI  : LSP.Structures.DocumentUri)
+        return GNATCOLL.VFS.Virtual_File is abstract;
 
    function Get_Configuration (Self : Ada_Job_Context)
      return access constant LSP.Ada_Configurations.Configuration is abstract;
@@ -38,5 +48,22 @@ package LSP.Ada_Job_Contexts is
      (Self : Ada_Job_Context) return Boolean is abstract;
 
    procedure Reload_Project (Self : in out Ada_Job_Context) is abstract;
+
+   function Get_Open_Document
+     (Self : in out Ada_Job_Context;
+      URI  : LSP.Structures.DocumentUri)
+        return LSP.Ada_Documents.Document_Access is abstract;
+
+   procedure Publish_Diagnostics
+     (Self              : in out Ada_Job_Context;
+      Document          : not null LSP.Ada_Documents.Document_Access;
+      Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
+        LSP.Structures.Empty;
+      Force             : Boolean := False) is abstract;
+
+   function Contexts_For_File
+     (Self : Ada_Job_Context;
+      File : GNATCOLL.VFS.Virtual_File)
+      return LSP.Ada_Context_Sets.Context_Lists.List is abstract;
 
 end LSP.Ada_Job_Contexts;

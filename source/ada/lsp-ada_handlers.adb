@@ -250,8 +250,8 @@ package body LSP.Ada_Handlers is
    -- Contexts_For_File --
    -----------------------
 
-   function Contexts_For_File
-     (Self : access Message_Handler;
+   overriding function Contexts_For_File
+     (Self : Message_Handler;
       File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List
    is
@@ -275,36 +275,6 @@ package body LSP.Ada_Handlers is
       return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
    end Contexts_For_File;
 
-   ----------------------
-   -- Contexts_For_URI --
-   ----------------------
-
-   function Contexts_For_URI
-     (Self : access Message_Handler;
-      URI  : LSP.Structures.DocumentUri)
-      return LSP.Ada_Context_Sets.Context_Lists.List
-   is
-      function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
-        (Self.Is_Part_Of_Project (URI));
-      --  Return True if URI is a source of the project held by Context
-
-      File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
-   begin
-      --  If the file does not exist on disk, assume this is a file
-      --  being created and, as a special convenience in this case,
-      --  assume it could belong to any project.
-      if not File.Is_Regular_File
-      --  If the file is a runtime file for the loaded project environment,
-      --  all projects can see it.
-        or else Self.Project_Predefined_Sources.Contains (File)
-      then
-         return Self.Contexts.Each_Context;
-      end if;
-
-      --  List contexts where File is a source of the project hierarchy
-      return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
-   end Contexts_For_URI;
-
    ----------
    -- Free --
    ----------
@@ -321,7 +291,7 @@ package body LSP.Ada_Handlers is
    -- Get_Open_Document --
    -----------------------
 
-   function Get_Open_Document
+   overriding function Get_Open_Document
      (Self  : in out Message_Handler;
       URI   : LSP.Structures.DocumentUri)
       return LSP.Ada_Documents.Document_Access
@@ -4641,8 +4611,8 @@ package body LSP.Ada_Handlers is
    -- Publish_Diagnostics --
    -------------------------
 
-   procedure Publish_Diagnostics
-     (Self              : in out Message_Handler'Class;
+   overriding procedure Publish_Diagnostics
+     (Self              : in out Message_Handler;
       Document          : not null LSP.Ada_Documents.Document_Access;
       Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
         LSP.Structures.Empty;

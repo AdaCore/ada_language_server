@@ -831,22 +831,26 @@ package body LSP.Servers is
 
       procedure Execute_Jobs (Message : in out Server_Message_Access) is
       begin
-         while Server.Scheduler.Has_Jobs loop
+         loop
             select
                Input_Queue.Dequeue (Message);
 
-               return;
+               exit;
 
             else
                declare
                   Waste : Server_Message_Access;
 
                begin
+                  --  Call Process_Job at least once to complete a fenced
+                  --  job if any.
                   Server.Scheduler.Process_Job (Server.all, Waste);
 
                   if Waste.Assigned then
                      Server.Destroy_Queue.Enqueue (Waste);
                   end if;
+
+                  exit when not Server.Scheduler.Has_Jobs;
                end;
             end select;
          end loop;

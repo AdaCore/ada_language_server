@@ -75,8 +75,8 @@ package LSP.Ada_Handlers is
    --
    --  Config_File - custom configuration file, if present
 
-   function Contexts_For_File
-     (Self : access Message_Handler;
+   overriding function Contexts_For_File
+     (Self : Message_Handler;
       File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List;
 
@@ -93,7 +93,7 @@ package LSP.Ada_Handlers is
    --  Open Document Manager  --
    -----------------------------
 
-   function Get_Open_Document
+   overriding function Get_Open_Document
      (Self : in out Message_Handler;
       URI  : LSP.Structures.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
@@ -439,8 +439,8 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.WorkspaceSymbolParams);
 
-   procedure Publish_Diagnostics
-     (Self              : in out Message_Handler'Class;
+   overriding procedure Publish_Diagnostics
+     (Self              : in out Message_Handler;
       Document          : not null LSP.Ada_Documents.Document_Access;
       Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
         LSP.Structures.Empty;
@@ -451,8 +451,8 @@ private
    --  When Force is True, the diagnostics will always be sent, not matter if
    --  they have changed or not.
 
-   function To_File
-     (Self : Message_Handler'Class;
+   overriding function To_File
+     (Self : Message_Handler;
       URI  : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File
    is
      (GNATCOLL.VFS.Create_From_UTF8
@@ -476,9 +476,11 @@ private
    --  controls if files that are supposed to be deleted, are renamed instead.
 
    function Contexts_For_URI
-     (Self : access Message_Handler;
+     (Self : Message_Handler'Class;
       URI  : LSP.Structures.DocumentUri)
-      return LSP.Ada_Context_Sets.Context_Lists.List;
+      return LSP.Ada_Context_Sets.Context_Lists.List
+   is
+      (Self.Contexts_For_File (Self.To_File (URI)));
    --  Return a list of contexts that are suitable for the given File/URI:
    --  a list of all contexts where the file is known to be part of the
    --  project tree, or is a runtime file for this project. If the file
