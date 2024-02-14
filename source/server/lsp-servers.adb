@@ -18,7 +18,6 @@
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
-with Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
 
 with VSS.JSON.Pull_Readers.Simple;
@@ -965,18 +964,5 @@ package body LSP.Servers is
          Server.Tracer.Trace_Exception (E, "Processing_Task died");
          Server.Stop;  --  Ask server to stop
    end Processing_Task_Type;
-
-   ------------------------
-   -- Look_Ahead_Message --
-   ------------------------
-
-   function Look_Ahead_Message (Self : Server) return Server_Message_Access is
-      use type Ada.Task_Identification.Task_Id;
-   begin
-      pragma Assert
-        (Ada.Task_Identification.Current_Task = Self.Processing_Task'Identity);
-
-      return Self.Look_Ahead;
-   end Look_Ahead_Message;
 
 end LSP.Servers;

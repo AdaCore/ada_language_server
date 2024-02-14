@@ -18,8 +18,6 @@
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 
-with GNATCOLL.Traces;
-
 with GPR2.Log;
 with GPR2.Message;
 with GPR2.Path_Name.Set;
@@ -32,20 +30,8 @@ with LSP.Generic_Cancel_Check;
 with LSP.GPR_Documentation;
 with LSP.GPR_File_Readers;
 with LSP.GPR_Files.Symbols;
-with LSP.Servers;
-with LSP.Server_Notifications.DidChange;
 
 package body LSP.GPR_Handlers is
-
-   Allow_Incremental_Text_Changes : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.ALLOW_INCREMENTAL_TEXT_CHANGES",
-                             GNATCOLL.Traces.On);
-   --  Trace to activate the support for incremental text changes.
-
-   procedure Log_Unexpected_Null_Document
-     (Self     : access Message_Handler;
-      Where    : String);
-   --  Log a message saying we unexpectedly couldn't find an open document
 
    function To_Optional_DiagnosticSeverity
      (Level : GPR2.Message.Level_Value)
@@ -155,115 +141,6 @@ package body LSP.GPR_Handlers is
          end;
       end if;
    end Get_Parsed_File;
-
-   ----------------------------------
-   -- Log_Unexpected_Null_Document --
-   ----------------------------------
-
-   procedure Log_Unexpected_Null_Document
-     (Self     : access Message_Handler;
-      Where    : String) is
-   begin
-      Self.Tracer.Trace ("Unexpected null document in " & Where);
-   end Log_Unexpected_Null_Document;
-
-   -------------------------------
-   -- On_DidChange_Notification --
-   -------------------------------
-
-   overriding procedure On_DidChange_Notification
-     (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeTextDocumentParams)
-   is
-      use type GNATCOLL.VFS.Virtual_File;
-      use type LSP.GPR_Documents.Document_Access;
-
-      function Skip_Did_Change return Boolean;
-      --  Check if the following message in the queue is didChange for
-      --  the same document
-
-      ---------------------
-      -- Skip_Did_Change --
-      ---------------------
-
-      function Skip_Did_Change return Boolean is
-         use type LSP.Servers.Server_Message_Access;
-
-         subtype DidChange_Notification is
-           LSP.Server_Notifications.DidChange.Notification;
-
-         Next : constant LSP.Servers.Server_Message_Access :=
-           LSP.Servers.Server'Class (Self.Sender.all).Look_Ahead_Message;
-
-      begin
-         if Next = null
-           or else Next.all not in DidChange_Notification'Class
-         then
-            return False;
-         end if;
-
-         declare
-            Object      : DidChange_Notification'Class renames
-              DidChange_Notification'Class (Next.all);
-            Object_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (Object.Params.textDocument.uri);
-            Value_File  : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (Value.textDocument.uri);
-
-         begin
-            return Object_File = Value_File;
-         end;
-      end Skip_Did_Change;
-
-      Document : constant LSP.GPR_Documents.Document_Access :=
-        Self.Get_Open_Document (Value.textDocument.uri);
-
-   begin
-      if Document = null then
-         Self.Log_Unexpected_Null_Document
-           ("On_DidChangeTextDocument_Notification");
-      end if;
-
-      if Allow_Incremental_Text_Changes.Active then
-         --  If we are applying incremental changes, we can't skip the
-         --  call to Apply_Changes, since this would break synchronization.
-
-         Document.Apply_Changes
-           (Value.textDocument.version, Value.contentChanges);
-
-         --  However, we should skip the Indexing part if the next change in
-         --  the queue will re-change the text document.
-
-         if Skip_Did_Change then
-            return;
-         end if;
-
-      else
-         --  If we are not applying incremental changes, we can skip
-         --  Apply_Changes: the next change will contain the full text.
-
-         if Skip_Did_Change then
-            return;
-         end if;
-
-         Document.Apply_Changes
-           (Value.textDocument.version, Value.contentChanges);
-      end if;
-
-      --  Load gpr tree & prepare diagnostics
-
-      Document.Load;
-
-      --  Build GPR file for LSP needs.
-
-      LSP.GPR_Files.Parse_Modified_Document
-        (File_Provider => Self'Unchecked_Access,
-         Path          => Self.To_File (Value.textDocument.uri));
-
-      --  Emit diagnostics
-
-      Self.Publish_Diagnostics (Document);
-   end On_DidChange_Notification;
 
    ------------------------------
    -- On_DidClose_Notification --

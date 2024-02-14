@@ -370,10 +370,6 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidOpenTextDocumentParams);
 
-   overriding procedure On_DidChange_Notification
-     (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeTextDocumentParams);
-
    overriding procedure On_DidClose_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidCloseTextDocumentParams);

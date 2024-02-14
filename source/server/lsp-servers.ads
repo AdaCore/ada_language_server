@@ -96,10 +96,6 @@ package LSP.Servers is
    subtype Server_Message_Access is LSP.Server_Messages.Server_Message_Access;
    --  Message send by a client to a server
 
-   function Look_Ahead_Message (Self : Server) return Server_Message_Access;
-   --  Get next message in the queue if any. Only request/notification
-   --  handlers are allowed to call this function.
-
    function Input_Queue_Length (Self : Server) return Natural;
    --  Return number of messages pending in Input_Queue.
    --  For debug purposes only!
