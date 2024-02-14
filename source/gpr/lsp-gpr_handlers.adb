@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2023, AdaCore                     --
+--                     Copyright (C) 2022-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -23,13 +23,19 @@ with GPR2.Message;
 with GPR2.Path_Name.Set;
 with GPR2.Source_Reference;
 
+with Langkit_Support.Slocs;
+
 with LSP.GPR_Completions;
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Generic_Cancel_Check;
 with LSP.GPR_Documentation;
 with LSP.GPR_File_Readers;
+with LSP.GPR_Files.References;
 with LSP.GPR_Files.Symbols;
+with LSP.Text_Documents.Langkit_Documents;
+
+with Gpr_Parser.Common;
 
 package body LSP.GPR_Handlers is
 
@@ -38,7 +44,13 @@ package body LSP.GPR_Handlers is
       return LSP.Structures.DiagnosticSeverity_Optional;
 
    function To_Range
-     (Sloc : GPR2.Source_Reference.Object) return LSP.Structures.A_Range;
+     (File_Provider : LSP.GPR_Files.File_Provider_Access;
+      Sloc          : GPR2.Source_Reference.Object)
+      return LSP.Structures.A_Range;
+
+   function To_Range (File_Provider : LSP.GPR_Files.File_Provider_Access;
+                      Reference : Gpr_Parser.Common.Token_Reference)
+                         return LSP.Structures.A_Range;
 
    procedure Free (Self : in out Internal_Document_Access);
    --  Free all the data for the given document.
@@ -337,6 +349,7 @@ package body LSP.GPR_Handlers is
       Self.Client.Initialize (Value);
 
       Capabilities.hoverProvider := LSP.Constants.True;
+      Capabilities.definitionProvider := LSP.Constants.True;
       Capabilities.completionProvider :=
         (Is_Set => True,
          Value  => (triggerCharacters => [" "],
@@ -426,6 +439,56 @@ package body LSP.GPR_Handlers is
 
       Self.Sender.On_Completion_Resolve_Response (Id, Response);
    end On_Completion_Resolve_Request;
+
+   ---------------------------
+   -- On_Definition_Request --
+   ---------------------------
+
+   overriding procedure On_Definition_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DefinitionParams)
+   is
+
+      procedure Fill_Definition;
+      --  Utility function, appends to Vector the definition if any.
+
+      Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
+
+      ---------------------
+      -- Fill_Definition --
+      ---------------------
+
+      procedure Fill_Definition is
+         File         : constant LSP.GPR_Files.File_Access :=
+                          LSP.GPR_Files.Parse
+                            (File_Provider => Self'Unchecked_Access,
+                             Path          => Self.To_File
+                               (Value.textDocument.uri));
+
+         Reference : constant Gpr_Parser.Common.Token_Reference :=
+                       LSP.GPR_Files.References.Token_Reference
+                         (File, Value.position);
+
+         Location : LSP.Structures.Location;
+
+         use type Gpr_Parser.Common.Token_Reference;
+
+      begin
+         if Reference /= Gpr_Parser.Common.No_Token then
+            Location.uri :=
+              LSP.GPR_File_Readers.To_URI (Reference.Origin_Filename);
+            Location.a_range := To_Range (Self'Unchecked_Access, Reference);
+            Response.Variant_1.Append (Location);
+         end if;
+
+      end Fill_Definition;
+
+   begin
+      Fill_Definition;
+
+      Self.Sender.On_Definition_Response (Id, Response);
+   end On_Definition_Request;
 
    ----------------------------
    -- On_Server_Notification --
@@ -547,7 +610,8 @@ package body LSP.GPR_Handlers is
                         Diagnostic : LSP.Structures.Diagnostic;
 
                      begin
-                        Diagnostic.a_range := To_Range (Message.Sloc);
+                        Diagnostic.a_range :=
+                          To_Range (Self'Unchecked_Access, Message.Sloc);
                         Diagnostic.severity :=
                           To_Optional_DiagnosticSeverity (Message.Level);
                         Diagnostic.message :=
@@ -598,22 +662,84 @@ package body LSP.GPR_Handlers is
    --------------
 
    function To_Range
-     (Sloc : GPR2.Source_Reference.Object) return LSP.Structures.A_Range
+     (File_Provider : LSP.GPR_Files.File_Provider_Access;
+      Sloc          : GPR2.Source_Reference.Object)
+      return LSP.Structures.A_Range
    is
-      Result : constant LSP.Structures.A_Range :=
-        (if Sloc.Is_Defined and then Sloc.Has_Source_Reference then
-           (start  =>
-              (line      => Sloc.Line - 1,
-               character => Sloc.Column - 1),
-               --  FIXME (UTF16 index)!
-            an_end =>
-              (line      => Sloc.Line - 1,
-               character => Sloc.Column - 1))
-               --  FIXME (UTF16 index)!
-         else LSP.Constants.Empty);
-
    begin
-      return Result;
+      if Sloc.Is_Defined and then Sloc.Has_Source_Reference then
+         declare
+            package LKD renames LSP.Text_Documents.Langkit_Documents;
+
+            Path : constant GPR2.Path_Name.Object :=
+                     GPR2.Path_Name.Create_File
+                       (GPR2.Filename_Type (Sloc.Filename));
+         begin
+            if Path.Exists then
+               declare
+                  File : constant LSP.GPR_Files.File_Access :=
+                           LSP.GPR_Files.Parse
+                             (File_Provider => File_Provider,
+                              Path          => Path);
+                  Line_Text : constant VSS.Strings.Virtual_String :=
+                                File.Get_Line (Sloc.Line);
+               begin
+                  return LKD.To_A_Range
+                    (Start_Line_Text => Line_Text,
+                     End_Line_Text   => Line_Text,
+                     A_Range         =>
+                       (Start_Line   => Langkit_Support.Slocs.Line_Number
+                            (Sloc.Line),
+                        End_Line     => Langkit_Support.Slocs.Line_Number
+                          (Sloc.Line),
+                        Start_Column => Langkit_Support.Slocs.Column_Number
+                          (Sloc.Column),
+                        End_Column    => Langkit_Support.Slocs.Column_Number
+                          (Sloc.Column)));
+               end;
+            end if;
+         end;
+      end if;
+      return LSP.Constants.Empty;
+   end To_Range;
+
+   function To_Range (File_Provider : LSP.GPR_Files.File_Provider_Access;
+                      Reference : Gpr_Parser.Common.Token_Reference)
+                      return LSP.Structures.A_Range is
+      use type Gpr_Parser.Common.Token_Reference;
+   begin
+      if Reference /= Gpr_Parser.Common.No_Token then
+         declare
+            package LK_Documents renames LSP.Text_Documents.Langkit_Documents;
+
+            Referenced_File : constant LSP.GPR_Files.File_Access :=
+                                LSP.GPR_Files.Parse
+                                  (File_Provider => File_Provider,
+                                   Path          => GPR2.Path_Name.Create_File
+                                     (GPR2.Filename_Type
+                                        (Reference.Origin_Filename)));
+            Sloc_Range : constant Gpr_Parser.Slocs.Source_Location_Range :=
+                           Reference.Data.Sloc_Range;
+         begin
+            return LK_Documents.To_A_Range
+              (Start_Line_Text => Referenced_File.Get_Line
+                 (Sloc_Range.Start_Line),
+               End_Line_Text   => Referenced_File.Get_Line
+                 (Sloc_Range.End_Line),
+               A_Range         =>
+                 (Start_Line   => Langkit_Support.Slocs.Line_Number
+                      (Sloc_Range.Start_Line),
+                  End_Line     => Langkit_Support.Slocs.Line_Number
+                    (Sloc_Range.End_Line),
+                  Start_Column => Langkit_Support.Slocs.Column_Number
+                    (Sloc_Range.Start_Column),
+                  End_Column   => Langkit_Support.Slocs.Column_Number
+                    (Sloc_Range.End_Column)));
+         end;
+
+      else
+         return LSP.Constants.Empty;
+      end if;
    end To_Range;
 
 end LSP.GPR_Handlers;

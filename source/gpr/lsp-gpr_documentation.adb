@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023, AdaCore                          --
+--                   Copyright (C) 2023-2024, AdaCore                             --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,6 +21,9 @@ with Gpr_Parser.Common;
 
 with GPR2.Project.Registry.Attribute.Description;
 with GPR2.Project.Registry.Pack.Description;
+
+with LSP.Text_Documents.Langkit_Documents;
+
 with VSS.Strings.Conversions;
 
 package body LSP.GPR_Documentation is
@@ -31,7 +34,16 @@ package body LSP.GPR_Documentation is
       Tooltip_Text : out VSS.Strings.Virtual_String) is
       use Gpr_Parser.Common;
 
-      Token  : constant Token_Reference := Self.Token (Position);
+      package LKD renames LSP.Text_Documents.Langkit_Documents;
+
+      Location : constant Gpr_Parser.Slocs.Source_Location :=
+                   LSP.GPR_Files.To_Langkit_Location
+                     (LKD.To_Source_Location
+                        (Line_Text => Self.Get_Line
+                           (LKD.To_Source_Line (Position.line)),
+                         Position  => Position));
+
+      Token  : constant Token_Reference := Self.Token (Location);
 
       use GPR2.Project.Registry.Attribute.Description;
       use GPR2.Project.Registry.Pack.Description;

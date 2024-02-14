@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,6 +17,7 @@
 --
 --  This package provides a Gpr file abstraction.
 
+with Ada.Characters.Wide_Wide_Latin_1;
 with Ada.Containers;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Ordered_Maps;
@@ -29,14 +30,21 @@ with Ada.Strings.Equal_Case_Insensitive;
 
 with GNATCOLL.VFS;
 
+with GPR2.Environment;
 with GPR2.File_Readers;
 with GPR2.Path_Name;
+with GPR2.Path_Name.Set;
 with GPR2.Project.Registry.Attribute;
 
 with Gpr_Parser.Analysis;
 with Gpr_Parser.Common;
 with Gpr_Parser_Support.Slocs;
+with Gpr_Parser_Support.Text;
 with Gpr_Parser_Support.Token_Data_Handlers;
+
+with Langkit_Support.Slocs;
+
+with LSP.Text_Documents.Langkit_Documents;
 
 with VSS.Strings;
 with VSS.Strings.Hash;
@@ -134,8 +142,8 @@ package LSP.GPR_Files is
 
    function Token
      (Self     : File;
-      Position : LSP.Structures.Position)
-      return Gpr_Parser.Common.Token_Reference;
+      Location : Gpr_Parser.Slocs.Source_Location)
+         return Gpr_Parser.Common.Token_Reference;
    --  Return File's Token at Position.
 
    function In_Packages
@@ -145,14 +153,8 @@ package LSP.GPR_Files is
 
    function Position_Is_In_Comment
      (Token    : Gpr_Parser.Common.Token_Reference;
-      Position : LSP.Structures.Position) return Boolean;
+      Location : Gpr_Parser.Slocs.Source_Location) return Boolean;
    --  Return True if Token's Position is inside a comment
-
-   function Position_At_Identifier_End
-     (Token    : Gpr_Parser.Common.Token_Reference;
-      Position : LSP.Structures.Position) return Boolean;
-   --  Return True if Token is an identifier & Position is at end of Token or
-   --  Token is white space
 
    function Token_In_Import_Partition
      (Self  : File;
@@ -162,58 +164,62 @@ package LSP.GPR_Files is
      (Self  : File;
       Token : Gpr_Parser.Common.Token_Reference) return Boolean;
 
+   function Get_Line (Self : File; Line_Number : Integer)
+                      return VSS.Strings.Virtual_String;
+   --  Get the 'Self' file line at 'Line_Number'
+
+   function Get_Line
+     (Self : File; Line_Number : Gpr_Parser.Slocs.Line_Number)
+      return VSS.Strings.Virtual_String is
+     (Get_Line (Self, Integer (Line_Number)));
+
+   function Get_Line
+     (Self : File; Line_Number : Langkit_Support.Slocs.Line_Number)
+      return VSS.Strings.Virtual_String is
+     (Get_Line (Self, Integer (Line_Number)));
+   --  Get the 'Self' file line at 'Line_Number'
+
    -------------------------------------------------
    -- GPR Parser / LSP Slocs-Position conversions --
    -------------------------------------------------
 
    use Gpr_Parser_Support.Slocs;
 
-   function To_Position_Value
-     (Line : Gpr_Parser_Support.Slocs.Line_Number) return Natural is
-     (if Line = 0 then 0 else Natural (Line) - 1);
+   function To_Langkit_Location
+     (Source_Location : Gpr_Parser.Slocs.Source_Location)
+      return Langkit_Support.Slocs.Source_Location is
+     (Line => Langkit_Support.Slocs.Line_Number (Source_Location.Line),
+      Column => Langkit_Support.Slocs.Column_Number (Source_Location.Column));
+
+   function To_Langkit_Location
+     (Source_Location : Langkit_Support.Slocs.Source_Location)
+      return Gpr_Parser.Slocs.Source_Location is
+     (Line => Gpr_Parser.Slocs.Line_Number (Source_Location.Line),
+      Column => Gpr_Parser.Slocs.Column_Number (Source_Location.Column));
 
    function To_Line_Number
      (Line : Natural) return Gpr_Parser_Support.Slocs.Line_Number is
-     (Gpr_Parser_Support.Slocs.Line_Number (Line + 1));
-
-   function To_Position_Value
-     (Column : Gpr_Parser_Support.Slocs.Column_Number) return Natural is
-     (if Column = 0 then 0 else Natural (Column) - 1);
-
-   function To_Column_Number
-     (Line : Natural) return Gpr_Parser_Support.Slocs.Column_Number is
-     (Gpr_Parser_Support.Slocs.Column_Number (Line + 1));
-
-   function To_Position
-     (Location : Gpr_Parser_Support.Slocs.Source_Location)
-      return LSP.Structures.Position is
-     (To_Position_Value (Location.Line), To_Position_Value (Location.Column));
+     (Gpr_Parser_Support.Slocs.Line_Number
+        (LSP.Text_Documents.Langkit_Documents.To_Source_Line (Line)));
 
    function At_Start
      (Sloc_Range : Gpr_Parser_Support.Slocs.Source_Location_Range;
-      Position : LSP.Structures.Position) return Boolean is
-     (Sloc_Range.Start_Line = To_Line_Number (Position.line) and then
-      Sloc_Range.Start_Column = To_Column_Number (Position.character));
+      Location : Gpr_Parser_Support.Slocs.Source_Location) return Boolean is
+      (Sloc_Range.Start_Line = Location.Line and then
+        Sloc_Range.Start_Column = Location.Column);
    --  Return True if Position at Sloc_Range's beginning
 
-   function At_Start
-     (Token    : Gpr_Parser.Common.Token_Reference;
-      Position : LSP.Structures.Position) return Boolean is
-     (At_Start (Token.Data.Sloc_Range, Position));
-   --  Return True if Position at Token's beginning
-
    function At_End
      (Sloc_Range : Gpr_Parser_Support.Slocs.Source_Location_Range;
-      Position : LSP.Structures.Position) return Boolean is
-     (Sloc_Range.End_Line = To_Line_Number (Position.line) and then
-      Sloc_Range.End_Column = To_Column_Number (Position.character));
+      Location   : Gpr_Parser_Support.Slocs.Source_Location) return Boolean is
+     (Sloc_Range.End_Line = Location.Line and then
+      Sloc_Range.End_Column = Location.Column);
    --  Return True if Position at Sloc_Range's end
 
-   function At_End
-     (Token    : Gpr_Parser.Common.Token_Reference;
-      Position : LSP.Structures.Position) return Boolean is
-     (At_End (Token.Data.Sloc_Range, Position));
-   --  Return True if Position at Token's end
+   function Get_Referenced_GPR
+     (File  : LSP.GPR_Files.File;
+      Token : Gpr_Parser.Common.Token_Reference) return Path_Name.Object;
+   --  find file pointed by gpr token useful for imported & extended files
 
 private
 
@@ -242,25 +248,23 @@ private
    Next_Symbol_Id : Symbol_Id := Project_Symbol_Id + 1;
 
    type Symbol is record
-      Id             : Symbol_Id := Invalid_Symbol_Id;
-      Parent_Id      : Symbol_Id := Invalid_Symbol_Id;
-      Ref            : Gpr_Parser.Common.Token_Reference :=
-                         Gpr_Parser.Common.No_Token;
-      Kind           : Symbol_Kind := K_Project;
-      Name           : VSS.Strings.Virtual_String :=
-                         VSS.Strings.Empty_Virtual_String;
-      Start_Position : Source_Position;
-      End_Position   : Source_Position;
+      Id        : Symbol_Id := Invalid_Symbol_Id;
+      Parent_Id : Symbol_Id := Invalid_Symbol_Id;
+      Ref       : Gpr_Parser.Common.Token_Reference :=
+                    Gpr_Parser.Common.No_Token;
+      Kind      : Symbol_Kind := K_Project;
+      Name      : VSS.Strings.Virtual_String :=
+                    VSS.Strings.Empty_Virtual_String;
+      A_Range   : LSP.Structures.A_Range;
    end record;
 
    No_Symbol : constant Symbol :=
-                 (Id             => Invalid_Symbol_Id,
-                  Parent_Id      => Invalid_Symbol_Id,
-                  Ref            => Gpr_Parser.Common.No_Token,
-                  Kind           => K_Project,
-                  Name           => VSS.Strings.Empty_Virtual_String,
-                  Start_Position => (1, 1),
-                  End_Position   => (1, 1));
+                 (Id        => Invalid_Symbol_Id,
+                  Parent_Id => Invalid_Symbol_Id,
+                  Ref       => Gpr_Parser.Common.No_Token,
+                  Kind      => K_Project,
+                  Name      => VSS.Strings.Empty_Virtual_String,
+                  A_Range   => ((0, 0), (0, 0)));
 
    use type Gpr_Parser.Common.Token_Reference;
 
@@ -314,6 +318,9 @@ private
    type Variable_Id is new Natural with Default_Value => 0;
    --  Used to describe variable's names
 
+   No_Variable : constant Variable_Id := 0;
+   --  Used when there is no variable attached
+
    function "+" (Name : String) return Variable_Id;
    function Image (Id : Variable_Id) return VSS.Strings.Virtual_String;
    --  Variable_Id/String conversions
@@ -365,10 +372,10 @@ private
    --  Index without 'at' value should use Unit_Index = GPR2.No_Index
 
    No_Index : constant Index_Type :=
-     ("",
-      "",
-      GPR2.No_Index,
-      False);
+                (Text      => VSS.Strings.Empty_Virtual_String,
+                 Compare   => VSS.Strings.Empty_Virtual_String,
+                 At_Pos    => GPR2.No_Index,
+                 Is_Others => False);
    --  To be used for attribute without index (for Main use)
 
    Others_Index : constant Index_Type :=
@@ -380,7 +387,7 @@ private
 
    type Attribute_Definition is record
       Index : Index_Type;       -- attribute's index.
-      Token : TDH.Token_Index;  -- token returned by gpr lexer
+      Token : Gpr_Parser.Common.Token_Reference;  -- token returned by gpr lexer
    end record;
    --  Used to add an attribute definition.
 
@@ -512,6 +519,10 @@ private
          Path : GPR2.Path_Name.Object;
          --  project path of this gpr file
 
+         Search_Paths : GPR2.Path_Name.Set.Object :=
+                          GPR2.Project.Default_Search_Paths
+                            (False, GPR2.Environment.Process_Environment);
+
          Tab_Stop : Positive := Gpr_Parser_Support.Slocs.Default_Tab_Stop;
          --  tab expansion
 
@@ -526,6 +537,10 @@ private
 
          Name : Project_Id := No_Project;
          --  project_id of this gpr file
+
+         Name_Token : Gpr_Parser.Common.Token_Reference :=
+                        Gpr_Parser.Common.No_Token;
+         --  token containing the project name string
 
          Kind                     : GPR2.Project_Kind := GPR2.K_Standard;
          --  project kind
@@ -623,5 +638,37 @@ private
       (Self.Packages.Contains (Name));
 
    function Kind (Self : File) return GPR2.Project_Kind is (Self.Kind);
+
+   function To_String (Ref : Gpr_Parser.Common.Token_Reference) return String
+   is (Gpr_Parser_Support.Text.To_UTF8 (Gpr_Parser.Common.Text (Ref)));
+   --  convert a token reference to an utf8 string
+
+   function To_Text_Type
+     (Ref : Gpr_Parser.Common.Token_Reference)
+      return Gpr_Parser_Support.Text.Text_Type
+   is (Gpr_Parser.Common.Text (Ref));
+   --  convert a token reference to a wide_wide_string
+
+   function To_Lower_Text_Type
+     (Ref : Gpr_Parser.Common.Token_Reference) return Gpr_Parser_Support.Text.Text_Type
+   is (Gpr_Parser_Support.Text.To_Lower (To_Text_Type (Ref)));
+   --  convert a token reference to a lowered wide_wide_string
+
+   function To_Lower_String (Ref : Gpr_Parser.Common.Token_Reference) return String
+   is (Gpr_Parser_Support.Text.To_UTF8 (To_Lower_Text_Type (Ref)));
+   --  convert a token reference to a lowered string
+
+   function Get_Line
+     (Self : File; Line_Number : Integer)
+      return VSS.Strings.Virtual_String is
+     (VSS.Strings.To_Virtual_String
+        (Self.Unit.Get_Line (Line_Number) &
+           Ada.Characters.Wide_Wide_Latin_1.LF));
+
+   function Token
+     (Self     : File;
+      Location : Gpr_Parser.Slocs.Source_Location)
+      return Gpr_Parser.Common.Token_Reference is
+      (Self.Unit.Lookup_Token (Location));
 
 end LSP.GPR_Files;
