@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,9 +22,10 @@ with GNATCOLL.VFS;
 
 with LSP.Ada_Configurations;
 with LSP.Ada_Handlers;
-private with LSP.Server_Jobs;
-private with LSP.Server_Message_Visitors;
+with LSP.Server_Jobs;
 limited with LSP.Servers;
+private with LSP.Client_Message_Receivers;
+private with LSP.Server_Messages;
 private with LSP.Structures;
 
 package LSP.Ada_Indexing is
@@ -41,6 +42,9 @@ package LSP.Ada_Indexing is
       Configuration : LSP.Ada_Configurations.Configuration'Class;
       Project_Stamp : LSP.Ada_Handlers.Project_Stamp;
       Files         : File_Sets.Set);
+
+   type Indexing_Job (<>) is new LSP.Server_Jobs.Server_Job
+     with private;
 
 private
 
@@ -59,9 +63,8 @@ private
    --        schedule new indexing job
 
    type Indexing_Job
-     (Server  : not null access LSP.Servers.Server'Class;
-      Handler : not null access LSP.Ada_Handlers.Message_Handler'Class) is
-        new LSP.Server_Jobs.Abstract_Server_Job (Server) with
+     (Handler : not null access LSP.Ada_Handlers.Message_Handler'Class) is
+        new LSP.Server_Jobs.Server_Job with
    record
       Files_To_Index       : File_Sets.Set;
       --  Contains any files that need indexing.
@@ -81,11 +84,19 @@ private
       Project_Stamp        : LSP.Ada_Handlers.Project_Stamp;
    end record;
 
-   overriding procedure Visit_Server_Message_Visitor
-     (Self  : Indexing_Job;
-      Value : in out
-        LSP.Server_Message_Visitors.Server_Message_Visitor'Class);
+   overriding function Priority
+     (Self : Indexing_Job) return LSP.Server_Jobs.Job_Priority is
+       (LSP.Server_Jobs.Low);
 
-   procedure Index_Files (Self : in out Indexing_Job'Class);
+   overriding function Is_Done (Self : Indexing_Job) return Boolean is
+     (Self.Files_To_Index.Is_Empty);
+
+   overriding procedure Execute
+     (Self   : in out Indexing_Job;
+      Client :
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class);
+
+   overriding function Message (Self : Indexing_Job)
+     return LSP.Server_Messages.Server_Message_Access is (null);
 
 end LSP.Ada_Indexing;

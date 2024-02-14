@@ -33,6 +33,7 @@ with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
 with LSP.Ada_Highlighters;
+with LSP.Ada_Job_Contexts;
 with LSP.Client_Message_Receivers;
 with LSP.File_Monitors;
 with LSP.Server_Message_Visitors;
@@ -60,6 +61,7 @@ package LSP.Ada_Handlers is
    new LSP.Server_Message_Visitors.Server_Message_Visitor
      and LSP.Server_Request_Receivers.Server_Request_Receiver
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
+     and LSP.Ada_Job_Contexts.Ada_Job_Context
    with private;
 
    procedure Initialize
@@ -73,8 +75,8 @@ package LSP.Ada_Handlers is
    --
    --  Config_File - custom configuration file, if present
 
-   function Contexts_For_File
-     (Self : access Message_Handler;
+   overriding function Contexts_For_File
+     (Self : Message_Handler;
       File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List;
 
@@ -91,15 +93,12 @@ package LSP.Ada_Handlers is
    --  Open Document Manager  --
    -----------------------------
 
-   function Get_Open_Document
-     (Self  : in out Message_Handler;
-      URI   : LSP.Structures.DocumentUri;
-      Force : Boolean := False)
+   overriding function Get_Open_Document
+     (Self : in out Message_Handler;
+      URI  : LSP.Structures.DocumentUri)
       return LSP.Ada_Documents.Document_Access;
    --  Return the open document for the given URI.
-   --  If the document is not opened, then if Force a new document
-   --  will be created and must be freed by the user else null will be
-   --  returned.
+   --  If the document is not opened, then null will be returned.
 
    function Is_Open_Document
      (Self : Message_Handler;
@@ -203,9 +202,10 @@ private
    new LSP.Unimplemented_Handlers.Unimplemented_Handler
      and LSP.Server_Message_Visitors.Server_Message_Visitor
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
+     and LSP.Ada_Job_Contexts.Ada_Job_Context
    with record
       Client : LSP.Ada_Client_Capabilities.Client_Capability;
-      Configuration : LSP.Ada_Configurations.Configuration;
+      Configuration : aliased LSP.Ada_Configurations.Configuration;
 
       Contexts : LSP.Ada_Context_Sets.Context_Set;
       --  There is one context in this list per loaded project.
@@ -362,10 +362,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentRangeFormattingParams);
 
-   overriding procedure On_DidChangeConfiguration_Notification
-     (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeConfigurationParams);
-
    overriding procedure On_DidChangeWatchedFiles_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeWatchedFilesParams);
@@ -373,10 +369,6 @@ private
    overriding procedure On_DidOpen_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidOpenTextDocumentParams);
-
-   overriding procedure On_DidChange_Notification
-     (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeTextDocumentParams);
 
    overriding procedure On_DidClose_Notification
      (Self  : in out Message_Handler;
@@ -443,8 +435,8 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.WorkspaceSymbolParams);
 
-   procedure Publish_Diagnostics
-     (Self              : in out Message_Handler'Class;
+   overriding procedure Publish_Diagnostics
+     (Self              : in out Message_Handler;
       Document          : not null LSP.Ada_Documents.Document_Access;
       Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
         LSP.Structures.Empty;
@@ -455,8 +447,8 @@ private
    --  When Force is True, the diagnostics will always be sent, not matter if
    --  they have changed or not.
 
-   function To_File
-     (Self : Message_Handler'Class;
+   overriding function To_File
+     (Self : Message_Handler;
       URI  : LSP.Structures.DocumentUri) return GNATCOLL.VFS.Virtual_File
    is
      (GNATCOLL.VFS.Create_From_UTF8
@@ -480,12 +472,34 @@ private
    --  controls if files that are supposed to be deleted, are renamed instead.
 
    function Contexts_For_URI
-     (Self : access Message_Handler;
+     (Self : Message_Handler'Class;
       URI  : LSP.Structures.DocumentUri)
-      return LSP.Ada_Context_Sets.Context_Lists.List;
+      return LSP.Ada_Context_Sets.Context_Lists.List
+   is
+      (Self.Contexts_For_File (Self.To_File (URI)));
    --  Return a list of contexts that are suitable for the given File/URI:
    --  a list of all contexts where the file is known to be part of the
    --  project tree, or is a runtime file for this project. If the file
    --  is not known to any project, return an empty list.
+
+   ------------------
+   --  Job_Context --
+   ------------------
+
+   overriding function Get_Configuration (Self : Message_Handler)
+     return access constant LSP.Ada_Configurations.Configuration is
+       (Self.Configuration'Unchecked_Access);
+
+   overriding procedure Set_Configuration
+      (Self  : in out Message_Handler;
+       Value : LSP.Ada_Configurations.Configuration);
+
+   overriding procedure Increment_Project_Timestamp
+     (Self : in out Message_Handler);
+
+   overriding function Project_Tree_Is_Defined (Self : Message_Handler)
+     return Boolean is (Self.Project_Tree.Is_Defined);
+
+   overriding procedure Reload_Project (Self : in out Message_Handler);
 
 end LSP.Ada_Handlers;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -22,12 +22,15 @@ with VSS.Strings.Templates;
 
 package body LSP.Ada_Indexing is
 
-   -----------------
-   -- Index_Files --
-   -----------------
+   -------------
+   -- Execute --
+   -------------
 
-   procedure Index_Files (Self : in out Indexing_Job'Class) is
-
+   overriding procedure Execute
+     (Self   : in out Indexing_Job;
+      Client :
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class)
+   is
       use type LSP.Ada_Handlers.Project_Stamp;
 
       procedure Emit_Progress_Report (Files_Indexed, Total_Files : Natural);
@@ -51,7 +54,7 @@ package body LSP.Ada_Indexing is
 
          Self.Progress_Report_Sent := Current;
 
-         Self.Server.On_ProgressReport_Work_Done
+         Client.On_ProgressReport_Work_Done
            (Self.Indexing_Token,
             (percentage => (True, (Files_Indexed * 100) / Total_Files),
              message    =>
@@ -63,7 +66,7 @@ package body LSP.Ada_Indexing is
 
    begin
       if Self.Total_Files_Indexed = 0 then
-         Self.Server.On_ProgressBegin_Work_Done
+         Client.On_ProgressBegin_Work_Done
            (Self.Indexing_Token,
             (title => "Indexing", percentage => (True, 0), others => <>));
       end if;
@@ -96,11 +99,7 @@ package body LSP.Ada_Indexing is
                Emit_Progress_Report
                  (Self.Total_Files_Indexed, Self.Total_Files_To_Index);
 
-               --  Check whether another request is pending. If so, pause
-               --  the indexing; it will be resumed later as part of
-               --  After_Request.
-
-               exit when Self.Server.Has_Pending_Work;
+               exit;
             end if;
 
          end;
@@ -109,28 +108,10 @@ package body LSP.Ada_Indexing is
       if Self.Files_To_Index.Is_Empty then
          --  Indexing done.
 
-         Self.Server.On_ProgressEnd_Work_Done
+         Client.On_ProgressEnd_Work_Done
            (Self.Indexing_Token, (message => <>));
-
-         return;
       end if;
-
-      declare
-         Job : LSP.Server_Jobs.Server_Jobs_Access :=
-           new Indexing_Job'
-             (Server               => Self.Server.all'Unchecked_Access,
-              Handler              => Self.Handler.all'Unchecked_Access,
-              Files_To_Index       => Self.Files_To_Index,
-              Indexing_Token       => Self.Indexing_Token,
-              Total_Files_Indexed  => Self.Total_Files_Indexed,
-              Total_Files_To_Index => Self.Total_Files_To_Index,
-              Progress_Report_Sent => Self.Progress_Report_Sent,
-              Project_Stamp        => Self.Project_Stamp);
-
-      begin
-         Self.Server.Enqueue (Job);
-      end;
-   end Index_Files;
+   end Execute;
 
    -----------------------
    -- Schedule_Indexing --
@@ -155,10 +136,9 @@ package body LSP.Ada_Indexing is
            Server.Allocate_Request_Id;
          Token : constant LSP.Structures.ProgressToken :=
            Handler.Allocate_Progress_Token ("indexing");
-         Job   : LSP.Server_Jobs.Server_Jobs_Access :=
+         Job   : LSP.Server_Jobs.Server_Job_Access :=
            new Indexing_Job'
-             (Server               => Server,
-              Handler              => Handler,
+             (Handler              => Handler,
               Files_To_Index       => Files,
               Indexing_Token       => Token,
               Total_Files_Indexed  => 0,
@@ -167,7 +147,7 @@ package body LSP.Ada_Indexing is
               Project_Stamp        => Project_Stamp);
 
       begin
-         Job.Server.On_Progress_Create_Request (Id, (token => Token));
+         Server.On_Progress_Create_Request (Id, (token => Token));
          --  FIXME: wait response before sending progress notifications.
          --  Currenctly, we just send a `window/workDoneProgress/create`
          --  request and immediately after this start sending notifications.
@@ -177,17 +157,5 @@ package body LSP.Ada_Indexing is
          Server.Enqueue (Job);
       end;
    end Schedule_Indexing;
-
-   ----------------------------------
-   -- Visit_Server_Message_Visitor --
-   ----------------------------------
-
-   overriding procedure Visit_Server_Message_Visitor
-     (Self  : Indexing_Job;
-      Value : in out
-        LSP.Server_Message_Visitors.Server_Message_Visitor'Class) is
-   begin
-      Self'Unrestricted_Access.Index_Files;
-   end Visit_Server_Message_Visitor;
 
 end LSP.Ada_Indexing;

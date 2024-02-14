@@ -116,8 +116,7 @@ package body LSP.Ada_Handlers.Refactor is
                for Problem of Edits.Diagnostics loop
                   Document := Get_Open_Document
                     (Self  => Handler.all,
-                     URI   => Handler.To_URI (Problem.Filename),
-                     Force => False);
+                     URI   => Handler.To_URI (Problem.Filename));
 
                   --  Publish any processed diagnostic when switching to a
                   --  different file.

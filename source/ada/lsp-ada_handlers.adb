@@ -96,7 +96,6 @@ with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Predefined_Completion;
 with LSP.Search;
-with LSP.Server_Notifications.DidChange;
 with LSP.Servers;
 with LSP.Servers.FS_Watch;
 with LSP.Structures.LSPAny_Vectors;
@@ -250,8 +249,8 @@ package body LSP.Ada_Handlers is
    -- Contexts_For_File --
    -----------------------
 
-   function Contexts_For_File
-     (Self : access Message_Handler;
+   overriding function Contexts_For_File
+     (Self : Message_Handler;
       File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List
    is
@@ -275,36 +274,6 @@ package body LSP.Ada_Handlers is
       return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
    end Contexts_For_File;
 
-   ----------------------
-   -- Contexts_For_URI --
-   ----------------------
-
-   function Contexts_For_URI
-     (Self : access Message_Handler;
-      URI  : LSP.Structures.DocumentUri)
-      return LSP.Ada_Context_Sets.Context_Lists.List
-   is
-      function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
-        (Self.Is_Part_Of_Project (URI));
-      --  Return True if URI is a source of the project held by Context
-
-      File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
-   begin
-      --  If the file does not exist on disk, assume this is a file
-      --  being created and, as a special convenience in this case,
-      --  assume it could belong to any project.
-      if not File.Is_Regular_File
-      --  If the file is a runtime file for the loaded project environment,
-      --  all projects can see it.
-        or else Self.Project_Predefined_Sources.Contains (File)
-      then
-         return Self.Contexts.Each_Context;
-      end if;
-
-      --  List contexts where File is a source of the project hierarchy
-      return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
-   end Contexts_For_URI;
-
    ----------
    -- Free --
    ----------
@@ -321,10 +290,9 @@ package body LSP.Ada_Handlers is
    -- Get_Open_Document --
    -----------------------
 
-   function Get_Open_Document
+   overriding function Get_Open_Document
      (Self  : in out Message_Handler;
-      URI   : LSP.Structures.DocumentUri;
-      Force : Boolean := False)
+      URI   : LSP.Structures.DocumentUri)
       return LSP.Ada_Documents.Document_Access
    is
       File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
@@ -334,14 +302,6 @@ package body LSP.Ada_Handlers is
       if Self.Open_Documents.Contains (File) then
          return LSP.Ada_Documents.Document_Access
            (Self.Open_Documents.Element (File));
-      elsif Force then
-         declare
-            Document : constant Internal_Document_Access :=
-              new LSP.Ada_Documents.Document (Self.Tracer);
-         begin
-            Document.Initialize (URI, VSS.Strings.Empty_Virtual_String, null);
-            return LSP.Ada_Documents.Document_Access (Document);
-         end;
       else
          return null;
       end if;
@@ -411,6 +371,16 @@ package body LSP.Ada_Handlers is
          Trace,
          Imprecise => Imprecise);
    end Imprecise_Resolve_Name;
+
+   ---------------------------------
+   -- Increment_Project_Timestamp --
+   ---------------------------------
+
+   overriding procedure Increment_Project_Timestamp
+     (Self : in out Message_Handler) is
+   begin
+      Self.Project_Stamp := Self.Project_Stamp + 1;
+   end Increment_Project_Timestamp;
 
    ----------------
    -- Initialize --
@@ -2059,121 +2029,6 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Definition_Response (Id, Response);
    end On_Definition_Request;
-
-   -------------------------------
-   -- On_DidChange_Notification --
-   -------------------------------
-
-   overriding procedure On_DidChange_Notification
-     (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeTextDocumentParams)
-   is
-      use type LSP.Ada_Documents.Document_Access;
-
-      function Skip_Did_Change return Boolean;
-      --  Check if the following message in the queue is didChange for
-      --  the same document
-
-      URI      : LSP.Structures.DocumentUri renames Value.textDocument.uri;
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, URI);
-
-      ---------------------
-      -- Skip_Did_Change --
-      ---------------------
-
-      function Skip_Did_Change return Boolean is
-         use type LSP.Servers.Server_Message_Access;
-
-         subtype DidChange_Notification is
-           LSP.Server_Notifications.DidChange.Notification;
-
-         Next : constant LSP.Servers.Server_Message_Access :=
-           LSP.Servers.Server'Class (Self.Sender.all).Look_Ahead_Message;
-      begin
-
-         if Next = null
-           or else Next.all not in DidChange_Notification'Class
-         then
-            return False;
-         end if;
-
-         declare
-            use GNATCOLL.VFS;
-            Object      : DidChange_Notification'Class renames
-              DidChange_Notification'Class (Next.all);
-            Object_File : constant Virtual_File := Self.To_File
-              (Object.Params.textDocument.uri);
-            Value_File  : constant Virtual_File := Self.To_File (URI);
-         begin
-            if Object_File /= Value_File then
-               return False;
-            end if;
-         end;
-
-         return True;
-      end Skip_Did_Change;
-
-   begin
-      if Document = null then
-         Self.Tracer.Trace
-           ("Unexpected null document in On_DidChange_Notification");
-         return;
-      end if;
-
-      if Self.Incremental_Text_Changes then
-         --  If we are applying incremental changes, we can't skip the
-         --  call to Apply_Changes, since this would break synchronization.
-         Document.Apply_Changes
-           (Value.textDocument.version,
-            Value.contentChanges);
-
-         --  However, we should skip the Indexing part if the next change in
-         --  the queue will re-change the text document.
-         if Skip_Did_Change then
-            return;
-         end if;
-      else
-         --  If we are not applying incremental changes, we can skip
-         --  Apply_Changes: the next change will contain the full text.
-         if Skip_Did_Change then
-            return;
-         end if;
-
-         Document.Apply_Changes
-           (Value.textDocument.version,
-            Value.contentChanges);
-      end if;
-
-      --  Reindex the document in each of the contexts where it is relevant
-
-      for Context of Self.Contexts_For_URI (URI) loop
-         Context.Index_Document (Document.all);
-      end loop;
-
-      --  Emit diagnostics
-      Self.Publish_Diagnostics (Document);
-   end On_DidChange_Notification;
-
-   --------------------------------------------
-   -- On_DidChangeConfiguration_Notification --
-   --------------------------------------------
-
-   overriding procedure On_DidChangeConfiguration_Notification
-     (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeConfigurationParams)
-   is
-      Reload : Boolean;
-   begin
-      Self.Configuration.Read_JSON (Value.settings, Reload);
-
-      --  Always reload project if Project_Tree isn't ready
-      Reload := Reload or not Self.Project_Tree.Is_Defined;
-
-      if Reload then
-         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
-      end if;
-   end On_DidChangeConfiguration_Notification;
 
    -------------------------------------------
    -- On_DidChangeWatchedFiles_Notification --
@@ -4660,8 +4515,8 @@ package body LSP.Ada_Handlers is
    -- Publish_Diagnostics --
    -------------------------
 
-   procedure Publish_Diagnostics
-     (Self              : in out Message_Handler'Class;
+   overriding procedure Publish_Diagnostics
+     (Self              : in out Message_Handler;
       Document          : not null LSP.Ada_Documents.Document_Access;
       Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
         LSP.Structures.Empty;
@@ -4685,6 +4540,26 @@ package body LSP.Ada_Handlers is
          end if;
       end if;
    end Publish_Diagnostics;
+
+   --------------------
+   -- Reload_Project --
+   --------------------
+
+   overriding procedure Reload_Project (Self : in out Message_Handler) is
+   begin
+      LSP.Ada_Handlers.Project_Loading.Reload_Project (Self);
+   end Reload_Project;
+
+   -----------------------
+   -- Set_Configuration --
+   -----------------------
+
+   overriding procedure Set_Configuration
+     (Self  : in out Message_Handler;
+      Value : LSP.Ada_Configurations.Configuration) is
+   begin
+      Self.Configuration := Value;
+   end Set_Configuration;
 
    -----------------------
    -- To_Workspace_Edit --
