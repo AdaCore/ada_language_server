@@ -255,6 +255,24 @@ package body LSP.Secure_Message_Loggers is
       Self.Output.New_Line (Ok);
    end On_Symbol_Response;
 
+   ----------------------------
+   -- On_CodeAction_Response --
+   ----------------------------
+
+   overriding procedure On_CodeAction_Response
+     (Self  : in out Client_Response_Logger;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.Command_Or_CodeAction_Vector_Or_Null) is
+      Ok : Boolean := False;
+   begin
+      Self.Output.Put ("'textDocument/codeAction'", Ok);
+      Self.Put_Id (Id, Ok);
+      Self.Output.Put (" result : ", Ok);
+      Self.Output.Put
+        (VSS.Strings.To_Virtual_String (Value.Length'Wide_Wide_Image), Ok);
+      Self.Output.New_Line (Ok);
+   end On_CodeAction_Response;
+
    -------------------------------
    -- On_DidChange_Notification --
    -------------------------------
