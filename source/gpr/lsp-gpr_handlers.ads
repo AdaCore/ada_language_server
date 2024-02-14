@@ -28,6 +28,7 @@ with LSP.Client_Message_Receivers;
 with LSP.GPR_Client_Capabilities;
 with LSP.GPR_Documents;
 with LSP.GPR_Files;
+with LSP.GPR_Job_Contexts;
 with LSP.Server_Message_Visitors;
 private with LSP.Server_Requests;
 with LSP.Server_Request_Receivers;
@@ -52,6 +53,7 @@ package LSP.GPR_Handlers is
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
      and LSP.GPR_Documents.Document_Provider
      and LSP.GPR_Files.File_Provider
+     and LSP.GPR_Job_Contexts.GPR_Job_Context
    with private;
    --  A handler of LSP notifications and requests from GPR language
    --  A LSP notifications/requests handler for GPR language
@@ -88,6 +90,7 @@ private
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
      and LSP.GPR_Documents.Document_Provider
      and LSP.GPR_Files.File_Provider
+     and LSP.GPR_Job_Contexts.GPR_Job_Context
    with record
       Client               : LSP.GPR_Client_Capabilities.Client_Capability;
 
@@ -169,13 +172,10 @@ private
 
    overriding function Get_Open_Document
      (Self  : access Message_Handler;
-      URI   : LSP.Structures.DocumentUri;
-      Force : Boolean := False)
-      return LSP.GPR_Documents.Document_Access;
+      URI   : LSP.Structures.DocumentUri)
+        return LSP.GPR_Documents.Document_Access;
    --  Return the open document for the given URI.
-   --  If the document is not opened, then if Force a new document
-   --  will be created and must be freed by the user else null will be
-   --  returned.
+   --  If the document is not opened null will be returned.
 
    overriding function Get_Open_Document_Version
      (Self  : access Message_Handler;
@@ -235,5 +235,10 @@ private
    is
      (VSS.Strings.Conversions.To_Virtual_String
         (URIs.Conversions.From_File (Item.Value)) with null record);
+
+   overriding procedure Publish_Diagnostics
+     (Self     : in out Message_Handler;
+      Document : not null LSP.GPR_Documents.Document_Access);
+   --  Publish diagnostic messages for given document if needed
 
 end LSP.GPR_Handlers;

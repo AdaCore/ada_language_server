@@ -68,6 +68,7 @@ with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
 with LSP.GPR_Handlers;
 with LSP.GPR_External_Tools;
+with LSP.GPR_Did_Change_Document;
 with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
 with LSP.Secure_Message_Loggers;
@@ -178,6 +179,10 @@ procedure LSP.Ada_Driver is
    Ada_Did_Change_Doc_Handler : aliased
      LSP.Ada_Did_Change_Document.Ada_Did_Change_Handler
        (Ada_Handler'Unchecked_Access);
+
+   GPR_Did_Change_Doc_Handler : aliased
+     LSP.GPR_Did_Change_Document.GPR_Did_Change_Handler
+       (GPR_Handler'Unchecked_Access);
 
    Fuzzing_Activated      : constant Boolean :=
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
@@ -355,6 +360,10 @@ begin
       if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
 
          LSP.GPR_External_Tools.Initialize_Extra_Packages_Attributes;
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.DidChange.Notification'Tag,
+            GPR_Did_Change_Doc_Handler'Unchecked_Access);
 
          Server.Run
            (GPR_Handler'Unchecked_Access,

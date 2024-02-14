@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -109,13 +109,10 @@ package LSP.GPR_Documents is
 
    function Get_Open_Document
      (Self  : access Document_Provider;
-      URI   : LSP.Structures.DocumentUri;
-      Force : Boolean := False)
+      URI   : LSP.Structures.DocumentUri)
       return Document_Access is abstract;
    --  Return the open document for the given URI.
-   --  If the document is not opened, then if Force a new document
-   --  will be created and must be freed by the user else null will be
-   --  returned.
+   --  If the document is not opened null will be returned.
 
    function Get_Open_Document_Version
      (Self  : access Document_Provider;

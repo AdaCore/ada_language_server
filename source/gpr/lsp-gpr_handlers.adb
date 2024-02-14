@@ -42,11 +42,6 @@ package body LSP.GPR_Handlers is
                              GNATCOLL.Traces.On);
    --  Trace to activate the support for incremental text changes.
 
-   procedure Publish_Diagnostics
-     (Self     : access Message_Handler'Class;
-      Document : not null LSP.GPR_Documents.Document_Access);
-   --  Publish diagnostic messages for given document if needed
-
    procedure Log_Unexpected_Null_Document
      (Self     : access Message_Handler;
       Where    : String);
@@ -83,8 +78,8 @@ package body LSP.GPR_Handlers is
 
    overriding function Get_Open_Document
      (Self  : access Message_Handler;
-      URI   : LSP.Structures.DocumentUri;
-      Force : Boolean := False) return LSP.GPR_Documents.Document_Access
+      URI   : LSP.Structures.DocumentUri)
+        return LSP.GPR_Documents.Document_Access
    is
       File : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
 
@@ -93,21 +88,6 @@ package body LSP.GPR_Handlers is
          return
            LSP.GPR_Documents.Document_Access
              (Self.Open_Documents.Element (File));
-
-      elsif Force then
-         declare
-            Document : constant Internal_Document_Access :=
-              new LSP.GPR_Documents.Document (Self.Tracer);
-         begin
-            Document.Initialize
-              (URI,
-               GPR2.Path_Name.Create (File),
-               VSS.Strings.Empty_Virtual_String,
-               Self);
-
-            return LSP.GPR_Documents.Document_Access (Document);
-         end;
-
       else
          return null;
       end if;
@@ -654,8 +634,8 @@ package body LSP.GPR_Handlers is
    -- Publish_Diagnostics --
    -------------------------
 
-   procedure Publish_Diagnostics
-     (Self     : access Message_Handler'Class;
+   overriding procedure Publish_Diagnostics
+     (Self     : in out Message_Handler;
       Document : not null LSP.GPR_Documents.Document_Access)
    is
       Changed          : Boolean;
