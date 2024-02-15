@@ -5,16 +5,35 @@ import { SymbolKind } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
 import { ExecuteCommandRequest } from 'vscode-languageclient';
 import { ExtensionState } from './ExtensionState';
-import { getOrAskForProgram } from './debugConfigProvider';
-import { adaExtState, mainOutputChannel } from './extension';
-import { getProjectFileRelPath } from './helpers';
+import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
+import { adaExtState, logger, mainOutputChannel } from './extension';
+import { findAdaMain, getProjectFileRelPath } from './helpers';
 import {
     CustomTaskDefinition,
+    findBuildAndRunTask,
     getBuildAndRunTasks,
     getConventionalTaskLabel,
     getEnclosingSymbol,
     isFromWorkspace,
 } from './taskProviders';
+
+/**
+ * Identifier for a hidden command used for building and running a project main.
+ * The command accepts a parameter which is the URI of the main source file.
+ * It is triggered by CodeLenses provided by the extension.
+ *
+ * @see {@link buildAndRunSpecifiedMain}
+ */
+export const CMD_BUILD_AND_RUN_MAIN = 'ada.buildAndRunMain';
+
+/**
+ * Identifier for a hidden command used for building and debugging a project main.
+ * The command accepts a parameter which is the URI of the main source file.
+ * It is triggered by CodeLenses provided by the extension.
+ *
+ * @see {@link buildAndDebugSpecifiedMain}
+ */
+export const CMD_BUILD_AND_DEBUG_MAIN = 'ada.buildAndDebugMain';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
@@ -65,6 +84,17 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
                 await checkSrcDirectories(atStartup, displayYesNoPopup);
             }
         )
+    );
+
+    /**
+     * The following commands are not defined in package.json and hence not
+     * exposed through the command palette but are called from CodeLenses.
+     */
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_BUILD_AND_RUN_MAIN, buildAndRunSpecifiedMain)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_BUILD_AND_DEBUG_MAIN, buildAndDebugSpecifiedMain)
     );
 }
 /**
@@ -437,5 +467,107 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
                 available in the current workspace."
             );
         }
+    }
+}
+
+/*
+ * This is a command handler that builds and runs the main given as parameter.
+ * If the given URI does not match one of the project Mains an error is
+ * displayed.
+ *
+ * @param main - a URI of a document
+ */
+async function buildAndRunSpecifiedMain(main: vscode.Uri): Promise<void> {
+    const adaMain = await findAdaMain(main.fsPath);
+    if (adaMain) {
+        const task = await findBuildAndRunTask(adaMain);
+        if (task) {
+            lastUsedTaskInfo = { source: task.source, name: task.name };
+            await vscode.tasks.executeTask(task);
+        } else {
+            void vscode.window.showErrorMessage(
+                `Could not find the 'Build and Run' task for the project main ` +
+                    `${adaMain.mainRelPath()}`,
+                { modal: true }
+            );
+        }
+    } else {
+        void vscode.window.showErrorMessage(
+            `The document ${vscode.workspace.asRelativePath(main)} does not match ` +
+                `any of the Mains of the project ${await getProjectFileRelPath()}`,
+            { modal: true }
+        );
+    }
+}
+
+/**
+ * This is a command handler that builds the main given as parameter and starts
+ * a debug session on that main.  If the given URI does not match one of the
+ * project Mains an error is displayed.
+ *
+ * @param main - a URI of a document
+ */
+async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
+    function isMatchingConfig(cfg: vscode.DebugConfiguration, configToMatch: AdaConfig): boolean {
+        return cfg.type == configToMatch.type && cfg.name == configToMatch.name;
+    }
+
+    const wsFolder = vscode.workspace.getWorkspaceFolder(main);
+    const adaMain = await findAdaMain(main.fsPath);
+    if (adaMain) {
+        /**
+         * The vscode API doesn't provide a way to list both automatically
+         * provided and User-defined debug configurations. So instead, we
+         * inspect the launch.json data if it exists, and the dynamic configs
+         * provided by the exctension. We look for a debug config that matches
+         * the given main URI.
+         */
+        // Create a launch config for this main to help with matching
+        const configToMatch = initializeConfig(adaMain);
+        logger.debug('Debug config to match:\n' + JSON.stringify(configToMatch, null, 2));
+
+        let matchingConfig = undefined;
+
+        {
+            // Find matching config in the list of workspace-defined launch configs
+            const configs: vscode.DebugConfiguration[] =
+                vscode.workspace.getConfiguration('launch').get('configurations') ?? [];
+            logger.debug(`Workspace debug configurations:\n${JSON.stringify(configs, null, 2)}`);
+            matchingConfig = configs.find((cfg) => isMatchingConfig(cfg, configToMatch));
+        }
+
+        if (!matchingConfig) {
+            logger.debug('Could not find matching config in workspace configs.');
+            // Look for a matching config among the configs dynamically provided by the extension
+            const dynamicConfigs =
+                await adaExtState.dynamicDebugConfigProvider.provideDebugConfigurations();
+            logger.debug(
+                `Dynamic debug configurations:\n${JSON.stringify(dynamicConfigs, null, 2)}`
+            );
+            matchingConfig = dynamicConfigs.find((cfg) => isMatchingConfig(cfg, configToMatch));
+        }
+
+        if (matchingConfig) {
+            logger.debug('Found matching config: ' + JSON.stringify(matchingConfig, null, 2));
+            const success = await vscode.debug.startDebugging(wsFolder, matchingConfig);
+            if (!success) {
+                void vscode.window.showErrorMessage(
+                    `Failed to start debug configuration: ${matchingConfig.name}`
+                );
+            }
+        } else {
+            logger.error('Could not find matching config');
+            void vscode.window.showErrorMessage(
+                `Could not find a debug configuration for the project main ` +
+                    `${adaMain.mainRelPath()}`,
+                { modal: true }
+            );
+        }
+    } else {
+        void vscode.window.showErrorMessage(
+            `The document ${vscode.workspace.asRelativePath(main)} does not match ` +
+                `any of the Mains of the project ${await getProjectFileRelPath()}`,
+            { modal: true }
+        );
     }
 }

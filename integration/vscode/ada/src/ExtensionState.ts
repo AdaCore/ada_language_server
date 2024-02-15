@@ -30,6 +30,8 @@ export class ExtensionState {
 
     private registeredTaskProviders: Disposable[];
 
+    public readonly codelensProvider = new AdaCodeLensProvider();
+
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
         this.gprClient = createClient(
@@ -55,6 +57,9 @@ export class ExtensionState {
     public start = async () => {
         await Promise.all([this.gprClient.start(), this.adaClient.start()]);
         this.registerTaskProviders();
+        this.context.subscriptions.push(
+            vscode.languages.registerCodeLensProvider('ada', this.codelensProvider)
+        );
     };
 
     public dispose = () => {
