@@ -396,7 +396,7 @@ export async function findAdaMain(mainPath: string): Promise<AdaMain | undefined
  * symbols recursively and return an array of the symbols of a given set of
  * kinds {@link symbolKinds}.
  *
- * Recursion is control by another set of symbols kinds {@link recurseInto}.
+ * Recursion is controlled by another set of symbols kinds {@link recurseInto}.
  * Only the children of these kinds of symbols are recursed into.
  *
  * @param rootSymbols - the array of symbols to start from
