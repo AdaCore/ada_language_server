@@ -427,6 +427,16 @@ export const DEFAULT_PROBLEM_MATCHER = '$ada';
  * This class implements the TaskProvider interface with some configurable functionality.
  */
 export class ConfigurableTaskProvider implements vscode.TaskProvider {
+    /**
+     * The list of provided tasks can be cached for efficiency, however some
+     * tasks depend on the cursor location in the active editor. With caching,
+     * the cursor location gets considered only the first time the tasks get
+     * computed. The cached tasks keep using that first location.
+     *
+     * So for now we disable caching of tasks until a solution is found.
+     */
+    private static DISABLE_CACHING = true;
+
     public static taskTypeAda: TaskType = 'ada';
     public static taskTypeSpark: TaskType = 'spark';
     tasks: vscode.Task[] | undefined = undefined;
@@ -439,7 +449,7 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
     }
 
     async provideTasks(token?: vscode.CancellationToken): Promise<vscode.Task[]> {
-        if (!this.tasks) {
+        if (!this.tasks || ConfigurableTaskProvider.DISABLE_CACHING) {
             this.tasks = [];
             const cmdPrefix = await alire();
 
