@@ -21,6 +21,7 @@ import * as vscode from 'vscode';
 import { ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
 import winston from 'winston';
 import { adaExtState, logger } from './extension';
+import { DocumentSymbol, SymbolKind, CancellationToken, CancellationError } from 'vscode';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -388,4 +389,48 @@ export async function findAdaMain(mainPath: string): Promise<AdaMain | undefined
         (val) => val.mainRelPath() == mainPath || val.mainFullPath == mainPath
     );
     return adaMain;
+}
+/**
+ * Starting from an array of symbols {@link rootSymbols} (usually obtained for a
+ * document using the vscode.executeDocumentSymbolProvider command), iterate the
+ * symbols recursively and return an array of the symbols of a given set of
+ * kinds {@link symbolKinds}.
+ *
+ * Recursion is control by another set of symbols kinds {@link recurseInto}.
+ * Only the children of these kinds of symbols are recursed into.
+ *
+ * @param rootSymbols - the array of symbols to start from
+ * @param symbolKinds - kinds of symbols to include in the result
+ * @param recurseInto - kinds of symbols to recurse into
+ * @param token - a cancellation token to abort the search
+ * @returns an array of {@link DocumentSymbol}s of the kinds requested in symbolKinds.
+ */
+
+export function getSymbols(
+    rootSymbols: DocumentSymbol[],
+    symbolKinds: SymbolKind[],
+    recurseInto: SymbolKind[] = [SymbolKind.Module, SymbolKind.Package, SymbolKind.Function],
+    token?: CancellationToken
+): DocumentSymbol[] {
+    const reduce = (acc: DocumentSymbol[], cur: DocumentSymbol) => {
+        if (token?.isCancellationRequested) {
+            throw new CancellationError();
+        }
+        if (symbolKinds.includes(cur.kind)) {
+            // Include targeted symbol kinds in the result
+            acc.push(cur);
+        }
+
+        // Recurse into symbols of the specified kinds
+        if (recurseInto.includes(cur.kind)) {
+            cur.children.reduce(reduce, acc);
+        }
+
+        return acc;
+    };
+
+    // Collect symbols recursively
+    const allSymbols = rootSymbols.reduce(reduce, []);
+
+    return allSymbols;
 }

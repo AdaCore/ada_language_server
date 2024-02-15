@@ -18,8 +18,9 @@
 import assert from 'assert';
 import commandExists from 'command-exists';
 import * as vscode from 'vscode';
-import { adaExtState } from './extension';
-import { AdaMain, getAdaMains, getProjectFile } from './helpers';
+import { adaExtState, logger } from './extension';
+import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
+import { SymbolKind } from 'vscode';
 
 export const ADA_TASK_TYPE = 'ada';
 
@@ -376,24 +377,10 @@ export async function getEnclosingSymbol(
         );
 
         // Then filter them according to the specified kinds
-        const filtered_symbols: vscode.DocumentSymbol[] = [];
-
-        const getAllSymbols = (symbols: vscode.DocumentSymbol[]) => {
-            let sym;
-            for (sym of symbols) {
-                if (kinds.includes(sym.kind)) {
-                    filtered_symbols.push(sym);
-                }
-                if (
-                    sym.kind == vscode.SymbolKind.Function ||
-                    sym.kind == vscode.SymbolKind.Module
-                ) {
-                    getAllSymbols(sym.children);
-                }
-            }
-        };
-
-        getAllSymbols(symbols);
+        const filtered_symbols = getSymbols(symbols, kinds, [
+            SymbolKind.Function,
+            SymbolKind.Module,
+        ]);
 
         // Finally select from the filtered symbols the smallest one containing the current line
         const scopeSymbols = filtered_symbols.filter(
@@ -413,9 +400,9 @@ export async function getEnclosingSymbol(
     return null;
 }
 
-const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
+export const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
     if (editor) {
-        const selection = editor.selections[0];
+        const selection = editor.selection;
         //  Line numbers start at 0 in VS Code, and at 1 in GNAT
         return (selection.start.line + 1).toString() + ':' + (selection.end.line + 1).toString();
     } else {

@@ -10,8 +10,8 @@ import {
     TextDocument,
     commands,
 } from 'vscode';
-import { getMains } from './helpers';
 import { CMD_BUILD_AND_DEBUG_MAIN, CMD_BUILD_AND_RUN_MAIN } from './commands';
+import { getMains, getSymbols } from './helpers';
 
 export class AdaCodeLensProvider implements CodeLensProvider {
     static readonly ENABLE_SPARK_CODELENS = false;
@@ -19,7 +19,7 @@ export class AdaCodeLensProvider implements CodeLensProvider {
     onDidChangeCodeLenses?: Event<void> | undefined;
     provideCodeLenses(
         document: TextDocument,
-        _token?: CancellationToken
+        token?: CancellationToken
     ): ProviderResult<CodeLens[]> {
         const symbols = commands.executeCommand<DocumentSymbol[]>(
             'vscode.executeDocumentSymbolProvider',
@@ -70,33 +70,14 @@ export class AdaCodeLensProvider implements CodeLensProvider {
              * This is tentative deactivated code in preparation of SPARK support.
              */
             res2 = symbols.then<CodeLens[]>((symbols) => {
+                const symbolKinds = [SymbolKind.Function];
+                const recurseInto = [SymbolKind.Module, SymbolKind.Package, SymbolKind.Function];
+
                 // Create a named reduce function to implement a recursive visit of symbols
-                const reduce = (acc: DocumentSymbol[], cur: DocumentSymbol) => {
-                    if (_token?.isCancellationRequested) {
-                        throw new CancellationError();
-                    }
-                    if (cur.kind == SymbolKind.Function) {
-                        // Include functions in the accumulated result
-                        acc.push(cur);
-                    }
-
-                    // Search for Functions among the children of these symbol kinds
-                    if (
-                        [SymbolKind.Module, SymbolKind.Package, SymbolKind.Function].includes(
-                            cur.kind
-                        )
-                    ) {
-                        cur.children.reduce(reduce, acc);
-                    }
-
-                    return acc;
-                };
-
-                // Collect functions recursively
-                const functions = symbols.reduce(reduce, []);
+                const functions = getSymbols(symbols, symbolKinds, recurseInto, token);
 
                 return functions.map((f) => {
-                    if (_token?.isCancellationRequested) {
+                    if (token?.isCancellationRequested) {
                         throw new CancellationError();
                     }
                     // TODO make SPARK codelenses conditional to the availability of SPARK on PATH
