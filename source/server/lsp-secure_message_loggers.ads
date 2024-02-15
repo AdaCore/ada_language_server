@@ -70,6 +70,11 @@ package LSP.Secure_Message_Loggers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokens_Or_Null);
 
+   overriding procedure On_CodeAction_Response
+     (Self  : in out Client_Response_Logger;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.Command_Or_CodeAction_Vector_Or_Null);
+
    overriding procedure On_Symbol_Response
      (Self  : in out Client_Response_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

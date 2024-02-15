@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,6 +21,7 @@
 --  that actually implements message processing.
 
 with Ada.Streams;
+with Ada.Tags;
 
 with LSP.Client_Message_Receivers;
 with LSP.Client_Message_Visitors;
@@ -29,6 +30,8 @@ with LSP.Structures;
 
 with LSP.Server_Jobs;
 with LSP.Server_Messages;
+with LSP.Server_Message_Handlers;
+
 with LSP.Tracers;
 
 private with LSP.Client_Message_Factories;
@@ -38,6 +41,8 @@ private with Ada.Containers.Synchronized_Queue_Interfaces;
 private with Ada.Containers.Unbounded_Synchronized_Queues;
 private with GNAT.Semaphores;
 private with System;
+private with LSP.Job_Schedulers;
+private with LSP.Sequential_Message_Handlers;
 private with LSP.Server_Notifications;
 private with LSP.Server_Requests;
 private with VSS.Stream_Element_Vectors;
@@ -67,6 +72,12 @@ package LSP.Servers is
      LSP.Client_Message_Visitors.Client_Message_Visitor'Class
        with Storage_Size => 0;
 
+   procedure Register_Handler
+     (Self    : in out Server'Class;
+      Tag     : Ada.Tags.Tag;
+      Handler : LSP.Server_Message_Handlers.Server_Message_Handler_Access);
+   --  Register server message handler per message tag.
+
    procedure Run
      (Self         : in out Server;
       Handler      : not null Server_Message_Visitor_Access;
@@ -85,22 +96,13 @@ package LSP.Servers is
    subtype Server_Message_Access is LSP.Server_Messages.Server_Message_Access;
    --  Message send by a client to a server
 
-   function Look_Ahead_Message (Self : Server) return Server_Message_Access;
-   --  Get next message in the queue if any. Only request/notification
-   --  handlers are allowed to call this function.
-
    function Input_Queue_Length (Self : Server) return Natural;
    --  Return number of messages pending in Input_Queue.
    --  For debug purposes only!
 
-   function Has_Pending_Work (Self : Server) return Boolean;
-   --  Return True if the server has work in the queue, other than the
-   --  notification/request it's currently processing. This should only be
-   --  called from the processing task.
-
    procedure Enqueue
      (Self : in out Server'Class;
-      Job  : in out LSP.Server_Jobs.Server_Jobs_Access);
+      Job  : in out LSP.Server_Jobs.Server_Job_Access);
    --  Put server job into the queue.
 
    function Allocate_Request_Id
@@ -230,6 +232,9 @@ private
       Destroy_Queue   : Input_Message_Queues.Queue;
 
       Tracer          : LSP.Tracers.Tracer_Access;
+      Scheduler       : LSP.Job_Schedulers.Job_Scheduler;
+      Default_Handler : aliased
+           LSP.Sequential_Message_Handlers.Sequential_Message_Handler;
    end record;
 
    overriding procedure On_Message

@@ -105,9 +105,7 @@ package body LSP.GPR_File_Readers is
    begin
       --  First check if the file is an open document
 
-      Doc := Self.Handler.Get_Open_Document
-        (URI   => To_URI (Filename),
-         Force => False);
+      Doc := Self.Handler.Get_Open_Document (URI => To_URI (Filename));
 
       --  Preprocess the document's contents if open, or the file contents if
       --  not.
