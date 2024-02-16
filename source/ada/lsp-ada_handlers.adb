@@ -4556,9 +4556,9 @@ package body LSP.Ada_Handlers is
 
    overriding procedure Set_Configuration
      (Self  : in out Message_Handler;
-      Value : LSP.Ada_Configurations.Configuration) is
+      Value : LSP.Ada_Configurations.Configuration'Class) is
    begin
-      Self.Configuration := Value;
+      Self.Configuration := LSP.Ada_Configurations.Configuration (Value);
    end Set_Configuration;
 
    -----------------------
