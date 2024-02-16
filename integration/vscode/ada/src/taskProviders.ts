@@ -18,8 +18,9 @@
 import assert from 'assert';
 import commandExists from 'command-exists';
 import * as vscode from 'vscode';
-import { adaExtState } from './extension';
-import { AdaMain, getAdaMains, getProjectFile } from './helpers';
+import { adaExtState, logger } from './extension';
+import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
+import { SymbolKind } from 'vscode';
 
 export const ADA_TASK_TYPE = 'ada';
 
@@ -376,24 +377,10 @@ export async function getEnclosingSymbol(
         );
 
         // Then filter them according to the specified kinds
-        const filtered_symbols: vscode.DocumentSymbol[] = [];
-
-        const getAllSymbols = (symbols: vscode.DocumentSymbol[]) => {
-            let sym;
-            for (sym of symbols) {
-                if (kinds.includes(sym.kind)) {
-                    filtered_symbols.push(sym);
-                }
-                if (
-                    sym.kind == vscode.SymbolKind.Function ||
-                    sym.kind == vscode.SymbolKind.Module
-                ) {
-                    getAllSymbols(sym.children);
-                }
-            }
-        };
-
-        getAllSymbols(symbols);
+        const filtered_symbols = getSymbols(symbols, kinds, [
+            SymbolKind.Function,
+            SymbolKind.Module,
+        ]);
 
         // Finally select from the filtered symbols the smallest one containing the current line
         const scopeSymbols = filtered_symbols.filter(
@@ -413,9 +400,9 @@ export async function getEnclosingSymbol(
     return null;
 }
 
-const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
+export const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
     if (editor) {
-        const selection = editor.selections[0];
+        const selection = editor.selection;
         //  Line numbers start at 0 in VS Code, and at 1 in GNAT
         return (selection.start.line + 1).toString() + ':' + (selection.end.line + 1).toString();
     } else {
@@ -440,8 +427,8 @@ export const DEFAULT_PROBLEM_MATCHER = '$ada';
  * This class implements the TaskProvider interface with some configurable functionality.
  */
 export class ConfigurableTaskProvider implements vscode.TaskProvider {
-    public static taskTypeAda = 'ada';
-    public static taskTypeSpark = 'spark';
+    public static taskTypeAda: TaskType = 'ada';
+    public static taskTypeSpark: TaskType = 'spark';
     tasks: vscode.Task[] | undefined = undefined;
     taskType: TaskType;
     taskKinds: AllTaskKinds[];
@@ -527,7 +514,7 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                             runTask: getRunTaskName(main),
                         },
                     };
-                    name = `${allTaskProperties['buildAndRunMain'].title}${main.mainRelPath()}`;
+                    name = getBuildAndRunTaskName(main);
                     const buildAndRunTask = await createOrResolveTask(def, cmdPrefix, name);
                     this.tasks?.push(buildAndRunTask);
                 }
@@ -585,6 +572,10 @@ function getRunTaskPlainName(main: AdaMain) {
  */
 export function getRunTaskName(main: AdaMain) {
     return `ada: ${getRunTaskPlainName(main)}`;
+}
+
+export function getBuildAndRunTaskName(main: AdaMain) {
+    return `${allTaskProperties['buildAndRunMain'].title}${main.mainRelPath()}`;
 }
 
 export function createSparkTaskProvider(): ConfigurableTaskProvider {
@@ -820,15 +811,7 @@ class BuildAndRunExecution extends vscode.CustomExecution {
                                  * specified in buildTask and runTask, prioritizing
                                  * Workspace tasks.
                                  */
-                                adaTasks.sort((a, b) => {
-                                    if (isFromWorkspace(a) && !isFromWorkspace(b)) {
-                                        return -1;
-                                    } else if (!isFromWorkspace(a) && isFromWorkspace(b)) {
-                                        return 1;
-                                    } else {
-                                        return a.name.localeCompare(b.name);
-                                    }
-                                });
+                                adaTasks.sort(workspaceTasksFirst);
                                 /**
                                  * Task names contributed by the extension don't
                                  * have the task type prefix while tasks coming from
@@ -927,6 +910,45 @@ function runTaskSequence(
 }
 
 /**
+ * A sorting function that puts tasks defined by the User in the workspace first.
+ */
+const workspaceTasksFirst = (a: vscode.Task, b: vscode.Task): number => {
+    if (a.source == b.source) {
+        return a.name.localeCompare(b.name);
+    } else if (isFromWorkspace(a)) {
+        return -1;
+    } else {
+        return 1;
+    }
+};
+
+/**
+ *
+ * @returns Array of tasks of type `ada` and kind `buildAndRunMain`. This
+ * includes tasks automatically provided by the extension as well as
+ * user-defined tasks in tasks.json.
+ */
+export async function getBuildAndRunTasks(): Promise<vscode.Task[]> {
+    return await vscode.tasks.fetchTasks({ type: 'ada' }).then((tasks) =>
+        tasks
+            .filter(
+                (t) =>
+                    (t.definition as CustomTaskDefinition).configuration.kind == 'buildAndRunMain'
+            )
+            // Return workspace-defined tasks first
+            .sort(workspaceTasksFirst)
+    );
+}
+
+export async function findBuildAndRunTask(adaMain: AdaMain): Promise<vscode.Task | undefined> {
+    return (await getBuildAndRunTasks()).find(
+        // Tasks defined in tasks.json will have a leading 'ada: ' while the
+        // ones auto-generated by the extension don't. We want to match both.
+        (t) => t.name.replace(/^ada: /, '') == getBuildAndRunTaskName(adaMain)
+    );
+}
+
+/**
  *
  * @param taskDef - a task definition with a defined main
  * @returns the {@link AdaMain} object representing the main program
@@ -952,6 +974,7 @@ async function getAdaMain(taskDef: CustomTaskDefinition): Promise<AdaMain | unde
 function quoteCommandLine(cmd: string[]): vscode.ShellQuotedString[] {
     return cmd.map((v) => ({ value: v, quoting: vscode.ShellQuoting.Strong }));
 }
+
 /**
  *
  * @param task - a task
@@ -960,6 +983,7 @@ function quoteCommandLine(cmd: string[]): vscode.ShellQuotedString[] {
 export function isFromWorkspace(task: vscode.Task): boolean {
     return task.source == 'Workspace';
 }
+
 /**
  *
  * @param task - a task
@@ -970,4 +994,26 @@ export function isFromWorkspace(task: vscode.Task): boolean {
  */
 export function getConventionalTaskLabel(task: vscode.Task): string {
     return isFromWorkspace(task) ? task.name : `${task.source}: ${task.name}`;
+}
+
+/*
+ * @returns Array of tasks of type `ada` and kind `buildMain`. This
+ * includes tasks automatically provided by the extension as well as
+ * user-defined tasks in tasks.json.
+ */
+export async function getBuildMainTasks() {
+    return await vscode.tasks.fetchTasks({ type: 'ada' }).then((tasks) =>
+        tasks
+            .filter((t) => (t.definition as CustomTaskDefinition).configuration.kind == 'buildMain')
+            // Return workspace-defined tasks first
+            .sort(workspaceTasksFirst)
+    );
+}
+
+export async function findBuildMainTask(adaMain: AdaMain): Promise<vscode.Task | undefined> {
+    return (await getBuildMainTasks()).find(
+        // Tasks defined in tasks.json will have a leading 'ada: ' while the
+        // ones auto-generated by the extension don't. We want to match both.
+        (t) => t.name.replace(/^ada: /, '') == getBuildTaskPlainName(adaMain)
+    );
 }

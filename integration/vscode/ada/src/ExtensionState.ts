@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
 import { Disposable, LanguageClient } from 'vscode-languageclient/node';
+import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { createClient } from './clients';
+import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { GprTaskProvider } from './gprTaskProvider';
-import { registerTaskProviders } from './taskProviders';
 import { TERMINAL_ENV_SETTING_NAME } from './helpers';
+import { registerTaskProviders } from './taskProviders';
 
 /**
  * This class encapsulates all state that should be maintained throughout the
@@ -19,8 +21,16 @@ export class ExtensionState {
     public readonly adaClient: LanguageClient;
     public readonly gprClient: LanguageClient;
     public readonly context: vscode.ExtensionContext;
+    public readonly dynamicDebugConfigProvider: {
+        provideDebugConfigurations(
+            _folder?: vscode.WorkspaceFolder | undefined
+        ): Promise<vscode.DebugConfiguration[]>;
+    };
+    public readonly initialDebugConfigProvider: AdaInitialDebugConfigProvider;
 
     private registeredTaskProviders: Disposable[];
+
+    public readonly codelensProvider = new AdaCodeLensProvider();
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -39,11 +49,17 @@ export class ExtensionState {
             '**/.{adb,ads,adc,ada}'
         );
         this.registeredTaskProviders = [];
+        const result = initializeDebugging(this.context);
+        this.initialDebugConfigProvider = result.providerInitial;
+        this.dynamicDebugConfigProvider = result.providerDynamic;
     }
 
     public start = async () => {
         await Promise.all([this.gprClient.start(), this.adaClient.start()]);
         this.registerTaskProviders();
+        this.context.subscriptions.push(
+            vscode.languages.registerCodeLensProvider('ada', this.codelensProvider)
+        );
     };
 
     public dispose = () => {
