@@ -83,7 +83,10 @@ package body LSP.Ada_Did_Change_Configurations is
 
       Reload : Boolean renames Result.Reload;
    begin
-      Result.Configuration := Self.Context.Get_Configuration.all;
+      Result.Configuration :=
+        LSP.Ada_Configurations.Configuration
+          (Self.Context.Get_Configuration.all);
+
       Result.Configuration.Read_JSON (Value.Params.settings, Reload);
 
       --  Always reload project if Project_Tree isn't ready

@@ -487,12 +487,12 @@ private
    ------------------
 
    overriding function Get_Configuration (Self : Message_Handler)
-     return access constant LSP.Ada_Configurations.Configuration is
+     return access constant LSP.Ada_Configurations.Configuration'Class is
        (Self.Configuration'Unchecked_Access);
 
    overriding procedure Set_Configuration
       (Self  : in out Message_Handler;
-       Value : LSP.Ada_Configurations.Configuration);
+       Value : LSP.Ada_Configurations.Configuration'Class);
 
    overriding procedure Increment_Project_Timestamp
      (Self : in out Message_Handler);

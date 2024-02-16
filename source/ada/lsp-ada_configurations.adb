@@ -347,17 +347,16 @@ package body LSP.Ada_Configurations is
       Reload : out Boolean)
    is
       use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
-      Index : Positive := JSON.First_Index;
+      Index : Positive := JSON.First_Index + 1;
 
    begin
-      if JSON.Is_Empty or else JSON (Index).Kind /= Start_Object then
-         Reload := False;
+      Reload := False;
+
+      if JSON.Is_Empty or else JSON.First_Element.Kind /= Start_Object then
          return;
-      else
-         Index := Index + 1;
       end if;
 
-      while Index <= JSON.Last_Index
+      while Index < JSON.Last_Index
         and then JSON (Index).Kind = Key_Name
       loop
          declare
@@ -370,6 +369,7 @@ package body LSP.Ada_Configurations is
               JSON (Index).Kind = Start_Object
             then
                Self.Parse_Ada (JSON, Index, Reload);
+               exit;
             else
                Skip_Value (JSON, Index);
             end if;

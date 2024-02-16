@@ -35,11 +35,12 @@ package LSP.Ada_Job_Contexts is
         return GNATCOLL.VFS.Virtual_File is abstract;
 
    function Get_Configuration (Self : Ada_Job_Context)
-     return access constant LSP.Ada_Configurations.Configuration is abstract;
+     return access constant LSP.Ada_Configurations.Configuration'Class
+       is abstract;
 
    procedure Set_Configuration
       (Self  : in out Ada_Job_Context;
-       Value : LSP.Ada_Configurations.Configuration) is abstract;
+       Value : LSP.Ada_Configurations.Configuration'Class) is abstract;
 
    procedure Increment_Project_Timestamp (Self : in out Ada_Job_Context)
      is abstract;
