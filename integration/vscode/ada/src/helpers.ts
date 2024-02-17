@@ -21,6 +21,7 @@ import * as vscode from 'vscode';
 import { ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
 import winston from 'winston';
 import { adaExtState, logger } from './extension';
+import { DocumentSymbol, SymbolKind, CancellationToken, CancellationError } from 'vscode';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -283,9 +284,12 @@ export async function getObjectDir(client: LanguageClient): Promise<string> {
 /**
  * Get the mains in the project
  * @param client - the client to send the request to
- * @returns a vector of string paths
+ * @returns an array of full paths to the main sources
  */
-export async function getMains(client: LanguageClient): Promise<string[]> {
+export async function getMains(client?: LanguageClient): Promise<string[]> {
+    if (!client) {
+        client = adaExtState.adaClient;
+    }
     const result: string[] = (await client.sendRequest(ExecuteCommandRequest.type, {
         command: 'als-mains',
     })) as string[];
@@ -303,6 +307,7 @@ export async function getExecutables(client: LanguageClient): Promise<string[]> 
     })) as string[];
     return result;
 }
+
 /**
  * @returns The list of Mains defined for the current project as an array of AdaMains.
  */
@@ -323,11 +328,11 @@ export async function getAdaMains(): Promise<AdaMain[]> {
 
     return result;
 }
+
 /**
  * A class that represents an Ada main entry point. It encapsulate both the
  * source file path and the executable file path.
  */
-
 export class AdaMain {
     mainFullPath: string;
     execFullPath: string;
@@ -370,3 +375,62 @@ export function startedInDebugMode() {
  * compatible with the running platform.
  */
 export const exe: '.exe' | '' = process.platform == 'win32' ? '.exe' : '';
+
+/**
+ *
+ * @param mainPath - full or relative path to a source file
+ * @returns the {@link AdaMain} representing that main if the given path matches
+ * one of the Mains defined in the project file. Otherwise `undefined` is
+ * returned.
+ */
+export async function findAdaMain(mainPath: string): Promise<AdaMain | undefined> {
+    const projectMains = await getAdaMains();
+    const adaMain = projectMains.find(
+        (val) => val.mainRelPath() == mainPath || val.mainFullPath == mainPath
+    );
+    return adaMain;
+}
+/**
+ * Starting from an array of symbols {@link rootSymbols} (usually obtained for a
+ * document using the vscode.executeDocumentSymbolProvider command), iterate the
+ * symbols recursively and return an array of the symbols of a given set of
+ * kinds {@link symbolKinds}.
+ *
+ * Recursion is controlled by another set of symbols kinds {@link recurseInto}.
+ * Only the children of these kinds of symbols are recursed into.
+ *
+ * @param rootSymbols - the array of symbols to start from
+ * @param symbolKinds - kinds of symbols to include in the result
+ * @param recurseInto - kinds of symbols to recurse into
+ * @param token - a cancellation token to abort the search
+ * @returns an array of {@link DocumentSymbol}s of the kinds requested in symbolKinds.
+ */
+
+export function getSymbols(
+    rootSymbols: DocumentSymbol[],
+    symbolKinds: SymbolKind[],
+    recurseInto: SymbolKind[] = [SymbolKind.Module, SymbolKind.Package, SymbolKind.Function],
+    token?: CancellationToken
+): DocumentSymbol[] {
+    const reduce = (acc: DocumentSymbol[], cur: DocumentSymbol) => {
+        if (token?.isCancellationRequested) {
+            throw new CancellationError();
+        }
+        if (symbolKinds.includes(cur.kind)) {
+            // Include targeted symbol kinds in the result
+            acc.push(cur);
+        }
+
+        // Recurse into symbols of the specified kinds
+        if (recurseInto.includes(cur.kind)) {
+            cur.children.reduce(reduce, acc);
+        }
+
+        return acc;
+    };
+
+    // Collect symbols recursively
+    const allSymbols = rootSymbols.reduce(reduce, []);
+
+    return allSymbols;
+}

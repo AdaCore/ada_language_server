@@ -1,10 +1,19 @@
 import assert from 'assert';
+import { existsSync } from 'fs';
+import path from 'path';
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
-import { AdaMain, exe, getAdaMains, getEvaluatedTerminalEnv, getProjectFile } from './helpers';
+import {
+    AdaMain,
+    exe,
+    getAdaMains,
+    getEvaluatedTerminalEnv,
+    getProjectFile,
+    getProjectFileRelPath,
+} from './helpers';
 import { BUILD_PROJECT_TASK_NAME, getBuildTaskName } from './taskProviders';
-import path from 'path';
-import { existsSync } from 'fs';
+
+export const ADA_DEBUG_BACKEND_TYPE = 'cppdbg';
 
 /**
  * Ada Configuration for a debug session
@@ -29,14 +38,26 @@ export const adaDynamicDebugConfigProvider = {
     async provideDebugConfigurations(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _folder?: vscode.WorkspaceFolder
-    ): Promise<vscode.DebugConfiguration[]> {
-        const quickpick = await createQuickPickItems('Build & Debug');
-
-        const configs: AdaConfig[] = quickpick.flatMap((i) => {
-            assert(i.adaMain);
-            return [initializeConfig(i.adaMain), createAttachConfig(i.adaMain)];
+    ): Promise<AdaConfig[]> {
+        const mains = await getAdaMains();
+        const configs: AdaConfig[] = mains.flatMap((m) => {
+            return [initializeConfig(m), createAttachConfig(m)];
         });
-
+        if (configs.length == 0) {
+            /**
+             * No configs were computed which means that there are no mains.
+             */
+            const msg =
+                `The project ${await getProjectFileRelPath()} does ` +
+                `not have a Main attribute. Using debug configurations with no ` +
+                `main program is not supported. Please provide a Main declaration in the ` +
+                `project and reload the Visual Studio Code window to ` +
+                `use debug configurations.`;
+            void vscode.window.showWarningMessage(msg, {
+                modal: true,
+            });
+            return Promise.reject(msg);
+        }
         return configs;
     },
 };
@@ -47,9 +68,16 @@ export const adaDynamicDebugConfigProvider = {
  * @param ctx - the Ada extension context
  * @returns the debug configuration provider
  */
-export function initializeDebugging(ctx: vscode.ExtensionContext) {
+export function initializeDebugging(ctx: vscode.ExtensionContext): {
+    providerInitial: AdaInitialDebugConfigProvider;
+    providerDynamic: {
+        provideDebugConfigurations(
+            _folder?: vscode.WorkspaceFolder | undefined
+        ): Promise<vscode.DebugConfiguration[]>;
+    };
+} {
     // Instantiate a DebugConfigProvider for Ada and register it.
-    const provider = new AdaDebugConfigProvider();
+    const providerInitial = new AdaInitialDebugConfigProvider();
 
     // This provider is registered for the 'ada' debugger type. It means that
     // it is triggered either when a configuration with type 'ada' is launched,
@@ -62,8 +90,14 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
     // is no longer called since it is not registered for the type 'cppdbg'.
     // Moreover, it is somewhat discouraged to register it for the type
     // 'cppdbg' since that type is provided by another extension.
-    ctx.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('ada', provider));
+    ctx.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('ada', providerInitial));
 
+    /**
+     * This provider is registered for the 'Dynamic' trigger kind. It is called
+     * to provide a choice of launch configurations that are unrelated to the
+     * launch.json file. Such configurations are stored in memory and can be
+     * relaunched by the User without being saved in the launch.json file.
+     */
     ctx.subscriptions.push(
         vscode.debug.registerDebugConfigurationProvider(
             'ada',
@@ -75,7 +109,7 @@ export function initializeDebugging(ctx: vscode.ExtensionContext) {
         )
     );
 
-    return provider;
+    return { providerInitial: providerInitial, providerDynamic: adaDynamicDebugConfigProvider };
 }
 
 let cachedGdb: string | undefined | null = undefined;
@@ -92,7 +126,7 @@ let cachedGdb: string | undefined | null = undefined;
  * the value only on the first call, and cache it for subsequent calls to return
  * it efficiently.
  */
-function getOrFindGdb(): string | undefined {
+export function getOrFindGdb(): string | undefined {
     if (cachedGdb == undefined) {
         /**
          * If undefined yet, try to compute it.
@@ -141,11 +175,11 @@ function getOrFindGdb(): string | undefined {
  * 'program' parameter.
  * @returns an AdaConfig
  */
-function initializeConfig(main: AdaMain, name?: string): AdaConfig {
+export function initializeConfig(main: AdaMain, name?: string): AdaConfig {
     // TODO it would be nice if this and the package.json configuration snippet
     // were the same.
     const config: AdaConfig = {
-        type: 'cppdbg',
+        type: ADA_DEBUG_BACKEND_TYPE,
         name: name ?? (main ? `Ada: Debug main - ${main.mainRelPath()}` : 'Ada: Debugger Launch'),
         request: 'launch',
         targetArchitecture: process.arch,
@@ -165,9 +199,12 @@ function initializeConfig(main: AdaMain, name?: string): AdaConfig {
     return config;
 }
 
-export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider {
-    public static adaConfigType = 'cppdbg';
-
+/**
+ * A provider of debug configurations for Ada that is called when no launch.json
+ * exists. It offers a number of debug configurations based on the mains defined
+ * in the project, and an option to create all available configurations.
+ */
+export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationProvider {
     async provideDebugConfigurations(
         folder: vscode.WorkspaceFolder | undefined,
         _token?: vscode.CancellationToken | undefined
@@ -182,39 +219,32 @@ export class AdaDebugConfigProvider implements vscode.DebugConfigurationProvider
         }
 
         if (folder != undefined) {
-            // Offer a list of known Mains from the project
-            const itemDescription = 'Generate the associated launch configuration';
-            const quickpick = await createQuickPickItems(itemDescription);
+            // Offer a list of choices to the User based on the same choices as
+            // the dynamic debug config provider + a choice to create all
+            // configs.
+            const { quickpick, generateAll } = await createQuickPicksInitialLaunch();
 
-            const generateAll: QuickPickAdaMain = {
-                label: 'All of the above',
-                description: 'Generate launch configurations for each Main file of the project',
-                adaMain: undefined,
-            };
-            if (quickpick.length > 1) {
-                quickpick.push(generateAll);
-            }
-
-            const selectedProgram = await vscode.window.showQuickPick(quickpick, {
-                placeHolder: 'Select a main file to create a launch configuration',
-            });
+            const selectedProgram = await vscode.window.showQuickPick(
+                quickpick,
+                {
+                    placeHolder: 'Select a launch configuration to create in the launch.json file',
+                },
+                _token
+            );
 
             if (selectedProgram == generateAll) {
-                for (let i = 0; i < quickpick.length; i++) {
-                    const item = quickpick[i];
-                    if (item != generateAll) {
-                        assert(item.adaMain);
-                        configs.push(initializeConfig(item.adaMain));
-                    }
-                }
+                configs.push(
+                    ...quickpick
+                        .filter((item) => 'conf' in item)
+                        .map((item) => {
+                            assert('conf' in item);
+                            return item.conf;
+                        })
+                );
             } else if (selectedProgram) {
-                assert(selectedProgram.adaMain);
-
-                // The cppdbg debug configuration exepects the executable to be
-                // a full path rather than a path relative to the specified
-                // cwd. That is why we include ${workspaceFolder}.
-                const configuration = initializeConfig(selectedProgram.adaMain);
-                configs.push(configuration);
+                assert('conf' in selectedProgram);
+                assert(selectedProgram.conf);
+                configs.push(selectedProgram.conf);
             } else {
                 return Promise.reject('Cancelled');
             }
@@ -280,32 +310,43 @@ const setupCmd = [
     },
 ];
 
-type QuickPickAdaMain = {
-    label: string;
-    description: string;
-    adaMain?: AdaMain;
-};
+interface QuickPickAdaMain extends vscode.QuickPickItem {
+    conf: AdaConfig;
+}
 
 /**
+ * This function is used to create a quick picker in the scenario where no
+ * launch.json exists and the User triggers the action to create a launch.json
+ * from scratch.
  *
- * @param itemDescription - description to use for each item
- * @param mains - optional list of AdaMains if known on the caller site,
- * otherwise it will be computed by the call
- * @returns a list of objects to use with a QuickPicker, one per Main declared in the project.
+ * @returns an array of quick pick items representing the Ada debug
+ * configurations, including one item representing the action to create all
+ * debug configurations
  */
-async function createQuickPickItems(
-    itemDescription: string,
-    mains?: AdaMain[]
-): Promise<QuickPickAdaMain[]> {
-    mains = mains ?? (await getAdaMains());
-
-    await assertProjectHasMains();
-
-    return mains.map((main) => ({
-        label: vscode.workspace.asRelativePath(main.mainFullPath),
-        description: itemDescription,
-        adaMain: main,
+export async function createQuickPicksInitialLaunch(): Promise<{
+    quickpick: (QuickPickAdaMain | vscode.QuickPickItem)[];
+    generateAll: vscode.QuickPickItem;
+}> {
+    // Offer the same list of debug configurations as the dynamic provider + an
+    // option to generate all configurations
+    const configs = await adaDynamicDebugConfigProvider.provideDebugConfigurations();
+    const quickpick: (QuickPickAdaMain | vscode.QuickPickItem)[] = configs.map((conf) => ({
+        label: conf.name,
+        conf: conf,
     }));
+    const generateAll: vscode.QuickPickItem = {
+        label: 'All of the above',
+        description: 'Create all of the above configurations in the launch.json file',
+    };
+    if (quickpick.length > 1) {
+        quickpick.push({
+            label: '',
+            kind: vscode.QuickPickItemKind.Separator,
+        });
+        // Add the generateAll option only if there are multiple choices
+        quickpick.push(generateAll);
+    }
+    return { quickpick, generateAll };
 }
 
 /**
@@ -372,7 +413,11 @@ export async function getOrAskForProgram(mains?: AdaMain[]): Promise<AdaMain | u
 
     // There is no current file or it matches no known Main of the project, so
     // we offer all Mains in a QuickPicker for the user to choose from.
-    const quickpick = await createQuickPickItems('Select for debugging', mains);
+    const quickpick = mains.map((m) => ({
+        label: m.mainRelPath(),
+        description: m.execRelPath(),
+        adaMain: m,
+    }));
     const selectedProgram = await vscode.window.showQuickPick(quickpick, {
         placeHolder: 'Select a main file to debug',
     });
@@ -404,7 +449,7 @@ async function getAdaMainForSourceFile(
 function createAttachConfig(adaMain: AdaMain): AdaConfig {
     return {
         name: `Ada: Attach debugger to running process - ${adaMain.mainRelPath()}`,
-        type: 'cppdbg',
+        type: ADA_DEBUG_BACKEND_TYPE,
         request: 'attach',
         program: `\${workspaceFolder}/${adaMain.execRelPath()}`,
         processId: '${command:pickProcess}',
