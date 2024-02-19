@@ -8,6 +8,8 @@ import {
     PROJECT_FROM_CONFIG,
     createAdaTaskProvider,
     createSparkTaskProvider,
+    getEnclosingSymbol,
+    getSelectedRegion,
 } from '../../../src/taskProviders';
 import { activate } from '../utils';
 
@@ -276,6 +278,79 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
         resolved = await prov.resolveTask(task);
         assert(resolved);
         assert.equal(await runTaskAndGetResult(resolved), 2);
+    });
+
+    test('current regions and subprograms', async () => {
+        assert(vscode.workspace.workspaceFolders);
+        const testAdbUri = vscode.Uri.joinPath(
+            vscode.workspace.workspaceFolders[0].uri,
+            'src',
+            'test.adb'
+        );
+
+        /**
+         * Position the cursor within the nested P3 subprogram
+         */
+        await vscode.window.showTextDocument(testAdbUri, {
+            selection: new vscode.Range(17, 13, 17, 13),
+        });
+        assert.deepEqual(
+            (await getEnclosingSymbol(vscode.window.activeTextEditor, [vscode.SymbolKind.Function]))
+                ?.range,
+            // The expected range is that of the inner-most subprogram P3
+            new vscode.Range(13, 9, 18, 16)
+        );
+        assert.equal(getSelectedRegion(vscode.window.activeTextEditor), '18:18');
+
+        /**
+         * Select a multi-line range
+         */
+        await vscode.window.showTextDocument(testAdbUri, {
+            selection: new vscode.Range(15, 13, 17, 13),
+        });
+        assert.equal(getSelectedRegion(vscode.window.activeTextEditor), '16:18');
+    });
+
+    test('spark tasks on current location', async () => {
+        assert(vscode.workspace.workspaceFolders);
+        const testAdbUri = vscode.Uri.joinPath(
+            vscode.workspace.workspaceFolders[0].uri,
+            'src',
+            'test.adb'
+        );
+
+        {
+            await vscode.window.showTextDocument(testAdbUri, {
+                selection: new vscode.Range(17, 13, 17, 13),
+            });
+            const tasks = await vscode.tasks.fetchTasks({ type: 'spark' });
+            const subPTask = tasks.find((t) => t.name == 'Prove subprogram');
+            assert(subPTask);
+            assert(subPTask.execution);
+            assert.equal(
+                getCmdLine(subPTask.execution as vscode.ShellExecution),
+                `gnatprove -j0 -P ${await getProjectFile()} ` +
+                    `--limit-subp=\${fileBasename}:14 -cargs:ada -gnatef`
+            );
+        }
+
+        {
+            await vscode.window.showTextDocument(testAdbUri, {
+                selection: new vscode.Range(20, 0, 23, 0),
+            });
+            /**
+             * Compute the tasks again after the change of selection
+             */
+            const tasks = await vscode.tasks.fetchTasks({ type: 'spark' });
+            const regionTask = tasks.find((t) => t.name == 'Prove selected region');
+            assert(regionTask);
+            assert(regionTask.execution);
+            assert.equal(
+                getCmdLine(regionTask.execution as vscode.ShellExecution),
+                `gnatprove -j0 -u \${fileBasename} -P ${await getProjectFile()} ` +
+                    `--limit-region=\${fileBasename}:21:24 -cargs:ada -gnatef`
+            );
+        }
     });
 });
 
