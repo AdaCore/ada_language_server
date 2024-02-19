@@ -140,6 +140,7 @@ package body LSP.Ada_Declaration is
       --  Set to True if we are on a denfining name node
 
       Ignore : Boolean;
+      Dummy  : Libadalang.Common.Ref_Result_Kind;
    begin
       if Self.Contexts.Is_Empty then
          --  No more contexts to process, sort and return collected results
@@ -172,7 +173,7 @@ package body LSP.Ada_Declaration is
 
       if Definition.Is_Null then
          --  If we aren't on a defining_name already then try to resolve
-         Definition := Laltools.Common.Resolve_Name (Name_Node, Trace, Ignore);
+         Definition := Laltools.Common.Resolve_Name (Name_Node, Trace, Dummy);
       else
          On_Defining_Name := True;
       end if;
