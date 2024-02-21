@@ -38,7 +38,7 @@ package body LSP.Ada_Handlers.Locations is
    procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
    begin
@@ -131,17 +131,6 @@ package body LSP.Ada_Handlers.Locations is
          return Unit.Root.Lookup (Sloc);
       end;
    end Get_Node_At;
-
-   ----------
-   -- Hash --
-   ----------
-
-   function Hash
-     (Value : LSP.Structures.Location) return Ada.Containers.Hash_Type is
-      use type Ada.Containers.Hash_Type;
-   begin
-      return Value.uri.Get_Hash + LSP.Utils.Hash (Value.a_range);
-   end Hash;
 
    ----------
    -- Sort --

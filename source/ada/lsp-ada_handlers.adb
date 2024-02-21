@@ -94,6 +94,7 @@ with LSP.Errors;
 with LSP.Formatters.Texts;
 with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
+with LSP.Locations;
 with LSP.Predefined_Completion;
 with LSP.Search;
 with LSP.Servers;
@@ -156,7 +157,7 @@ package body LSP.Ada_Handlers is
    procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kinds  : AlsReferenceKind_Array := LSP.Constants.Empty)
         renames LSP.Ada_Handlers.Locations.Append_Location;
@@ -1711,7 +1712,7 @@ package body LSP.Ada_Handlers is
 
       Response   : LSP.Structures.Declaration_Result (LSP.Structures.Variant_1);
       Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
-      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter     : LSP.Locations.File_Span_Sets.Set;
 
       Display_Method_Policy : constant
         LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
@@ -1865,7 +1866,7 @@ package body LSP.Ada_Handlers is
 
       Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
       Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
-      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter     : LSP.Locations.File_Span_Sets.Set;
 
       Imprecise  : Boolean := False;
 
@@ -3013,7 +3014,7 @@ package body LSP.Ada_Handlers is
       Response : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
 
       Vector : LSP.Structures.Location_Vector renames Response.Variant_1;
-      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter : LSP.Locations.File_Span_Sets.Set;
 
       Display_Method_Policy : constant
         LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
@@ -3151,7 +3152,7 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.start);
 
-      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter : LSP.Locations.File_Span_Sets.Set;
 
       ---------------------
       -- Process_Context --
@@ -3500,7 +3501,7 @@ package body LSP.Ada_Handlers is
         (textDocument => (uri => Item.uri),
          position     => Item.selectionRange.start);
 
-      Filter : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter : LSP.Locations.File_Span_Sets.Set;
 
       ---------------------
       -- Process_Context --
@@ -3718,7 +3719,7 @@ package body LSP.Ada_Handlers is
 
       Response   : LSP.Structures.Location_Vector_Or_Null;
       Imprecise  : Boolean := False;
-      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter     : LSP.Locations.File_Span_Sets.Set;
 
       Additional_Kinds : AlsReferenceKind_Array :=
         [others => False];
@@ -4419,7 +4420,7 @@ package body LSP.Ada_Handlers is
 
       Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
       Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
-      Filter     : LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter     : LSP.Locations.File_Span_Sets.Set;
       Imprecise  : Boolean := False;
 
       procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
