@@ -33,7 +33,6 @@ fi
 
 export GPR_PROJECT_PATH=$prefix/share/gpr:\
 $prefix/$TARGET/share/gpr:\
-$PWD/subprojects/VSS/gnat:\
 $PWD/subprojects/gnatdoc/gnat:\
 $PWD/subprojects/lal-refactor/gnat:\
 $PWD/subprojects/libadalang-tools/src:\
