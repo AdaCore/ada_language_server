@@ -21,7 +21,6 @@ with Ada.Unchecked_Deallocation;
 with GPR2.Log;
 with GPR2.Message;
 with GPR2.Path_Name.Set;
-with GPR2.Source_Reference;
 
 with Langkit_Support.Slocs;
 
@@ -34,19 +33,11 @@ with LSP.GPR_File_Readers;
 with LSP.GPR_Files.References;
 with LSP.GPR_Files.Symbols;
 with LSP.Text_Documents.Langkit_Documents;
+with LSP.Utils;
 
 with Gpr_Parser.Common;
 
 package body LSP.GPR_Handlers is
-
-   function To_Optional_DiagnosticSeverity
-     (Level : GPR2.Message.Level_Value)
-      return LSP.Structures.DiagnosticSeverity_Optional;
-
-   function To_Range
-     (File_Provider : LSP.GPR_Files.File_Provider_Access;
-      Sloc          : GPR2.Source_Reference.Object)
-      return LSP.Structures.A_Range;
 
    function To_Range (File_Provider : LSP.GPR_Files.File_Provider_Access;
                       Reference : Gpr_Parser.Common.Token_Reference)
@@ -607,16 +598,9 @@ package body LSP.GPR_Handlers is
                   for C in Log.Iterate loop
                      declare
                         Message    : constant GPR2.Message.Object := C.Element;
-                        Diagnostic : LSP.Structures.Diagnostic;
-
+                        Diagnostic : constant LSP.Structures.Diagnostic :=
+                          LSP.Utils.To_LSP_Diagnostic (Message);
                      begin
-                        Diagnostic.a_range :=
-                          To_Range (Self'Unchecked_Access, Message.Sloc);
-                        Diagnostic.severity :=
-                          To_Optional_DiagnosticSeverity (Message.Level);
-                        Diagnostic.message :=
-                          VSS.Strings.Conversions.To_Virtual_String
-                            (Message.Message);
                         Diag.diagnostics.Append (Diagnostic);
                      end;
                   end loop;
@@ -634,78 +618,15 @@ package body LSP.GPR_Handlers is
       end if;
    end Publish_Diagnostics;
 
-   ------------------------------------
-   -- To_Optional_DiagnosticSeverity --
-   ------------------------------------
-
-   function To_Optional_DiagnosticSeverity
-     (Level : GPR2.Message.Level_Value)
-      return LSP.Structures.DiagnosticSeverity_Optional
-   is
-      use all type GPR2.Message.Level_Value;
-
-   begin
-      case Level is
-         when Information =>
-            return (True, LSP.Enumerations.Information);
-         when Warning =>
-            return (True, LSP.Enumerations.Warning);
-         when Error =>
-            return (True, LSP.Enumerations.Error);
-         when Lint =>
-            return (True, LSP.Enumerations.Hint);
-      end case;
-   end To_Optional_DiagnosticSeverity;
-
    --------------
    -- To_Range --
    --------------
 
    function To_Range
      (File_Provider : LSP.GPR_Files.File_Provider_Access;
-      Sloc          : GPR2.Source_Reference.Object)
+      Reference     : Gpr_Parser.Common.Token_Reference)
       return LSP.Structures.A_Range
    is
-   begin
-      if Sloc.Is_Defined and then Sloc.Has_Source_Reference then
-         declare
-            package LKD renames LSP.Text_Documents.Langkit_Documents;
-
-            Path : constant GPR2.Path_Name.Object :=
-                     GPR2.Path_Name.Create_File
-                       (GPR2.Filename_Type (Sloc.Filename));
-         begin
-            if Path.Exists then
-               declare
-                  File : constant LSP.GPR_Files.File_Access :=
-                           LSP.GPR_Files.Parse
-                             (File_Provider => File_Provider,
-                              Path          => Path);
-                  Line_Text : constant VSS.Strings.Virtual_String :=
-                                File.Get_Line (Sloc.Line);
-               begin
-                  return LKD.To_A_Range
-                    (Start_Line_Text => Line_Text,
-                     End_Line_Text   => Line_Text,
-                     A_Range         =>
-                       (Start_Line   => Langkit_Support.Slocs.Line_Number
-                            (Sloc.Line),
-                        End_Line     => Langkit_Support.Slocs.Line_Number
-                          (Sloc.Line),
-                        Start_Column => Langkit_Support.Slocs.Column_Number
-                          (Sloc.Column),
-                        End_Column    => Langkit_Support.Slocs.Column_Number
-                          (Sloc.Column)));
-               end;
-            end if;
-         end;
-      end if;
-      return LSP.Constants.Empty;
-   end To_Range;
-
-   function To_Range (File_Provider : LSP.GPR_Files.File_Provider_Access;
-                      Reference : Gpr_Parser.Common.Token_Reference)
-                      return LSP.Structures.A_Range is
       use type Gpr_Parser.Common.Token_Reference;
    begin
       if Reference /= Gpr_Parser.Common.No_Token then

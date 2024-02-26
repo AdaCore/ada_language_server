@@ -19,6 +19,9 @@
 
 with VSS.Strings;
 
+with GPR2.Path_Name;
+with GPR2.Message;
+with GPR2.Source_Reference;
 with Libadalang.Analysis;
 with Langkit_Support.Slocs;
 with Pp.Scanner;
@@ -93,7 +96,27 @@ package LSP.Utils is
       Slice : out VSS.Strings.Virtual_String);
    --  Return a slice of the Text in Span range
 
-   function Image (Value : LSP.Structures.Integer_Or_Virtual_String)
-     return VSS.Strings.Virtual_String;
+   function Image
+     (Value : LSP.Structures.Integer_Or_Virtual_String)
+      return VSS.Strings.Virtual_String;
+   --  Return a string representation of the given value.
+
+   function To_Range
+     (Sloc : GPR2.Source_Reference.Object) return LSP.Structures.A_Range;
+   --  Convert a GPR2 source location into a LSP range.
+
+   function To_URI
+     (Path : GPR2.Path_Name.Object) return LSP.Structures.DocumentUri;
+   --  Convert a GPR2 file path into a LSP URI.
+
+   function To_Optional_DiagnosticSeverity
+     (Level : GPR2.Message.Level_Value)
+      return LSP.Structures.DiagnosticSeverity_Optional;
+   --  Convert a GPR2 message level into a LSP diagnostic severity.
+
+   function To_LSP_Diagnostic
+     (Message : GPR2.Message.Object) return LSP.Structures.Diagnostic;
+   --  Convert a GPR2 message into a proper LSP diagnostic, with the right
+   --  severity level and the location reported by GPR2.
 
 end LSP.Utils;

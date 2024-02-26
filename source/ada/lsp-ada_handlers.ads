@@ -25,6 +25,7 @@ with Ada.Exceptions;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with GPR2.Log;
 with GPR2.Project.Tree;
 
 with Libadalang.Analysis;
@@ -172,6 +173,24 @@ private
    --  @value Invalid_Project_Configured didChangeConfiguration provided a
    --  valid project
 
+   type Project_Status_Type is record
+      Project_File  : GNATCOLL.VFS.Virtual_File := GNATCOLL.VFS.No_File;
+      --  The project file we have attempted to load, successfully or not.
+
+      Load_Status   : Load_Project_Status := No_Project_Found;
+      --  Project loading status.
+
+      GPR2_Messages : GPR2.Log.Object := GPR2.Log.Undefined;
+      --  The warning/error messages emitted by GPR2 while loading the project.
+   end record;
+   --  Project loading status.
+
+   No_Project_Status : constant Project_Status_Type :=
+     Project_Status_Type'
+       (Project_File => GNATCOLL.VFS.No_File,
+        Load_Status  => No_Project_Found,
+        GPR2_Messages     => <>);
+
    type Project_Stamp is mod 2**32;
 
    subtype Implicit_Project_Loaded is Load_Project_Status range
@@ -251,8 +270,10 @@ private
       --  A cache for the predefined sources in the loaded project (typically,
       --  runtime files).
 
-      Project_Status : Load_Project_Status := No_Project_Found;
-      --  Status of loading the project
+      Project_Status : Project_Status_Type := No_Project_Status;
+      --  Indicates whether a project has been successfully loaded and
+      --  how. Stores GPR2 error/warning messages emitted while loading
+      --  (or attempting to load) the project.
 
       Project_Dirs_Loaded : File_Sets.Set;
       --  The directories to load in the "implicit project"

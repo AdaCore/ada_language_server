@@ -1246,7 +1246,7 @@ package body LSP.Ada_Handlers is
             end if;
          end loop;
 
-         case Self.Project_Status is
+         case Self.Project_Status.Load_Status is
             when Valid_Project_Configured | Alire_Project =>
                null;
             when No_Runtime_Found =>
@@ -2231,7 +2231,7 @@ package body LSP.Ada_Handlers is
       --  Handle the case where we're loading the implicit project: do
       --  we need to add the directory in which the document is open?
 
-      if Self.Project_Status in Implicit_Project_Loaded then
+      if Self.Project_Status.Load_Status in Implicit_Project_Loaded then
          declare
             Dir : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI).Dir;
          begin

@@ -22,14 +22,12 @@ with GPR2.Context;
 with GPR2.Path_Name;
 with GPR2.Project.View;
 with GPR2.Containers;
-with GPR2.Message;
 with GPR2.Project.Registry.Attribute;
 with GPR2.Project.Source.Set;
 with GPR2.Project.Tree.View_Builder;
 
 with Libadalang.Preprocessing;
 
-with VSS.Characters.Latin;
 with VSS.Strings.Conversions;
 with VSS.String_Vectors;
 
@@ -44,6 +42,7 @@ with LSP.Enumerations;
 with LSP.Structures;
 
 with URIs;
+with LSP.Ada_Documents; use LSP.Ada_Documents;
 
 package body LSP.Ada_Handlers.Project_Loading is
 
@@ -92,6 +91,12 @@ package body LSP.Ada_Handlers.Project_Loading is
        (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
    --  Cast Virtual_File to Virtual_String
 
+   function To_Virtual_File
+     (Value : VSS.Strings.Virtual_String) return GNATCOLL.VFS.Virtual_File is
+     (GNATCOLL.VFS.Create_From_UTF8
+        (VSS.Strings.Conversions.To_UTF_8_String (Value)));
+   --  Cast Virtual_String to Virtual_File
+
    function Root
      (Self : Message_Handler'Class) return GNATCOLL.VFS.Virtual_File;
    --  Return the root directory of the client workspace
@@ -106,8 +111,6 @@ package body LSP.Ada_Handlers.Project_Loading is
    ---------------------------
 
    procedure Ensure_Project_Loaded (Self : in out Message_Handler'Class) is
-      use type VSS.Strings.Virtual_String;
-
       GPRs_Found   : Natural := 0;
       Project_File : VSS.Strings.Virtual_String;
 
@@ -165,23 +168,12 @@ package body LSP.Ada_Handlers.Project_Loading is
          Self.Tracer.Trace_Text (Project_File);
 
          Load_Project
-           (Self,
-            Project_File,
-            Self.Configuration.Scenario_Variables,
-            GPR2.Environment.Process_Environment,
-            "iso-8859-1",
-            Single_Project_Found);
+           (Self        => Self, Project_Path => Project_File,
+            Scenario    => Self.Configuration.Scenario_Variables,
+            Environment => GPR2.Environment.Process_Environment,
+            Charset     => "iso-8859-1",
+            Status      => Single_Project_Found);
       else
-         --  We have found more than one project: warn the user!
-
-         Self.Sender.On_ShowMessage_Notification
-           ((a_type  => LSP.Enumerations.Error,
-             message =>
-               "More than one .gpr found."
-                  & VSS.Characters.Latin.Line_Feed
-                  & "Note: you can configure a project "
-                  & " through the ada.projectFile setting."));
-
          Load_Implicit_Project (Self, Multiple_Projects_Found);
       end if;
    end Ensure_Project_Loaded;
@@ -204,7 +196,7 @@ package body LSP.Ada_Handlers.Project_Loading is
    begin
       Self.Tracer.Trace ("Loading the implicit project");
 
-      Self.Project_Status := Status;
+      Self.Project_Status.Load_Status := Status;
       Release_Contexts_And_Project_Info (Self);
 
       C.Initialize
@@ -250,7 +242,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
    procedure Load_Project
      (Self         : in out Message_Handler'Class;
-      Project_File : VSS.Strings.Virtual_String;
+      Project_Path : VSS.Strings.Virtual_String;
       Scenario     : LSP.Ada_Configurations.Variable_List;
       Environment  : GPR2.Environment.Object;
       Charset      : VSS.Strings.Virtual_String;
@@ -258,42 +250,20 @@ package body LSP.Ada_Handlers.Project_Loading is
    is
       use type GNATCOLL.VFS.Virtual_File;
 
-      Message  : LSP.Structures.ShowMessageParams;
-      Errors   : VSS.String_Vectors.Virtual_String_Vector;
-      Warnings : VSS.String_Vectors.Virtual_String_Vector;
+      Project_File        : GNATCOLL.VFS.Virtual_File :=
+        To_Virtual_File (Project_Path);
+
+      Project_Environment : Project_Loading.Environment;
+
+      Relocate_Build_Tree : constant GNATCOLL.VFS.Virtual_File :=
+        To_Virtual_File (Self.Configuration.Relocate_Build_Tree);
+
+      Root_Dir            : constant GNATCOLL.VFS.Virtual_File :=
+        To_Virtual_File (Self.Configuration.Relocate_Root);
 
       procedure Create_Context_For_Non_Aggregate
         (View : GPR2.Project.View.Object);
-
-      procedure Append_Errors;
-
-      function To_Virtual_File (Value : VSS.Strings.Virtual_String)
-         return GNATCOLL.VFS.Virtual_File is
-           (GNATCOLL.VFS.Create_From_UTF8
-             (VSS.Strings.Conversions.To_UTF_8_String (Value)));
-      --  Cast Virtual_String to Virtual_File
-
-      -------------------
-      -- Append_Errors --
-      -------------------
-
-      procedure Append_Errors is
-      begin
-         for Message of Self.Project_Tree.Log_Messages.all loop
-            case Message.Level is
-               when GPR2.Message.Error =>
-                  Errors.Append
-                    (VSS.Strings.Conversions.To_Virtual_String
-                       (Message.Format));
-               when GPR2.Message.Warning =>
-                  Warnings.Append
-                    (VSS.Strings.Conversions.To_Virtual_String
-                       (Message.Format));
-               when others =>
-                  null;
-            end case;
-         end loop;
-      end Append_Errors;
+      --  Create a new context for the given project view.
 
       --------------------------------------
       -- Create_Context_For_Non_Aggregate --
@@ -305,7 +275,8 @@ package body LSP.Ada_Handlers.Project_Loading is
          use LSP.Ada_Context_Sets;
          use LSP.Ada_Contexts;
 
-         C : constant Context_Access := new Context (Self.Tracer);
+         C                   : constant Context_Access :=
+           new Context (Self.Tracer);
 
          Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
            (Self'Unchecked_Access);
@@ -364,43 +335,32 @@ package body LSP.Ada_Handlers.Project_Loading is
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
-      GPR                 : GNATCOLL.VFS.Virtual_File :=
-        To_Virtual_File (Project_File);
-
-      Project_Environment : Project_Loading.Environment;
-
-      Relocate_Build_Tree : constant GNATCOLL.VFS.Virtual_File :=
-        To_Virtual_File (Self.Configuration.Relocate_Build_Tree);
-
-      Root_Dir            : constant GNATCOLL.VFS.Virtual_File :=
-        To_Virtual_File (Self.Configuration.Relocate_Root);
-
    begin
       --  The projectFile may be either an absolute path or a
       --  relative path; if so, we're assuming it's relative
       --  to Self.Root.
 
-      if not GPR.Is_Absolute_Path and then not Self.Client.Root.Is_Empty then
-         GPR := GNATCOLL.VFS.Join (Root (Self), GPR);
+      if not Project_File.Is_Absolute_Path and then not Self.Client.Root.Is_Empty then
+         Project_File := GNATCOLL.VFS.Join (Root (Self), Project_File);
       end if;
 
       --  Unload the project tree and the project environment
       Release_Contexts_And_Project_Info (Self);
 
       --  Now load the new project
-      Self.Project_Status := Status;
+      Self.Project_Status.Load_Status := Status;
 
       if not Self.Configuration.Relocate_Build_Tree.Is_Empty then
          Project_Environment.Build_Path :=
            GPR2.Path_Name.Create (Relocate_Build_Tree);
 
          if not Self.Configuration.Relocate_Root.Is_Empty
-           and then GPR /= GNATCOLL.VFS.No_File
+           and then Project_File /= GNATCOLL.VFS.No_File
          then
             if not Root_Dir.Is_Absolute_Path then
                Project_Environment.Build_Path :=
                  GPR2.Path_Name.Create_Directory
-                   (GPR2.Path_Name.Create (GPR).Relative_Path
+                   (GPR2.Path_Name.Create (Project_File).Relative_Path
                      (GPR2.Path_Name.Create (Root_Dir)),
                       GPR2.Filename_Type
                        (Project_Environment.Build_Path.Value));
@@ -418,7 +378,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       begin
          Self.Project_Tree.Load_Autoconf
-           (Filename    => GPR2.Path_Name.Create (GPR),
+           (Filename    => GPR2.Path_Name.Create (Project_File),
             Context     => Project_Environment.Context,
             Build_Path  => Project_Environment.Build_Path,
             Environment => Environment);
@@ -435,26 +395,24 @@ package body LSP.Ada_Handlers.Project_Loading is
 
             Self.Tracer.Trace_Exception (E);
 
-            Self.Project_Status := Invalid_Project_Configured;
+            Self.Project_Status.Load_Status := Invalid_Project_Configured;
       end;
 
-      --  Keep errors and warnings
-      Append_Errors;
+      --  Retrieve the GPR2 error/warning messages right after loading the
+      --  project.
+      Self.Project_Status.GPR2_Messages := Self.Project_Tree.Log_Messages.all;
+      Self.Project_Status.Project_File := Project_File;
 
-      if Self.Project_Status /= Status
+      if Self.Project_Status.Load_Status /= Status
         or else not Self.Project_Tree.Is_Defined
       then
          --  The project was invalid: fallback on loading the implicit project.
-         Errors.Prepend
-           (VSS.Strings.Conversions.To_Virtual_String
-              ("Unable to load project file: " & GPR.Display_Full_Name));
-
          Load_Implicit_Project (Self, Invalid_Project_Configured);
 
       else
          --  No exception during Load_Autoconf, check if we have runtime
          if not Self.Project_Tree.Has_Runtime_Project then
-            Self.Project_Status := No_Runtime_Found;
+            Self.Project_Status.Load_Status := No_Runtime_Found;
          end if;
 
          Update_Project_Predefined_Sources (Self);
@@ -467,20 +425,6 @@ package body LSP.Ada_Handlers.Project_Loading is
             Create_Context_For_Non_Aggregate
               (Self.Project_Tree.Root_Project);
          end if;
-      end if;
-
-      --  Report the warnings, if any
-      if not Warnings.Is_Empty then
-         Message.message := Warnings.Join_Lines (VSS.Strings.LF);
-         Message.a_type := LSP.Enumerations.Warning;
-         Self.Sender.On_ShowMessage_Notification (Message);
-      end if;
-
-      --  Report the errors, if any
-      if not Errors.Is_Empty then
-         Message.message := Errors.Join_Lines (VSS.Strings.LF);
-         Message.a_type := LSP.Enumerations.Error;
-         Self.Sender.On_ShowMessage_Notification (Message);
       end if;
 
       --  Reindex all open documents immediately after project reload, so
@@ -582,7 +526,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
             Load_Project
               (Self         => Self,
-               Project_File => Project,
+               Project_Path => Project,
                Scenario     => Scenario_Variables,
                Environment  => Environment,
                Charset      => (if Charset.Is_Empty then UTF_8 else Charset),
@@ -600,7 +544,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
          Load_Project
            (Self         => Self,
-            Project_File => Project,
+            Project_Path => Project,
             Scenario     => Scenario_Variables,
             Environment  => Environment,
             Charset      => Charset,
