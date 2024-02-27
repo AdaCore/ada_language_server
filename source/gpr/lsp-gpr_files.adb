@@ -1108,24 +1108,29 @@ package body LSP.GPR_Files is
                           File.Get_Referenced_GPR (Token.Ref);
                         Imported : File_Access;
                      begin
-                        if Path.Exists then
+                        if Path.Is_Defined and then Path.Exists then
                            File.Token_To_File_Map.Insert (Index, Path);
                            Imported := Parse (File.File_Provider, Path);
 
-                           File.Name_To_File_Map.Insert (Imported.Name, Path);
-                           File.Limited_Imported.Append (Imported.Name);
-                           if not Limited_Import then
-                              File.Imported.Append (Imported.Name);
-                              Add_Symbol
-                                (Token    => Token,
-                                 Kind     => K_Imported,
-                                 Name     => Image (Imported.Name));
-                           else
-                              Add_Symbol
-                                (Token    => Token,
-                                 Kind     => K_Imported,
-                                 Name     => "limited " &
-                                               Image (Imported.Name));
+                           if not File.Name_To_File_Map.Contains
+                             (Imported.Name)
+                           then
+                              File.Name_To_File_Map.Insert
+                                (Imported.Name, Path);
+                              File.Limited_Imported.Append (Imported.Name);
+                              if not Limited_Import then
+                                 File.Imported.Append (Imported.Name);
+                                 Add_Symbol
+                                   (Token    => Token,
+                                    Kind     => K_Imported,
+                                    Name     => Image (Imported.Name));
+                              else
+                                 Add_Symbol
+                                   (Token    => Token,
+                                    Kind     => K_Imported,
+                                    Name     => "limited " &
+                                      Image (Imported.Name));
+                              end if;
                            end if;
                         else
                            declare
@@ -1253,7 +1258,10 @@ package body LSP.GPR_Files is
             end;
          end loop;
          Project_Name := Name;
-         if Extends and then Extended_Path.Exists then
+         if Extends
+           and then Extended_Path.Is_Defined
+           and then Extended_Path.Exists
+         then
             declare
                Extended : File_Access;
             begin
@@ -1449,11 +1457,15 @@ package body LSP.GPR_Files is
    function Get_Referenced_GPR
      (File  : LSP.GPR_Files.File;
       Token : Gpr_Parser.Common.Token_Reference) return Path_Name.Object is
+      Name : constant String := Remove_Quote (To_String (Token));
    begin
-      return GPR2.Project.Create
-        (GPR2.Filename_Type
-           (Remove_Quote (To_String (Token))),
-         File.Search_Paths);
+      if Name'Length > 0 then
+         return GPR2.Project.Create
+           (GPR2.Filename_Type (Name),
+            File.Search_Paths);
+      else
+         return Path_Name.Undefined;
+      end if;
    end Get_Referenced_GPR;
 
 end LSP.GPR_Files;

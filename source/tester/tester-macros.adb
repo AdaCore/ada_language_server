@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,13 +35,18 @@ package body Tester.Macros is
       Test_Dir : String) return GNATCOLL.JSON.JSON_Value;
    --  Expand recursively
 
+   function Expand_FILE
+     (Path     : String;
+      Test_Dir : String) return String;
+   --  Turn Path into file absolute path
+
    function Expand_URI
      (Path     : String;
       Test_Dir : String) return String;
    --  Turn Path into URI with scheme 'file://'
 
    Pattern : constant GNAT.Regpat.Pattern_Matcher :=
-     GNAT.Regpat.Compile ("\${([\w]+)}|\$URI{([^}]*)}");
+     GNAT.Regpat.Compile ("\${([\w]+)}|\$URI{([^}]*)}|\$FILE{([^}]*)}");
 
    Replace_Slash : constant Ada.Strings.Maps.Character_Mapping :=
      Ada.Strings.Maps.To_Mapping
@@ -91,7 +96,7 @@ package body Tester.Macros is
       begin
          while Next < Text'Length loop
             declare
-               Found : GNAT.Regpat.Match_Array (0 .. 2);
+               Found : GNAT.Regpat.Match_Array (0 .. 3);
             begin
                GNAT.Regpat.Match (Pattern, Text, Found, Next);
                exit when Found (0) = GNAT.Regpat.No_Match;
@@ -115,6 +120,12 @@ package body Tester.Macros is
                     (Result,
                      Expand_URI
                        (Text (Found (2).First .. Found (2).Last),
+                        Test_Dir));
+               elsif Found (3) /= GNAT.Regpat.No_Match then  --  $FILE{x}
+                  Append
+                    (Result,
+                     Expand_FILE
+                       (Text (Found (3).First .. Found (3).Last),
                         Test_Dir));
                end if;
 
@@ -191,11 +202,11 @@ package body Tester.Macros is
       Test := Expand (Test, Env_With_Dir, Directory);
    end Expand;
 
-   ----------------
-   -- Expand_URI --
-   ----------------
+   -----------------
+   -- Expand_FILE --
+   -----------------
 
-   function Expand_URI
+   function Expand_FILE
      (Path     : String;
       Test_Dir : String) return String
    is
@@ -204,22 +215,31 @@ package body Tester.Macros is
    begin
       if Path = "" then
          --  Return normalized Test_Dir
-         return URIs.Conversions.From_File
-           (Ada.Directories.Full_Name (Test_Dir));
+         return Ada.Directories.Full_Name (Test_Dir);
 
       elsif Path = "/" then
          --  Return normalized Test_Dir & '/'
-         return URIs.Conversions.From_File
-           (Ada.Directories.Full_Name (Test_Dir) &
-            GNAT.OS_Lib.Directory_Separator);
+         return Ada.Directories.Full_Name (Test_Dir) &
+           GNAT.OS_Lib.Directory_Separator;
 
       else
          --  Turn a relative path into absolute path
-         return URIs.Conversions.From_File
-           (Ada.Directories.Full_Name (Test_Dir) &
-            GNAT.OS_Lib.Directory_Separator &
-            Argument);
+         return Ada.Directories.Full_Name (Test_Dir) &
+           GNAT.OS_Lib.Directory_Separator &
+           Argument;
       end if;
+   end Expand_FILE;
+
+   ----------------
+   -- Expand_URI --
+   ----------------
+
+   function Expand_URI
+     (Path     : String;
+      Test_Dir : String) return String
+   is
+   begin
+      return URIs.Conversions.From_File (Expand_FILE (Path, Test_Dir));
    end Expand_URI;
 
 end Tester.Macros;
