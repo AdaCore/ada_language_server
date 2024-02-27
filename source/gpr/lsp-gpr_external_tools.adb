@@ -203,7 +203,7 @@ package body LSP.GPR_External_Tools is
       if not Exists (Name) then
          Add (Name, Projects);
       end if;
-      if Get_Package_Description (Name)'Length > 0
+      if Get_Package_Description (Name)'Length = 0
         and then Description'Length > 0
       then
          Set_Package_Description (Name, Description);
