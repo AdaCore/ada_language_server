@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                      Copyright (C) 2023-2024, AdaCore                    --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -20,14 +20,33 @@ with VSS.Unicode;
 
 package body LSP.Text_Documents.Langkit_Documents is
 
+   function To_LSP_Column
+     (Line_Text : VSS.Strings.Virtual_String;
+      Column    : Langkit_Support.Slocs.Column_Number;
+      At_Start  : Boolean := True) return Natural;
+
+   use type Langkit_Support.Slocs.Line_Number;
+
    function To_LSP_Line
      (Line : Langkit_Support.Slocs.Line_Number) return Natural
-        is (Natural (Line) - 1);
+   is (if Line /= 0
+       then Natural (Line) - 1
+       else 0);
 
    function Line
      (Self  : Langkit_Text_Document'Class;
       Index : Langkit_Support.Slocs.Line_Number)
       return VSS.Strings.Virtual_String;
+
+   function To_Source_Column
+     (Iterator : in out VSS.Strings.Character_Iterators.Character_Iterator;
+      Column   : Natural)
+      return Langkit_Support.Slocs.Column_Number;
+
+   function To_Source_Column
+     (Line_Text : VSS.Strings.Virtual_String;
+      Column    : Natural)
+      return Langkit_Support.Slocs.Column_Number;
 
    ----------
    -- Line --
@@ -61,45 +80,96 @@ package body LSP.Text_Documents.Langkit_Documents is
      (Self    : Langkit_Text_Document'Class;
       A_Range : Langkit_Support.Slocs.Source_Location_Range)
       return LSP.Structures.A_Range
+   is (start =>
+         (line      => To_LSP_Line (A_Range.Start_Line),
+          character => To_LSP_Column
+            (Self.Line (A_Range.Start_Line), A_Range.Start_Column)),
+       an_end =>
+         (line      => To_LSP_Line (A_Range.End_Line),
+          character => To_LSP_Column
+            (Self.Line (A_Range.End_Line), A_Range.End_Column, False)));
+
+   function To_A_Range
+     (Start_Line_Text : VSS.Strings.Virtual_String;
+      End_Line_Text   : VSS.Strings.Virtual_String;
+      A_Range         : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range
+   is (start =>
+         (line      => To_LSP_Line (A_Range.Start_Line),
+          character => To_LSP_Column
+            (Start_Line_Text, A_Range.Start_Column)),
+       an_end =>
+         (line      => To_LSP_Line (A_Range.End_Line),
+          character => To_LSP_Column
+            (End_Line_Text, A_Range.End_Column, False)));
+
+   -------------------
+   -- To_LSP_Column --
+   -------------------
+
+   function To_LSP_Column
+     (Line_Text : VSS.Strings.Virtual_String;
+      Column    : Langkit_Support.Slocs.Column_Number;
+      At_Start  : Boolean := True) return Natural
    is
-      Start_Line      : constant Natural := To_LSP_Line (A_Range.Start_Line);
-      Start_Line_Text : constant VSS.Strings.Virtual_String :=
-        Self.Line (A_Range.Start_Line);
-      Start_Iterator  : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Start_Line_Text.At_First_Character;
-
-      End_Line        : constant Natural := Natural (A_Range.End_Line) - 1;
-      End_Line_Text   : constant VSS.Strings.Virtual_String :=
-        Self.Line (A_Range.End_Line);
-      End_Iterator    : VSS.Strings.Character_Iterators.Character_Iterator :=
-        End_Line_Text.At_First_Character;
-
-      Success         : Boolean with Unreferenced;
-
+      Iterator : VSS.Strings.Character_Iterators.Character_Iterator :=
+                   Line_Text.At_First_Character;
+      Success  : Boolean with Unreferenced;
    begin
-      --  Iterating forward through the line of the start position, initial
+      --  Iterating forward through the line, initial
       --  iterator points to the first characters, thus "starts" from the
       --  second one.
 
-      for J in 2 .. A_Range.Start_Column loop
-         Success := Start_Iterator.Forward;
+      for J in 2 .. Column loop
+         Success := Iterator.Forward;
       end loop;
 
-      --  Iterating forward through the line of the end position. For the same
-      --  reason "starts" from second character.
+      if At_Start then
+         return Natural (Iterator.First_UTF16_Offset);
+      else
+         return Natural (Iterator.Last_UTF16_Offset);
+      end if;
+   end To_LSP_Column;
 
-      for J in 2 .. A_Range.End_Column loop
-         Success := End_Iterator.Forward;
+   ----------------------
+   -- To_Source_Column --
+   ----------------------
+
+   function To_Source_Column
+     (Iterator : in out VSS.Strings.Character_Iterators.Character_Iterator;
+      Column   : Natural)
+   return Langkit_Support.Slocs.Column_Number is
+      use type VSS.Strings.Character_Index;
+      use type VSS.Unicode.UTF16_Code_Unit_Offset;
+
+      Line_Offset          : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
+                               Iterator.First_UTF16_Offset;
+      Line_First_Character : constant VSS.Strings.Character_Index :=
+                               Iterator.Character_Index;
+   begin
+      while Integer (Iterator.First_UTF16_Offset - Line_Offset) <= Column
+        and then Iterator.Forward
+      loop
+         null;
       end loop;
 
-      return
-        (start =>
-           (line      => Start_Line,
-            character => Natural (Start_Iterator.First_UTF16_Offset)),
-         an_end =>
-           (line      => End_Line,
-            character => Natural (End_Iterator.Last_UTF16_Offset)));
-   end To_A_Range;
+      return Langkit_Support.Slocs.Column_Number
+        (Iterator.Character_Index - Line_First_Character);
+   end To_Source_Column;
+
+   ----------------------
+   -- To_Source_Column --
+   ----------------------
+
+   function To_Source_Column
+     (Line_Text : VSS.Strings.Virtual_String;
+      Column    : Natural)
+   return Langkit_Support.Slocs.Column_Number is
+      Iterator : VSS.Strings.Character_Iterators.Character_Iterator :=
+                   VSS.Strings.At_First_Character (Line_Text);
+   begin
+      return To_Source_Column (Iterator, Column);
+   end To_Source_Column;
 
    ------------------------
    -- To_Source_Location --
@@ -110,29 +180,19 @@ package body LSP.Text_Documents.Langkit_Documents is
       Position : LSP.Structures.Position)
       return Langkit_Support.Slocs.Source_Location
    is
-      use type VSS.Strings.Character_Index;
-      use type VSS.Unicode.UTF16_Code_Unit_Offset;
-
       Iterator    : VSS.Strings.Character_Iterators.Character_Iterator :=
         Self.Text.At_Character (Self.Line_Marker (Position.line));
-
-      Line_Offset          : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
-        Iterator.First_UTF16_Offset;
-      Line_First_Character : constant VSS.Strings.Character_Index :=
-        Iterator.Character_Index;
-
    begin
-      while Integer (Iterator.First_UTF16_Offset - Line_Offset)
-               <= Position.character
-        and then Iterator.Forward
-      loop
-         null;
-      end loop;
-
-      return ((Line   => Langkit_Support.Slocs.Line_Number (Position.line + 1),
-               Column => Langkit_Support.Slocs.Column_Number
-                 (Iterator.Character_Index - Line_First_Character)));
+      return ((Line   => To_Source_Line (Position.line),
+               Column => To_Source_Column (Iterator, Position.character)));
    end To_Source_Location;
+
+   function To_Source_Location
+     (Line_Text : VSS.Strings.Virtual_String;
+      Position : LSP.Structures.Position)
+      return Langkit_Support.Slocs.Source_Location is
+      ((Line   => To_Source_Line (Position.line),
+        Column => To_Source_Column (Line_Text, Position.character)));
 
    ------------------------------
    -- To_Source_Location_Range --

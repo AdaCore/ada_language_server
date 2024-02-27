@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -36,7 +36,6 @@ with VSS.Strings.Converters.Decoders;
 with VSS.Strings.Conversions;
 
 with LSP.GPR_Documents;            use LSP.GPR_Documents;
-with LSP.Structures;
 with URIs;
 
 with Langkit_Support.Text;
@@ -66,8 +65,6 @@ package body LSP.GPR_File_Readers is
       --  Byte-Order-Mark at the beginning of the data should be ignored if
       --  present
    --  Default flags for the text decoder.
-
-   function To_URI (Item : String) return LSP.Structures.DocumentUri;
 
    ------------
    -- Create --

@@ -1,0 +1,13 @@
+abstract project Imported is
+   type T is ("0", "1");
+   V := "0";
+   for Exec_Dir use "exe";
+   package Compiler is
+      V := "0";
+      for Switches ("Ada") use ();
+   end Compiler;
+   package Builder is
+   end Builder;
+   package Binder is
+   end Binder;
+end Imported;

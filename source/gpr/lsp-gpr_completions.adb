@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                      Copyright (C) 2023-2024, AdaCore                    --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,6 +27,7 @@ with Gpr_Parser.Common;
 with Gpr_Parser_Support.Text;
 
 with LSP.Structures.LSPAny_Vectors;
+with LSP.Text_Documents.Langkit_Documents;
 
 with VSS.String_Vectors;
 with VSS.Strings.Conversions;
@@ -40,6 +41,7 @@ package body LSP.GPR_Completions is
    package PRAD renames GPR2.Project.Registry.Attribute.Description;
    package PRP renames GPR2.Project.Registry.Pack;
    package PRPD renames GPR2.Project.Registry.Pack.Description;
+   package LKD renames LSP.Text_Documents.Langkit_Documents;
 
    procedure Fill_Attribute_Completion_Response
      (File     : LSP.GPR_Files.File;
@@ -187,10 +189,19 @@ package body LSP.GPR_Completions is
                      (File_Provider => File_Provider,
                       Path          => File_Provider.To_File
                         (Value.textDocument.uri));
-      Current : constant GPC.Token_Reference := File.Token (Value.position);
+
+      Location : constant Gpr_Parser.Slocs.Source_Location :=
+                   LSP.GPR_Files.To_Langkit_Location
+                     (LKD.To_Source_Location
+                        (Line_Text => File.Get_Line
+                           (LKD.To_Source_Line (Value.position.line)),
+                         Position  => Value.position));
+
+      Current : constant GPC.Token_Reference := File.Token (Location);
+
       In_Comment : constant Boolean :=
-                     LSP.GPR_Files.Position_Is_In_Comment
-                       (Current, Value.position);
+                     LSP.GPR_Files.Position_Is_In_Comment (Current, Location);
+
       Previous : constant GPC.Token_Reference := Current.Previous (True);
 
       function To_String
@@ -207,7 +218,8 @@ package body LSP.GPR_Completions is
              and then Previous /= GPC.No_Token
          then
             if Previous.Data.Kind in GPC.Gpr_For | GPC.Gpr_Package then
-               if not LSP.GPR_Files.At_End (Previous, Value.position) then
+               if not LSP.GPR_Files.At_End (Previous.Data.Sloc_Range, Location)
+               then
                   case Previous.Data.Kind is
 
                   when GPC.Gpr_For =>
@@ -232,7 +244,8 @@ package body LSP.GPR_Completions is
                end if;
 
             elsif Previous.Data.Kind = GPC.Gpr_Identifier
-              and then LSP.GPR_Files.At_End (Previous, Value.position)
+              and then LSP.GPR_Files.At_End
+                (Previous.Data.Sloc_Range, Location)
             then
                declare
                   Before_Identifier : constant GPC.Token_Reference :=

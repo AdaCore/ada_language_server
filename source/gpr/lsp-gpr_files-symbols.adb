@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,9 +28,6 @@ package body LSP.GPR_Files.Symbols is
 
    function To_Symbol_Kind
      (Symbol : LSP.GPR_Files.Symbol) return LSP.Enumerations.SymbolKind;
-
-   function To_Range
-     (Symbol : LSP.GPR_Files.Symbol) return LSP.Structures.A_Range;
 
    -----------------
    -- Get_Symbols --
@@ -59,7 +56,7 @@ package body LSP.GPR_Files.Symbols is
                    deprecated    => <>,
                    location      =>
                      (uri     => Document_URI,
-                      a_range => To_Range (Symbol),
+                      a_range => Symbol.A_Range,
                       alsKind => LSP.Constants.Empty),
                    containerName => <>);
          C : constant LSP.GPR_Files.Symbol_List_Maps.Cursor :=
@@ -88,7 +85,7 @@ package body LSP.GPR_Files.Symbols is
                deprecated    => <>,
                location      =>
                  (uri     => Document_URI,
-                  a_range => To_Range (Imported),
+                  a_range => Imported.A_Range,
                   alsKind => LSP.Constants.Empty),
                containerName => <>);
             Result.Append (Item);
@@ -142,8 +139,8 @@ package body LSP.GPR_Files.Symbols is
                       kind              => To_Symbol_Kind (Imported),
                       tags              => LSP.Constants.Empty,
                       deprecated        => <>,
-                      a_range           => To_Range (Imported),
-                      selectionRange    => To_Range (Imported),
+                      a_range           => Imported.A_Range,
+                      selectionRange    => Imported.A_Range,
                       alsIsDeclaration  => (Is_Set => False),
                       alsIsAdaProcedure => <>,
                       alsVisibility     => <>,
@@ -180,8 +177,8 @@ package body LSP.GPR_Files.Symbols is
                       kind              => To_Symbol_Kind (Symbol),
                       tags              => LSP.Constants.Empty,
                       deprecated        => <>,
-                      a_range           => To_Range (Symbol),
-                      selectionRange    => To_Range (Symbol),
+                      a_range           => Symbol.A_Range,
+                      selectionRange    => Symbol.A_Range,
                       alsIsDeclaration  => (Is_Set => False),
                       alsIsAdaProcedure => <>,
                       alsVisibility     => <>,
@@ -209,20 +206,6 @@ package body LSP.GPR_Files.Symbols is
       end if;
       Append_Project;
    end Get_Symbols_Hierarchy;
-
-   --------------
-   -- To_Range --
-   --------------
-
-   function To_Range
-     (Symbol : LSP.GPR_Files.Symbol) return LSP.Structures.A_Range
-   is
-     (start  =>
-        (line      => Symbol.Start_Position.Line - 1,
-         character => Symbol.Start_Position.Column - 1),
-      an_end =>
-        (line      => Symbol.End_Position.Line - 1,
-         character => Symbol.End_Position.Column - 1));
 
    --------------------
    -- To_Symbol_Kind --
