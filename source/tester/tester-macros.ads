@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -34,5 +34,8 @@ package Tester.Macros is
    --
    --  * $URI{x} - rewrite as "file:///path", treat x as relative to test
    --  directory (Path)
+   --
+   --  * $FILE{x} - rewrite as "/path" or "C:/path", treat x as relative to
+   --  test directory (Path)
 
 end Tester.Macros;

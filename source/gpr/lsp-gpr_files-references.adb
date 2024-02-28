@@ -621,7 +621,7 @@ package body LSP.GPR_Files.References is
                             File.Get_Referenced_GPR (Token);
                Referenced : File_Access;
             begin
-               if Path.Exists then
+               if Path.Is_Defined and then Path.Exists then
                   Referenced := Parse (File.File_Provider, Path);
                   return Referenced.Name_Token;
                end if;
