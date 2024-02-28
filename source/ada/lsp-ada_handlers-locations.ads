@@ -26,17 +26,9 @@ with Libadalang.Common;
 
 with LSP.Ada_Contexts;
 with LSP.Constants;
+with LSP.Locations;
 
 package LSP.Ada_Handlers.Locations is
-
-   function Hash
-     (Value : LSP.Structures.Location) return Ada.Containers.Hash_Type;
-
-   package File_Span_Sets is new Ada.Containers.Hashed_Sets
-     (Element_Type        => LSP.Structures.Location,
-      Hash                => Hash,
-      Equivalent_Elements => LSP.Structures."=",
-      "="                 => LSP.Structures."=");
 
    function To_LSP_Location
      (Self : in out Message_Handler'Class;
@@ -66,7 +58,7 @@ package LSP.Ada_Handlers.Locations is
    procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Ada_Handlers.Locations.File_Span_Sets.Set;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
    --  Append given Node location to the Result.

@@ -28,7 +28,7 @@ with LAL_Refactor.Safe_Rename;
 
 with LSP.Ada_Contexts;
 with LSP.Ada_Handlers.Locations;
-with LSP.Utils;
+with LSP.Locations;
 
 package body LSP.Ada_Handlers.Renaming is
 
@@ -53,14 +53,14 @@ package body LSP.Ada_Handlers.Renaming is
                      Result := @ + Ada.Containers.Hash_Type'Mod
                        (Item.TextEdit.newText.Hash);
 
-                     Result := @ + LSP.Utils.Hash (Item.TextEdit.a_range);
+                     Result := @ + LSP.Locations.Hash (Item.TextEdit.a_range);
 
                   when False =>
                      Result := @ + Ada.Containers.Hash_Type'Mod
                        (Item.AnnotatedTextEdit.newText.Hash);
 
                      Result := @ +
-                       LSP.Utils.Hash (Item.AnnotatedTextEdit.a_range);
+                       LSP.Locations.Hash (Item.AnnotatedTextEdit.a_range);
                end case;
             end loop;
 

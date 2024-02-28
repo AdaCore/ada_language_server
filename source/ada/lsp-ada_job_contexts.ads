@@ -18,12 +18,21 @@
 --  This package provides interface for data shared between jobs. This data
 --  includes open documents, non-aggregate project trees, settings, etc
 
+with Ada.Exceptions;
+
 with GNATCOLL.VFS;
 
+with Libadalang.Analysis;
+
+with VSS.Strings;
+
 with LSP.Ada_Configurations;
-with LSP.Ada_Documents;
-with LSP.Structures;
 with LSP.Ada_Context_Sets;
+with LSP.Ada_Contexts;
+with LSP.Ada_Documents;
+with LSP.Constants;
+with LSP.Locations;
+with LSP.Structures;
 
 package LSP.Ada_Job_Contexts is
 
@@ -66,5 +75,27 @@ package LSP.Ada_Job_Contexts is
      (Self : Ada_Job_Context;
       File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List is abstract;
+
+   function Imprecise_Resolve_Name
+     (Self     : in out Ada_Job_Context;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Structures.TextDocumentPositionParams'Class)
+        return Libadalang.Analysis.Defining_Name is abstract;
+
+   procedure Append_Location
+     (Self   : in out Ada_Job_Context;
+      Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+        is abstract;
+   --  Append given Node location to the Result.
+   --  Do nothing if the item inside of an synthetic file (like __standard).
+
+   procedure Trace_Exception
+     (Self    : Ada_Job_Context;
+      Error   : Ada.Exceptions.Exception_Occurrence;
+      Message : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String) is abstract;
 
 end LSP.Ada_Job_Contexts;

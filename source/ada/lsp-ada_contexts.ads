@@ -82,11 +82,6 @@ package LSP.Ada_Contexts is
    --  Release the memory associated to Self. You should not use the
    --  context after calling this.
 
-   --  function URI_To_File
-   --    (Self : Context;
-   --     URI  : LSP.Types.LSP_URI)
-   --     return Ada.Strings.UTF_Encoding.UTF_8_String;
-   --
    function URI_To_File
      (Self : Context;
       URI  : LSP.Structures.DocumentUri)
