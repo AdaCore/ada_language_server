@@ -20,22 +20,28 @@
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
+with Ada.Exceptions;
 
 with GNATCOLL.VFS;
 
 with GPR2.Project.Tree;
+
+with Libadalang.Analysis;
 
 with VSS.Strings.Conversions;
 
 with LSP.Ada_Client_Capabilities;
 with LSP.Ada_Configurations;
 with LSP.Ada_Context_Sets;
+with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
 with LSP.Ada_Highlighters;
 with LSP.Ada_Job_Contexts;
 with LSP.Client_Message_Receivers;
+with LSP.Constants;
 with LSP.File_Monitors;
+with LSP.Locations;
 with LSP.Server_Message_Visitors;
 with LSP.Server_Notification_Receivers;
 with LSP.Server_Notifications;
@@ -294,11 +300,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.HoverParams);
 
-   overriding procedure On_References_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.ReferenceParams);
-
    overriding procedure On_Shutdown_Request
      (Self : in out Message_Handler;
       Id   : LSP.Structures.Integer_Or_Virtual_String);
@@ -501,5 +502,24 @@ private
      return Boolean is (Self.Project_Tree.Is_Defined);
 
    overriding procedure Reload_Project (Self : in out Message_Handler);
+
+   overriding function Imprecise_Resolve_Name
+     (Self     : in out Message_Handler;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Structures.TextDocumentPositionParams'Class)
+        return Libadalang.Analysis.Defining_Name;
+
+   overriding procedure Append_Location
+     (Self   : in out Message_Handler;
+      Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Node   : Libadalang.Analysis.Ada_Node'Class;
+      Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
+
+   overriding procedure Trace_Exception
+     (Self    : Message_Handler;
+      Error   : Ada.Exceptions.Exception_Occurrence;
+      Message : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String);
 
 end LSP.Ada_Handlers;
