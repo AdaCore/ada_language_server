@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                      Copyright (C) 2023-2024, AdaCore                    --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,11 +32,24 @@ package LSP.Text_Documents.Langkit_Documents is
 
    type Langkit_Text_Document is abstract new Text_Document with private;
 
+   function To_Source_Line
+     (Line : Natural) return Langkit_Support.Slocs.Line_Number is
+     (Langkit_Support.Slocs.Line_Number (Line + 1));
+   --  Convert LSP line to Langkit line number. For 'Line_Text' initialization
+   --  used during To_Source_Location(Line_Text, Position) calls.
+
    function To_Source_Location
      (Self     : Langkit_Text_Document'Class;
       Position : LSP.Structures.Position)
       return Langkit_Support.Slocs.Source_Location;
    --  Convert a LSP's Position to a Langkit's Source_Location
+
+   function To_Source_Location
+     (Line_Text : VSS.Strings.Virtual_String;
+      Position : LSP.Structures.Position)
+      return Langkit_Support.Slocs.Source_Location;
+   --  Convert a LSP's Position to a Langkit's Source_Location when
+   --  Langkit_Text_Document not available
 
    function To_Source_Location_Range
      (Self    : Langkit_Text_Document'Class;
@@ -49,6 +62,13 @@ package LSP.Text_Documents.Langkit_Documents is
       A_Range : Langkit_Support.Slocs.Source_Location_Range)
       return LSP.Structures.A_Range;
    --  Convert LAL's Source_Location_Range to LSP's A_Range
+
+   function To_A_Range
+     (Start_Line_Text : VSS.Strings.Virtual_String;
+      End_Line_Text   : VSS.Strings.Virtual_String;
+      A_Range         : Langkit_Support.Slocs.Source_Location_Range)
+      return LSP.Structures.A_Range;
+   --  Convert Langkit Source_Location_Range to LSP's A_Range
 
 private
 

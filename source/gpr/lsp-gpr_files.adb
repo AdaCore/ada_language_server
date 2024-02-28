@@ -21,11 +21,6 @@ with Ada.Characters.Handling;
 
 with GNATCOLL.Utils;
 
-with GPR2.Environment;
-with GPR2.Path_Name.Set;
-
-with Gpr_Parser_Support.Text;
-
 with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Generic_Integers;
 with VSS.Transformers.Casing;
@@ -70,21 +65,6 @@ package body LSP.GPR_Files is
    use Gpr_Parser.Common;
    use Gpr_Parser_Support.Token_Data_Handlers;
 
-   function To_Text_Type
-     (Ref : GPC.Token_Reference)
-      return Gpr_Parser_Support.Text.Text_Type
-   is (GPC.Text (Ref));
-   --  convert a token reference to a wide_wide_string
-
-   function To_Lower_Text_Type
-     (Ref : GPC.Token_Reference) return Gpr_Parser_Support.Text.Text_Type
-   is (Gpr_Parser_Support.Text.To_Lower (To_Text_Type (Ref)));
-   --  convert a token reference to a lowered wide_wide_string
-
-   function To_String (Ref : GPC.Token_Reference) return String
-   is (Gpr_Parser_Support.Text.To_UTF8 (GPC.Text (Ref)));
-   --  convert a token reference to an utf8 string
-
    function To_Optional_Name_Type
      (Ref : GPC.Token_Reference) return Optional_Name_Type
    is
@@ -97,10 +77,6 @@ package body LSP.GPR_Files is
       then S (S'First + 1 .. S'Last - 1)
       else S);
    --  remove leading & trailing '"' (useful for string tokens)
-
-   function To_Lower_String (Ref : GPC.Token_Reference) return String
-   is (Gpr_Parser_Support.Text.To_UTF8 (To_Lower_Text_Type (Ref)));
-   --  convert a token reference to a lowered string
 
    procedure Internal_Parse (File : in out LSP.GPR_Files.File);
    --  parse GPR 'File'
@@ -290,9 +266,6 @@ package body LSP.GPR_Files is
       First        : GPC.Token_Reference;
       Index        : GPC.Token_Reference;
       Last         : GPC.Token_Reference;
-      Search_Paths : GPR2.Path_Name.Set.Object :=
-        GPR2.Project.Default_Search_Paths
-          (False, GPR2.Environment.Process_Environment);
       Project_Name : Ada.Strings.Unbounded.Unbounded_String :=
         Ada.Strings.Unbounded.To_Unbounded_String
           (GNATCOLL.Utils.Replace (String (File.Path.Base_Name),
@@ -318,9 +291,6 @@ package body LSP.GPR_Files is
       function Get_GPR_Token
         (Ref : Gpr_Parser.Common.Token_Reference) return GPR_Token;
       --  token reference to gpr token converter
-
-      function Get_Referenced_GPR (Token : GPR_Token) return Path_Name.Object;
-      --  find file pointed by gpr token useful for imported & extended files
 
       procedure Load;
       --  Extract tokens using UTF-8 and then CP-1252 encoding.
@@ -490,19 +460,34 @@ package body LSP.GPR_Files is
         (Token    : GPR_Token;
          Kind     : Symbol_Kind;
          Name     : VSS.Strings.Virtual_String) is
+         package LK_Slocs renames Langkit_Support.Slocs;
+
          Location_Range : constant Slocs.Source_Location_Range :=
                             Gpr_Parser.Common.Sloc_Range
                               (Gpr_Parser.Common.Data (Token.Ref));
+
+         package LKD renames LSP.Text_Documents.Langkit_Documents;
+
          New_Symbol     : Symbol :=
                             (New_Id,
                              Current_Symbol.Id,
                              Token.Ref,
                              Kind,
                              Name,
-                             (Integer (Location_Range.Start_Line),
-                              Integer (Location_Range.Start_Column)),
-                             (Integer (Location_Range.End_Line),
-                              Integer (Location_Range.End_Column)));
+                             LKD.To_A_Range
+                               (Start_Line_Text =>
+                                  File.Get_Line (Location_Range.Start_Line),
+                                End_Line_Text   =>
+                                  File.Get_Line (Location_Range.End_Line),
+                                A_Range         =>
+                                  (LK_Slocs.Line_Number
+                                     (Location_Range.Start_Line),
+                                   LK_Slocs.Line_Number
+                                     (Location_Range.End_Line),
+                                   LK_Slocs.Column_Number
+                                     (Location_Range.Start_Column),
+                                   LK_Slocs.Column_Number
+                                     (Location_Range.End_Column))));
 
          procedure Append_New_To_Current (New_Symbol : Symbol);
          --  Append New_Symbol to current list.
@@ -584,20 +569,33 @@ package body LSP.GPR_Files is
             --  Initialize Package_Range
 
             declare
-               Location_Range : Slocs.Source_Location_Range :=
-                 Gpr_Parser.Common.Sloc_Range
-                   (Gpr_Parser.Common.Data (Current_Package.First));
+               Start_Range    : constant Slocs.Source_Location_Range :=
+                                  Gpr_Parser.Common.Sloc_Range
+                                    (Gpr_Parser.Common.Data
+                                       (Current_Package.First));
+
+               End_Range      : constant Slocs.Source_Location_Range :=
+                                  Gpr_Parser.Common.Sloc_Range
+                                    (Gpr_Parser.Common.Data
+                                       (Current_Package.Last));
+
             begin
-               Current_Package.Package_Range.start.line :=
-                 To_Position_Value (Location_Range.Start_Line);
-               Current_Package.Package_Range.start.character :=
-                 To_Position_Value (Location_Range.Start_Column);
-               Location_Range := Gpr_Parser.Common.Sloc_Range
-                 (Gpr_Parser.Common.Data (Current_Package.Last));
-               Current_Package.Package_Range.an_end.line :=
-                 To_Position_Value (Location_Range.Start_Line);
-               Current_Package.Package_Range.an_end.character :=
-                 To_Position_Value (Location_Range.Start_Column);
+               Current_Package.Package_Range :=
+                 LSP.Text_Documents.Langkit_Documents.To_A_Range
+                   (Start_Line_Text =>
+                      LSP.GPR_Files.Get_Line (File, Start_Range.Start_Line),
+                    End_Line_Text   =>
+                      LSP.GPR_Files.Get_Line (File, End_Range.Start_Line),
+                    A_Range         =>
+                      (Start_Line   => Langkit_Support.Slocs.Line_Number
+                         (Start_Range.Start_Line),
+                       End_Line     => Langkit_Support.Slocs.Line_Number
+                         (End_Range.End_Line),
+                       Start_Column => Langkit_Support.Slocs.Column_Number
+                         (Start_Range.Start_Column),
+                       End_Column => Langkit_Support.Slocs.Column_Number
+                         (End_Range.End_Column))
+                   );
             end;
 
             if not File.Packages.Contains (Current_Package.Name) then
@@ -627,19 +625,6 @@ package body LSP.GPR_Files is
          Token.Index := Gpr_Parser.Common.Index (Ref);
          return Token;
       end Get_GPR_Token;
-
-      ------------------------
-      -- Get_Referenced_GPR --
-      ------------------------
-
-      function Get_Referenced_GPR
-        (Token : GPR_Token) return Path_Name.Object is
-      begin
-         return GPR2.Project.Create
-           (GPR2.Filename_Type
-              (Remove_Quote (To_String (Token.Ref))),
-            Search_Paths);
-      end Get_Referenced_GPR;
 
       ----------
       -- Load --
@@ -775,7 +760,7 @@ package body LSP.GPR_Files is
                end if;
                if not Attribute_Index_Map.Contains (Attr_Index) then
                   Attribute.Index := Attr_Index;
-                  Attribute.Token := Attribute_Token.Index;
+                  Attribute.Token := Attribute_Token.Ref;
                   Attribute_Index_Map.Insert (Attr_Index, Attribute);
 
                end if;
@@ -1120,7 +1105,7 @@ package body LSP.GPR_Files is
                   when Gpr_Parser.Common.Gpr_String =>
                      declare
                         Path     : constant GPR2.Path_Name.Object :=
-                          Get_Referenced_GPR (Token);
+                          File.Get_Referenced_GPR (Token.Ref);
                         Imported : File_Access;
                      begin
                         if Path.Exists then
@@ -1225,6 +1210,7 @@ package body LSP.GPR_Files is
                         if Identifier = "project" then
                            Set_Project_Definition_Start;
                            Project_Token := Token;
+                           File.Name_Token := Next_Token (Token.Ref);
                         elsif Identifier = "library" then
                            Set_Project_Definition_Start;
                            if File.Kind = GPR2.K_Aggregate then
@@ -1256,7 +1242,7 @@ package body LSP.GPR_Files is
                      Extends_All := True;
                   when Gpr_Parser.Common.Gpr_String =>
                      Extended_Index := Index;
-                     Extended_Path := Get_Referenced_GPR (Token);
+                     Extended_Path := File.Get_Referenced_GPR (Token.Ref);
                   when Gpr_Parser.Common.Gpr_Is =>
                      Index := Next_Token (Index);
                      exit;
@@ -1290,7 +1276,7 @@ package body LSP.GPR_Files is
       --  Reset project kind to default value.
       File.Kind := GPR2.K_Standard;
 
-      Search_Paths.Prepend (File.Path.Containing_Directory);
+      File.Search_Paths.Prepend (File.Path.Containing_Directory);
       File.Name := +To_String (Project_Name);
 
       Load;
@@ -1406,42 +1392,25 @@ package body LSP.GPR_Files is
       end if;
    end Cleanup;
 
-   -----------
-   -- Token --
-   -----------
-
-   function Token
-     (Self     : File;
-      Position : LSP.Structures.Position)
-      return Gpr_Parser.Common.Token_Reference is
-      Sloc : constant Source_Location :=
-        (To_Line_Number (Position.line),
-         To_Column_Number (Position.character));
-
-   begin
-      return Self.Unit.Lookup_Token (Sloc);
-
-   end Token;
-
    ----------------------------
    -- Position_Is_In_Comment --
    ----------------------------
 
    function Position_Is_In_Comment
      (Token    : Gpr_Parser.Common.Token_Reference;
-      Position : LSP.Structures.Position) return Boolean is
+      Location : Gpr_Parser.Slocs.Source_Location) return Boolean is
       Token_Kind : constant Gpr_Parser.Common.Token_Kind :=
                      Gpr_Parser.Common.Kind (Token.Data);
    begin
       if Token_Kind = GPC.Gpr_Comment then
-         return not At_Start (Token, Position);
+         return not At_Start (Token.Data.Sloc_Range, Location);
       elsif Token_Kind in GPC.Gpr_Whitespace | GPC.Gpr_Termination then
          declare
             Previous : constant GPC.Token_Reference := Token.Previous;
          begin
             if Previous /= GPC.No_Token and then
               Previous.Data.Kind = GPC.Gpr_Comment and then
-              Previous.Data.Sloc_Range.End_Line = To_Line_Number (Position.line)
+              Previous.Data.Sloc_Range.End_Line = Location.Line
             then
                return True;
             end if;
@@ -1473,30 +1442,18 @@ package body LSP.GPR_Files is
         Next (Token).Data.Index = Self.Import_Partition_End;
    end Token_At_Import_Partition_End;
 
-   --------------------------------
-   -- Position_At_Identifier_End --
-   --------------------------------
+   ------------------------
+   -- Get_Referenced_GPR --
+   ------------------------
 
-   function Position_At_Identifier_End
-     (Token    : Gpr_Parser.Common.Token_Reference;
-      Position : LSP.Structures.Position) return Boolean is
-      Data : constant GPC.Token_Data_Type := Token.Data;
-      Kind : constant GPC.Token_Kind := Data.Kind;
-      Sloc_Range : constant Source_Location_Range := Data.Sloc_Range;
+   function Get_Referenced_GPR
+     (File  : LSP.GPR_Files.File;
+      Token : Gpr_Parser.Common.Token_Reference) return Path_Name.Object is
    begin
-      if Kind in GPC.Gpr_Whitespace | GPC.Gpr_Comment | GPC.Gpr_Termination
-      then
-         declare
-            Previous : constant GPC.Token_Reference :=  Token.Previous;
-         begin
-            return Previous /= GPC.No_Token
-              and then Previous.Data.Kind = GPC.Gpr_Identifier
-              and then At_Start (Sloc_Range, Position);
-         end;
-      elsif Kind = GPC.Gpr_Identifier then
-         return At_End (Sloc_Range, Position);
-      end if;
-      return False;
-   end Position_At_Identifier_End;
+      return GPR2.Project.Create
+        (GPR2.Filename_Type
+           (Remove_Quote (To_String (Token))),
+         File.Search_Paths);
+   end Get_Referenced_GPR;
 
 end LSP.GPR_Files;

@@ -1,0 +1,7 @@
+aggregate project GPS_Aggregated is
+
+   for Project_Files use
+     ("ignored.gpr", "navigation.gpr");
+   for Object_Dir use "obj";
+
+end GPS_Aggregated;

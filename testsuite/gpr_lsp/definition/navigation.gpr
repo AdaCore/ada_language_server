@@ -1,0 +1,23 @@
+with "ignored", "imported";
+project Navigation is
+
+   type T is ("0", "1");
+   V : T := "0";
+   for Source_Dirs use ("src");
+   package Compiler is
+      V := ();
+      for Switches ("Ada") use V;
+      V1 := Navigation.Compiler'Switches ("Ada");
+      V2 := Compiler'Switches ("Ada");
+      V3 := Compiler.V;
+      V4 : Imported.T := Imported.V;
+      V5 := Imported'Exec_Dir;
+      V6 := Imported.Compiler'Switches ("Ada");
+      V7 := Imported.Compiler.V;
+   end Compiler;
+   package Builder renames Imported.Builder;
+   package Binder extends Imported.Binder is
+   end Binder;
+   V8 := V;
+
+end Navigation;

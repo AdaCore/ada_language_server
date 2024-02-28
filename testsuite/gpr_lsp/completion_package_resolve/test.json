@@ -579,6 +579,34 @@
       ]
     }
   },
+   {
+    "send": {
+      "request": {
+        "id": 13,
+        "method": "completionItem/resolve",
+        "params": {
+          "label": "Ide",
+          "insertTextFormat": 1,
+          "data": [
+            "Ide"
+          ]
+        }
+      },
+      "wait": [
+        {
+          "id": 13,
+          "result": {
+            "label": "Ide",
+            "documentation": "This package specifies the options used by 'gnatstudio' IDE.",
+            "insertTextFormat": 1,
+            "data": [
+              "Ide"
+            ]
+          }
+        }
+      ]
+    }
+  },
   {
     "stop": {
       "exit_code": 0
