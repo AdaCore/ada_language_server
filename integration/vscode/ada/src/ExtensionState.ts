@@ -8,6 +8,7 @@ import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
 import { TERMINAL_ENV_SETTING_NAME } from './helpers';
 import { registerTaskProviders } from './taskProviders';
+import { initializeTesting } from './gnattest';
 
 /**
  * This class encapsulates all state that should be maintained throughout the
@@ -32,6 +33,8 @@ export class ExtensionState {
     private registeredTaskProviders: Disposable[];
 
     public readonly codelensProvider = new AdaCodeLensProvider();
+    public readonly testController: vscode.TestController;
+    public readonly testData: Map<vscode.TestItem, object> = new Map();
 
     /**
      * The following fields are caches for ALS requests
@@ -68,6 +71,7 @@ export class ExtensionState {
         const result = initializeDebugging(this.context);
         this.initialDebugConfigProvider = result.providerInitial;
         this.dynamicDebugConfigProvider = result.providerDynamic;
+        this.testController = initializeTesting(context);
     }
 
     public start = async () => {

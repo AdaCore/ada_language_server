@@ -37,10 +37,7 @@ suite('GNATtest Integration Tests', function () {
         }
     });
     test('Expected Tests discovered', async () => {
-        const root = await gnattest.discoverTests(
-            gnattest.controller,
-            path.join(await getObjectDir(adaExtState.adaClient), 'gnattest')
-        );
+        const root = await gnattest.addTestsRootLevel();
         assert.notStrictEqual(root, undefined);
         const tests = gnattest.gatherChildTestItems(gnattest.controller.items);
         for (let i = 0; i < tests.length; i++) {
