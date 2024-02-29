@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2023, AdaCore                        --
+--                    Copyright (C) 2023-2024, AdaCore                      --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -171,8 +171,9 @@ package body LSP.GPR_Documents is
       Update_Diagnostics;
 
    exception
-      when GPR2.Project_Error | GPR2.Processing_Error
-         | GPR2.Attribute_Error =>
+      when E : others =>
+
+         Self.Tracer.Trace_Exception (E);
 
          Update_Diagnostics;
 

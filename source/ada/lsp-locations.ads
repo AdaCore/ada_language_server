@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
+--                     Copyright (C) 2018-2023, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,27 +15,31 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+with Ada.Containers.Hashed_Sets;
 
-with Spawn.Environments;
+with LSP.Structures;
 
-with VSS.Strings;
+package LSP.Locations is
 
-package Tester.Macros is
+   use type Ada.Containers.Hash_Type;
 
-   procedure Expand
-     (Test : in out GNATCOLL.JSON.JSON_Value;
-      Env  : Spawn.Environments.Process_Environment;
-      Path : VSS.Strings.Virtual_String);
-   --  Expand macros in given JSON test. The Path is test's path.
-   --
-   --  Currently next macros are supported:
-   --  * ${NAME} - expands with environment variable NAME from Env
-   --
-   --  * $URI{x} - rewrite as "file:///path", treat x as relative to test
-   --  directory (Path)
-   --
-   --  * $FILE{x} - rewrite as "/path" or "C:/path", treat x as relative to
-   --  test directory (Path)
+   Prime : constant := 271;
 
-end Tester.Macros;
+   function Hash
+     (Value : LSP.Structures.A_Range) return Ada.Containers.Hash_Type is
+       (Prime * Ada.Containers.Hash_Type'Mod (Value.start.line)
+        + Ada.Containers.Hash_Type'Mod (Value.start.character)
+        + Prime * Ada.Containers.Hash_Type'Mod (Value.an_end.line)
+        + Ada.Containers.Hash_Type'Mod (Value.an_end.character));
+
+   function Hash
+     (Value : LSP.Structures.Location) return Ada.Containers.Hash_Type is
+       (Value.uri.Get_Hash + Hash (Value.a_range));
+
+   package File_Span_Sets is new Ada.Containers.Hashed_Sets
+     (Element_Type        => LSP.Structures.Location,
+      Hash                => Hash,
+      Equivalent_Elements => LSP.Structures."=",
+      "="                 => LSP.Structures."=");
+
+end LSP.Locations;

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -426,9 +426,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       exception
-         when E : GPR2.Project_Error
-                | GPR2.Processing_Error
-                | GPR2.Attribute_Error =>
+         when E : others =>
 
             Self.Tracer.Trace_Exception (E);
 

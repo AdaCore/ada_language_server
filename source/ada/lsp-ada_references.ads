@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
+--                        Copyright (C) 2024, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,27 +15,24 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.JSON;
+--  This package provides handler and job types for textDocument/references
+--  requests.
 
-with Spawn.Environments;
+with LSP.Ada_Job_Contexts;
+with LSP.Server_Jobs;
+with LSP.Server_Message_Handlers;
+with LSP.Server_Messages;
 
-with VSS.Strings;
+package LSP.Ada_References is
 
-package Tester.Macros is
+   type Ada_References_Handler
+     (Context : not null access LSP.Ada_Job_Contexts.Ada_Job_Context'Class) is
+       limited new LSP.Server_Message_Handlers.Server_Message_Handler
+         with null record;
 
-   procedure Expand
-     (Test : in out GNATCOLL.JSON.JSON_Value;
-      Env  : Spawn.Environments.Process_Environment;
-      Path : VSS.Strings.Virtual_String);
-   --  Expand macros in given JSON test. The Path is test's path.
-   --
-   --  Currently next macros are supported:
-   --  * ${NAME} - expands with environment variable NAME from Env
-   --
-   --  * $URI{x} - rewrite as "file:///path", treat x as relative to test
-   --  directory (Path)
-   --
-   --  * $FILE{x} - rewrite as "/path" or "C:/path", treat x as relative to
-   --  test directory (Path)
+   overriding function Create_Job
+     (Self    : Ada_References_Handler;
+      Message : LSP.Server_Messages.Server_Message_Access)
+        return LSP.Server_Jobs.Server_Job_Access;
 
-end Tester.Macros;
+end LSP.Ada_References;
