@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TestItem } from 'vscode';
-import { integer } from 'vscode-languageclient';
+import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
 import { exe, getObjectDir } from './helpers';
 
@@ -197,8 +197,8 @@ export function parseResults(
             for (const e of tests) {
                 // Check if the result line is for the test 'e'
                 const test_src = getParentTestSourceName(e);
-                const p: integer | undefined = e.parent?.range?.start.line;
-                const test_line: integer = p ? p + 1 : 0;
+                const p: number | undefined = e.parent?.range?.start.line;
+                const test_line: number = p ? p + 1 : 0;
                 const check_line = matchs[i].match(test_src.label + ':' + test_line.toString());
                 // update the state of the test
                 if (check_line != null && run != undefined) {
@@ -438,7 +438,11 @@ export function pathIsReadable(p: string): boolean {
  * @param item - the TestItem whose children must be computed, or `undefined` if
  * we should compute the root items of the tree.
  */
-async function resolveHandler(item: TestItem | undefined, recursive = false) {
+async function resolveHandler(
+    item: TestItem | undefined,
+    recursive = false,
+    token?: CancellationToken
+) {
     if (!item) {
         if (!watcher) {
             /**
@@ -474,7 +478,12 @@ async function resolveHandler(item: TestItem | undefined, recursive = false) {
 
         if (recursive) {
             const promises: Promise<void>[] = [];
-            item.children.forEach((i) => promises.push(resolveHandler(i, true)));
+            item.children.forEach((i) => {
+                if (token?.isCancellationRequested) {
+                    throw new vscode.CancellationError();
+                }
+                promises.push(resolveHandler(i, true, token));
+            });
             await Promise.all(promises);
         }
     }
@@ -496,17 +505,17 @@ function configureTestExecution(controller: vscode.TestController) {
 }
 
 async function runHandler(request: vscode.TestRunRequest, token: vscode.CancellationToken) {
-    if (request.include == undefined && request.exclude == undefined) {
+    if ((request.include?.length ?? 0) === 0 && (request.exclude?.length ?? 0) === 0) {
         /**
          * Run all tests. This ignores request.exclude which is why we only use
          * it in this branch.
          */
-        await handleRunAll(request);
+        await handleRunAll(request, token);
     } else {
         /**
          * Run a specific set of tests
          */
-        await handleRunRequestedTests(request);
+        await handleRunRequestedTests(request, token);
     }
 }
 
@@ -515,35 +524,45 @@ async function runHandler(request: vscode.TestRunRequest, token: vscode.Cancella
  * controller.items) and request.exclude. It then runs the test driver for each
  * test, using the --routines argument at each run to select a specific test.
  */
-async function handleRunRequestedTests(request: vscode.TestRunRequest) {
-    const requestedRootTests = [];
-
-    if (request.include) {
-        requestedRootTests.push(...request.include);
-    } else {
-        /**
-         * Consider all tests as included
-         */
-        controller.items.forEach((i) => requestedRootTests.push(i));
-    }
-
-    /**
-     * First resolve included tests as the API says that it is the
-     * responsibility of the run handler.
-     */
-    await Promise.all(requestedRootTests.map((i) => resolveHandler(i, true)));
-
-    /**
-     * Collect and filter tests to run.
-     */
-    const requestedLeafTests = requestedRootTests.flatMap(collectLeafItems);
-    const excludedLeafTests = request.exclude ? request.exclude.flatMap(collectLeafItems) : [];
-    const testsToRun = requestedLeafTests.filter((t) => !excludedLeafTests?.includes(t));
-
+async function handleRunRequestedTests(request: vscode.TestRunRequest, token: CancellationToken) {
     const run = controller.createTestRun(request, undefined, false);
-
     try {
+        const requestedRootTests = [];
+
+        if (request.include) {
+            requestedRootTests.push(...request.include);
+        } else {
+            /**
+             * Consider all tests as included
+             */
+            controller.items.forEach((i) => requestedRootTests.push(i));
+        }
+
+        /**
+         * First resolve included tests as the API says that it is the
+         * responsibility of the run handler.
+         */
+        await Promise.all(requestedRootTests.map((i) => resolveHandler(i, true, token)));
+
+        /**
+         * Collect and filter tests to run.
+         */
+        const requestedLeafTests = requestedRootTests.flatMap((i) => collectLeafItems(i, token));
+        const excludedLeafTests = request.exclude
+            ? request.exclude.flatMap((i) => collectLeafItems(i, token))
+            : [];
+        const testsToRun = requestedLeafTests.filter((t) => {
+            if (token?.isCancellationRequested) {
+                throw new vscode.CancellationError();
+            }
+            return !excludedLeafTests?.includes(t);
+        });
+
         await buildTestDriver(run);
+
+        if (token?.isCancellationRequested) {
+            throw new vscode.CancellationError();
+        }
 
         /**
          * Mark tests as queued for execution
@@ -555,6 +574,9 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest) {
          */
         const execPath = await getGnatTestDriverExecPath();
         for (const test of testsToRun) {
+            if (token?.isCancellationRequested) {
+                throw new vscode.CancellationError();
+            }
             const start = Date.now();
             run.started(test);
             const cmd = [execPath, '--passed-tests=show', `--routines=${test.id}`];
@@ -592,7 +614,7 @@ function prepareAndAppendOutput(run: vscode.TestRun, out: string) {
  * in {@link handleRunRequestedTests} fails because of GNATtest shortcomings, we
  * still have this approach of running all tests as a backup.
  */
-async function handleRunAll(request: vscode.TestRunRequest) {
+async function handleRunAll(request: vscode.TestRunRequest, token: CancellationToken) {
     const run = controller.createTestRun(request, undefined, false);
     try {
         /**
@@ -600,22 +622,35 @@ async function handleRunAll(request: vscode.TestRunRequest) {
          */
         await buildTestDriver(run);
 
+        if (token?.isCancellationRequested) {
+            throw new vscode.CancellationError();
+        }
+
         /**
          * Resolve all the test tree before collecting tests
          */
         const promises: Promise<void>[] = [];
-        controller.items.forEach((i) => promises.push(resolveHandler(i, true)));
+        controller.items.forEach((i) => promises.push(resolveHandler(i, true, token)));
         await Promise.all(promises);
+
+        if (token?.isCancellationRequested) {
+            throw new vscode.CancellationError();
+        }
 
         /**
          * Now let's collect all tests, i.e. all leafs of the TestItem tree.
          */
-        const allTests: TestItem[] = collectLeafsFromCollection(controller.items);
+        const allTests: TestItem[] = collectLeafsFromCollection(controller.items, token);
 
         /**
          * Mark all tests as started.
          */
-        allTests.forEach((t) => run.started(t));
+        allTests.forEach((t) => {
+            if (token?.isCancellationRequested) {
+                throw new vscode.CancellationError();
+            }
+            run.started(t);
+        });
 
         /**
          * Invoke the test driver
@@ -628,6 +663,9 @@ async function handleRunAll(request: vscode.TestRunRequest) {
         prepareAndAppendOutput(run, driver.stderr.toLocaleString());
 
         for (const test of allTests) {
+            if (token?.isCancellationRequested) {
+                throw new vscode.CancellationError();
+            }
             determineTestOutcome(test, driverOutput, run);
         }
 
@@ -736,19 +774,28 @@ function determineTestOutcome(
     }
 }
 
-function collectLeafsFromCollection(items: vscode.TestItemCollection): vscode.TestItem[] {
+function collectLeafsFromCollection(
+    items: vscode.TestItemCollection,
+    token?: CancellationToken
+): vscode.TestItem[] {
     const res: vscode.TestItem[] = [];
     items.forEach((i) => {
-        res.push(...collectLeafItems(i));
+        if (token?.isCancellationRequested) {
+            throw new vscode.CancellationError();
+        }
+        res.push(...collectLeafItems(i, token));
     });
     return res;
 }
 
-function collectLeafItems(item: TestItem): vscode.TestItem[] {
+function collectLeafItems(item: TestItem, token?: CancellationToken): vscode.TestItem[] {
     if (item.children.size > 0) {
         const res: vscode.TestItem[] = [];
         item.children.forEach((i) => {
-            res.push(...collectLeafItems(i));
+            if (token?.isCancellationRequested) {
+                throw new vscode.CancellationError();
+            }
+            res.push(...collectLeafItems(i, token));
         });
         return res;
     } else {
@@ -758,40 +805,6 @@ function collectLeafItems(item: TestItem): vscode.TestItem[] {
 
 function escapeRegExp(text: string) {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-}
-
-/*
-    test unit/case run handler
-*/
-function handleUnitRun(
-    tests: vscode.TestItem[],
-    run: vscode.TestRun,
-    terminalName: string,
-    gnattestPath: string
-) {
-    const terminal = vscode.window.createTerminal(terminalName);
-    const ext: string = process.platform == 'win32' ? '.exe' : '';
-    // clean the previous results
-    terminal.sendText('> ' + path.join(gnattestPath, 'result.txt'));
-    // run every test case seperatly and append the results
-    for (const test of tests) {
-        run.appendOutput(`Running ${test.id}\r\n`);
-        run.started(test);
-        const parent = getParentTestSourceName(test);
-        const p: integer | undefined = test.parent?.range?.start.line;
-        const line: integer = p ? p + 1 : 0;
-        terminal.sendText('gprbuild -P ' + path.join(gnattestPath, 'harness', 'test_driver.gpr'));
-        terminal.sendText(
-            path.join(gnattestPath, 'harness', 'test_runner' + ext) +
-                ' --routines=' +
-                parent.id +
-                ':' +
-                line.toString() +
-                ' >> ' +
-                path.join(gnattestPath, 'result.txt')
-        );
-    }
-    terminal.sendText('exit');
 }
 
 function logAndRun(run: vscode.TestRun, cmd: string[]) {

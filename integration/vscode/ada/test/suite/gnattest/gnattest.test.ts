@@ -1,11 +1,11 @@
-import * as vscode from 'vscode';
 import * as assert from 'assert';
-import * as path from 'path';
 import * as cp from 'child_process';
 import { suite, test } from 'mocha';
-import * as gnattest from '../../../src/gnattest';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { adaExtState } from '../../../src/extension';
-import { getObjectDir, getProjectFile } from '../../../src/helpers';
+import * as gnattest from '../../../src/gnattest';
+import { getProjectFile } from '../../../src/helpers';
 import { activate, assertEqualToFileContent } from '../utils';
 
 suite('GNATtest Integration Tests', function () {
