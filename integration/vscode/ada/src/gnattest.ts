@@ -99,6 +99,8 @@ type TestItemData = {
  */
 const testData: Map<vscode.TestItem, TestItemData> = new Map();
 
+let watcher: vscode.FileSystemWatcher;
+
 /**
  * This function initializes the test features of the extension.
  *
@@ -271,18 +273,20 @@ async function addUnitItem(unit: Unit) {
     const srcFile = unit['@_source_file'];
     const srcUri = await findFileInWorkspace(srcFile);
     const unitId = createUnitItemId(unit);
-    const testItem = controller.createTestItem(unitId, `Tests for ${srcFile}`, srcUri);
+    if (!controller.items.get(unitId)) {
+        const testItem = controller.createTestItem(unitId, `Tests for ${srcFile}`, srcUri);
 
-    /**
-     * To implement lazy loading of children, we set canResolveChildren and
-     * store the XML data in a map so that it can be processed later when the UI
-     * needs it. The API guarantees that the testItem object will be the same at
-     * resolve-time, i.e. it can be used as a key in a data map.
-     */
-    testItem.canResolveChildren = true;
-    testData.set(testItem, { type: TestItemType.Unit, data: unit });
+        /**
+         * To implement lazy loading of children, we set canResolveChildren and
+         * store the XML data in a map so that it can be processed later when the UI
+         * needs it. The API guarantees that the testItem object will be the same at
+         * resolve-time, i.e. it can be used as a key in a data map.
+         */
+        testItem.canResolveChildren = true;
+        testData.set(testItem, { type: TestItemType.Unit, data: unit });
 
-    controller.items.add(testItem);
+        controller.items.add(testItem);
+    }
 }
 
 function resolveUnitItem(testItem: TestItem, unit: Unit) {
@@ -303,23 +307,29 @@ function addTestedItem(parentTestItem: vscode.TestItem, tested: Tested) {
     const range = new vscode.Range(pos, pos);
 
     const testItemId = createSubprogramItemId(tested);
-    const testedItem = controller.createTestItem(
-        testItemId,
-        `Tests for subprogram ${testedSubprogramName}`,
-        parentTestItem.uri
-    );
-    testedItem.range = range;
+    const existingItem = parentTestItem.children.get(testItemId);
+    if (!existingItem) {
+        /**
+         * If no item exist for this id, create it.
+         */
+        const testedItem = controller.createTestItem(
+            testItemId,
+            `Tests for subprogram ${testedSubprogramName}`,
+            parentTestItem.uri
+        );
+        testedItem.range = range;
 
-    /**
-     * To implement lazy loading of children, we set canResolveChildren and
-     * store the XML data in a map so that it can be processed later when the UI
-     * needs it. The API guarantees that the testItem object will be the same at
-     * resolve-time, i.e. it can be used as a key in a data map.
-     */
-    testedItem.canResolveChildren = true;
-    testData.set(testedItem, { type: TestItemType.Subprogram, data: tested });
+        /**
+         * To implement lazy loading of children, we set canResolveChildren and
+         * store the XML data in a map so that it can be processed later when the UI
+         * needs it. The API guarantees that the testItem object will be the same at
+         * resolve-time, i.e. it can be used as a key in a data map.
+         */
+        testedItem.canResolveChildren = true;
+        testData.set(testedItem, { type: TestItemType.Subprogram, data: tested });
 
-    parentTestItem.children.add(testedItem);
+        parentTestItem.children.add(testedItem);
+    }
 }
 
 async function resolveTestedItem(testItem: TestItem, tested: Tested) {
@@ -328,9 +338,6 @@ async function resolveTestedItem(testItem: TestItem, tested: Tested) {
     }
 }
 
-/*
-    Adding Test Childs to a Test Case Item
-*/
 async function addTestCaseItem(parentItem: vscode.TestItem, testCase: TestCase) {
     const test: Test = testCase.test;
     const testFileBasename = test['@_file'];
@@ -345,14 +352,16 @@ async function addTestCaseItem(parentItem: vscode.TestItem, testCase: TestCase) 
     assert(srcFileName);
     const testId = createTestCaseItemId(testCase, srcFileName);
 
-    /**
-     * We use the test ID as a name so that it can be easily matched by the User
-     * with the test driver output if needed.
-     */
-    const testCaseItem = controller.createTestItem(testId, testId, testUri);
-    testCaseItem.range = range;
-    parentItem.children.add(testCaseItem);
-    testData.set(testCaseItem, { type: TestItemType.Test, data: testCase });
+    if (!parentItem.children.get(testId)) {
+        /**
+         * We use the test ID as a name so that it can be easily matched by the User
+         * with the test driver output if needed.
+         */
+        const testCaseItem = controller.createTestItem(testId, testId, testUri);
+        testCaseItem.range = range;
+        parentItem.children.add(testCaseItem);
+        testData.set(testCaseItem, { type: TestItemType.Test, data: testCase });
+    }
 }
 
 /**
@@ -389,7 +398,11 @@ function createSubprogramItemId(tested: Tested) {
  * in VS Code with test results on the test driver output.
  */
 function createTestCaseItemId(testCase: TestCase, sourceFileName: string): string {
-    return `${sourceFileName}:${testCase['@_line']}:${testCase['@_column']}`;
+    /**
+     * Only the line should be included, otherwise the test driver --routines
+     * option would not recognize the test.
+     */
+    return `${sourceFileName}:${testCase['@_line']}`;
 }
 
 async function findFileInWorkspace(name: string): Promise<vscode.Uri> {
@@ -425,18 +438,20 @@ export function pathIsReadable(p: string): boolean {
  * @param item - the TestItem whose children must be computed, or `undefined` if
  * we should compute the root items of the tree.
  */
-async function resolveHandler(item: TestItem | undefined) {
+async function resolveHandler(item: TestItem | undefined, recursive = false) {
     if (!item) {
-        /**
-         * Register a file watcher to listen to changes to the GNATtest XML file
-         */
-        const watcher = vscode.workspace.createFileSystemWatcher(await getGnatTestXmlPath());
-        // Add to extension disposables
-        adaExtState.context.subscriptions.push(watcher);
+        if (!watcher) {
+            /**
+             * Register a file watcher to listen to changes to the GNATtest XML file
+             */
+            watcher = vscode.workspace.createFileSystemWatcher(await getGnatTestXmlPath());
+            // Add to extension disposables
+            adaExtState.context.subscriptions.push(watcher);
 
-        watcher.onDidCreate(refreshTestItemTree);
-        watcher.onDidDelete(refreshTestItemTree);
-        watcher.onDidChange(refreshTestItemTree);
+            watcher.onDidCreate(refreshTestItemTree);
+            watcher.onDidDelete(refreshTestItemTree);
+            watcher.onDidChange(refreshTestItemTree);
+        }
 
         // Perform an initial load of tests
         await refreshTestItemTree();
@@ -451,52 +466,21 @@ async function resolveHandler(item: TestItem | undefined) {
                 break;
             case TestItemType.Test:
                 /**
-                 *  This type of node should be the leaf of the tree, so this branch
-                 *  should never be taken.
+                 *  This type of node should be the leaf of the tree so nothing
+                 *  to do here.
                  */
-                throw Error(
-                    'This type of TestItem should never be resolved ' +
-                        'because it is supposed to be a leaf of the tree'
-                );
                 break;
+        }
+
+        if (recursive) {
+            const promises: Promise<void>[] = [];
+            item.children.forEach((i) => promises.push(resolveHandler(i, true)));
+            await Promise.all(promises);
         }
     }
 }
 
 function configureTestExecution(controller: vscode.TestController) {
-    // terminal ID to seperate between each run
-    const terminal_id = 0;
-    // the controller's Run Handler
-    const runHandler = async (request: vscode.TestRunRequest, token: vscode.CancellationToken) => {
-        if (request.include == undefined) {
-            // Run all tests
-            const run = controller.createTestRun(request, undefined, false);
-            // const tests = gatherChildTestItems(controller.items);
-            // const terminal_name = 'Test_terminal_' + terminal_id.toString();
-            // Run all tests handler
-            await handleRunAll(run);
-        } else {
-            // // specifique tests run request
-            // const run = controller.createTestRun(request, undefined, false);
-            // const tests = gatherChildTestItems(request.include);
-            // // create a temporary terminal to execute the command lines then close it.
-            // const terminalName = 'Test_terminal_' + terminal_id.toString();
-            // // test unit run handler
-            // handleUnitRun(tests, run, terminalName, '');
-            // terminal_id++;
-            // // Parse the results when the terminal is closed
-            // vscode.window.onDidCloseTerminal(async (terminal) => {
-            //     if (terminal.name == terminalName) {
-            //         const file = await readResultFile(path.join(gnattestFullPath, 'result.txt'));
-            //         if (file != undefined) {
-            //             parseResults(tests, run, file);
-            //         }
-            //         run.end();
-            //     }
-            // });
-        }
-    };
-
     testRunProfile = controller.createRunProfile(
         'GNATtest',
         vscode.TestRunProfileKind.Run,
@@ -511,57 +495,122 @@ function configureTestExecution(controller: vscode.TestController) {
     // };
 }
 
+async function runHandler(request: vscode.TestRunRequest, token: vscode.CancellationToken) {
+    if (request.include == undefined && request.exclude == undefined) {
+        /**
+         * Run all tests. This ignores request.exclude which is why we only use
+         * it in this branch.
+         */
+        await handleRunAll(request);
+    } else {
+        /**
+         * Run a specific set of tests
+         */
+        await handleRunRequestedTests(request);
+    }
+}
+
 /**
- *
- * Handle a run request of all tests.
+ * This logic calls computes a list of tests to run based on request.include (or
+ * controller.items) and request.exclude. It then runs the test driver for each
+ * test, using the --routines argument at each run to select a specific test.
  */
-async function handleRunAll(run: vscode.TestRun) {
-    /**
-     * VS Code terminals expect `\r\n` as a line separator, so this function is
-     * a wrapper to prepare the given output to use that line separator and
-     * append it to the TestRun object.
-     *
-     * @param out - a string to write to the TestRun object
-     */
-    function prepareAndAppendOutput(out: string) {
-        run.appendOutput(out.replace(/\n/g, '\r\n'));
+async function handleRunRequestedTests(request: vscode.TestRunRequest) {
+    const requestedRootTests = [];
+
+    if (request.include) {
+        requestedRootTests.push(...request.include);
+    } else {
+        /**
+         * Consider all tests as included
+         */
+        controller.items.forEach((i) => requestedRootTests.push(i));
     }
 
+    /**
+     * First resolve included tests as the API says that it is the
+     * responsibility of the run handler.
+     */
+    await Promise.all(requestedRootTests.map((i) => resolveHandler(i, true)));
+
+    /**
+     * Collect and filter tests to run.
+     */
+    const requestedLeafTests = requestedRootTests.flatMap(collectLeafItems);
+    const excludedLeafTests = request.exclude ? request.exclude.flatMap(collectLeafItems) : [];
+    const testsToRun = requestedLeafTests.filter((t) => !excludedLeafTests?.includes(t));
+
+    const run = controller.createTestRun(request, undefined, false);
+
+    try {
+        await buildTestDriver(run);
+
+        /**
+         * Mark tests as queued for execution
+         */
+        testsToRun.forEach((t) => run.enqueued(t));
+
+        /**
+         * Invoke the test driver for each test
+         */
+        const execPath = await getGnatTestDriverExecPath();
+        for (const test of testsToRun) {
+            const start = Date.now();
+            run.started(test);
+            const cmd = [execPath, '--passed-tests=show', `--routines=${test.id}`];
+            const driver = logAndRun(run, cmd);
+            const duration = Date.now() - start;
+            const driverOutput = driver.stdout.toLocaleString();
+            prepareAndAppendOutput(run, driverOutput);
+            prepareAndAppendOutput(run, driver.stderr.toLocaleString());
+            determineTestOutcome(test, driverOutput, run, duration);
+            if (driver.status && driver.status !== 0) {
+                const msg = `The test driver ended with an error code: ${driver.status.toString()}`;
+                run.appendOutput(msg + '\r\n');
+                throw Error(msg);
+            }
+        }
+    } finally {
+        run.end();
+    }
+}
+
+/**
+ * VS Code terminals expect `\r\n` as a line separator, so this function is
+ * a wrapper to prepare the given output to use that line separator and
+ * append it to the TestRun object.
+ *
+ * @param out - a string to write to the TestRun object
+ */
+function prepareAndAppendOutput(run: vscode.TestRun, out: string) {
+    run.appendOutput(out.replace(/\n/g, '\r\n'));
+}
+
+/**
+ * Handle a run request of all tests. This logic calls the test driver without
+ * the test selection argument `--routines`. This way if the usage of --routines
+ * in {@link handleRunRequestedTests} fails because of GNATtest shortcomings, we
+ * still have this approach of running all tests as a backup.
+ */
+async function handleRunAll(request: vscode.TestRunRequest) {
+    const run = controller.createTestRun(request, undefined, false);
     try {
         /**
          * First we need to build the test driver project.
-         *
-         * TODO replace this with a task invocation to capture problems
          */
-        const driverPrjPath = await getGnatTestDriverProjectPath();
-        run.appendOutput(`Building the test harness project\r\n`);
-        const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath]);
+        await buildTestDriver(run);
 
-        prepareAndAppendOutput(gprbuild.stdout.toLocaleString());
-        prepareAndAppendOutput(gprbuild.stderr.toLocaleString());
-
-        if (gprbuild.status !== 0) {
-            /**
-             * Failed to build the test driver. The output of gprbuild is
-             * usually pretty explicit so no need to add an error message.
-             *
-             * TODO consider showing an error tooltip
-             */
-            run.end();
-        }
+        /**
+         * Resolve all the test tree before collecting tests
+         */
+        const promises: Promise<void>[] = [];
+        controller.items.forEach((i) => promises.push(resolveHandler(i, true)));
+        await Promise.all(promises);
 
         /**
          * Now let's collect all tests, i.e. all leafs of the TestItem tree.
          */
-        const allTests: TestItem[] = [];
-        const collectLeafItems = (item: TestItem) => {
-            if (item.children.size > 0) {
-                item.children.forEach(collectLeafItems);
-            } else {
-                allTests.push(item);
-            }
-        };
-        controller.items.forEach(collectLeafItems);
+        const allTests: TestItem[] = collectLeafsFromCollection(controller.items);
 
         /**
          * Mark all tests as started.
@@ -575,21 +624,57 @@ async function handleRunAll(run: vscode.TestRun) {
         const execPath = await getGnatTestDriverExecPath();
         const driver = logAndRun(run, [execPath, '--passed-tests=show']);
         const driverOutput = driver.stdout.toLocaleString();
-        prepareAndAppendOutput(driverOutput);
-        prepareAndAppendOutput(driver.stderr.toLocaleString());
+        prepareAndAppendOutput(run, driverOutput);
+        prepareAndAppendOutput(run, driver.stderr.toLocaleString());
 
         for (const test of allTests) {
             determineTestOutcome(test, driverOutput, run);
+        }
+
+        if (driver.status && driver.status !== 0) {
+            const msg = `The test driver ended with an error code: ${driver.status.toString()}`;
+            run.appendOutput(msg + '\r\n');
+            throw Error(msg);
         }
     } finally {
         run.end();
     }
 }
 
-function determineTestOutcome(test: vscode.TestItem, driverOutput: string, run: vscode.TestRun) {
+async function buildTestDriver(run: vscode.TestRun) {
+    /**
+     * TODO replace this with a task invocation to capture problems
+     */
+    const driverPrjPath = await getGnatTestDriverProjectPath();
+    run.appendOutput(`Building the test harness project\r\n`);
+    const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath]);
+
+    prepareAndAppendOutput(run, gprbuild.stdout.toLocaleString());
+    prepareAndAppendOutput(run, gprbuild.stderr.toLocaleString());
+
+    if (gprbuild.status !== 0) {
+        /**
+         * Failed to build the test driver. The output of gprbuild is
+         * usually pretty explicit so no need to add an error message.
+         *
+         * No need to show an error tooltip because the exception raised below
+         * already causes that.
+         */
+        run.end();
+
+        throw Error('Error while building the test driver');
+    }
+}
+
+function determineTestOutcome(
+    test: vscode.TestItem,
+    driverOutput: string,
+    run: vscode.TestRun,
+    duration?: number
+) {
     const escapedTestId = escapeRegExp(test.id);
-    const passRE = new RegExp(`^${escapedTestId}: info: corresponding test PASSED$`, 'gm');
-    const failureRE = new RegExp(`^${escapedTestId}:\\s*(error.*)$`, 'gm');
+    const passRE = new RegExp(`^${escapedTestId}(:\\d*)?: info: corresponding test PASSED$`, 'gm');
+    const failureRE = new RegExp(`^${escapedTestId}(:\\d*)?:\\s*(error.*)$`, 'gm');
 
     const passMatches = Array.from(driverOutput.matchAll(passRE));
     const failureMatches = Array.from(driverOutput.matchAll(failureRE));
@@ -602,11 +687,12 @@ function determineTestOutcome(test: vscode.TestItem, driverOutput: string, run: 
                 `Could not determine the outcome of the test from the ` +
                     `test driver output. Check the output of the test ` +
                     `run for the test id: ${test.id}`
-            )
+            ),
+            duration
         );
     } else if (passMatches.length > 0 && failureMatches.length == 0) {
         if (passMatches.length == 1) {
-            run.passed(test);
+            run.passed(test, duration);
         } else {
             run.errored(
                 test,
@@ -615,12 +701,13 @@ function determineTestOutcome(test: vscode.TestItem, driverOutput: string, run: 
                         'Detected multiple pass messages for this test, ' +
                             'this could indicate an error in the test run.'
                     ),
-                ].concat(passMatches.map((m) => new vscode.TestMessage(m[0])))
+                ].concat(passMatches.map((m) => new vscode.TestMessage(m[0]))),
+                duration
             );
         }
     } else if (passMatches.length == 0 && failureMatches.length > 0) {
         if (failureMatches.length == 1) {
-            run.failed(test, new vscode.TestMessage(failureMatches[0][1]));
+            run.failed(test, new vscode.TestMessage(failureMatches[0][0]), duration);
         } else {
             run.errored(
                 test,
@@ -629,7 +716,8 @@ function determineTestOutcome(test: vscode.TestItem, driverOutput: string, run: 
                         'Detected multiple error messages for this test, ' +
                             'this could indicate an error in the test run.'
                     ),
-                ].concat(failureMatches.map((m) => new vscode.TestMessage(m[0])))
+                ].concat(failureMatches.map((m) => new vscode.TestMessage(m[0]))),
+                duration
             );
         }
     } else if (passMatches.length > 0 && failureMatches.length > 0) {
@@ -642,8 +730,29 @@ function determineTestOutcome(test: vscode.TestItem, driverOutput: string, run: 
                 ),
             ]
                 .concat(passMatches.map((m) => new vscode.TestMessage(m[0])))
-                .concat(failureMatches.map((m) => new vscode.TestMessage(m[0])))
+                .concat(failureMatches.map((m) => new vscode.TestMessage(m[0]))),
+            duration
         );
+    }
+}
+
+function collectLeafsFromCollection(items: vscode.TestItemCollection): vscode.TestItem[] {
+    const res: vscode.TestItem[] = [];
+    items.forEach((i) => {
+        res.push(...collectLeafItems(i));
+    });
+    return res;
+}
+
+function collectLeafItems(item: TestItem): vscode.TestItem[] {
+    if (item.children.size > 0) {
+        const res: vscode.TestItem[] = [];
+        item.children.forEach((i) => {
+            res.push(...collectLeafItems(i));
+        });
+        return res;
+    } else {
+        return [item];
     }
 }
 

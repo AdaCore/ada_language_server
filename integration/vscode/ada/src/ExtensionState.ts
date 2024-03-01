@@ -8,7 +8,6 @@ import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
 import { TERMINAL_ENV_SETTING_NAME } from './helpers';
 import { registerTaskProviders } from './taskProviders';
-import { initializeTesting } from './gnattest';
 
 /**
  * This class encapsulates all state that should be maintained throughout the
