@@ -104,7 +104,23 @@
           "method": "textDocument/publishDiagnostics",
           "params": {
             "uri": "$URI{prj.gpr}",
-            "diagnostics": []
+            "diagnostics": [
+              {
+                "range": {
+                  "start": {
+                    "line": 0,
+                    "character": 0
+                  },
+                  "end": {
+                    "line": 0,
+                    "character": 0
+                  }
+                },
+                "severity": 1,
+               
+                "message": "GPR parser unexpected ADA.IO_EXCEPTIONS.NAME_ERROR invalid path name \"  \""
+              }      
+            ]
           }
         }
       ]
