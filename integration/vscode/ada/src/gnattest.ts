@@ -1,3 +1,5 @@
+import assert from 'assert';
+import * as cp from 'child_process';
 import { X2jOptions, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -113,142 +115,20 @@ export function initializeTesting(context: vscode.ExtensionContext): vscode.Test
     controller.resolveHandler = resolveHandler;
 
     // Refresh Button to re discover the tests on the project.
-    controller.refreshHandler = refreshHandler;
+    controller.refreshHandler = refreshTestItemTree;
 
-    // configureTestRunning(controller, projectFile, gnattestPath);
+    configureTestExecution(controller);
 
     return controller;
 }
-async function refreshHandler() {
+
+/**
+ * Reset and recreate the tree of TestItems based on the GNATtest XML.
+ */
+async function refreshTestItemTree() {
     controller.items.replace([]);
-    adaExtState.testData.clear();
+    testData.clear();
     await addTestsRootLevel();
-}
-
-/*
-    Run Profile and other options configuration for the Test Controller
-*/
-function configureTestRunning(
-    controller: vscode.TestController,
-    projectFileFullPath: string,
-    gnattestFullPath: string
-) {
-    // terminal ID to seperate between each run
-    let terminal_id = 0;
-    // the controller's Run Handler
-    const runHandler = (request: vscode.TestRunRequest) => {
-        if (request.include == undefined) {
-            // The Run All tests request
-            const run = controller.createTestRun(request, undefined, false);
-            const tests = gatherChildTestItems(controller.items);
-            const terminal_name = 'Test_terminal_' + terminal_id.toString();
-            // Run all tests handler
-            handleRunAll(tests, run, terminal_name, gnattestFullPath);
-            terminal_id++;
-            // Parse the results when the terminal is closed
-            vscode.window.onDidCloseTerminal(async (terminal) => {
-                if (terminal.name == terminal_name) {
-                    const file = await readResultFile(path.join(gnattestFullPath, 'result.txt'));
-                    if (file != undefined) {
-                        parseResults(tests, run, file);
-                    }
-                    run.end();
-                }
-            });
-        } else {
-            // specifique tests run request
-            const run = controller.createTestRun(request, undefined, false);
-            const tests = gatherChildTestItems(request.include);
-            // create a temporary terminal to execute the command lines then close it.
-            const terminalName = 'Test_terminal_' + terminal_id.toString();
-            // test unit run handler
-            handleUnitRun(tests, run, terminalName, gnattestFullPath);
-            terminal_id++;
-            // Parse the results when the terminal is closed
-            vscode.window.onDidCloseTerminal(async (terminal) => {
-                if (terminal.name == terminalName) {
-                    const file = await readResultFile(path.join(gnattestFullPath, 'result.txt'));
-                    if (file != undefined) {
-                        parseResults(tests, run, file);
-                    }
-                    run.end();
-                }
-            });
-        }
-    };
-
-    testRunProfile = controller.createRunProfile(
-        'GNATtest',
-        vscode.TestRunProfileKind.Run,
-        runHandler,
-        true,
-        undefined
-    );
-    // Tests Configuration Handler to Generates Tests for a Project.
-    testRunProfile.configureHandler = () => {
-        const terminal = vscode.window.createTerminal('Test Terminal');
-        terminal.sendText('gnattest -P ' + projectFileFullPath);
-        terminal.sendText('exit');
-    };
-}
-
-/*
-    Run all tests handler
-*/
-export function handleRunAll(
-    tests: vscode.TestItem[],
-    run: vscode.TestRun,
-    terminalName: string,
-    gnattestPath: string
-) {
-    tests.forEach((item) => {
-        run.appendOutput(`Running ${item.id}\r\n`);
-        run.started(item);
-    });
-    // create a temporary terminal to execute the command lines then close it.
-    const ext: string = process.platform == 'win32' ? '.exe' : '';
-    const terminal = vscode.window.createTerminal(terminalName);
-    terminal.sendText('gprbuild -P ' + path.join(gnattestPath, 'harness', 'test_driver.gpr'));
-    terminal.sendText(
-        path.join(gnattestPath, 'harness', 'test_runner' + ext) +
-            ' > ' +
-            path.join(gnattestPath, 'result.txt')
-    );
-    terminal.sendText('exit');
-}
-
-/*
-    test unit/case run handler
-*/
-function handleUnitRun(
-    tests: vscode.TestItem[],
-    run: vscode.TestRun,
-    terminalName: string,
-    gnattestPath: string
-) {
-    const terminal = vscode.window.createTerminal(terminalName);
-    const ext: string = process.platform == 'win32' ? '.exe' : '';
-    // clean the previous results
-    terminal.sendText('> ' + path.join(gnattestPath, 'result.txt'));
-    // run every test case seperatly and append the results
-    for (const test of tests) {
-        run.appendOutput(`Running ${test.id}\r\n`);
-        run.started(test);
-        const parent = getParentTestSourceName(test);
-        const p: integer | undefined = test.parent?.range?.start.line;
-        const line: integer = p ? p + 1 : 0;
-        terminal.sendText('gprbuild -P ' + path.join(gnattestPath, 'harness', 'test_driver.gpr'));
-        terminal.sendText(
-            path.join(gnattestPath, 'harness', 'test_runner' + ext) +
-                ' --routines=' +
-                parent.id +
-                ':' +
-                line.toString() +
-                ' >> ' +
-                path.join(gnattestPath, 'result.txt')
-        );
-    }
-    terminal.sendText('exit');
 }
 
 /*
@@ -339,6 +219,18 @@ async function getGnatTestXmlPath(): Promise<string> {
     const objDir = await getObjectDir();
     const gnatTestXmlPath = path.join(objDir, 'gnattest', 'harness', 'gnattest.xml');
     return gnatTestXmlPath;
+}
+
+async function getGnatTestDriverProjectPath(): Promise<string> {
+    const objDir = await getObjectDir();
+    const testDriverPath = path.join(objDir, 'gnattest', 'harness', 'test_driver.gpr');
+    return testDriverPath;
+}
+
+async function getGnatTestDriverExecPath(): Promise<string> {
+    const objDir = await getObjectDir();
+    const testDriverPath = path.join(objDir, 'gnattest', 'harness', 'test_runner' + exe);
+    return testDriverPath;
 }
 
 export async function addTestsRootLevel() {
@@ -549,18 +441,251 @@ async function resolveHandler(item: TestItem | undefined) {
         // Perform an initial load of tests
         await refreshTestItemTree();
     } else {
-        const data = adaExtState.testData.get(item);
-        if (data) {
-            if ('test_unit' in data) {
-                // It's a Unit object
-                resolveUnitItem(item, data as Unit);
-            } else if ('test' in data) {
-                // It's a Dangling object
-                await resolveDanglingItem(item, data as Dangling);
-            } else {
-                // It's a Tested object
-                await resolveTestedItem(item, data as Tested);
-            }
+        const testItemData = testData.get(item);
+        switch (testItemData?.type) {
+            case TestItemType.Unit:
+                resolveUnitItem(item, testItemData.data as Unit);
+                break;
+            case TestItemType.Subprogram:
+                await resolveTestedItem(item, testItemData.data as Tested);
+                break;
+            case TestItemType.Test:
+                /**
+                 *  This type of node should be the leaf of the tree, so this branch
+                 *  should never be taken.
+                 */
+                throw Error(
+                    'This type of TestItem should never be resolved ' +
+                        'because it is supposed to be a leaf of the tree'
+                );
+                break;
         }
     }
+}
+
+function configureTestExecution(controller: vscode.TestController) {
+    // terminal ID to seperate between each run
+    const terminal_id = 0;
+    // the controller's Run Handler
+    const runHandler = async (request: vscode.TestRunRequest, token: vscode.CancellationToken) => {
+        if (request.include == undefined) {
+            // Run all tests
+            const run = controller.createTestRun(request, undefined, false);
+            // const tests = gatherChildTestItems(controller.items);
+            // const terminal_name = 'Test_terminal_' + terminal_id.toString();
+            // Run all tests handler
+            await handleRunAll(run);
+        } else {
+            // // specifique tests run request
+            // const run = controller.createTestRun(request, undefined, false);
+            // const tests = gatherChildTestItems(request.include);
+            // // create a temporary terminal to execute the command lines then close it.
+            // const terminalName = 'Test_terminal_' + terminal_id.toString();
+            // // test unit run handler
+            // handleUnitRun(tests, run, terminalName, '');
+            // terminal_id++;
+            // // Parse the results when the terminal is closed
+            // vscode.window.onDidCloseTerminal(async (terminal) => {
+            //     if (terminal.name == terminalName) {
+            //         const file = await readResultFile(path.join(gnattestFullPath, 'result.txt'));
+            //         if (file != undefined) {
+            //             parseResults(tests, run, file);
+            //         }
+            //         run.end();
+            //     }
+            // });
+        }
+    };
+
+    testRunProfile = controller.createRunProfile(
+        'GNATtest',
+        vscode.TestRunProfileKind.Run,
+        runHandler
+    );
+
+    // Tests Configuration Handler to Generates Tests for a Project.
+    // testRunProfile.configureHandler = () => {
+    //     const terminal = vscode.window.createTerminal('Test Terminal');
+    //     terminal.sendText('gnattest -P ' + projectFileFullPath);
+    //     terminal.sendText('exit');
+    // };
+}
+
+/**
+ *
+ * Handle a run request of all tests.
+ */
+async function handleRunAll(run: vscode.TestRun) {
+    /**
+     * VS Code terminals expect `\r\n` as a line separator, so this function is
+     * a wrapper to prepare the given output to use that line separator and
+     * append it to the TestRun object.
+     *
+     * @param out - a string to write to the TestRun object
+     */
+    function prepareAndAppendOutput(out: string) {
+        run.appendOutput(out.replace(/\n/g, '\r\n'));
+    }
+
+    try {
+        /**
+         * First we need to build the test driver project.
+         *
+         * TODO replace this with a task invocation to capture problems
+         */
+        const driverPrjPath = await getGnatTestDriverProjectPath();
+        run.appendOutput(`Building the test harness project\r\n`);
+        const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath]);
+
+        prepareAndAppendOutput(gprbuild.stdout.toLocaleString());
+        prepareAndAppendOutput(gprbuild.stderr.toLocaleString());
+
+        if (gprbuild.status !== 0) {
+            /**
+             * Failed to build the test driver. The output of gprbuild is
+             * usually pretty explicit so no need to add an error message.
+             *
+             * TODO consider showing an error tooltip
+             */
+            run.end();
+        }
+
+        /**
+         * Now let's collect all tests, i.e. all leafs of the TestItem tree.
+         */
+        const allTests: TestItem[] = [];
+        const collectLeafItems = (item: TestItem) => {
+            if (item.children.size > 0) {
+                item.children.forEach(collectLeafItems);
+            } else {
+                allTests.push(item);
+            }
+        };
+        controller.items.forEach(collectLeafItems);
+
+        /**
+         * Mark all tests as started.
+         */
+        allTests.forEach((t) => run.started(t));
+
+        /**
+         * Invoke the test driver
+         */
+        run.appendOutput('Running the test driver\r\n');
+        const execPath = await getGnatTestDriverExecPath();
+        const driver = logAndRun(run, [execPath, '--passed-tests=show']);
+        const driverOutput = driver.stdout.toLocaleString();
+        prepareAndAppendOutput(driverOutput);
+        prepareAndAppendOutput(driver.stderr.toLocaleString());
+
+        for (const test of allTests) {
+            determineTestOutcome(test, driverOutput, run);
+        }
+    } finally {
+        run.end();
+    }
+}
+
+function determineTestOutcome(test: vscode.TestItem, driverOutput: string, run: vscode.TestRun) {
+    const escapedTestId = escapeRegExp(test.id);
+    const passRE = new RegExp(`^${escapedTestId}: info: corresponding test PASSED$`, 'gm');
+    const failureRE = new RegExp(`^${escapedTestId}:\\s*(error.*)$`, 'gm');
+
+    const passMatches = Array.from(driverOutput.matchAll(passRE));
+    const failureMatches = Array.from(driverOutput.matchAll(failureRE));
+
+    if (passMatches.length == 0 && failureMatches.length == 0) {
+        // No matches. We can't determine the test outcome.
+        run.errored(
+            test,
+            new vscode.TestMessage(
+                `Could not determine the outcome of the test from the ` +
+                    `test driver output. Check the output of the test ` +
+                    `run for the test id: ${test.id}`
+            )
+        );
+    } else if (passMatches.length > 0 && failureMatches.length == 0) {
+        if (passMatches.length == 1) {
+            run.passed(test);
+        } else {
+            run.errored(
+                test,
+                [
+                    new vscode.TestMessage(
+                        'Detected multiple pass messages for this test, ' +
+                            'this could indicate an error in the test run.'
+                    ),
+                ].concat(passMatches.map((m) => new vscode.TestMessage(m[0])))
+            );
+        }
+    } else if (passMatches.length == 0 && failureMatches.length > 0) {
+        if (failureMatches.length == 1) {
+            run.failed(test, new vscode.TestMessage(failureMatches[0][1]));
+        } else {
+            run.errored(
+                test,
+                [
+                    new vscode.TestMessage(
+                        'Detected multiple error messages for this test, ' +
+                            'this could indicate an error in the test run.'
+                    ),
+                ].concat(failureMatches.map((m) => new vscode.TestMessage(m[0])))
+            );
+        }
+    } else if (passMatches.length > 0 && failureMatches.length > 0) {
+        run.errored(
+            test,
+            [
+                new vscode.TestMessage(
+                    'Detected both pass and fail messages for this test, ' +
+                        'this probably indicates an error in the test run.'
+                ),
+            ]
+                .concat(passMatches.map((m) => new vscode.TestMessage(m[0])))
+                .concat(failureMatches.map((m) => new vscode.TestMessage(m[0])))
+        );
+    }
+}
+
+function escapeRegExp(text: string) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+/*
+    test unit/case run handler
+*/
+function handleUnitRun(
+    tests: vscode.TestItem[],
+    run: vscode.TestRun,
+    terminalName: string,
+    gnattestPath: string
+) {
+    const terminal = vscode.window.createTerminal(terminalName);
+    const ext: string = process.platform == 'win32' ? '.exe' : '';
+    // clean the previous results
+    terminal.sendText('> ' + path.join(gnattestPath, 'result.txt'));
+    // run every test case seperatly and append the results
+    for (const test of tests) {
+        run.appendOutput(`Running ${test.id}\r\n`);
+        run.started(test);
+        const parent = getParentTestSourceName(test);
+        const p: integer | undefined = test.parent?.range?.start.line;
+        const line: integer = p ? p + 1 : 0;
+        terminal.sendText('gprbuild -P ' + path.join(gnattestPath, 'harness', 'test_driver.gpr'));
+        terminal.sendText(
+            path.join(gnattestPath, 'harness', 'test_runner' + ext) +
+                ' --routines=' +
+                parent.id +
+                ':' +
+                line.toString() +
+                ' >> ' +
+                path.join(gnattestPath, 'result.txt')
+        );
+    }
+    terminal.sendText('exit');
+}
+
+function logAndRun(run: vscode.TestRun, cmd: string[]) {
+    run.appendOutput(`$ ${cmd.map((arg) => `"${arg}"`).join(' ')}\r\n`);
+    return cp.spawnSync(cmd[0], cmd.slice(1));
 }
