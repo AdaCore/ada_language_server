@@ -18,10 +18,12 @@ import assert from 'assert';
 import { platform } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
+import { CancellationError, CancellationToken, DocumentSymbol, SymbolKind } from 'vscode';
+import { LanguageClient } from 'vscode-languageclient/node';
 import winston from 'winston';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { ExtensionState } from './ExtensionState';
 import { adaExtState, logger } from './extension';
-import { DocumentSymbol, SymbolKind, CancellationToken, CancellationError } from 'vscode';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -244,21 +246,16 @@ export function logErrorAndThrow(msg: string, logger: winston.Logger) {
 */
 
 /**
- * Get the project file from the workspace configuration if available, or from
- * the ALS if not.
+ * Get the project file from the ALS.
  *
- * @param client - the client to send the request to. If not provided, the main
+ * @param _client - the client to send the request to. If not provided, the main
  * Ada client of the extension is used.
  * @returns the full path of the currently loaded project file
+ * @deprecated in favor of {@link ExtensionState.getProjectFile}
  */
-export async function getProjectFile(client?: LanguageClient): Promise<string> {
-    if (!client) {
-        client = adaExtState.adaClient;
-    }
-    const result: string = (await client.sendRequest(ExecuteCommandRequest.type, {
-        command: 'als-project-file',
-    })) as string;
-    return result;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getProjectFile(_client?: LanguageClient): Promise<string> {
+    return adaExtState.getProjectFile();
 }
 
 /**
@@ -273,39 +270,33 @@ export async function getProjectFileRelPath(): Promise<string> {
  * Get the Object Directory path
  * @param client - the client to send the request to
  * @returns a string path
+ * @deprecated in favor of {@link ExtensionState.getObjectDir}
  */
-export async function getObjectDir(client: LanguageClient): Promise<string> {
-    const result: string = (await client.sendRequest(ExecuteCommandRequest.type, {
-        command: 'als-object-dir',
-    })) as string;
-    return result;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getObjectDir(_client?: LanguageClient): Promise<string> {
+    return adaExtState.getObjectDir();
 }
 
 /**
  * Get the mains in the project
  * @param client - the client to send the request to
  * @returns an array of full paths to the main sources
+ * @deprecated in favor of {@link ExtensionState.getMains}
  */
-export async function getMains(client?: LanguageClient): Promise<string[]> {
-    if (!client) {
-        client = adaExtState.adaClient;
-    }
-    const result: string[] = (await client.sendRequest(ExecuteCommandRequest.type, {
-        command: 'als-mains',
-    })) as string[];
-    return result;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getMains(_client?: LanguageClient): Promise<string[]> {
+    return adaExtState.getMains();
 }
 
 /**
  * Get the executables in the project
  * @param client - the client to send the request to
  * @returns a vector of string paths
+ * @deprecated in favor of {@link ExtensionState.getExecutables}
  */
-export async function getExecutables(client: LanguageClient): Promise<string[]> {
-    const result: string[] = (await client.sendRequest(ExecuteCommandRequest.type, {
-        command: 'als-executables',
-    })) as string[];
-    return result;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getExecutables(_client: LanguageClient): Promise<string[]> {
+    return adaExtState.getExecutables();
 }
 
 /**
