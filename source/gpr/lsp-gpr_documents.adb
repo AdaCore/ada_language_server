@@ -15,7 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
 with GPR2.Message;
+with GPR2.Source_Reference;
 
 package body LSP.GPR_Documents is
 
@@ -171,12 +174,26 @@ package body LSP.GPR_Documents is
       Update_Diagnostics;
 
    exception
+      when GPR2.Project_Error | GPR2.Processing_Error =>
+
+         Update_Diagnostics;
+
       when E : others =>
 
          Self.Tracer.Trace_Exception (E);
 
-         Update_Diagnostics;
+         Self.Tree.Log_Messages.Append
+           (GPR2.Message.Create
+              (Level   => GPR2.Message.Error,
+               Message => "GPR parser unexpected " &
+                 Ada.Exceptions.Exception_Name (E) & " " &
+                 Ada.Exceptions.Exception_Message (E),
+               Sloc    => GPR2.Source_Reference.Create
+                 (Filename => Self.File.Value,
+                  Line     => 1,
+                  Column   => 1)));
 
+         Update_Diagnostics;
    end Load;
 
    -----------------------------

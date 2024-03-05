@@ -1,7 +1,7 @@
 [
   {
     "comment": [
-      "test imported projects errors handling"
+      "test gpr unexpected exception handling"
     ]
   },
   {
@@ -67,7 +67,7 @@
       "request": {
         "params": {
           "textDocument": {
-            "text": "with \"imported\", \"\"; project prj is end prj;",
+            "text": "with \"\";\nproject Prj is\n for Source_List_File use \"\";\n for Excluded_Source_List_File use \"\";\n for Warning_Message use \"\";\n  package Naming is\n   for Body (\"Ada\") use \"\" ;\n   for Implementation (\"Ada\") use \"\";\n   for Spec (\"Ada\") use \"\";\n   for Specification (\"Ada\") use \"\";\n  end Naming;\nend Prj;",
             "version": 0,
             "uri": "$URI{prj.gpr}",
             "languageId": "Gpr"
@@ -78,6 +78,7 @@
       },
       "wait": [
         {
+          "jsonrpc": "2.0",
           "method": "textDocument/publishDiagnostics",
           "params": {
             "uri": "$URI{prj.gpr}",
@@ -95,68 +96,6 @@
                 },
                 "severity": 1,
                 "message": "GPR parser unexpected ADA.ASSERTIONS.ASSERTION_ERROR DYNAMIC_PREDICATE failed at gpr2-project-parser.adb:83"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "method": "textDocument/didChange",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}",
-            "version": 1
-          },
-          "contentChanges": [
-            {
-              "range": {
-                "start": {
-                  "line": 0,
-                  "character": 18
-                },
-                "end": {
-                  "line": 0,
-                  "character": 18
-                }
-              },
-              "text": "imported1"
-            }
-          ]
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "method": "textDocument/publishDiagnostics",
-          "params": {
-            "uri": "$URI{prj.gpr}",
-            "diagnostics": []
-          }
-        },
-        {
-          "jsonrpc": "2.0",
-          "method": "textDocument/publishDiagnostics",
-          "params": {
-            "uri": "$URI{imported1.gpr}",
-            "diagnostics": [
-              {
-                "range": {
-                  "start": {
-                    "line": 0,
-                    "character": 0
-                  },
-                  "end": {
-                    "line": 0,
-                    "character": 0
-                  }
-                },
-                "severity": 1,
-                "message": "duplicate project name \"Imported\" in \"$FILE{imported.gpr}\""
               }
             ]
           }
