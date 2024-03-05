@@ -1489,6 +1489,10 @@ package body LSP.GPR_Files is
       else
          return Path_Name.Undefined;
       end if;
+   exception
+      when E : others =>
+         File.Tracer.Trace_Exception (E);
+         return Path_Name.Undefined;
    end Get_Referenced_GPR;
 
 end LSP.GPR_Files;
