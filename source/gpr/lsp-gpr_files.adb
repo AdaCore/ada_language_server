@@ -1290,6 +1290,10 @@ package body LSP.GPR_Files is
             begin
                File.Token_To_File_Map.Insert (Extended_Index, Extended_Path);
                Extended := Parse (File.File_Provider, Extended_Path);
+               if not File.Name_To_File_Map.Contains (Extended.Name)
+               then
+                  File.Name_To_File_Map.Insert (Extended.Name, Extended_Path);
+               end if;
                File.Extended := Extended.Name;
                File.Extended_All := Extends_All;
                File.Extended_Path := Extended_Path;
@@ -1494,5 +1498,100 @@ package body LSP.GPR_Files is
          File.Tracer.Trace_Exception (E);
          return Path_Name.Undefined;
    end Get_Referenced_GPR;
+
+   -----------
+   -- Types --
+   -----------
+
+   function Types
+     (Self : LSP.GPR_Files.File)
+      return VSS.String_Vectors.Virtual_String_Vector
+   is
+      Types : VSS.String_Vectors.Virtual_String_Vector;
+
+      procedure Handle_Element (Position : Type_Maps.Cursor);
+
+      --------------------
+      -- Handle_Element --
+      --------------------
+
+      procedure Handle_Element (Position : Type_Maps.Cursor) is
+      begin
+         Types.Append (Image (Type_Maps.Key (Position)));
+      end Handle_Element;
+
+   begin
+      Self.Types.Iterate (Handle_Element'Access);
+      return Types;
+   end Types;
+
+   ---------------
+   -- Variables --
+   ---------------
+
+   function Variables
+     (Self : LSP.GPR_Files.File;
+      Pack : GPR2.Package_Id)
+      return VSS.String_Vectors.Virtual_String_Vector is
+      Vars : VSS.String_Vectors.Virtual_String_Vector;
+
+      procedure Handle_Element (Position : Variable_Maps.Cursor);
+
+      --------------------
+      -- Handle_Element --
+      --------------------
+
+      procedure Handle_Element (Position : Variable_Maps.Cursor) is
+      begin
+         Vars.Append (Image (Variable_Maps.Key (Position)));
+      end Handle_Element;
+
+   begin
+
+      if Pack = GPR2.Project_Level_Scope then
+         Self.Project_Level_Scope_Defs.Variables.Iterate
+           (Handle_Element'Access);
+      else
+         declare
+            Cursor : constant LSP.GPR_Files.Package_Maps.Cursor :=
+                       Self.Packages.Find (Pack);
+         begin
+            if LSP.GPR_Files.Package_Maps.Has_Element (Cursor) then
+               LSP.GPR_Files.Package_Maps.Element (Cursor).Variables.Iterate
+                 (Handle_Element'Access);
+            end if;
+         end;
+      end if;
+      return Vars;
+   end Variables;
+
+   -------------
+   -- Projects--
+   -------------
+
+   function Projects
+     (Self : LSP.GPR_Files.File)
+      return VSS.String_Vectors.Virtual_String_Vector
+   is
+      Projects : VSS.String_Vectors.Virtual_String_Vector;
+
+      procedure Handle_Element (Position : Project_Id_List.Cursor);
+
+      --------------------
+      -- Handle_Element --
+      --------------------
+
+      procedure Handle_Element (Position : Project_Id_List.Cursor) is
+      begin
+         Projects.Append (Image (Project_Id_List.Element (Position)));
+      end Handle_Element;
+
+   begin
+      Self.Imported.Iterate (Handle_Element'Access);
+      if Self.Extended /= No_Project then
+         Projects.Append (Image (Self.Extended));
+      end if;
+      return Projects;
+   end Projects;
 
 end LSP.GPR_Files;
