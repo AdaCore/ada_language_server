@@ -18,9 +18,9 @@
 import assert from 'assert';
 import commandExists from 'command-exists';
 import * as vscode from 'vscode';
-import { adaExtState, logger } from './extension';
-import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
 import { SymbolKind } from 'vscode';
+import { adaExtState } from './extension';
+import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
 
 export const ADA_TASK_TYPE = 'ada';
 
