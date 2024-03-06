@@ -14,7 +14,7 @@ package body LSP.Client_Request_Loggers is
      (Self  : in out Client_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.RegistrationParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'client/registerCapability'", Ok);
       Self.Put_Id (Id, Ok);
@@ -28,7 +28,7 @@ package body LSP.Client_Request_Loggers is
      (Self  : in out Client_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.UnregistrationParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'client/unregisterCapability'", Ok);
       Self.Put_Id (Id, Ok);
@@ -42,7 +42,7 @@ package body LSP.Client_Request_Loggers is
      (Self  : in out Client_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ShowDocumentParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'window/showDocument'", Ok);
       Self.Put_Id (Id, Ok);
@@ -56,7 +56,7 @@ package body LSP.Client_Request_Loggers is
      (Self  : in out Client_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ShowMessageRequestParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'window/showMessageRequest'", Ok);
       Self.Put_Id (Id, Ok);
@@ -70,7 +70,7 @@ package body LSP.Client_Request_Loggers is
      (Self  : in out Client_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.WorkDoneProgressCreateParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'window/workDoneProgress/create'", Ok);
       Self.Put_Id (Id, Ok);
@@ -84,7 +84,7 @@ package body LSP.Client_Request_Loggers is
      (Self  : in out Client_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ApplyWorkspaceEditParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/applyEdit'", Ok);
       Self.Put_Id (Id, Ok);
@@ -97,7 +97,7 @@ package body LSP.Client_Request_Loggers is
    overriding procedure On_Code_Lens_Refresh_Request
      (Self : in out Client_Request_Logger;
       Id   : LSP.Structures.Integer_Or_Virtual_String) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/codeLens/refresh'", Ok);
       Self.Put_Id (Id, Ok);
@@ -108,7 +108,7 @@ package body LSP.Client_Request_Loggers is
      (Self  : in out Client_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ConfigurationParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/configuration'", Ok);
       Self.Put_Id (Id, Ok);
@@ -121,7 +121,7 @@ package body LSP.Client_Request_Loggers is
    overriding procedure On_Diagnostic_Refresh_Request
      (Self : in out Client_Request_Logger;
       Id   : LSP.Structures.Integer_Or_Virtual_String) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/diagnostic/refresh'", Ok);
       Self.Put_Id (Id, Ok);
@@ -131,7 +131,7 @@ package body LSP.Client_Request_Loggers is
    overriding procedure On_Inlay_Refresh_Request
      (Self : in out Client_Request_Logger;
       Id   : LSP.Structures.Integer_Or_Virtual_String) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/inlayHint/refresh'", Ok);
       Self.Put_Id (Id, Ok);
@@ -141,7 +141,7 @@ package body LSP.Client_Request_Loggers is
    overriding procedure On_Inline_Refresh_Request
      (Self : in out Client_Request_Logger;
       Id   : LSP.Structures.Integer_Or_Virtual_String) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/inlineValue/refresh'", Ok);
       Self.Put_Id (Id, Ok);
@@ -151,7 +151,7 @@ package body LSP.Client_Request_Loggers is
    overriding procedure On_Tokens_Refresh_Request
      (Self : in out Client_Request_Logger;
       Id   : LSP.Structures.Integer_Or_Virtual_String) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/semanticTokens/refresh'", Ok);
       Self.Put_Id (Id, Ok);
@@ -161,7 +161,7 @@ package body LSP.Client_Request_Loggers is
    overriding procedure On_WorkspaceFolders_Request
      (Self : in out Client_Request_Logger;
       Id   : LSP.Structures.Integer_Or_Virtual_String) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/workspaceFolders'", Ok);
       Self.Put_Id (Id, Ok);
