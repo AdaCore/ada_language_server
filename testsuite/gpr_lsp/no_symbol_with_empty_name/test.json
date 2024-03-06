@@ -1,7 +1,7 @@
 [
   {
     "comment": [
-      "test imported projects errors handling"
+      "with \"\"; statement support"
     ]
   },
   {
@@ -20,6 +20,11 @@
           "capabilities": {
             "workspace": {
               "applyEdit": false
+            },
+            "textDocument": {
+              "documentSymbol": {
+                "hierarchicalDocumentSymbolSupport": true
+              }
             }
           },
           "rootUri": "$URI{.}"
@@ -67,9 +72,9 @@
       "request": {
         "params": {
           "textDocument": {
-            "text": "with \"imported\", \"\"; project prj is end prj;",
+            "text": "with\"\";project P is end P;",
             "version": 0,
-            "uri": "$URI{prj.gpr}",
+            "uri": "$URI{p.gpr}",
             "languageId": "Gpr"
           }
         },
@@ -80,7 +85,7 @@
         {
           "method": "textDocument/publishDiagnostics",
           "params": {
-            "uri": "$URI{prj.gpr}",
+            "uri": "$URI{p.gpr}",
             "diagnostics": [
               {
                 "range": {
@@ -106,60 +111,94 @@
     "send": {
       "request": {
         "jsonrpc": "2.0",
-        "method": "textDocument/didChange",
+        "id": "textDocument/documentSymbol",
+        "method": "textDocument/documentSymbol",
         "params": {
           "textDocument": {
-            "uri": "$URI{prj.gpr}",
-            "version": 1
-          },
-          "contentChanges": [
-            {
-              "range": {
-                "start": {
-                  "line": 0,
-                  "character": 18
-                },
-                "end": {
-                  "line": 0,
-                  "character": 18
-                }
-              },
-              "text": "imported1"
-            }
-          ]
+            "uri": "$URI{p.gpr}"
+          }
         }
       },
       "wait": [
         {
           "jsonrpc": "2.0",
-          "method": "textDocument/publishDiagnostics",
-          "params": {
-            "uri": "$URI{prj.gpr}",
-            "diagnostics": []
-          }
-        },
-        {
-          "jsonrpc": "2.0",
-          "method": "textDocument/publishDiagnostics",
-          "params": {
-            "uri": "$URI{imported1.gpr}",
-            "diagnostics": [
-              {
-                "range": {
-                  "start": {
-                    "line": 0,
-                    "character": 0
-                  },
-                  "end": {
-                    "line": 0,
-                    "character": 0
-                  }
+          "id": "textDocument/documentSymbol",
+          "result": [
+            {
+              "name": "with clauses",
+              "kind": 3,
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 0
                 },
-                "severity": 1,
-                "message": "duplicate project name \"Imported\" in \"$FILE{imported.gpr}\""
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 0,
+                  "character": 0
+                },
+                "end": {
+                  "line": 0,
+                  "character": 0
+                }
+              },
+              "children": [
+                {
+                  "name": " ",
+                  "kind": 3,
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 6
+                    }
+                  },
+                  "selectionRange": {
+                    "start": {
+                      "line": 0,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 6
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "name": "P",
+              "kind": 2,
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 7
+                },
+                "end": {
+                  "line": 0,
+                  "character": 14
+                }
+              },
+              "selectionRange": {
+                "start": {
+                  "line": 0,
+                  "character": 7
+                },
+                "end": {
+                  "line": 0,
+                  "character": 14
+                }
               }
-            ]
-          }
+            }
+          ]
         }
       ]
     }

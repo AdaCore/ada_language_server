@@ -242,4 +242,9 @@ private
       Document : not null LSP.GPR_Documents.Document_Access);
    --  Publish diagnostic messages for given document if needed
 
+   overriding function Tracer
+     (Self : access Message_Handler)
+      return LSP.Tracers.Tracer_Access is
+      (Self.Tracer);
+
 end LSP.GPR_Handlers;

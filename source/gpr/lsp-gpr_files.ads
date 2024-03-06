@@ -112,6 +112,10 @@ package LSP.GPR_Files is
       return LSP.Structures.DocumentUri is abstract;
    --  Turn GPR2 path object into URI.
 
+   function Tracer
+     (Self : access File_Provider)
+      return LSP.Tracers.Tracer_Access is abstract;
+
    procedure Initialize
      (Self          : in out File;
       Path          : GPR2.Path_Name.Object;

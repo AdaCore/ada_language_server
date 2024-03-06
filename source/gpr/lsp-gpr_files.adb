@@ -468,12 +468,47 @@ package body LSP.GPR_Files is
 
          package LKD renames LSP.Text_Documents.Langkit_Documents;
 
+         function To_Valid_Name
+           (Name : VSS.Strings.Virtual_String)
+            return VSS.Strings.Virtual_String;
+         --  Avoid empty Name, set Name to " " when required.
+
+         procedure Append_New_To_Current (New_Symbol : Symbol);
+         --  Append New_Symbol to current list.
+
+         ---------------------------
+         -- Append_New_To_Current --
+         ---------------------------
+
+         procedure Append_New_To_Current (New_Symbol : Symbol) is
+         begin
+            Current_Symbols.Append (New_Symbol);
+         end Append_New_To_Current;
+
+         -------------------
+         -- To_Valid_Name --
+         -------------------
+
+         function To_Valid_Name
+           (Name : VSS.Strings.Virtual_String)
+            return VSS.Strings.Virtual_String is
+
+         begin
+            if Name.Is_Empty
+            then
+               --  avoid name: "", in documentSymbol.
+               return " ";
+            else
+               return Name;
+            end if;
+         end To_Valid_Name;
+
          New_Symbol     : Symbol :=
                             (New_Id,
                              Current_Symbol.Id,
                              Token.Ref,
                              Kind,
-                             Name,
+                             To_Valid_Name (Name),
                              LKD.To_A_Range
                                (Start_Line_Text =>
                                   File.Get_Line (Location_Range.Start_Line),
@@ -488,18 +523,6 @@ package body LSP.GPR_Files is
                                      (Location_Range.Start_Column),
                                    LK_Slocs.Column_Number
                                      (Location_Range.End_Column))));
-
-         procedure Append_New_To_Current (New_Symbol : Symbol);
-         --  Append New_Symbol to current list.
-
-         ---------------------------
-         -- Append_New_To_Current --
-         ---------------------------
-
-         procedure Append_New_To_Current (New_Symbol : Symbol) is
-         begin
-            Current_Symbols.Append (New_Symbol);
-         end Append_New_To_Current;
 
       begin
          case Kind is
@@ -1466,6 +1489,10 @@ package body LSP.GPR_Files is
       else
          return Path_Name.Undefined;
       end if;
+   exception
+      when E : others =>
+         File.Tracer.Trace_Exception (E);
+         return Path_Name.Undefined;
    end Get_Referenced_GPR;
 
 end LSP.GPR_Files;

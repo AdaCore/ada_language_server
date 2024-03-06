@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023, AdaCore                          --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -184,7 +184,7 @@ package body LSP.GPR_External_Tools is
             Inherit_From_Extended => Inherit_From_Extended,
             Is_Set                => Is_Set);
       end if;
-      if Get_Attribute_Description (Name)'Length > 0
+      if Get_Attribute_Description (Name)'Length = 0
         and then Description'Length > 0
       then
          Set_Attribute_Description (Name, Description);
