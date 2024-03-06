@@ -57,6 +57,9 @@ package LSP.Ada_Job_Contexts is
    function Project_Tree_Is_Defined
      (Self : Ada_Job_Context) return Boolean is abstract;
 
+   function Project_Tree_Is_Aggregate
+     (Self : Ada_Job_Context) return Boolean is abstract;
+
    procedure Reload_Project (Self : in out Ada_Job_Context) is abstract;
 
    function Get_Open_Document
@@ -75,6 +78,17 @@ package LSP.Ada_Job_Contexts is
      (Self : Ada_Job_Context;
       File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List is abstract;
+
+   function Get_Best_Context
+     (Self : Ada_Job_Context;
+      URI  : LSP.Structures.DocumentUri)
+      return LSP.Ada_Context_Sets.Context_Access is abstract;
+
+   function Get_Node_At
+     (Self     : in out Ada_Job_Context;
+      Context  : LSP.Ada_Contexts.Context;
+      Value    : LSP.Structures.TextDocumentPositionParams'Class)
+      return Libadalang.Analysis.Ada_Node is abstract;
 
    function Imprecise_Resolve_Name
      (Self     : in out Ada_Job_Context;

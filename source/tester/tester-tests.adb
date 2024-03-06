@@ -1091,6 +1091,7 @@ package body Tester.Tests is
    begin
       if Left.Kind /= Right.Kind then
          Diff (Left, Right);
+         return;
       end if;
 
       case Left.Kind is
