@@ -18,6 +18,7 @@
 with VSS.JSON.Pull_Readers.JSON5;
 with VSS.Strings.Character_Iterators;
 with VSS.Text_Streams.File_Input;
+with VSS.Transformers.Casing;       use VSS.Transformers.Casing;
 
 package body LSP_Gen.Configurations is
 
@@ -159,7 +160,7 @@ package body LSP_Gen.Configurations is
          --  Turn the first character too uppercase
          declare
             Upper : constant VSS.Strings.Virtual_String :=
-              Result.To_Simple_Uppercase;
+              To_Simple_Uppercase.Transform (Result);
             Left  : VSS.Strings.Character_Iterators.Character_Iterator :=
               Upper.At_First_Character;
          begin
