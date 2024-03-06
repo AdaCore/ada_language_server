@@ -17,6 +17,7 @@
 
 with VSS.Characters;
 with VSS.Strings.Cursors.Iterators.Characters;
+with VSS.Transformers.Casing;       use VSS.Transformers.Casing;
 
 with LSP_Gen.String_Sets;
 
@@ -158,7 +159,9 @@ package body LSP_Gen.Mappings is
      return VSS.Strings.Virtual_String
    is
       use type VSS.Characters.Virtual_Character;
-      Keyword : constant VSS.Strings.Virtual_String := Text.To_Lowercase;
+
+      Keyword : constant VSS.Strings.Virtual_String :=
+        To_Lowercase.Transform (Text);
       Result  : VSS.Strings.Virtual_String;
    begin
       if Keywords.Contains (Keyword) then
