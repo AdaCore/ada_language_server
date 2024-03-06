@@ -1,4 +1,3 @@
-import { suite } from 'mocha';
 import { activate } from '../utils';
 
 suite('GNATtest Integration Tests', function () {

@@ -1,6 +1,5 @@
 import * as assert from 'assert';
 import { adaExtState } from '../../../src/extension';
-import { suite, test } from 'mocha';
 import { getProjectFile, getObjectDir } from '../../../src/helpers';
 import { assertEqualToFileContent, activate } from '../utils';
 
