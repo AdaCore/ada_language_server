@@ -155,7 +155,7 @@ package body LSP_Gen.Requests is
 
          Put_Line (")");
          Put_Line ("is");
-         Put_Line ("Ok : Boolean := False;");
+         Put_Line ("Ok : Boolean := True;");
          Put_Line ("begin");
          Put ("Self.Output.Put (""'");
          Put (J);

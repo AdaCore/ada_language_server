@@ -22,6 +22,7 @@ with VSS.Characters;
 with VSS.Strings.Conversions;
 with VSS.Strings.Cursors.Iterators.Characters;
 with VSS.Strings.Hash;
+with VSS.Transformers.Casing;       use VSS.Transformers.Casing;
 
 package body LSP_Gen.Puts is
 
@@ -82,7 +83,9 @@ package body LSP_Gen.Puts is
 
    procedure Put_Id (Id : VSS.Strings.Virtual_String) is
       use type VSS.Characters.Virtual_Character;
-      Keyword : constant VSS.Strings.Virtual_String := Id.To_Lowercase;
+
+      Keyword : constant VSS.Strings.Virtual_String :=
+        To_Lowercase.Transform (Id);
    begin
       if Keywords.Contains (Keyword) then
          if Id.At_First_Character.Element =

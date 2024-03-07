@@ -13,7 +13,7 @@ package body LSP.Base_Notification_Loggers is
    overriding procedure On_CancelRequest_Notification
      (Self  : in out Base_Notification_Logger;
       Value : LSP.Structures.CancelParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'$/cancelRequest'", Ok);
       Self.Output.Put (" Params : ", Ok);
@@ -25,7 +25,7 @@ package body LSP.Base_Notification_Loggers is
    overriding procedure On_Progress_Notification
      (Self  : in out Base_Notification_Logger;
       Value : LSP.Structures.ProgressParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'$/progress'", Ok);
       Self.Output.Put (" Params : ", Ok);

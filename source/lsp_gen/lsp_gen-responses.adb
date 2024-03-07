@@ -179,7 +179,7 @@ package body LSP_Gen.Responses is
 
             Put_Line (")");
             Put_Line ("is");
-            Put_Line ("Ok : Boolean := False;");
+            Put_Line ("Ok : Boolean := True;");
             Put_Line ("begin");
             Put ("Self.Output.Put (""'");
             Put (J);
@@ -203,7 +203,7 @@ package body LSP_Gen.Responses is
       Put_Line ("Id : LSP.Structures.Integer_Or_Virtual_String;");
       Put_Line ("Value : LSP.Errors.ResponseError)");
       Put_Line ("is");
-      Put_Line ("Ok : Boolean := False;");
+      Put_Line ("Ok : Boolean := True;");
       Put_Line ("begin");
       Put ("Self.Output.Put (""'Error response'"", Ok);");
       Put_Line ("Self.Put_Id (Id, Ok);");

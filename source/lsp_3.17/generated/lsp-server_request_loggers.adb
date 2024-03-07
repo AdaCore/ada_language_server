@@ -14,7 +14,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.AlsCheckSyntaxParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'$/alsCheckSyntax'", Ok);
       Self.Put_Id (Id, Ok);
@@ -28,7 +28,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CallHierarchyIncomingCallsParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'callHierarchy/incomingCalls'", Ok);
       Self.Put_Id (Id, Ok);
@@ -42,7 +42,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CallHierarchyOutgoingCallsParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'callHierarchy/outgoingCalls'", Ok);
       Self.Put_Id (Id, Ok);
@@ -56,7 +56,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CodeAction) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'codeAction/resolve'", Ok);
       Self.Put_Id (Id, Ok);
@@ -70,7 +70,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CodeLens) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'codeLens/resolve'", Ok);
       Self.Put_Id (Id, Ok);
@@ -84,7 +84,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionItem) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'completionItem/resolve'", Ok);
       Self.Put_Id (Id, Ok);
@@ -98,7 +98,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentLink) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'documentLink/resolve'", Ok);
       Self.Put_Id (Id, Ok);
@@ -112,7 +112,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InitializeParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'initialize'", Ok);
       Self.Put_Id (Id, Ok);
@@ -126,7 +126,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InlayHint) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'inlayHint/resolve'", Ok);
       Self.Put_Id (Id, Ok);
@@ -139,7 +139,7 @@ package body LSP.Server_Request_Loggers is
    overriding procedure On_Shutdown_Request
      (Self : in out Server_Request_Logger;
       Id   : LSP.Structures.Integer_Or_Virtual_String) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'shutdown'", Ok);
       Self.Put_Id (Id, Ok);
@@ -150,7 +150,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CodeActionParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/codeAction'", Ok);
       Self.Put_Id (Id, Ok);
@@ -164,7 +164,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CodeLensParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/codeLens'", Ok);
       Self.Put_Id (Id, Ok);
@@ -178,7 +178,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ColorPresentationParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/colorPresentation'", Ok);
       Self.Put_Id (Id, Ok);
@@ -192,7 +192,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/completion'", Ok);
       Self.Put_Id (Id, Ok);
@@ -206,7 +206,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DeclarationParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/declaration'", Ok);
       Self.Put_Id (Id, Ok);
@@ -220,7 +220,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DefinitionParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/definition'", Ok);
       Self.Put_Id (Id, Ok);
@@ -234,7 +234,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentDiagnosticParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/diagnostic'", Ok);
       Self.Put_Id (Id, Ok);
@@ -248,7 +248,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentColorParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/documentColor'", Ok);
       Self.Put_Id (Id, Ok);
@@ -262,7 +262,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentHighlightParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/documentHighlight'", Ok);
       Self.Put_Id (Id, Ok);
@@ -276,7 +276,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentLinkParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/documentLink'", Ok);
       Self.Put_Id (Id, Ok);
@@ -290,7 +290,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentSymbolParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/documentSymbol'", Ok);
       Self.Put_Id (Id, Ok);
@@ -304,7 +304,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.FoldingRangeParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/foldingRange'", Ok);
       Self.Put_Id (Id, Ok);
@@ -318,7 +318,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentFormattingParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/formatting'", Ok);
       Self.Put_Id (Id, Ok);
@@ -332,7 +332,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.HoverParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/hover'", Ok);
       Self.Put_Id (Id, Ok);
@@ -346,7 +346,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ImplementationParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/implementation'", Ok);
       Self.Put_Id (Id, Ok);
@@ -360,7 +360,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InlayHintParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/inlayHint'", Ok);
       Self.Put_Id (Id, Ok);
@@ -374,7 +374,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InlineValueParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/inlineValue'", Ok);
       Self.Put_Id (Id, Ok);
@@ -388,7 +388,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.LinkedEditingRangeParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/linkedEditingRange'", Ok);
       Self.Put_Id (Id, Ok);
@@ -402,7 +402,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.MonikerParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/moniker'", Ok);
       Self.Put_Id (Id, Ok);
@@ -416,7 +416,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentOnTypeFormattingParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/onTypeFormatting'", Ok);
       Self.Put_Id (Id, Ok);
@@ -430,7 +430,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CallHierarchyPrepareParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/prepareCallHierarchy'", Ok);
       Self.Put_Id (Id, Ok);
@@ -444,7 +444,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.PrepareRenameParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/prepareRename'", Ok);
       Self.Put_Id (Id, Ok);
@@ -458,7 +458,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.TypeHierarchyPrepareParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/prepareTypeHierarchy'", Ok);
       Self.Put_Id (Id, Ok);
@@ -472,7 +472,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentRangeFormattingParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/rangeFormatting'", Ok);
       Self.Put_Id (Id, Ok);
@@ -486,7 +486,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ReferenceParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/references'", Ok);
       Self.Put_Id (Id, Ok);
@@ -500,7 +500,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.RenameParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/rename'", Ok);
       Self.Put_Id (Id, Ok);
@@ -514,7 +514,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SelectionRangeParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/selectionRange'", Ok);
       Self.Put_Id (Id, Ok);
@@ -528,7 +528,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokensParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/semanticTokens/full'", Ok);
       Self.Put_Id (Id, Ok);
@@ -542,7 +542,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokensDeltaParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/semanticTokens/full/delta'", Ok);
       Self.Put_Id (Id, Ok);
@@ -556,7 +556,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SemanticTokensRangeParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/semanticTokens/range'", Ok);
       Self.Put_Id (Id, Ok);
@@ -570,7 +570,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SignatureHelpParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/signatureHelp'", Ok);
       Self.Put_Id (Id, Ok);
@@ -584,7 +584,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.TypeDefinitionParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/typeDefinition'", Ok);
       Self.Put_Id (Id, Ok);
@@ -598,7 +598,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.WillSaveTextDocumentParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'textDocument/willSaveWaitUntil'", Ok);
       Self.Put_Id (Id, Ok);
@@ -612,7 +612,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.TypeHierarchySubtypesParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'typeHierarchy/subtypes'", Ok);
       Self.Put_Id (Id, Ok);
@@ -626,7 +626,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.TypeHierarchySupertypesParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'typeHierarchy/supertypes'", Ok);
       Self.Put_Id (Id, Ok);
@@ -640,7 +640,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.WorkspaceDiagnosticParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/diagnostic'", Ok);
       Self.Put_Id (Id, Ok);
@@ -654,7 +654,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.ExecuteCommandParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/executeCommand'", Ok);
       Self.Put_Id (Id, Ok);
@@ -668,7 +668,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.WorkspaceSymbolParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/symbol'", Ok);
       Self.Put_Id (Id, Ok);
@@ -682,7 +682,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CreateFilesParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/willCreateFiles'", Ok);
       Self.Put_Id (Id, Ok);
@@ -696,7 +696,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DeleteFilesParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/willDeleteFiles'", Ok);
       Self.Put_Id (Id, Ok);
@@ -710,7 +710,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.RenameFilesParams) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspace/willRenameFiles'", Ok);
       Self.Put_Id (Id, Ok);
@@ -724,7 +724,7 @@ package body LSP.Server_Request_Loggers is
      (Self  : in out Server_Request_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.WorkspaceSymbol) is
-      Ok : Boolean := False;
+      Ok : Boolean := True;
    begin
       Self.Output.Put ("'workspaceSymbol/resolve'", Ok);
       Self.Put_Id (Id, Ok);

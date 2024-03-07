@@ -51,7 +51,6 @@ limited with LSP.Servers;
 with LSP.Structures;
 with LSP.Tracers;
 with LSP.Unimplemented_Handlers;
-
 with URIs;
 
 private with LAL_Refactor;
@@ -295,11 +294,6 @@ private
 
    overriding procedure On_Exits_Notification (Self : in out Message_Handler);
 
-   overriding procedure On_Hover_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.HoverParams);
-
    overriding procedure On_Shutdown_Request
      (Self : in out Message_Handler;
       Id   : LSP.Structures.Integer_Or_Virtual_String);
@@ -501,7 +495,23 @@ private
    overriding function Project_Tree_Is_Defined (Self : Message_Handler)
      return Boolean is (Self.Project_Tree.Is_Defined);
 
+   overriding function Project_Tree_Is_Aggregate (Self : Message_Handler)
+     return Boolean is
+       (Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind);
+
    overriding procedure Reload_Project (Self : in out Message_Handler);
+
+   overriding function Get_Best_Context
+     (Self : Message_Handler;
+      URI  : LSP.Structures.DocumentUri)
+      return LSP.Ada_Context_Sets.Context_Access is
+        (Self.Contexts.Get_Best_Context (URI));
+
+   overriding function Get_Node_At
+     (Self     : in out Message_Handler;
+      Context  : LSP.Ada_Contexts.Context;
+      Value    : LSP.Structures.TextDocumentPositionParams'Class)
+      return Libadalang.Analysis.Ada_Node;
 
    overriding function Imprecise_Resolve_Name
      (Self     : in out Message_Handler;
