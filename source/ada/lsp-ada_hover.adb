@@ -35,7 +35,6 @@ package body LSP.Ada_Hover is
      (Parent : not null access constant Ada_Hover_Handler)
    is limited new LSP.Server_Jobs.Server_Job with record
       Message       : LSP.Server_Messages.Server_Message_Access;
-      Is_Done       : Boolean := False;
    end record;
 
    type Ada_Hover_Job_Access is access all Ada_Hover_Job;
@@ -44,13 +43,11 @@ package body LSP.Ada_Hover is
      (Self : Ada_Hover_Job) return LSP.Server_Jobs.Job_Priority is
        (LSP.Server_Jobs.High);
 
-   overriding function Is_Done (Self : Ada_Hover_Job) return Boolean is
-     (Self.Is_Done);
-
    overriding procedure Execute
      (Self   : in out Ada_Hover_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class);
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status);
 
    overriding function Message (Self : Ada_Hover_Job)
      return LSP.Server_Messages.Server_Message_Access is (Self.Message);
@@ -67,8 +64,7 @@ package body LSP.Ada_Hover is
       Result : constant Ada_Hover_Job_Access :=
         new Ada_Hover_Job'
           (Parent  => Self'Unchecked_Access,
-           Message => Message,
-           Is_Done => False);
+           Message => Message);
    begin
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
@@ -80,7 +76,8 @@ package body LSP.Ada_Hover is
    overriding procedure Execute
      (Self   : in out Ada_Hover_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class)
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status)
    is
 
       Message : LSP.Server_Requests.Hover.Request
@@ -111,7 +108,7 @@ package body LSP.Ada_Hover is
       Aspects_Text       : VSS.Strings.Virtual_String;
 
    begin
-      Self.Is_Done := True;
+      Status := LSP.Server_Jobs.Done;
 
       if Decl.Is_Null then
 

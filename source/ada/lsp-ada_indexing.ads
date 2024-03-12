@@ -88,13 +88,11 @@ private
      (Self : Indexing_Job) return LSP.Server_Jobs.Job_Priority is
        (LSP.Server_Jobs.Low);
 
-   overriding function Is_Done (Self : Indexing_Job) return Boolean is
-     (Self.Files_To_Index.Is_Empty);
-
    overriding procedure Execute
      (Self   : in out Indexing_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class);
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status);
 
    overriding function Message (Self : Indexing_Job)
      return LSP.Server_Messages.Server_Message_Access is (null);

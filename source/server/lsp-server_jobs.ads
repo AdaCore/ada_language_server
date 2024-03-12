@@ -40,16 +40,20 @@ package LSP.Server_Jobs is
    function Priority (Self : Server_Job) return Job_Priority is abstract;
    --  Return job's priority
 
-   function Is_Done (Self : Server_Job) return Boolean is abstract;
-   --  Return True if job has completed the execution
+   type Execution_Status is (Done, Continue);
+   --  Execution status of the job.
+   --
+   --  @value Done - the execution is completed
+   --  @value Continue - Execute should be called again
 
    procedure Execute
      (Self   : in out Server_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class)
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status)
           is abstract;
    --  Spend some time executing the job. Use Client to send messages if
-   --  required.
+   --  required. Return Status = Done if the execution complete.
 
    procedure Complete
      (Self : in out Server_Job;
