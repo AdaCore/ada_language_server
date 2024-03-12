@@ -29,7 +29,6 @@ package body LSP.Ada_Did_Change_Document is
    is limited new LSP.Server_Jobs.Server_Job with record
       Document : LSP.Ada_Documents.Document_Access;
       Message  : LSP.Server_Messages.Server_Message_Access;
-      Is_Done  : Boolean := False;
    end record;
 
    type Did_Change_Job_Access is access all Did_Change_Job;
@@ -38,13 +37,11 @@ package body LSP.Ada_Did_Change_Document is
      (Self : Did_Change_Job) return LSP.Server_Jobs.Job_Priority is
        (LSP.Server_Jobs.Fence);
 
-   overriding function Is_Done (Self : Did_Change_Job) return Boolean is
-     (Self.Is_Done);
-
    overriding procedure Execute
      (Self   : in out Did_Change_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class);
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status);
 
    overriding procedure Complete
      (Self : in out Did_Change_Job;
@@ -134,8 +131,7 @@ package body LSP.Ada_Did_Change_Document is
         new Did_Change_Job'
           (Parent   => Self'Unchecked_Access,
            Document => Document,
-           Message  => Message,
-           Is_Done  => False);
+           Message  => Message);
    begin
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
@@ -147,7 +143,8 @@ package body LSP.Ada_Did_Change_Document is
    overriding procedure Execute
      (Self   : in out Did_Change_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class)
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status)
    is
       use type LSP.Ada_Documents.Document_Access;
 
@@ -157,7 +154,7 @@ package body LSP.Ada_Did_Change_Document is
       Changes : LSP.Structures.TextDocumentContentChangeEvent_Vector renames
         Message.Params.contentChanges;
    begin
-      Self.Is_Done := True;
+      Status := LSP.Server_Jobs.Done;
 
       if Self.Document = null then
          return;

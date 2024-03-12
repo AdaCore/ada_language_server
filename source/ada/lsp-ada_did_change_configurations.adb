@@ -27,7 +27,6 @@ package body LSP.Ada_Did_Change_Configurations is
       Message       : LSP.Server_Messages.Server_Message_Access;
       Configuration : LSP.Ada_Configurations.Configuration;
       Reload        : Boolean;
-      Is_Done       : Boolean := False;
    end record;
 
    type Apply_Config_Job_Access is access all Apply_Config_Job;
@@ -36,13 +35,11 @@ package body LSP.Ada_Did_Change_Configurations is
      (Self : Apply_Config_Job) return LSP.Server_Jobs.Job_Priority is
        (LSP.Server_Jobs.Fence);
 
-   overriding function Is_Done (Self : Apply_Config_Job) return Boolean is
-     (Self.Is_Done);
-
    overriding procedure Execute
      (Self   : in out Apply_Config_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class);
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status);
 
    overriding function Message (Self : Apply_Config_Job)
      return LSP.Server_Messages.Server_Message_Access is (Self.Message);
@@ -54,7 +51,8 @@ package body LSP.Ada_Did_Change_Configurations is
    overriding procedure Execute
      (Self   : in out Apply_Config_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class) is
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status) is
    begin
       Self.Parent.Context.Set_Configuration (Self.Configuration);
 
@@ -62,7 +60,7 @@ package body LSP.Ada_Did_Change_Configurations is
          Self.Parent.Context.Reload_Project;
       end if;
 
-      Self.Is_Done := True;
+      Status := LSP.Server_Jobs.Done;
    end Execute;
 
    ----------------

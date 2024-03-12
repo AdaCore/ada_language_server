@@ -29,7 +29,8 @@ package body LSP.Ada_Indexing is
    overriding procedure Execute
      (Self   : in out Indexing_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class)
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status)
    is
       use type LSP.Ada_Handlers.Project_Stamp;
 
@@ -111,6 +112,10 @@ package body LSP.Ada_Indexing is
          Client.On_ProgressEnd_Work_Done
            (Self.Indexing_Token, (message => <>));
       end if;
+
+      Status :=
+        (if Self.Files_To_Index.Is_Empty then LSP.Server_Jobs.Done
+         else LSP.Server_Jobs.Continue);
    end Execute;
 
    -----------------------

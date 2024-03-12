@@ -32,16 +32,14 @@ package body LSP.Sequential_Message_Handlers is
        (LSP.Server_Jobs.Fence);
    --  In-order execution for this kind of jobs
 
-   overriding function Is_Done (Self : Sequential_Job) return Boolean is
-     (Self.Is_Done);
-
    overriding function Message (Self : Sequential_Job)
      return LSP.Server_Messages.Server_Message_Access is (Self.Message);
 
    overriding procedure Execute
      (Self   : in out Sequential_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class);
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status);
 
    overriding procedure Complete
      (Self : in out Sequential_Job;
@@ -77,13 +75,14 @@ package body LSP.Sequential_Message_Handlers is
    overriding procedure Execute
      (Self   : in out Sequential_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class)
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status)
    is
       pragma Unreferenced (Client);
       --  Self.Handler knows how to send messages by it-self
    begin
       Self.Message.Visit_Server_Message_Visitor (Self.Handler.all);
-      Self.Is_Done := True;
+      Status := LSP.Server_Jobs.Done;
    end Execute;
 
    ----------------
