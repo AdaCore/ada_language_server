@@ -50,7 +50,6 @@ package body LSP.Ada_References is
      (Parent : not null access constant Ada_References_Handler)
    is limited new LSP.Server_Jobs.Server_Job with record
       Message       : LSP.Server_Messages.Server_Message_Access;
-      Is_Done       : Boolean := False;
       Is_Enum       : Boolean := False;
       Response      : LSP.Structures.Location_Vector_Or_Null;
       Filter        : LSP.Locations.File_Span_Sets.Set;
@@ -67,13 +66,11 @@ package body LSP.Ada_References is
      (Self : Ada_References_Job) return LSP.Server_Jobs.Job_Priority is
        (LSP.Server_Jobs.Low);
 
-   overriding function Is_Done (Self : Ada_References_Job) return Boolean is
-     (Self.Is_Done);
-
    overriding procedure Execute
      (Self   : in out Ada_References_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class);
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status);
 
    overriding function Message (Self : Ada_References_Job)
      return LSP.Server_Messages.Server_Message_Access is (Self.Message);
@@ -119,7 +116,8 @@ package body LSP.Ada_References is
    overriding procedure Execute
      (Self   : in out Ada_References_Job;
       Client :
-        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class)
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status)
    is
       procedure Callback
         (Node   : Libadalang.Analysis.Base_Id;
@@ -223,14 +221,16 @@ package body LSP.Ada_References is
       if LSP.Ada_File_Sets.File_Sets.Has_Element (Self.Cursor) then
          Units (1) := Self.Context.Get_AU
            (LSP.Ada_File_Sets.File_Sets.Element (Self.Cursor));
+
          LSP.Ada_Id_Iterators.Find_All_References
            (Self.Definition, Units, Callback'Access);
+
+         Status := LSP.Server_Jobs.Continue;
       else
          Free (Self.Iterator);
-         Self.Is_Done := True;
-
          LSP.Ada_Handlers.Locations.Sort (Self.Response);
          Client.On_References_Response (Message.Id, Self.Response);
+         Status := LSP.Server_Jobs.Done;
       end if;
    end Execute;
 

@@ -118,8 +118,10 @@ package body LSP.Job_Schedulers is
       Waste  : out LSP.Server_Messages.Server_Message_Access)
    is
       use all type LSP.Server_Jobs.Job_Priority;
+      use all type LSP.Server_Jobs.Execution_Status;
 
       Job : LSP.Server_Jobs.Server_Job_Access renames Self.Blocker;
+      Status : LSP.Server_Jobs.Execution_Status := Continue;
    begin
       if not Job.Assigned then
          Waste := null;
@@ -144,8 +146,8 @@ package body LSP.Job_Schedulers is
          return;
       end if;
 
-      while not Job.Is_Done loop
-         Job.Execute (Client);
+      while Status /= LSP.Server_Jobs.Done loop
+         Job.Execute (Client, Status);
       end loop;
 
       if Job.Priority = Fence then
@@ -165,7 +167,9 @@ package body LSP.Job_Schedulers is
      (Self    : in out Job_Scheduler'Class;
       Client  :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste   : out LSP.Server_Messages.Server_Message_Access) is
+      Waste   : out LSP.Server_Messages.Server_Message_Access)
+   is
+      Status : LSP.Server_Jobs.Execution_Status;
    begin
       for List of reverse Self.Jobs when not List.Is_Empty loop
          declare
@@ -178,15 +182,18 @@ package body LSP.Job_Schedulers is
             end if;
 
             List.Delete_First;
-            Job.Execute (Client);
+            Job.Execute (Client, Status);
 
-            if Job.Is_Done then
-               Waste := Job.Message;
-               Free (Job);
-            else
-               Waste := null;
-               List.Append (Job);  --  Push the job back to the queue
-            end if;
+            case Status is
+
+               when LSP.Server_Jobs.Done =>
+                  Waste := Job.Message;
+                  Free (Job);
+
+               when LSP.Server_Jobs.Continue =>
+                  Waste := null;
+                  List.Append (Job);  --  Push the job back to the queue
+            end case;
 
             exit;
          end;
