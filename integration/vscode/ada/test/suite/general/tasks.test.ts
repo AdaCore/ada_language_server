@@ -11,6 +11,7 @@ import {
     getSelectedRegion,
 } from '../../../src/taskProviders';
 import { activate } from '../utils';
+import path from 'path';
 
 suite('GPR Tasks Provider', function () {
     let projectPath: string;
@@ -242,6 +243,34 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
         const execStatus: number | undefined = await runTaskAndGetResult(task);
 
         assert.equal(execStatus, 0);
+    });
+
+    /**
+     * Check that the 'buildAndRunMain' task works fine with projects that
+     * do not explicitly define an object directory.
+     */
+    test('buildAndRunMain task without object directory', async () => {
+        // Load a custom project that does not define any object dir by
+        // changing the 'ada.projectFile' setting.
+        const initialProjectFile = vscode.workspace.getConfiguration().get('ada.projectFile');
+        try {
+            await vscode.workspace
+                .getConfiguration()
+                .update(
+                    'ada.projectFile',
+                    'default_without_obj_dir' + path.sep + 'default_without_obj_dir.gpr'
+                );
+            const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
+            const task = adaTasks.find((v) => v.name == 'Build and run main - src/main1.adb');
+            assert(task);
+
+            // Check that the executable has been ran correctly
+            const execStatus: number | undefined = await runTaskAndGetResult(task);
+            assert.equal(execStatus, 0);
+        } finally {
+            // Reset the 'ada.projectFile' setting.
+            await vscode.workspace.getConfiguration().update('ada.projectFile', initialProjectFile);
+        }
     });
 
     /**

@@ -1,0 +1,18 @@
+project Default_Without_Obj_Dir is
+
+    Tools_Mains :=
+     ("main1.adb",
+      "test.adb");
+
+    for Source_Dirs use ("../src/**");
+    for Main use Tools_Mains;
+
+    package Builder is
+      for Executable ("main1.adb") use "main1exec";
+   end Builder;
+
+   package Compiler is
+      for Default_Switches ("Ada") use ("-g", "-O0");
+   end Compiler;
+
+end Default_Without_Obj_Dir;
