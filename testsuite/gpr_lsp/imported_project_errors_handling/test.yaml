@@ -1,1 +1,4 @@
 title: 'gpr2 parsing assertions error handling'
+# Skip till gpr-issues#256 & gpr-issues#259 fixed
+skip:
+    - ['XFAIL', 'True']
