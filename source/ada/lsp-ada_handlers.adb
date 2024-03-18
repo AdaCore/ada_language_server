@@ -2295,6 +2295,10 @@ package body LSP.Ada_Handlers is
 
       --  New sources were created on this project, so recompute its view
 
+      if Self.Project_Tree.Are_Sources_Loaded then
+         --  Update_Sources can't be called when the sources are already loaded
+         Self.Project_Tree.Invalidate_Sources;
+      end if;
       Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each created file of Value.files:
@@ -2346,6 +2350,10 @@ package body LSP.Ada_Handlers is
 
       --  Some project sources were deleted, so recompute its view
 
+      if Self.Project_Tree.Are_Sources_Loaded then
+         --  Update_Sources can't be called when the sources are already loaded
+         Self.Project_Tree.Invalidate_Sources;
+      end if;
       Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each delete file of Value.files:
@@ -2461,6 +2469,10 @@ package body LSP.Ada_Handlers is
 
       --  Some project sources were renamed, so recompute its view
 
+      if Self.Project_Tree.Are_Sources_Loaded then
+         --  Update_Sources can't be called when the sources are already loaded
+         Self.Project_Tree.Invalidate_Sources;
+      end if;
       Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       --  For each oldUri of Value.files:

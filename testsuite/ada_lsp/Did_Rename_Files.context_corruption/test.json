@@ -1,0 +1,792 @@
+[
+   {
+      "comment": [
+         "Test the context after a DidRenameFiles notification. ",
+         "The references requests should work before and after."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 257038,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "rename"
+                        ]
+                     },
+                     "fileOperations": {
+                        "didRename": true
+                     }
+                  },
+                  "textDocument": {
+                     "synchronization": {},
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": false,
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "detail",
+                                 "documentation"
+                              ]
+                           }
+                        }
+                     },
+                     "hover": {},
+                     "signatureHelp": {},
+                     "declaration": {},
+                     "definition": {},
+                     "typeDefinition": {},
+                     "implementation": {},
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     },
+                     "formatting": {
+                        "dynamicRegistration": false
+                     },
+                     "rangeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "onTypeFormatting": {
+                        "dynamicRegistration": false
+                     },
+                     "foldingRange": {
+                        "lineFoldingOnly": true
+                     }
+                  },
+                  "experimental": {
+                     "advanced_refactorings": [
+                        "add_parameter"
+                     ]
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     },
+                     "renameProvider": {
+                        "prepareProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableDiagnostics": true,
+                     "followSymlinks": false,
+                     "documentationStyle": "gnat",
+                     "namedNotationThreshold": 3,
+                     "foldComments": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package Foo.Bar1 is\n   procedure N is null;\nend Foo.Bar1;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Foo.Bar1;\n\nprocedure Main is\n   begin\n   Foo.Bar1.N;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/references",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 13
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": [
+                  {
+                     "uri": "$URI{foo-bar1.ads}",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 14
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{main.adb}",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 13
+                        }
+                     },
+                     "alsKind": [
+                        "call"
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "textDocument/rename",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}"
+               },
+               "position": {
+                  "line": 0,
+                  "character": 12
+               },
+               "newName": "Bar2"
+            }
+         },
+         "wait": [
+            {
+               "id": 11,
+               "result": {
+                  "documentChanges": [
+                     {
+                        "textDocument": {
+                           "uri": "$URI{foo-bar1.ads}",
+                           "version": 1
+                        },
+                        "edits": [
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 0,
+                                    "character": 12
+                                 },
+                                 "end": {
+                                    "line": 0,
+                                    "character": 16
+                                 }
+                              },
+                              "newText": "Bar2",
+                              "annotationId": ""
+                           },
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 2,
+                                    "character": 8
+                                 },
+                                 "end": {
+                                    "line": 2,
+                                    "character": 12
+                                 }
+                              },
+                              "newText": "Bar2",
+                              "annotationId": ""
+                           }
+                        ]
+                     },
+                     {
+                        "textDocument": {
+                           "uri": "$URI{main.adb}",
+                           "version": 1
+                        },
+                        "edits": [
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 0,
+                                    "character": 9
+                                 },
+                                 "end": {
+                                    "line": 0,
+                                    "character": 13
+                                 }
+                              },
+                              "newText": "Bar2",
+                              "annotationId": ""
+                           },
+                           {
+                              "range": {
+                                 "start": {
+                                    "line": 4,
+                                    "character": 7
+                                 },
+                                 "end": {
+                                    "line": 4,
+                                    "character": 11
+                                 }
+                              },
+                              "newText": "Bar2",
+                              "annotationId": ""
+                           }
+                        ]
+                     },
+                     {
+                        "kind": "rename",
+                        "oldUri": "$URI{foo-bar1.ads}",
+                        "newUri": "$URI{foo-bar2.ads}"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 12
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 8
+                        }
+                     },
+                     "text": "Bar2"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 16
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 12
+                        }
+                     },
+                     "text": "Bar2"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Foo.Bar1;\n\nprocedure Main is\nbegin\n   Foo.Bar1.N;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 7
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 11
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 7
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 7
+                        }
+                     },
+                     "text": "Bar2"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 9
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 13
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 9
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 9
+                        }
+                     },
+                     "text": "Bar2"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar2.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package Foo.Bar2 is\n   procedure N is null;\nend Foo.Bar2;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "workspace/executeCommand",
+            "params": {
+               "arguments": [],
+               "command": "als-reload-project"
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar1.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar2.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "package Foo.Bar2 is\n   procedure N is null;\nend Foo.Bar2;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didRenameFiles",
+            "params": {
+               "files": [
+                  {
+                     "oldUri": "$URI{foo-bar1.ads}",
+                     "newUri": "$URI{foo-bar2.ads}"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 22,
+            "method": "textDocument/references",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar2.ads}"
+               },
+               "position": {
+                  "line": 1,
+                  "character": 13
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 22,
+               "result": [
+                  {
+                     "uri": "$URI{foo-bar2.ads}",
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 14
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{main.adb}",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 13
+                        }
+                     },
+                     "alsKind": [
+                        "call"
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo-bar2.ads}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{foo-bar2.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 24,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 24,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
