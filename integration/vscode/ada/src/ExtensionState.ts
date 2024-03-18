@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
-import { Disposable, LanguageClient } from 'vscode-languageclient/node';
+import { Disposable, ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { createClient } from './clients';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { GnatTaskProvider } from './gnatTaskProvider';
+import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
 import { TERMINAL_ENV_SETTING_NAME } from './helpers';
 import { registerTaskProviders } from './taskProviders';
@@ -31,6 +32,23 @@ export class ExtensionState {
     private registeredTaskProviders: Disposable[];
 
     public readonly codelensProvider = new AdaCodeLensProvider();
+    public readonly testController: vscode.TestController;
+    public readonly testData: Map<vscode.TestItem, object> = new Map();
+
+    /**
+     * The following fields are caches for ALS requests
+     */
+    cachedProjectFile: string | undefined;
+    cachedObjectDir: string | undefined;
+    cachedMains: string[] | undefined;
+    cachedExecutables: string[] | undefined;
+
+    public clearALSCache() {
+        this.cachedProjectFile = undefined;
+        this.cachedObjectDir = undefined;
+        this.cachedMains = undefined;
+        this.cachedExecutables = undefined;
+    }
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -52,6 +70,7 @@ export class ExtensionState {
         const result = initializeDebugging(this.context);
         this.initialDebugConfigProvider = result.providerInitial;
         this.dynamicDebugConfigProvider = result.providerDynamic;
+        this.testController = initializeTesting(context);
     }
 
     public start = async () => {
@@ -110,6 +129,7 @@ export class ExtensionState {
             e.affectsConfiguration('ada.scenarioVariables') ||
             e.affectsConfiguration('ada.projectFile')
         ) {
+            this.clearALSCache();
             this.unregisterTaskProviders();
             this.registerTaskProviders();
         }
@@ -121,4 +141,60 @@ export class ExtensionState {
             void this.showReloadWindowPopup();
         }
     };
+
+    /**
+     * @returns the full path of the main project file from the ALS
+     */
+    public async getProjectFile(): Promise<string> {
+        if (!this.cachedProjectFile) {
+            this.cachedProjectFile = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
+                command: 'als-project-file',
+            })) as string;
+        }
+
+        return this.cachedProjectFile;
+    }
+
+    /**
+     *
+     * @returns the full path of the project object directory obtained from the ALS
+     */
+    public async getObjectDir(): Promise<string> {
+        if (!this.cachedObjectDir) {
+            this.cachedObjectDir = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
+                command: 'als-object-dir',
+            })) as string;
+        }
+
+        return this.cachedObjectDir;
+    }
+
+    /**
+     *
+     * @returns the list of full paths of main sources defined in the project from the ALS
+     */
+    public async getMains(): Promise<string[]> {
+        if (!this.cachedMains) {
+            this.cachedMains = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
+                command: 'als-mains',
+            })) as string[];
+        }
+
+        return this.cachedMains;
+    }
+
+    /**
+     *
+     * @returns the list of full paths of executables corresponding to main
+     * sources defined in the project from the ALS
+     */
+    public async getExecutables(): Promise<string[]> {
+        if (!this.cachedExecutables) {
+            this.cachedExecutables = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
+                command: 'als-executables',
+            })) as string[];
+        }
+
+        return this.cachedExecutables;
+    }
 }
