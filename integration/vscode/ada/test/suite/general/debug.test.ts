@@ -41,7 +41,7 @@ suite('Debug Configurations', function () {
         "ignoreFailures": true
       }
     ],
-    "miDebuggerPath": "${getOrFindGdb()?.replace(/\\/, '\\') ?? '<undefined>'}"
+    "miDebuggerPath": "${getOrFindGdb()?.replace(/\\/g, '\\\\') ?? '<undefined>'}"
   },
   {
     "name": "Ada: Attach debugger to running process - src/main1.adb",
@@ -50,7 +50,7 @@ suite('Debug Configurations', function () {
     "program": "\${workspaceFolder}/obj/main1exec${exe}",
     "processId": "\${command:pickProcess}",
     "MIMode": "gdb",
-    "miDebuggerPath": "${getOrFindGdb()?.replace(/\\/, '\\') ?? '<undefined>'}"
+    "miDebuggerPath": "${getOrFindGdb()?.replace(/\\/g, '\\\\') ?? '<undefined>'}"
   },
   {
     "type": "cppdbg",
