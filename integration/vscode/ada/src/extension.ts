@@ -26,7 +26,6 @@ import { ExtensionState } from './ExtensionState';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
 import { registerCommands } from './commands';
-import { initializeTestView } from './gnattest';
 import {
     TERMINAL_ENV_SETTING_NAME,
     assertSupportedEnvironments,
@@ -160,8 +159,6 @@ async function activateExtension(context: vscode.ExtensionContext) {
     registerCommands(context, adaExtState);
 
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, true);
-
-    await initializeTestView(context, adaExtState);
 
     /**
      * This can display a dialog to the User so don't wait on the result.
