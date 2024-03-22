@@ -423,6 +423,11 @@ package body LSP.Ada_Handlers.Project_Loading is
             Build_Path  => Project_Environment.Build_Path,
             Environment => Environment);
 
+         if Self.Project_Tree.Are_Sources_Loaded then
+            --  Update_Sources can't be called when the sources are already
+            --  loaded
+            Self.Project_Tree.Invalidate_Sources;
+         end if;
          Self.Project_Tree.Update_Sources (With_Runtime => True);
 
       exception
@@ -687,6 +692,10 @@ package body LSP.Ada_Handlers.Project_Loading is
          Project => Project,
          Context => GPR2.Context.Empty);
 
+      if Self.Project_Tree.Are_Sources_Loaded then
+         --  Update_Sources can't be called when the sources are already loaded
+         Self.Project_Tree.Invalidate_Sources;
+      end if;
       Self.Project_Tree.Update_Sources (With_Runtime => True);
 
    exception
