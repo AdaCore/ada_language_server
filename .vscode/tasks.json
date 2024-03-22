@@ -46,16 +46,6 @@
          }
       },
       {
-         "type": "npm",
-         "script": "watch",
-         "path": "integration/vscode/ada",
-         "group": "build",
-         "problemMatcher": ["$tsc-watch"],
-         "label": "npm: watch - integration/vscode/ada",
-         "detail": "node ./node_modules/typescript/bin/tsc -watch",
-         "isBackground": true
-      },
-      {
          "type": "ada",
          "configuration": {
             "kind": "checkFile",
