@@ -1,5 +1,4 @@
 import assert from 'assert';
-import { suite, test } from 'mocha';
 import { setTerminalEnvironment } from '../../../src/helpers';
 
 suite('Environment init', () => {

@@ -8,6 +8,7 @@
       "esbenp.prettier-vscode",
       "gruntfuggly.triggertaskonsave",
       "davidanson.vscode-markdownlint",
-      "adacore.ada"
+      "adacore.ada",
+      "ms-vscode.extension-test-runner"
    ]
 }

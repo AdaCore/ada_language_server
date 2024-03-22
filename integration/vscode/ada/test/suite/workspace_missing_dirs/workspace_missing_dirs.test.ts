@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { suite, test } from 'mocha';
 import { activate } from '../utils';
 
 import * as vscode from 'vscode';

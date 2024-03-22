@@ -1,5 +1,4 @@
 import assert from 'assert';
-import { suite, test } from 'mocha';
 import { Uri, window, workspace } from 'vscode';
 import { adaExtState } from '../../../src/extension';
 import { activate } from '../utils';

@@ -1,6 +1,5 @@
 import assert from 'assert';
 import { existsSync } from 'fs';
-import { suite, test } from 'mocha';
 import * as vscode from 'vscode';
 import { exe, getProjectFile } from '../../../src/helpers';
 import {
