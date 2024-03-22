@@ -39,7 +39,7 @@ const testsuites = ['general', 'gnattest', 'workspace_missing_dirs'];
 
 export default defineConfig(
     testsuites.map((suiteName) => {
-        // --user-data-dir is set to a unique dirctory under the OS
+        // --user-data-dir is set to a unique directory under the OS
         // default tmp directory for temporary files to avoid
         // warnings related to longs paths in IPC sockets created by
         // VSCode. The directory is made unique to avoid
