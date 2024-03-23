@@ -1,7 +1,6 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { spawnSync } from 'child_process';
-import { suite, test } from 'mocha';
 import { existsSync, opendirSync, renameSync } from 'fs';
 import path, { basename, dirname } from 'path';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';

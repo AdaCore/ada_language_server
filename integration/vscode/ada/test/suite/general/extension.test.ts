@@ -1,10 +1,10 @@
 import * as assert from 'assert';
 import { adaExtState } from '../../../src/extension';
-import { suite, test } from 'mocha';
 import { getProjectFile, getObjectDir } from '../../../src/helpers';
 import { assertEqualToFileContent, activate } from '../utils';
 
 import * as vscode from 'vscode';
+import { readFileSync, writeFileSync } from 'fs';
 
 suite('Extensions Test Suite', function () {
     // Make sure the extension is activated
@@ -38,6 +38,7 @@ suite('Extensions Test Suite', function () {
             ];
             const folder = vscode.workspace.workspaceFolders[0].uri;
             const fileUri = vscode.Uri.joinPath(folder, 'src', 'test_subprogram_box.adb');
+            const contentBefore = readFileSync(fileUri.fsPath);
             const expectedUri = vscode.Uri.joinPath(folder, 'src', 'test_subprogram_box.expected');
 
             for (const cursorPos of cursorPositions) {
@@ -47,8 +48,16 @@ suite('Extensions Test Suite', function () {
                 await vscode.commands.executeCommand('ada.subprogramBox');
             }
             const editorText = vscode.window.activeTextEditor?.document.getText() ?? '';
+            vscode.window.activeTextEditor?.hide();
 
-            assertEqualToFileContent(editorText, expectedUri);
+            try {
+                assertEqualToFileContent(editorText, expectedUri);
+            } finally {
+                /**
+                 * Restore the old file content
+                 */
+                writeFileSync(fileUri.fsPath, contentBefore);
+            }
         } else {
             throw new Error('No workspace folder found for the specified URI');
         }

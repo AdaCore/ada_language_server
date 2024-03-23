@@ -1,4 +1,5 @@
 # This file contains patterns to exclude from the packaging into a .vsix
+.vscode-test.mjs
 .vscode-test/
 advanced/
 node_modules/

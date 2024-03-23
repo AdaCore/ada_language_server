@@ -142,10 +142,9 @@ To write a functional test for Ada Language Server:
 Run `make vscode-test` to run the VS Code testsuite.
 
 If you open the ALS repository in VS Code, it is also possible to run VS Code
-integration tests using the provided launch configurations:
-
-- `(vscode) Run testsuite 'general'`
-- `(vscode) Run testsuite 'gnattest'`
+integration tests using the Testing view.
+The `integration/vscode/ada/.vscode-test.mjs` contains a configuration allowing to load the tests in the Testing view.
+The UI offers ways to run all or a subset of the tests.
 
 ### Other tests
 
