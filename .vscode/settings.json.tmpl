@@ -93,5 +93,12 @@
       "suite": ["describe", "suite"],
       "test": ["it", "test"],
       "extractWith": "syntax"
+   },
+   "extension-test-runner.debugOptions": {
+      "outFiles": [
+         "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
+         "!**/node_modules/**"
+      ],
+      "preLaunchTask": "npm: watch - integration/vscode/ada"
    }
 }

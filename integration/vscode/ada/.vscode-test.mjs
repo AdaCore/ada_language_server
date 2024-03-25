@@ -78,7 +78,12 @@ export default defineConfig(
                 // now. A workaround is to remove this line.
                 DISPLAY: ':99',
             },
-            launchArgs: ['--user-data-dir', tmpdir],
+            launchArgs: [
+                // It's important to use the --user-data-dir=<path> form. The
+                // --user-data-dir <path> form sometimes gets <path> considered
+                // as another workspace root directory.
+                `--user-data-dir=${tmpdir}`,
+            ],
             // Use external installation if provided in the VSCODE env variable
             useInstallation: process.env.VSCODE ? { fromPath: process.env.VSCODE } : undefined,
         };
