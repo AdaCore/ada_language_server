@@ -881,8 +881,8 @@
         "compile": "node ./node_modules/typescript/bin/tsc",
         "watch": "node ./node_modules/typescript/bin/tsc -watch",
         "pretest": "npm run compile",
-        "lint": "eslint \"./src/**/*.{js,ts,tsx}\" --quiet --fix",
-        "cilint": "eslint \"./src/**/*.{js,ts,tsx}\"",
+        "lint": "eslint \"./src/**/*.{js,ts,tsx}\" \"./test/**/*.{js,ts,tsx}\" --quiet --fix",
+        "cilint": "eslint \"./src/**/*.{js,ts,tsx}\" \"./test/**/*.{js,ts,tsx}\"",
         "test": "vscode-test",
         "resolve-backtrace": "npx stacktracify",
         "clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\""
