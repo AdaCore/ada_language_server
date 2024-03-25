@@ -8,6 +8,7 @@ import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
 import { TERMINAL_ENV_SETTING_NAME } from './helpers';
 import { registerTaskProviders } from './taskProviders';
+import { logger } from './extension';
 
 /**
  * This class encapsulates all state that should be maintained throughout the
@@ -125,10 +126,13 @@ export class ExtensionState {
     //  React to changes in configuration to recompute predefined tasks if the user
     //  changes scenario variables' values.
     public configChanged = (e: vscode.ConfigurationChangeEvent) => {
+        logger.info('didChangeConfiguration event received');
+
         if (
             e.affectsConfiguration('ada.scenarioVariables') ||
             e.affectsConfiguration('ada.projectFile')
         ) {
+            logger.info('project related settings have changed: clearing caches for tasks');
             this.clearALSCache();
             this.unregisterTaskProviders();
             this.registerTaskProviders();
@@ -138,6 +142,10 @@ export class ExtensionState {
         //  a popup to reload the VS Code window and thus restart the
         //  Ada extension.
         if (e.affectsConfiguration(TERMINAL_ENV_SETTING_NAME)) {
+            const new_value = vscode.workspace.getConfiguration().get(TERMINAL_ENV_SETTING_NAME);
+            logger.info(`${TERMINAL_ENV_SETTING_NAME} has changed: show reload popup`);
+            logger.info(`${TERMINAL_ENV_SETTING_NAME}: ${JSON.stringify(new_value, undefined, 2)}`);
+
             void this.showReloadWindowPopup();
         }
     };
