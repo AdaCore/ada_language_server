@@ -140,6 +140,11 @@ async function activateExtension(context: vscode.ExtensionContext) {
     adaExtState = new ExtensionState(context);
     context.subscriptions.push(adaExtState);
 
+    // Subscribe to the didChangeConfiguration event
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged)
+    );
+
     const alsMiddleware: Middleware = {
         executeCommand: alsCommandExecutor(adaExtState.adaClient),
     };
@@ -147,10 +152,6 @@ async function activateExtension(context: vscode.ExtensionContext) {
     adaExtState.adaClient.registerFeature(new ALSClientFeatures());
 
     await adaExtState.start();
-
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged)
-    );
 
     /**
      * Register commands first so that commands such as displaying the extension

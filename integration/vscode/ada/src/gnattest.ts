@@ -123,7 +123,7 @@ export function initializeTesting(context: vscode.ExtensionContext): vscode.Test
 /**
  * Reset and recreate the tree of TestItems based on the GNATtest XML.
  */
-async function refreshTestItemTree() {
+export async function refreshTestItemTree() {
     controller.items.replace([]);
     testData.clear();
     await addTestsRootLevel();
@@ -142,7 +142,7 @@ async function getGnatTestXmlPath(): Promise<string> {
  *
  * @returns the full path to the GNATtest test driver GPR project.
  */
-async function getGnatTestDriverProjectPath(): Promise<string> {
+export async function getGnatTestDriverProjectPath(): Promise<string> {
     const objDir = await getObjectDir();
     const testDriverPath = path.join(objDir, 'gnattest', 'harness', 'test_driver.gpr');
     return testDriverPath;
@@ -152,7 +152,7 @@ async function getGnatTestDriverProjectPath(): Promise<string> {
  *
  * @returns the full path to the GNATtest test driver executable.
  */
-async function getGnatTestDriverExecPath(): Promise<string> {
+export async function getGnatTestDriverExecPath(): Promise<string> {
     const objDir = await getObjectDir();
     const testDriverPath = path.join(objDir, 'gnattest', 'harness', 'test_runner' + exe);
     return testDriverPath;
@@ -399,7 +399,7 @@ export function pathIsReadable(p: string): boolean {
  * @param item - the TestItem whose children must be computed, or `undefined` if
  * we should compute the root items of the tree.
  */
-async function resolveHandler(
+export async function resolveHandler(
     item: TestItem | undefined,
     recursive = false,
     token?: CancellationToken
@@ -470,7 +470,7 @@ function configureTestExecution(controller: vscode.TestController) {
  * @param request - the request based on the User selections
  * @param token - a cancellation token
  */
-async function runHandler(request: vscode.TestRunRequest, token: vscode.CancellationToken) {
+export async function runHandler(request: vscode.TestRunRequest, token?: vscode.CancellationToken) {
     if ((request.include?.length ?? 0) === 0 && (request.exclude?.length ?? 0) === 0) {
         /**
          * Run all tests. This ignores request.exclude which is why we only use
@@ -490,7 +490,7 @@ async function runHandler(request: vscode.TestRunRequest, token: vscode.Cancella
  * controller.items) and request.exclude. It then runs the test driver for each
  * test, using the --routines argument at each run to select a specific test.
  */
-async function handleRunRequestedTests(request: vscode.TestRunRequest, token: CancellationToken) {
+async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: CancellationToken) {
     const run = controller.createTestRun(request, undefined, false);
     try {
         const requestedRootTests = [];
@@ -580,7 +580,7 @@ function prepareAndAppendOutput(run: vscode.TestRun, out: string) {
  * in {@link handleRunRequestedTests} fails because of GNATtest shortcomings, we
  * still have this approach of running all tests as a backup.
  */
-async function handleRunAll(request: vscode.TestRunRequest, token: CancellationToken) {
+async function handleRunAll(request: vscode.TestRunRequest, token?: CancellationToken) {
     const run = controller.createTestRun(request, undefined, false);
     try {
         /**
@@ -687,7 +687,7 @@ async function buildTestDriver(run: vscode.TestRun) {
  * @param duration - the duration of execution of the test to be reported along
  * with the outcome, if the information is available.
  */
-function determineTestOutcome(
+export function determineTestOutcome(
     test: vscode.TestItem,
     driverOutput: string,
     run: vscode.TestRun,
@@ -763,7 +763,7 @@ function determineTestOutcome(
  * @param token - a cancellation token to stop the traversal
  * @returns the array of leaf TestItems reachable from the given collection.
  */
-function collectLeafsFromCollection(
+export function collectLeafsFromCollection(
     items: vscode.TestItemCollection,
     token?: CancellationToken
 ): vscode.TestItem[] {
@@ -783,7 +783,7 @@ function collectLeafsFromCollection(
  * @param token - a cancellation token to stop the traversal
  * @returns the array of leaf TestItems reachable from the given TestItem
  */
-function collectLeafItems(item: TestItem, token?: CancellationToken): vscode.TestItem[] {
+export function collectLeafItems(item: TestItem, token?: CancellationToken): vscode.TestItem[] {
     if (item.children.size > 0) {
         const res: vscode.TestItem[] = [];
         item.children.forEach((i) => {

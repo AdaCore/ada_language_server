@@ -18,9 +18,10 @@
 import assert from 'assert';
 import commandExists from 'command-exists';
 import * as vscode from 'vscode';
-import { adaExtState, logger } from './extension';
-import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
 import { SymbolKind } from 'vscode';
+import { adaExtState } from './extension';
+import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
+import path from 'path';
 
 export const ADA_TASK_TYPE = 'ada';
 
@@ -691,8 +692,15 @@ async function buildFullCommandLine(
 
     if (taskDef.configuration.kind == 'runMain') {
         if (adaMain) {
-            // Append the run of the main executable
-            cmd.push(adaMain.execRelPath());
+            // Append the main executable's relative path, prepending './'
+            // (or '.\\' on Windows) when needed, to make sure it's executable from
+            // a shell.
+            let execRelPath = adaMain.execRelPath();
+            if (!execRelPath.includes(path.sep)) {
+                execRelPath = '.' + path.sep + execRelPath;
+            }
+
+            cmd.push(execRelPath);
             if (taskDef.configuration.mainArgs) {
                 cmd = cmd.concat(taskDef.configuration.mainArgs);
             }
