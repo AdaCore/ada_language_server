@@ -22,6 +22,7 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
 with Ada.Exceptions;
 
+with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with GPR2.Project.Tree;
@@ -277,11 +278,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DeclarationParams);
 
-   overriding procedure On_Definition_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DefinitionParams);
-
    overriding procedure On_DocumentHighlight_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
@@ -514,10 +510,9 @@ private
       return Libadalang.Analysis.Ada_Node;
 
    overriding function Imprecise_Resolve_Name
-     (Self     : in out Message_Handler;
-      Context  : LSP.Ada_Contexts.Context;
-      Position : LSP.Structures.TextDocumentPositionParams'Class)
-        return Libadalang.Analysis.Defining_Name;
+     (Self      : in out Message_Handler;
+      Name_Node : Libadalang.Analysis.Name)
+      return Libadalang.Analysis.Defining_Name;
 
    overriding procedure Append_Location
      (Self   : in out Message_Handler;
@@ -531,5 +526,8 @@ private
       Error   : Ada.Exceptions.Exception_Occurrence;
       Message : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String);
+
+   overriding function Get_Trace_Handle (Self : Message_Handler)
+     return GNATCOLL.Traces.Trace_Handle;
 
 end LSP.Ada_Handlers;
