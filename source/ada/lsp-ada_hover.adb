@@ -25,6 +25,7 @@ with LSP.Ada_Context_Sets;
 with LSP.Ada_Documentation;
 with LSP.Client_Message_Receivers;
 with LSP.Predefined_Completion;
+with LSP.Server_Request_Jobs;
 with LSP.Server_Requests.Hover;
 with LSP.Structures;
 with LSP.Utils;
@@ -32,25 +33,18 @@ with LSP.Utils;
 package body LSP.Ada_Hover is
 
    type Ada_Hover_Job
-     (Parent : not null access constant Ada_Hover_Handler)
-   is limited new LSP.Server_Jobs.Server_Job with record
-      Message       : LSP.Server_Messages.Server_Message_Access;
-   end record;
+     (Parent : not null access constant Ada_Hover_Handler) is limited
+   new LSP.Server_Request_Jobs.Server_Request_Job
+     (Priority => LSP.Server_Jobs.High)
+        with null record;
 
    type Ada_Hover_Job_Access is access all Ada_Hover_Job;
 
-   overriding function Priority
-     (Self : Ada_Hover_Job) return LSP.Server_Jobs.Job_Priority is
-       (LSP.Server_Jobs.High);
-
-   overriding procedure Execute
+   overriding procedure Execute_Request
      (Self   : in out Ada_Hover_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Status : out LSP.Server_Jobs.Execution_Status);
-
-   overriding function Message (Self : Ada_Hover_Job)
-     return LSP.Server_Messages.Server_Message_Access is (Self.Message);
 
    ----------------
    -- Create_Job --
@@ -64,16 +58,16 @@ package body LSP.Ada_Hover is
       Result : constant Ada_Hover_Job_Access :=
         new Ada_Hover_Job'
           (Parent  => Self'Unchecked_Access,
-           Message => Message);
+           Request => LSP.Server_Request_Jobs.Request_Access (Message));
    begin
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
 
-   -------------
-   -- Execute --
-   -------------
+   ---------------------
+   -- Execute_Request --
+   ---------------------
 
-   overriding procedure Execute
+   overriding procedure Execute_Request
      (Self   : in out Ada_Hover_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -209,6 +203,6 @@ package body LSP.Ada_Hover is
       end if;
 
       Client.On_Hover_Response (Message.Id, Response);
-   end Execute;
+   end Execute_Request;
 
 end LSP.Ada_Hover;
