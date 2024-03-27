@@ -281,7 +281,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
       --------------
 
       procedure Callback (Subp_Call : Libadalang.Analysis.Ada_Node'Class) is
-         Ignore : Boolean;
+         Dummy : Libadalang.Common.Ref_Result_Kind;
          Call_Definition : Libadalang.Analysis.Defining_Name;
          Subp_Call_Name  : constant Libadalang.Analysis.Name :=
            Laltools.Common.Get_Node_As_Name (Subp_Call.As_Ada_Node);
@@ -290,7 +290,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          --  First try to resolve the called function
 
          Call_Definition := Laltools.Common.Resolve_Name
-           (Subp_Call_Name, Trace, Ignore);
+           (Subp_Call_Name, Trace, Dummy);
 
          if not Call_Definition.Is_Null then
             if Result.Contains (Call_Definition) then
