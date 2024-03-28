@@ -103,6 +103,10 @@ const adaTaskKinds = [
     'buildMain',
     'runMain',
     'buildAndRunMain',
+    'gnatsasAnalyze',
+    'gnatsasReport',
+    'gnatdoc',
+    'gnattest',
 ] as const;
 type AdaTaskKinds = (typeof adaTaskKinds)[number];
 
@@ -221,6 +225,26 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
         command: ['gprbuild'],
         title: 'Build and run main - ',
         // description: 'Run the build task followed by the run task for the given main',
+    },
+    gnatsasAnalyze: {
+        command: ['gnatsas', 'analyze'],
+        title: 'Analyze the project with GNAT SAS',
+        diagnosticArgs: false,
+    },
+    gnatsasReport: {
+        command: ['gnatsas', 'report'],
+        title: 'Create a report after a GNAT SAS analysis',
+        diagnosticArgs: false,
+    },
+    gnatdoc: {
+        command: ['gnatdoc'],
+        title: 'Generate documentation from the project',
+        diagnosticArgs: false,
+    },
+    gnattest: {
+        command: ['gnattest'],
+        title: 'Create/update test skeletons for the project',
+        diagnosticArgs: false,
     },
 };
 
@@ -354,6 +378,8 @@ async function createOrResolveTask(
         case 'proveSubprogram':
         case 'proveRegion':
         case 'proveLine':
+        case 'gnattest':
+        case 'gnatdoc':
             /**
              * Tasks that can issue problems
              */
@@ -362,6 +388,8 @@ async function createOrResolveTask(
 
         case 'runMain':
         case 'buildAndRunMain':
+        case 'gnatsasAnalyze':
+        case 'gnatsasReport':
             /**
              * Tasks that don't issue problems
              */
@@ -558,6 +586,17 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                 args: [],
             },
         };
+
+        switch (kind) {
+            case 'gnatsasReport':
+                /**
+                 * For GNAT SAS use the SARIF format by default.
+                 */
+                definition.configuration.args = ['sarif', '-o', 'report.sarif'];
+                break;
+            default:
+                break;
+        }
 
         return definition;
     }

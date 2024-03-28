@@ -498,7 +498,11 @@
                                     "cleanProject",
                                     "buildMain",
                                     "runMain",
-                                    "buildAndRunMain"
+                                    "buildAndRunMain",
+                                    "gnatsasAnalyze",
+                                    "gnatsasReport",
+                                    "gnatdoc",
+                                    "gnattest"
                                 ],
                                 "enumDescriptions": [
                                     "Build a GPR project",
@@ -506,7 +510,11 @@
                                     "Clean a GPR project",
                                     "Build a main program specified in a GPR project",
                                     "Run a main program specified in a GPR project",
-                                    "Run a build task and a run task in sequence for a given main program"
+                                    "Run a build task and a run task in sequence for a given main program",
+                                    "Analyze a project with GNAT SAS",
+                                    "Create a report after a GNAT SAS analysis",
+                                    "Generate documentation from a project",
+                                    "Create/update test skeletons for the project"
                                 ]
                             },
                             "projectFile": {
@@ -530,7 +538,11 @@
                                         "enum": [
                                             "buildProject",
                                             "checkFile",
-                                            "cleanProject"
+                                            "cleanProject",
+                                            "gnatsasAnalyze",
+                                            "gnatsasReport",
+                                            "gnatdoc",
+                                            "gnattest"
                                         ]
                                     },
                                     "projectFile": true,
