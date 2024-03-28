@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { TestItem } from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
-import { exe, getObjectDir } from './helpers';
+import { escapeRegExp, exe, getObjectDir } from './helpers';
 
 export let controller: vscode.TestController;
 export let testRunProfile: vscode.TestRunProfile;
@@ -524,16 +524,19 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: C
             return !excludedLeafTests?.includes(t);
         });
 
-        await buildTestDriver(run);
+        /**
+         * Mark tests as queued
+         */
+        testsToRun.forEach((t) => run.enqueued(t));
+
+        /**
+         * Build the test driver
+         */
+        await buildTestDriverAndReportErrors(run, testsToRun);
 
         if (token?.isCancellationRequested) {
             throw new vscode.CancellationError();
         }
-
-        /**
-         * Mark tests as queued for execution
-         */
-        testsToRun.forEach((t) => run.enqueued(t));
 
         /**
          * Invoke the test driver for each test
@@ -564,6 +567,30 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: C
 }
 
 /**
+ * Build the test driver and report build failure as errors on the tests
+ * requested for execution.
+ *
+ * @param run - the TestRun hosting the execution
+ * @param testsToRun - the tests requested for execution - build failure will be
+ * reported on those tests.
+ */
+async function buildTestDriverAndReportErrors(run: vscode.TestRun, testsToRun: vscode.TestItem[]) {
+    try {
+        await buildTestDriver(run);
+    } catch (error) {
+        /**
+         * In case of failure, report all tests as errored.
+         */
+        const md = getBuildErrorMessage();
+        for (const test of testsToRun) {
+            run.errored(test, new vscode.TestMessage(md));
+        }
+        run.end();
+        throw error;
+    }
+}
+
+/**
  * VS Code terminals expect `\r\n` as a line separator, so this function is
  * a wrapper to prepare the given output to use that line separator and
  * append it to the TestRun object.
@@ -584,9 +611,19 @@ async function handleRunAll(request: vscode.TestRunRequest, token?: Cancellation
     const run = controller.createTestRun(request, undefined, false);
     try {
         /**
-         * First we need to build the test driver project.
+         * Collect all tests, i.e. all leafs of the TestItem tree.
          */
-        await buildTestDriver(run);
+        const allTests: TestItem[] = collectLeafsFromCollection(controller.items, token);
+
+        /**
+         * Mark tests as queued
+         */
+        allTests.forEach((t) => run.enqueued(t));
+
+        /**
+         * Build the test driver
+         */
+        await buildTestDriverAndReportErrors(run, allTests);
 
         if (token?.isCancellationRequested) {
             throw new vscode.CancellationError();
@@ -602,11 +639,6 @@ async function handleRunAll(request: vscode.TestRunRequest, token?: Cancellation
         if (token?.isCancellationRequested) {
             throw new vscode.CancellationError();
         }
-
-        /**
-         * Now let's collect all tests, i.e. all leafs of the TestItem tree.
-         */
-        const allTests: TestItem[] = collectLeafsFromCollection(controller.items, token);
 
         /**
          * Mark all tests as started.
@@ -646,6 +678,21 @@ async function handleRunAll(request: vscode.TestRunRequest, token?: Cancellation
 }
 
 /**
+ * Failures to build the test driver are reported as test errors to make them
+ * clearly visible.
+ *
+ * @returns the message to be used as a test failure when the test driver fails
+ * to build.
+ */
+function getBuildErrorMessage() {
+    const md = new vscode.MarkdownString(
+        'Failed to build the test driver, [view output](command:testing.showMostRecentOutput)'
+    );
+    md.isTrusted = true;
+    return md;
+}
+
+/**
  * Invoke gprbuild on the test driver project and pipe the output into the given
  * TestRun object.
  *
@@ -658,21 +705,12 @@ async function buildTestDriver(run: vscode.TestRun) {
      */
     const driverPrjPath = await getGnatTestDriverProjectPath();
     run.appendOutput(`Building the test harness project\r\n`);
-    const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath]);
+    const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath, '-cargs:ada', '-gnatef']);
 
     prepareAndAppendOutput(run, gprbuild.stdout.toLocaleString());
     prepareAndAppendOutput(run, gprbuild.stderr.toLocaleString());
 
     if (gprbuild.status !== 0) {
-        /**
-         * Failed to build the test driver. The output of gprbuild is
-         * usually pretty explicit so no need to add an error message.
-         *
-         * No need to show an error tooltip because the exception raised below
-         * already causes that.
-         */
-        run.end();
-
         throw Error('Error while building the test driver');
     }
 }
@@ -796,17 +834,6 @@ export function collectLeafItems(item: TestItem, token?: CancellationToken): vsc
     } else {
         return [item];
     }
-}
-
-/**
- *
- * @param text - a string possibly containing special RegExp characters.
- * @returns a string where all RegExp special characters have been escaped. This
- * can be useful when searching for an exact string which may contain special
- * characters.
- */
-function escapeRegExp(text: string) {
-    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
 
 /**
