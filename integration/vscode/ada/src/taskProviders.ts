@@ -96,7 +96,7 @@ export const getDiagnosticArgs = (): string[] => {
 
 // The following pair of declarations allow creating a set of string values both
 // as an iterable (constant) array, and as a union type.
-const adaTaskKinds = [
+export const adaTaskKinds = [
     'buildProject',
     'checkFile',
     'cleanProject',
@@ -108,7 +108,7 @@ const adaTaskKinds = [
     'gnatdoc',
     'gnattest',
 ] as const;
-type AdaTaskKinds = (typeof adaTaskKinds)[number];
+export type AdaTaskKinds = (typeof adaTaskKinds)[number];
 
 // The following pair of declarations allow creating a set of string values both
 // as an iterable (constant) array, and as a union type.
