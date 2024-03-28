@@ -422,7 +422,8 @@ export async function resolveHandler(
         await refreshTestItemTree();
     } else {
         const testItemData = testData.get(item);
-        switch (testItemData?.type) {
+        assert(testItemData?.type !== undefined);
+        switch (testItemData.type) {
             case TestItemType.Unit:
                 resolveUnitItem(item, testItemData.data as Unit);
                 break;

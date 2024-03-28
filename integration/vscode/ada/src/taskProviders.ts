@@ -17,11 +17,11 @@
 
 import assert from 'assert';
 import commandExists from 'command-exists';
+import path from 'path';
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
 import { adaExtState } from './extension';
 import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
-import path from 'path';
 
 export const ADA_TASK_TYPE = 'ada';
 
@@ -39,11 +39,15 @@ export interface TaskProperties {
     command: string[];
     // Dynamic argument callback called at the time of task execution. Args and
     // extra argument will be wrapped with getGnatArgs if this is set.
-    extra: ExtraArgCallback | undefined;
+    extra?: ExtraArgCallback;
     // Short title displayed in task list
     title: string;
     // Long description displayed in the task list on a separate line
     description?: string;
+    // Use project and scenario args. Treated as true if unspecified.
+    projectArgs?: boolean;
+    // Use -cargs:ada -gnatef to obtain full paths in diagnostics. Treated as true if unspecified.
+    diagnosticArgs?: boolean;
 }
 
 /**
@@ -146,17 +150,15 @@ export interface CustomTaskDefinition extends vscode.TaskDefinition {
 export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
     cleanProjectForProof: {
         command: ['gnatprove', '--clean'],
-        extra: undefined,
         title: 'Clean project for proof',
+        diagnosticArgs: false,
     },
     examineProject: {
         command: ['gnatprove', '-j0', '--mode=flow'],
-        extra: undefined,
         title: 'Examine project',
     },
     examineFile: {
         command: ['gnatprove', '-j0', '--mode=flow', '-u', '${fileBasename}'],
-        extra: undefined,
         title: 'Examine file',
     },
     examineSubprogram: {
@@ -166,12 +168,10 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
     },
     proveProject: {
         command: ['gnatprove', '-j0'],
-        extra: undefined,
         title: 'Prove project',
     },
     proveFile: {
         command: ['gnatprove', '-j0', '-u', '${fileBasename}'],
-        extra: undefined,
         title: 'Prove file',
     },
     proveSubprogram: {
@@ -192,37 +192,33 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
             '${fileBasename}',
             '--limit-line=${fileBasename}:${lineNumber}',
         ],
-        extra: undefined,
         title: 'Prove line',
     },
     buildProject: {
         command: ['gprbuild'],
-        extra: undefined,
         title: 'Build current project',
     },
     checkFile: {
         command: ['gprbuild', '-q', '-f', '-c', '-u', '-gnatc', '${fileBasename}'],
-        extra: undefined,
         title: 'Check current file',
     },
     cleanProject: {
         command: ['gprclean'],
-        extra: undefined,
         title: 'Clean current project',
+        diagnosticArgs: false,
     },
     buildMain: {
         command: ['gprbuild'],
-        extra: undefined,
         title: 'Build main - ',
     },
     runMain: {
         command: [],
-        extra: undefined,
         title: 'Run main - ',
+        projectArgs: false,
+        diagnosticArgs: false,
     },
     buildAndRunMain: {
         command: ['gprbuild'],
-        extra: undefined,
         title: 'Build and run main - ',
         // description: 'Run the build task followed by the run task for the given main',
     },
@@ -337,10 +333,11 @@ async function createOrResolveTask(
     newTask.detail = task?.detail ?? allTaskProperties[definition.configuration.kind].description;
 
     switch (definition.configuration.kind) {
-        case 'runMain':
-        case 'buildAndRunMain':
+        case 'buildProject':
+        case 'buildMain':
+            newTask.group = vscode.TaskGroup.Build;
+            newTask.problemMatchers = [DEFAULT_PROBLEM_MATCHER];
             break;
-
         case 'cleanProject':
         case 'cleanProjectForProof': {
             newTask.group = vscode.TaskGroup.Clean;
@@ -348,10 +345,27 @@ async function createOrResolveTask(
             break;
         }
 
-        default: {
-            newTask.group = vscode.TaskGroup.Build;
+        case 'checkFile':
+        case 'examineProject':
+        case 'examineFile':
+        case 'examineSubprogram':
+        case 'proveProject':
+        case 'proveFile':
+        case 'proveSubprogram':
+        case 'proveRegion':
+        case 'proveLine':
+            /**
+             * Tasks that can issue problems
+             */
             newTask.problemMatchers = [DEFAULT_PROBLEM_MATCHER];
-        }
+            break;
+
+        case 'runMain':
+        case 'buildAndRunMain':
+            /**
+             * Tasks that don't issue problems
+             */
+            break;
     }
 
     return newTask;
@@ -469,14 +483,8 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                     // Do not provide a task for buildMain because we provide
                     // one per project main below
 
-                    const definition: CustomTaskDefinition = {
-                        type: this.taskType,
-                        configuration: {
-                            kind: kind,
-                            projectFile: projectFile,
-                            args: [],
-                        },
-                    };
+                    const definition: CustomTaskDefinition = await this.getDefaultDefinition(kind);
+
                     // provideTasks() is expected to provide fully resolved
                     // tasks ready for execution
                     const task = await createOrResolveTask(definition, cmdPrefix);
@@ -534,6 +542,26 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
 
         return this.tasks ?? [];
     }
+
+    /**
+     *
+     * @param kind - kind of task
+     * @returns the task definition that should be used by default
+     */
+    private async getDefaultDefinition(kind: AllTaskKinds): Promise<CustomTaskDefinition> {
+        const projectFile: string = await adaExtState.getProjectFile();
+        const definition: CustomTaskDefinition = {
+            type: this.taskType,
+            configuration: {
+                kind: kind,
+                projectFile: projectFile,
+                args: [],
+            },
+        };
+
+        return definition;
+    }
+
     async resolveTask(
         task: vscode.Task,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -619,7 +647,7 @@ async function buildFullCommandLine(
 
     let cmd = task.command.concat();
 
-    if (taskDef.configuration.kind != 'runMain') {
+    if (task.projectArgs === undefined || task.projectArgs) {
         // Add project and scenario args
         cmd = cmd.concat(await getProjectArgs(taskDef), getScenarioArgs());
     }
@@ -667,6 +695,8 @@ async function buildFullCommandLine(
 
             break;
         }
+        default:
+            break;
     }
 
     // Add task- and definition-specific args
@@ -685,8 +715,8 @@ async function buildFullCommandLine(
         cmd = cmd.concat(extraArgs);
     }
 
-    // Append diagnostic args except for gprclean which doesn't need them
-    if (taskDef.configuration.kind != 'runMain' && cmd[0] != 'gprclean') {
+    // Append diagnostic args if needed
+    if (task.diagnosticArgs === undefined || task.diagnosticArgs) {
         cmd = cmd.concat(getDiagnosticArgs());
     }
 
@@ -908,7 +938,7 @@ function runTaskSequence(
     for (const t of tasks) {
         p = p.then((status) => {
             if (status == 0) {
-                return new Promise<number>((resolve) => {
+                return new Promise<number>((resolve, reject) => {
                     const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
                         if (e.execution.task == t) {
                             disposable.dispose();
@@ -917,7 +947,11 @@ function runTaskSequence(
                     });
 
                     writeEmitter.fire(`Executing task: ${getConventionalTaskLabel(t)}\r\n`);
-                    void vscode.tasks.executeTask(t);
+                    vscode.tasks.executeTask(t).then(undefined, (reason) => {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        writeEmitter.fire(`Could not execute task: ${reason}\r\n`);
+                        reject(reason);
+                    });
                 });
             } else {
                 return status;

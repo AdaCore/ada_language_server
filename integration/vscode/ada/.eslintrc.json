@@ -15,20 +15,14 @@
         },
         "project": "tsconfig.json"
     },
-    "plugins": [
-        "@typescript-eslint/eslint-plugin",
-        "eslint-plugin-tsdoc"
-    ],
+    "plugins": ["@typescript-eslint/eslint-plugin", "eslint-plugin-tsdoc"],
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "plugin:prettier/recommended"
     ],
-    "ignorePatterns": [
-        "out",
-        "**/*.d.ts"
-    ],
+    "ignorePatterns": ["out", "**/*.d.ts"],
     "rules": {
         "tsdoc/syntax": "warn",
         "max-len": [
@@ -37,6 +31,7 @@
                 "code": 100,
                 "ignoreUrls": true
             }
-        ]
+        ],
+        "@typescript-eslint/switch-exhaustiveness-check": "error"
     }
 }
