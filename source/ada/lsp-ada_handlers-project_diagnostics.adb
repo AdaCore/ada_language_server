@@ -130,6 +130,7 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
 
       procedure Append_GPR2_Diagnostics is
          use GPR2.Message;
+         use LSP.Enumerations;
       begin
          for Msg of GPR2_Messages loop
             if Msg.Level in GPR2.Message.Warning .. GPR2.Message.Error then
@@ -156,11 +157,15 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
                --  If we have one error in the GPR2 messages, the parent
                --  diagnostic's severity should be "error" too, otherwise
                --  "warning".
-               Parent_Diagnostic.severity :=
-                  (if Msg.Level = GPR2.Message.Error then
-                     (True, LSP.Enumerations.Error)
-                  else
-                     (True, LSP.Enumerations.Warning));
+               if Msg.Level = GPR2.Message.Error then
+                  Parent_Diagnostic.severity :=
+                    (True, LSP.Enumerations.Error);
+               elsif Parent_Diagnostic.severity.Value /=
+                 LSP.Enumerations.Error
+               then
+                  Parent_Diagnostic.severity :=
+                    (True, LSP.Enumerations.Warning);
+               end if;
             end if;
          end loop;
       end Append_GPR2_Diagnostics;

@@ -4,14 +4,12 @@
          "Test signatureHelp for an overloaded name at the end of the test ",
          "one signature should be filtered out"
       ]
-   }, 
+   },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -28,52 +26,49 @@
             "id": 1,
             "method": "initialize"
          },
-         "wait": [{
+         "wait": [
+            {
                "id": 1,
                "result": {
                   "capabilities": {
                      "textDocumentSync": 2,
                      "signatureHelpProvider": {
-                        "triggerCharacters": [
-                           ",",
-                           "("
-                        ],
-                        "retriggerCharacters": [
-                           "\b"
-                        ]
+                        "triggerCharacters": [",", "("],
+                        "retriggerCharacters": ["\b"]
                      }
                   }
                }
-            }]
+            }
+         ]
       }
    },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "$URI{test.gpr}", 
+                     "projectFile": "$URI{default.gpr}",
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {

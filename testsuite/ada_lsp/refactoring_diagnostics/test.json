@@ -8,9 +8,7 @@
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -27,9 +25,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "rename"
-                        ]
+                        "resourceOperations": ["rename"]
                      }
                   },
                   "textDocument": {
@@ -38,15 +34,9 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": false,
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "resolveSupport": {
-                              "properties": [
-                                 "detail",
-                                 "documentation"
-                              ]
+                              "properties": ["detail", "documentation"]
                            }
                         }
                      }
@@ -60,10 +50,7 @@
                "result": {
                   "capabilities": {
                      "executeCommandProvider": {
-                        "commands": [
-                           "<HAS>",
-                           "als-refactor-add-parameters"
-                        ]
+                        "commands": ["<HAS>", "als-refactor-add-parameters"]
                      }
                   }
                }
@@ -149,74 +136,92 @@
             }
          },
          "wait": [
-              {
-    "jsonrpc": "2.0",
-    "method": "textDocument/publishDiagnostics",
-    "params": {
-      "uri": "$URI{test.ads}",
-      "diagnostics": [
-        {
-          "range": {
-            "start": {
-              "line": 6,
-              "character": 3
-            },
-            "end": {
-              "line": 6,
-              "character": 11
-            }
-          },
-          "source": "libadalang",
-          "message": "Missing ';'"
-        },
-        {
-          "range": {
-            "start": {
-              "line": 0,
-              "character": 0
-            },
-            "end": {
-              "line": 0,
-              "character": 0
-            }
-          },
-          "severity": 4,
-          "source": "project",
-          "message": "Unique project in root directory was found and loaded, but it wasn't explicitly configured."
-        },
-        {
-          "range": {
-            "start": {
-              "line": 12,
-              "character": 3
-            },
-            "end": {
-              "line": 14,
-              "character": 16
-            }
-          },
-          "severity": 1,
-          "source": "Ada",
-          "message": "Failed to execute the Add Parameter refactoring.",
-          "relatedInformation": [
             {
-              "location": {
-                "uri": "$URI{test.ads}",
-                "range": {
-                  "start": {
-                    "line": 12,
-                    "character": 3
-                  },
-                  "end": {
-                    "line": 14,
-                    "character": 16
-                  }
-                }
-              },
-              "message": "Can't change the controlling parameter of a primitive"
-            }
-          ]
-        }
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 6,
+                              "character": 3
+                           },
+                           "end": {
+                              "line": 6,
+                              "character": 11
+                           }
+                        },
+                        "source": "libadalang",
+                        "message": "Missing ';'"
+                     },
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 4,
+                        "source": "project",
+                        "message": "Project Problems",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{default.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 }
+                              },
+                              "message": "Unique project in root directory was found and loaded, but it wasn't explicitly configured."
+                           }
+                        ]
+                     },
+                     {
+                        "range": {
+                           "start": {
+                              "line": 12,
+                              "character": 3
+                           },
+                           "end": {
+                              "line": 14,
+                              "character": 16
+                           }
+                        },
+                        "severity": 1,
+                        "source": "Ada",
+                        "message": "Failed to execute the Add Parameter refactoring.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.ads}",
+                                 "range": {
+                                    "start": {
+                                       "line": 12,
+                                       "character": 3
+                                    },
+                                    "end": {
+                                       "line": 14,
+                                       "character": 16
+                                    }
+                                 }
+                              },
+                              "message": "Can't change the controlling parameter of a primitive"
+                           }
+                        ]
+                     }
                   ]
                }
             },
