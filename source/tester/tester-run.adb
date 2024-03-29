@@ -51,7 +51,7 @@ procedure Tester.Run is
 
       Output_Format : constant VSS.Command_Line.Value_Option :=
         (Short_Name  => "",
-         Long_Name   => "output-format",
+         Long_Name   => "format",
          Value_Name  => "output_format_option",
          Description =>
            VSS.Strings.Conversions.To_Virtual_String
