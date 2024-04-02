@@ -138,7 +138,7 @@ export async function getTasks(): Promise<vscode.Task[]> {
             };
             const extraArgsFromTask = item.extra ? item.extra() : [];
             const cmd = alr.concat(
-                item.command,
+                item.command ?? [],
                 await getProjectArgs(),
                 getScenarioArgs(),
                 await extraArgsFromTask,

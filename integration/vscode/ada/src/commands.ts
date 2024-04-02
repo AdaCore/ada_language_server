@@ -35,6 +35,8 @@ export const CMD_BUILD_AND_RUN_MAIN = 'ada.buildAndRunMain';
  */
 export const CMD_BUILD_AND_DEBUG_MAIN = 'ada.buildAndDebugMain';
 
+export const CMD_GPR_PROJECT_ARGS = 'ada.gprProjectArgs';
+
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
     context.subscriptions.push(
@@ -95,6 +97,17 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_BUILD_AND_DEBUG_MAIN, buildAndDebugSpecifiedMain)
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, () => {
+            const vars: string[][] = Object.entries(
+                vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
+            );
+            return ['-P', '${config:ada.projectFile}'].concat(
+                vars.map(([key, value]) => `-X${key}=${value}`)
+            );
+        })
     );
 }
 /**

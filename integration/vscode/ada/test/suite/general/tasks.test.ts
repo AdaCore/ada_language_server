@@ -9,6 +9,7 @@ import {
     BUILD_PROJECT_TASK_NAME,
     CustomTaskDefinition,
     PROJECT_FROM_CONFIG,
+    adaTaskKinds,
     createAdaTaskProvider,
     createSparkTaskProvider,
     getEnclosingSymbol,
@@ -471,11 +472,11 @@ suite('Task Execution', function () {
     test('gnattest');
 
     test('All tasks tested', () => {
-        const untested = new Set<AdaTaskKinds>();
+        const untested = adaTaskKinds.filter((v) => !testedTaskKinds.has(v));
 
-        if (untested.size > 0) {
+        if (untested.length > 0) {
             assert.fail(
-                `${untested.size} task kinds were not tested:\n${[...untested].join('\n')}`
+                `${untested.length} task kinds were not tested:\n${[...untested].join('\n')}`
             );
         }
     });

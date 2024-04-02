@@ -36,7 +36,7 @@ type ExtraArgCallback = () => Promise<string[]>;
 export interface TaskProperties {
     // Executable like gprbuild, gprclean, gnatprove, etc. and static list of
     // arguments.
-    command: string[];
+    command?: string[];
     // Dynamic argument callback called at the time of task execution. Args and
     // extra argument will be wrapped with getGnatArgs if this is set.
     extra?: ExtraArgCallback;
@@ -105,6 +105,7 @@ export const adaTaskKinds = [
     'buildAndRunMain',
     'gnatsasAnalyze',
     'gnatsasReport',
+    'gnatsasAnalyzeAndReport',
     'gnatdoc',
     'gnattest',
 ] as const;
@@ -222,7 +223,6 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
         diagnosticArgs: false,
     },
     buildAndRunMain: {
-        command: ['gprbuild'],
         title: 'Build and run main - ',
         // description: 'Run the build task followed by the run task for the given main',
     },
@@ -235,6 +235,9 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
         command: ['gnatsas', 'report'],
         title: 'Create a report after a GNAT SAS analysis',
         diagnosticArgs: false,
+    },
+    gnatsasAnalyzeAndReport: {
+        title: 'Analyze the project with GNAT SAS and produce a report',
     },
     gnatdoc: {
         command: ['gnatdoc'],
@@ -320,6 +323,11 @@ async function createOrResolveTask(
     let execution;
     if (definition.configuration.kind == 'buildAndRunMain') {
         execution = new BuildAndRunExecution(definition);
+    } else if (definition.configuration.kind == 'gnatsasAnalyzeAndReport') {
+        execution = new SequentialExecutionByName([
+            allTaskProperties['gnatsasAnalyze'].title,
+            allTaskProperties['gnatsasReport'].title,
+        ]);
     } else {
         /**
          * Quote the command line so that no shell interpretations can happen.
@@ -390,6 +398,7 @@ async function createOrResolveTask(
         case 'buildAndRunMain':
         case 'gnatsasAnalyze':
         case 'gnatsasReport':
+        case 'gnatsasAnalyzeAndReport':
             /**
              * Tasks that don't issue problems
              */
@@ -684,11 +693,14 @@ async function buildFullCommandLine(
 ): Promise<string[]> {
     const task = allTaskProperties[taskDef.configuration.kind];
 
-    let cmd = task.command.concat();
+    let cmd = task.command?.concat() ?? [];
 
     if (task.projectArgs === undefined || task.projectArgs) {
         // Add project and scenario args
         cmd = cmd.concat(await getProjectArgs(taskDef), getScenarioArgs());
+        // const args: string[] = await vscode.commands.executeCommand(CMD_GPR_PROJECT_ARGS);
+        // cmd.push(...args);
+        // cmd.push(`\${command:${CMD_GPR_PROJECT_ARGS}}`);
     }
 
     // If the task has a callback to compute extra arguments, call it. This is
@@ -855,21 +867,15 @@ export class WarningMessageExecution extends vscode.CustomExecution {
 }
 
 /**
- * This task execution implements the 'buildAndRunMain' task kind. It is
- * initialized with a 'buildAndRunMain' task definition. When executed, it looks
- * up the build tasks and run tasks corresponding to the main targeted by the
- * task definition, and runs them in sequence.
- *
+ * This is an abstract class providing the scaffolding for running multiple
+ * tests in sequence. Child classes can override methods to customize which
+ * tasks should executed.
  */
-class BuildAndRunExecution extends vscode.CustomExecution {
-    buildAndRunDef: CustomTaskDefinition;
-
-    constructor(buildAndRunDef: CustomTaskDefinition) {
+abstract class SequentialExecution extends vscode.CustomExecution {
+    constructor() {
         super(() => {
             return this.callback();
         });
-        assert(buildAndRunDef.configuration.kind == 'buildAndRunMain');
-        this.buildAndRunDef = buildAndRunDef;
     }
 
     /**
@@ -877,65 +883,18 @@ class BuildAndRunExecution extends vscode.CustomExecution {
      *
      * @returns a Pseudoterminal object that controls a Terminal in the VS Code UI.
      */
-    callback(): Thenable<vscode.Pseudoterminal> {
+    protected callback(): Thenable<vscode.Pseudoterminal> {
         return new Promise((resolve) => {
-            const definition = this.buildAndRunDef;
             const writeEmitter = new vscode.EventEmitter<string>();
             const closeEmitter = new vscode.EventEmitter<number>();
             const pseudoTerminal: vscode.Pseudoterminal = {
                 onDidWrite: writeEmitter.event,
                 onDidClose: closeEmitter.event,
-                open() {
-                    vscode.tasks
-                        .fetchTasks({ type: 'ada' })
-                        .then(
-                            (adaTasks) => {
-                                assert(definition.configuration.buildTask);
-                                assert(definition.configuration.runTask);
-
-                                /**
-                                 * Find the tasks that match the task names
-                                 * specified in buildTask and runTask, prioritizing
-                                 * Workspace tasks.
-                                 */
-                                adaTasks.sort(workspaceTasksFirst);
-                                /**
-                                 * Task names contributed by the extension don't
-                                 * have the task type prefix while tasks coming from
-                                 * the workspace typically do since VS Code includes
-                                 * the type prefix when converting an automatic
-                                 * extension task into a configurable workspace
-                                 * task. getConventionalTaskLabel() takes care of
-                                 * that fact.
-                                 */
-                                function findTaskByName(taskName: string): vscode.Task {
-                                    const task = adaTasks.find((v) => {
-                                        return taskName == getConventionalTaskLabel(v);
-                                    });
-                                    if (task) {
-                                        return task;
-                                    } else {
-                                        const msg = `Could not find a task named: ${taskName}`;
-                                        throw new Error(msg);
-                                    }
-                                }
-                                const buildMainTask = findTaskByName(
-                                    definition.configuration.buildTask
-                                );
-                                const runMainTask = findTaskByName(
-                                    definition.configuration.runTask
-                                );
-
-                                const tasks = [buildMainTask, runMainTask];
-                                const p = runTaskSequence(tasks, writeEmitter);
-
-                                return p;
-                            },
-                            () => {
-                                writeEmitter.fire('Failed to get list of tasks\r\n');
-                                return 1;
-                            }
-                        )
+                open: () => {
+                    this.getTasksToRun()
+                        .then((tasks) => {
+                            return runTaskSequence(tasks, writeEmitter);
+                        })
                         .then(
                             (status) => {
                                 closeEmitter.fire(status);
@@ -958,6 +917,77 @@ class BuildAndRunExecution extends vscode.CustomExecution {
             };
             resolve(pseudoTerminal);
         });
+    }
+
+    protected abstract getTasksToRun(): Promise<vscode.Task[]>;
+}
+
+/**
+ * Task names contributed by the extension don't have the task type prefix
+ * while tasks coming from the workspace typically do since VS Code includes
+ * the type prefix when converting an automatic extension task into a
+ * configurable workspace task. getConventionalTaskLabel() takes care of
+ * that fact.
+ *
+ * @returns the task that has the given name, or the given name with the
+ * prefix `ada: `
+ */
+export function findTaskByName(tasks: vscode.Task[], taskName: string): vscode.Task {
+    const task = tasks.find((v) => {
+        return taskName == getConventionalTaskLabel(v) || taskName == v.name;
+    });
+    if (task) {
+        return task;
+    } else {
+        const msg = `Could not find a task named: ${taskName}`;
+        throw new Error(msg);
+    }
+}
+
+/**
+ * This task execution implements the 'buildAndRunMain' task kind. It is
+ * initialized with a 'buildAndRunMain' task definition. When executed, it looks
+ * up the build tasks and run tasks corresponding to the main targeted by the
+ * task definition, and runs them in sequence.
+ *
+ */
+class BuildAndRunExecution extends SequentialExecution {
+    buildAndRunDef: CustomTaskDefinition;
+
+    constructor(buildAndRunDef: CustomTaskDefinition) {
+        super();
+        assert(buildAndRunDef.configuration.kind == 'buildAndRunMain');
+        this.buildAndRunDef = buildAndRunDef;
+    }
+
+    protected async getTasksToRun() {
+        const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
+        assert(this.buildAndRunDef.configuration.buildTask);
+        assert(this.buildAndRunDef.configuration.runTask);
+        /**
+         * Find the tasks that match the task names
+         * specified in buildTask and runTask, prioritizing
+         * Workspace tasks.
+         */
+        adaTasks.sort(workspaceTasksFirst);
+        const buildMainTask = findTaskByName(adaTasks, this.buildAndRunDef.configuration.buildTask);
+        const runMainTask = findTaskByName(adaTasks, this.buildAndRunDef.configuration.runTask);
+        return [buildMainTask, runMainTask];
+    }
+}
+
+/**
+ * This class is a task execution that runs other tasks in sequence. The names
+ * of the tasks to run are given at construction.
+ */
+class SequentialExecutionByName extends SequentialExecution {
+    constructor(private taskNames: string[]) {
+        super();
+    }
+
+    protected async getTasksToRun(): Promise<vscode.Task[]> {
+        const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
+        return this.taskNames.map((name) => findTaskByName(adaTasks, name));
     }
 }
 
