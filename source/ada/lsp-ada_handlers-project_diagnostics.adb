@@ -90,11 +90,7 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
       ---------------------------------------
 
       procedure Create_Project_Loading_Diagnostic is
-         Project_File : GNATCOLL.VFS.Virtual_File renames
-           Self.Handler.Project_Status.Project_File;
-         URI          : constant LSP.Structures.DocumentUri :=
-           Self.Handler.To_URI (Project_File.Display_Full_Name);
-         Sloc         : constant LSP.Structures.A_Range :=
+         Sloc : constant LSP.Structures.A_Range :=
            (start  => (0, 0),
             an_end => (0, 0));
       begin
@@ -112,15 +108,24 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
             Parent_Diagnostic.message := Project_Loading_Status_Messages
               (Self.Last_Status);
          else
-            Parent_Diagnostic.message := "Project Problems";
-            Parent_Diagnostic.relatedInformation.Append
-              (LSP .Structures.DiagnosticRelatedInformation'
-                 (location => LSP.Structures.Location'
-                      (uri     => URI,
-                       a_range => Sloc,
-                       others  => <>),
-                  message  => Project_Loading_Status_Messages
-                    (Self.Last_Status)));
+            declare
+               Project_File : GNATCOLL.VFS.Virtual_File renames
+                  Self.Handler.Project_Status.Project_File;
+               URI          : constant LSP.Structures.DocumentUri :=
+                  Self.Handler.To_URI
+                    (Project_File.Display_Full_Name);
+            begin
+               Parent_Diagnostic.message := "Project Problems";
+               Parent_Diagnostic.relatedInformation.Append
+                 (LSP.Structures.DiagnosticRelatedInformation'
+                    (location =>
+                       LSP.Structures.Location'
+                         (uri    => URI, a_range => Sloc,
+                          others => <>),
+                     message  =>
+                       Project_Loading_Status_Messages
+                         (Self.Last_Status)));
+            end;
          end if;
       end Create_Project_Loading_Diagnostic;
 
