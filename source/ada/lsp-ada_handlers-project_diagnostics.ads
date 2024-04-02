@@ -39,7 +39,7 @@ private
    type Diagnostic_Source
      (Handler : not null access LSP.Ada_Handlers.Message_Handler)
    is limited new LSP.Diagnostic_Sources.Diagnostic_Source with record
-      Last_Status : Load_Project_Status := Valid_Project_Configured;
+      Last_Status : Load_Project_Status := No_Project_Found;
    end record;
 
 end LSP.Ada_Handlers.Project_Diagnostics;

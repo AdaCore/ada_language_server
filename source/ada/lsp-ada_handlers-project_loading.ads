@@ -26,7 +26,7 @@ package LSP.Ada_Handlers.Project_Loading is
 
    procedure Load_Project
      (Self         : in out Message_Handler'Class;
-      Project_File : VSS.Strings.Virtual_String;
+      Project_Path : VSS.Strings.Virtual_String;
       Scenario     : LSP.Ada_Configurations.Variable_List;
       Environment  : GPR2.Environment.Object;
       Charset      : VSS.Strings.Virtual_String;
