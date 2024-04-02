@@ -20,9 +20,12 @@
 
 with Ada.Exceptions;
 
+with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
+
+with Laltools.Common;
 
 with VSS.Strings;
 
@@ -91,10 +94,20 @@ package LSP.Ada_Job_Contexts is
       return Libadalang.Analysis.Ada_Node is abstract;
 
    function Imprecise_Resolve_Name
-     (Self     : in out Ada_Job_Context;
+     (Self      : in out Ada_Job_Context;
+      Name_Node : Libadalang.Analysis.Name)
+      return Libadalang.Analysis.Defining_Name is abstract;
+   --  Return the definition node (canonical part) of the given name.
+   --  If an error happened then return No_Defining_Name.
+
+   function Imprecise_Resolve_Name
+     (Self     : in out Ada_Job_Context'Class;
       Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Structures.TextDocumentPositionParams'Class)
-        return Libadalang.Analysis.Defining_Name is abstract;
+        return Libadalang.Analysis.Defining_Name is
+          (Self.Imprecise_Resolve_Name
+            (Laltools.Common.Get_Node_As_Name
+               (Self.Get_Node_At (Context, Position))));
 
    procedure Append_Location
      (Self   : in out Ada_Job_Context;
@@ -111,5 +124,8 @@ package LSP.Ada_Job_Contexts is
       Error   : Ada.Exceptions.Exception_Occurrence;
       Message : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String) is abstract;
+
+   function Get_Trace_Handle (Self : Ada_Job_Context)
+     return GNATCOLL.Traces.Trace_Handle is abstract;
 
 end LSP.Ada_Job_Contexts;

@@ -1259,7 +1259,11 @@ package body Tester.Tests is
          Text.Append ("Recent output from server:");
          Text.Append (GNATCOLL.JSON.Write (Output, False));
 
-      else --  Default behaviour is "diff"
+      else
+         if On_Failed_Val /= "diff" then
+            Text.Append
+              ("Unrecognized value for Format: reverting to ""diff""");
+         end if;
          declare
             Diff : Unbounded_String;
          begin
@@ -1267,7 +1271,7 @@ package body Tester.Tests is
               (Left    => Output,
                Right   => Waits,
                Indent  => 0,
-               Minimal => True);
+               Minimal => False);
             Text.Append ("Diff:");
             Text.Append (To_String (Diff));
          end;

@@ -31,6 +31,7 @@ with LSP.Ada_Id_Iterators;
 with LSP.Client_Message_Receivers;
 with LSP.Enumerations;
 with LSP.Locations;
+with LSP.Server_Request_Jobs;
 with LSP.Server_Requests.References;
 with LSP.Structures;
 
@@ -47,33 +48,27 @@ package body LSP.Ada_References is
      (Reversible_Iterator, Iterator_Access);
 
    type Ada_References_Job
-     (Parent : not null access constant Ada_References_Handler)
-   is limited new LSP.Server_Jobs.Server_Job with record
-      Message       : LSP.Server_Messages.Server_Message_Access;
-      Is_Enum       : Boolean := False;
-      Response      : LSP.Structures.Location_Vector_Or_Null;
-      Filter        : LSP.Locations.File_Span_Sets.Set;
-      Contexts      : LSP.Ada_Context_Sets.Context_Lists.List;
-      Context       : LSP.Ada_Context_Sets.Context_Access;
-      Iterator      : Iterator_Access;
-      Cursor        : LSP.Ada_File_Sets.File_Sets.Cursor;
-      Definition    : Libadalang.Analysis.Defining_Name;
+     (Parent : not null access constant Ada_References_Handler) is limited
+   new LSP.Server_Request_Jobs.Server_Request_Job
+     (Priority => LSP.Server_Jobs.Low) with
+   record
+      Is_Enum    : Boolean := False;
+      Response   : LSP.Structures.Location_Vector_Or_Null;
+      Filter     : LSP.Locations.File_Span_Sets.Set;
+      Contexts   : LSP.Ada_Context_Sets.Context_Lists.List;
+      Context    : LSP.Ada_Context_Sets.Context_Access;
+      Iterator   : Iterator_Access;
+      Cursor     : LSP.Ada_File_Sets.File_Sets.Cursor;
+      Definition : Libadalang.Analysis.Defining_Name;
    end record;
 
    type Ada_References_Job_Access is access all Ada_References_Job;
 
-   overriding function Priority
-     (Self : Ada_References_Job) return LSP.Server_Jobs.Job_Priority is
-       (LSP.Server_Jobs.Low);
-
-   overriding procedure Execute
+   overriding procedure Execute_Request
      (Self   : in out Ada_References_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Status : out LSP.Server_Jobs.Execution_Status);
-
-   overriding function Message (Self : Ada_References_Job)
-     return LSP.Server_Messages.Server_Message_Access is (Self.Message);
 
    function Get_Reference_Kind
      (Self               : Ada_References_Job'Class;
@@ -101,7 +96,7 @@ package body LSP.Ada_References is
       Result : constant Ada_References_Job_Access :=
         new Ada_References_Job'
           (Parent  => Self'Unchecked_Access,
-           Message => Message,
+           Request => LSP.Server_Request_Jobs.Request_Access (Message),
            others  => <>);
    begin
       Result.Contexts := Self.Context.Contexts_For_File (File);
@@ -109,11 +104,11 @@ package body LSP.Ada_References is
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
 
-   -------------
-   -- Execute --
-   -------------
+   ---------------------
+   -- Execute_Request --
+   ---------------------
 
-   overriding procedure Execute
+   overriding procedure Execute_Request
      (Self   : in out Ada_References_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -232,7 +227,7 @@ package body LSP.Ada_References is
          Client.On_References_Response (Message.Id, Self.Response);
          Status := LSP.Server_Jobs.Done;
       end if;
-   end Execute;
+   end Execute_Request;
 
    ------------------------
    -- Get_Reference_Kind --
