@@ -602,4 +602,67 @@ package body LSP.Utils is
       end return;
    end To_Unbounded_String;
 
+   --------------
+   -- To_Range --
+   --------------
+
+   function To_Range
+     (Sloc : GPR2.Source_Reference.Object) return LSP.Structures.A_Range
+   is
+     (if Sloc.Is_Defined and then Sloc.Has_Source_Reference then
+        (start  =>
+           (line      => Natural (Sloc.Line) - 1,
+            character => Natural (Sloc.Column) - 1),
+         an_end =>
+           (line      => Natural (Sloc.Line) - 1,
+            character => Natural  (Sloc.Column) - 1))
+      else
+        (start => (1, 1), an_end => (1, 1)));
+
+   ------------
+   -- To_URI --
+   ------------
+
+   function To_URI
+     (Path : GPR2.Path_Name.Object) return LSP.Structures.DocumentUri
+   is
+     (VSS.Strings.Conversions.To_Virtual_String
+        (URIs.Conversions.From_File (Path.Value)) with null record);
+
+   ------------------------------------
+   -- To_Optional_DiagnosticSeverity --
+   ------------------------------------
+
+   function To_Optional_DiagnosticSeverity
+     (Level : GPR2.Message.Level_Value)
+   return LSP.Structures.DiagnosticSeverity_Optional
+   is
+     (case Level is
+         when GPR2.Message.Information => (True, LSP.Enumerations.Information),
+         when GPR2.Message.Warning     => (True, LSP.Enumerations.Warning),
+         when GPR2.Message.Error       => (True, LSP.Enumerations.Error),
+         when GPR2.Message.Lint        => (True, LSP.Enumerations.Hint));
+
+   -----------------------
+   -- To_LSP_Diagnostic --
+   -----------------------
+
+   function To_LSP_Diagnostic
+     (Message : GPR2.Message.Object) return LSP.Structures.Diagnostic
+   is
+      use GPR2.Message;
+
+      Diagnostic : LSP.Structures.Diagnostic;
+   begin
+      Diagnostic.a_range  := To_Range (Message.Sloc);
+      Diagnostic.severity := To_Optional_DiagnosticSeverity (Message.Level);
+      Diagnostic.message  :=
+        VSS.Strings.Conversions.To_Virtual_String
+          (Message.Message);
+      Diagnostic.source   :=
+        VSS.Strings.Conversions.To_Virtual_String ("project");
+
+      return Diagnostic;
+   end To_LSP_Diagnostic;
+
 end LSP.Utils;

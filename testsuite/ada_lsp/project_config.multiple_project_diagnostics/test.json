@@ -1,0 +1,231 @@
+[
+   {
+      "comment": [
+         "Test the project diagnostics when we have several .gpr files in the ",
+         "root directory, without having set the 'ada.projectFile' setting.",
+         "It also checks that we propose a quickfix to set 'ada.projectFile'."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-refactor-add-parameters"]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Main is\nbegin\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-source-dirs"
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 1,
+                        "source": "project",
+                        "message": "No project was loaded, because more than one project file has been found in the root directory. Please change configuration to point a correct project file."
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 0,
+                     "character": 0
+                  },
+                  "end": {
+                     "line": 0,
+                     "character": 0
+                  }
+               },
+               "context": {
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "message": "No project was loaded, because more than one project file has been found in the root directory. Please change configuration to point a correct project file.",
+                        "severity": 1,
+                        "source": "project"
+                     }
+                  ],
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 0,
+                     "character": 0
+                  },
+                  "end": {
+                     "line": 0,
+                     "character": 0
+                  }
+               },
+               "context": {
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "message": "No project was loaded, because more than one project file has been found in the root directory. Please change configuration to point a correct project file.",
+                        "severity": 1,
+                        "source": "project"
+                     }
+                  ],
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 13,
+               "result": [
+                  {
+                     "title": "Open settings for ada.projectFile",
+                     "kind": "quickfix",
+                     "diagnostics": [
+                        {
+                           "range": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 0
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 0
+                              }
+                           },
+                           "severity": 1,
+                           "source": "project",
+                           "message": "No project was loaded, because more than one project file has been found in the root directory. Please change configuration to point a correct project file."
+                        }
+                     ],
+                     "isPreferred": true,
+                     "command": {
+                        "title": "Open settings for ada.projectFile",
+                        "command": "workbench.action.openSettings",
+                        "arguments": "ada.projectFile"
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

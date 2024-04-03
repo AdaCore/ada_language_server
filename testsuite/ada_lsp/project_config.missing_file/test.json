@@ -1,113 +1,146 @@
 [
-    {
-        "comment":[
-            "This test check language server is able to report errors",
-            "when loading a project with missing files."
-        ]
-    },  {
-        "start": {
-            "cmd": ["${ALS}"]
-        }
-    },  {
-        "send": {
-            "request": {"jsonrpc":"2.0","id":0,"method":"initialize","params":{
-                "processId":1,
-                "rootUri":"$URI{.}",
-                "capabilities":{}}
-            },
-            "wait":[{
-                "id": 0,
-                "result":{
-                    "capabilities":{
-                        "textDocumentSync": 2,
-                        "definitionProvider":true
-                    }
-                }
-            }]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "method":"workspace/didChangeConfiguration",
-                "params":{
-                    "settings":{
-                        "ada":{
-                            "projectFile": "prj1.gpr"
-                        }
-                    }
-                }
-            },
-            "wait":[
-		{
-		    "jsonrpc": "2.0",
-		    "method": "window/showMessage",
-		    "params": {
-			"type": 1,
-			"message": "<ANY>"
-		    }
-		}
-	    ]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "method":"textDocument/didOpen",
-                "params":{
-                    "textDocument": {
-                        "uri": "$URI{main.adb}",
-                        "languageId": "ada",
-                        "version": 1,
-                        "text": "procedure Main is\nbegin\n   null;\nend Main;"
-                    }
-                }
-            },
-            "wait":[
-		{
-		    "jsonrpc": "2.0",
-		    "method": "textDocument/publishDiagnostics",
-		    "params": {
-			"uri":"$URI{main.adb}",
-			"diagnostics":[
-			    {
-				"range": {
-				    "start": {
-					"line": 0,
-					"character": 0
-				    },
-				    "end": {
-					"line":0,
-					"character":0
-				    }
-				},
-				"severity": 1,
-				"source": "project",
-				"message": "Project file has error and can't be loaded."
-			    }
-			]
-		    }
-		}
-	    ]
-        }
-    },  {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": "shutdown",
-                "method":"shutdown",
-                "params":null
-            },
-            "wait":[{ "id": "shutdown", "result": null }]
-        }
-    },  {
-        "send": {
-            "request": {"jsonrpc":"2.0", "method":"exit"},
-            "wait":[]
-        }
-    }, {
-        "stop": {
-            "exit_code": 0
-        }
-    }
+   {
+      "comment": [
+         "This test check language server is able to report errors",
+         "when loading a project with missing files."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "definitionProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "prj1.gpr"
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Main is\nbegin\n   null;\nend Main;"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 0, "character": 0 },
+                           "end": { "line": 0, "character": 0 }
+                        },
+                        "severity": 1,
+                        "source": "project",
+                        "message": "Project Problems",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{prj1.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 }
+                              },
+                              "message": "Project file has errors and can't be loaded."
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{prj1.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 1,
+                                       "character": 7
+                                    },
+                                    "end": {
+                                       "line": 1,
+                                       "character": 7
+                                    }
+                                 }
+                              },
+                              "message": "source file \"missing.ads\" not found"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
 ]
