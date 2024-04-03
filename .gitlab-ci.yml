@@ -142,7 +142,7 @@ test-vscode-extension:
 
     # Run VSCode extension tests
     - echo -e "\e[0Ksection_start:`date +%s`:test_vscode[collapsed=true]\r\e[0Kanod test vscode-extension"
-    - anod test vscode-extension --qualifier=$ACI_TRACK_QUALIFIER --minimal
+    - anod test vscode-extension $ACI_TRACK_QUALIFIER --minimal
 
     - VSCODE_BUILD_SPACE=$(anod info test vscode-extension $ACI_TRACK_QUALIFIER --show working_dir)
     - echo -e "\e[0Ksection_end:`date +%s`:test_vscode\r\e[0K"
