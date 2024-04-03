@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2022, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -80,7 +80,7 @@ package body LSP.Ada_Contexts is
    procedure Find_All_References_In_Hierarchy
      (Self       : Context;
       Decl       : Libadalang.Analysis.Basic_Decl;
-      Imprecise  : in out Boolean;
+      Imprecise  : in out Libadalang.Common.Ref_Result_Kind;
       Callback   : not null access procedure
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;
@@ -210,13 +210,13 @@ package body LSP.Ada_Contexts is
    function Find_All_Overrides
      (Self              : Context;
       Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Boolean)
+      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Basic_Decl_Array
    is
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
                 Self.Analysis_Units;
    begin
-      Imprecise_Results := False;
+      Imprecise_Results := Libadalang.Common.Precise;
 
       if Decl.Is_Null then
          return (1 .. 0 => <>);
@@ -228,7 +228,7 @@ package body LSP.Ada_Contexts is
          return Decl.P_Find_All_Overrides (Units);
       exception
          when E : Libadalang.Common.Property_Error =>
-            Imprecise_Results := True;
+            Imprecise_Results := Libadalang.Common.Imprecise;
             Self.Tracer.Trace_Exception (E, "in Find_All_Overrides (precise)");
             return Decl.P_Find_All_Overrides
               (Units, Imprecise_Fallback => True);
@@ -246,7 +246,7 @@ package body LSP.Ada_Contexts is
    function Find_All_Base_Declarations
      (Self              : Context;
       Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Boolean)
+      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Basic_Decl_Array
    is
       use Libadalang.Analysis;
@@ -259,7 +259,7 @@ package body LSP.Ada_Contexts is
          Langkit_Support.Slocs.Start_Sloc (Left.Sloc_Range) =
              Langkit_Support.Slocs.Start_Sloc (Right.Sloc_Range));
    begin
-      Imprecise_Results := False;
+      Imprecise_Results := Libadalang.Common.Precise;
 
       if Decl.Is_Null then
          return (1 .. 0 => <>);
@@ -293,7 +293,7 @@ package body LSP.Ada_Contexts is
    exception
       when E : Libadalang.Common.Property_Error =>
          Self.Tracer.Trace_Exception (E, "in Find_All_Base_Declarations");
-         Imprecise_Results := True;
+         Imprecise_Results := Libadalang.Common.Imprecise;
          return (1 .. 0 => <>);
    end Find_All_Base_Declarations;
 
@@ -304,7 +304,7 @@ package body LSP.Ada_Contexts is
    procedure Find_All_References_In_Hierarchy
      (Self       : Context;
       Decl       : Libadalang.Analysis.Basic_Decl;
-      Imprecise  : in out Boolean;
+      Imprecise  : in out Libadalang.Common.Ref_Result_Kind;
       Callback   : not null access procedure
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;
@@ -369,7 +369,7 @@ package body LSP.Ada_Contexts is
    procedure Get_References_For_Renaming
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
-      Imprecise_Results : out Boolean;
+      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind;
       Callback          : not null access procedure
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;
@@ -381,7 +381,7 @@ package body LSP.Ada_Contexts is
 
    begin
       --  Make sure to initialize the "out" variable Imprecise_Results
-      Imprecise_Results := False;
+      Imprecise_Results := Libadalang.Common.Precise;
 
       if Decl.Is_Null then
          return;

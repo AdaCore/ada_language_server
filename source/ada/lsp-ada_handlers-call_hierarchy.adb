@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -313,7 +313,8 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          end if;
       end Callback;
 
-      Imprecise : Boolean := False;
+      Imprecise_Ignore : Libadalang.Common.Ref_Result_Kind :=
+        Libadalang.Common.No_Ref;
       Cursor    : Laltools.Common.References_By_Subprogram.Cursor;
 
    begin
@@ -321,7 +322,7 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
            (Definition => Definition,
             Callback   => Callback'Access,
             Trace      => Trace,
-            Imprecise  => Imprecise);
+            Imprecise  => Imprecise_Ignore);
 
       Cursor := Result.First;
       --  Iterate through all the results, converting them to protocol
