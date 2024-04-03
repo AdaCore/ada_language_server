@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2019, AdaCore                     --
+--                     Copyright (C) 2018-2014, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -100,7 +100,7 @@ package LSP.Ada_Contexts is
    function Find_All_Overrides
      (Self              : Context;
       Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Boolean)
+      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Basic_Decl_Array;
    --  Finds all overriding subprograms of the given basic declaration.
    --  This is used to propose all the implementations of a given subprogram
@@ -112,7 +112,7 @@ package LSP.Ada_Contexts is
    function Find_All_Base_Declarations
      (Self              : Context;
       Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Boolean)
+      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Basic_Decl_Array;
    --  Given a subprogram declaration in Decl, find all the base subprograms
    --  that it inherits, not including self.
@@ -145,7 +145,7 @@ package LSP.Ada_Contexts is
    procedure Get_References_For_Renaming
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
-      Imprecise_Results : out Boolean;
+      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind;
       Callback          : not null access procedure
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;

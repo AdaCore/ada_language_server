@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -140,7 +140,7 @@ package body LSP.Ada_Handlers is
       Id        : LSP.Structures.Integer_Or_Virtual_String;
       Context   : LSP.Ada_Contexts.Context;
       Name_Node : Libadalang.Analysis.Name;
-      Imprecise : out Boolean)
+      Imprecise : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Defining_Name;
    --  Toplayer Resolve_Name based on Laltools.Common.Resolve_Name.
    --  This function is handling Imprecise and Error results during Nameres by
@@ -1737,7 +1737,8 @@ package body LSP.Ada_Handlers is
          On_Defining_Name        : Boolean := False;
          --  Set to True if we are on a denfining name node
 
-         Imprecise               : Boolean;
+         Imprecise_Ignore : Libadalang.Common.Ref_Result_Kind;
+
       begin
          if Name_Node.Is_Null then
             return;
@@ -1754,7 +1755,7 @@ package body LSP.Ada_Handlers is
                   Id        => Id,
                   Context   => C.all,
                   Name_Node => Name_Node,
-                  Imprecise => Imprecise);
+                  Imprecise => Imprecise_Ignore);
          else
             On_Defining_Name := True;
          end if;
@@ -1806,16 +1807,15 @@ package body LSP.Ada_Handlers is
 
          if not Decl_For_Find_Overrides.Is_Null then
             declare
-               Is_Imprecise : Boolean;
                Overridings  : constant Libadalang.Analysis.Basic_Decl_Array :=
                  C.Find_All_Overrides
                    (Decl_For_Find_Overrides,
-                    Imprecise_Results => Is_Imprecise);
+                    Imprecise_Results => Imprecise_Ignore);
 
                Bases        : constant Libadalang.Analysis.Basic_Decl_Array :=
                  C.Find_All_Base_Declarations
                    (Decl_For_Find_Overrides,
-                    Imprecise_Results => Is_Imprecise);
+                    Imprecise_Results => Imprecise_Ignore);
             begin
                for Subp of Bases loop
                   Self.Append_Location
@@ -2742,8 +2742,10 @@ package body LSP.Ada_Handlers is
          end Update_Response;
 
          Definition : Libadalang.Analysis.Defining_Name;
-         Imprecise  : Boolean := False;
          Decl       : Libadalang.Analysis.Basic_Decl;
+
+         Imprecise_Ignore : Libadalang.Common.Ref_Result_Kind :=
+           Libadalang.Common.No_Ref;
 
       begin
          if Name_Node.Is_Null then
@@ -2755,7 +2757,7 @@ package body LSP.Ada_Handlers is
             Id        => Id,
             Context   => C.all,
             Name_Node => Name_Node,
-            Imprecise => Imprecise);
+            Imprecise => Imprecise_Ignore);
 
          --  If we didn't find a definition, give up for this context
          if Definition.Is_Null then
@@ -2764,7 +2766,8 @@ package body LSP.Ada_Handlers is
 
          --  First list the bodies of this definition
          Update_Response
-           (Laltools.Common.List_Bodies_Of (Definition, Trace, Imprecise),
+           (Laltools.Common.List_Bodies_Of
+              (Definition, Trace, Imprecise_Ignore),
             LSP.Constants.Empty);
 
          --  Then list the bodies of the parent implementations
@@ -2777,19 +2780,19 @@ package body LSP.Ada_Handlers is
              (Display_Method_Policy = Usage_And_Abstract_Only
                      and then Decl.Kind in Ada_Abstract_Subp_Decl_Range)
          then
-            for Subp of C.Find_All_Base_Declarations (Decl, Imprecise)
+            for Subp of C.Find_All_Base_Declarations (Decl, Imprecise_Ignore)
             loop
                Update_Response
                  (Laltools.Common.List_Bodies_Of
-                    (Subp.P_Defining_Name, Trace, Imprecise),
+                    (Subp.P_Defining_Name, Trace, Imprecise_Ignore),
                   Is_Parent);
             end loop;
 
             --  And finally the bodies of child implementations
-            for Subp of C.Find_All_Overrides (Decl, Imprecise) loop
+            for Subp of C.Find_All_Overrides (Decl, Imprecise_Ignore) loop
                Update_Response
                  (Laltools.Common.List_Bodies_Of
-                    (Subp.P_Defining_Name, Trace, Imprecise),
+                    (Subp.P_Defining_Name, Trace, Imprecise_Ignore),
                   Is_Child);
             end loop;
          end if;
@@ -3310,7 +3313,11 @@ package body LSP.Ada_Handlers is
 
       Defining_Name : Libadalang.Analysis.Defining_Name;
 
-      Imprecise : Boolean := False;
+      Imprecise : Libadalang.Common.Ref_Result_Kind :=
+        Libadalang.Common.No_Ref;
+
+      use type Libadalang.Common.Ref_Result_Kind;
+
    begin
       if not Name_Node.Is_Null then
          Defining_Name := Resolve_Name
@@ -3323,7 +3330,7 @@ package body LSP.Ada_Handlers is
 
       if not Name_Node.Is_Null
         and then not Defining_Name.Is_Null
-        and then not Imprecise
+        and then Imprecise in Libadalang.Common.Precise
       then
          --  Success only if the node is a name and can be resolved precisely
          Response :=
@@ -3923,7 +3930,9 @@ package body LSP.Ada_Handlers is
       Response   : LSP.Structures.Definition_Result (LSP.Structures.Variant_1);
       Vector     : LSP.Structures.Location_Vector renames Response.Variant_1;
       Filter     : LSP.Locations.File_Span_Sets.Set;
-      Imprecise  : Boolean := False;
+
+      Imprecise_Ignore : Libadalang.Common.Ref_Result_Kind :=
+        Libadalang.Common.No_Ref;
 
       procedure Resolve_In_Context (C : LSP.Ada_Context_Sets.Context_Access);
       --  Utility function to gather results on one context
@@ -3960,7 +3969,7 @@ package body LSP.Ada_Handlers is
                        Id        => Id,
                        Context   => C.all,
                        Name_Node => Type_Expr.P_Type_Name,
-                       Imprecise => Imprecise);
+                       Imprecise => Imprecise_Ignore);
                end if;
             end;
          else
@@ -4064,11 +4073,10 @@ package body LSP.Ada_Handlers is
       Id        : LSP.Structures.Integer_Or_Virtual_String;
       Context   : LSP.Ada_Contexts.Context;
       Name_Node : Libadalang.Analysis.Name;
-      Imprecise : out Boolean)
+      Imprecise : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Defining_Name
    is
       Definition  : Libadalang.Analysis.Defining_Name;
-      Result_Kind : Libadalang.Common.Ref_Result_Kind;
       Trace       : constant GNATCOLL.Traces.Trace_Handle :=
         LSP.GNATCOLL_Tracers.Handle (Self.Tracer.all);
       Id_Image    : constant String :=
@@ -4076,7 +4084,7 @@ package body LSP.Ada_Handlers is
          then Id.Integer'Image
          else VSS.Strings.Conversions.To_UTF_8_String (Id.Virtual_String));
    begin
-      Imprecise := False;
+      Imprecise := Libadalang.Common.No_Ref;
 
       if Name_Node.Is_Null then
          --  Internal tracing of resolve on null node
@@ -4086,9 +4094,9 @@ package body LSP.Ada_Handlers is
 
       --  Find the definition
       Definition := Laltools.Common.Resolve_Name
-        (Name_Node, Trace, Result_Kind);
+        (Name_Node, Trace, Imprecise);
 
-      if Result_Kind in Libadalang.Common.Error then
+      if Imprecise in Libadalang.Common.Error then
          declare
             Err_Msg     : constant String :=
               "Failed to resolve " & Name_Node.Image;
@@ -4138,7 +4146,7 @@ package body LSP.Ada_Handlers is
             return Libadalang.Analysis.No_Defining_Name;
          end;
 
-      elsif Result_Kind in Libadalang.Common.Imprecise then
+      elsif Imprecise in Libadalang.Common.Imprecise then
          --  Internal tracing of imprecise resolving
          Self.Tracer.Trace
            ("Imprecise result when resolving "
@@ -4147,7 +4155,6 @@ package body LSP.Ada_Handlers is
             & VSS.Strings.Conversions.To_UTF_8_String (Context.Id)
             & " for request "
             & Id_Image);
-         Imprecise := True;
       end if;
 
       return Definition;
