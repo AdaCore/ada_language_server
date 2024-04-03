@@ -35,7 +35,19 @@ export const CMD_BUILD_AND_RUN_MAIN = 'ada.buildAndRunMain';
  */
 export const CMD_BUILD_AND_DEBUG_MAIN = 'ada.buildAndDebugMain';
 
+/**
+ * Identifier for a hidden command that returns an array of strings constituting
+ * the -P and -X project and scenario arguments.
+ */
 export const CMD_GPR_PROJECT_ARGS = 'ada.gprProjectArgs';
+
+/**
+ * Identifier for a hidden command that returns a string referencing the current
+ * project.  That string is either `"$\{config:ada.projectFile\}"` if that
+ * setting is configured, or otherwise the full path to the project file
+ * returned from a query to the
+ */
+export const CMD_GET_PROJECT_FILE = 'ada.getProjectFile';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
@@ -100,16 +112,41 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, () => {
-            const vars: string[][] = Object.entries(
-                vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
-            );
-            return ['-P', '${config:ada.projectFile}'].concat(
-                vars.map(([key, value]) => `-X${key}=${value}`)
-            );
-        })
+        vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, gprProjectArgs)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_GET_PROJECT_FILE, getProjectFromConfigOrALS)
     );
 }
+
+/**
+ * @returns an array of -P and -X project and scenario command lines arguments
+ * for use with GPR-based tools.
+ */
+export async function gprProjectArgs(): Promise<string[]> {
+    const vars: string[][] = Object.entries(
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
+    );
+    return ['-P', await getProjectFromConfigOrALS()].concat(
+        vars.map(([key, value]) => `-X${key}=${value}`)
+    );
+}
+
+export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
+
+/**
+ * @returns `"$\{config:ada.projectFile\}"` if that setting has a value, or else
+ * queries the ALS for the current project and returns the full path.
+ */
+export async function getProjectFromConfigOrALS(): Promise<string> {
+    /**
+     * If ada.projectFile is set, use the $\{config:ada.projectFile\} macro
+     */
+    return vscode.workspace.getConfiguration().get('ada.projectFile')
+        ? PROJECT_FROM_CONFIG
+        : await adaExtState.getProjectFile();
+}
+
 /**
  * Add a subprogram box above the subprogram enclosing the cursor's position, if any.
  *

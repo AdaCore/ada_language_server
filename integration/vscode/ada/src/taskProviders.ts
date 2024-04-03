@@ -20,6 +20,12 @@ import commandExists from 'command-exists';
 import path from 'path';
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
+import {
+    CMD_GPR_PROJECT_ARGS,
+    PROJECT_FROM_CONFIG,
+    getProjectFromConfigOrALS,
+    gprProjectArgs,
+} from './commands';
 import { adaExtState } from './extension';
 import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
 
@@ -234,6 +240,9 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
     gnatsasReport: {
         command: ['gnatsas', 'report'],
         title: 'Create a report after a GNAT SAS analysis',
+        // We set this flag to false because project args are added later as
+        // part of the 'args' task property
+        projectArgs: false,
         diagnosticArgs: false,
     },
     gnatsasAnalyzeAndReport: {
@@ -253,16 +262,6 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
 
 // eslint-disable-next-line max-len
 export const BUILD_PROJECT_TASK_NAME = `${ADA_TASK_TYPE}: ${allTaskProperties['buildProject'].title}`;
-
-export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
-async function getProjectFromConfigOrALS(): Promise<string> {
-    /**
-     * If ada.projectFile is set, use the $\{config:ada.projectFile\} macro
-     */
-    return vscode.workspace.getConfiguration().get('ada.projectFile')
-        ? PROJECT_FROM_CONFIG
-        : await getProjectFile(adaExtState.adaClient);
-}
 
 export function getScenarioArgs() {
     const vars: string[][] = Object.entries(
@@ -586,12 +585,15 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
      * @returns the task definition that should be used by default
      */
     private async getDefaultDefinition(kind: AllTaskKinds): Promise<CustomTaskDefinition> {
-        const projectFile: string = await adaExtState.getProjectFile();
         const definition: CustomTaskDefinition = {
             type: this.taskType,
             configuration: {
                 kind: kind,
-                projectFile: projectFile,
+                // This definition can end up in the User's tasks.json, so we
+                // use ${config:ada.projectFile} if available to avoid producing
+                // full paths in that file which should be portable with with
+                // workspace.
+                projectFile: await getProjectFromConfigOrALS(),
                 args: [],
             },
         };
@@ -601,7 +603,12 @@ export class ConfigurableTaskProvider implements vscode.TaskProvider {
                 /**
                  * For GNAT SAS use the SARIF format by default.
                  */
-                definition.configuration.args = ['sarif', '-o', 'report.sarif'];
+                definition.configuration.args = [
+                    'sarif',
+                    '-o',
+                    'report.sarif',
+                    `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+                ];
                 break;
             default:
                 break;
@@ -698,9 +705,6 @@ async function buildFullCommandLine(
     if (task.projectArgs === undefined || task.projectArgs) {
         // Add project and scenario args
         cmd = cmd.concat(await getProjectArgs(taskDef), getScenarioArgs());
-        // const args: string[] = await vscode.commands.executeCommand(CMD_GPR_PROJECT_ARGS);
-        // cmd.push(...args);
-        // cmd.push(`\${command:${CMD_GPR_PROJECT_ARGS}}`);
     }
 
     // If the task has a callback to compute extra arguments, call it. This is
@@ -759,8 +763,20 @@ async function buildFullCommandLine(
     }
 
     // Append User args before diagnostic args because the latter use `-cargs`
-    if (taskDef.configuration.args) {
-        cmd = cmd.concat(taskDef.configuration.args);
+    if (taskDef.configuration.args && taskDef.configuration.args.length > 0) {
+        const gprProjectArgsCmd = `\${command:${CMD_GPR_PROJECT_ARGS}}`;
+        const evaluatedArgs: string[] = (
+            await Promise.all(
+                taskDef.configuration.args.map(async (a) => {
+                    if (a == gprProjectArgsCmd) {
+                        return await gprProjectArgs();
+                    } else {
+                        return [a];
+                    }
+                })
+            )
+        ).flat();
+        cmd = cmd.concat(evaluatedArgs);
     }
     if (extraArgs) {
         cmd = cmd.concat(extraArgs);

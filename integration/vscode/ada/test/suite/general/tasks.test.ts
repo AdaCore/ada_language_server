@@ -2,13 +2,12 @@ import assert from 'assert';
 import { existsSync } from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
+import { PROJECT_FROM_CONFIG } from '../../../src/commands';
 import { exe, getProjectFile } from '../../../src/helpers';
 import {
-    AdaTaskKinds,
     AllTaskKinds,
     BUILD_PROJECT_TASK_NAME,
     CustomTaskDefinition,
-    PROJECT_FROM_CONFIG,
     adaTaskKinds,
     createAdaTaskProvider,
     createSparkTaskProvider,
