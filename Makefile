@@ -160,7 +160,7 @@ vscode-package:
 check: all
 	set -e; \
         export PYTHON=$(PYTHON); \
-        if [ `$(PYTHON) -c "import sys;print('e3' in sys.modules)"` = "True" ]; then\
+        if [ `$(PYTHON) -c "import e3,sys;print('e3' in sys.modules)"` = "True" ]; then\
            (cd testsuite ; sh run.sh $(test)) ; \
         else \
            for a in testsuite/*_lsp/*/*.json; do \

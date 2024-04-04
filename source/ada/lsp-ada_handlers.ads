@@ -294,11 +294,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.AlsCheckSyntaxParams);
 
-   overriding procedure On_Declaration_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DeclarationParams);
-
    overriding procedure On_DocumentHighlight_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
