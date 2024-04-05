@@ -341,6 +341,7 @@ package body LSP.GPR_Handlers is
 
       Capabilities.hoverProvider := LSP.Constants.True;
       Capabilities.definitionProvider := LSP.Constants.True;
+      Capabilities.declarationProvider := LSP.Constants.True;
       Capabilities.completionProvider :=
         (Is_Set => True,
          Value  => (triggerCharacters => [" "],
@@ -430,6 +431,55 @@ package body LSP.GPR_Handlers is
 
       Self.Sender.On_Completion_Resolve_Response (Id, Response);
    end On_Completion_Resolve_Request;
+
+   ----------------------------
+   -- On_Declaration_Request --
+   ----------------------------
+
+   overriding procedure On_Declaration_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DeclarationParams)
+   is
+      procedure Fill_Declaration;
+      --  Utility function, appends to Vector the definition if any.
+
+      Response : LSP.Structures.Declaration_Result  (LSP.Structures.Variant_1);
+
+      ----------------------
+      -- Fill_Declaration --
+      ----------------------
+
+      procedure Fill_Declaration is
+         File         : constant LSP.GPR_Files.File_Access :=
+                          LSP.GPR_Files.Parse
+                            (File_Provider => Self'Unchecked_Access,
+                             Path          => Self.To_File
+                               (Value.textDocument.uri));
+
+         Reference : constant Gpr_Parser.Common.Token_Reference :=
+                       LSP.GPR_Files.References.Token_Reference
+                         (File, Value.position);
+
+         Location : LSP.Structures.Location;
+
+         use type Gpr_Parser.Common.Token_Reference;
+
+      begin
+         if Reference /= Gpr_Parser.Common.No_Token then
+            Location.uri :=
+              LSP.GPR_File_Readers.To_URI (Reference.Origin_Filename);
+            Location.a_range := To_Range (Self'Unchecked_Access, Reference);
+            Response.Variant_1.Append (Location);
+         end if;
+
+      end Fill_Declaration;
+
+   begin
+      Fill_Declaration;
+
+      Self.Sender.On_Declaration_Response (Id, Response);
+   end On_Declaration_Request;
 
    ---------------------------
    -- On_Definition_Request --
