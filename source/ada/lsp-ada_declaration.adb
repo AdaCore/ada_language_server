@@ -139,7 +139,7 @@ package body LSP.Ada_Declaration is
       On_Defining_Name        : Boolean := False;
       --  Set to True if we are on a denfining name node
 
-      Ignore : Boolean;
+      Ignore : Libadalang.Common.Ref_Result_Kind;
    begin
       if Self.Contexts.Is_Empty then
          --  No more contexts to process, sort and return collected results
