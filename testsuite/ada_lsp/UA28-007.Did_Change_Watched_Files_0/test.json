@@ -499,12 +499,12 @@
                      },
                      "selectionRange": {
                         "start": {
-                           "line": 0,
+                           "line": 1,
                            "character": 0
                         },
                         "end": {
-                           "line": 0,
-                           "character": 4
+                           "line": 1,
+                           "character": 9
                         }
                      },
                      "children": [
@@ -644,7 +644,7 @@
                         },
                         "end": {
                            "line": 0,
-                           "character": 4
+                           "character": 9
                         }
                      },
                      "children": [

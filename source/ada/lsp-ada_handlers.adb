@@ -153,6 +153,12 @@ package body LSP.Ada_Handlers is
       return LSP.Structures.Location
         renames LSP.Ada_Handlers.Locations.To_LSP_Location;
 
+   overriding function To_LSP_Location
+     (Self : in out Message_Handler;
+      Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.Location is
+        (LSP.Ada_Handlers.Locations.To_LSP_Location (Self, Node));
+
    overriding function Get_Node_At
      (Self     : in out Message_Handler;
       Context  : LSP.Ada_Contexts.Context;
@@ -2336,49 +2342,6 @@ package body LSP.Ada_Handlers is
       Compute_Response;
       Self.Sender.On_DocumentHighlight_Response (Id, Response);
    end On_DocumentHighlight_Request;
-
-   -------------------------------
-   -- On_DocumentSymbol_Request --
-   -------------------------------
-
-   overriding procedure On_DocumentSymbol_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentSymbolParams)
-   is
-      use type LSP.Structures.Boolean_Optional;
-
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Unit : constant Libadalang.Analysis.Analysis_Unit :=
-        Context.Get_AU (Self.To_File (Value.textDocument.uri));
-
-      Response : LSP.Structures.DocumentSymbol_Result;
-
-      Pattern  : constant LSP.Search.Search_Pattern'Class :=
-        LSP.Search.Build
-          (Pattern        => Value.query,
-           Case_Sensitive => Value.case_sensitive = LSP.Constants.True,
-           Whole_Word     => Value.whole_word = LSP.Constants.True,
-           Negate         => Value.negate = LSP.Constants.True,
-           Kind           =>
-             (if Value.kind.Is_Set
-              then Value.kind.Value
-              else LSP.Enumerations.Start_Word_Text));
-   begin
-      if Self.Client.Hierarchical_Symbol then
-         Response := (Kind => LSP.Structures.Variant_2, Variant_2 => <>);
-
-         LSP.Ada_Handlers.Symbols.Hierarchical_Document_Symbols
-           (Self, Unit, Pattern, Response.Variant_2);
-      else
-         LSP.Ada_Handlers.Symbols.Flat_Document_Symbols
-           (Self, Unit, Pattern, Response);
-      end if;
-
-      Self.Sender.On_DocumentSymbol_Response (Id, Response);
-   end On_DocumentSymbol_Request;
 
    -------------------------------
    -- On_ExecuteCommand_Request --

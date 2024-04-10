@@ -40,6 +40,7 @@ with GNATCOLL.Utils;
 with LSP.Ada_Commands;
 with LSP.Ada_Definition;
 with LSP.Ada_Declaration;
+with LSP.Ada_Document_Symbol;
 with LSP.Ada_Did_Change_Configurations;
 with LSP.Ada_Did_Change_Document;
 with LSP.Ada_Hover;
@@ -80,6 +81,7 @@ with LSP.Server_Notifications.DidChange;
 with LSP.Server_Notifications.DidChangeConfiguration;
 with LSP.Server_Requests.Definition;
 with LSP.Server_Requests.Declaration;
+with LSP.Server_Requests.DocumentSymbol;
 with LSP.Server_Requests.Hover;
 with LSP.Server_Requests.References;
 with LSP.Servers;
@@ -199,6 +201,10 @@ procedure LSP.Ada_Driver is
 
    Ada_Declaration_Handler : aliased
      LSP.Ada_Declaration.Ada_Declaration_Handler
+       (Ada_Handler'Unchecked_Access);
+
+   Ada_Document_Symbol_Handler : aliased
+     LSP.Ada_Document_Symbol.Ada_Document_Symbol_Handler
        (Ada_Handler'Unchecked_Access);
 
    GPR_Did_Change_Doc_Handler : aliased
@@ -420,6 +426,10 @@ begin
          Server.Register_Handler
            (LSP.Server_Requests.Declaration.Request'Tag,
             Ada_Declaration_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.DocumentSymbol.Request'Tag,
+            Ada_Document_Symbol_Handler'Unchecked_Access);
 
          Server.Register_Handler
            (LSP.Server_Requests.References.Request'Tag,
