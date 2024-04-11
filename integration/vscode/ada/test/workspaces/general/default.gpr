@@ -16,4 +16,11 @@ project Default is
       for Default_Switches ("Ada") use ("-g", "-O0");
    end Compiler;
 
+   package Documentation is
+      -- This project contains intentionally invalid code which causes gnatdoc
+      -- to fail when testing the corresponding vscode task. This gets the
+      -- project skipped by gnatdoc for the purpose of testing.
+      for Excluded_Project_Files use ("default.gpr");
+   end Documentation;
+
 end Default;

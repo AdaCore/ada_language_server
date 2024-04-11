@@ -11,6 +11,7 @@ import {
     adaTaskKinds,
     createAdaTaskProvider,
     createSparkTaskProvider,
+    findTaskByName,
     getEnclosingSymbol,
     getSelectedRegion,
 } from '../../../src/taskProviders';
@@ -284,6 +285,11 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
 });
 
 suite('Task Execution', function () {
+    /**
+     * Use longer timeout to accomodate for tool invocations
+     */
+    this.timeout('10s');
+
     const testedTaskKinds = new Set<AllTaskKinds>();
     let projectPath: string;
 
@@ -336,15 +342,7 @@ suite('Task Execution', function () {
     });
 
     test('cleanProject task', async () => {
-        assert(vscode.workspace.workspaceFolders);
-        const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
-        const task = adaTasks.find((v) => v.name == 'Clean current project');
-        assert(task);
-        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
-
-        const execStatus: number | undefined = await runTaskAndGetResult(task);
-
-        assert.equal(execStatus, 0);
+        await testTask('Clean current project');
     });
 
     test('Automatic buildMain command', async () => {
@@ -466,9 +464,25 @@ suite('Task Execution', function () {
         assert.equal(await runTaskAndGetResult(resolved), 2);
     });
 
-    test('gnatsas analyze');
-    test('gnatsas report');
-    test('gnattest');
+    test('gnatsas analyze', async () => {
+        await testTask('ada: Analyze the project with GNAT SAS');
+    });
+
+    test('gnatsas report', async () => {
+        await testTask('ada: Create a report after a GNAT SAS analysis');
+    });
+
+    test('gnatsas analyze & report', async () => {
+        await testTask('ada: Analyze the project with GNAT SAS and produce a report');
+    });
+
+    test('gnatdoc', async () => {
+        await testTask('ada: Generate documentation from the project');
+    });
+
+    test('gnattest', async () => {
+        await testTask('ada: Create/update test skeletons for the project');
+    });
 
     test('All tasks tested', () => {
         const untested = adaTaskKinds.filter((v) => !testedTaskKinds.has(v));
@@ -479,6 +493,18 @@ suite('Task Execution', function () {
             );
         }
     });
+
+    async function testTask(taskName: string) {
+        assert(vscode.workspace.workspaceFolders);
+        const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
+        const task = findTaskByName(adaTasks, taskName);
+        assert(task);
+        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
+
+        const execStatus: number | undefined = await runTaskAndGetResult(task);
+
+        assert.equal(execStatus, 0);
+    }
 });
 
 async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
