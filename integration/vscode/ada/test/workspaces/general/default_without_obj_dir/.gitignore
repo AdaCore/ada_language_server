@@ -1,0 +1,9 @@
+# This project has no Object_Dir defined, so we have to git-ignore specific
+# extensions and files
+/*.o
+/*.ali
+/*.stdout
+/*.stderr
+/b__*.ad?
+/*.bexch
+/main1exec
