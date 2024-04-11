@@ -21,6 +21,8 @@
 
 ## Named Parameters
 
+**Command name:** `als-named-parameters`
+
 * Adds the formal parameter name of each actual parameter in the subprogram call.
 
 [Source](https://github.com/AdaCore/ada_language_server/blob/master/source/ada/lsp-ada_handlers-named_parameters_commands.ads)
@@ -31,6 +33,8 @@
 
 
 ## Add Parameter
+
+**Command name:** `als-refactor-add-parameters`
 
 * Adds a new parameter to a subprogram.
 * All subprogram specs are updated.
@@ -46,6 +50,8 @@
 
 ## Remove Parameter
 
+**Command name:** `als-refactor-remove-parameters`
+
 * Removes a parameter of a subprogram.
 * All subprogram specs are updated.
 * Actual parameter is removed from the subprogram calls.
@@ -57,6 +63,8 @@
 ![remove parameter](https://user-images.githubusercontent.com/22893717/166926891-d621fb59-8524-4ba8-abfc-74c12fed2adf.gif)
 
 ## Move Parameter
+
+**Command name:** `als-refactor-move-parameters`
 
 * Moves a parameter backward and forward within a subprogram spec.
 * All subprogram specs are updated.
@@ -70,6 +78,8 @@
 
 ## Change Parameter Mode
 
+**Command name:** `als-refactor-change-parameter-mode`
+
 * Changes the parameter mode within a subprogram spec.
 * All subprogram specs are updated.
 
@@ -80,6 +90,8 @@
 ![change_parameter_mode](https://user-images.githubusercontent.com/22893717/166927346-cbaa9789-eb44-44df-8a9a-c2b770d3a93e.gif)
 
 ## Change Parameter Type
+
+**Command name:** `als-refactor-change_parameters_type`
 
 * Changes the parameter subtype indication within a subprogram spec.
 * Only subtype indications with correct syntax are accepted.
@@ -93,6 +105,8 @@
 
 ## Change Parameter Default Value
 
+**Command name:** `als-refactor-change_parameters_default_value`
+
 * Changes the parameter default value expression within a subprogram spec.
 * Only default value expressions with correct syntax are accepted.
 * All subprogram specs are updated.
@@ -104,6 +118,8 @@
 ![change_parameter_default_value](https://user-images.githubusercontent.com/22893717/166927617-f6f33bc4-d660-44ce-b836-bf02b839887e.gif)
 
 ## Extract Subprogram
+
+**Command name:** `als-refactor-extract-subprogram`
 
 * Extracts statements to a new subprogram.
 * The new subprogram is created in the nearest declarative part.
@@ -118,6 +134,8 @@
 
 ## Pull Up Declaration
 
+**Command name:** `als-refactor-pull_up_declaration`
+
 * Moves a declaration and its dependent declarations to their parent declarative part.
 * When pulling up a subprogram, object declaration are not pulled up. Instead, they're added as formal parameters to the subprogram specification and as actual parameters to the subprogram calls.
 
@@ -128,6 +146,8 @@
 ![pull_up_declaration](https://user-images.githubusercontent.com/22893717/166927695-e6b9e016-1374-4aa5-9640-60aaf1a4b7fe.gif)
 
 ## Suppress Separate
+
+**Command name:** `als-suppress-separate`
 
 * Moves a separate subunit to it's stub in the parent package.
 * Use clauses in the separate subunit are moved to the subprogram's declarative part to avoid namespace collisions.
@@ -141,6 +161,8 @@
 
 ## Introduce Parameter
 
+**Command name:** `als-refactor-introduce-parameter`
+
 * Introduces a formal parameter based on an object declaration or expression inside a subprogram.
 * All references of the object declaration or expression are replaced by the introduced parameter.
 * The user must mannually fix the calls to the subprogram that was refactored by addings the corresponding actual parameter.
@@ -153,6 +175,8 @@
 
 ## Replace Type
 
+**Command name:** `als-refactor-replace-type`
+
 * Replaces a type in the intire project by another type provided by the user.
 
 [Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-replace_type.ads)
@@ -163,15 +187,19 @@
 
 ## Auto Import
 
+**Command name:** `als-auto-import`
+
 * For an unresolved name, suggests all packages that can be imported and prefix to be added so that that the name gets resolved.
 
-[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-refactor_imports.ads)
+[Source](https://github.com/AdaCore/lal-refactor/blob/edge/src/lal_refactor-auto_import.adb)
 
 [Demo Source](../integration/vscode/Code%20Samples/refactoring_demos/auto_import)
 
 ![auto import](https://user-images.githubusercontent.com/22893717/217804710-e686ef22-227b-4e81-8bb1-1f218e5709df.gif)
 
 ## Sort Dependencies
+
+**Command name:** `als-refactor-sort_dependencies`
 
 * Sorts all with and use clauses and their associated pragmas.
 
