@@ -159,30 +159,6 @@
                            }
                         ]
                      }
-                  },
-                  {
-                     "title": "Qualify with E",
-                     "kind": "quickfix",
-                     "command": {
-                        "title": "",
-                        "command": "als-auto-import",
-                        "arguments": [
-                           {
-                              "context": "Default",
-                              "where": {
-                                 "textDocument": {
-                                    "uri": "$URI{main.adb}"
-                                 },
-                                 "position": {
-                                    "line": 2,
-                                    "character": 5
-                                 }
-                              },
-                              "import": "E",
-                              "qualifier": "E"
-                           }
-                        ]
-                     }
                   }
                ]
             }
