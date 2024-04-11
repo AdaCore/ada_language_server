@@ -268,8 +268,16 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
             const execStatus: number | undefined = await runTaskAndGetResult(task);
             assert.equal(execStatus, 0);
         } finally {
-            // Reset the 'ada.projectFile' setting.
-            await vscode.workspace.getConfiguration().update('ada.projectFile', initialProjectFile);
+            // Reset the 'ada.projectFile' setting. If the previous value was
+            // empty, update to 'undefined' so that the setting gets removed.
+            // That's because the default value of that setting is the empty
+            // string.
+            await vscode.workspace
+                .getConfiguration()
+                .update(
+                    'ada.projectFile',
+                    initialProjectFile === '' ? undefined : initialProjectFile
+                );
         }
     });
 
