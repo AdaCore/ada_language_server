@@ -23,49 +23,12 @@ with LSP.Text_Documents.Langkit_Documents;
 
 package body LSP.GPR_Files.References is
 
-   package GPC renames Gpr_Parser.Common;
    use type GPC.Token_Kind;
 
    package Identifier_Vectors is new
      Ada.Containers.Vectors
        (Index_Type   => Natural,
         Element_Type => GPC.Token_Reference);
-
-   type Ref_Kind is
-     (No_Ref, Project_Ref, Type_Ref, Variable_Ref, Attribute_Ref, Package_Ref);
-
-   type Reference (Kind : Ref_Kind := No_Ref) is record
-      Token : Gpr_Parser.Common.Token_Reference := GPC.No_Token;
-      case Kind is
-         when No_Ref =>
-            null;
-         when others =>
-            Project   : Project_Id := No_Project;
-            case Kind is
-               when Project_Ref =>
-                  null;
-               when Type_Ref =>
-                  Typ : Type_Id := No_Type;
-               when others =>
-                  Pack : GPR2.Package_Id := GPR2.Project_Level_Scope;
-                  case Kind is
-                     when Variable_Ref =>
-                        Variable  : Variable_Id := No_Variable;
-                     when Attribute_Ref =>
-                        Attribute : GPR2.Optional_Attribute_Id :=
-                                      GPR2.No_Attribute;
-                        Index     : Index_Type := No_Index;
-                     when Package_Ref =>
-                        null;
-                     when others =>
-                        null;
-                  end case;
-            end case;
-      end case;
-   end record;
-
-   No_Reference : constant Reference := (Kind => No_Ref, Token => GPC.No_Token);
-   --  No reference found
 
    Project_Identifier_Id : constant Project_Id := +"project";
    --  Identifier used to reference attributes, types, variables & packages
@@ -84,14 +47,6 @@ package body LSP.GPR_Files.References is
    function Token_Reference
      (Ref : Reference) return Gpr_Parser.Common.Token_Reference;
    --  Token_Reference adapter.
-
-   function Identifier_Reference
-     (File            : LSP.GPR_Files.File_Access;
-      Current_Package : GPR2.Package_Id;
-      Location        : Gpr_Parser.Slocs.Source_Location)
-      return Reference;
-   --  return the Project, Type, Variable, Attribute, Package reference
-   --  found at 'Location'. 'Current_Package' useful for package's variable.
 
    --------------------
    -- Previous_Token --
@@ -152,7 +107,7 @@ package body LSP.GPR_Files.References is
    function Identifier_Reference
      (File     : LSP.GPR_Files.File_Access;
       Current_Package : GPR2.Package_Id;
-      Location : Gpr_Parser.Slocs.Source_Location)
+      Token           : Gpr_Parser.Common.Token_Reference)
          return Reference is
 
       Project_Provided : Boolean := False;
@@ -173,13 +128,16 @@ package body LSP.GPR_Files.References is
       Tick_Found : Boolean := False;
       --  True if "'" is at the left of position
 
+      In_Type_Reference : Boolean := False;
+      --  True if ":" is at the left of reference
+
       Previous_Token_Kind : GPC.Token_Kind;
       --  token kind just before 'Location'
 
       Next_Token_Kind : GPC.Token_Kind;
       --  token kind just after 'Location'
 
-      procedure Initialize;
+      procedure Initialize (Last_Token : GPC.Token_Reference);
       --  Initialize 'Identifiers' & 'Tick_Found'
 
       procedure Remove_Project;
@@ -193,9 +151,8 @@ package body LSP.GPR_Files.References is
       -- Initialize --
       ----------------
 
-      procedure Initialize is
-         Token    : GPC.Token_Reference :=
-                      LSP.GPR_Files.Token (File.all, Location);
+      procedure Initialize (Last_Token : GPC.Token_Reference) is
+         Token    : GPC.Token_Reference := Last_Token;
          First    : Boolean := True;
       begin
          Previous_Token_Kind :=
@@ -221,10 +178,17 @@ package body LSP.GPR_Files.References is
 
                   Identifiers.Clear;
                   return;
+               elsif Token.Data.Kind = GPC.Gpr_Colon then
+                  --  Let 'Initialize' return a type reference
+
+                  In_Type_Reference := True;
+
+                  return;
                elsif Token.Data.Kind /= GPC.Gpr_Dot then
                   --  Let 'Initialize' return a possible reference.
 
                   return;
+
                end if;
 
                --  Loop on previous token
@@ -262,6 +226,13 @@ package body LSP.GPR_Files.References is
               (File.File_Provider,
                File.Name_To_File_Map.Element (Project));
             return;
+         elsif File.Extended = Project then
+            Identifiers.Delete_First;
+            Project_Provided := True;
+            Referenced_Project := LSP.GPR_Files.Parse
+              (File.File_Provider,
+               File.Extended_Path);
+            return;
          end if;
          Referenced_Project := File;
       end Remove_Project;
@@ -286,7 +257,13 @@ package body LSP.GPR_Files.References is
       use type Ada.Containers.Count_Type;
    begin
 
-      Initialize;
+      if Token = GPC.No_Token
+        or else Token.Data.Kind /= GPC.Gpr_Identifier
+      then
+         return No_Reference;
+      end if;
+
+      Initialize (Token);
 
       if Identifiers.Length > 0 then
          Remove_Project;
@@ -294,9 +271,10 @@ package body LSP.GPR_Files.References is
 
       if Identifiers.Length = 0 then
          if Project_Provided then
-            return (Kind => Project_Ref,
-                    Token => Referenced_Project.Name_Token,
-                    Project => Referenced_Project.Name);
+            return (Kind               => Project_Ref,
+                    Token              => Referenced_Project.Name_Token,
+                    Project            => Referenced_Project.Name,
+                    In_Type_Reference => In_Type_Reference);
          end if;
          return No_Reference;
       end if;
@@ -315,10 +293,11 @@ package body LSP.GPR_Files.References is
             begin
                if LSP.GPR_Files.Package_Maps.Has_Element (P) then
                   D := LSP.GPR_Files.Package_Maps.Element (P);
-                  return (Kind    => Package_Ref,
-                          Token   => D.First,
+                  return (Kind               => Package_Ref,
+                          Token              => D.First,
                           Project => Referenced_Project.Name,
-                          Pack    => Referenced_Package);
+                          In_Type_Reference  => False,
+                          Pack               => Referenced_Package);
                end if;
             end;
          end if;
@@ -350,13 +329,15 @@ package body LSP.GPR_Files.References is
                            C := M.First;
                            if LSP.GPR_Files.Attribute_Index_Maps.Has_Element (C)
                            then
-                              return (Kind      => Attribute_Ref,
-                                      Token     => LSP.GPR_Files.
+                              return (Kind              => Attribute_Ref,
+                                      Token             => LSP.GPR_Files.
                                         Attribute_Index_Maps.Element (C).Token,
-                                      Project   => Referenced_Project.Name,
-                                      Pack      => Referenced_Package,
-                                      Attribute => Attribute,
-                                      Index     => No_Index);
+                                      Project           =>
+                                        Referenced_Project.Name,
+                                      Pack              => Referenced_Package,
+                                      Attribute         => Attribute,
+                                      Index             => No_Index,
+                                      In_Type_Reference => False);
                            end if;
                         end if;
                      end if;
@@ -373,12 +354,14 @@ package body LSP.GPR_Files.References is
                         M := LSP.GPR_Files.Attribute_Maps.Element (A);
                         C := M.First;
                         if C.Has_Element then
-                           return (Kind      => Attribute_Ref,
-                                   Token     => C.Element.Token,
-                                   Project   => Referenced_Project.Name,
-                                   Pack      => Referenced_Package,
-                                   Attribute => Attribute,
-                                   Index     => No_Index);
+                           return (Kind              => Attribute_Ref,
+                                   Token             => C.Element.Token,
+                                   Project           =>
+                                     Referenced_Project.Name,
+                                   Pack              => Referenced_Package,
+                                   Attribute         => Attribute,
+                                   Index             => No_Index,
+                                   In_Type_Reference => False);
                         end if;
                      end if;
                   end;
@@ -398,11 +381,13 @@ package body LSP.GPR_Files.References is
                               Referenced_Project.Types.Find (Typ);
                      begin
                         if LSP.GPR_Files.Type_Maps.Has_Element (C) then
-                           return (Kind    => Type_Ref,
-                                   Token   =>
+                           return (Kind               => Type_Ref,
+                                   Token              =>
                                      LSP.GPR_Files.Type_Maps.Element (C).Token,
-                                   Project => Referenced_Project.Name,
-                                   Typ     => Typ);
+                                   Project            =>
+                                     Referenced_Project.Name,
+                                   In_Type_Reference => In_Type_Reference,
+                                   Typ                => Typ);
                         end if;
                      end;
                   end if;
@@ -426,13 +411,15 @@ package body LSP.GPR_Files.References is
                               if LSP.GPR_Files.Variable_Maps.
                                 Has_Element (V)
                               then
-                                 return (Kind     => Variable_Ref,
-                                         Token    =>
+                                 return (Kind              => Variable_Ref,
+                                         Token             =>
                                            LSP.GPR_Files.Variable_Maps.
                                              Element (V).Token,
-                                         Project  => Referenced_Project.Name,
-                                         Pack     => Current_Package,
-                                         Variable => Variable);
+                                         Project           =>
+                                           Referenced_Project.Name,
+                                         Pack              => Current_Package,
+                                         Variable          => Variable,
+                                         In_Type_Reference => False);
                               end if;
                            end if;
                         end;
@@ -443,13 +430,16 @@ package body LSP.GPR_Files.References is
                                 Variables.Find (Variable);
                      begin
                         if LSP.GPR_Files.Variable_Maps.Has_Element (V) then
-                           return (Kind     => Variable_Ref,
-                                   Token    =>
+                           return (Kind              => Variable_Ref,
+                                   Token             =>
                                      LSP.GPR_Files.Variable_Maps.
                                        Element (V).Token,
-                                   Project  => Referenced_Project.Name,
-                                   Pack     => GPR2.Project_Level_Scope,
-                                   Variable => Variable);
+                                   Project           =>
+                                     Referenced_Project.Name,
+                                   Pack              =>
+                                     GPR2.Project_Level_Scope,
+                                   Variable          => Variable,
+                                   In_Type_Reference => False);
                         end if;
                      end;
                   elsif Referenced_Package /= GPR2.Project_Level_Scope then
@@ -466,13 +456,15 @@ package body LSP.GPR_Files.References is
                            if LSP.GPR_Files.Variable_Maps.
                              Has_Element (V)
                            then
-                              return (Kind     => Variable_Ref,
-                                      Token    =>
+                              return (Kind              => Variable_Ref,
+                                      Token             =>
                                         LSP.GPR_Files.Variable_Maps.
                                           Element (V).Token,
-                                      Project  => Referenced_Project.Name,
-                                      Pack     => Referenced_Package,
-                                      Variable => Variable);
+                                      Project           =>
+                                        Referenced_Project.Name,
+                                      Pack              => Referenced_Package,
+                                      Variable          => Variable,
+                                      In_Type_Reference => False);
                            end if;
                         end if;
                      end;
@@ -483,13 +475,16 @@ package body LSP.GPR_Files.References is
                                 Variables.Find (Variable);
                      begin
                         if LSP.GPR_Files.Variable_Maps.Has_Element (V) then
-                           return (Kind     => Variable_Ref,
-                                   Token    =>
+                           return (Kind              => Variable_Ref,
+                                   Token             =>
                                      LSP.GPR_Files.Variable_Maps.
                                        Element (V).Token,
-                                   Project  => Referenced_Project.Name,
-                                   Pack     => GPR2.Project_Level_Scope,
-                                   Variable => Variable);
+                                   Project           =>
+                                     Referenced_Project.Name,
+                                   Pack              =>
+                                     GPR2.Project_Level_Scope,
+                                   Variable          => Variable,
+                                   In_Type_Reference => False);
                         end if;
                      end;
                   end if;
@@ -636,7 +631,7 @@ package body LSP.GPR_Files.References is
             when GPC.Gpr_Identifier =>
                return Token_Reference
                  (Identifier_Reference
-                    (File, File.Get_Package (Position), Location));
+                    (File, File.Get_Package (Position), Token));
             when GPC.Gpr_String =>
                return String_Reference;
             when others =>
@@ -645,5 +640,77 @@ package body LSP.GPR_Files.References is
       end if;
       return GPC.No_Token;
    end Token_Reference;
+
+   ----------
+   -- Kind --
+   ----------
+
+   function Kind (Ref : Reference) return Ref_Kind is
+   begin
+      return Ref.Kind;
+   end Kind;
+
+   ---------------------
+   -- Referenced_File --
+   ---------------------
+
+   function Referenced_File
+     (File      : LSP.GPR_Files.File_Access;
+      Reference : LSP.GPR_Files.References.Reference)
+      return LSP.GPR_Files.File_Access is
+   begin
+      if Reference.Kind /= No_Ref then
+         declare
+            Cursor : constant Name_To_File_Maps.Cursor :=
+                          File.Name_To_File_Map.Find (Reference.Project);
+            Path   : GPR2.Path_Name.Object;
+         begin
+            if Cursor.Has_Element then
+               Path := Cursor.Element;
+               if Path.Exists then
+                  return File.File_Provider.Get_Parsed_File (Path);
+               end if;
+            end if;
+         end;
+      end if;
+      return File;
+   end Referenced_File;
+
+   ------------------------
+   -- Referenced_Package --
+   ------------------------
+
+   function Referenced_Package
+     (Reference : LSP.GPR_Files.References.Reference)
+      return GPR2.Package_Id is
+   begin
+      if Has_Package (Reference) then
+         return Reference.Pack;
+      else
+         return GPR2.Project_Level_Scope;
+      end if;
+   end Referenced_Package;
+
+   function Get_Referenced_File
+     (File : LSP.GPR_Files.File_Access;
+      Reference : LSP.GPR_Files.References.Reference)
+      return LSP.GPR_Files.File_Access is
+   begin
+      if Reference /= No_Reference then
+         declare
+            Cursor : constant LSP.GPR_Files.Name_To_File_Maps.Cursor
+              := File.Name_To_File_Map.Find (Reference.Project);
+            Path : constant GPR2.Path_Name.Object :=
+                     (if Cursor.Has_Element
+                      then Cursor.Element
+                      else GPR2.Path_Name.Undefined);
+         begin
+            if Path.Is_Defined and then Path.Exists then
+               return File.File_Provider.Get_Parsed_File (Path);
+            end if;
+         end;
+      end if;
+      return File;
+   end Get_Referenced_File;
 
 end LSP.GPR_Files.References;

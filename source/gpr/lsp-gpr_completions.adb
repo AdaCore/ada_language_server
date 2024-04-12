@@ -16,21 +16,20 @@
 ------------------------------------------------------------------------------
 
 with Ada.Characters.Conversions;
-with Ada.Characters.Handling;
-
 with GPR2.Project.Registry.Attribute;
 with GPR2.Project.Registry.Attribute.Description;
 with GPR2.Project.Registry.Pack;
 with GPR2.Project.Registry.Pack.Description;
 
 with Gpr_Parser.Common;
-with Gpr_Parser_Support.Text;
 
+with LSP.GPR_Files.References;
 with LSP.Structures.LSPAny_Vectors;
 with LSP.Text_Documents.Langkit_Documents;
 
 with VSS.String_Vectors;
 with VSS.Strings.Conversions;
+with VSS.Transformers.Casing;
 
 package body LSP.GPR_Completions is
 
@@ -43,34 +42,145 @@ package body LSP.GPR_Completions is
    package PRPD renames GPR2.Project.Registry.Pack.Description;
    package LKD renames LSP.Text_Documents.Langkit_Documents;
 
+   procedure Fill_Completion_Response
+     (File            : LSP.GPR_Files.File_Access;
+      Doc             : Boolean;
+      Response        : in out LSP.Structures.Completion_Result;
+      Reference       : LSP.GPR_Files.References.Reference;
+      Prefix          : VSS.Strings.Virtual_String);
+   --  Handle completion for specified kind starting from File/Pack
+
    procedure Fill_Attribute_Completion_Response
-     (File     : LSP.GPR_Files.File;
-      Position : LSP.Structures.Position;
-      Doc      : Boolean;
-      Filter   : String;
-      Response : in out LSP.Structures.Completion_Result);
-      --  Handle completion when cursor after for keyword
+     (File            : LSP.GPR_Files.File_Access;
+      Current_Package : Package_Id;
+      Doc             : Boolean;
+      Prefix          : VSS.Strings.Virtual_String;
+      Response        : in out LSP.Structures.Completion_Result);
+   --  Handle completion when cursor after "for" or "'" keyword
 
    procedure Fill_Package_Completion_Response
-     (File     : LSP.GPR_Files.File;
-      Doc      : Boolean;
-      Filter   : String;
+     (File            : LSP.GPR_Files.File_Access;
+      Doc             : Boolean;
+      Prefix          : VSS.Strings.Virtual_String;
+      Unexisting_Only : Boolean;
+      Response        : in out LSP.Structures.Completion_Result);
+   --  Handle completion when cursor after "package" keyword or after a project
+   --  reference.
+
+   procedure Fill_Type_Completion_Response
+     (File     : LSP.GPR_Files.File_Access;
+      Prefix   : VSS.Strings.Virtual_String;
       Response : in out LSP.Structures.Completion_Result);
-   --  Handle completion when cursor after package keyword
+   --  Handle completion when cursor after ':' character
+
+   procedure Fill_Variable_Completion_Response
+     (File            : LSP.GPR_Files.File_Access;
+      Current_Package : Package_Id;
+      Prefix          : VSS.Strings.Virtual_String;
+      Response        : in out LSP.Structures.Completion_Result);
+   --  Handle completion when cursor after a project/package reference.
+
+   procedure Fill_Left_Part_Completion_Response
+     (File            : LSP.GPR_Files.File_Access;
+      Current_Package : Package_Id;
+      Token_Kind      : GPC.Token_Kind;
+      Doc             : Boolean;
+      Prefix          : VSS.Strings.Virtual_String;
+      Response        : in out LSP.Structures.Completion_Result);
+   --  Handle completion when cursor after "use", "renames", "extends", ":=",
+   --  '(', ',', '&' tokens.
+
+   procedure Add_Item
+     (Name     : VSS.Strings.Virtual_String;
+      Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result);
+   --  Append 'Name' if it starts with 'Prefix' to 'Response'
+
+   procedure Add_Items
+     (Items    : VSS.String_Vectors.Virtual_String_Vector;
+      Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result);
+   --  Append 'Items' if element starts with 'Prefix' to 'Response'
+
+   function To_Lower
+     (S : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String is
+      (S.Transform (VSS.Transformers.Casing.To_Lowercase));
+
+   --------------
+   -- Add_Item --
+   --------------
+
+   procedure Add_Item
+     (Name     : VSS.Strings.Virtual_String;
+      Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result) is
+      Item       : LSP.Structures.CompletionItem;
+   begin
+      if VSS.Strings.Starts_With (To_Lower (Name), Prefix) then
+         Item.label := Name;
+         Response.Variant_2.items.Append (Item);
+      end if;
+   end Add_Item;
+
+   ---------------
+   -- Add_Items --
+   ---------------
+
+   procedure Add_Items
+     (Items    : VSS.String_Vectors.Virtual_String_Vector;
+      Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result) is
+   begin
+      for Item of Items loop
+         Add_Item (Item, Prefix, Response);
+      end loop;
+   end Add_Items;
+
+   ------------------------------
+   -- Fill_Completion_Response --
+   ------------------------------
+
+   procedure Fill_Completion_Response
+     (File            : LSP.GPR_Files.File_Access;
+      Doc             : Boolean;
+      Response        : in out LSP.Structures.Completion_Result;
+      Reference       : LSP.GPR_Files.References.Reference;
+      Prefix          : VSS.Strings.Virtual_String) is
+      use LSP.GPR_Files.References;
+
+      Referenced_File : constant LSP.GPR_Files.File_Access :=
+                          LSP.GPR_Files.References.Referenced_File
+                            (File, Reference);
+   begin
+      if Is_Project_Reference (Reference) then
+         if In_Type_Reference (Reference) then
+            Fill_Type_Completion_Response (Referenced_File, Prefix, Response);
+         else
+            Fill_Variable_Completion_Response
+              (Referenced_File, GPR2.Project_Level_Scope, Prefix, Response);
+            Fill_Package_Completion_Response
+              (File            => File,
+               Doc             => Doc,
+               Prefix          => Prefix,
+               Unexisting_Only => False,
+               Response        => Response);
+         end if;
+      elsif Is_Package_Reference (Reference) then
+         Fill_Variable_Completion_Response
+           (Referenced_File, Referenced_Package (Reference), Prefix, Response);
+      end if;
+   end Fill_Completion_Response;
 
    ----------------------------------------
    -- Fill_Attribute_Completion_Response --
    ----------------------------------------
 
    procedure Fill_Attribute_Completion_Response
-     (File     : LSP.GPR_Files.File;
-      Position : LSP.Structures.Position;
-      Doc      : Boolean;
-      Filter   : String;
-      Response : in out LSP.Structures.Completion_Result) is
-      Starts : constant String := Ada.Characters.Handling.To_Lower (Filter);
-      Current_Package : constant Package_Id :=
-                          File.Get_Package (Position);
+     (File            : LSP.GPR_Files.File_Access;
+      Current_Package : Package_Id;
+      Doc             : Boolean;
+      Prefix          : VSS.Strings.Virtual_String;
+      Response        : in out LSP.Structures.Completion_Result) is
    begin
       if Current_Package = Project_Level_Scope
         or else PRP.Is_Allowed_In (Current_Package, File.Kind)
@@ -78,16 +188,13 @@ package body LSP.GPR_Completions is
          for Id of PRA.All_Attributes (Current_Package) loop
             declare
                Item : LSP.Structures.CompletionItem;
-               Attr : constant String :=
-                        Ada.Characters.Handling.To_Lower
-                          (String (Name (Id.Attr)));
             begin
                if PRA.Get (Id).Is_Allowed_In (File.Kind)
-                 and then
-                   (Starts'Length = 0
-                    or else (Starts'Length <= Attr'Length
-                             and then Filter = Attr
-                               (Attr'First .. Attr'First + Starts'Length - 1)))
+                 and then VSS.Strings.Starts_With
+                   (To_Lower (VSS.Strings.To_Virtual_String
+                      (Ada.Characters.Conversions.To_Wide_Wide_String
+                         (String (Name (Id.Attr))))),
+                    Prefix)
                then
                   Item.label := VSS.Strings.Conversions.To_Virtual_String
                     (Image (Id.Attr));
@@ -125,26 +232,24 @@ package body LSP.GPR_Completions is
    --------------------------------------
 
    procedure Fill_Package_Completion_Response
-     (File     : LSP.GPR_Files.File;
-      Doc      : Boolean;
-      Filter   : String;
-      Response : in out LSP.Structures.Completion_Result) is
-      Starts : constant String := Ada.Characters.Handling.To_Lower (Filter);
+     (File            : LSP.GPR_Files.File_Access;
+      Doc             : Boolean;
+      Prefix          : VSS.Strings.Virtual_String;
+      Unexisting_Only : Boolean;
+      Response        : in out LSP.Structures.Completion_Result) is
       Kind   : constant Project_Kind := File.Kind;
    begin
       for Id of PRP.All_Packages loop
          declare
             Item : LSP.Structures.CompletionItem;
-            Pack : constant String :=
-                     Ada.Characters.Handling.To_Lower (String (Name (Id)));
          begin
-            if not File.In_Packages (Id)
+            if (not File.In_Packages (Id) or else not Unexisting_Only)
               and then PRP.Is_Allowed_In (Id, Kind)
-              and then
-                (Starts'Length = 0
-                 or else (Starts'Length <= Pack'Length
-                          and then Filter = Pack
-                            (Pack'First .. Pack'First + Starts'Length - 1)))
+              and then VSS.Strings.Starts_With
+                (To_Lower (VSS.Strings.To_Virtual_String
+                   (Ada.Characters.Conversions.To_Wide_Wide_String
+                      (String (Name (Id))))),
+                 Prefix)
             then
                Item.label := VSS.Strings.Conversions.To_Virtual_String
                  (Image (Id));
@@ -174,6 +279,97 @@ package body LSP.GPR_Completions is
       end loop;
    end Fill_Package_Completion_Response;
 
+   -----------------------------------
+   -- Fill_Type_Completion_Response --
+   -----------------------------------
+
+   procedure Fill_Type_Completion_Response
+     (File     : LSP.GPR_Files.File_Access;
+      Prefix   : VSS.Strings.Virtual_String;
+      Response : in out LSP.Structures.Completion_Result) is
+   begin
+      Add_Items (File.Types, Prefix, Response);
+      Add_Items (File.Projects, Prefix, Response);
+   end Fill_Type_Completion_Response;
+
+   ---------------------------------------
+   -- Fill_Variable_Completion_Response --
+   ---------------------------------------
+
+   procedure Fill_Variable_Completion_Response
+     (File            : LSP.GPR_Files.File_Access;
+      Current_Package : Package_Id;
+      Prefix          : VSS.Strings.Virtual_String;
+      Response        : in out LSP.Structures.Completion_Result) is
+   begin
+      Add_Items (File.Variables (Current_Package), Prefix, Response);
+   end Fill_Variable_Completion_Response;
+
+   ----------------------------------------
+   -- Fill_Left_Part_Completion_Response --
+   ----------------------------------------
+
+   procedure Fill_Left_Part_Completion_Response
+     (File            : LSP.GPR_Files.File_Access;
+      Current_Package : Package_Id;
+      Token_Kind      : GPC.Token_Kind;
+      Doc             : Boolean;
+      Prefix          : VSS.Strings.Virtual_String;
+      Response        : in out LSP.Structures.Completion_Result) is
+
+      procedure Fill_Project_Completion_Response
+        (File            : LSP.GPR_Files.File_Access;
+         Prefix          : VSS.Strings.Virtual_String;
+         Response        : in out LSP.Structures.Completion_Result);
+      --  Add project identifiers to Response.
+
+      --------------------------------------
+      -- Fill_Project_Completion_Response --
+      --------------------------------------
+
+      procedure Fill_Project_Completion_Response
+        (File            : LSP.GPR_Files.File_Access;
+         Prefix          : VSS.Strings.Virtual_String;
+         Response        : in out LSP.Structures.Completion_Result) is
+      begin
+         Add_Item ("project", Prefix, Response);
+         Add_Item (File.Name, Prefix, Response);
+         Add_Items (File.Projects, Prefix, Response);
+      end Fill_Project_Completion_Response;
+
+   begin
+      if not (Token_Kind in GPC.Gpr_Renames | GPC.Gpr_Extends) then
+         --  Add current_package's variables
+
+         Fill_Variable_Completion_Response
+           (File, Current_Package, Prefix, Response);
+
+         --  Add project level's variable if not yet done
+
+         if Current_Package /= GPR2.Project_Level_Scope then
+            Fill_Variable_Completion_Response
+              (File, GPR2.Project_Level_Scope, Prefix, Response);
+         end if;
+
+         --  Add packages
+
+         Fill_Package_Completion_Response
+           (File            => File,
+            Doc             => Doc,
+            Prefix          => Prefix,
+            Unexisting_Only => False,
+            Response        => Response);
+      end if;
+
+      --  Add projects
+
+      Fill_Project_Completion_Response
+        (File            => File,
+         Prefix          => Prefix,
+         Response        => Response);
+
+   end Fill_Left_Part_Completion_Response;
+
    ------------------------------
    -- Fill_Completion_Response --
    ------------------------------
@@ -202,81 +398,157 @@ package body LSP.GPR_Completions is
       In_Comment : constant Boolean :=
                      LSP.GPR_Files.Position_Is_In_Comment (Current, Location);
 
-      Previous : constant GPC.Token_Reference := Current.Previous (True);
-
-      function To_String
-        (Text : Gpr_Parser_Support.Text.Text_Type) return String is
-        (Ada.Characters.Handling.To_Lower
-           (Ada.Characters.Conversions.To_String (Text)));
+      Previous : GPC.Token_Reference := Current.Previous (True);
 
       use type GPC.Token_Reference, GPC.Token_Kind;
 
+      procedure Fill_Tick_Completion
+        (Tick_Token : GPC.Token_Reference;
+         Prefix     : VSS.Strings.Virtual_String);
+
+      procedure Fill_Dot_Completion
+        (Dot_Token : GPC.Token_Reference;
+         Prefix    : VSS.Strings.Virtual_String);
+
+      -------------------------
+      -- Fill_Dot_Completion --
+      -------------------------
+
+      procedure Fill_Dot_Completion
+        (Dot_Token : GPC.Token_Reference;
+         Prefix    : VSS.Strings.Virtual_String)
+      is
+         Reference : constant LSP.GPR_Files.References.Reference
+           := LSP.GPR_Files.References.Identifier_Reference
+             (File            => File,
+              Current_Package => File.Get_Package
+                (Value.position),
+              Token           => Dot_Token.Previous (True));
+
+         use type GPR_Files.References.Reference;
+      begin
+
+         if Reference /= GPR_Files.References.No_Reference then
+            Fill_Completion_Response
+              (File            => File,
+               Doc             => Compute_Doc_And_Details,
+               Prefix          => Prefix,
+               Reference       => Reference,
+               Response        => Response);
+         end if;
+      end Fill_Dot_Completion;
+
+      --------------------------
+      -- Fill_Tick_Completion --
+      --------------------------
+
+      procedure Fill_Tick_Completion
+        (Tick_Token : GPC.Token_Reference;
+         Prefix     : VSS.Strings.Virtual_String)
+      is
+         Last_Identifier : constant GPC.Token_Reference :=
+                             Tick_Token.Previous (True);
+         Reference : constant LSP.GPR_Files.References.Reference
+           := LSP.GPR_Files.References.Identifier_Reference
+             (File            => File,
+              Current_Package => File.Get_Package
+                (Value.position),
+              Token           => Last_Identifier);
+
+         use type GPR_Files.References.Reference;
+      begin
+
+         if Reference /= GPR_Files.References.No_Reference then
+            Fill_Attribute_Completion_Response
+              (File            => File,
+               Current_Package =>
+                 GPR_Files.References.Referenced_Package
+                   (Reference),
+               Doc             => Compute_Doc_And_Details,
+               Prefix          => Prefix,
+               Response => Response);
+         end if;
+      end Fill_Tick_Completion;
+
    begin
-      if not In_Comment then
-         if Current.Data.Kind in
-           GPC.Gpr_Whitespace | GPC.Gpr_Comment | GPC.Gpr_Termination
-             and then Previous /= GPC.No_Token
-         then
-            if Previous.Data.Kind in GPC.Gpr_For | GPC.Gpr_Package then
-               if not LSP.GPR_Files.At_End (Previous.Data.Sloc_Range, Location)
-               then
-                  case Previous.Data.Kind is
+      if not In_Comment
+        and then Previous /= GPC.No_Token
+        and then Current.Data.Kind /= GPC.Gpr_Identifier
+      then
+         declare
+            Identifier_Prefix : constant VSS.Strings.Virtual_String :=
+                                  (if Previous.Data.Kind = GPC.Gpr_Identifier
+                                   and then LSP.GPR_Files.At_End
+                                     (Previous.Data.Sloc_Range, Location)
+                                   then To_Lower
+                                     (VSS.Strings.To_Virtual_String
+                                        (Previous.Text))
+                                   else "");
+         begin
+            if not VSS.Strings.Is_Empty (Identifier_Prefix) then
+               Previous := Previous.Previous (True);
+            end if;
 
-                  when GPC.Gpr_For =>
-                     Fill_Attribute_Completion_Response
-                       (File     => File.all,
-                        Position => Value.position,
-                        Doc      => Compute_Doc_And_Details,
-                        Filter   => "",
-                        Response => Response);
-
-                  when GPC.Gpr_Package =>
-                     Fill_Package_Completion_Response
-                       (File     => File.all,
-                        Doc      => Compute_Doc_And_Details,
-                        Filter   => "",
-                        Response => Response);
-
-                  when others =>
-                     null;
-
-                  end case;
-               end if;
-
-            elsif Previous.Data.Kind = GPC.Gpr_Identifier
+            if Previous.Data.Kind in
+              GPC.Gpr_For | GPC.Gpr_Package | GPC.Gpr_Extends
+                | GPC.Gpr_Renames | GPC.Gpr_Use
               and then LSP.GPR_Files.At_End
                 (Previous.Data.Sloc_Range, Location)
             then
-               declare
-                  Before_Identifier : constant GPC.Token_Reference :=
-                                        Previous.Previous (True);
-               begin
-                  if Before_Identifier /= GPC.No_Token then
-                     case Before_Identifier.Data.Kind is
-
-                     when GPC.Gpr_For =>
-                        Fill_Attribute_Completion_Response
-                          (File     => File.all,
-                           Position => Value.position,
-                           Doc      => Compute_Doc_And_Details,
-                           Filter   => To_String (Previous.Text),
-                           Response => Response);
-
-                     when GPC.Gpr_Package =>
-                        Fill_Package_Completion_Response
-                          (File     => File.all,
-                           Doc      => Compute_Doc_And_Details,
-                           Filter   => To_String (Previous.Text),
-                           Response => Response);
-
-                     when others =>
-                        null;
-
-                     end case;
-                  end if;
-               end;
+               --  missing space after 'package', 'renames', 'extends', 'for',
+               --  'use' keyword to allow completion
+               return;
             end if;
-         end if;
+            case Previous.Data.Kind is
+
+               when GPC.Gpr_For =>
+                  Fill_Attribute_Completion_Response
+                    (File            => File,
+                     Current_Package => File.Get_Package (Value.position),
+                     Doc             => Compute_Doc_And_Details,
+                     Prefix          => Identifier_Prefix,
+                     Response => Response);
+
+               when GPC.Gpr_Package =>
+                  Fill_Package_Completion_Response
+                    (File            => File,
+                     Doc             => Compute_Doc_And_Details,
+                     Prefix          => Identifier_Prefix,
+                     Unexisting_Only => True,
+                     Response        => Response);
+
+               when GPC.Gpr_Colon =>
+                  Fill_Type_Completion_Response
+                    (File     => File,
+                     Prefix   => Identifier_Prefix,
+                     Response => Response);
+
+               when GPC.Gpr_Dot =>
+                  Fill_Dot_Completion (Previous, Identifier_Prefix);
+
+               when GPC.Gpr_Tick =>
+                  Fill_Tick_Completion (Previous, Identifier_Prefix);
+
+               when GPC.Gpr_Assign
+                  | GPC.Gpr_Par_Open
+                  | GPC.Gpr_Comma
+                  | GPC.Gpr_Amp
+                  | GPC.Gpr_Use
+                  | GPC.Gpr_Renames
+                  | GPC.Gpr_Extends =>
+                  Fill_Left_Part_Completion_Response
+                    (File            => File,
+                     Current_Package => File.Get_Package (Value.position),
+                     Token_Kind      => Previous.Data.Kind,
+                     Doc             => Compute_Doc_And_Details,
+                     Prefix          => Identifier_Prefix,
+                     Response        => Response);
+
+               when others =>
+                  null;
+
+            end case;
+         end;
       end if;
    end Fill_Completion_Response;
 

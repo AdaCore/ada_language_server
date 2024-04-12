@@ -1,0 +1,68 @@
+with "imported";
+limited with "imported_limited";
+project Prj extends "extended" is
+
+   type T1 is ("a");
+
+   package Compiler is
+      V1 := "";
+      for Local_Configuration_Pragmas use "";
+   end Compiler;
+
+   V2 :=
+   Imported.
+   Compiler.
+   Imported_Compiler_Variable;
+   
+   V3 := project'
+      Name;
+
+   V4 := Extended.Emulator'
+   Board;
+   
+   for Object_Dir use 
+      Prj.Compiler'
+      Local_Configuration_Pragmas;
+
+   for Source_Dirs use (
+      ".");
+
+   for Source_Dirs use ("." &
+      ".");
+
+   for Source_Dirs use (".",
+     "..");
+
+   V5 :
+      Imported.
+      Imported_Type := "a";
+
+   V5 :
+      Extended.
+      Extended_Type := "a";
+
+   V5 :
+E ;
+
+   V5 :=
+I;
+
+   for Object_Dir use 
+P      ;
+
+   V5 := (
+E      );
+
+   V5 := V5 & 
+I     ;
+
+   V5 := ("",
+P      );
+
+   V5 := project'
+N      ;
+
+   V5 := Extended.
+E      ;
+
+end Prj;
