@@ -1,6 +1,8 @@
-# Each XFAIL entry should be an array of strings with the following content:
+# This file should contain XFAILs compatible with the e3-convert-xunit tool from
+# e3-testsuite. The format should be a mapping from test names to expected
+# failure messages.
 #
-#   - [<testname>, <expectedstatus CRASH|DIFF> , <platform>, '', <reason>]
+# For example:
 #
-# Use an empty string for the platform if the XFAIL should apply everywhere.
-xfails:
+#   "Task-Execution-gnatsas-analyze-report": "Some reason"
+#   "Task-Execution-gnatdoc": "Some other reason"
