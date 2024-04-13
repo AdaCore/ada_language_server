@@ -1,0 +1,9 @@
+project Imported_Limited is
+   type Imported_Limited_Type is ("a");
+   Imported_Limited_Variable := "";
+   for Warning_Message use "warning message";
+   package Compiler is
+      Imported_Limited_Compiler_Variable := "";
+      for Local_Configuration_Pragmas use "";
+   end Compiler;
+end Imported_Limited;

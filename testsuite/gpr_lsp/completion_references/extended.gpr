@@ -1,0 +1,9 @@
+project Extended is
+   type Extended_Type is ("a");
+   Extended_Variable := "";
+   for Warning_Message use "warning message";
+   package Emulator is
+      Extended_Emulator_Variable := "";
+      for Board use "";
+   end Emulator;
+end Extended;

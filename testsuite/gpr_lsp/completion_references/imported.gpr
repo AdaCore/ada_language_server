@@ -1,0 +1,9 @@
+project Imported is
+   type Imported_Type is ("a");
+   Imported_Variable := "";
+   for Warning_Message use "warning message";
+   package Compiler is
+      Imported_Compiler_Variable := "";
+      for Local_Configuration_Pragmas use "";
+   end Compiler;
+end Imported;

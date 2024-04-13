@@ -225,6 +225,27 @@ package LSP.GPR_Files is
       Token : Gpr_Parser.Common.Token_Reference) return Path_Name.Object;
    --  find file pointed by gpr token useful for imported & extended files
 
+   function Name
+     (Self : LSP.GPR_Files.File)
+      return VSS.Strings.Virtual_String;
+   --  Self file' name
+
+   function Types
+     (Self : LSP.GPR_Files.File)
+      return VSS.String_Vectors.Virtual_String_Vector;
+   --  Self file's types.
+
+   function Variables
+     (Self : LSP.GPR_Files.File;
+      Pack : GPR2.Package_Id)
+      return VSS.String_Vectors.Virtual_String_Vector;
+   --  Self file's package types.
+
+   function Projects
+     (Self : LSP.GPR_Files.File)
+      return VSS.String_Vectors.Virtual_String_Vector;
+   --  Self file's non limited imported projects & extended projects.
+
 private
 
    type Source_Position is record
@@ -674,5 +695,9 @@ private
       Location : Gpr_Parser.Slocs.Source_Location)
       return Gpr_Parser.Common.Token_Reference is
       (Self.Unit.Lookup_Token (Location));
+
+   function Name
+     (Self : LSP.GPR_Files.File)
+      return VSS.Strings.Virtual_String is (Image (Self.Name));
 
 end LSP.GPR_Files;
