@@ -34,6 +34,7 @@ with LSP.Ada_Configurations;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
+with LSP.Ada_Highlighters;
 with LSP.Constants;
 with LSP.Locations;
 with LSP.Structures;
@@ -74,6 +75,10 @@ package LSP.Ada_Job_Contexts is
      (Self : in out Ada_Job_Context;
       URI  : LSP.Structures.DocumentUri)
         return LSP.Ada_Documents.Document_Access is abstract;
+
+   function Get_Highlighter
+     (Self : in out Ada_Job_Context)
+      return access constant LSP.Ada_Highlighters.Ada_Highlighter is abstract;
 
    procedure Publish_Diagnostics
      (Self              : in out Ada_Job_Context;

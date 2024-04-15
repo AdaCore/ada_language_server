@@ -238,7 +238,7 @@ private
       --  is known to the server, this context should map to the implicit
       --  project.
 
-      Highlighter    : LSP.Ada_Highlighters.Ada_Highlighter;
+      Highlighter    : aliased LSP.Ada_Highlighters.Ada_Highlighter;
       --  Semantic token highlighter for Ada
 
       Incremental_Text_Changes : Boolean;
@@ -407,11 +407,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SignatureHelpParams);
 
-   overriding procedure On_Tokens_Range_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.SemanticTokensRangeParams);
-
    overriding procedure On_TypeDefinition_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
@@ -549,5 +544,10 @@ private
 
    overriding function Get_Trace_Handle (Self : Message_Handler)
      return GNATCOLL.Traces.Trace_Handle;
+
+   overriding function Get_Highlighter
+     (Self : in out Message_Handler)
+      return access constant LSP.Ada_Highlighters.Ada_Highlighter is
+       (Self.Highlighter'Unchecked_Access);
 
 end LSP.Ada_Handlers;
