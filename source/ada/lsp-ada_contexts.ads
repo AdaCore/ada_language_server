@@ -98,26 +98,26 @@ package LSP.Ada_Contexts is
    --  context.
 
    function Find_All_Overrides
-     (Self              : Context;
-      Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind)
+     (Self        : Context;
+      Decl        : Libadalang.Analysis.Basic_Decl;
+      Result_Kind : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Basic_Decl_Array;
    --  Finds all overriding subprograms of the given basic declaration.
    --  This is used to propose all the implementations of a given subprogram
    --  when textDocument/definition requests happen on dispatching calls.
-   --  Imprecise_Results is set to True if we don't know whether the results
-   --  are precise.
+   --  Result_Kind indicates if LAL encountered an Error or if the result are
+   --  Imprecise.
    --  Returns an empty array if Decl is null.
 
    function Find_All_Base_Declarations
-     (Self              : Context;
-      Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind)
+     (Self        : Context;
+      Decl        : Libadalang.Analysis.Basic_Decl;
+      Result_Kind : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Basic_Decl_Array;
    --  Given a subprogram declaration in Decl, find all the base subprograms
    --  that it inherits, not including self.
-   --  Imprecise_Results is set to True if we don't know whether the results
-   --  are precise.
+   --  Result_Kind indicates if LAL encountered an Error or if the result are
+   --  Imprecise.
    --  Returns an empty array if Decl is null.
 
    procedure Find_All_Calls
