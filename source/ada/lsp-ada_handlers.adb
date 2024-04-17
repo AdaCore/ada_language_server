@@ -146,13 +146,6 @@ package body LSP.Ada_Handlers is
    --  This function is handling Imprecise and Error results during Nameres by
    --  logging them and generating Diagnostics if needed.
 
-   function To_LSP_Location
-     (Self : in out Message_Handler'Class;
-      Node : Libadalang.Analysis.Ada_Node'Class;
-      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
-      return LSP.Structures.Location
-        renames LSP.Ada_Handlers.Locations.To_LSP_Location;
-
    overriding function To_LSP_Location
      (Self : in out Message_Handler;
       Node : Libadalang.Analysis.Ada_Node'Class)
@@ -3654,35 +3647,6 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Symbol_Response (Id, Response);
    end On_Symbol_Request;
-
-   ----------------------------
-   -- On_Tokens_Full_Request --
-   ----------------------------
-
-   overriding procedure On_Tokens_Full_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.SemanticTokensParams)
-   is
-      use type LSP.Ada_Documents.Document_Access;
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Get_Open_Document (Value.textDocument.uri);
-
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
-
-      Result   : LSP.Structures.Natural_Vector renames
-        Response.Value.data;
-   begin
-      if Document /= null then
-         Result := Document.Get_Tokens (Context.all, Self.Highlighter);
-      end if;
-
-      Self.Sender.On_Tokens_Full_Response (Id, Response);
-   end On_Tokens_Full_Request;
 
    -------------------------------
    -- On_TypeDefinition_Request --

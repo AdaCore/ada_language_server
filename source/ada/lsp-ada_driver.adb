@@ -69,6 +69,7 @@ with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Show_Dependencies_Commands;
 with LSP.Ada_Handlers.Source_Dirs_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
+with LSP.Ada_Tokens_Full;
 with LSP.Ada_Tokens_Range;
 with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
@@ -85,6 +86,7 @@ with LSP.Server_Requests.Declaration;
 with LSP.Server_Requests.DocumentSymbol;
 with LSP.Server_Requests.Hover;
 with LSP.Server_Requests.References;
+with LSP.Server_Requests.Tokens_Full;
 with LSP.Server_Requests.Tokens_Range;
 with LSP.Servers;
 with LSP.Stdio_Streams;
@@ -207,6 +209,10 @@ procedure LSP.Ada_Driver is
 
    Ada_Document_Symbol_Handler : aliased
      LSP.Ada_Document_Symbol.Ada_Document_Symbol_Handler
+       (Ada_Handler'Unchecked_Access);
+
+   Ada_Tokens_Full_Handler : aliased
+     LSP.Ada_Tokens_Full.Ada_Tokens_Full_Handler
        (Ada_Handler'Unchecked_Access);
 
    Ada_Tokens_Range_Handler : aliased
@@ -436,6 +442,10 @@ begin
          Server.Register_Handler
            (LSP.Server_Requests.DocumentSymbol.Request'Tag,
             Ada_Document_Symbol_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.Tokens_Full.Request'Tag,
+            Ada_Tokens_Full_Handler'Unchecked_Access);
 
          Server.Register_Handler
            (LSP.Server_Requests.Tokens_Range.Request'Tag,
