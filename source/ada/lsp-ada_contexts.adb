@@ -78,10 +78,10 @@ package body LSP.Ada_Contexts is
    --  Return the charset with which the context was initialized
 
    procedure Find_All_References_In_Hierarchy
-     (Self       : Context;
-      Decl       : Libadalang.Analysis.Basic_Decl;
-      Imprecise  : in out Libadalang.Common.Ref_Result_Kind;
-      Callback   : not null access procedure
+     (Self        : Context;
+      Decl        : Libadalang.Analysis.Basic_Decl;
+      Result_Kind : in out Libadalang.Common.Ref_Result_Kind;
+      Callback    : not null access procedure
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean));
@@ -208,15 +208,15 @@ package body LSP.Ada_Contexts is
    ------------------------
 
    function Find_All_Overrides
-     (Self              : Context;
-      Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind)
+     (Self        : Context;
+      Decl        : Libadalang.Analysis.Basic_Decl;
+      Result_Kind : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Basic_Decl_Array
    is
       Units : constant Libadalang.Analysis.Analysis_Unit_Array :=
                 Self.Analysis_Units;
    begin
-      Imprecise_Results := Libadalang.Common.Precise;
+      Result_Kind := Libadalang.Common.Precise;
 
       if Decl.Is_Null then
          return (1 .. 0 => <>);
@@ -228,13 +228,14 @@ package body LSP.Ada_Contexts is
          return Decl.P_Find_All_Overrides (Units);
       exception
          when E : Libadalang.Common.Property_Error =>
-            Imprecise_Results := Libadalang.Common.Imprecise;
+            Result_Kind := Libadalang.Common.Imprecise;
             Self.Tracer.Trace_Exception (E, "in Find_All_Overrides (precise)");
             return Decl.P_Find_All_Overrides
               (Units, Imprecise_Fallback => True);
       end;
    exception
       when E : Libadalang.Common.Property_Error =>
+         Result_Kind := Libadalang.Common.Error;
          Self.Tracer.Trace_Exception (E, "in Find_All_Overrides (imprecise)");
          return (1 .. 0 => <>);
    end Find_All_Overrides;
@@ -244,9 +245,9 @@ package body LSP.Ada_Contexts is
    --------------------------------
 
    function Find_All_Base_Declarations
-     (Self              : Context;
-      Decl              : Libadalang.Analysis.Basic_Decl;
-      Imprecise_Results : out Libadalang.Common.Ref_Result_Kind)
+     (Self        : Context;
+      Decl        : Libadalang.Analysis.Basic_Decl;
+      Result_Kind : out Libadalang.Common.Ref_Result_Kind)
       return Libadalang.Analysis.Basic_Decl_Array
    is
       use Libadalang.Analysis;
@@ -259,7 +260,7 @@ package body LSP.Ada_Contexts is
          Langkit_Support.Slocs.Start_Sloc (Left.Sloc_Range) =
              Langkit_Support.Slocs.Start_Sloc (Right.Sloc_Range));
    begin
-      Imprecise_Results := Libadalang.Common.Precise;
+      Result_Kind := Libadalang.Common.Precise;
 
       if Decl.Is_Null then
          return (1 .. 0 => <>);
@@ -293,7 +294,7 @@ package body LSP.Ada_Contexts is
    exception
       when E : Libadalang.Common.Property_Error =>
          Self.Tracer.Trace_Exception (E, "in Find_All_Base_Declarations");
-         Imprecise_Results := Libadalang.Common.Imprecise;
+         Result_Kind := Libadalang.Common.Error;
          return (1 .. 0 => <>);
    end Find_All_Base_Declarations;
 
@@ -302,10 +303,10 @@ package body LSP.Ada_Contexts is
    --------------------------------------
 
    procedure Find_All_References_In_Hierarchy
-     (Self       : Context;
-      Decl       : Libadalang.Analysis.Basic_Decl;
-      Imprecise  : in out Libadalang.Common.Ref_Result_Kind;
-      Callback   : not null access procedure
+     (Self        : Context;
+      Decl        : Libadalang.Analysis.Basic_Decl;
+      Result_Kind : in out Libadalang.Common.Ref_Result_Kind;
+      Callback    : not null access procedure
         (Base_Id : Libadalang.Analysis.Base_Id;
          Kind    : Libadalang.Common.Ref_Result_Kind;
          Cancel  : in out Boolean))
@@ -323,31 +324,44 @@ package body LSP.Ada_Contexts is
          else
             Decl);
 
+      Overriding_Result_Kind : Libadalang.Common.Ref_Result_Kind;
+      Bases_Result_Kind      : Libadalang.Common.Ref_Result_Kind;
+
       Overriding_Decls : constant Libadalang.Analysis.Basic_Decl_Array :=
         Self.Find_All_Overrides
           (Subp_Decl,
-           Imprecise_Results => Imprecise);
+           Result_Kind => Overriding_Result_Kind);
 
       Base_Decls       : constant Libadalang.Analysis.Basic_Decl_Array :=
         Self.Find_All_Base_Declarations
           (Subp_Decl,
-           Imprecise_Results => Imprecise);
-
-      Hierarchy        : constant Libadalang.Analysis.Basic_Decl_Array :=
-        Overriding_Decls & Base_Decls;
+           Result_Kind => Bases_Result_Kind);
    begin
-      if Is_Param then
-         LSP.Ada_Id_Iterators.Find_All_Param_References_In_Hierarchy
-           (Param     => Decl.As_Param_Spec,
-            Hierarchy => Hierarchy,
-            Units     => Self.Analysis_Units,
-            Callback  => Callback);
-      else
-         LSP.Ada_Id_Iterators.Find_All_Subp_References_In_Hierarchy
-           (Hierarchy => Hierarchy,
-            Tracer    => Self.Tracer.all,
-            Callback  => Callback);
+      if Overriding_Result_Kind in Libadalang.Common.Error
+        or else Bases_Result_Kind in Libadalang.Common.Error
+      then
+         Result_Kind := Libadalang.Common.Error;
+         return;
       end if;
+
+      declare
+         Hierarchy : constant Libadalang.Analysis.Basic_Decl_Array :=
+           Overriding_Decls & Base_Decls;
+      begin
+
+         if Is_Param then
+            LSP.Ada_Id_Iterators.Find_All_Param_References_In_Hierarchy
+              (Param     => Decl.As_Param_Spec,
+               Hierarchy => Hierarchy,
+               Units     => Self.Analysis_Units,
+               Callback  => Callback);
+         else
+            LSP.Ada_Id_Iterators.Find_All_Subp_References_In_Hierarchy
+              (Hierarchy => Hierarchy,
+               Tracer    => Self.Tracer.all,
+               Callback  => Callback);
+         end if;
+      end;
    end Find_All_References_In_Hierarchy;
 
    --------------------
