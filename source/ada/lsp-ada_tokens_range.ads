@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                        Copyright (C) 2024, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,13 +15,24 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Ada_Completions;
+--  This package provides handler and job types for
+--  textDocument/semanticTokens/range requests.
 
-package LSP.Ada_Handlers.Symbols is
+with LSP.Ada_Job_Contexts;
+with LSP.Server_Jobs;
+with LSP.Server_Message_Handlers;
+with LSP.Server_Messages;
 
-   procedure Write_Symbols
-     (Self   : in out Message_Handler'Class;
-      Names  : LSP.Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.SymbolInformation_Vector);
+package LSP.Ada_Tokens_Range is
 
-end LSP.Ada_Handlers.Symbols;
+   type Ada_Tokens_Range_Handler
+     (Context : not null access LSP.Ada_Job_Contexts.Ada_Job_Context'Class) is
+       limited new LSP.Server_Message_Handlers.Server_Message_Handler
+         with null record;
+
+   overriding function Create_Job
+     (Self    : Ada_Tokens_Range_Handler;
+      Message : LSP.Server_Messages.Server_Message_Access)
+        return LSP.Server_Jobs.Server_Job_Access;
+
+end LSP.Ada_Tokens_Range;

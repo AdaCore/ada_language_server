@@ -229,7 +229,7 @@ private
      and LSP.Server_Notification_Receivers.Server_Notification_Receiver
      and LSP.Ada_Job_Contexts.Ada_Job_Context
    with record
-      Client : LSP.Ada_Client_Capabilities.Client_Capability;
+      Client : aliased LSP.Ada_Client_Capabilities.Client_Capability;
       Configuration : aliased LSP.Ada_Configurations.Configuration;
 
       Contexts : LSP.Ada_Context_Sets.Context_Set;
@@ -238,7 +238,7 @@ private
       --  is known to the server, this context should map to the implicit
       --  project.
 
-      Highlighter    : LSP.Ada_Highlighters.Ada_Highlighter;
+      Highlighter    : aliased LSP.Ada_Highlighters.Ada_Highlighter;
       --  Semantic token highlighter for Ada
 
       Incremental_Text_Changes : Boolean;
@@ -299,11 +299,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentHighlightParams);
 
-   overriding procedure On_DocumentSymbol_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentSymbolParams);
-
    overriding procedure On_Exits_Notification (Self : in out Message_Handler);
 
    overriding procedure On_Shutdown_Request
@@ -359,11 +354,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentFormattingParams);
 
-   overriding procedure On_Tokens_Full_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.SemanticTokensParams);
-
    overriding procedure On_RangeFormatting_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
@@ -411,11 +401,6 @@ private
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.SignatureHelpParams);
-
-   overriding procedure On_Tokens_Range_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.SemanticTokensRangeParams);
 
    overriding procedure On_TypeDefinition_Request
      (Self  : in out Message_Handler;
@@ -493,6 +478,10 @@ private
    --  Job_Context --
    ------------------
 
+   overriding function Client (Self : Message_Handler) return
+     access constant LSP.Ada_Client_Capabilities.Client_Capability'Class
+       is (Self.Client'Unchecked_Access);
+
    overriding function Get_Configuration (Self : Message_Handler)
      return access constant LSP.Ada_Configurations.Configuration'Class is
        (Self.Configuration'Unchecked_Access);
@@ -530,6 +519,11 @@ private
       Name_Node : Libadalang.Analysis.Name)
       return Libadalang.Analysis.Defining_Name;
 
+   overriding function To_LSP_Location
+     (Self : in out Message_Handler;
+      Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.Location;
+
    overriding procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
@@ -545,5 +539,10 @@ private
 
    overriding function Get_Trace_Handle (Self : Message_Handler)
      return GNATCOLL.Traces.Trace_Handle;
+
+   overriding function Get_Highlighter
+     (Self : in out Message_Handler)
+      return access constant LSP.Ada_Highlighters.Ada_Highlighter is
+       (Self.Highlighter'Unchecked_Access);
 
 end LSP.Ada_Handlers;

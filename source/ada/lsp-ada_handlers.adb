@@ -146,12 +146,11 @@ package body LSP.Ada_Handlers is
    --  This function is handling Imprecise and Error results during Nameres by
    --  logging them and generating Diagnostics if needed.
 
-   function To_LSP_Location
-     (Self : in out Message_Handler'Class;
-      Node : Libadalang.Analysis.Ada_Node'Class;
-      Kind : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
-      return LSP.Structures.Location
-        renames LSP.Ada_Handlers.Locations.To_LSP_Location;
+   overriding function To_LSP_Location
+     (Self : in out Message_Handler;
+      Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.Location is
+        (LSP.Ada_Handlers.Locations.To_LSP_Location (Self, Node));
 
    overriding function Get_Node_At
      (Self     : in out Message_Handler;
@@ -2338,49 +2337,6 @@ package body LSP.Ada_Handlers is
    end On_DocumentHighlight_Request;
 
    -------------------------------
-   -- On_DocumentSymbol_Request --
-   -------------------------------
-
-   overriding procedure On_DocumentSymbol_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentSymbolParams)
-   is
-      use type LSP.Structures.Boolean_Optional;
-
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Unit : constant Libadalang.Analysis.Analysis_Unit :=
-        Context.Get_AU (Self.To_File (Value.textDocument.uri));
-
-      Response : LSP.Structures.DocumentSymbol_Result;
-
-      Pattern  : constant LSP.Search.Search_Pattern'Class :=
-        LSP.Search.Build
-          (Pattern        => Value.query,
-           Case_Sensitive => Value.case_sensitive = LSP.Constants.True,
-           Whole_Word     => Value.whole_word = LSP.Constants.True,
-           Negate         => Value.negate = LSP.Constants.True,
-           Kind           =>
-             (if Value.kind.Is_Set
-              then Value.kind.Value
-              else LSP.Enumerations.Start_Word_Text));
-   begin
-      if Self.Client.Hierarchical_Symbol then
-         Response := (Kind => LSP.Structures.Variant_2, Variant_2 => <>);
-
-         LSP.Ada_Handlers.Symbols.Hierarchical_Document_Symbols
-           (Self, Unit, Pattern, Response.Variant_2);
-      else
-         LSP.Ada_Handlers.Symbols.Flat_Document_Symbols
-           (Self, Unit, Pattern, Response);
-      end if;
-
-      Self.Sender.On_DocumentSymbol_Response (Id, Response);
-   end On_DocumentSymbol_Request;
-
-   -------------------------------
    -- On_ExecuteCommand_Request --
    -------------------------------
 
@@ -3691,65 +3647,6 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_Symbol_Response (Id, Response);
    end On_Symbol_Request;
-
-   ----------------------------
-   -- On_Tokens_Full_Request --
-   ----------------------------
-
-   overriding procedure On_Tokens_Full_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.SemanticTokensParams)
-   is
-      use type LSP.Ada_Documents.Document_Access;
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Get_Open_Document (Value.textDocument.uri);
-
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
-
-      Result   : LSP.Structures.Natural_Vector renames
-        Response.Value.data;
-   begin
-      if Document /= null then
-         Result := Document.Get_Tokens (Context.all, Self.Highlighter);
-      end if;
-
-      Self.Sender.On_Tokens_Full_Response (Id, Response);
-   end On_Tokens_Full_Request;
-
-   -----------------------------
-   -- On_Tokens_Range_Request --
-   -----------------------------
-
-   overriding procedure On_Tokens_Range_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.SemanticTokensRangeParams)
-   is
-      use type LSP.Ada_Documents.Document_Access;
-
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Get_Open_Document (Value.textDocument.uri);
-
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-
-      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
-
-      Result   : LSP.Structures.Natural_Vector renames
-        Response.Value.data;
-   begin
-      if Document /= null then
-         Result := Document.Get_Tokens
-           (Context.all, Self.Highlighter, Value.a_range);
-      end if;
-
-      Self.Sender.On_Tokens_Full_Response (Id, Response);
-   end On_Tokens_Range_Request;
 
    -------------------------------
    -- On_TypeDefinition_Request --
