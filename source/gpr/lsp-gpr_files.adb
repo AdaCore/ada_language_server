@@ -84,6 +84,16 @@ package body LSP.GPR_Files is
    function Image (Index : Index_Type) return VSS.Strings.Virtual_String;
    --  convert a GPR2 index to a LSP string
 
+   function Next_Token
+     (File : LSP.GPR_Files.File;
+      Ref  : GPC.Token_Reference) return GPC.Token_Reference;
+   --  go to next token if any or stay at last
+
+   function Previous_Token
+     (File : LSP.GPR_Files.File;
+      Ref  : GPC.Token_Reference) return GPC.Token_Reference;
+   --  go to previous token if any or stay at first
+
    ------------
    -- New_Id --
    ------------
@@ -314,11 +324,13 @@ package body LSP.GPR_Files is
       --  close current package if we are in a package.
 
       function Next_Token
-        (Ref : GPC.Token_Reference) return GPC.Token_Reference;
+        (Ref : GPC.Token_Reference) return GPC.Token_Reference is
+         (Next_Token (File, Ref));
       --  go to next token if any or stay at last
 
       function Previous_Token
-        (Ref : GPC.Token_Reference) return GPC.Token_Reference;
+        (Ref : GPC.Token_Reference) return GPC.Token_Reference is
+        (Previous_Token (File, Ref));
       --  go to previous token if any or stay at first
 
       function Get_Parent return Symbol;
@@ -551,37 +563,6 @@ package body LSP.GPR_Files is
                Open_Scope (New_Symbol);
          end case;
       end Add_Symbol;
-
-      ----------------
-      -- Next_Token --
-      ----------------
-
-      function Next_Token
-        (Ref : GPC.Token_Reference) return GPC.Token_Reference is
-         Result : constant GPC.Token_Reference := Next (Ref, True);
-      begin
-         if Result = GPC.No_Token then
-            return File.Unit.Last_Token;
-         else
-            return Result;
-         end if;
-      end Next_Token;
-
-      --------------------
-      -- Previous_Token --
-      --------------------
-
-      function Previous_Token
-        (Ref : GPC.Token_Reference) return GPC.Token_Reference
-      is
-         Result : constant GPC.Token_Reference := Previous (Ref, True);
-      begin
-         if Result = GPC.No_Token then
-            return File.Unit.First_Token;
-         else
-            return Result;
-         end if;
-      end Previous_Token;
 
       ---------------------------
       -- Close_Current_Package --
@@ -1596,5 +1577,95 @@ package body LSP.GPR_Files is
       end if;
       return Projects;
    end Projects;
+
+   ----------------
+   -- Next_Token --
+   ----------------
+
+   function Next_Token
+     (File : LSP.GPR_Files.File;
+      Ref  : GPC.Token_Reference) return GPC.Token_Reference is
+      Result : constant GPC.Token_Reference := Next (Ref, True);
+   begin
+      if Result = GPC.No_Token then
+         return File.Unit.Last_Token;
+      else
+         return Result;
+      end if;
+   end Next_Token;
+
+   --------------------
+   -- Previous_Token --
+   --------------------
+
+   function Previous_Token
+     (File : LSP.GPR_Files.File;
+      Ref  : GPC.Token_Reference) return GPC.Token_Reference
+   is
+      Result : constant GPC.Token_Reference := Previous (Ref, True);
+   begin
+      if Result = GPC.No_Token then
+         return File.Unit.First_Token;
+      else
+         return Result;
+      end if;
+   end Previous_Token;
+
+   -----------
+   -- Index --
+   -----------
+
+   function Index
+     (Self            : LSP.GPR_Files.File;
+      Attribute_Token : Gpr_Parser.Common.Token_Reference;
+      Current_Package : GPR2.Package_Id)
+      return Index_Type is
+   begin
+      if Attribute_Token /= GPC.No_Token
+        and then Attribute_Token.Data.Kind = GPC.Gpr_Identifier
+      then
+         declare
+            Attribute : constant GPR2.Q_Attribute_Id :=
+                          (Current_Package,
+                           +To_Optional_Name_Type (Attribute_Token));
+            Left_Par  : constant GPC.Token_Reference :=
+                          Next_Token (Self, Attribute_Token);
+            Index     : constant GPC.Token_Reference :=
+                          Next_Token (Self, Left_Par);
+            At_Token  : constant GPC.Token_Reference :=
+                          Next_Token (Self, Index);
+            Pos_Token : constant GPC.Token_Reference :=
+                          Next_Token (Self, At_Token);
+         begin
+            if GPR2.Project.Registry.Attribute.Exists (Attribute) then
+               if Left_Par.Data.Kind = GPC.Gpr_Par_Open then
+                  case Index.Data.Kind is
+                     when GPC.Gpr_Others =>
+                        return Others_Index;
+                     when GPC.Gpr_String =>
+                        declare
+                           At_Pos : Unit_Index := GPR2.No_Index;
+                        begin
+                           if At_Token.Data.Kind = GPC.Gpr_At
+                             and then Pos_Token.Data.Kind = GPC.Gpr_Number
+                           then
+                              At_Pos := Unit_Index'Value
+                                (To_String (Pos_Token));
+                           end if;
+                           return Create
+                             (Text        => To_Unbounded_String
+                                (Remove_Quote (To_String (Index))),
+                              Q_Attribute => Attribute,
+                              At_Pos      => At_Pos);
+                        end;
+                     when others =>
+                        null;
+                  end case;
+               end if;
+            end if;
+         end;
+      end if;
+      return No_Index;
+   end Index;
 
 end LSP.GPR_Files;

@@ -18,7 +18,10 @@
 with Ada.Exceptions;
 
 with GPR2.Message;
+with GPR2.Project.View;
 with GPR2.Source_Reference;
+
+with VSS.Strings.Conversions;
 
 package body LSP.GPR_Documents is
 
@@ -114,6 +117,17 @@ package body LSP.GPR_Documents is
    end Has_Diagnostics;
 
    ----------------
+   -- Has_Errors --
+   ----------------
+
+   function Has_Errors
+     (Self    : Document)
+      return Boolean is
+   begin
+      return Self.Tree.Log_Messages.Has_Error;
+   end Has_Errors;
+
+   ----------------
    -- Initialize --
    ----------------
 
@@ -205,5 +219,153 @@ package body LSP.GPR_Documents is
    begin
       Self.Published_Files_With_Diags := Files;
    end Update_Files_With_Diags;
+
+   ------------------
+   -- Get_Variable --
+   ------------------
+
+   function Get_Variable
+     (Self      : Document'Class;
+      Root_File : LSP.GPR_Files.File_Access;
+      Reference : LSP.GPR_Files.References.Reference)
+      return GPR2.Project.Variable.Object is
+
+      function Variable
+        (View : GPR2.Project.View.Object) return GPR2.Project.Variable.Object;
+
+      function Variable
+        (View : GPR2.Project.View.Object) return GPR2.Project.Variable.Object
+      is
+         Pack : constant GPR2.Package_Id :=
+                  LSP.GPR_Files.References.Referenced_Package (Reference);
+         Name : constant GPR2.Name_Type :=
+                  GPR2.Name_Type
+                    (VSS.Strings.Conversions.To_UTF_8_String
+                       (LSP.GPR_Files.Image
+                          (LSP.GPR_Files.References.Referenced_Variable
+                             (Reference))));
+
+         use type GPR2.Package_Id;
+      begin
+         if Pack = GPR2.Project_Level_Scope then
+            if View.Has_Variables (Name) then
+               return View.Variable (Name);
+            end if;
+         else
+            if View.Has_Variables (Pack, Name) then
+               return View.Variable (Pack, Name);
+            end if;
+         end if;
+         return GPR2.Project.Variable.Undefined;
+      end Variable;
+
+   begin
+      if LSP.GPR_Files.References.Is_Variable_Reference (Reference)
+        and then not Self.Tree.Log_Messages.Has_Error
+      then
+         declare
+            File : constant LSP.GPR_Files.File_Access :=
+                     LSP.GPR_Files.References.Referenced_File
+                       (File      => Root_File,
+                        Reference => Reference);
+            Path : constant GPR2.Path_Name.Object :=
+                     LSP.GPR_Files.Path (File.all);
+            Root : constant GPR2.Project.View.Object := Self.Tree.Root_Project;
+         begin
+            if Root.Path_Name = Path then
+               return Variable (Root);
+            end if;
+            if Root.Is_Extended then
+               declare
+                  Extending : constant GPR2.Project.View.Object :=
+                                Root.Extending;
+               begin
+                  if Extending.Path_Name = Path then
+                     return Variable (Extending);
+                  end if;
+               end;
+            end if;
+            for Import of Root.Imports loop
+               if Import.Path_Name = Path then
+                  return Variable (Import);
+               end if;
+            end loop;
+         end;
+      end if;
+      return GPR2.Project.Variable.Undefined;
+   end Get_Variable;
+
+   -------------------
+   -- Get_Attribute --
+   -------------------
+
+   function Get_Attribute
+     (Self      : Document'Class;
+      Root_File : LSP.GPR_Files.File_Access;
+      Reference : LSP.GPR_Files.References.Reference)
+      return GPR2.Project.Attribute.Object is
+
+      function Attribute
+        (View : GPR2.Project.View.Object) return GPR2.Project.Attribute.Object;
+
+      Attr_Def : constant LSP.GPR_Files.References.Attribute_Definition :=
+                   LSP.GPR_Files.References.Referenced_Attribute (Reference);
+
+      ---------------
+      -- Attribute --
+      ---------------
+
+      function Attribute
+        (View : GPR2.Project.View.Object) return GPR2.Project.Attribute.Object
+      is
+         Result : GPR2.Project.Attribute.Object;
+      begin
+         if View.Check_Attribute
+           (Name   => Attr_Def.Name,
+            Index  => Attr_Def.Index,
+            At_Pos => Attr_Def.At_Pos,
+            Result => Result)
+         then
+            return Result;
+         else
+            return GPR2.Project.Attribute.Undefined;
+         end if;
+      end Attribute;
+
+   begin
+      if LSP.GPR_Files.References.Is_Attribute_Reference (Reference)
+        and then not Self.Tree.Log_Messages.Has_Error
+      then
+         declare
+            File : constant LSP.GPR_Files.File_Access :=
+                     LSP.GPR_Files.References.Referenced_File
+                       (File      => Root_File,
+                        Reference => Reference);
+            Path : constant GPR2.Path_Name.Object :=
+                     LSP.GPR_Files.Path (File.all);
+            Root : constant GPR2.Project.View.Object := Self.Tree.Root_Project;
+         begin
+            if Root.Path_Name = Path then
+               return Attribute (Root);
+            end if;
+            if Root.Is_Extended then
+               declare
+                  Extending : constant GPR2.Project.View.Object :=
+                                Root.Extending;
+               begin
+                  if Extending.Path_Name = Path then
+                     return Attribute (Extending);
+                  end if;
+               end;
+            end if;
+            for Import of Root.Imports loop
+               if Import.Path_Name = Path then
+                  return Attribute (Import);
+               end if;
+            end loop;
+         end;
+      end if;
+      return GPR2.Project.Attribute.Undefined;
+   end Get_Attribute;
 
 end LSP.GPR_Documents;

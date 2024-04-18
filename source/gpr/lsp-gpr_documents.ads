@@ -31,9 +31,12 @@ with GPR2.Log;
 with GPR2.Path_Name;
 with GPR2.Path_Name.Set;
 with GPR2.Project.Tree;
+with GPR2.Project.Attribute;
+with GPR2.Project.Variable;
 
 with LSP.Text_Documents;
 with LSP.GPR_Files;
+with LSP.GPR_Files.References;
 with LSP.Structures;
 with LSP.Tracers;
 
@@ -91,6 +94,11 @@ package LSP.GPR_Documents is
    function Has_Diagnostics
      (Self : Document)
       return Boolean;
+   --  Returns True when messages found during document parsing.
+
+   function Has_Errors
+     (Self : Document)
+      return Boolean;
    --  Returns True when errors found during document parsing.
 
    -----------------------
@@ -124,6 +132,22 @@ package LSP.GPR_Documents is
 
    procedure Update_Files_With_Diags
      (Self : in out Document'Class; Files : GPR2.Path_Name.Set.Object);
+
+   function Get_Variable
+     (Self      : Document'Class;
+      Root_File : LSP.GPR_Files.File_Access;
+      Reference : LSP.GPR_Files.References.Reference)
+      return GPR2.Project.Variable.Object;
+   --  if Document contains a valid Tree & Reference is a variable reference
+   --  returns corresponding value otherwise returns 'Undefined'
+
+   function Get_Attribute
+     (Self      : Document'Class;
+      Root_File : LSP.GPR_Files.File_Access;
+      Reference : LSP.GPR_Files.References.Reference)
+      return GPR2.Project.Attribute.Object;
+   --  if Document contains a valid Tree & Reference is an attribute reference
+   --  returns corresponding value otherwise returns 'Undefined'
 
 private
 

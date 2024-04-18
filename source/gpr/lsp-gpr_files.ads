@@ -230,6 +230,11 @@ package LSP.GPR_Files is
       return VSS.Strings.Virtual_String;
    --  Self file' name
 
+   function Path
+     (Self : LSP.GPR_Files.File)
+      return GPR2.Path_Name.Object;
+   --  Self file' path
+
    function Types
      (Self : LSP.GPR_Files.File)
       return VSS.String_Vectors.Virtual_String_Vector;
@@ -245,6 +250,16 @@ package LSP.GPR_Files is
      (Self : LSP.GPR_Files.File)
       return VSS.String_Vectors.Virtual_String_Vector;
    --  Self file's non limited imported projects & extended projects.
+
+   type Variable_Id is private;
+   --  Used to describe variable's names
+
+   No_Variable : constant Variable_Id;
+   --  Used when there is no variable attached
+
+   function "+" (Name : String) return Variable_Id;
+   function Image (Id : Variable_Id) return VSS.Strings.Virtual_String;
+   --  Variable_Id/String conversions
 
 private
 
@@ -346,10 +361,6 @@ private
    No_Variable : constant Variable_Id := 0;
    --  Used when there is no variable attached
 
-   function "+" (Name : String) return Variable_Id;
-   function Image (Id : Variable_Id) return VSS.Strings.Virtual_String;
-   --  Variable_Id/String conversions
-
    type Project_Id is new Natural with Default_Value => 0;
    --  Used to describe project's names
 
@@ -409,6 +420,14 @@ private
       GPR2.No_Index,
       True);
    --  'others' Index type value. ex: for Switches (others) use ("-g");
+
+   function Index
+     (Self            : LSP.GPR_Files.File;
+      Attribute_Token : Gpr_Parser.Common.Token_Reference;
+      Current_Package : GPR2.Package_Id)
+      return Index_Type;
+   --  return index defined after 'Attribute_Token'
+   --  If no index defined returns 'No_Index'
 
    type Attribute_Definition is record
       Index : Index_Type;       -- attribute's index.
@@ -699,5 +718,9 @@ private
    function Name
      (Self : LSP.GPR_Files.File)
       return VSS.Strings.Virtual_String is (Image (Self.Name));
+
+   function Path
+     (Self : LSP.GPR_Files.File)
+      return GPR2.Path_Name.Object is (Self.Path);
 
 end LSP.GPR_Files;
