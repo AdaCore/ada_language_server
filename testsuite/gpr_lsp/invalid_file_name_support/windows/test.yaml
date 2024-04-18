@@ -1,3 +1,0 @@
-title: 'check invalid filename handling'
-skip:
-    - ['SKIP', 'env.build.os.name not in ("windows")']
