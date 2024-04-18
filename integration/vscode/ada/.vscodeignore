@@ -15,3 +15,4 @@ tsconfig.json
 **/*.ts
 **/*.ts.map
 xfail.yaml
+vscode-test-win-workaround.py
