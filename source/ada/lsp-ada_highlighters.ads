@@ -16,9 +16,14 @@
 ------------------------------------------------------------------------------
 
 with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Vectors;
 with Ada.Strings.Wide_Wide_Unbounded;
 
+with Langkit_Support.Token_Data_Handlers;
+
 with Libadalang.Analysis;
+with Libadalang.Common;
+with Libadalang.Iterators;
 
 with LSP.Ada_Client_Capabilities;
 with LSP.Enumerations;
@@ -44,7 +49,106 @@ package LSP.Ada_Highlighters is
    --  If Span isn't empty then return unit tokens in given Span, otherwise
    --  return all tokens in the Unit.
 
+   function Need_Highlighting return Libadalang.Iterators.Ada_Node_Predicate;
+   --  Predicate to filter node for highlighing
+
+   type Highlights_Holder is limited private;
+   --  A holder to keep data about highlighted tokens
+
+   procedure Initialize
+     (Holder : out Highlights_Holder;
+      Unit   : Libadalang.Analysis.Analysis_Unit);
+   --  Initialuze holder to keep highlighting information for every token
+   --  in the Unit
+
+   procedure Highlight_Node
+     (Self   : Ada_Highlighter'Class;
+      Holder : in out Highlights_Holder;
+      Node   : Libadalang.Analysis.Ada_Node'Class);
+   --  Highlight tokens of the Node and keep highlighting in the Holder
+
+   procedure Get_Result
+     (Self   : Ada_Highlighter'Class;
+      Holder : Highlights_Holder;
+      Unit   : Libadalang.Analysis.Analysis_Unit;
+      Result : out LSP.Structures.Natural_Vector);
+   --  Retrive highliting from Holder and encode it into Result
+
 private
+
+   package Highlights_Holders is
+      type Highlights_Holder is tagged limited private;
+      --  Highlights_Holder stores style for each token in the range given
+      --  on initialization.
+
+      procedure Initialize
+        (Self  : in out Highlights_Holder'Class;
+         From  : Libadalang.Common.Token_Reference;
+         To    : Libadalang.Common.Token_Reference;
+         Empty : out Boolean);
+      --  Initialize holder by providing token range. If From or To is a trivia
+      --  holder uses corresponding non-trivia token instead.
+
+      procedure Set_Token_Kind
+        (Self  : in out Highlights_Holder'Class;
+         Token : Libadalang.Common.Token_Reference;
+         Value : LSP.Enumerations.SemanticTokenTypes)
+           with Pre => not Libadalang.Common.Is_Trivia (Token);
+
+      procedure Set_Token_Modifier
+        (Self  : in out Highlights_Holder'Class;
+         Token : Libadalang.Common.Token_Reference;
+         Value : LSP.Enumerations.SemanticTokenModifiers)
+           with Pre => not Libadalang.Common.Is_Trivia (Token);
+
+      procedure Set_Token_Modifier
+        (Self  : in out Highlights_Holder'Class;
+         From  : Libadalang.Common.Token_Reference;
+         To    : Libadalang.Common.Token_Reference;
+         Value : LSP.Enumerations.SemanticTokenModifiers)
+           with Pre => not Libadalang.Common.Is_Trivia (From) and then
+                       not Libadalang.Common.Is_Trivia (To);
+      --  Set a modifier on each token in the range From .. To
+
+      type Modifier_Set is
+        array (LSP.Enumerations.SemanticTokenModifiers) of Boolean
+          with Pack;
+
+      Empty : constant Modifier_Set := (others => False);
+
+      type Semantic_Token (Is_Set : Boolean := False) is record
+         Modifiers  : Modifier_Set;
+
+         case Is_Set is
+            when True =>
+               Kind : LSP.Enumerations.SemanticTokenTypes;
+            when False =>
+               null;
+         end case;
+      end record;
+
+      function Get
+        (Self  : Highlights_Holder'Class;
+         Token : Libadalang.Common.Token_Reference)
+           return Semantic_Token
+             with Pre => not Libadalang.Common.Is_Trivia (Token);
+
+   private
+
+      package Semantic_Token_Vectors is new Ada.Containers.Vectors
+        (Index_Type   => Langkit_Support.Token_Data_Handlers.Token_Index,
+         Element_Type => Semantic_Token);
+
+      type Highlights_Holder is tagged limited record
+         First  : Langkit_Support.Token_Data_Handlers.Token_Index;
+         Last   : Langkit_Support.Token_Data_Handlers.Token_Index;
+         Vector : Semantic_Token_Vectors.Vector;
+      end record;
+   end Highlights_Holders;
+
+   type Highlights_Holder is limited record
+      Value : Highlights_Holders.Highlights_Holder;
+   end record;
 
    function Hash (Value : LSP.Enumerations.SemanticTokenTypes)
      return Ada.Containers.Hash_Type is
@@ -76,10 +180,6 @@ private
    type Ada_Highlighter is tagged limited record
       Token_Types     : Token_Type_Maps.Map;
       Token_Modifiers : Token_Modifier_Maps.Map;
-      Obsolescent     : Unbounded_Text_Type;
-      Ada             : Unbounded_Text_Type;
-      System          : Unbounded_Text_Type;
-      Interfaces      : Unbounded_Text_Type;
    end record;
 
 end LSP.Ada_Highlighters;

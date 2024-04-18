@@ -1139,18 +1139,6 @@ package body LSP.Ada_Documents is
    is
      (Self.Unit (Context).Lookup_Token (Self.To_Source_Location (Position)));
 
-   ----------------
-   -- Get_Tokens --
-   ----------------
-
-   function Get_Tokens
-     (Self        : Document'Class; Context : LSP.Ada_Contexts.Context;
-      Highlighter : LSP.Ada_Highlighters.Ada_Highlighter;
-      Span        : LSP.Structures.A_Range := ((1, 1), (0, 0)))
-      return LSP.Structures.Natural_Vector
-   is
-      (Highlighter.Get_Tokens (Self.Unit (Context), Context.Tracer.all, Span));
-
    -----------------
    -- Get_Word_At --
    -----------------

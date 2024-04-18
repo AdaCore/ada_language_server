@@ -107,7 +107,6 @@ test-als:
     # Job artifacts must be produced in the project directory, so we do it at
     # the end of the job to avoid changing Anod checkouts halfway through the
     # job and triggering useless rebuilds.
-    - echo -e "\e[0Ksection_start:`date +%s`:prepare_artifacts[collapsed=true]\r\e[0KPrepare job artifacts"
     # Process the als test report
     - e3-testsuite-report
       --failure-exit-code 1
@@ -115,7 +114,6 @@ test-als:
       $ALS_BUILD_SPACE/results/new/ || FAILED=true
     # Include Anod logs
     - cp -r $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
-    - echo -e "\e[0Ksection_end:`date +%s`:prepare_artifacts\r\e[0K"
 
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 
@@ -150,15 +148,13 @@ test-vscode-extension:
     # Job artifacts must be produced in the project directory, so we do it at
     # the end of the job to avoid changing Anod checkouts halfway through the
     # job and triggering useless rebuilds.
-    - echo -e "\e[0Ksection_start:`date +%s`:prepare_artifacts[collapsed=true]\r\e[0KPrepare job artifacts"
     # Process the vscode-extension test report
     - e3-testsuite-report
       --failure-exit-code 1
       --xunit-output $CI_PROJECT_DIR/vscode_xunit_output.xml
-      $VSCODE_BUILD_SPACE/results/new/ || FAILED=true
+      $VSCODE_BUILD_SPACE/results/ || FAILED=true
     # Include Anod logs
     - cp -r $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
-    - echo -e "\e[0Ksection_end:`date +%s`:prepare_artifacts\r\e[0K"
 
     - if [ ! -z ${FAILED+x} ]; then echo "There was at least one testcase failure" && exit 1; fi
 

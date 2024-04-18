@@ -29,10 +29,12 @@ with Laltools.Common;
 
 with VSS.Strings;
 
+with LSP.Ada_Client_Capabilities;
 with LSP.Ada_Configurations;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documents;
+with LSP.Ada_Highlighters;
 with LSP.Constants;
 with LSP.Locations;
 with LSP.Structures;
@@ -45,6 +47,10 @@ package LSP.Ada_Job_Contexts is
      (Self : Ada_Job_Context;
       URI  : LSP.Structures.DocumentUri)
         return GNATCOLL.VFS.Virtual_File is abstract;
+
+   function Client (Self : Ada_Job_Context) return
+     access constant LSP.Ada_Client_Capabilities.Client_Capability'Class
+       is abstract;
 
    function Get_Configuration (Self : Ada_Job_Context)
      return access constant LSP.Ada_Configurations.Configuration'Class
@@ -69,6 +75,10 @@ package LSP.Ada_Job_Contexts is
      (Self : in out Ada_Job_Context;
       URI  : LSP.Structures.DocumentUri)
         return LSP.Ada_Documents.Document_Access is abstract;
+
+   function Get_Highlighter
+     (Self : in out Ada_Job_Context)
+      return access constant LSP.Ada_Highlighters.Ada_Highlighter is abstract;
 
    procedure Publish_Diagnostics
      (Self              : in out Ada_Job_Context;
@@ -108,6 +118,11 @@ package LSP.Ada_Job_Contexts is
           (Self.Imprecise_Resolve_Name
             (Laltools.Common.Get_Node_As_Name
                (Self.Get_Node_At (Context, Position))));
+
+   function To_LSP_Location
+     (Self   : in out Ada_Job_Context;
+      Node   : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.Location is abstract;
 
    procedure Append_Location
      (Self   : in out Ada_Job_Context;

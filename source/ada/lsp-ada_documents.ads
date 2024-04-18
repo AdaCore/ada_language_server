@@ -32,7 +32,6 @@ with Pp.Command_Lines;
 limited with LSP.Ada_Contexts;
 limited with LSP.Ada_Handlers;
 with LSP.Ada_Completions;
-with LSP.Ada_Highlighters;
 with LSP.Constants;
 with LSP.Diagnostic_Sources;
 with LSP.Text_Documents.Langkit_Documents;
@@ -285,14 +284,6 @@ package LSP.Ada_Documents is
       Position : LSP.Structures.Position)
       return Libadalang.Common.Token_Reference;
    --  Return a token at the given Position.
-
-   function Get_Tokens
-     (Self        : Document'Class;
-      Context     : LSP.Ada_Contexts.Context;
-      Highlighter : LSP.Ada_Highlighters.Ada_Highlighter;
-      Span        : LSP.Structures.A_Range := ((1, 1), (0, 0)))
-        return LSP.Structures.Natural_Vector;
-   --  Return semantic tokens in the document. See details in LSP specification
 
 private
 
