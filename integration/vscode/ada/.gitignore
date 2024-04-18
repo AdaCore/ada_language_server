@@ -2,7 +2,6 @@
 /*.vsix
 /out/
 /.vscode-test/
-**/obj/
 
 # Locations of ALS executable in VS Code extension. VS Code is supported on arm,
 # arm64 and x64 so we only consider those architectures.
