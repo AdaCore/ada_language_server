@@ -353,6 +353,10 @@ package body LSP.Ada_Highlighters is
 
       Token : Libadalang.Common.Token_Reference := From_Token;
    begin
+      if Libadalang.Common.Is_Trivia (Token) then
+         Token := Libadalang.Common.Next (Token, Exclude_Trivia => True);
+      end if;
+
       --  Scan over all tokens and find a corresponding value in Holder
       while Token < To_Token loop
 
