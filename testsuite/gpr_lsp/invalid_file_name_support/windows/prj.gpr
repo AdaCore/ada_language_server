@@ -1,4 +1,0 @@
-with "  ";
-aggregate project prj extends "  " is
-for Project_Files use ("  ");
-end prj;
