@@ -425,3 +425,14 @@ export function getSymbols(
 
     return allSymbols;
 }
+
+/**
+ *
+ * @param text - a string possibly containing special RegExp characters.
+ * @returns a string where all RegExp special characters have been escaped. This
+ * can be useful when searching for an exact string which may contain special
+ * characters.
+ */
+export function escapeRegExp(text: string) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}

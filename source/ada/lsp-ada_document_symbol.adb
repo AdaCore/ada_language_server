@@ -412,6 +412,9 @@ package body LSP.Ada_Document_Symbol is
 
             when Libadalang.Common.Ada_Basic_Decl =>
                for Name of Node.As_Basic_Decl.P_Defining_Names loop
+
+                  exit when Name.Is_Null;
+
                   Append_Name
                     (Name   => Name,
                      Text   => VSS.Strings.To_Virtual_String (Name.Text),

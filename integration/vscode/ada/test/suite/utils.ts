@@ -1,9 +1,5 @@
 import assert from 'assert';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { Glob, GlobOptionsWithFileTypesUnset } from 'glob';
-import Mocha, { MochaOptions } from 'mocha';
-import path from 'path';
-import { env } from 'process';
 import * as vscode from 'vscode';
 
 /**
@@ -54,9 +50,12 @@ export function update(): boolean {
  */
 export async function activate(): Promise<void> {
     const ext = vscode.extensions.getExtension('AdaCore.ada');
-    if (ext !== undefined) {
-        if (!ext.isActive) {
-            await ext.activate();
-        }
-    }
+    assert(ext);
+    /**
+     * Previously this code returned when ext.isActive was true. This is not
+     * enough because it doesn't indicate if any errors occured during
+     * activation. Instead, always awaiting the result of the activate() method
+     * does report activation errors as a promise rejection.
+     */
+    await ext.activate();
 }

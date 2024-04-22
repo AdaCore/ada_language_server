@@ -1,0 +1,5 @@
+# Object dir of the project
+/obj/
+
+# Generated when testing gnatsas tasks
+/report.sarif

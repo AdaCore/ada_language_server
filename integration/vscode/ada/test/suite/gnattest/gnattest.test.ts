@@ -28,6 +28,7 @@ import {
     runHandler,
 } from '../../../src/gnattest';
 import { activate } from '../utils';
+import { escapeRegExp } from '../../../src/helpers';
 
 suite('GNATtest Integration Tests', function () {
     this.beforeAll(async () => {
@@ -329,8 +330,7 @@ bar
              */
             const buildOutput = `
 Building the test harness project
-$ "gprbuild" "-P" "${await getGnatTestDriverProjectPath()}"
-`.trimStart();
+$ "gprbuild" "-P" "${await getGnatTestDriverProjectPath()}"`.trimStart();
             const runOutput = `
 Running the test driver
 $ "${await getGnatTestDriverExecPath()}" "--passed-tests=show"
@@ -340,10 +340,9 @@ speed2.ads:12:4: info: corresponding test PASSED
 speed2.ads:16:4: info: corresponding test PASSED
 speed1.ads:12:4: inherited at speed2.ads:20:4: info: corresponding test PASSED
 speed2.ads:10:4: error: corresponding test FAILED: Test not implemented. (speed2-auto_controller_test_data-auto_controller_tests.adb:46)
-6 tests run: 5 passed; 1 failed; 0 crashed.
-`.trimStart();
-            assert.ok(outputs.includes(buildOutput));
-            assert.ok(outputs.includes(runOutput));
+6 tests run: 5 passed; 1 failed; 0 crashed.`.trimStart();
+            assert.match(outputs, RegExp(escapeRegExp(buildOutput)));
+            assert.match(outputs, RegExp(escapeRegExp(runOutput)));
 
             /**
              * Check that calling the run handler with an empty include array
@@ -351,8 +350,8 @@ speed2.ads:10:4: error: corresponding test FAILED: Test not implemented. (speed2
              */
             outputs = '';
             await runHandler({ include: [], exclude: undefined, profile: undefined }, undefined);
-            assert.ok(outputs.includes(buildOutput));
-            assert.ok(outputs.includes(runOutput));
+            assert.match(outputs, RegExp(escapeRegExp(buildOutput)));
+            assert.match(outputs, RegExp(escapeRegExp(runOutput)));
         } finally {
             /**
              * Reset the controller object on which we set a spy
