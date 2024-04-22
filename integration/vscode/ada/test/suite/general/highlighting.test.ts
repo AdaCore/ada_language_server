@@ -14,57 +14,53 @@ suite('Highlighting', function () {
         await activate();
     });
 
-    this.afterEach(async function () {
-        await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    });
+    const highlightingTestRoot = getDocUri('src/highlighting').fsPath;
+    adaFilePaths = [];
 
-    test('file paths recovered', function () {
-        const highlightingTestRoot = getDocUri('src/highlighting').fsPath;
-        adaFilePaths = [];
-
-        function walk(dir: string) {
-            const openDir = opendirSync(dir);
-            try {
-                let child;
-                while ((child = openDir.readSync()) != null) {
-                    const childPath = path.join(dir, child.name);
-                    if (child.isDirectory()) {
-                        walk(childPath);
-                    } else if (child.isFile()) {
-                        if (child.name.match(/\.ad[bs]$/)) {
-                            adaFilePaths.push(childPath);
-                        }
+    function walk(dir: string) {
+        const openDir = opendirSync(dir);
+        try {
+            let child;
+            while ((child = openDir.readSync()) != null) {
+                const childPath = path.join(dir, child.name);
+                if (child.isDirectory()) {
+                    walk(childPath);
+                } else if (child.isFile()) {
+                    if (child.name.match(/\.ad[bs]$/)) {
+                        adaFilePaths.push(childPath);
                     }
                 }
-            } finally {
-                openDir.closeSync();
             }
+        } finally {
+            openDir.closeSync();
         }
+    }
 
-        walk(highlightingTestRoot);
-        assert.notStrictEqual(adaFilePaths, []);
-    });
+    walk(highlightingTestRoot);
+    assert.notStrictEqual(adaFilePaths, []);
 
-    this.afterAll(function () {
-        for (const absPath of adaFilePaths) {
-            const testName = `${basename(dirname(absPath))}/${basename(absPath)}`;
-            const absFileUri = vscode.Uri.file(absPath);
+    for (const absPath of adaFilePaths) {
+        const testName = `${basename(dirname(absPath))}/${basename(absPath)}`;
+        const absFileUri = vscode.Uri.file(absPath);
 
-            suite(testName, function () {
-                test('syntax.main', function () {
-                    testSyntaxHighlighting(absPath, 'syntaxes');
-                });
-
-                test('syntax.advanced', function () {
-                    testSyntaxHighlighting(absPath, 'advanced');
-                });
-
-                test('semantic', async function () {
-                    await testSemanticHighlighting(absFileUri);
-                });
+        suite(testName, function () {
+            this.afterAll(async function () {
+                await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
             });
-        }
-    });
+
+            test('syntax.main', function () {
+                testSyntaxHighlighting(absPath, 'syntaxes');
+            });
+
+            test('syntax.advanced', function () {
+                testSyntaxHighlighting(absPath, 'advanced');
+            });
+
+            test('semantic', async function () {
+                await testSemanticHighlighting(absFileUri);
+            });
+        });
+    }
 });
 
 /**
