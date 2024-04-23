@@ -313,8 +313,9 @@ package body LSP.Ada_Handlers.Call_Hierarchy is
          end if;
       end Callback;
 
-      Ignore : Libadalang.Common.Ref_Result_Kind;
       Cursor : Laltools.Common.References_By_Subprogram.Cursor;
+      Ignore : Libadalang.Common.Ref_Result_Kind :=
+        Libadalang.Common.No_Ref;
 
    begin
       Laltools.Call_Hierarchy.Find_Outgoing_Calls

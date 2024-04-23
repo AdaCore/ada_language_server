@@ -2539,8 +2539,9 @@ package body LSP.Ada_Handlers is
 
          Definition : Libadalang.Analysis.Defining_Name;
          Imprecise  : Boolean := False;
-         Ignore     : Libadalang.Common.Ref_Result_Kind;
          Decl       : Libadalang.Analysis.Basic_Decl;
+         Ignore     : Libadalang.Common.Ref_Result_Kind :=
+           Libadalang.Common.No_Ref;
 
       begin
          if Name_Node.Is_Null then
