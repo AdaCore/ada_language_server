@@ -52,11 +52,15 @@ package body LSP.Ada_Handlers.Alire is
       Error : Integer);
 
    procedure Start_Alire
-     (Listener : in out Process_Listener'Class;
-      ALR      : String;
+     (ALR      : String;
       Option_1 : String;
       Option_2 : String;
-      Root     : String);
+      Root     : String;
+      Error    : out VSS.Strings.Virtual_String;
+      Lines    : out VSS.String_Vectors.Virtual_String_Vector);
+
+   Anchored : constant VSS.Regular_Expressions.Match_Options :=
+     (VSS.Regular_Expressions.Anchored_Match => True);
 
    --------------------
    -- Error_Occurred --
@@ -81,10 +85,6 @@ package body LSP.Ada_Handlers.Alire is
       Environment : in out GPR2.Environment.Object)
    is
       use type GNAT.OS_Lib.String_Access;
-      use type Spawn.Process_Exit_Code;
-      use type Spawn.Process_Exit_Status;
-      use type Spawn.Process_Status;
-      use all type VSS.Regular_Expressions.Match_Option;
 
       ALR : GNAT.OS_Lib.String_Access :=
         GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
@@ -100,13 +100,7 @@ package body LSP.Ada_Handlers.Alire is
         VSS.Regular_Expressions.To_Regular_Expression
           ("export ([^=]+)=""([^\n]+)""");
 
-      Anchored : constant VSS.Regular_Expressions.Match_Options :=
-        (VSS.Regular_Expressions.Anchored_Match => True);
-
-      List     : array (1 .. 2) of aliased Process_Listener;
       Lines    : VSS.String_Vectors.Virtual_String_Vector;
-      Text     : VSS.Strings.Virtual_String;
-      Decoder  : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
    begin
       Project.Clear;
       Has_Alire := ALR /= null;
@@ -116,67 +110,14 @@ package body LSP.Ada_Handlers.Alire is
          return;
       end if;
 
-      Start_Alire (List (1), ALR.all, "--non-interactive", "show", Root);
-      Start_Alire (List (2), ALR.all, "--non-interactive", "printenv", Root);
+      Start_Alire (ALR.all, "--non-interactive", "show", Root, Error, Lines);
 
-      loop
-         Spawn.Processes.Monitor_Loop (0.1);
-
-         exit when
-           (for all Item of List => Item.Process.Status = Spawn.Not_Running);
-      end loop;
-
-      Decoder.Initialize ("utf-8");
-      GNAT.OS_Lib.Free (ALR);
-
-      --  Decode output and check errors
-      for Item of List loop
-         Decoder.Reset_State;
-         Item.Text := Decoder.Decode (Item.Stdout);
-
-         if Item.Process.Exit_Status /= Spawn.Normal
-           or else Item.Process.Exit_Code /= 0
-           or else Decoder.Has_Error
-           or else Item.Error /= 0
-         then
-            Error := "'alr";
-
-            for Arg of Item.Process.Arguments loop
-               Error.Append (" ");
-               Error.Append (VSS.Strings.Conversions.To_Virtual_String (Arg));
-            end loop;
-
-            Error.Append ("' failed:");
-            Error.Append (VSS.Characters.Latin.Line_Feed);
-
-            if Decoder.Has_Error then
-               Error.Append (Decoder.Error_Message);
-            else
-               Error.Append (Item.Text);
-            end if;
-
-            Error.Append (VSS.Characters.Latin.Line_Feed);
-            Decoder.Reset_State;
-            Text := Decoder.Decode (Item.Stderr);
-
-            if Decoder.Has_Error then
-               Error.Append (Decoder.Error_Message);
-            else
-               Error.Append (Text);
-            end if;
-
-            if Item.Error /= 0 then
-               Error.Append
-                 (VSS.Strings.Conversions.To_Virtual_String
-                   (GNAT.OS_Lib.Errno_Message (Item.Error)));
-            end if;
-
-            return;
-         end if;
-      end loop;
+      if not Error.Is_Empty then
+         GNAT.OS_Lib.Free (ALR);
+         return;
+      end if;
 
       --  Find project file in `alr show` output
-      Lines := List (1).Text.Split_Lines;
 
       declare
          First : constant VSS.Strings.Virtual_String := Lines (1);
@@ -202,8 +143,18 @@ package body LSP.Ada_Handlers.Alire is
          end;
       end loop;
 
+      if Project.Is_Empty then
+         Error.Append ("No project file is found by alire");
+      end if;
+
       --  Find variables in `alr printenv` output
-      Lines := List (2).Text.Split_Lines;
+
+      Start_Alire
+        (ALR.all, "--non-interactive", "printenv", Root, Error, Lines);
+
+      GNAT.OS_Lib.Free (ALR);
+
+      --  Find variables in `alr printenv` output
 
       for Line of Lines loop
          declare
@@ -219,10 +170,6 @@ package body LSP.Ada_Handlers.Alire is
             end if;
          end;
       end loop;
-
-      if Project.Is_Empty then
-         Error.Append ("No project file is found by alire");
-      end if;
    end Run_Alire;
 
    ---------------
@@ -235,33 +182,130 @@ package body LSP.Ada_Handlers.Alire is
       Error       : out VSS.Strings.Virtual_String;
       Environment : in out GPR2.Environment.Object)
    is
-      Ignore : VSS.Strings.Virtual_String;
+      use type GNAT.OS_Lib.String_Access;
+
+      ALR : GNAT.OS_Lib.String_Access :=
+        GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
+
+      Export_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
+        VSS.Regular_Expressions.To_Regular_Expression
+          ("export ([^=]+)=""([^\n]+)""");
+
+      Lines    : VSS.String_Vectors.Virtual_String_Vector;
    begin
-      --  TODO: optimization: don't run second alire process
-      Run_Alire (Root, Has_Alire, Error, Ignore, Environment);
+      Has_Alire := ALR /= null;
+
+      if ALR = null then
+         Error := "No alr in the PATH";
+         return;
+      end if;
+
+      Start_Alire
+        (ALR.all, "--non-interactive", "printenv", Root, Error, Lines);
+
+      GNAT.OS_Lib.Free (ALR);
+
+      --  Find variables in `alr printenv` output
+
+      for Line of Lines loop
+         declare
+            Match : constant VSS.Regular_Expressions.Regular_Expression_Match
+              := Export_Pattern.Match (Line, Anchored);
+         begin
+            if Match.Has_Match then
+               Environment.Insert
+                 (Key   => VSS.Strings.Conversions.To_UTF_8_String
+                             (Match.Captured (1)),
+                  Value => VSS.Strings.Conversions.To_UTF_8_String
+                             (Match.Captured (2)));
+            end if;
+         end;
+      end loop;
    end Run_Alire;
 
-   -------------------
-   -- Spawn_Process --
-   -------------------
+   -----------------
+   -- Start_Alire --
+   -----------------
 
    procedure Start_Alire
-     (Listener : in out Process_Listener'Class;
-      ALR      : String;
+     (ALR      : String;
       Option_1 : String;
       Option_2 : String;
-      Root     : String)
+      Root     : String;
+      Error    : out VSS.Strings.Virtual_String;
+      Lines    : out VSS.String_Vectors.Virtual_String_Vector)
    is
-      Process : Spawn.Processes.Process renames Listener.Process;
-      Options : Spawn.String_Vectors.UTF_8_String_Vector;
+      use type Spawn.Process_Exit_Code;
+      use type Spawn.Process_Exit_Status;
+      use type Spawn.Process_Status;
+
+      Item     : aliased Process_Listener;
+      Process  : Spawn.Processes.Process renames Item.Process;
+      Options  : Spawn.String_Vectors.UTF_8_String_Vector;
+      Decoder  : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
+      Text     : VSS.Strings.Virtual_String;
    begin
       Options.Append (Option_1);
       Options.Append (Option_2);
       Process.Set_Arguments (Options);
       Process.Set_Working_Directory (Root);
       Process.Set_Program (ALR);
-      Process.Set_Listener (Listener'Unchecked_Access);
+      Process.Set_Listener (Item'Unchecked_Access);
       Process.Start;
+
+      loop
+         Spawn.Processes.Monitor_Loop (0.1);
+
+         exit when Item.Process.Status = Spawn.Not_Running;
+      end loop;
+
+      Decoder.Initialize ("utf-8");
+
+      --  Decode output and check errors
+      Decoder.Reset_State;
+      Item.Text := Decoder.Decode (Item.Stdout);
+
+      if Item.Process.Exit_Status = Spawn.Normal
+        and then Item.Process.Exit_Code = 0
+        and then not Decoder.Has_Error
+        and then Item.Error = 0
+      then
+
+         Lines := Item.Text.Split_Lines;
+
+      else
+         Error := "'alr";
+
+         for Arg of Item.Process.Arguments loop
+            Error.Append (" ");
+            Error.Append (VSS.Strings.Conversions.To_Virtual_String (Arg));
+         end loop;
+
+         Error.Append ("' failed:");
+         Error.Append (VSS.Characters.Latin.Line_Feed);
+
+         if Decoder.Has_Error then
+            Error.Append (Decoder.Error_Message);
+         else
+            Error.Append (Item.Text);
+         end if;
+
+         Error.Append (VSS.Characters.Latin.Line_Feed);
+         Decoder.Reset_State;
+         Text := Decoder.Decode (Item.Stderr);
+
+         if Decoder.Has_Error then
+            Error.Append (Decoder.Error_Message);
+         else
+            Error.Append (Text);
+         end if;
+
+         if Item.Error /= 0 then
+            Error.Append
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (GNAT.OS_Lib.Errno_Message (Item.Error)));
+         end if;
+      end if;
    end Start_Alire;
 
    ------------------------------
