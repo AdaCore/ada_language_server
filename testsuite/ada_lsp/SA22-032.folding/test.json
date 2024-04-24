@@ -116,11 +116,6 @@
                      "kind": "region"
                   },
                   {
-                     "startLine": 5,
-                     "endLine": 6,
-                     "kind": "imports"
-                  },
-                  {
                      "startLine": 11,
                      "endLine": 15,
                      "kind": "region"

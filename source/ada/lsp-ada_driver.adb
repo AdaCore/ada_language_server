@@ -43,6 +43,7 @@ with LSP.Ada_Declaration;
 with LSP.Ada_Document_Symbol;
 with LSP.Ada_Did_Change_Configurations;
 with LSP.Ada_Did_Change_Document;
+with LSP.Ada_Folding_Range;
 with LSP.Ada_Hover;
 with LSP.Ada_References;
 with LSP.Ada_Handlers;
@@ -84,6 +85,7 @@ with LSP.Server_Notifications.DidChangeConfiguration;
 with LSP.Server_Requests.Definition;
 with LSP.Server_Requests.Declaration;
 with LSP.Server_Requests.DocumentSymbol;
+with LSP.Server_Requests.FoldingRange;
 with LSP.Server_Requests.Hover;
 with LSP.Server_Requests.References;
 with LSP.Server_Requests.Tokens_Full;
@@ -209,6 +211,10 @@ procedure LSP.Ada_Driver is
 
    Ada_Document_Symbol_Handler : aliased
      LSP.Ada_Document_Symbol.Ada_Document_Symbol_Handler
+       (Ada_Handler'Unchecked_Access);
+
+   Ada_Folding_Range_Handler : aliased
+     LSP.Ada_Folding_Range.Ada_Folding_Range_Handler
        (Ada_Handler'Unchecked_Access);
 
    Ada_Tokens_Full_Handler : aliased
@@ -442,6 +448,10 @@ begin
          Server.Register_Handler
            (LSP.Server_Requests.DocumentSymbol.Request'Tag,
             Ada_Document_Symbol_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.FoldingRange.Request'Tag,
+            Ada_Folding_Range_Handler'Unchecked_Access);
 
          Server.Register_Handler
            (LSP.Server_Requests.Tokens_Full.Request'Tag,
