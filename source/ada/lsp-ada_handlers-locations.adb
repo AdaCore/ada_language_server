@@ -303,6 +303,24 @@ package body LSP.Ada_Handlers.Locations is
       end if;
    end To_LSP_Location;
 
+   ------------------
+   -- To_LSP_Range --
+   ------------------
+
+   function To_LSP_Range
+     (Self  : in out Message_Handler'Class;
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+      Token : Libadalang.Common.Token_Reference)
+      return LSP.Structures.A_Range
+   is
+      pragma Unreferenced (Self);
+
+      Sloc : constant Langkit_Support.Slocs.Source_Location_Range :=
+        Libadalang.Common.Sloc_Range (Libadalang.Common.Data (Token));
+   begin
+      return To_LSP_Range (Unit, Sloc);
+   end To_LSP_Range;
+
    ---------------------
    -- To_LSP_Location --
    ---------------------

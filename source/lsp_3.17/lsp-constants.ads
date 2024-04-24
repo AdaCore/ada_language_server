@@ -154,4 +154,13 @@ package LSP.Constants is
      return LSP.Structures.FileOperationPatternOptions_Optional is
        (Is_Set => True, Value => (ignoreCase => True));
 
+   function Region return LSP.Structures.FoldingRangeKind_Optional is
+     (Is_Set => True, Value => LSP.Enumerations.Region);
+
+   function Imports return LSP.Structures.FoldingRangeKind_Optional is
+     (Is_Set => True, Value => LSP.Enumerations.Imports);
+
+   function Comment return LSP.Structures.FoldingRangeKind_Optional is
+     (Is_Set => True, Value => LSP.Enumerations.Comment);
+
 end LSP.Constants;

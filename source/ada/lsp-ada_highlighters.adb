@@ -377,7 +377,7 @@ package body LSP.Ada_Highlighters is
                Start : constant Langkit_Support.Slocs.Source_Location :=
                  Langkit_Support.Slocs.Start_Sloc (Sloc_Range);
 
-               Map                                 : constant array (Libadalang.Common.Token_Kind) of
+               Map : constant array (Libadalang.Common.Token_Kind) of
                  LSP.Enumerations.SemanticTokenTypes :=
                    (Ada_All .. Ada_Xor | Ada_With => keyword,
                     Ada_Par_Close .. Ada_Target   => operator,

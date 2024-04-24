@@ -29,6 +29,7 @@ with GPR2.Log;
 with GPR2.Project.Tree;
 
 with Libadalang.Analysis;
+with Libadalang.Common;
 
 with VSS.Strings.Conversions;
 
@@ -344,11 +345,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.RenameParams);
 
-   overriding procedure On_FoldingRange_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.FoldingRangeParams);
-
    overriding procedure On_Formatting_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
@@ -523,6 +519,12 @@ private
      (Self : in out Message_Handler;
       Node : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.Location;
+
+   overriding function To_LSP_Range
+     (Self  : in out Message_Handler;
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+      Token : Libadalang.Common.Token_Reference)
+      return LSP.Structures.A_Range;
 
    overriding procedure Append_Location
      (Self   : in out Message_Handler;

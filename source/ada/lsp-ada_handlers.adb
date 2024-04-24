@@ -31,8 +31,6 @@ with VSS.Strings.Templates;
 with VSS.String_Vectors;
 with VSS.JSON.Streams;
 
-with Libadalang.Common;
-
 with Laltools.Common;
 with Laltools.Partial_GNATPP;
 
@@ -151,6 +149,13 @@ package body LSP.Ada_Handlers is
       Node : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.Location is
         (LSP.Ada_Handlers.Locations.To_LSP_Location (Self, Node));
+
+   overriding function To_LSP_Range
+     (Self  : in out Message_Handler;
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+      Token : Libadalang.Common.Token_Reference)
+      return LSP.Structures.A_Range is
+        (LSP.Ada_Handlers.Locations.To_LSP_Range (Self, Unit, Token));
 
    overriding function Get_Node_At
      (Self     : in out Message_Handler;
@@ -2394,44 +2399,6 @@ package body LSP.Ada_Handlers is
    begin
       LSP.Servers.Server'Class (Self.Sender.all).Stop;
    end On_Exits_Notification;
-
-   -----------------------------
-   -- On_FoldingRange_Request --
-   -----------------------------
-
-   overriding procedure On_FoldingRange_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.FoldingRangeParams)
-   is
-      use type LSP.Ada_Documents.Document_Access;
-
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Get_Open_Document (Self, Value.textDocument.uri);
-      Response : LSP.Structures.FoldingRange_Vector_Or_Null;
-
-   begin
-      if Document /= null then
-         Document.Get_Folding_Blocks
-           (Context.all,
-            Self.Client.Line_Folding_Only,
-            Self.Configuration.Folding_Comments,
-            Self.Is_Canceled,
-            Response);
-
-         if Self.Is_Canceled.all then
-            Response.Clear;
-         end if;
-         Self.Sender.On_FoldingRange_Response (Id, Response);
-
-      else
-         Self.Sender.On_Error_Response
-           (Id, (code => LSP.Enumerations.InternalError,
-                 message => "Document is not opened"));
-      end if;
-   end On_FoldingRange_Request;
 
    ---------------------------
    -- On_Formatting_Request --
