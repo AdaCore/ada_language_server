@@ -45,6 +45,12 @@ package LSP.Ada_Handlers.Locations is
       Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
       return LSP.Structures.Location;
 
+   function To_LSP_Range
+     (Self  : in out Message_Handler'Class;
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+      Token : Libadalang.Common.Token_Reference)
+      return LSP.Structures.A_Range;
+
    function Get_Node_At
      (Self     : in out Message_Handler'Class;
       Context  : LSP.Ada_Contexts.Context;
