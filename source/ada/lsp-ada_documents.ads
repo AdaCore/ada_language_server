@@ -160,16 +160,6 @@ package LSP.Ada_Documents is
       Result      : in out LSP.Ada_Completions.Completion_Maps.Map);
    --  See Contexts.Get_Any_Symbol
 
-   procedure Get_Folding_Blocks
-     (Self       : Document;
-      Context    : LSP.Ada_Contexts.Context;
-      Lines_Only : Boolean;
-      Comments   : Boolean;
-      Canceled   : access function return Boolean;
-      Result     : out LSP.Structures.FoldingRange_Vector);
-   --  Populate Result with code folding blocks in the document. If Lines_Only
-   --  is True does not return characters positions in lines.
-
    function Get_Formatting_Region
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;

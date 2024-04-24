@@ -24,6 +24,7 @@ with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with Libadalang.Analysis;
+with Libadalang.Common;
 
 with Laltools.Common;
 
@@ -123,6 +124,12 @@ package LSP.Ada_Job_Contexts is
      (Self   : in out Ada_Job_Context;
       Node   : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.Location is abstract;
+
+   function To_LSP_Range
+     (Self  : in out Ada_Job_Context;
+      Unit  : Libadalang.Analysis.Analysis_Unit;
+      Token : Libadalang.Common.Token_Reference)
+      return LSP.Structures.A_Range is abstract;
 
    procedure Append_Location
      (Self   : in out Ada_Job_Context;
