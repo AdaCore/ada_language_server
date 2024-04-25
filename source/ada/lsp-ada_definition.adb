@@ -123,6 +123,8 @@ package body LSP.Ada_Definition is
       Definition_Node         : Libadalang.Analysis.Basic_Decl;
       Decl_For_Find_Overrides : Libadalang.Analysis.Basic_Decl;
       Entry_Decl_Node         : Libadalang.Analysis.Entry_Decl;
+
+      Ignore : Boolean;
    begin
       if Self.Contexts.Is_Empty then
          --  No more contexts to process, sort and return collected results
@@ -236,25 +238,16 @@ package body LSP.Ada_Definition is
 
       if not Decl_For_Find_Overrides.Is_Null then
          declare
-            Overriding_Result_Kind : Libadalang.Common.Ref_Result_Kind;
-            Bases_Result_Kind      : Libadalang.Common.Ref_Result_Kind;
             Overridings : constant Libadalang.Analysis.Basic_Decl_Array :=
               Context.Find_All_Overrides
                 (Decl_For_Find_Overrides,
-                 Result_Kind => Overriding_Result_Kind);
+                 Imprecise_Results => Ignore);
 
             Bases       : constant Libadalang.Analysis.Basic_Decl_Array :=
               Context.Find_All_Base_Declarations
                 (Decl_For_Find_Overrides,
-                 Result_Kind => Bases_Result_Kind);
+                 Imprecise_Results => Ignore);
          begin
-            if Overriding_Result_Kind in Libadalang.Common.Error
-              or else Bases_Result_Kind in Libadalang.Common.Error
-            then
-               --  Abort
-               return;
-            end if;
-
             for Subp of Bases loop
                Self.Parent.Context.Append_Location
                  (Self.Response,

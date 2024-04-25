@@ -163,8 +163,7 @@ package body LSP.Ada_References is
          return not Decl.Is_Null and then Decl.Kind = Ada_Enum_Literal_Decl;
       end Is_Enum;
 
-      Ignore : Libadalang.Common.Ref_Result_Kind;
-
+      Ignore : Boolean;
       Units : Libadalang.Analysis.Analysis_Unit_Array (1 .. 1);
    begin
       --  Next file to process

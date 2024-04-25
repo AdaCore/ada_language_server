@@ -139,8 +139,8 @@ package body LSP.Ada_Declaration is
       On_Defining_Name        : Boolean := False;
       --  Set to True if we are on a denfining name node
 
-      Imprecise_Ignore : Boolean;
-      Result_Kind      : Libadalang.Common.Ref_Result_Kind;
+      Ignore : Boolean;
+      Dummy  : Libadalang.Common.Ref_Result_Kind;
    begin
       if Self.Contexts.Is_Empty then
          --  No more contexts to process, sort and return collected results
@@ -173,13 +173,12 @@ package body LSP.Ada_Declaration is
 
       if Definition.Is_Null then
          --  If we aren't on a defining_name already then try to resolve
-         Definition := Laltools.Common.Resolve_Name
-           (Name_Node, Trace, Result_Kind);
+         Definition := Laltools.Common.Resolve_Name (Name_Node, Trace, Dummy);
       else
          On_Defining_Name := True;
       end if;
 
-      if Result_Kind in Libadalang.Common.Error or else Definition.Is_Null then
+      if Definition.Is_Null then
          return;  --  Name resolution fails, nothing to do.
       end if;
 
@@ -230,25 +229,16 @@ package body LSP.Ada_Declaration is
 
       if not Decl_For_Find_Overrides.Is_Null then
          declare
-            Overriding_Result_Kind : Libadalang.Common.Ref_Result_Kind;
-            Bases_Result_Kind      : Libadalang.Common.Ref_Result_Kind;
             Overridings : constant Libadalang.Analysis.Basic_Decl_Array :=
               Context.Find_All_Overrides
                 (Decl_For_Find_Overrides,
-                 Result_Kind => Overriding_Result_Kind);
+                 Imprecise_Results => Ignore);
 
             Bases       : constant Libadalang.Analysis.Basic_Decl_Array :=
               Context.Find_All_Base_Declarations
                 (Decl_For_Find_Overrides,
-                 Result_Kind => Bases_Result_Kind);
+                 Imprecise_Results => Ignore);
          begin
-            if Overriding_Result_Kind in Libadalang.Common.Error
-              or else Bases_Result_Kind in Libadalang.Common.Error
-            then
-               --  Abort
-               return;
-            end if;
-
             for Subp of Bases loop
                Self.Parent.Context.Append_Location
                  (Self.Response,
