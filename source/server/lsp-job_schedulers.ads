@@ -40,11 +40,14 @@ package LSP.Job_Schedulers is
 
    procedure Create_Job
      (Self    : in out Job_Scheduler'Class;
-      Message : in out LSP.Server_Messages.Server_Message_Access);
+      Message : in out LSP.Server_Messages.Server_Message_Access;
+      Waste   : out LSP.Server_Messages.Server_Message_Access);
    --  Create a job to process a server message. The scheduler takes ownership
    --  of the message and will return it to the server when the job is done.
    --  If there is no handler for the message, then the scheduler doesn't
    --  accept message and server should destroy it.
+   --  This call completes a high priority job (if any) and returns its message
+   --  in Waste to be destroyed.
 
    procedure Enqueue
      (Self : in out Job_Scheduler'Class;
@@ -52,21 +55,21 @@ package LSP.Job_Schedulers is
    --  Put Job into the job queue.
 
    procedure Process_High_Priority_Job
-     (Self    : in out Job_Scheduler'Class;
-      Client  :
+     (Self   : in out Job_Scheduler'Class;
+      Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste   : out LSP.Server_Messages.Server_Message_Access);
+      Waste  : out LSP.Server_Messages.Server_Message_Access);
    --  Execute jobs with highest priority (Immediate, Fence).
    --  When a job is done the routine returns (in Waste) the message to be
    --  deallocated by the server. The Client is used to send messages during
    --  the execution of the job.
 
    procedure Process_Job
-     (Self    : in out Job_Scheduler'Class;
-      Client  :
+     (Self   : in out Job_Scheduler'Class;
+      Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste   : out LSP.Server_Messages.Server_Message_Access);
-   --  Execute jobs with ordinal priority (Low, High).
+      Waste  : out LSP.Server_Messages.Server_Message_Access);
+   --  Execute (already created) jobs with ordinal priority (Low, High).
    --  When a job is done the routine returns (in Waste) the message to be
    --  deallocated by the server. The Client is used to send messages during
    --  the execution of the job.
