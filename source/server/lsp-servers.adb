@@ -821,14 +821,14 @@ package body LSP.Servers is
       procedure Process_Message (Message : in out Server_Message_Access);
       --  Create a job for the message and execute all highest priority jobs
 
-      procedure Execute_Jobs (Message : in out Server_Message_Access);
+      procedure Execute_Jobs (Message : out Server_Message_Access);
       --  Execute low priority jobs (if any) till a new message arrive
 
       ------------------
       -- Execute_Jobs --
       ------------------
 
-      procedure Execute_Jobs (Message : in out Server_Message_Access) is
+      procedure Execute_Jobs (Message : out Server_Message_Access) is
       begin
          loop
             select
@@ -860,8 +860,13 @@ package body LSP.Servers is
       ---------------------
 
       procedure Process_Message (Message : in out Server_Message_Access) is
+         Waste : Server_Message_Access;
       begin
-         Server.Scheduler.Create_Job (Message);
+         Server.Scheduler.Create_Job (Message, Waste);
+
+         if Waste.Assigned then
+            Server.Destroy_Queue.Enqueue (Waste);
+         end if;
 
          if Message.Assigned then
             --  Scheduler wasn't able to process message, destroy it
@@ -869,15 +874,11 @@ package body LSP.Servers is
          end if;
 
          loop
-            declare
-               Waste : Server_Message_Access;
-            begin
-               Server.Scheduler.Process_High_Priority_Job (Server.all, Waste);
+            Server.Scheduler.Process_High_Priority_Job (Server.all, Waste);
 
-               exit when not Waste.Assigned;
+            exit when not Waste.Assigned;
 
-               Server.Destroy_Queue.Enqueue (Waste);
-            end;
+            Server.Destroy_Queue.Enqueue (Waste);
          end loop;
 
       exception

@@ -52,7 +52,8 @@ package body LSP.Job_Schedulers is
 
    procedure Create_Job
      (Self    : in out Job_Scheduler'Class;
-      Message : in out LSP.Server_Messages.Server_Message_Access)
+      Message : in out LSP.Server_Messages.Server_Message_Access;
+      Waste   : out LSP.Server_Messages.Server_Message_Access)
    is
       Cursor : constant Handler_Maps.Cursor :=
         Self.Handlers.Find (Message'Tag);
@@ -61,6 +62,7 @@ package body LSP.Job_Schedulers is
    begin
       if Handler_Maps.Has_Element (Cursor) then
 
+         Self.Complete_Last_Fence_Job (Message, Waste);
          Job := Handler_Maps.Element (Cursor).Create_Job (Message);
 
          if Job.Assigned then
@@ -123,9 +125,9 @@ package body LSP.Job_Schedulers is
       Job : LSP.Server_Jobs.Server_Job_Access renames Self.Blocker;
       Status : LSP.Server_Jobs.Execution_Status := Continue;
    begin
-      if not Job.Assigned then
-         Waste := null;
+      Waste := null;
 
+      if not Job.Assigned then
          return;
       end if;
 
@@ -138,12 +140,6 @@ package body LSP.Job_Schedulers is
                return;
             end if;
          end loop;
-      end if;
-
-      Self.Complete_Last_Fence_Job (Job.Message, Waste);
-
-      if Waste.Assigned and Job.Priority /= Fence then
-         return;
       end if;
 
       while Status /= LSP.Server_Jobs.Done loop
@@ -164,27 +160,24 @@ package body LSP.Job_Schedulers is
    -----------------
 
    procedure Process_Job
-     (Self    : in out Job_Scheduler'Class;
-      Client  :
+     (Self   : in out Job_Scheduler'Class;
+      Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste   : out LSP.Server_Messages.Server_Message_Access)
+      Waste  : out LSP.Server_Messages.Server_Message_Access)
    is
       Status : LSP.Server_Jobs.Execution_Status;
    begin
-      for List of reverse Self.Jobs when not List.Is_Empty loop
-         declare
-            Job : LSP.Server_Jobs.Server_Job_Access := List.First_Element;
-         begin
-            Self.Complete_Last_Fence_Job (Job.Message, Waste);
+      Self.Complete_Last_Fence_Job (null, Waste);
 
-            if Waste.Assigned then
-               return;
-            end if;
+      if not Waste.Assigned then
+         for List of reverse Self.Jobs when not List.Is_Empty loop
+            declare
+               Job : LSP.Server_Jobs.Server_Job_Access := List.First_Element;
+            begin
+               List.Delete_First;
+               Job.Execute (Client, Status);
 
-            List.Delete_First;
-            Job.Execute (Client, Status);
-
-            case Status is
+               case Status is
 
                when LSP.Server_Jobs.Done =>
                   Waste := Job.Message;
@@ -193,13 +186,12 @@ package body LSP.Job_Schedulers is
                when LSP.Server_Jobs.Continue =>
                   Waste := null;
                   List.Append (Job);  --  Push the job back to the queue
-            end case;
+               end case;
 
-            exit;
-         end;
-      end loop;
-
-      Self.Complete_Last_Fence_Job (null, Waste);
+               exit;
+            end;
+         end loop;
+      end if;
    end Process_Job;
 
    ----------------------
