@@ -1,0 +1,42 @@
+project Case_Support is
+  A := "";
+  case A is
+    when "a" =>
+      B := "";
+    when others =>
+      C := "";
+      case A is
+        when "a" =>
+          D := "";
+        when others =>
+          E := "";
+      end case;
+      F := "";
+  end case;
+  G := "";
+  case G is
+    when "" =>
+      H := "";
+  --  testing auto case/when closing on package declaration
+  package Compiler is
+    I := "";
+    case H is
+      when "" =>
+        J := "";
+        case J is
+  --  testing auto case closing on package declaration
+  package Linker is
+    K := "";
+  --  testing package auto closing on package declaration
+  package Builder is
+    L := "";
+  --  testing package auto closing on type declaration
+  type T1 is ("a");
+  M := "";
+  case M is
+    when "" =>
+      N := "";
+  -- testing case auto closing on type declaration
+  type T2 is ("");
+  O := "";
+end Case_Support;
