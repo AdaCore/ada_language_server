@@ -17,6 +17,7 @@
 
 --  Subprogram to obtain documentation for packages & attributes.
 
+with LSP.GPR_Documents;
 with LSP.GPR_Files;
 with LSP.Structures;
 
@@ -25,9 +26,11 @@ with VSS.Strings;
 package LSP.GPR_Documentation is
 
    procedure Get_Tooltip_Text
-     (Self         : LSP.GPR_Files.File;
-      Position     : LSP.Structures.Position;
-      Tooltip_Text : out VSS.Strings.Virtual_String);
+     (Self              : LSP.GPR_Files.File_Access;
+      URI               : LSP.Structures.DocumentUri;
+      Document_Provider : LSP.GPR_Documents.Document_Provider_Access;
+      Position          : LSP.Structures.Position;
+      Tooltip_Text      : out VSS.Strings.Virtual_String);
    --  Get all the information needed to produce tooltips (hover and completion
    --  requests)
 
