@@ -505,7 +505,10 @@ package body LSP.GPR_Files is
 
          New_Symbol     : Symbol :=
                             (New_Id,
-                             Current_Symbol.Id,
+                             (if Kind = K_When
+                              and then Current_Symbol.Kind = K_When
+                              then Current_Symbol.Parent_Id
+                              else Current_Symbol.Id),
                              Token.Ref,
                              Kind,
                              To_Valid_Name (Name),
