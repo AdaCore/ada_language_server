@@ -296,9 +296,11 @@ package body LSP.GPR_Handlers is
       begin
 
          LSP.GPR_Documentation.Get_Tooltip_Text
-           (Self         => File.all,
-            Position     => Value.position,
-            Tooltip_Text => Tooltip_Text);
+           (Self              => File,
+            URI               => Value.textDocument.uri,
+            Document_Provider => Self'Unchecked_Access,
+            Position          => Value.position,
+            Tooltip_Text      => Tooltip_Text);
 
          if Tooltip_Text.Is_Empty then
             return;

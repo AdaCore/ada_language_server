@@ -19,6 +19,8 @@
 
 with Gpr_Parser.Common;
 
+with GPR2.Project.Attribute_Index;
+
 package LSP.GPR_Files.References is
 
    type Reference is private;
@@ -49,6 +51,10 @@ package LSP.GPR_Files.References is
    function Referenced_Package
      (Reference : LSP.GPR_Files.References.Reference)
       return GPR2.Package_Id;
+
+   function Referenced_Variable
+     (Reference : LSP.GPR_Files.References.Reference)
+      return LSP.GPR_Files.Variable_Id;
 
    function Has_Project
      (Reference : LSP.GPR_Files.References.Reference) return Boolean;
@@ -81,6 +87,25 @@ package LSP.GPR_Files.References is
      (File : LSP.GPR_Files.File_Access;
       Reference : LSP.GPR_Files.References.Reference)
       return LSP.GPR_Files.File_Access;
+
+   type Attribute_Definition is record
+      Name   : GPR2.Q_Attribute_Id;
+      Index  : GPR2.Project.Attribute_Index.Object;
+      At_Pos : GPR2.Unit_Index;
+   end record;
+   --  contains all information required to access a project attribute.
+
+   No_Attribute_Definition : constant Attribute_Definition :=
+                               ((GPR2.Project_Level_Scope,
+                                +"No_Attribute_Definition"),
+                                GPR2.Project.Attribute_Index.Undefined,
+                                GPR2.No_Index);
+
+   function Referenced_Attribute
+     (Reference : LSP.GPR_Files.References.Reference)
+      return Attribute_Definition;
+   --  if Reference is a valid attribute reference returns all GPR2
+   --  informations needed to access attribute value.
 
 private
 
@@ -151,5 +176,12 @@ private
      (if Reference.Kind in Project_Ref | Type_Ref | Package_Ref
       then Reference.In_Type_Reference
       else False);
+
+   function Referenced_Variable
+     (Reference : LSP.GPR_Files.References.Reference)
+      return LSP.GPR_Files.Variable_Id is
+     (if Reference.Kind = Variable_Ref
+      then Reference.Variable
+      else No_Variable);
 
 end LSP.GPR_Files.References;
