@@ -30,13 +30,13 @@ with VSS.Characters;
 with VSS.Strings;
 
 with LSP.Ada_Context_Sets;
-with LSP.Constants;
+with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
+with LSP.Constants;
 with LSP.Enumerations;
-with LSP.Server_Request_Jobs;
+with LSP.Search;
 with LSP.Server_Requests.DocumentSymbol;
 with LSP.Structures;
-with LSP.Search;
 with LSP.Utils;
 
 package body LSP.Ada_Document_Symbol is
@@ -54,7 +54,7 @@ package body LSP.Ada_Document_Symbol is
 
    type Flat_Document_Symbol_Job
      (Parent : not null access constant Ada_Document_Symbol_Handler) is limited
-   new LSP.Server_Request_Jobs.Server_Request_Job
+   new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Low)
    with record
       Pattern  : Search_Pattern_Access;
@@ -62,7 +62,7 @@ package body LSP.Ada_Document_Symbol is
       Response : LSP.Structures.DocumentSymbol_Result;
    end record;
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Flat_Document_Symbol_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -78,7 +78,7 @@ package body LSP.Ada_Document_Symbol is
 
    type Full_Document_Symbol_Job
      (Parent : not null access constant Ada_Document_Symbol_Handler) is limited
-   new LSP.Server_Request_Jobs.Server_Request_Job
+   new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Low)
    with record
       Pattern  : Search_Pattern_Access;
@@ -86,7 +86,7 @@ package body LSP.Ada_Document_Symbol is
       Stack    : Stack_Item_Lists.List;
    end record;
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Full_Document_Symbol_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -168,7 +168,7 @@ package body LSP.Ada_Document_Symbol is
       function Flat_Job return LSP.Server_Jobs.Server_Job_Access is
         (new Flat_Document_Symbol_Job'
            (Parent  => Self'Unchecked_Access,
-            Request => LSP.Server_Request_Jobs.Request_Access (Message),
+            Request => LSP.Ada_Request_Jobs.Request_Access (Message),
             Cursor  => new Libadalang.Iterators.Traverse_Iterator'Class'
               (Libadalang.Iterators.Find (Unit.Root, Is_Defining_Name)),
             Pattern => new LSP.Search.Search_Pattern'Class'
@@ -184,7 +184,7 @@ package body LSP.Ada_Document_Symbol is
       function Full_Job return LSP.Server_Jobs.Server_Job_Access is
         (new Full_Document_Symbol_Job'
            (Parent  => Self'Unchecked_Access,
-            Request => LSP.Server_Request_Jobs.Request_Access (Message),
+            Request => LSP.Ada_Request_Jobs.Request_Access (Message),
             Node    => Unit.Root,
             Stack   => [(Node     => Libadalang.Analysis.No_Ada_Node,
                          Children => <>)],
@@ -204,11 +204,11 @@ package body LSP.Ada_Document_Symbol is
       end if;
    end Create_Job;
 
-   ---------------------
-   -- Execute_Request --
-   ---------------------
+   -------------------------
+   -- Execute_Ada_Request --
+   -------------------------
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Flat_Document_Symbol_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -254,13 +254,13 @@ package body LSP.Ada_Document_Symbol is
          Free (Self.Cursor);
          Status := LSP.Server_Jobs.Done;
       end if;
-   end Execute_Request;
+   end Execute_Ada_Request;
 
-   ---------------------
-   -- Execute_Request --
-   ---------------------
+   -------------------------
+   -- Execute_Ada_Request --
+   -------------------------
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Full_Document_Symbol_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -583,7 +583,7 @@ package body LSP.Ada_Document_Symbol is
              Variant_2 => Self.Stack.Last_Element.Children));
          Status := LSP.Server_Jobs.Done;
       end if;
-   end Execute_Request;
+   end Execute_Ada_Request;
 
    -----------------
    -- Get_Profile --

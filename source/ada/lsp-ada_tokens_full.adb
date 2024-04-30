@@ -24,8 +24,8 @@ with Libadalang.Iterators;
 
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Highlighters;
+with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
-with LSP.Server_Request_Jobs;
 with LSP.Server_Requests.Tokens_Full;
 with LSP.Structures;
 
@@ -39,7 +39,7 @@ package body LSP.Ada_Tokens_Full is
 
    type Tokens_Full_Job
      (Parent : not null access constant Ada_Tokens_Full_Handler) is limited
-   new LSP.Server_Request_Jobs.Server_Request_Job
+   new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Low)
    with record
       Unit   : Libadalang.Analysis.Analysis_Unit;
@@ -47,7 +47,7 @@ package body LSP.Ada_Tokens_Full is
       Holder : LSP.Ada_Highlighters.Highlights_Holder;
    end record;
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Tokens_Full_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -80,7 +80,7 @@ package body LSP.Ada_Tokens_Full is
       Job : constant Tokens_Full_Job_Access :=
         (new Tokens_Full_Job'
            (Parent  => Self'Unchecked_Access,
-            Request => LSP.Server_Request_Jobs.Request_Access (Message),
+            Request => LSP.Ada_Request_Jobs.Request_Access (Message),
             Unit    => Unit,
             Cursor  => new Libadalang.Iterators.Traverse_Iterator'Class'
               (Libadalang.Iterators.Find
@@ -92,11 +92,11 @@ package body LSP.Ada_Tokens_Full is
       return LSP.Server_Jobs.Server_Job_Access (Job);
    end Create_Job;
 
-   ---------------------
-   -- Execute_Request --
-   ---------------------
+   -------------------------
+   -- Execute_Ada_Request --
+   -------------------------
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Tokens_Full_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -133,6 +133,6 @@ package body LSP.Ada_Tokens_Full is
             end;
          end if;
       end loop;
-   end Execute_Request;
+   end Execute_Ada_Request;
 
 end LSP.Ada_Tokens_Full;

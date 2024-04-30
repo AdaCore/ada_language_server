@@ -25,10 +25,10 @@ with Laltools.Common;
 
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Handlers.Locations;
+with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Enumerations;
 with LSP.Locations;
-with LSP.Server_Request_Jobs;
 with LSP.Server_Requests.Declaration;
 with LSP.Structures;
 
@@ -44,7 +44,7 @@ package body LSP.Ada_Declaration is
 
    type Ada_Declaration_Job
      (Parent : not null access constant Ada_Declaration_Handler) is limited
-   new LSP.Server_Request_Jobs.Server_Request_Job
+   new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.High)
    with record
       Response : LSP.Structures.Location_Vector;
@@ -54,7 +54,7 @@ package body LSP.Ada_Declaration is
 
    type Ada_Declaration_Job_Access is access all Ada_Declaration_Job;
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Ada_Declaration_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -86,7 +86,7 @@ package body LSP.Ada_Declaration is
       Result : constant Ada_Declaration_Job_Access :=
         new Ada_Declaration_Job'
           (Parent  => Self'Unchecked_Access,
-           Request => LSP.Server_Request_Jobs.Request_Access (Message),
+           Request => LSP.Ada_Request_Jobs.Request_Access (Message),
            others  => <>);
    begin
       Result.Contexts := Self.Context.Contexts_For_File (File);
@@ -94,11 +94,11 @@ package body LSP.Ada_Declaration is
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
 
-   ---------------------
-   -- Execute_Request --
-   ---------------------
+   -------------------------
+   -- Execute_Ada_Request --
+   -------------------------
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Ada_Declaration_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -256,6 +256,6 @@ package body LSP.Ada_Declaration is
             end loop;
          end;
       end if;
-   end Execute_Request;
+   end Execute_Ada_Request;
 
 end LSP.Ada_Declaration;

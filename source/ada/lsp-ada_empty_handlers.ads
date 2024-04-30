@@ -22,6 +22,7 @@ with LSP.Server_Request_Receivers;
 with LSP.Structures;
 
 package LSP.Ada_Empty_Handlers is
+   pragma Preelaborate;
 
    type Empty_Message_Handler
      (Sender : not null access LSP.Client_Message_Receivers

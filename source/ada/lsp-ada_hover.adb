@@ -23,9 +23,9 @@ with VSS.Strings;
 
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documentation;
+with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Predefined_Completion;
-with LSP.Server_Request_Jobs;
 with LSP.Server_Requests.Hover;
 with LSP.Structures;
 with LSP.Utils;
@@ -34,13 +34,13 @@ package body LSP.Ada_Hover is
 
    type Ada_Hover_Job
      (Parent : not null access constant Ada_Hover_Handler) is limited
-   new LSP.Server_Request_Jobs.Server_Request_Job
+   new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.High)
         with null record;
 
    type Ada_Hover_Job_Access is access all Ada_Hover_Job;
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Ada_Hover_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -58,16 +58,16 @@ package body LSP.Ada_Hover is
       Result : constant Ada_Hover_Job_Access :=
         new Ada_Hover_Job'
           (Parent  => Self'Unchecked_Access,
-           Request => LSP.Server_Request_Jobs.Request_Access (Message));
+           Request => LSP.Ada_Request_Jobs.Request_Access (Message));
    begin
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
 
-   ---------------------
-   -- Execute_Request --
-   ---------------------
+   -------------------------
+   -- Execute_Ada_Request --
+   -------------------------
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Ada_Hover_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -203,6 +203,6 @@ package body LSP.Ada_Hover is
       end if;
 
       Client.On_Hover_Response (Message.Id, Response);
-   end Execute_Request;
+   end Execute_Ada_Request;
 
 end LSP.Ada_Hover;

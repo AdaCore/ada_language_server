@@ -54,13 +54,16 @@ package body LSP.Ada_Did_Change_Configurations is
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Status : out LSP.Server_Jobs.Execution_Status) is
    begin
+      Status := LSP.Server_Jobs.Done;
       Self.Parent.Context.Set_Configuration (Self.Configuration);
 
       if Self.Reload then
          Self.Parent.Context.Reload_Project;
       end if;
 
-      Status := LSP.Server_Jobs.Done;
+   exception
+      when E : others =>
+         Self.Parent.Context.Trace_Exception (E);
    end Execute;
 
    ----------------
