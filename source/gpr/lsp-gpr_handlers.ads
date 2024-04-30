@@ -18,6 +18,7 @@
 --  This package provides requests and notifications handler for GPR language.
 
 private with Ada.Containers.Hashed_Maps;
+private with Ada.Exceptions;
 
 private with GNATCOLL.VFS;
 
@@ -251,5 +252,11 @@ private
      (Self : access Message_Handler)
       return LSP.Tracers.Tracer_Access is
       (Self.Tracer);
+
+   overriding procedure Trace_Exception
+     (Self    : Message_Handler;
+      Error   : Ada.Exceptions.Exception_Occurrence;
+      Message : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String);
 
 end LSP.GPR_Handlers;

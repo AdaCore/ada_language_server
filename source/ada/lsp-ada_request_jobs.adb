@@ -15,54 +15,30 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
+with Langkit_Support.Errors;
+with LSP.Ada_Empty_Handlers;
 
-with VSS.Strings.Conversions;
+package body LSP.Ada_Request_Jobs is
 
-with LSP.Constants;
-with LSP.Enumerations;
+   ---------------------
+   -- Execute_Request --
+   ---------------------
 
-package body LSP.Server_Request_Jobs is
-
-   -------------
-   -- Execute --
-   -------------
-
-   overriding procedure Execute
-     (Self   : in out Server_Request_Job;
-      Client : in out LSP.Client_Message_Receivers.Client_Message_Receiver'
-        Class;
-      Status : out LSP.Server_Jobs.Execution_Status)
-   is
+   overriding procedure Execute_Request
+     (Self   : in out Ada_Request_Job;
+      Client :
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status) is
    begin
-      if Self.Request.Canceled then
-         Client.On_Error_Response
-           (Self.Request.Id,
-            (code    => LSP.Constants.RequestCancelled,
-             message => "Request was canceled"));
-
-         Status := LSP.Server_Jobs.Done;
-      else
-         Server_Request_Job'Class (Self).Execute_Request (Client, Status);
-      end if;
-
+      Ada_Request_Job'Class (Self).Execute_Ada_Request (Client, Status);
    exception
-      when E : others =>
+      when Langkit_Support.Errors.Property_Error =>
          declare
-            Message : constant VSS.Strings.Virtual_String :=
-              VSS.Strings.Conversions.To_Virtual_String
-                ("Exception: " &
-                   Ada.Exceptions.Exception_Name (E) & " (" &
-                     Ada.Exceptions.Exception_Message (E) & ")");
-
+            R : LSP.Ada_Empty_Handlers.Empty_Message_Handler
+              (Client'Unchecked_Access);
          begin
-            Client.On_Error_Response
-              (Self.Request.Id,
-               (code    => LSP.Enumerations.InternalError,
-                message => Message));
-
-            Status := LSP.Server_Jobs.Done;
+            Self.Request.Visit_Server_Receiver (R);
          end;
-   end Execute;
+   end Execute_Request;
 
-end LSP.Server_Request_Jobs;
+end LSP.Ada_Request_Jobs;

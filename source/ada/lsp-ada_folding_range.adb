@@ -26,9 +26,9 @@ with Libadalang.Iterators;
 with VSS.Strings;
 
 with LSP.Ada_Context_Sets;
+with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Constants;
-with LSP.Server_Request_Jobs;
 with LSP.Server_Requests.FoldingRange;
 with LSP.Structures;
 
@@ -42,7 +42,7 @@ package body LSP.Ada_Folding_Range is
 
    type Folding_Range_Job
      (Parent : not null access constant Ada_Folding_Range_Handler) is limited
-   new LSP.Server_Request_Jobs.Server_Request_Job
+   new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Low)
    with record
       Lines_Only : Boolean;
@@ -51,7 +51,7 @@ package body LSP.Ada_Folding_Range is
       Response   : LSP.Structures.FoldingRange_Vector;
    end record;
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Folding_Range_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -245,7 +245,7 @@ package body LSP.Ada_Folding_Range is
       Job  : constant LSP.Server_Jobs.Server_Job_Access :=
         new Folding_Range_Job'
           (Parent     => Self'Unchecked_Access,
-           Request    => LSP.Server_Request_Jobs.Request_Access (Message),
+           Request    => LSP.Ada_Request_Jobs.Request_Access (Message),
            Unit       => Unit,
            Cursor     => new Libadalang.Iterators.Traverse_Iterator'Class'
               (Libadalang.Iterators.Traverse (Unit.Root)),
@@ -255,11 +255,11 @@ package body LSP.Ada_Folding_Range is
       return Job;
    end Create_Job;
 
-   ---------------------
-   -- Execute_Request --
-   ---------------------
+   -------------------------
+   -- Execute_Ada_Request --
+   -------------------------
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Folding_Range_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -292,5 +292,5 @@ package body LSP.Ada_Folding_Range is
             end;
          end if;
       end loop;
-   end Execute_Request;
+   end Execute_Ada_Request;
 end LSP.Ada_Folding_Range;
