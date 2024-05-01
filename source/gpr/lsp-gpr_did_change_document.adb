@@ -179,6 +179,9 @@ package body LSP.GPR_Did_Change_Document is
       end if;
 
       --  Rest of the work in Complete routine
+   exception
+      when E : others =>
+         Self.Parent.Context.Trace_Exception (E);
    end Execute;
 
 end LSP.GPR_Did_Change_Document;

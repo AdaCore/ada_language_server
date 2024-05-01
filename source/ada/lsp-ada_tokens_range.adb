@@ -20,8 +20,8 @@ with GNATCOLL.VFS;
 with Libadalang.Analysis;
 
 with LSP.Ada_Context_Sets;
+with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
-with LSP.Server_Request_Jobs;
 with LSP.Server_Requests.Tokens_Range;
 with LSP.Structures;
 
@@ -29,13 +29,13 @@ package body LSP.Ada_Tokens_Range is
 
    type Ada_Tokens_Range_Job
      (Parent : not null access constant Ada_Tokens_Range_Handler) is limited
-   new LSP.Server_Request_Jobs.Server_Request_Job
+   new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.High)
         with null record;
 
    type Ada_Tokens_Range_Job_Access is access all Ada_Tokens_Range_Job;
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Ada_Tokens_Range_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -53,16 +53,16 @@ package body LSP.Ada_Tokens_Range is
       Result : constant Ada_Tokens_Range_Job_Access :=
         new Ada_Tokens_Range_Job'
           (Parent  => Self'Unchecked_Access,
-           Request => LSP.Server_Request_Jobs.Request_Access (Message));
+           Request => LSP.Ada_Request_Jobs.Request_Access (Message));
    begin
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
 
-   ---------------------
-   -- Execute_Request --
-   ---------------------
+   -------------------------
+   -- Execute_Ada_Request --
+   -------------------------
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Ada_Tokens_Range_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -101,6 +101,6 @@ package body LSP.Ada_Tokens_Range is
           (Unit, Context.Tracer.all, Message.Params.a_range);
 
       Client.On_Tokens_Range_Response (Message.Id, Response);
-   end Execute_Request;
+   end Execute_Ada_Request;
 
 end LSP.Ada_Tokens_Range;

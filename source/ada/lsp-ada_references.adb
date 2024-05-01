@@ -28,10 +28,10 @@ with LSP.Ada_Context_Sets;
 with LSP.Ada_File_Sets;
 with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Id_Iterators;
+with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
 with LSP.Enumerations;
 with LSP.Locations;
-with LSP.Server_Request_Jobs;
 with LSP.Server_Requests.References;
 with LSP.Structures;
 
@@ -49,7 +49,7 @@ package body LSP.Ada_References is
 
    type Ada_References_Job
      (Parent : not null access constant Ada_References_Handler) is limited
-   new LSP.Server_Request_Jobs.Server_Request_Job
+   new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Low) with
    record
       Is_Enum    : Boolean := False;
@@ -64,7 +64,7 @@ package body LSP.Ada_References is
 
    type Ada_References_Job_Access is access all Ada_References_Job;
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Ada_References_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -96,7 +96,7 @@ package body LSP.Ada_References is
       Result : constant Ada_References_Job_Access :=
         new Ada_References_Job'
           (Parent  => Self'Unchecked_Access,
-           Request => LSP.Server_Request_Jobs.Request_Access (Message),
+           Request => LSP.Ada_Request_Jobs.Request_Access (Message),
            others  => <>);
    begin
       Result.Contexts := Self.Context.Contexts_For_File (File);
@@ -104,11 +104,11 @@ package body LSP.Ada_References is
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
 
-   ---------------------
-   -- Execute_Request --
-   ---------------------
+   -------------------------
+   -- Execute_Ada_Request --
+   -------------------------
 
-   overriding procedure Execute_Request
+   overriding procedure Execute_Ada_Request
      (Self   : in out Ada_References_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
@@ -227,7 +227,7 @@ package body LSP.Ada_References is
          Client.On_References_Response (Message.Id, Self.Response);
          Status := LSP.Server_Jobs.Done;
       end if;
-   end Execute_Request;
+   end Execute_Ada_Request;
 
    ------------------------
    -- Get_Reference_Kind --

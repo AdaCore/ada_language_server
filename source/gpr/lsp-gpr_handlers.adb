@@ -15,7 +15,6 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 
 with GPR2.Log;
@@ -714,5 +713,18 @@ package body LSP.GPR_Handlers is
          return LSP.Constants.Empty;
       end if;
    end To_Range;
+
+   ---------------------
+   -- Trace_Exception --
+   ---------------------
+
+   overriding procedure Trace_Exception
+     (Self    : Message_Handler;
+      Error   : Ada.Exceptions.Exception_Occurrence;
+      Message : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String) is
+   begin
+      Self.Tracer.Trace_Exception (Error, Message);
+   end Trace_Exception;
 
 end LSP.GPR_Handlers;

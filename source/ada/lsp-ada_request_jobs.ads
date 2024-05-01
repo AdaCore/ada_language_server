@@ -14,36 +14,33 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
---  This package provides interface for data shared between jobs. This data
---  includes open documents, non-aggregate project trees, settings, etc
 
-with Ada.Exceptions;
+with LSP.Client_Message_Receivers;
+with LSP.Server_Jobs;
+with LSP.Server_Request_Jobs;
 
-with VSS.Strings;
+package LSP.Ada_Request_Jobs is
+   pragma Preelaborate;
 
-with LSP.GPR_Documents;
-with LSP.GPR_Files;
-with LSP.Structures;
+   type Ada_Request_Job is abstract
+     new LSP.Server_Request_Jobs.Server_Request_Job with null record;
+   --  This base type for Ada request jobs. It catches Property_Error
+   --  exceptions to avoid error responses in these cases.
 
-package LSP.GPR_Job_Contexts is
+   procedure Execute_Ada_Request
+     (Self   : in out Ada_Request_Job;
+      Client :
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status) is abstract;
 
-   type GPR_Job_Context is limited interface
-     and LSP.GPR_Files.File_Provider;
+   overriding procedure Execute_Request
+     (Self   : in out Ada_Request_Job;
+      Client :
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Status : out LSP.Server_Jobs.Execution_Status);
+   --  A wrapper for Execute_Ada_Request that catches Property_Errors and
+   --  returns an empty response
 
-   function Get_Open_Document
-     (Self : access GPR_Job_Context;
-      URI  : LSP.Structures.DocumentUri)
-        return LSP.GPR_Documents.Document_Access is abstract;
+   subtype Request_Access is LSP.Server_Request_Jobs.Request_Access;
 
-   procedure Publish_Diagnostics
-     (Self     : in out GPR_Job_Context;
-      Document : not null LSP.GPR_Documents.Document_Access) is abstract;
-
-   procedure Trace_Exception
-     (Self    : GPR_Job_Context;
-      Error   : Ada.Exceptions.Exception_Occurrence;
-      Message : VSS.Strings.Virtual_String :=
-        VSS.Strings.Empty_Virtual_String) is abstract;
-
-end LSP.GPR_Job_Contexts;
+end LSP.Ada_Request_Jobs;

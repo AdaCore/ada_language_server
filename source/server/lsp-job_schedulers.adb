@@ -179,13 +179,13 @@ package body LSP.Job_Schedulers is
 
                case Status is
 
-               when LSP.Server_Jobs.Done =>
-                  Waste := Job.Message;
-                  Free (Job);
+                  when LSP.Server_Jobs.Done =>
+                     Waste := Job.Message;
+                     Free (Job);
 
-               when LSP.Server_Jobs.Continue =>
-                  Waste := null;
-                  List.Append (Job);  --  Push the job back to the queue
+                  when LSP.Server_Jobs.Continue =>
+                     Waste := null;
+                     List.Append (Job);  --  Push the job back to the queue
                end case;
 
                exit;
