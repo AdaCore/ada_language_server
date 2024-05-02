@@ -20,6 +20,7 @@
 
 with LSP.Ada_Commands;
 with LSP.Errors;
+with LSP.Server_Jobs;
 
 package LSP.Ada_Handlers.Named_Parameters_Commands is
 
@@ -56,6 +57,10 @@ private
       Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Response : in out LSP.Structures.LSPAny_Or_Null;
       Error    : in out LSP.Errors.ResponseError_Optional);
+
+   overriding function Priority (Self : Command)
+     return LSP.Server_Jobs.Job_Priority
+       is (LSP.Server_Jobs.Low);
 
    function Write_Command
      (Self : Command) return LSP.Structures.LSPAny_Vector;

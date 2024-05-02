@@ -408,11 +408,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CodeActionParams);
 
-   overriding procedure On_ExecuteCommand_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.ExecuteCommandParams);
-
    overriding procedure On_Completion_Resolve_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

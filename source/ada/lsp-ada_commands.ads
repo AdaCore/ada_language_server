@@ -26,8 +26,9 @@ with Ada.Tags;
 
 with VSS.String_Vectors;
 
-with LSP.Structures;
 with LSP.Errors;
+with LSP.Server_Jobs;
+with LSP.Structures;
 
 limited with LSP.Ada_Handlers;
 
@@ -48,6 +49,9 @@ package LSP.Ada_Commands is
    --  Execute given command and return Error is something went wrong.
    --  Commands are executed on the server side only.
    --  The Handler is the access to the message handler executing the command.
+
+   function Priority (Self : Command) return LSP.Server_Jobs.Job_Priority
+     is abstract;
 
    procedure Register (Value : Ada.Tags.Tag);
    --  Register a new command type. The type should be in Command'Class
