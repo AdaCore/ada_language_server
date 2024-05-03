@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2021, AdaCore                       --
+--                        Copyright (C) 2024, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -14,41 +14,25 @@
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
---
---  Implementation of the command to switch from .adb to .ads file and back.
 
-with LSP.Ada_Commands;
-with LSP.Errors;
+--  This package provides handler and job types for workspace/executeCommand
+--  requests.
+
+with LSP.Ada_Job_Contexts;
 with LSP.Server_Jobs;
+with LSP.Server_Message_Handlers;
+with LSP.Server_Messages;
 
-package LSP.Ada_Handlers.Other_File_Commands is
+package LSP.Ada_Execute_Command is
 
-   type Command is new LSP.Ada_Commands.Command with private;
+   type Execute_Command_Handler
+     (Context : not null access LSP.Ada_Job_Contexts.Ada_Job_Context'Class) is
+       limited new LSP.Server_Message_Handlers.Server_Message_Handler
+         with null record;
 
-   procedure Initialize
-     (Self : in out Command'Class;
-      URI  : LSP.Structures.DocumentUri);
+   overriding function Create_Job
+     (Self    : Execute_Command_Handler;
+      Message : LSP.Server_Messages.Server_Message_Access)
+        return LSP.Server_Jobs.Server_Job_Access;
 
-private
-
-   type Command is new LSP.Ada_Commands.Command with record
-      URI : LSP.Structures.DocumentUri;
-   end record;
-
-   overriding function Create
-     (Any : not null access LSP.Structures.LSPAny_Vector)
-       return Command;
-
-   overriding procedure Execute
-     (Self     : Command;
-      Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Response : in out LSP.Structures.LSPAny_Or_Null;
-      Error    : in out LSP.Errors.ResponseError_Optional);
-
-   overriding function Priority (Self : Command)
-     return LSP.Server_Jobs.Job_Priority
-       is (LSP.Server_Jobs.Low);
-
-   for Command'External_Tag use "als-other-file";
-
-end LSP.Ada_Handlers.Other_File_Commands;
+end LSP.Ada_Execute_Command;

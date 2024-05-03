@@ -21,6 +21,7 @@ with LAL_Refactor;
 with LAL_Refactor.Auto_Import;
 
 with LSP.Ada_Contexts;
+with LSP.Server_Jobs;
 
 package LSP.Ada_Handlers.Refactor.Auto_Import is
 
@@ -63,6 +64,10 @@ private
      (Self    : Command;
       Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Edits   : out LAL_Refactor.Refactoring_Edits);
+
+   overriding function Priority (Self : Command)
+     return LSP.Server_Jobs.Job_Priority
+       is (LSP.Server_Jobs.Low);
 
    function Write_Command
      (Self : Command) return LSP.Structures.LSPAny_Vector;

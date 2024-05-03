@@ -22,6 +22,7 @@ with Laltools.Common;
 
 private with VSS.String_Vectors;
 private with LSP.Ada_Contexts;
+private with LSP.Server_Jobs;
 
 package LSP.Ada_Handlers.Refactor.Change_Parameters_Type is
 
@@ -60,6 +61,10 @@ private
       Handler : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Edits   : out LAL_Refactor.Refactoring_Edits);
    --  Executes Self by computing the necessary refactorings
+
+   overriding function Priority (Self : Command)
+     return LSP.Server_Jobs.Job_Priority
+       is (LSP.Server_Jobs.Low);
 
    procedure Initialize
      (Self                : in out Command'Class;

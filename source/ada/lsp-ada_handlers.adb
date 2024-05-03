@@ -18,7 +18,6 @@
 with Ada.Characters.Latin_1;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
-with Ada.Tags.Generic_Dispatching_Constructor;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
@@ -2340,56 +2339,6 @@ package body LSP.Ada_Handlers is
       Compute_Response;
       Self.Sender.On_DocumentHighlight_Response (Id, Response);
    end On_DocumentHighlight_Request;
-
-   -------------------------------
-   -- On_ExecuteCommand_Request --
-   -------------------------------
-
-   function Create_Command is new Ada.Tags.Generic_Dispatching_Constructor
-     (T           => LSP.Ada_Commands.Command,
-      Parameters  => LSP.Structures.LSPAny_Vector,
-      Constructor => LSP.Ada_Commands.Create);
-
-   overriding procedure On_ExecuteCommand_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.ExecuteCommandParams)
-   is
-      use type Ada.Tags.Tag;
-
-      Tag   : Ada.Tags.Tag := Ada.Tags.No_Tag;
-      Error : LSP.Errors.ResponseError_Optional;
-
-   begin
-      if not Value.command.Is_Empty then
-         Tag := Ada.Tags.Internal_Tag
-           (VSS.Strings.Conversions.To_UTF_8_String (Value.command));
-      end if;
-
-      if Tag = Ada.Tags.No_Tag then
-         Self.Sender.On_Error_Response
-           (Id, (code    => LSP.Enumerations.InternalError,
-                 message => "Unknown command"));
-         return;
-      end if;
-
-      declare
-         Response : LSP.Structures.LSPAny_Or_Null;
-         Command  : constant LSP.Ada_Commands.Command'Class :=
-           Create_Command (Tag, Value.arguments'Unrestricted_Access);
-      begin
-         Command.Execute
-           (Handler  => Self'Access,
-            Response => Response,
-            Error    => Error);
-
-         if Error.Is_Set then
-            Self.Sender.On_Error_Response (Id, Error.Value);
-         else
-            Self.Sender.On_ExecuteCommand_Response (Id, Response);
-         end if;
-      end;
-   end On_ExecuteCommand_Request;
 
    ---------------------------
    -- On_Exits_Notification --
