@@ -16,7 +16,7 @@ body:
       label: Environment
       description: |
         Please provide the information for the following:
-          - OS and Version (host or remote if using SSH)
+          - OS and Version (provide this for both host and target if you are using a remote or containerized development environment)
           - IDE Version (for example "VS Code 1.89.0" or "GNAT Studio 24.2")
           - Ada & SPARK Extension Version (if using VS Code)
       value: |
@@ -30,15 +30,11 @@ body:
       label: Bug Summary and Reproducer
       description: |
         Please describe the feature (for example, completion) that is not working as expected.
-        Include information about the actual workspace project (for example, does the project is an aggregate project, does it target native platforms or cross platforms etc.).
+        Include information about the actual workspace project (for example, is the project an aggregate project, does it target native platforms or cross platforms etc.).
       value: |
         Bug Summary:
 
         Steps to reproduce:
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
 
         Expected behavior:
     validations:
