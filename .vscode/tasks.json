@@ -2,48 +2,11 @@
    "version": "2.0.0",
    "tasks": [
       {
-         "label": "build",
-         "type": "shell",
-         "command": "gprbuild",
-         "args": ["-p", "-P", "${config:ada.projectFile}", "-cargs", "-gnatef"],
-         "problemMatcher": ["$ada"],
-         "group": {
-            "kind": "build",
-            "isDefault": true
-         }
-      },
-      {
          "label": "Run tests",
          "type": "shell",
          "command": "make check",
          "problemMatcher": ["$ada"],
          "group": "test"
-      },
-      {
-         "type": "shell",
-         "label": "ada: Compile current file",
-         "command": "gprbuild",
-         "args": [
-            "-q",
-            "-f",
-            "-c",
-            "-u",
-            "${file}",
-            "-P",
-            "${config:ada.projectFile}",
-            "-cargs",
-            "-gnatef"
-         ],
-         "problemMatcher": "$ada",
-         "presentation": {
-            "echo": true,
-            "reveal": "silent",
-            "revealProblems": "onProblem",
-            "focus": false,
-            "panel": "shared",
-            "showReuseMessage": true,
-            "clear": true
-         }
       },
       {
          "type": "ada",
