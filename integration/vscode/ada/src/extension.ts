@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --

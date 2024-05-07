@@ -171,7 +171,7 @@ export function getOrFindGdb(): string | undefined {
  * @param program - the executable to debug (optional)
  * @param main - the main source file to be displayed in the configuration label (optional)
  * @param name - the full name of the configuration (optional). If provided,
- * this name shortcircuits the automatic naming based on the 'main' or the
+ * this name short-circuits the automatic naming based on the 'main' or the
  * 'program' parameter.
  * @returns an AdaConfig
  */

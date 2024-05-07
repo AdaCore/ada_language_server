@@ -996,7 +996,7 @@ function quoteCommandLine(cmd: string[]): vscode.ShellQuotedString[] {
 /**
  *
  * @param task - a task
- * @returns `true` if the task is defined explicitely in the workspace's tasks.json
+ * @returns `true` if the task is defined explicitly in the workspace's tasks.json
  */
 export function isFromWorkspace(task: vscode.Task): boolean {
     return task.source == 'Workspace';
@@ -1006,7 +1006,7 @@ export function isFromWorkspace(task: vscode.Task): boolean {
  *
  * @param task - a task
  * @returns the label typically generated for that task by vscode. For tasks not
- * defined explicitely in the workspace, this is `ada: <task name>`. For tasks
+ * defined explicitly in the workspace, this is `ada: <task name>`. For tasks
  * defined in the workspace simply return the name which should already include
  * the convention.
  */

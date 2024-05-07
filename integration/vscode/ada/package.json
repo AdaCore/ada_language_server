@@ -359,10 +359,10 @@
                             "always"
                         ],
                         "enumDescriptions": [
-                            "Never list overridding and/or overridden suprograms.",
-                            "List overridding and/or overridden suprograms on dispatching calls and on abstract subprogram declarations.",
-                            "List overridding and/or overridden suprograms on declarations only.",
-                            "Always list overridding and/or overridden suprograms when possible."
+                            "Never list overriding and/or overridden subprograms.",
+                            "List overriding and/or overridden subprograms on dispatching calls and on abstract subprogram declarations.",
+                            "List overriding and/or overridden subprograms on declarations only.",
+                            "Always list overriding and/or overridden subprograms when possible."
                         ],
                         "default": "usage_and_abstract_only",
                         "description": "Controls the policy for displaying overriding and overridden subprograms on navigation requests such as 'Go To Definition' or 'Go To Implementations'."
@@ -401,7 +401,7 @@
             },
             {
                 "type": "object",
-                "title": "Miscelaneous",
+                "title": "Miscellaneous",
                 "properties": {
                     "ada.enableIndexing": {
                         "scope": "window",
