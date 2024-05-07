@@ -1,0 +1,67 @@
+name: Bug Report
+description: Create a bug report for the Ada Language Server. This can concern the LSP language server itself or
+  the VS Code extension on top of it.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Is there an existing issue for this?
+        Please search our [existing issues](https://github.com/AdaCore/ada_language_server/issues) to see if an issue already exists for the bug you encountered.
+
+        Please also don't hesitate to read our [documentation](https://github.com/AdaCore/ada_language_server) first.
+  - type: textarea
+    attributes:
+      label: Environment
+      description: |
+        Please provide the information for the following:
+          - OS and Version (provide this for both host and target if you are using a remote or containerized development environment)
+          - IDE Version (for example "VS Code 1.89.0" or "GNAT Studio 24.2")
+          - Ada & SPARK Extension Version (if using VS Code)
+      value: |
+        - OS and Version:
+        - IDE Version:
+        - Ada & SPARK Extension Version:
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Bug Summary and Reproducer
+      description: |
+        Please describe the feature (for example, completion) that is not working as expected.
+        Include information about the actual workspace project (for example, is the project an aggregate project, does it target native platforms or cross platforms etc.).
+      value: |
+        Bug Summary:
+
+        Steps to reproduce:
+
+        Expected behavior:
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Configuration and Logs
+      description: |
+        Please provide your VS Code workspace-specific configuration files and logs. Logs are in particular very useful to investigate bugs such as unexpected exceptions.
+          - `tasks.json` file (for VS Code task-related issues) or `launch.json` (for VS Code debug-related issues)
+          - Logs from running `Ada: Show extension output from the VS Code command palette
+          - Logs from the Ada Language Server in the  `$HOME/.als directory (`%USERPROFILE%/.als`` on Windows). More info about ALS logging can be found [here](https://github.com/AdaCore/ada_language_server/blob/master/doc/traces.md)
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Other VS Code Extensions
+      description: If applicable, please list other extensions installed and if the issue persists after disabling other extensions.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: |
+        Here you can provide any other information that will give us more context
+        about the issue you are encountering (code sample, screenshots, screen recording of the issue,
+        call stacks, etc.)
+    validations:
+      required: false
