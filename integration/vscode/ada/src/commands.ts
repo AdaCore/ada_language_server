@@ -38,7 +38,7 @@ export const CMD_BUILD_AND_DEBUG_MAIN = 'ada.buildAndDebugMain';
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.subprogramBox', addSupbrogramBoxCommand)
+        vscode.commands.registerCommand('ada.subprogramBox', addSubprogramBoxCommand)
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.showExtensionOutput', () => mainOutputChannel.show())
@@ -108,7 +108,7 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
  *
  *  procedure Foo is
  */
-async function addSupbrogramBoxCommand() {
+async function addSubprogramBoxCommand() {
     const activeEditor = vscode.window.activeTextEditor;
 
     await getEnclosingSymbol(activeEditor, [
@@ -202,7 +202,7 @@ interface TaskQuickPickItem extends vscode.QuickPickItem {
  * Propose to the User a list of build and run tasks, one for each main defined
  * in the project.
  *
- * Tasks defined explicitely in the workspace are identified as such in the
+ * Tasks defined explicitly in the workspace are identified as such in the
  * offered list and proposed first.
  *
  * The User can choose either to run the task as is, or click the secondary
@@ -519,7 +519,7 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
          * The vscode API doesn't provide a way to list both automatically
          * provided and User-defined debug configurations. So instead, we
          * inspect the launch.json data if it exists, and the dynamic configs
-         * provided by the exctension. We look for a debug config that matches
+         * provided by the extension. We look for a debug config that matches
          * the given main URI.
          */
         // Create a launch config for this main to help with matching
