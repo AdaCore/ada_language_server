@@ -255,7 +255,8 @@ formatting might no succeed on incomplete/illegal code.
   the project's search path, environment variables and the project's file
   name from the crate description.
 
-* **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/refactoring_tools.md)). You can execute the *Ada: Reload project* command to reload your project after saving the new scenario values (use the *Ctrl+P* shortcut to invoke the **Command Palette**, allowing you to execute commands).
+* **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/settings.md)). Saving the settings file after changing the values will automatically reload the project and update the
+predefined tasks to take into account the new scenario values.
 
   Source directories from imported projects should be added in a [workspace file](https://code.visualstudio.com/docs/editor/workspaces#_multiroot-workspaces). If you already have a workspace file, the extension will propose you to automatically add all the source directories coming from imported projects to your workspace automatically at startup.
 
