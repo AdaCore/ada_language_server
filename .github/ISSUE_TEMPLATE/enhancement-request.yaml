@@ -1,0 +1,17 @@
+name: Enhancement Request
+description: Suggest an idea for the Ada Language Server or the Ada & SPARK VS Code extension.
+title: "[Enhancement]: "
+labels: ["bug"]
+body:
+- type: markdown
+  attributes:
+    value: |
+      ### Is there an existing request for this enhancement?
+      Prior to creating a new feature request, please review our [existing enhancement requests](https://github.com/AdaCore/ada_language_server/labels/enhancement) to avoid duplicates.
+- type: textarea
+  attributes:
+    label: Enhancement Request
+    description: |
+      Describe the enhancement here.
+  validations:
+    required: true
