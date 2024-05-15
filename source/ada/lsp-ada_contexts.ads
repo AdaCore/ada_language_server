@@ -23,6 +23,8 @@ with GNATCOLL.VFS;
 
 with GNATdoc.Comments.Options;
 
+with Gnatformat.Configuration;
+
 with GPR2.Project.Tree;
 with GPR2.Project.View;
 
@@ -177,6 +179,10 @@ package LSP.Ada_Contexts is
      Utils.Command_Lines.Command_Line;
    --  Return the command line for the Pretty Printer
 
+   function Get_Format_Options
+     (Self : Context) return Gnatformat.Configuration.Format_Options_Type;
+   --  Return the formatting options for Gnatformat
+
    function Get_Documentation_Style (Self : Context) return
      GNATdoc.Comments.Options.Documentation_Style;
    --  Get the documentation style used for this context.
@@ -314,6 +320,8 @@ private
                     (Pp.Command_Lines.Descriptor'Access);
       --  Object to keep gnatpp options
 
+      Format_Options : Gnatformat.Configuration.Format_Options_Type;
+
       Style : GNATdoc.Comments.Options.Documentation_Style :=
         GNATdoc.Comments.Options.GNAT;
       --  The context's documentation style.
@@ -338,6 +346,11 @@ private
 
    function Get_PP_Options (Self : Context) return
      Utils.Command_Lines.Command_Line is (Self.PP_Options);
+
+   function Get_Format_Options
+     (Self : Context)
+      return Gnatformat.Configuration.Format_Options_Type
+   is (Self.Format_Options);
 
    function Get_Documentation_Style (Self : Context) return
      GNATdoc.Comments.Options.Documentation_Style is (Self.Style);

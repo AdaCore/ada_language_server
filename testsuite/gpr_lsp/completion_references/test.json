@@ -210,6 +210,10 @@
                         "data": ["Remote"]
                      },
                      {
+                        "label": "Format",
+                        "data": ["Format"]
+                     },
+                     {
                         "label": "Pretty_Printer",
                         "data": ["Pretty_Printer"]
                      },
@@ -355,6 +359,10 @@
                      {
                         "label": "Remote",
                         "data": ["Remote"]
+                     },
+                     {
+                        "label": "Format",
+                        "data": ["Format"]
                      },
                      {
                         "label": "Pretty_Printer",
@@ -864,6 +872,10 @@
                         "data": ["Remote"]
                      },
                      {
+                        "label": "Format",
+                        "data": ["Format"]
+                     },
+                     {
                         "label": "Pretty_Printer",
                         "data": ["Pretty_Printer"]
                      },
@@ -1204,6 +1216,10 @@
                         "data": ["Remote"]
                      },
                      {
+                        "label": "Format",
+                        "data": ["Format"]
+                     },
+                     {
                         "label": "Pretty_Printer",
                         "data": ["Pretty_Printer"]
                      },
@@ -1360,6 +1376,10 @@
                         "data": ["Remote"]
                      },
                      {
+                        "label": "Format",
+                        "data": ["Format"]
+                     },
+                     {
                         "label": "Pretty_Printer",
                         "data": ["Pretty_Printer"]
                      },
@@ -1514,6 +1534,10 @@
                      {
                         "label": "Remote",
                         "data": ["Remote"]
+                     },
+                     {
+                        "label": "Format",
+                        "data": ["Format"]
                      },
                      {
                         "label": "Pretty_Printer",

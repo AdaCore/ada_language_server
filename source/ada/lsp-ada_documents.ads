@@ -177,6 +177,12 @@ package LSP.Ada_Documents is
       Messages : out VSS.String_Vectors.Virtual_String_Vector) return Boolean;
    --  Format document or its part defined in Span
 
+   function Format
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return LSP.Structures.TextEdit_Vector;
+   --  Format Self with formatting options based on Context
+
    function Range_Formatting
      (Self       : Document;
       Context    : LSP.Ada_Contexts.Context;
@@ -186,6 +192,14 @@ package LSP.Ada_Documents is
       Messages   : out VSS.String_Vectors.Virtual_String_Vector)
       return Boolean;
    --  Format document or its part defined in Span
+
+   function Range_Format
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Span    : LSP.Structures.A_Range)
+      return LSP.Structures.TextEdit;
+   --  Format part of Self defined by Span with formatting options based on
+   --  Context.
 
    procedure Find_All_References
      (Self       : Document;
