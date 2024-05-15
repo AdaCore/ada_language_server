@@ -133,6 +133,9 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
       Message_Handler  : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
+      Document         : constant LSP.Ada_Documents.Document_Access :=
+        Message_Handler.Get_Open_Document
+          (URI => Self.Where.uri);
       Context          : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
       File             : constant GNATCOLL.VFS.Virtual_File :=
@@ -140,15 +143,14 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
       Analysis_Unit    : constant Libadalang.Analysis.Analysis_Unit :=
         Context.Get_AU (File);
       Sloc             : constant Source_Location :=
-        (Langkit_Support.Slocs.Line_Number
-           (Self.Where.a_range.start.line) + 1,
-         Langkit_Support.Slocs.Column_Number
-           (Self.Where.a_range.start.character) + 1);
+        Document.To_Source_Location (Self.Where.a_range.start);
       Compilation_Unit : constant Libadalang.Analysis.Compilation_Unit :=
         Analysis_Unit.Root.Lookup (Sloc).P_Enclosing_Compilation_Unit;
-
       Sorter : constant Dependencies_Sorter :=
-        Create_Dependencies_Sorter (Compilation_Unit);
+        Create_Dependencies_Sorter
+          (Compilation_Unit,
+           Where => Document.To_Source_Location_Range
+             (A_Range => Self.Where.a_range));
    begin
       Edits := Sorter.Refactor (null);
    end Refactor;
