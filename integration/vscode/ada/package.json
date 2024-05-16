@@ -479,11 +479,28 @@
         "taskDefinitions": [
             {
                 "type": "ada",
-                "required": [
-                    "configuration"
-                ],
+                "when": "shellExecutionSupported",
                 "properties": {
+                    "command": {
+                        "description": "The name of the command to call.",
+                        "type": "string"
+                    },
+                    "args": {
+                        "description": "The arguments to pass to the command.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "compound": {
+                        "description": "List of task names to be executed sequentially.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
                     "configuration": {
+                        "deprecationMessage": "The task property 'configuration' is deprecated. Instead, use the properties 'command' and 'args' to configure the task.",
                         "type": "object",
                         "required": [
                             "kind"
@@ -625,7 +642,26 @@
             },
             {
                 "type": "spark",
+                "when": "shellExecutionSupported",
                 "properties": {
+                    "command": {
+                        "description": "The name of the command to call.",
+                        "type": "string"
+                    },
+                    "args": {
+                        "description": "The arguments to pass to the command.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "compound": {
+                        "description": "List of task names to be executed sequentially.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
                     "configuration": {
                         "type": "object",
                         "required": [

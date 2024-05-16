@@ -14,6 +14,7 @@ import {
     getBuildAndRunTasks,
     getConventionalTaskLabel,
     getEnclosingSymbol,
+    getSelectedRegion,
     isFromWorkspace,
 } from './taskProviders';
 
@@ -48,6 +49,9 @@ export const CMD_GPR_PROJECT_ARGS = 'ada.gprProjectArgs';
  * returned from a query to the
  */
 export const CMD_GET_PROJECT_FILE = 'ada.getProjectFile';
+
+export const CMD_SPARK_LIMIT_SUBP_ARG = 'ada.spark.limitSubpArg';
+export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
@@ -117,36 +121,13 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_GET_PROJECT_FILE, getProjectFromConfigOrALS)
     );
-}
-
-/**
- * @returns an array of -P and -X project and scenario command lines arguments
- * for use with GPR-based tools.
- */
-export async function gprProjectArgs(): Promise<string[]> {
-    const vars: string[][] = Object.entries(
-        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_SPARK_LIMIT_SUBP_ARG, sparkLimitSubpArg)
     );
-    return ['-P', await getProjectFromConfigOrALS()].concat(
-        vars.map(([key, value]) => `-X${key}=${value}`)
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_SPARK_LIMIT_REGION_ARG, sparkLimitRegionArg)
     );
 }
-
-export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
-
-/**
- * @returns `"$\{config:ada.projectFile\}"` if that setting has a value, or else
- * queries the ALS for the current project and returns the full path.
- */
-export async function getProjectFromConfigOrALS(): Promise<string> {
-    /**
-     * If ada.projectFile is set, use the $\{config:ada.projectFile\} macro
-     */
-    return vscode.workspace.getConfiguration().get('ada.projectFile')
-        ? PROJECT_FROM_CONFIG
-        : await adaExtState.getProjectFile();
-}
-
 /**
  * Add a subprogram box above the subprogram enclosing the cursor's position, if any.
  *
@@ -621,3 +602,62 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
         );
     }
 }
+
+/**
+ * @returns an array of -P and -X project and scenario command lines arguments
+ * for use with GPR-based tools.
+ */
+export async function gprProjectArgs(): Promise<string[]> {
+    const vars: string[][] = Object.entries(
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
+    );
+    return ['-P', await getProjectFromConfigOrALS()].concat(
+        vars.map(([key, value]) => `-X${key}=${value}`)
+    );
+}
+
+export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
+
+/**
+ * @returns `"$\{config:ada.projectFile\}"` if that setting has a value, or else
+ * queries the ALS for the current project and returns the full path.
+ */
+export async function getProjectFromConfigOrALS(): Promise<string> {
+    /**
+     * If ada.projectFile is set, use the $\{config:ada.projectFile\} macro
+     */
+    return vscode.workspace.getConfiguration().get('ada.projectFile')
+        ? PROJECT_FROM_CONFIG
+        : await adaExtState.getProjectFile();
+}
+
+/**
+ * Return the `--limit-subp=file:line` associated to the subprogram enclosing the
+ * the current editor's cursor position, if any. Return an empty string otherwise.
+ * @returns Return the option corresponding to the enclosing subprogram as a string
+ * or '' if not found.
+ */
+export const sparkLimitSubpArg = async (): Promise<string[]> => {
+    return getEnclosingSymbol(vscode.window.activeTextEditor, [vscode.SymbolKind.Function]).then(
+        (Symbol) => {
+            if (Symbol) {
+                const subprogram_line: string = (Symbol.range.start.line + 1).toString();
+                return [`--limit-subp=\${fileBasename}:${subprogram_line}`];
+            } else {
+                return [];
+            }
+        }
+    );
+};
+
+/**
+ * Return the `--limit-region=file:from:to` associated to the current editor's selection.
+ * @returns Return the option corresponding to the current selected region.
+ */
+export const sparkLimitRegionArg = (): Promise<string[]> => {
+    return new Promise((resolve) => {
+        resolve([
+            `--limit-region=\${fileBasename}:${getSelectedRegion(vscode.window.activeTextEditor)}`,
+        ]);
+    });
+};

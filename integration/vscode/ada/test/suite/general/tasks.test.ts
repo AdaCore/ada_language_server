@@ -2,13 +2,13 @@ import assert from 'assert';
 import { existsSync } from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
+import { CancellationTokenSource } from 'vscode-languageclient';
 import { PROJECT_FROM_CONFIG } from '../../../src/commands';
 import { exe, getProjectFile } from '../../../src/helpers';
 import {
-    AllTaskKinds,
     BUILD_PROJECT_TASK_NAME,
     CustomTaskDefinition,
-    adaTaskKinds,
+    SimpleTaskDef,
     createAdaTaskProvider,
     createSparkTaskProvider,
     findTaskByName,
@@ -30,33 +30,28 @@ suite('Task Providers', function () {
      */
     test('Ada tasks list', async () => {
         const prov = createAdaTaskProvider();
-        const tasks = await prov.provideTasks();
-        assert.notStrictEqual(tasks, undefined);
+        const tasks = await prov.provideTasks(new vscode.CancellationTokenSource().token);
+        assert(tasks);
 
         const expectedTasksList = `
-ada: Build current project - kind: buildProject
-ada: Check current file - kind: checkFile
-ada: Clean current project - kind: cleanProject
-ada: Analyze the project with GNAT SAS - kind: gnatsasAnalyze
-ada: Create a report after a GNAT SAS analysis - kind: gnatsasReport
-ada: Analyze the project with GNAT SAS and produce a report - kind: gnatsasAnalyzeAndReport
-ada: Generate documentation from the project - kind: gnatdoc
-ada: Create/update test skeletons for the project - kind: gnattest
-ada: Build main - src/main1.adb - kind: buildMain
-ada: Run main - src/main1.adb - kind: runMain
-ada: Build and run main - src/main1.adb - kind: buildAndRunMain
-ada: Build main - src/test.adb - kind: buildMain
-ada: Run main - src/test.adb - kind: runMain
-ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
+ada: Clean current project
+ada: Build current project
+ada: Check current file
+ada: Analyze the project with GNAT SAS
+ada: Analyze the current file with GNAT SAS
+ada: Create a report after a GNAT SAS analysis
+ada: Analyze the project with GNAT SAS and produce a report
+ada: Generate documentation from the project
+ada: Create/update test skeletons for the project
+ada: Build main - src/main1.adb
+ada: Run main - src/main1.adb
+ada: Build and run main - src/main1.adb
+ada: Build main - src/test.adb
+ada: Run main - src/test.adb
+ada: Build and run main - src/test.adb
+`.trim();
 
-        const actualTaskList = tasks
-            .map(
-                (t) =>
-                    `${t.source}: ${t.name} - kind: ${
-                        (t.definition as CustomTaskDefinition).configuration.kind
-                    }`
-            )
-            .join('\n');
+        const actualTaskList = tasks.map((t) => `${t.source}: ${t.name}`).join('\n');
         assert.strictEqual(actualTaskList, expectedTasksList);
     });
 
@@ -65,8 +60,8 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
      */
     test('Spark tasks list', async () => {
         const prov = createSparkTaskProvider();
-        const tasks = await prov.provideTasks();
-        assert.notStrictEqual(tasks, undefined);
+        const tasks = await prov.provideTasks(new CancellationTokenSource().token);
+        assert(tasks);
         const expectedTasksNames: string[] = [
             'spark: Clean project for proof',
             'spark: Examine project',
@@ -126,7 +121,7 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
             },
         };
         const task = new vscode.Task(def, vscode.TaskScope.Workspace, 'My Task', 'ada');
-        const resolved = await prov.resolveTask(task);
+        const resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
 
         assert(resolved);
         assert(resolved.execution);
@@ -165,7 +160,7 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
             },
         };
         const task = new vscode.Task(def, vscode.TaskScope.Workspace, 'My Task', 'ada');
-        const resolved = await prov.resolveTask(task);
+        const resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
 
         assert(resolved);
         assert(resolved.execution);
@@ -194,7 +189,7 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
             },
         };
         const task = new vscode.Task(def, vscode.TaskScope.Workspace, 'My Task', 'ada');
-        const resolved = await prov.resolveTask(task);
+        const resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
 
         assert(resolved);
         assert(resolved.execution);
@@ -208,6 +203,41 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
         const expectedCmd = `obj/main1exec${exe} arg1 arg2`;
 
         assert.strictEqual(actualCmd, expectedCmd);
+    });
+
+    /**
+     * Test that buildAndRunMain fails when configured with non-existing tasks
+     */
+    test('buildAndRunMain failure', async () => {
+        const prov = createAdaTaskProvider();
+        let def: CustomTaskDefinition = {
+            type: 'ada',
+            configuration: {
+                kind: 'buildAndRunMain',
+                buildTask: 'non existing task',
+            },
+        };
+        let task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 1', 'ada');
+        let resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
+        assert(resolved);
+        /**
+         * The expected code when errors occur before the invocation of the
+         * build and run tasks is 2.
+         */
+        assert.equal(await runTaskAndGetResult(resolved), 2);
+
+        def = {
+            type: 'ada',
+            configuration: {
+                kind: 'buildAndRunMain',
+                buildTask: 'ada: Build current project', // Existing build task
+                runTask: 'non existing task',
+            },
+        };
+        task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 2', 'ada');
+        resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
+        assert(resolved);
+        assert.equal(await runTaskAndGetResult(resolved), 2);
     });
 
     test('current regions and subprograms', async () => {
@@ -259,8 +289,8 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
             assert(subPTask.execution);
             assert.equal(
                 getCmdLine(subPTask.execution as vscode.ShellExecution),
-                `gnatprove -j0 -P ${await getProjectFile()} ` +
-                    `--limit-subp=\${fileBasename}:14 -cargs:ada -gnatef`
+                `gnatprove -P ${await getProjectFile()} -j0 ` +
+                    `--limit-subp=\${fileBasename}:14 -cargs -gnatef`
             );
         }
 
@@ -277,8 +307,8 @@ ada: Build and run main - src/test.adb - kind: buildAndRunMain`.trim();
             assert(regionTask.execution);
             assert.equal(
                 getCmdLine(regionTask.execution as vscode.ShellExecution),
-                `gnatprove -j0 -u \${fileBasename} -P ${await getProjectFile()} ` +
-                    `--limit-region=\${fileBasename}:21:24 -cargs:ada -gnatef`
+                `gnatprove -P ${await getProjectFile()} -j0 -u \${fileBasename} ` +
+                    `--limit-region=\${fileBasename}:21:24 -cargs -gnatef`
             );
         }
     });
@@ -290,7 +320,7 @@ suite('Task Execution', function () {
      */
     this.timeout('10s');
 
-    const testedTaskKinds = new Set<AllTaskKinds>();
+    const testedTaskNames = new Set<string>();
     let projectPath: string;
 
     this.beforeAll(async () => {
@@ -298,30 +328,16 @@ suite('Task Execution', function () {
         projectPath = await getProjectFile();
     });
 
-    test('buildProject task', async () => {
-        const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
-        const task = adaTasks.find((v) => v.name == BUILD_PROJECT_TASK_NAME.replace(/^ada: /, ''));
-        assert(task);
-        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
-
-        const execStatus: number | undefined = await runTaskAndGetResult(task);
-
-        assert.equal(execStatus, 0);
+    test('Build current project', async () => {
+        await testTask(BUILD_PROJECT_TASK_NAME.replace(/^ada: /, ''));
     });
 
-    test('runMain task', async () => {
-        const task = (await vscode.tasks.fetchTasks({ type: 'ada' })).find(
-            (t) => t.name == 'Run main - src/main1.adb'
-        );
-        assert(task);
-        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
-
-        const execStatus: number | undefined = await runTaskAndGetResult(task);
-
-        assert.equal(execStatus, 0);
+    test('Run main', async () => {
+        await testTask('Run main - src/main1.adb');
+        await testTask('Run main - src/test.adb');
     });
 
-    test('checkFile task', async () => {
+    test('Check current file', async () => {
         assert(vscode.workspace.workspaceFolders);
         const testAdbUri = vscode.Uri.joinPath(
             vscode.workspace.workspaceFolders[0].uri,
@@ -334,23 +350,23 @@ suite('Task Execution', function () {
         const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
         const task = adaTasks.find((v) => v.name == 'Check current file');
         assert(task);
-        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
+        testedTaskNames.add(task.name);
 
         const execStatus: number | undefined = await runTaskAndGetResult(task);
 
         assert.equal(execStatus, 0);
     });
 
-    test('cleanProject task', async () => {
+    test('Clean current project', async () => {
         await testTask('Clean current project');
     });
 
-    test('Automatic buildMain command', async () => {
+    test('Build main - src/main1.adb', async () => {
         const task = (await vscode.tasks.fetchTasks({ type: 'ada' })).find(
             (t) => t.name == 'Build main - src/main1.adb'
         );
         assert(task);
-        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
+        testedTaskNames.add(task.name);
 
         /**
          * Check the command line of the build task.
@@ -380,22 +396,20 @@ suite('Task Execution', function () {
         );
     });
 
-    test('buildAndRunMain task', async () => {
-        const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
-        const task = adaTasks.find((v) => v.name == 'Build and run main - src/main1.adb');
-        assert(task);
-        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
+    test('Build main - src/test.adb', async function () {
+        await testTask('Build main - src/test.adb');
+    });
 
-        const execStatus: number | undefined = await runTaskAndGetResult(task);
-
-        assert.equal(execStatus, 0);
+    test('Build and run main', async () => {
+        await testTask('Build and run main - src/main1.adb');
+        await testTask('Build and run main - src/test.adb');
     });
 
     /**
      * Check that the 'buildAndRunMain' task works fine with projects that
      * do not explicitly define an object directory.
      */
-    test('buildAndRunMain task without object directory', async () => {
+    test('Build and run main task without object directory', async () => {
         // Load a custom project that does not define any object dir by
         // changing the 'ada.projectFile' setting.
         const initialProjectFile = vscode.workspace.getConfiguration().get('ada.projectFile');
@@ -406,14 +420,7 @@ suite('Task Execution', function () {
                     'ada.projectFile',
                     'default_without_obj_dir' + path.sep + 'default_without_obj_dir.gpr'
                 );
-            const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
-            const task = adaTasks.find((v) => v.name == 'Build and run main - src/main1.adb');
-            assert(task);
-            testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
-
-            // Check that the executable has been ran correctly
-            const execStatus: number | undefined = await runTaskAndGetResult(task);
-            assert.equal(execStatus, 0);
+            await testTask('Build and run main - src/main1.adb');
         } finally {
             // Reset the 'ada.projectFile' setting. If the previous value was
             // empty, update to 'undefined' so that the setting gets removed.
@@ -431,7 +438,7 @@ suite('Task Execution', function () {
     /**
      * Test that buildAndRunMain fails when configured with non-existing tasks
      */
-    test('buildAndRunMain failure', async () => {
+    test('Obsolete build and run main failure', async () => {
         const prov = createAdaTaskProvider();
         let def: CustomTaskDefinition = {
             type: 'ada',
@@ -441,14 +448,14 @@ suite('Task Execution', function () {
             },
         };
         let task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 1', 'ada');
-        let resolved = await prov.resolveTask(task);
+        let resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
         assert(resolved);
         /**
          * The expected code when errors occur before the invocation of the
          * build and run tasks is 2.
          */
         assert.equal(await runTaskAndGetResult(resolved), 2);
-        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
+        testedTaskNames.add(task.name);
 
         def = {
             type: 'ada',
@@ -459,7 +466,39 @@ suite('Task Execution', function () {
             },
         };
         task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 2', 'ada');
-        resolved = await prov.resolveTask(task);
+        resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
+        assert(resolved);
+        assert.equal(await runTaskAndGetResult(resolved), 2);
+    });
+
+    /**
+     * Test that buildAndRunMain fails when configured with non-existing tasks
+     */
+    test('Compound task failure', async () => {
+        const prov = createAdaTaskProvider();
+        let def: SimpleTaskDef = {
+            type: 'ada',
+            compound: ['non existing task'],
+        };
+        let task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 1', 'ada');
+        let resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
+        assert(resolved);
+        /**
+         * The expected code when errors occur before the invocation of the
+         * build and run tasks is 2.
+         */
+        assert.equal(await runTaskAndGetResult(resolved), 2);
+        testedTaskNames.add(task.name);
+
+        def = {
+            type: 'ada',
+            compound: [
+                'ada: Build current project', // Existing build task
+                'non existing task',
+            ],
+        };
+        task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 2', 'ada');
+        resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
         assert(resolved);
         assert.equal(await runTaskAndGetResult(resolved), 2);
     });
@@ -484,8 +523,19 @@ suite('Task Execution', function () {
         await testTask('ada: Create/update test skeletons for the project');
     });
 
-    test('All tasks tested', () => {
-        const untested = adaTaskKinds.filter((v) => !testedTaskKinds.has(v));
+    test('All tasks tested', async () => {
+        const adaTasks = await createAdaTaskProvider().provideTasks(
+            new CancellationTokenSource().token
+        );
+        assert(adaTasks);
+        const sparkTasks = await createSparkTaskProvider().provideTasks(
+            new CancellationTokenSource().token
+        );
+        assert(sparkTasks);
+
+        const allTaskNames = adaTasks.concat(sparkTasks).map((t) => t.name);
+
+        const untested = allTaskNames.filter((v) => !testedTaskNames.has(v));
 
         if (untested.length > 0) {
             assert.fail(
@@ -499,7 +549,7 @@ suite('Task Execution', function () {
         const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
         const task = findTaskByName(adaTasks, taskName);
         assert(task);
-        testedTaskKinds.add((task.definition as CustomTaskDefinition).configuration.kind);
+        testedTaskNames.add(task.name);
 
         const execStatus: number | undefined = await runTaskAndGetResult(task);
 

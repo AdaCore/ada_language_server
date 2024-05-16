@@ -25,11 +25,14 @@ import {
     PROJECT_FROM_CONFIG,
     getProjectFromConfigOrALS,
     gprProjectArgs,
+    sparkLimitRegionArg,
+    sparkLimitSubpArg,
 } from './commands';
 import { adaExtState } from './extension';
 import { AdaMain, getAdaMains, getProjectFile, getSymbols } from './helpers';
 
 export const ADA_TASK_TYPE = 'ada';
+export const DEFAULT_PROBLEM_MATCHER = '$ada';
 
 /**
  * Callback to provide an extra argument for a tool
@@ -55,37 +58,6 @@ export interface TaskProperties {
     // Use -cargs:ada -gnatef to obtain full paths in diagnostics. Treated as true if unspecified.
     diagnosticArgs?: boolean;
 }
-
-/**
- * Return the `--limit-subp=file:line` associated to the subprogram enclosing the
- * the current editor's cursor position, if any. Return an empty string otherwise.
- * @returns Return the option corresponding to the enclosing subprogram as a string
- * or '' if not found.
- */
-const limitSubp = async (): Promise<string[]> => {
-    return getEnclosingSymbol(vscode.window.activeTextEditor, [vscode.SymbolKind.Function]).then(
-        (Symbol) => {
-            if (Symbol) {
-                const subprogram_line: string = (Symbol.range.start.line + 1).toString();
-                return [`--limit-subp=\${fileBasename}:${subprogram_line}`];
-            } else {
-                return [];
-            }
-        }
-    );
-};
-
-/**
- * Return the `--limit-region=file:from:to` associated to the current editor's selection.
- * @returns Return the option corresponding to the current selected region.
- */
-const limitRegion = (): Promise<string[]> => {
-    return new Promise((resolve) => {
-        resolve([
-            `--limit-region=\${fileBasename}:${getSelectedRegion(vscode.window.activeTextEditor)}`,
-        ]);
-    });
-};
 
 async function computeProject(taskDef?: CustomTaskDefinition): Promise<string> {
     // If the task definition defines a project file, use that. Otherwise if
@@ -155,6 +127,500 @@ export interface CustomTaskDefinition extends vscode.TaskDefinition {
     };
 }
 
+export interface SimpleTaskDef extends vscode.TaskDefinition {
+    command?: string | vscode.ShellQuotedString;
+    args?: (string | vscode.ShellQuotedString)[];
+    compound?: string[];
+}
+
+interface TaskDeclaration {
+    label: string;
+    description?: string;
+    taskDef: SimpleTaskDef;
+    problemMatchers?: string | string[];
+}
+
+const predefinedTasks: TaskDeclaration[] = [
+    {
+        label: 'Clean current project',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            command: 'gprclean',
+            args: ['${command:ada.gprProjectArgs}'],
+        },
+        problemMatchers: '',
+    },
+    {
+        label: 'Build current project',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            command: 'gprbuild',
+            args: ['${command:ada.gprProjectArgs}', '-cargs:ada', '-gnatef'],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Check current file',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            command: 'gprbuild',
+            args: [
+                '-q',
+                '-f',
+                '-c',
+                '-u',
+                '-gnatc',
+                '${command:ada.gprProjectArgs}',
+                '${fileBasename}',
+                '-cargs:ada',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Analyze the project with GNAT SAS',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            command: 'gnatsas',
+            args: ['analyze', '${command:ada.gprProjectArgs}'],
+        },
+        problemMatchers: '',
+    },
+    {
+        label: 'Analyze the current file with GNAT SAS',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            command: 'gnatsas',
+            args: ['analyze', '${command:ada.gprProjectArgs}', '--file=${fileBasename}'],
+        },
+        problemMatchers: '',
+    },
+    {
+        label: 'Create a report after a GNAT SAS analysis',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            command: 'gnatsas',
+            args: ['report', 'sarif', '${command:ada.gprProjectArgs}'],
+        },
+        problemMatchers: '',
+    },
+    {
+        label: 'Analyze the project with GNAT SAS and produce a report',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            compound: [
+                'Analyze the project with GNAT SAS',
+                'Create a report after a GNAT SAS analysis',
+            ],
+        },
+        problemMatchers: '',
+    },
+    {
+        label: 'Generate documentation from the project',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            command: 'gnatdoc',
+            args: ['${command:ada.gprProjectArgs}'],
+        },
+        problemMatchers: '',
+    },
+    {
+        label: 'Create/update test skeletons for the project',
+        taskDef: {
+            type: ADA_TASK_TYPE,
+            command: 'gnattest',
+            args: ['${command:ada.gprProjectArgs}'],
+        },
+        problemMatchers: '',
+    },
+    /**
+     * SPARK
+     */
+    {
+        label: 'Clean project for proof',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: ['${command:ada.gprProjectArgs}', '--clean'],
+        },
+        problemMatchers: '',
+    },
+    {
+        label: 'Examine project',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: ['${command:ada.gprProjectArgs}', '-j0', '--mode=flow', '-cargs', '-gnatef'],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Examine file',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: [
+                '${command:ada.gprProjectArgs}',
+                '-j0',
+                '--mode=flow',
+                '-u',
+                '${fileBasename}',
+                '-cargs',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Examine subprogram',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: [
+                '${command:ada.gprProjectArgs}',
+                '-j0',
+                '--mode=flow',
+                '${command:ada.spark.limitSubpArg}',
+                '-cargs',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Prove project',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: ['${command:ada.gprProjectArgs}', '-j0', '-cargs', '-gnatef'],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Prove file',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: [
+                '${command:ada.gprProjectArgs}',
+                '-j0',
+                '-u',
+                '${fileBasename}',
+                '-cargs',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Prove subprogram',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: [
+                '${command:ada.gprProjectArgs}',
+                '-j0',
+                '${command:ada.spark.limitSubpArg}',
+                '-cargs',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Prove selected region',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: [
+                '${command:ada.gprProjectArgs}',
+                '-j0',
+                '-u',
+                '${fileBasename}',
+                '${command:ada.spark.limitRegionArg}',
+                '-cargs',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
+        label: 'Prove line',
+        taskDef: {
+            type: 'spark',
+            command: 'gnatprove',
+            args: [
+                '${command:ada.gprProjectArgs}',
+                '-j0',
+                '-u',
+                '${fileBasename}',
+                '--limit-line=${fileBasename}:${lineNumber}',
+                '-cargs',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+];
+
+class SimpleTaskProvider implements vscode.TaskProvider {
+    constructor(public taskType: string, private taskDecls: TaskDeclaration[]) {}
+
+    async provideTasks(token: vscode.CancellationToken): Promise<vscode.Task[]> {
+        if (token.isCancellationRequested) {
+            throw new vscode.CancellationError();
+        }
+
+        const result: vscode.Task[] = [];
+
+        /**
+         * Start with the list of predefined tasks.
+         */
+        const taskDeclsToOffer = this.taskDecls.concat();
+
+        if (this.taskType == ADA_TASK_TYPE) {
+            /**
+             * Add tasks based on the Mains of the project.
+             */
+            taskDeclsToOffer.push(
+                ...(await getAdaMains()).flatMap((main) => {
+                    if (token.isCancellationRequested) {
+                        throw new vscode.CancellationError();
+                    }
+
+                    const buildTask: TaskDeclaration = {
+                        label: getBuildTaskPlainName(main),
+                        taskDef: {
+                            type: this.taskType,
+                            command: 'gprbuild',
+                            args: [
+                                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+                                main.mainRelPath(),
+                                '-cargs:ada',
+                                '-gnatef',
+                            ],
+                        },
+                        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+                    };
+
+                    const runTask: TaskDeclaration = {
+                        label: getRunTaskPlainName(main),
+                        taskDef: {
+                            type: this.taskType,
+                            command: main.execRelPath(),
+                            args: [],
+                        },
+                    };
+
+                    const buildAndRunTask: TaskDeclaration = {
+                        label: getBuildAndRunTaskName(main),
+                        taskDef: {
+                            type: this.taskType,
+                            compound: [buildTask.label, runTask.label],
+                        },
+                        problemMatchers: '',
+                    };
+
+                    return [buildTask, runTask, buildAndRunTask];
+                })
+            );
+        }
+
+        /**
+         * Create vscode.Task objects for all tasks to offer.
+         */
+        for (const tDecl of taskDeclsToOffer) {
+            if (token.isCancellationRequested) {
+                throw new vscode.CancellationError();
+            }
+
+            let execution = undefined;
+            if (tDecl.taskDef.compound) {
+                /**
+                 * It's a compound task.
+                 */
+                execution = new SequentialExecutionByName(tDecl.label, tDecl.taskDef.compound);
+            } else {
+                /**
+                 * It's a shell invocation task.
+                 */
+                assert(tDecl.taskDef.command);
+                assert(tDecl.taskDef.args);
+
+                /**
+                 * Ideally we would have liked to provide unresolved tasks and
+                 * let resolving only happen in the resolveTask method, but
+                 * that's not how VS Code works. This method is expected to
+                 * return fully resolved tasks, hence we must provide an
+                 * execution object with arguments evaluated now.
+                 */
+                execution = new vscode.ShellExecution(
+                    tDecl.taskDef.command,
+                    await evaluateArgs(tDecl.taskDef.args)
+                );
+            }
+
+            const task = new vscode.Task(
+                tDecl.taskDef,
+                vscode.TaskScope.Workspace,
+                tDecl.label,
+                tDecl.taskDef.type,
+                execution,
+                tDecl.problemMatchers
+            );
+
+            result.push(task);
+        }
+
+        return result;
+    }
+
+    async resolveTask(task: vscode.Task, token: vscode.CancellationToken): Promise<vscode.Task> {
+        /**
+         * Note that this method is never called for tasks created by the
+         * provideTasks method above (see parent method documentation). It is
+         * called for tasks defined (/customized by the user) in the tasks.json
+         * file.
+         */
+
+        if (token.isCancellationRequested) {
+            throw new vscode.CancellationError();
+        }
+
+        if ('configuration' in task.definition) {
+            /**
+             * This is an obsolete configuration, so use the old mechanism.
+             */
+            return createOrResolveTask(
+                task.definition as CustomTaskDefinition,
+                undefined,
+                undefined,
+                task
+            );
+        }
+
+        const taskDef = task.definition as SimpleTaskDef;
+
+        /**
+         * Validate the task.
+         */
+        if (!(taskDef.compound || taskDef.command)) {
+            /**
+             * We allow args to be unspecified, but command has to.
+             */
+            const msg =
+                `A task of type '${this.taskType}' must specify either the 'command' and 'args' ` +
+                "properties or the 'compound' property.";
+            void vscode.window.showErrorMessage(msg);
+            throw Error(msg);
+        }
+
+        if (taskDef.compound && (taskDef.command || taskDef.args)) {
+            const msg =
+                `A task of type '${this.taskType}' must specify either the 'command' and 'args' ` +
+                "properties or the 'compound' property, but not both.";
+            void vscode.window.showErrorMessage(msg);
+            throw Error(msg);
+        }
+
+        /**
+         * Resolve the task.
+         */
+        let execution;
+        if (taskDef.compound) {
+            assert(!taskDef.command);
+            assert(!taskDef.args);
+            execution = new SequentialExecutionByName(task.name, taskDef.compound);
+        } else {
+            assert(taskDef.command);
+            /**
+             * We support working with just the command property, in which case
+             * fallback to an empty args array.
+             */
+            const args = taskDef.args ?? [];
+            const evaluatedArgs: (string | vscode.ShellQuotedString)[] = await evaluateArgs(args);
+            execution = new vscode.ShellExecution(taskDef.command, evaluatedArgs);
+        }
+
+        return new vscode.Task(
+            task.definition,
+            task.scope ?? vscode.TaskScope.Workspace,
+            task.name,
+            task.source,
+            execution,
+            task.problemMatchers
+        );
+    }
+}
+
+/**
+ * Evaluate task arguments with support for commands returning arrays (VS Code
+ * native evaluation of task arguments only allows commands returning a plain
+ * string).
+ *
+ * @param args - an array of command line arguments from a task
+ * @returns the array of arguments where items matching the pattern
+ * '$\{command:ada.*\} have been evaluated. If they return an array of strings,
+ * then the array is inserted into the argument array at the location of the
+ * command.
+ */
+async function evaluateArgs(args: (string | vscode.ShellQuotedString)[]) {
+    const commandRegex = new RegExp(/^\${command:\s*((ada|spark)\.[^}]*)\s*}$/);
+    const evaluatedArgs: (string | vscode.ShellQuotedString)[] = (
+        await Promise.all(
+            args.flatMap(async function (
+                a: string | vscode.ShellQuotedString
+            ): Promise<(string | vscode.ShellQuotedString)[]> {
+                if (typeof a == 'string') {
+                    /**
+                     * Perform command evaluation in strings, not in ShellQuotedStrings
+                     */
+                    const match = a.match(commandRegex);
+                    if (match) {
+                        /**
+                         * The string matches an ada.* command, so evaluate it.
+                         */
+                        const command = match[1];
+                        const evalRes = await vscode.commands.executeCommand(command);
+                        if (typeof evalRes == 'string') {
+                            /**
+                             * Result is a string so wrap it in an array for flattening
+                             */
+                            return [evalRes];
+                        } else if (isNonEmptyStringArray(evalRes)) {
+                            /**
+                             * Return the array result
+                             */
+                            return evalRes as string[];
+                        } else {
+                            /**
+                             * Do not use the evaluated result. The original value
+                             * will be returned below.
+                             */
+                        }
+                    }
+                }
+
+                return [a];
+            })
+        )
+    ).flat();
+    return evaluatedArgs;
+}
+
+function isNonEmptyStringArray(obj: unknown): boolean {
+    if (obj instanceof Array) {
+        if (obj.length > 0) {
+            if (typeof obj[0] == 'string') {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 /**
  * Map of known tasks/tools indexed by a string/taskKind
  */
@@ -174,7 +640,7 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
     },
     examineSubprogram: {
         command: ['gnatprove', '-j0', '--mode=flow'],
-        extra: limitSubp,
+        extra: sparkLimitSubpArg,
         title: 'Examine subprogram',
     },
     proveProject: {
@@ -187,12 +653,12 @@ export const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
     },
     proveSubprogram: {
         command: ['gnatprove', '-j0'],
-        extra: limitSubp,
+        extra: sparkLimitSubpArg,
         title: 'Prove subprogram',
     },
     proveRegion: {
         command: ['gnatprove', '-j0', '-u', '${fileBasename}'],
-        extra: limitRegion,
+        extra: sparkLimitRegionArg,
         title: 'Prove selected region',
     },
     proveLine: {
@@ -323,7 +789,7 @@ async function createOrResolveTask(
     if (definition.configuration.kind == 'buildAndRunMain') {
         execution = new BuildAndRunExecution(definition);
     } else if (definition.configuration.kind == 'gnatsasAnalyzeAndReport') {
-        execution = new SequentialExecutionByName([
+        execution = new SequentialExecutionByName(name, [
             allTaskProperties['gnatsasAnalyze'].title,
             allTaskProperties['gnatsasReport'].title,
         ]);
@@ -461,183 +927,11 @@ export const getSelectedRegion = (editor: vscode.TextEditor | undefined): string
     }
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type ObsoleteTaskType = 'gnat' | 'gpr';
-type TaskType = 'ada' | 'spark';
-
 export function registerTaskProviders() {
     return [
         vscode.tasks.registerTaskProvider('ada', createAdaTaskProvider()),
         vscode.tasks.registerTaskProvider('spark', createSparkTaskProvider()),
     ];
-}
-
-export const DEFAULT_PROBLEM_MATCHER = '$ada';
-
-/**
- * This class implements the TaskProvider interface with some configurable functionality.
- */
-export class ConfigurableTaskProvider implements vscode.TaskProvider {
-    /**
-     * The list of provided tasks can be cached for efficiency, however some
-     * tasks depend on the cursor location in the active editor. With caching,
-     * the cursor location gets considered only the first time the tasks get
-     * computed. The cached tasks keep using that first location.
-     *
-     * So for now we disable caching of tasks until a solution is found.
-     */
-    private static DISABLE_CACHING = true;
-
-    public static taskTypeAda: TaskType = 'ada';
-    public static taskTypeSpark: TaskType = 'spark';
-    tasks: vscode.Task[] | undefined = undefined;
-    taskType: TaskType;
-    taskKinds: AllTaskKinds[];
-
-    constructor(taskType: TaskType, taskKinds: AllTaskKinds[]) {
-        this.taskType = taskType;
-        this.taskKinds = taskKinds;
-    }
-
-    async provideTasks(token?: vscode.CancellationToken): Promise<vscode.Task[]> {
-        if (!this.tasks || ConfigurableTaskProvider.DISABLE_CACHING) {
-            this.tasks = [];
-            const cmdPrefix = await alire();
-
-            const projectFile = await getProjectFromConfigOrALS();
-            for (const kind of this.taskKinds) {
-                if (token?.isCancellationRequested) {
-                    this.tasks = undefined;
-                    break;
-                }
-                if (
-                    kind in allTaskProperties &&
-                    kind != 'buildMain' &&
-                    kind != 'buildAndRunMain' &&
-                    kind != 'runMain'
-                ) {
-                    // Do not provide a task for buildMain because we provide
-                    // one per project main below
-
-                    const definition: CustomTaskDefinition = await this.getDefaultDefinition(kind);
-
-                    // provideTasks() is expected to provide fully resolved
-                    // tasks ready for execution
-                    const task = await createOrResolveTask(definition, cmdPrefix);
-                    this.tasks.push(task);
-                }
-            }
-
-            if (this.taskType == 'ada') {
-                for (const main of await getAdaMains()) {
-                    if (token?.isCancellationRequested) {
-                        this.tasks = undefined;
-                        break;
-                    }
-
-                    let def: CustomTaskDefinition = {
-                        type: this.taskType,
-                        configuration: {
-                            kind: 'buildMain',
-                            projectFile: projectFile,
-                            main: main.mainRelPath(),
-                            args: [],
-                        },
-                    };
-                    let name = getBuildTaskPlainName(main);
-                    const buildMainTask = await createOrResolveTask(def, cmdPrefix, name);
-                    this.tasks?.push(buildMainTask);
-
-                    def = {
-                        type: this.taskType,
-                        configuration: {
-                            kind: 'runMain',
-                            projectFile: projectFile,
-                            main: main.mainRelPath(),
-                            mainArgs: [],
-                        },
-                    };
-                    name = getRunTaskPlainName(main);
-                    const runMainTask = await createOrResolveTask(def, cmdPrefix, name);
-                    this.tasks?.push(runMainTask);
-
-                    def = {
-                        type: this.taskType,
-                        configuration: {
-                            kind: 'buildAndRunMain',
-                            buildTask: getBuildTaskName(main),
-                            runTask: getRunTaskName(main),
-                        },
-                    };
-                    name = getBuildAndRunTaskName(main);
-                    const buildAndRunTask = await createOrResolveTask(def, cmdPrefix, name);
-                    this.tasks?.push(buildAndRunTask);
-                }
-            }
-        }
-
-        return this.tasks ?? [];
-    }
-
-    /**
-     *
-     * @param kind - kind of task
-     * @returns the task definition that should be used by default
-     */
-    private async getDefaultDefinition(kind: AllTaskKinds): Promise<CustomTaskDefinition> {
-        const definition: CustomTaskDefinition = {
-            type: this.taskType,
-            configuration: {
-                kind: kind,
-                // This definition can end up in the User's tasks.json, so we
-                // use ${config:ada.projectFile} if available to avoid producing
-                // full paths in that file which should be portable with with
-                // workspace.
-                projectFile: await getProjectFromConfigOrALS(),
-                args: [],
-            },
-        };
-
-        switch (kind) {
-            case 'gnatsasReport':
-                /**
-                 * For GNAT SAS use the SARIF format by default.
-                 */
-                definition.configuration.args = [
-                    'sarif',
-                    '-o',
-                    'report.sarif',
-                    `\${command:${CMD_GPR_PROJECT_ARGS}}`,
-                ];
-                break;
-            default:
-                break;
-        }
-
-        return definition;
-    }
-
-    async resolveTask(
-        task: vscode.Task,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _token?: vscode.CancellationToken
-    ): Promise<vscode.Task | undefined> {
-        // This is called for tasks that are not fully resolved, in particular
-        // tasks that don't have an undefined 'execution' property.
-        const definition = task.definition as CustomTaskDefinition;
-
-        // Check that the task is known
-        if (definition.configuration.kind in allTaskProperties) {
-            return createOrResolveTask(
-                task.definition as CustomTaskDefinition,
-                await alire(),
-                undefined,
-                task
-            );
-        }
-
-        return undefined;
-    }
 }
 
 /**
@@ -672,17 +966,17 @@ export function getBuildAndRunTaskName(main: AdaMain) {
     return `${allTaskProperties['buildAndRunMain'].title}${main.mainRelPath()}`;
 }
 
-export function createSparkTaskProvider(): ConfigurableTaskProvider {
-    return new ConfigurableTaskProvider(
+export function createSparkTaskProvider(): vscode.TaskProvider {
+    return new SimpleTaskProvider(
         'spark',
-        sparkTaskKinds.map((v) => v)
+        predefinedTasks.filter((v) => v.taskDef.type == 'spark')
     );
 }
 
-export function createAdaTaskProvider(): ConfigurableTaskProvider {
-    return new ConfigurableTaskProvider(
-        'ada',
-        adaTaskKinds.map((v) => v)
+export function createAdaTaskProvider(): vscode.TaskProvider {
+    return new SimpleTaskProvider(
+        ADA_TASK_TYPE,
+        predefinedTasks.filter((v) => v.taskDef.type == ADA_TASK_TYPE)
     );
 }
 
@@ -956,7 +1250,7 @@ export function findTaskByName(tasks: vscode.Task[], taskName: string): vscode.T
         return task;
     } else {
         const msg = `Could not find a task named: ${taskName}`;
-        throw new Error(msg);
+        throw Error(msg);
     }
 }
 
@@ -997,7 +1291,7 @@ class BuildAndRunExecution extends SequentialExecution {
  * of the tasks to run are given at construction.
  */
 class SequentialExecutionByName extends SequentialExecution {
-    constructor(private taskNames: string[]) {
+    constructor(private taskName: string, private taskNames: string[]) {
         super();
     }
 
