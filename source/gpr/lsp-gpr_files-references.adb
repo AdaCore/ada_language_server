@@ -180,7 +180,9 @@ package body LSP.GPR_Files.References is
 
                   Identifiers.Clear;
                   return;
-               elsif Token.Data.Kind = GPC.Gpr_Colon then
+               elsif Token.Data.Kind = GPC.Gpr_Colon
+                 or else Token.Data.Kind = GPC.Gpr_Type
+               then
                   --  Let 'Initialize' return a type reference
 
                   In_Type_Reference := True;
@@ -425,22 +427,20 @@ package body LSP.GPR_Files.References is
                             +To_String (Identifiers.First_Element);
             begin
                if Referenced_Project.Types.Contains (Typ) then
-                  if Previous_Token_Kind /= GPC.Gpr_Type then
-                     declare
-                        C : constant LSP.GPR_Files.Type_Maps.Cursor :=
-                              Referenced_Project.Types.Find (Typ);
-                     begin
-                        if LSP.GPR_Files.Type_Maps.Has_Element (C) then
-                           return (Kind               => Type_Ref,
-                                   Token              =>
-                                     LSP.GPR_Files.Type_Maps.Element (C).Token,
-                                   Project            =>
-                                     Referenced_Project.Name,
-                                   In_Type_Reference => In_Type_Reference,
-                                   Typ                => Typ);
-                        end if;
-                     end;
-                  end if;
+                  declare
+                     C : constant LSP.GPR_Files.Type_Maps.Cursor :=
+                           Referenced_Project.Types.Find (Typ);
+                  begin
+                     if LSP.GPR_Files.Type_Maps.Has_Element (C) then
+                        return (Kind               => Type_Ref,
+                                Token              =>
+                                  LSP.GPR_Files.Type_Maps.Element (C).Token,
+                                Project            =>
+                                  Referenced_Project.Name,
+                                In_Type_Reference => In_Type_Reference,
+                                Typ                => Typ);
+                     end if;
+                  end;
                elsif Next_Token_Kind not in GPC.Gpr_Assign | GPC.Gpr_Colon then
                   if not Project_Provided and then not Package_Provided then
                      if Current_Package /= GPR2.Project_Level_Scope then

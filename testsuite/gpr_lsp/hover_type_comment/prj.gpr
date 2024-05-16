@@ -1,0 +1,11 @@
+project Prj is
+   -- Not part of My_Type comment
+
+   -- Leading style comment start
+   -- Leading style comment end
+   type My_Type is ("a", "b"); -- GNAT style comment start
+   -- GNAT style comment end
+
+   -- Not part of My_Type comment
+   Var : My_Type := "a";
+end Prj;

@@ -31,6 +31,7 @@ with GPR2.Log;
 with GPR2.Path_Name;
 with GPR2.Path_Name.Set;
 with GPR2.Project.Tree;
+with GPR2.Project.Typ;
 with GPR2.Project.Attribute;
 with GPR2.Project.Variable;
 
@@ -147,6 +148,14 @@ package LSP.GPR_Documents is
       Reference : LSP.GPR_Files.References.Reference)
       return GPR2.Project.Attribute.Object;
    --  if Document contains a valid Tree & Reference is an attribute reference
+   --  returns corresponding value otherwise returns 'Undefined'
+
+   function Get_Type
+     (Self      : Document'Class;
+      Root_File : LSP.GPR_Files.File_Access;
+      Reference : LSP.GPR_Files.References.Reference)
+      return GPR2.Project.Typ.Object;
+   --  if Document contains a valid Tree & Reference is a type reference
    --  returns corresponding value otherwise returns 'Undefined'
 
 private

@@ -56,6 +56,10 @@ package LSP.GPR_Files.References is
      (Reference : LSP.GPR_Files.References.Reference)
       return LSP.GPR_Files.Variable_Id;
 
+   function Referenced_Type
+     (Reference : LSP.GPR_Files.References.Reference)
+      return LSP.GPR_Files.Type_Id;
+
    function Has_Project
      (Reference : LSP.GPR_Files.References.Reference) return Boolean;
 
@@ -183,5 +187,12 @@ private
      (if Reference.Kind = Variable_Ref
       then Reference.Variable
       else No_Variable);
+
+   function Referenced_Type
+     (Reference : LSP.GPR_Files.References.Reference)
+      return LSP.GPR_Files.Type_Id is
+     (if Reference.Kind = Type_Ref
+      then Reference.Typ
+      else No_Type);
 
 end LSP.GPR_Files.References;

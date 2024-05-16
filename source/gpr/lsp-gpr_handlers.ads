@@ -25,6 +25,7 @@ private with GNATCOLL.VFS;
 private with GPR2.File_Readers;
 private with GPR2.Path_Name;
 
+with LSP.Ada_Configurations;
 with LSP.Client_Message_Receivers;
 with LSP.GPR_Client_Capabilities;
 with LSP.GPR_Documents;
@@ -116,6 +117,9 @@ private
 
       Is_Canceled          : Has_Been_Canceled_Function;
       --  Is request has been canceled
+
+      Configuration : LSP.Ada_Configurations.Configuration;
+      --  Ada/GPR configuration settings
    end record;
 
    overriding procedure On_Server_Notification
@@ -172,6 +176,10 @@ private
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DeclarationParams);
+
+   overriding procedure On_DidChangeConfiguration_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeConfigurationParams);
 
    -----------------------------------------
    -- LSP.GPR_Documents.Document_Provider --
