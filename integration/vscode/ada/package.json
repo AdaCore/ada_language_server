@@ -799,7 +799,7 @@
                     {
                         "id": "als-open-project-file",
                         "title": "GPR project file support",
-                        "description": "Open the GPR project file you have specified in ``ada.projectFile`` setting. Open the ``Outline`` view to see all the entities (packages, switches...) of your GPR file.",
+                        "description": "Open the GPR project file you have specified in the ``ada.projectFile`` setting. Open the ``Outline`` view to see all the entities (packages, switches...) of your GPR file.",
                         "media": {
                             "markdown": "media/settings.md"
                         },
