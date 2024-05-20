@@ -8,17 +8,28 @@
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/AdaCore/ada_language_server/tree/edge)
 
 This repository contains an implementation of the [Microsoft Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
-for Ada/SPARK.
+for Ada/SPARK and GPR project files.
 
-Current features:
+Current features (general):
 
 * [GNAT project files](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/gnat_project_manager.html) support.
 * Basic [Alire](https://alire.ada.dev/) support.
+
+For Ada/SPARK, we provide the following:
+
 * Code completion for names, keywords, aggregates, etc.
 * Code navigation, such as Go to Definition/Declaration, Find All References, Call Hierarchies, etc.
 * [Code refactoring](#refactoring-tools) like insert named associations, auto-add `with`-clauses, etc.
 * Document/Workspace symbol search.
 * Code folding and formatting.
+
+The Ada Language Server now also supports the GPR language, via the
+`--language-gpr` option, providing support for the most used LSP features
+such as navigation, outline and tooltips for GPR files. When this switch is
+present, the server will only support GPR files. To support both GPR and
+Ada/SPARK, you'll need to launch two instances of the server.
+You can refer to the [Supported LSP Server Requests](#supported-lsp-server-requests) 
+section for more information.
 
 We also provide [Visual Studio Code](https://code.visualstudio.com/)
 extension at

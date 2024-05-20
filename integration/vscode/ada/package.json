@@ -788,12 +788,23 @@
                     {
                         "id": "als-get-stated-setting",
                         "title": "Set a project file",
-                        "description": "Set the active project file in the `ada.projectFile` setting.\n [Open Settings](command:workbench.action.openSettings)",
+                        "description": "Set the active project file in the ``ada.projectFile`` setting.\n [Open Settings](command:workbench.action.openSettings)",
                         "media": {
                             "markdown": "media/settings.md"
                         },
                         "completionEvents": [
                             "onSettingChanged:ada.projectFile"
+                        ]
+                    },
+                    {
+                        "id": "als-open-project-file",
+                        "title": "GPR project file support",
+                        "description": "Open the GPR project file you have specified in the ``ada.projectFile`` setting. Open the ``Outline`` view to see all the entities (packages, switches...) of your GPR file.",
+                        "media": {
+                            "markdown": "media/settings.md"
+                        },
+                        "completionEvents": [
+                            "onLanguage:gpr"
                         ]
                     },
                     {
