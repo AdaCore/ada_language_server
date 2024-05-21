@@ -16,17 +16,172 @@
 ----------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import {
-    AllTaskKinds,
-    DEFAULT_PROBLEM_MATCHER,
-    WarningMessageExecution,
-    TaskProperties,
-    alire,
-    allTaskProperties,
-    getDiagnosticArgs,
-    getProjectArgs,
-    getScenarioArgs,
-} from './taskProviders';
+import { getProjectFromConfigOrALS, sparkLimitRegionArg, sparkLimitSubpArg } from './commands';
+import { DEFAULT_PROBLEM_MATCHER, WarningMessageExecution, alire } from './taskProviders';
+
+/**
+ * Callback to provide an extra argument for a tool
+ */
+type ExtraArgCallback = () => Promise<string[]>;
+
+/**
+ * Tool description
+ */
+interface TaskProperties {
+    // Executable like gprbuild, gprclean, gnatprove, etc. and static list of
+    // arguments.
+    command?: string[];
+    // Dynamic argument callback called at the time of task execution. Args and
+    // extra argument will be wrapped with getGnatArgs if this is set.
+    extra?: ExtraArgCallback;
+    // Short title displayed in task list
+    title: string;
+    // Long description displayed in the task list on a separate line
+    description?: string;
+    // Use project and scenario args. Treated as true if unspecified.
+    projectArgs?: boolean;
+    // Use -cargs:ada -gnatef to obtain full paths in diagnostics. Treated as true if unspecified.
+    diagnosticArgs?: boolean;
+}
+
+// The following pair of declarations allow creating a set of string values both
+// as an iterable (constant) array, and as a union type.
+export const adaTaskKinds = [
+    'buildProject',
+    'checkFile',
+    'cleanProject',
+    'buildMain',
+    'runMain',
+    'buildAndRunMain',
+    'gnatsasAnalyze',
+    'gnatsasReport',
+    'gnatsasAnalyzeAndReport',
+    'gnatdoc',
+    'gnattest',
+] as const;
+export type AdaTaskKinds = (typeof adaTaskKinds)[number];
+
+// The following pair of declarations allow creating a set of string values both
+// as an iterable (constant) array, and as a union type.
+const sparkTaskKinds = [
+    'cleanProjectForProof',
+    'examineProject',
+    'examineFile',
+    'examineSubprogram',
+    'proveProject',
+    'proveFile',
+    'proveSubprogram',
+    'proveRegion',
+    'proveLine',
+] as const;
+type SparkTaskKinds = (typeof sparkTaskKinds)[number];
+
+export type AllTaskKinds = AdaTaskKinds | SparkTaskKinds;
+
+/**
+ * Map of known tasks/tools indexed by a string/taskKind
+ */
+const allTaskProperties: { [id in AllTaskKinds]: TaskProperties } = {
+    cleanProjectForProof: {
+        command: ['gnatprove', '--clean'],
+        title: 'Clean project for proof',
+        diagnosticArgs: false,
+    },
+    examineProject: {
+        command: ['gnatprove', '-j0', '--mode=flow'],
+        title: 'Examine project',
+    },
+    examineFile: {
+        command: ['gnatprove', '-j0', '--mode=flow', '-u', '${fileBasename}'],
+        title: 'Examine file',
+    },
+    examineSubprogram: {
+        command: ['gnatprove', '-j0', '--mode=flow'],
+        extra: sparkLimitSubpArg,
+        title: 'Examine subprogram',
+    },
+    proveProject: {
+        command: ['gnatprove', '-j0'],
+        title: 'Prove project',
+    },
+    proveFile: {
+        command: ['gnatprove', '-j0', '-u', '${fileBasename}'],
+        title: 'Prove file',
+    },
+    proveSubprogram: {
+        command: ['gnatprove', '-j0'],
+        extra: sparkLimitSubpArg,
+        title: 'Prove subprogram',
+    },
+    proveRegion: {
+        command: ['gnatprove', '-j0', '-u', '${fileBasename}'],
+        extra: sparkLimitRegionArg,
+        title: 'Prove selected region',
+    },
+    proveLine: {
+        command: [
+            'gnatprove',
+            '-j0',
+            '-u',
+            '${fileBasename}',
+            '--limit-line=${fileBasename}:${lineNumber}',
+        ],
+        title: 'Prove line',
+    },
+    buildProject: {
+        command: ['gprbuild'],
+        title: 'Build current project',
+    },
+    checkFile: {
+        command: ['gprbuild', '-q', '-f', '-c', '-u', '-gnatc', '${fileBasename}'],
+        title: 'Check current file',
+    },
+    cleanProject: {
+        command: ['gprclean'],
+        title: 'Clean current project',
+        diagnosticArgs: false,
+    },
+    buildMain: {
+        command: ['gprbuild'],
+        title: 'Build main - ',
+    },
+    runMain: {
+        command: [],
+        title: 'Run main - ',
+        projectArgs: false,
+        diagnosticArgs: false,
+    },
+    buildAndRunMain: {
+        title: 'Build and run main - ',
+        // description: 'Run the build task followed by the run task for the given main',
+    },
+    gnatsasAnalyze: {
+        command: ['gnatsas', 'analyze'],
+        title: 'Analyze the project with GNAT SAS',
+        diagnosticArgs: false,
+    },
+    gnatsasReport: {
+        command: ['gnatsas', 'report'],
+        title: 'Create a report after a GNAT SAS analysis',
+        // We set this flag to false because project args are added later as
+        // part of the 'args' task property
+        projectArgs: false,
+        diagnosticArgs: false,
+    },
+    gnatsasAnalyzeAndReport: {
+        title: 'Analyze the project with GNAT SAS and produce a report',
+    },
+    gnatdoc: {
+        command: ['gnatdoc'],
+        title: 'Generate documentation from the project',
+        diagnosticArgs: false,
+    },
+    gnattest: {
+        command: ['gnattest'],
+        title: 'Create/update test skeletons for the project',
+        diagnosticArgs: false,
+    },
+};
 
 /**
  * @deprecated This interface defines the data structures matching the JSON
@@ -159,4 +314,32 @@ export async function getTasks(): Promise<vscode.Task[]> {
 
         return result;
     });
+}
+export async function getProjectArgs() {
+    return await computeProject()
+        .then((prj) => ['-P', prj])
+        .catch(() => []);
+}
+export async function computeProject(): Promise<string> {
+    // If the task definition defines a project file, use that. Otherwise if
+    // ada.projectFile is defined, use ${config:ada.projectFile}. Finally,
+    // fallback to querying the ALS for the full path to the project file.
+    return getProjectFromConfigOrALS();
+} // Call commonArgs on args and append `-gnatef` to generate full file names in errors/warnings
+
+export const getDiagnosticArgs = (): string[] => {
+    const p_gnatef = ['-cargs:ada', '-gnatef'];
+    return p_gnatef;
+};
+export function getScenarioArgs() {
+    const vars: string[][] = Object.entries(
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
+    );
+    const fold = (args: string[], item: string[]): string[] => {
+        const option = '-X' + item[0] + '=' + item[1];
+        return args.concat([option]);
+    };
+
+    // for each scenarioVariables put `-Xname=value` option
+    return vars.reduce(fold, []);
 }

@@ -7,14 +7,12 @@ import { ExecuteCommandRequest } from 'vscode-languageclient';
 import { ExtensionState } from './ExtensionState';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
-import { findAdaMain, getProjectFileRelPath } from './helpers';
+import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
 import {
-    CustomTaskDefinition,
+    SimpleTaskDef,
     findBuildAndRunTask,
     getBuildAndRunTasks,
     getConventionalTaskLabel,
-    getEnclosingSymbol,
-    getSelectedRegion,
     isFromWorkspace,
 } from './taskProviders';
 
@@ -316,8 +314,8 @@ async function buildAndRunMainAsk() {
                             // If the task doesn't exist, create it
 
                             // Copy the definition and add a label
-                            const def: CustomTaskDefinition = {
-                                ...(e.item.task.definition as CustomTaskDefinition),
+                            const def: SimpleTaskDef = {
+                                ...(e.item.task.definition as SimpleTaskDef),
                                 label: getConventionalTaskLabel(e.item.task),
                             };
                             tasks.push(def);
@@ -661,3 +659,56 @@ export const sparkLimitRegionArg = (): Promise<string[]> => {
         ]);
     });
 };
+export const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
+    if (editor) {
+        const selection = editor.selection;
+        //  Line numbers start at 0 in VS Code, and at 1 in GNAT
+        return (selection.start.line + 1).toString() + ':' + (selection.end.line + 1).toString();
+    } else {
+        return '0:0';
+    }
+};
+/**
+ * Return the closest DocumentSymbol of the given kinds enclosing the
+ * the given editor's cursor position, if any.
+ * @param editor - The editor in which we want
+ * to find the closest symbol enclosing the cursor's position.
+ * @returns Return the closest enclosing symbol.
+ */
+
+export async function getEnclosingSymbol(
+    editor: vscode.TextEditor | undefined,
+    kinds: vscode.SymbolKind[]
+): Promise<vscode.DocumentSymbol | null> {
+    if (editor) {
+        const line = editor.selection.active.line;
+
+        // First get all symbols for current file
+        const symbols: vscode.DocumentSymbol[] = await vscode.commands.executeCommand(
+            'vscode.executeDocumentSymbolProvider',
+            editor.document.uri
+        );
+
+        // Then filter them according to the specified kinds
+        const filtered_symbols = getSymbols(symbols, kinds, [
+            SymbolKind.Function,
+            SymbolKind.Module,
+        ]);
+
+        // Finally select from the filtered symbols the smallest one containing the current line
+        const scopeSymbols = filtered_symbols.filter(
+            (sym) => line >= sym.range.start.line && line <= sym.range.end.line
+        );
+
+        if (scopeSymbols.length > 0) {
+            scopeSymbols.sort(
+                (a, b) =>
+                    a.range.end.line - a.range.start.line - (b.range.end.line - b.range.start.line)
+            );
+
+            return scopeSymbols[0];
+        }
+    }
+
+    return null;
+}

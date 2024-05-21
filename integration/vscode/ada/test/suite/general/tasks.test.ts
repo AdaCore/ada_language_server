@@ -1,19 +1,18 @@
+/* eslint-disable max-len */
 import assert from 'assert';
 import { existsSync } from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
-import { CancellationTokenSource } from 'vscode-languageclient';
-import { PROJECT_FROM_CONFIG } from '../../../src/commands';
+import { getEnclosingSymbol, getSelectedRegion } from '../../../src/commands';
 import { exe, getProjectFile } from '../../../src/helpers';
 import {
     BUILD_PROJECT_TASK_NAME,
-    CustomTaskDefinition,
     SimpleTaskDef,
+    SimpleTaskProvider,
     createAdaTaskProvider,
     createSparkTaskProvider,
     findTaskByName,
-    getEnclosingSymbol,
-    getSelectedRegion,
+    getConventionalTaskLabel,
 } from '../../../src/taskProviders';
 import { activate } from '../utils';
 
@@ -30,7 +29,7 @@ suite('Task Providers', function () {
      */
     test('Ada tasks list', async () => {
         const prov = createAdaTaskProvider();
-        const tasks = await prov.provideTasks(new vscode.CancellationTokenSource().token);
+        const tasks = await prov.provideTasks();
         assert(tasks);
 
         const expectedTasksList = `
@@ -60,68 +59,79 @@ ada: Build and run main - src/test.adb
      */
     test('Spark tasks list', async () => {
         const prov = createSparkTaskProvider();
-        const tasks = await prov.provideTasks(new CancellationTokenSource().token);
+        const tasks = await prov.provideTasks();
         assert(tasks);
-        const expectedTasksNames: string[] = [
-            'spark: Clean project for proof',
-            'spark: Examine project',
-            'spark: Examine file',
-            'spark: Examine subprogram',
-            'spark: Prove project',
-            'spark: Prove file',
-            'spark: Prove subprogram',
-            'spark: Prove selected region',
-            'spark: Prove line',
-        ];
+        const expectedTasksList = `
+spark: Clean project for proof
+spark: Examine project
+spark: Examine file
+spark: Examine subprogram
+spark: Prove project
+spark: Prove file
+spark: Prove subprogram
+spark: Prove selected region
+spark: Prove line
+        `.trim();
         assert.strictEqual(
             tasks.map((t) => `${t.source}: ${t.name}`).join('\n'),
-            expectedTasksNames.join('\n')
+            expectedTasksList
         );
     });
 
-    test('Automatic clean command', async () => {
-        const task = (await vscode.tasks.fetchTasks({ type: 'ada' })).find(
-            (t) => t.name == 'Clean current project'
-        );
-        assert(task);
+    test('Ada task command lines', async function () {
+        const expectedCmdLines = `
+ada: Clean current project - gprclean -P ${projectPath}
+ada: Build current project - gprbuild -P ${projectPath} -cargs:ada -gnatef
+ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
+ada: Analyze the project with GNAT SAS - gnatsas analyze -P ${projectPath}
+ada: Analyze the current file with GNAT SAS - gnatsas analyze -P ${projectPath} \${fileBasename}
+ada: Create a report after a GNAT SAS analysis - gnatsas report sarif -P ${projectPath}
+ada: Generate documentation from the project - gnatdoc -P ${projectPath}
+ada: Create/update test skeletons for the project - gnattest -P ${projectPath}
+ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef
+ada: Run main - src/main1.adb - obj/main1exec
+ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb -cargs:ada -gnatef
+ada: Run main - src/test.adb - obj/test
+`.trim();
 
-        /**
-         * Check the command line of the clean task.
-         */
-        const actualCmd = getCmdLine(task.execution as vscode.ShellExecution);
-        /**
-         * The workspace doesn't define an ada.projectFile setting, so the full
-         * path of the project file is obtained from ALS and used in the command
-         * line.
-         */
-        const expectedCmd = `gprclean -P ${projectPath}`;
-        assert.equal(actualCmd, expectedCmd);
+        const prov = createAdaTaskProvider();
+        const actualCommandLines = await getCommandLines(prov);
+        assert.equal(actualCommandLines, expectedCmdLines);
+    });
 
-        /**
-         * Now try running the task.
-         */
-        const status = await runTaskAndGetResult(task);
-        assert.equal(status, 0);
-        assert(!existsSync('obj/main1' + exe));
+    test('Spark task command lines', async function () {
+        const expectedCmdLines = `
+spark: Clean project for proof - gnatprove -P ${projectPath} --clean
+spark: Examine project - gnatprove -P ${projectPath} -j0 --mode=flow -cargs -gnatef
+spark: Examine file - gnatprove -P ${projectPath} -j0 --mode=flow -u \${fileBasename} -cargs -gnatef
+spark: Examine subprogram - gnatprove -P ${projectPath} -j0 --mode=flow \${command:ada.spark.limitSubpArg} -cargs -gnatef
+spark: Prove project - gnatprove -P ${projectPath} -j0 -cargs -gnatef
+spark: Prove file - gnatprove -P ${projectPath} -j0 -u \${fileBasename} -cargs -gnatef
+spark: Prove subprogram - gnatprove -P ${projectPath} -j0 \${command:ada.spark.limitSubpArg} -cargs -gnatef
+spark: Prove selected region - gnatprove -P ${projectPath} -j0 -u \${fileBasename} --limit-region=\${fileBasename}:0:0 -cargs -gnatef
+spark: Prove line - gnatprove -P ${projectPath} -j0 -u \${fileBasename} --limit-line=\${fileBasename}:\${lineNumber} -cargs -gnatef
+`.trim();
+
+        const prov = createSparkTaskProvider();
+        const actualCommandLines = await getCommandLines(prov);
+
+        assert.equal(actualCommandLines, expectedCmdLines);
     });
 
     /**
      * Check that starting from a User-defined task, the task provider is able
      * to resolve it into a complete task with the expected command line.
      */
-    test('Resolving task', async () => {
+    test('Resolving User task', async () => {
         const prov = createAdaTaskProvider();
 
-        const def: CustomTaskDefinition = {
+        const def: SimpleTaskDef = {
             type: 'ada',
-            configuration: {
-                kind: 'buildProject',
-                projectFile: PROJECT_FROM_CONFIG,
-                args: ['-d'],
-            },
+            command: 'gprbuild',
+            args: ['${command:ada.gprProjectArgs}', '-d'],
         };
         const task = new vscode.Task(def, vscode.TaskScope.Workspace, 'My Task', 'ada');
-        const resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
+        const resolved = await prov.resolveTask(task);
 
         assert(resolved);
         assert(resolved.execution);
@@ -131,113 +141,13 @@ ada: Build and run main - src/test.adb
         const actualCmd = getCmdLine(exec);
 
         /**
-         * This task defines the projectFile field as config:ada.projectFile so
-         * this is reflected as is in the command line. However running this
-         * task will fail because the workspace doesn't define the
-         * ada.projectFile setting.
+         * The workspace doesn't have the ada.projectFile setting set, so the
+         * extension will use the full path to the project file obtained from
+         * the ALS.
          */
-        const expectedCmd = 'gprbuild -P ${config:ada.projectFile} -d -cargs:ada -gnatef';
+        const expectedCmd = `gprbuild -P ${projectPath} -d`;
 
         assert.strictEqual(actualCmd, expectedCmd);
-
-        const status = runTaskAndGetResult(resolved);
-        /**
-         * The task should fail because the ada.projectFile is not set so the
-         * command line cannot be resolved.
-         */
-        assert.notEqual(status, 0);
-    });
-
-    test('Resolving task buildMain', async () => {
-        const prov = createAdaTaskProvider();
-
-        const def: CustomTaskDefinition = {
-            type: 'ada',
-            configuration: {
-                kind: 'buildMain',
-                projectFile: PROJECT_FROM_CONFIG,
-                main: 'src/program.adb',
-            },
-        };
-        const task = new vscode.Task(def, vscode.TaskScope.Workspace, 'My Task', 'ada');
-        const resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
-
-        assert(resolved);
-        assert(resolved.execution);
-
-        const exec = resolved.execution as vscode.ShellExecution;
-        const actualCmd = getCmdLine(exec);
-
-        assert(def.configuration.main);
-        const expectedCmd =
-            `gprbuild -P \${config:ada.projectFile} ${def.configuration.main} ` +
-            `-cargs:ada -gnatef`;
-
-        assert.strictEqual(actualCmd, expectedCmd);
-    });
-
-    test('Resolving task runMain', async () => {
-        const prov = createAdaTaskProvider();
-
-        const def: CustomTaskDefinition = {
-            type: 'ada',
-            configuration: {
-                kind: 'runMain',
-                projectFile: PROJECT_FROM_CONFIG,
-                main: 'src/main1.adb',
-                mainArgs: ['arg1', 'arg2'],
-            },
-        };
-        const task = new vscode.Task(def, vscode.TaskScope.Workspace, 'My Task', 'ada');
-        const resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
-
-        assert(resolved);
-        assert(resolved.execution);
-
-        const exec = resolved.execution as vscode.ShellExecution;
-        const actualCmd = getCmdLine(exec);
-
-        // Note that the executable is named differently than the source file
-        // via project attributes
-        assert(def.configuration.main);
-        const expectedCmd = `obj/main1exec${exe} arg1 arg2`;
-
-        assert.strictEqual(actualCmd, expectedCmd);
-    });
-
-    /**
-     * Test that buildAndRunMain fails when configured with non-existing tasks
-     */
-    test('buildAndRunMain failure', async () => {
-        const prov = createAdaTaskProvider();
-        let def: CustomTaskDefinition = {
-            type: 'ada',
-            configuration: {
-                kind: 'buildAndRunMain',
-                buildTask: 'non existing task',
-            },
-        };
-        let task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 1', 'ada');
-        let resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
-        assert(resolved);
-        /**
-         * The expected code when errors occur before the invocation of the
-         * build and run tasks is 2.
-         */
-        assert.equal(await runTaskAndGetResult(resolved), 2);
-
-        def = {
-            type: 'ada',
-            configuration: {
-                kind: 'buildAndRunMain',
-                buildTask: 'ada: Build current project', // Existing build task
-                runTask: 'non existing task',
-            },
-        };
-        task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 2', 'ada');
-        resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
-        assert(resolved);
-        assert.equal(await runTaskAndGetResult(resolved), 2);
     });
 
     test('current regions and subprograms', async () => {
@@ -289,7 +199,7 @@ ada: Build and run main - src/test.adb
             assert(subPTask.execution);
             assert.equal(
                 getCmdLine(subPTask.execution as vscode.ShellExecution),
-                `gnatprove -P ${await getProjectFile()} -j0 ` +
+                `gnatprove -P ${projectPath} -j0 ` +
                     `--limit-subp=\${fileBasename}:14 -cargs -gnatef`
             );
         }
@@ -307,9 +217,72 @@ ada: Build and run main - src/test.adb
             assert(regionTask.execution);
             assert.equal(
                 getCmdLine(regionTask.execution as vscode.ShellExecution),
-                `gnatprove -P ${await getProjectFile()} -j0 -u \${fileBasename} ` +
+                `gnatprove -P ${projectPath} -j0 -u \${fileBasename} ` +
                     `--limit-region=\${fileBasename}:21:24 -cargs -gnatef`
             );
+        }
+    });
+
+    test('Obsolete task definition causes error', async function () {
+        const obsoleteTaskDef: vscode.TaskDefinition = {
+            type: 'ada',
+            configuration: {},
+        };
+        const obsoleteTask = new vscode.Task(
+            obsoleteTaskDef,
+            vscode.TaskScope.Workspace,
+            'Obsolete Task',
+            'Workspace'
+        );
+
+        const prov = createAdaTaskProvider();
+
+        /**
+         * Assert that an Error is thrown with the word 'obsolete' in the message.
+         */
+        await assert.rejects(prov.resolveTask(obsoleteTask), /obsolete/);
+    });
+
+    test('Invalid task defs', async function () {
+        const invalidTaskDefs: SimpleTaskDef[] = [
+            {
+                type: 'ada',
+            },
+            {
+                type: 'ada',
+                args: [],
+            },
+            {
+                type: 'ada',
+                command: 'cmd',
+                compound: [],
+            },
+            {
+                type: 'ada',
+                args: [],
+                compound: [],
+            },
+            {
+                type: 'ada',
+                command: 'cmd',
+                args: [],
+                compound: [],
+            },
+        ];
+
+        const prov = createAdaTaskProvider();
+        for (const t of invalidTaskDefs) {
+            const invalidTask = new vscode.Task(
+                t,
+                vscode.TaskScope.Workspace,
+                'Invalid Task',
+                'Workspace'
+            );
+
+            /**
+             * Assert that an Error is thrown
+             */
+            await assert.rejects(prov.resolveTask(invalidTask));
         }
     });
 });
@@ -320,12 +293,10 @@ suite('Task Execution', function () {
      */
     this.timeout('10s');
 
-    const testedTaskNames = new Set<string>();
-    let projectPath: string;
+    const testedTaskLabels = new Set<string>();
 
     this.beforeAll(async () => {
         await activate();
-        projectPath = await getProjectFile();
     });
 
     test('Build current project', async () => {
@@ -347,14 +318,7 @@ suite('Task Execution', function () {
 
         await vscode.window.showTextDocument(testAdbUri);
 
-        const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
-        const task = adaTasks.find((v) => v.name == 'Check current file');
-        assert(task);
-        testedTaskNames.add(task.name);
-
-        const execStatus: number | undefined = await runTaskAndGetResult(task);
-
-        assert.equal(execStatus, 0);
+        await testTask('Check current file');
     });
 
     test('Clean current project', async () => {
@@ -362,29 +326,7 @@ suite('Task Execution', function () {
     });
 
     test('Build main - src/main1.adb', async () => {
-        const task = (await vscode.tasks.fetchTasks({ type: 'ada' })).find(
-            (t) => t.name == 'Build main - src/main1.adb'
-        );
-        assert(task);
-        testedTaskNames.add(task.name);
-
-        /**
-         * Check the command line of the build task.
-         */
-        const actualCmd = getCmdLine(task.execution as vscode.ShellExecution);
-        /**
-         * The workspace doesn't define an ada.projectFile setting, so the full
-         * path of the project file is obtained from ALS and used in the command
-         * line.
-         */
-        const expectedCmd = `gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef`;
-        assert.equal(actualCmd, expectedCmd);
-
-        /**
-         * Now try running the task.
-         */
-        const status = await runTaskAndGetResult(task);
-        assert.equal(status, 0);
+        await testTask('Build main - src/main1.adb');
 
         /**
          * Check that the executable is produced. The project defines a
@@ -420,6 +362,10 @@ suite('Task Execution', function () {
                     'ada.projectFile',
                     'default_without_obj_dir' + path.sep + 'default_without_obj_dir.gpr'
                 );
+            /**
+             * Wait a bit until the ALS loads the new project
+             */
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             await testTask('Build and run main - src/main1.adb');
         } finally {
             // Reset the 'ada.projectFile' setting. If the previous value was
@@ -438,42 +384,6 @@ suite('Task Execution', function () {
     /**
      * Test that buildAndRunMain fails when configured with non-existing tasks
      */
-    test('Obsolete build and run main failure', async () => {
-        const prov = createAdaTaskProvider();
-        let def: CustomTaskDefinition = {
-            type: 'ada',
-            configuration: {
-                kind: 'buildAndRunMain',
-                buildTask: 'non existing task',
-            },
-        };
-        let task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 1', 'ada');
-        let resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
-        assert(resolved);
-        /**
-         * The expected code when errors occur before the invocation of the
-         * build and run tasks is 2.
-         */
-        assert.equal(await runTaskAndGetResult(resolved), 2);
-        testedTaskNames.add(task.name);
-
-        def = {
-            type: 'ada',
-            configuration: {
-                kind: 'buildAndRunMain',
-                buildTask: 'ada: Build current project', // Existing build task
-                runTask: 'non existing task',
-            },
-        };
-        task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 2', 'ada');
-        resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
-        assert(resolved);
-        assert.equal(await runTaskAndGetResult(resolved), 2);
-    });
-
-    /**
-     * Test that buildAndRunMain fails when configured with non-existing tasks
-     */
     test('Compound task failure', async () => {
         const prov = createAdaTaskProvider();
         let def: SimpleTaskDef = {
@@ -481,14 +391,14 @@ suite('Task Execution', function () {
             compound: ['non existing task'],
         };
         let task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 1', 'ada');
-        let resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
+        let resolved = await prov.resolveTask(task);
         assert(resolved);
         /**
          * The expected code when errors occur before the invocation of the
          * build and run tasks is 2.
          */
         assert.equal(await runTaskAndGetResult(resolved), 2);
-        testedTaskNames.add(task.name);
+        testedTaskLabels.add(task.name);
 
         def = {
             type: 'ada',
@@ -498,7 +408,7 @@ suite('Task Execution', function () {
             ],
         };
         task = new vscode.Task(def, vscode.TaskScope.Workspace, 'Task 2', 'ada');
-        resolved = await prov.resolveTask(task, new CancellationTokenSource().token);
+        resolved = await prov.resolveTask(task);
         assert(resolved);
         assert.equal(await runTaskAndGetResult(resolved), 2);
     });
@@ -524,18 +434,14 @@ suite('Task Execution', function () {
     });
 
     test('All tasks tested', async () => {
-        const adaTasks = await createAdaTaskProvider().provideTasks(
-            new CancellationTokenSource().token
-        );
+        const adaTasks = await createAdaTaskProvider().provideTasks();
         assert(adaTasks);
-        const sparkTasks = await createSparkTaskProvider().provideTasks(
-            new CancellationTokenSource().token
-        );
+        const sparkTasks = await createSparkTaskProvider().provideTasks();
         assert(sparkTasks);
 
-        const allTaskNames = adaTasks.concat(sparkTasks).map((t) => t.name);
+        const allTaskNames = adaTasks.concat(sparkTasks).map((t) => getConventionalTaskLabel(t));
 
-        const untested = allTaskNames.filter((v) => !testedTaskNames.has(v));
+        const untested = allTaskNames.filter((v) => !testedTaskLabels.has(v));
 
         if (untested.length > 0) {
             assert.fail(
@@ -549,13 +455,35 @@ suite('Task Execution', function () {
         const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
         const task = findTaskByName(adaTasks, taskName);
         assert(task);
-        testedTaskNames.add(task.name);
+        testedTaskLabels.add(getConventionalTaskLabel(task));
 
         const execStatus: number | undefined = await runTaskAndGetResult(task);
 
         assert.equal(execStatus, 0);
     }
 });
+
+export async function getCommandLines(prov: SimpleTaskProvider) {
+    const tasks = await prov.provideTasks();
+    assert(tasks);
+
+    const actualCommandLines = (
+        await Promise.all(
+            tasks.map(async (t) => {
+                return { task: t, execution: (await prov.resolveTask(t))?.execution };
+            })
+        )
+    )
+        .filter(function ({ execution }) {
+            return execution instanceof vscode.ShellExecution;
+        })
+        .map(function ({ task, execution }) {
+            assert(execution instanceof vscode.ShellExecution);
+            return `${task.source}: ${task.name} - ${getCmdLine(execution)}`;
+        })
+        .join('\n');
+    return actualCommandLines;
+}
 
 async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
     return await new Promise((resolve) => {
