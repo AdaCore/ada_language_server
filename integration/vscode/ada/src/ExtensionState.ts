@@ -37,18 +37,20 @@ export class ExtensionState {
     public readonly testData: Map<vscode.TestItem, object> = new Map();
 
     /**
-     * The following fields are caches for ALS requests
+     * The following fields are caches for ALS requests or costly properties.
      */
     cachedProjectFile: string | undefined;
     cachedObjectDir: string | undefined;
     cachedMains: string[] | undefined;
     cachedExecutables: string[] | undefined;
+    cachedAlireTomls: vscode.Uri[] | undefined;
 
     public clearALSCache() {
         this.cachedProjectFile = undefined;
         this.cachedObjectDir = undefined;
         this.cachedMains = undefined;
         this.cachedExecutables = undefined;
+        this.cachedAlireTomls = undefined;
     }
 
     constructor(context: vscode.ExtensionContext) {
@@ -204,5 +206,13 @@ export class ExtensionState {
         }
 
         return this.cachedExecutables;
+    }
+
+    public async getAlireTomls(): Promise<vscode.Uri[]> {
+        if (!this.cachedAlireTomls) {
+            this.cachedAlireTomls = await vscode.workspace.findFiles('alire.toml');
+        }
+
+        return this.cachedAlireTomls;
     }
 }
