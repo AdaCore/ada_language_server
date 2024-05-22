@@ -1,20 +1,15 @@
 /* eslint-disable max-len */
 import assert from 'assert';
-import { existsSync } from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
 import { getEnclosingSymbol, getSelectedRegion } from '../../../src/commands';
-import { exe, getProjectFile } from '../../../src/helpers';
+import { getProjectFile } from '../../../src/helpers';
 import {
-    BUILD_PROJECT_TASK_NAME,
     SimpleTaskDef,
-    SimpleTaskProvider,
     createAdaTaskProvider,
-    createSparkTaskProvider,
-    findTaskByName,
     getConventionalTaskLabel,
 } from '../../../src/taskProviders';
-import { activate } from '../utils';
+import { activate, getCmdLine, getCommandLines, runTaskAndGetResult, testTask } from '../utils';
 
 suite('Task Providers', function () {
     let projectPath: string;
@@ -54,30 +49,6 @@ ada: Build and run main - src/test.adb
         assert.strictEqual(actualTaskList, expectedTasksList);
     });
 
-    /**
-     * Check that the list of offered SPARK tasks is expected.
-     */
-    test('Spark tasks list', async () => {
-        const prov = createSparkTaskProvider();
-        const tasks = await prov.provideTasks();
-        assert(tasks);
-        const expectedTasksList = `
-spark: Clean project for proof
-spark: Examine project
-spark: Examine file
-spark: Examine subprogram
-spark: Prove project
-spark: Prove file
-spark: Prove subprogram
-spark: Prove selected region
-spark: Prove line
-        `.trim();
-        assert.strictEqual(
-            tasks.map((t) => `${t.source}: ${t.name}`).join('\n'),
-            expectedTasksList
-        );
-    });
-
     test('Ada task command lines', async function () {
         const expectedCmdLines = `
 ada: Clean current project - gprclean -P ${projectPath}
@@ -96,25 +67,6 @@ ada: Run main - src/test.adb - obj/test
 
         const prov = createAdaTaskProvider();
         const actualCommandLines = await getCommandLines(prov);
-        assert.equal(actualCommandLines, expectedCmdLines);
-    });
-
-    test('Spark task command lines', async function () {
-        const expectedCmdLines = `
-spark: Clean project for proof - gnatprove -P ${projectPath} --clean
-spark: Examine project - gnatprove -P ${projectPath} -j0 --mode=flow -cargs -gnatef
-spark: Examine file - gnatprove -P ${projectPath} -j0 --mode=flow -u \${fileBasename} -cargs -gnatef
-spark: Examine subprogram - gnatprove -P ${projectPath} -j0 --mode=flow \${command:ada.spark.limitSubpArg} -cargs -gnatef
-spark: Prove project - gnatprove -P ${projectPath} -j0 -cargs -gnatef
-spark: Prove file - gnatprove -P ${projectPath} -j0 -u \${fileBasename} -cargs -gnatef
-spark: Prove subprogram - gnatprove -P ${projectPath} -j0 \${command:ada.spark.limitSubpArg} -cargs -gnatef
-spark: Prove selected region - gnatprove -P ${projectPath} -j0 -u \${fileBasename} --limit-region=\${fileBasename}:0:0 -cargs -gnatef
-spark: Prove line - gnatprove -P ${projectPath} -j0 -u \${fileBasename} --limit-line=\${fileBasename}:\${lineNumber} -cargs -gnatef
-`.trim();
-
-        const prov = createSparkTaskProvider();
-        const actualCommandLines = await getCommandLines(prov);
-
         assert.equal(actualCommandLines, expectedCmdLines);
     });
 
@@ -179,48 +131,6 @@ spark: Prove line - gnatprove -P ${projectPath} -j0 -u \${fileBasename} --limit-
             selection: new vscode.Range(15, 13, 17, 13),
         });
         assert.equal(getSelectedRegion(vscode.window.activeTextEditor), '16:18');
-    });
-
-    test('spark tasks on current location', async () => {
-        assert(vscode.workspace.workspaceFolders);
-        const testAdbUri = vscode.Uri.joinPath(
-            vscode.workspace.workspaceFolders[0].uri,
-            'src',
-            'test.adb'
-        );
-
-        {
-            await vscode.window.showTextDocument(testAdbUri, {
-                selection: new vscode.Range(17, 13, 17, 13),
-            });
-            const tasks = await vscode.tasks.fetchTasks({ type: 'spark' });
-            const subPTask = tasks.find((t) => t.name == 'Prove subprogram');
-            assert(subPTask);
-            assert(subPTask.execution);
-            assert.equal(
-                getCmdLine(subPTask.execution as vscode.ShellExecution),
-                `gnatprove -P ${projectPath} -j0 ` +
-                    `--limit-subp=\${fileBasename}:14 -cargs -gnatef`
-            );
-        }
-
-        {
-            await vscode.window.showTextDocument(testAdbUri, {
-                selection: new vscode.Range(20, 0, 23, 0),
-            });
-            /**
-             * Compute the tasks again after the change of selection
-             */
-            const tasks = await vscode.tasks.fetchTasks({ type: 'spark' });
-            const regionTask = tasks.find((t) => t.name == 'Prove selected region');
-            assert(regionTask);
-            assert(regionTask.execution);
-            assert.equal(
-                getCmdLine(regionTask.execution as vscode.ShellExecution),
-                `gnatprove -P ${projectPath} -j0 -u \${fileBasename} ` +
-                    `--limit-region=\${fileBasename}:21:24 -cargs -gnatef`
-            );
-        }
     });
 
     test('Obsolete task definition causes error', async function () {
@@ -295,57 +205,28 @@ suite('Task Execution', function () {
 
     const testedTaskLabels = new Set<string>();
 
+    const allProvidedTasks: vscode.Task[] = [];
+
     this.beforeAll(async () => {
         await activate();
+        allProvidedTasks.push(...(await createAdaTaskProvider().provideTasks()));
     });
 
-    test('Build current project', async () => {
-        await testTask(BUILD_PROJECT_TASK_NAME.replace(/^ada: /, ''));
-    });
-
-    test('Run main', async () => {
-        await testTask('Run main - src/main1.adb');
-        await testTask('Run main - src/test.adb');
-    });
-
-    test('Check current file', async () => {
-        assert(vscode.workspace.workspaceFolders);
-        const testAdbUri = vscode.Uri.joinPath(
-            vscode.workspace.workspaceFolders[0].uri,
-            'src',
-            'test.adb'
-        );
-
-        await vscode.window.showTextDocument(testAdbUri);
-
-        await testTask('Check current file');
-    });
-
-    test('Clean current project', async () => {
-        await testTask('Clean current project');
-    });
-
-    test('Build main - src/main1.adb', async () => {
-        await testTask('Build main - src/main1.adb');
-
-        /**
-         * Check that the executable is produced. The project defines a
-         * different name for the executable produced by main1.adb.
-         */
-        assert(vscode.workspace.workspaceFolders);
-        assert(
-            existsSync(`${vscode.workspace.workspaceFolders[0].uri.fsPath}/obj/main1exec` + exe)
-        );
-    });
-
-    test('Build main - src/test.adb', async function () {
-        await testTask('Build main - src/test.adb');
-    });
-
-    test('Build and run main', async () => {
-        await testTask('Build and run main - src/main1.adb');
-        await testTask('Build and run main - src/test.adb');
-    });
+    declTaskTest('ada: Build current project', testedTaskLabels);
+    declTaskTest('ada: Run main - src/main1.adb', testedTaskLabels);
+    declTaskTest('ada: Run main - src/test.adb', testedTaskLabels);
+    declTaskTest('ada: Check current file', testedTaskLabels, openSrcFile);
+    declTaskTest('ada: Clean current project', testedTaskLabels);
+    declTaskTest('ada: Build main - src/main1.adb', testedTaskLabels);
+    declTaskTest('ada: Build main - src/test.adb', testedTaskLabels);
+    declTaskTest('ada: Build and run main - src/main1.adb', testedTaskLabels);
+    declTaskTest('ada: Build and run main - src/test.adb', testedTaskLabels);
+    declTaskTest('ada: Analyze the project with GNAT SAS', testedTaskLabels);
+    declTaskTest('ada: Create a report after a GNAT SAS analysis', testedTaskLabels);
+    declTaskTest('ada: Analyze the project with GNAT SAS and produce a report', testedTaskLabels);
+    declTaskTest('ada: Analyze the current file with GNAT SAS', testedTaskLabels, openSrcFile);
+    declTaskTest('ada: Generate documentation from the project', testedTaskLabels);
+    declTaskTest('ada: Create/update test skeletons for the project', testedTaskLabels);
 
     /**
      * Check that the 'buildAndRunMain' task works fine with projects that
@@ -366,7 +247,11 @@ suite('Task Execution', function () {
              * Wait a bit until the ALS loads the new project
              */
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            await testTask('Build and run main - src/main1.adb');
+            await testTask(
+                'Build and run main - src/main1.adb',
+                allProvidedTasks,
+                testedTaskLabels
+            );
         } finally {
             // Reset the 'ada.projectFile' setting. If the previous value was
             // empty, update to 'undefined' so that the setting gets removed.
@@ -413,100 +298,43 @@ suite('Task Execution', function () {
         assert.equal(await runTaskAndGetResult(resolved), 2);
     });
 
-    test('gnatsas analyze', async () => {
-        await testTask('ada: Analyze the project with GNAT SAS');
-    });
-
-    test('gnatsas report', async () => {
-        await testTask('ada: Create a report after a GNAT SAS analysis');
-    });
-
-    test('gnatsas analyze & report', async () => {
-        await testTask('ada: Analyze the project with GNAT SAS and produce a report');
-    });
-
-    test('gnatdoc', async () => {
-        await testTask('ada: Generate documentation from the project');
-    });
-
-    test('gnattest', async () => {
-        await testTask('ada: Create/update test skeletons for the project');
-    });
-
-    test('All tasks tested', async () => {
-        const adaTasks = await createAdaTaskProvider().provideTasks();
-        assert(adaTasks);
-        const sparkTasks = await createSparkTaskProvider().provideTasks();
-        assert(sparkTasks);
-
-        const allTaskNames = adaTasks.concat(sparkTasks).map((t) => getConventionalTaskLabel(t));
+    test('All tasks tested', function () {
+        const allTaskNames = allProvidedTasks.map(getConventionalTaskLabel);
 
         const untested = allTaskNames.filter((v) => !testedTaskLabels.has(v));
 
         if (untested.length > 0) {
-            assert.fail(
-                `${untested.length} task kinds were not tested:\n${[...untested].join('\n')}`
-            );
+            assert.fail(`${untested.length} tasks were not tested:\n${untested.join('\n')}`);
         }
     });
 
-    async function testTask(taskName: string) {
-        assert(vscode.workspace.workspaceFolders);
-        const adaTasks = await vscode.tasks.fetchTasks({ type: 'ada' });
-        const task = findTaskByName(adaTasks, taskName);
-        assert(task);
-        testedTaskLabels.add(getConventionalTaskLabel(task));
+    /**
+     *
+     * This function makes it easier to declare tests that execute a given task. It
+     * has to be defined in the same module as the testsuite in order for the
+     * testing GUI to detect the tests in VS Code.
+     */
+    function declTaskTest(
+        taskName: string,
+        testedTasks: Set<string>,
+        prolog?: () => void | Promise<void>
+    ): Mocha.Test {
+        return test(taskName, async function () {
+            if (prolog) {
+                await prolog();
+            }
 
-        const execStatus: number | undefined = await runTaskAndGetResult(task);
-
-        assert.equal(execStatus, 0);
+            await testTask(taskName, allProvidedTasks, testedTasks);
+        });
     }
 });
+async function openSrcFile() {
+    assert(vscode.workspace.workspaceFolders);
+    const testAdbUri = vscode.Uri.joinPath(
+        vscode.workspace.workspaceFolders[0].uri,
+        'src',
+        'test.adb'
+    );
 
-export async function getCommandLines(prov: SimpleTaskProvider) {
-    const tasks = await prov.provideTasks();
-    assert(tasks);
-
-    const actualCommandLines = (
-        await Promise.all(
-            tasks.map(async (t) => {
-                return { task: t, execution: (await prov.resolveTask(t))?.execution };
-            })
-        )
-    )
-        .filter(function ({ execution }) {
-            return execution instanceof vscode.ShellExecution;
-        })
-        .map(function ({ task, execution }) {
-            assert(execution instanceof vscode.ShellExecution);
-            return `${task.source}: ${task.name} - ${getCmdLine(execution)}`;
-        })
-        .join('\n');
-    return actualCommandLines;
-}
-
-async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
-    return await new Promise((resolve) => {
-        const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
-            if (e.execution.task == task) {
-                disposable.dispose();
-                resolve(e.exitCode);
-            }
-        });
-
-        void vscode.tasks.executeTask(task);
-    });
-}
-
-function getCmdLine(exec: vscode.ShellExecution) {
-    return [exec.command]
-        .concat(exec.args)
-        .map((s) => {
-            if (typeof s == 'object') {
-                return s.value;
-            } else {
-                return s;
-            }
-        })
-        .join(' ');
+    await vscode.window.showTextDocument(testAdbUri);
 }

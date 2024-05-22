@@ -1,6 +1,11 @@
 import assert from 'assert';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import * as vscode from 'vscode';
+import {
+    SimpleTaskProvider,
+    findTaskByName,
+    getConventionalTaskLabel,
+} from '../../src/taskProviders';
 
 /**
  * This function compares some actual output to an expected referenced stored in
@@ -58,4 +63,105 @@ export async function activate(): Promise<void> {
      * does report activation errors as a promise rejection.
      */
     await ext.activate();
+}
+export async function getCommandLines(prov: SimpleTaskProvider) {
+    const tasks = await prov.provideTasks();
+    assert(tasks);
+
+    const actualCommandLines = (
+        await Promise.all(
+            tasks.map(async (t) => {
+                return { task: t, execution: (await prov.resolveTask(t))?.execution };
+            })
+        )
+    )
+        .filter(function ({ execution }) {
+            return execution instanceof vscode.ShellExecution;
+        })
+        .map(function ({ task, execution }) {
+            assert(execution instanceof vscode.ShellExecution);
+            return `${task.source}: ${task.name} - ${getCmdLine(execution)}`;
+        })
+        .join('\n');
+    return actualCommandLines;
+}
+export async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
+    return await new Promise((resolve, reject) => {
+        let started = false;
+
+        const startDisposable = vscode.tasks.onDidStartTask((e) => {
+            if (e.execution.task == task) {
+                /**
+                 * Task was started, let's listen to the end.
+                 */
+                started = true;
+                startDisposable.dispose();
+            }
+        });
+
+        const endDisposable = vscode.tasks.onDidEndTaskProcess((e) => {
+            if (e.execution.task == task) {
+                endDisposable.dispose();
+                resolve(e.exitCode);
+            }
+        });
+
+        setTimeout(() => {
+            /**
+             * If the task has not started within the timeout below, it means an
+             * error occured during startup. Reject the promise.
+             */
+            if (!started) {
+                reject(
+                    Error(
+                        `The task '${getConventionalTaskLabel(
+                            task
+                        )}' was not started, likely due to an error`
+                    )
+                );
+            }
+        }, 3000);
+
+        void vscode.tasks.executeTask(task);
+    });
+}
+export function getCmdLine(exec: vscode.ShellExecution) {
+    return [exec.command]
+        .concat(exec.args)
+        .map((s) => {
+            if (typeof s == 'object') {
+                return s.value;
+            } else {
+                return s;
+            }
+        })
+        .join(' ');
+}
+
+export async function testTask(
+    taskName: string,
+    allProvidedTasks: vscode.Task[],
+    testedTasks: Set<string>
+) {
+    assert(vscode.workspace.workspaceFolders);
+
+    const task = findTaskByName(allProvidedTasks, taskName);
+    assert(task);
+    testedTasks.add(getConventionalTaskLabel(task));
+
+    const execStatus: number | undefined = await runTaskAndGetResult(task);
+
+    if (execStatus != 0) {
+        let msg = `Got status ${execStatus ?? "'undefined'"} for task '${taskName}'`;
+        if (task.execution instanceof vscode.ShellExecution) {
+            msg += ` with command line: ${getCmdLine(task.execution)}`;
+        }
+        assert.fail(msg);
+    }
+}
+
+export async function closeAllEditors() {
+    while (vscode.window.activeTextEditor) {
+        await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    }
 }

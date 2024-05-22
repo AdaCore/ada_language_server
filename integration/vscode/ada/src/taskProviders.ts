@@ -434,7 +434,10 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
         return result;
     }
 
-    async resolveTask(task: vscode.Task, token?: vscode.CancellationToken): Promise<vscode.Task> {
+    async resolveTask(
+        task: vscode.Task,
+        token?: vscode.CancellationToken
+    ): Promise<vscode.Task | undefined> {
         /**
          * Note that this method is never called for tasks created by the
          * provideTasks method above (see parent method documentation). It is
@@ -889,7 +892,7 @@ export async function getBuildAndRunTasks(): Promise<vscode.Task[]> {
     return await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA }).then((tasks) =>
         tasks
             // Filter to tasks starting with the conventional name of "Build and run main" tasks
-            .filter((t) => getConventionalTaskLabel(t).startsWith(getBuildAndRunTaskPlainName()))
+            .filter((t) => getConventionalTaskLabel(t).startsWith(getBuildAndRunTaskName()))
 
             // Return workspace-defined tasks first
             .sort(workspaceTasksFirst)
