@@ -78,6 +78,11 @@ package LSP.Ada_Configurations is
    --  True if we should use snippets for completion (e.g:
    --  subprogram calls).
 
+   function Insert_With_Clauses
+     (Self : Configuration'Class) return Boolean;
+   --  True if completion is allowed to insert automatically with-clauses for
+   --  invisible symbols.
+
    function Indent_Only (Self : Configuration'Class) return Boolean;
 
    function Follow_Symlinks (Self : Configuration'Class) return Boolean;
@@ -130,6 +135,7 @@ private
       Use_Completion_Snippets  : Boolean := True;
       Indent_Only              : Boolean := True;
       Follow_Symlinks          : Boolean := True;
+      Insert_With_Clauses      : Boolean := True;
 
       Documentation_Style      : GNATdoc.Comments.Options.Documentation_Style
         := GNATdoc.Comments.Options.GNAT;
@@ -169,8 +175,14 @@ private
       (Self.Indexing_Enabled);
 
    function Use_Completion_Snippets
-     (Self : Configuration'Class) return Boolean is
-       (Self.Use_Completion_Snippets);
+     (Self : Configuration'Class) return Boolean
+   is
+     (Self.Use_Completion_Snippets);
+
+   function Insert_With_Clauses
+     (Self : Configuration'Class) return Boolean
+   is
+     (Self.Insert_With_Clauses);
 
    function Follow_Symlinks (Self : Configuration'Class) return Boolean is
       (Self.Follow_Symlinks);

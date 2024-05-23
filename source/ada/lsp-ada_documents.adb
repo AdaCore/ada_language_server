@@ -43,6 +43,7 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Handlers.Locations;
+with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Id_Iterators;
 with LSP.Enumerations;
 with LSP.Formatters.File_Names;
@@ -131,6 +132,10 @@ package body LSP.Ada_Documents is
       --  Return a suitable sortText according to the completion item's
       --  visibility and position in the completion list.
 
+      procedure Append_Auto_Import_Command;
+      --  Append the needed command to add the missing with-clause/qualifier
+      --  when accepting an invisible completion item.
+
       -------------------
       -- Get_Sort_Text --
       -------------------
@@ -155,6 +160,57 @@ package body LSP.Ada_Documents is
          end return;
       end Get_Sort_Text;
 
+      --------------------------------
+      -- Append_Auto_Import_Command --
+      --------------------------------
+
+      procedure Append_Auto_Import_Command is
+         use LSP.Ada_Handlers.Refactor;
+
+         Auto_Import_Command : Auto_Import.Command;
+         --  The auto-import command.
+
+         Is_Dotted_Name     : constant Boolean :=
+           Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range
+           or else
+             (not Node.Parent.Is_Null and then
+              Node.Parent.Kind
+              in Libadalang.Common.Ada_Dotted_Name_Range);
+         --  Check if we are completing a dotted name. We want to prepend the
+         --  right qualifier only if it's not the case.
+
+         Missing_Unit_Name  : VSS.Strings.Virtual_String :=
+           VSS.Strings.Conversions.To_Virtual_String
+             (Langkit_Support.Text.To_UTF8
+                (BD.P_Enclosing_Compilation_Unit.P_Decl.
+                       P_Fully_Qualified_Name));
+         --  Get the missing unit name.
+
+         Missing_Qualifier  : VSS.Strings.Virtual_String :=
+           (if not Is_Dotted_Name then
+               Missing_Unit_Name
+            else
+               VSS.Strings.Empty_Virtual_String);
+         --  The missing qualifier. We should not add any qualifier if it's
+         --  already present (i.e: when completing a dotted name).
+      begin
+         Auto_Import_Command.Initialize
+           (Context     => Context,
+            Where       =>
+              ((uri => Document.URI),
+               Document.To_LSP_Position (Sloc)),
+            With_Clause => Missing_Unit_Name,
+            Prefix      => Missing_Qualifier);
+
+         Item.command :=
+           (Is_Set => True,
+            Value  =>
+              (title     => <>,
+               command   => VSS.Strings.Conversions.
+                 To_Virtual_String (Auto_Import.Command'External_Tag),
+               arguments => Auto_Import_Command.Write_Command_Args));
+      end Append_Auto_Import_Command;
+
    begin
       Item.label := Label;
       Item.kind := (True, To_Completion_Kind (LSP.Utils.Get_Decl_Kind (BD)));
@@ -163,6 +219,12 @@ package body LSP.Ada_Documents is
          Item.insertText := Label;
          Item.label.Append (" (invisible)");
          Item.filterText := Label;
+
+         --  If the corresponding setting is enabled, append a command to
+         --  insert the missing with-clause/qualifier.
+         if Handler.Get_Configuration.Insert_With_Clauses then
+            Append_Auto_Import_Command;
+         end if;
       end if;
 
       Item.sortText := Get_Sort_Text (Label);

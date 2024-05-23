@@ -277,6 +277,11 @@ package body LSP.Ada_Configurations is
          then
             Self.Use_Completion_Snippets := JSON (Index).Boolean_Value;
 
+         elsif Name = "insertWithClauses"
+           and then JSON (Index).Kind = Boolean_Value
+         then
+            Self.Insert_With_Clauses := JSON (Index).Boolean_Value;
+
          elsif Name = "logThreshold"
            and then JSON (Index).Kind = Number_Value
            and then JSON (Index).Number_Value.Kind = JSON_Integer

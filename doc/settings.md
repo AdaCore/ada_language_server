@@ -62,6 +62,8 @@ Ada Language Server understands these settings:
 * [renameInComments](#renameincomments)
 * [namedNotationThreshold](#namednotationthreshold)
 * [foldComments](#foldcomments)
+* [useCompletionSnippets](#usecompletionsnippets)
+* [insertWithClauses](#insertwithclauses)
 * [followSymlinks](#followsymlinks)
 * [documentationStyle](#documentationstyle)
 * [onTypeFormatting.indentOnly](#ontypeformattingindentonly)
@@ -170,6 +172,15 @@ The value is a boolean.
 
 ```javascript
     'useCompletionSnippets': true
+```
+
+## insertWithClauses
+
+Whether we should automatically insert missing with-clauses when
+accepting completion for invisible symbols.
+
+```javascript
+    'insertWithClauses': true
 ```
 
 ## displayMethodAncestryOnNavigation
