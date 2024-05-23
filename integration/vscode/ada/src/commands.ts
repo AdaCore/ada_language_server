@@ -630,27 +630,37 @@ export async function getProjectFromConfigOrALS(): Promise<string> {
 }
 
 /**
- * Return the `--limit-subp=file:line` associated to the subprogram enclosing the
- * the current editor's cursor position, if any. Return an empty string otherwise.
- * @returns Return the option corresponding to the enclosing subprogram as a string
- * or '' if not found.
+ * @returns the gnatprove `--limit-subp=file:line` argument associated to the
+ * subprogram enclosing the the current editor's cursor position. If a enclosing
+ * subprogram is not found at the current location, we use the \$\{lineNumber\}
+ * predefined variable as a fallback to avoid raising an Error which would
+ * prevent the task provider from offering the task.
  */
-export const sparkLimitSubpArg = async (): Promise<string[]> => {
+export async function sparkLimitSubpArg(): Promise<string[]> {
     return getEnclosingSymbol(vscode.window.activeTextEditor, [vscode.SymbolKind.Function]).then(
         (Symbol) => {
             if (Symbol) {
                 const subprogram_line: string = (Symbol.range.start.line + 1).toString();
                 return [`--limit-subp=\${fileBasename}:${subprogram_line}`];
             } else {
-                return [];
+                /**
+                 * If we can't find a subprogram, we use the VS Code predefined
+                 * variable lineNumber to avoid raising an Error. This function
+                 * is called through the corresponding command during task
+                 * resolution in the task provider.  Raising an error would
+                 * prevent the task from appear in the list of provided tasks.
+                 * For this reason we use the acceptable fallback of lineNumber
+                 * and rely on SPARK tooling to provide an explanatory message.
+                 */
+                return [`--limit-subp=\${fileBasename}:\${lineNumber}`];
             }
         }
     );
-};
+}
 
 /**
- * Return the `--limit-region=file:from:to` associated to the current editor's selection.
- * @returns Return the option corresponding to the current selected region.
+ * @returns the gnatprove `--limit-region=file:from:to` argument corresponding
+ * to the current editor's selection.
  */
 export const sparkLimitRegionArg = (): Promise<string[]> => {
     return new Promise((resolve) => {
@@ -659,15 +669,24 @@ export const sparkLimitRegionArg = (): Promise<string[]> => {
         ]);
     });
 };
+
+/**
+ *
+ * @param editor - the editor to get the selection from
+ * @returns a `<start-line>:<end-line>` string representation of the editor's
+ * current selection where lines are indexed starting 1. If the given editor is
+ * undefined, returns '0:0'.
+ */
 export const getSelectedRegion = (editor: vscode.TextEditor | undefined): string => {
     if (editor) {
         const selection = editor.selection;
         //  Line numbers start at 0 in VS Code, and at 1 in GNAT
-        return (selection.start.line + 1).toString() + ':' + (selection.end.line + 1).toString();
+        return `${selection.start.line + 1}:${selection.end.line + 1}`;
     } else {
         return '0:0';
     }
 };
+
 /**
  * Return the closest DocumentSymbol of the given kinds enclosing the
  * the given editor's cursor position, if any.

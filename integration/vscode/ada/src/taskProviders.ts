@@ -471,8 +471,19 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
              * fallback to an empty args array.
              */
             const args = taskDef.args ?? [];
-            const evaluatedArgs: (string | vscode.ShellQuotedString)[] = await evaluateArgs(args);
-            execution = new vscode.ShellExecution(taskDef.command, evaluatedArgs);
+            try {
+                const evaluatedArgs: (string | vscode.ShellQuotedString)[] = await evaluateArgs(
+                    args
+                );
+                execution = new vscode.ShellExecution(taskDef.command, evaluatedArgs);
+            } catch (err) {
+                let msg = 'Error while evaluating task arguments.';
+                if (err instanceof Error) {
+                    msg += ' ' + err.message;
+                }
+                void vscode.window.showErrorMessage(msg);
+                return undefined;
+            }
         }
 
         return new vscode.Task(
@@ -571,14 +582,21 @@ async function evaluateArgs(args: (string | vscode.ShellQuotedString)[]) {
                         const evalRes = await vscode.commands.executeCommand(command);
                         if (typeof evalRes == 'string') {
                             /**
-                             * Result is a string so wrap it in an array for flattening
+                             * Result is a string so wrap it in an array for flattening.
                              */
                             return [evalRes];
                         } else if (isNonEmptyStringArray(evalRes)) {
                             /**
-                             * Return the array result
+                             * Return the array result.
                              */
                             return evalRes as string[];
+                        } else if (isEmptyArray(evalRes)) {
+                            /**
+                             * Not sure if evalRes can be casted to string[] in
+                             * this case so it's easier to just return an empty
+                             * array.
+                             */
+                            return [];
                         } else {
                             /**
                              * Do not use the evaluated result. The original value
@@ -607,6 +625,19 @@ function isNonEmptyStringArray(obj: unknown): boolean {
                 return true;
             }
         }
+    }
+
+    return false;
+}
+
+/**
+ *
+ * @param obj - an object
+ * @returns true if the given object is an empty array.
+ */
+function isEmptyArray(obj: unknown): boolean {
+    if (obj instanceof Array) {
+        return obj.length === 0;
     }
 
     return false;
@@ -799,9 +830,14 @@ abstract class SequentialExecution extends vscode.CustomExecution {
  * that fact.
  *
  * @returns the task that has the given name, or the given name with the
- * prefix `ada: `
+ * prefix `ada: `.
+ * @throws an Error if the task is not found.
  */
 export function findTaskByName(tasks: vscode.Task[], taskName: string): vscode.Task {
+    if (tasks.length == 0) {
+        throw Error('The given task list is empty.' + ` Cannot find task '${taskName}'`);
+    }
+
     const task = tasks.find((v) => {
         return taskName == getConventionalTaskLabel(v) || taskName == v.name;
     });
