@@ -25,7 +25,6 @@ with Langkit_Support.Slocs;
 
 with GNATCOLL.VFS;
 
-with GPR2.Context;
 with GPR2.Environment;
 with GPR2.Log;
 with GPR2.Path_Name;
@@ -35,6 +34,7 @@ with GPR2.Project.Typ;
 with GPR2.Project.Attribute;
 with GPR2.Project.Variable;
 
+with LSP.Ada_Configurations;
 with LSP.Text_Documents;
 with LSP.GPR_Files;
 with LSP.GPR_Files.References;
@@ -73,7 +73,9 @@ package LSP.GPR_Documents is
    --  Create a new document from a TextDocumentItem. Use Diagnostic as
    --  project status diagnostic source.
 
-   procedure Load (Self : in out Document);
+   procedure Load
+     (Self          : in out Document;
+      Configuration : LSP.Ada_Configurations.Configuration);
    --  Load associated GPR tree.
 
    procedure Cleanup (Self : in out Document);
@@ -158,6 +160,8 @@ package LSP.GPR_Documents is
    --  if Document contains a valid Tree & Reference is a type reference
    --  returns corresponding value otherwise returns 'Undefined'
 
+   function File (Self : Document'Class) return GPR2.Path_Name.Object;
+
 private
 
    type Name_Information is record
@@ -182,9 +186,6 @@ private
       Tree : GPR2.Project.Tree.Object;
       --  The loaded tree
 
-      Context : GPR2.Context.Object;
-      --  GPR scenario variables
-
       File_Provider : LSP.GPR_Files.File_Provider_Access;
       --  Reader used by GPR2 to access opened documents contents
 
@@ -204,5 +205,9 @@ private
       --  Protocol requires publishing empty diags to clear diags on client.
       --  This set records files with diags previously published.
    end record;
+
+   function File (Self : Document'Class) return GPR2.Path_Name.Object
+   is (Self.File);
+   --  'Self' document's file path
 
 end LSP.GPR_Documents;

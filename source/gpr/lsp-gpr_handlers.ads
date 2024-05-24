@@ -118,7 +118,7 @@ private
       Is_Canceled          : Has_Been_Canceled_Function;
       --  Is request has been canceled
 
-      Configuration : LSP.Ada_Configurations.Configuration;
+      Configuration        : LSP.Ada_Configurations.Configuration;
       --  Ada/GPR configuration settings
    end record;
 
@@ -199,6 +199,18 @@ private
    --  Return the version of an open document for the given URI.
    --  If the document is not opened, then it returns a
    --  VersionedTextDocumentIdentifier with a null version.
+
+   ------------------------------------------
+   -- LSP.GPR_Job_Contexts.GPR_Job_Context --
+   ------------------------------------------
+
+   overriding function Get_Configuration
+     (Self : Message_Handler)
+      return LSP.Ada_Configurations.Configuration is (Self.Configuration);
+
+   overriding procedure Set_Configuration
+     (Self  : in out Message_Handler;
+      Value : LSP.Ada_Configurations.Configuration);
 
    ---------------------------------
    -- LSP.GPR_Files.File_Provider --

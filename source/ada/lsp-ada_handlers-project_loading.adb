@@ -18,7 +18,6 @@
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
-with GPR2.Context;
 with GPR2.Path_Name;
 with GPR2.Project.View;
 with GPR2.Containers;
@@ -29,7 +28,6 @@ with GPR2.Project.Tree.View_Builder;
 with Libadalang.Preprocessing;
 
 with VSS.Strings.Conversions;
-with VSS.String_Vectors;
 
 with Spawn.Environments;
 
@@ -40,6 +38,7 @@ with LSP.Ada_Handlers.File_Readers;
 with LSP.Ada_Indexing;
 with LSP.Enumerations;
 with LSP.Structures;
+with LSP.Utils;
 
 with URIs;
 with LSP.Ada_Documents; use LSP.Ada_Documents;
@@ -54,7 +53,7 @@ package body LSP.Ada_Handlers.Project_Loading is
    procedure Load_Project_With_Alire
      (Self               : in out Message_Handler'Class;
       Project_File       : VSS.Strings.Virtual_String := "";
-      Scenario_Variables : LSP.Ada_Configurations.Variable_List;
+      Context            : GPR2.Context.Object;
       Charset            : VSS.Strings.Virtual_String);
    --  Core procedure to find project, search path, scenario and load the
    --  project.
@@ -86,25 +85,9 @@ package body LSP.Ada_Handlers.Project_Loading is
    --  Mark all sources in all projects for indexing. This factorizes code
    --  between Load_Project and Load_Implicit_Project.
 
-   function To_Virtual_String
-     (Value : GNATCOLL.VFS.Virtual_File) return VSS.Strings.Virtual_String is
-       (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
-   --  Cast Virtual_File to Virtual_String
-
-   function To_Virtual_File
-     (Value : VSS.Strings.Virtual_String) return GNATCOLL.VFS.Virtual_File is
-     (GNATCOLL.VFS.Create_From_UTF8
-        (VSS.Strings.Conversions.To_UTF_8_String (Value)));
-   --  Cast Virtual_String to Virtual_File
-
    function Root
      (Self : Message_Handler'Class) return GNATCOLL.VFS.Virtual_File;
    --  Return the root directory of the client workspace
-
-   type Environment is record
-      Context    : GPR2.Context.Object := GPR2.Context.Empty;
-      Build_Path : GPR2.Path_Name.Object := GPR2.Path_Name.Undefined;
-   end record;
 
    ---------------------------
    -- Ensure_Project_Loaded --
@@ -127,7 +110,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       Load_Project_With_Alire
         (Self                => Self,
          Project_File        => VSS.Strings.Empty_Virtual_String,
-         Scenario_Variables  => Self.Configuration.Scenario_Variables,
+         Context             => Self.Configuration.Context,
          Charset             => Self.Configuration.Charset);
 
       if not Self.Contexts.Is_Empty then
@@ -148,7 +131,7 @@ package body LSP.Ada_Handlers.Project_Loading is
                if X.Has_Suffix (".gpr") then
                   GPRs_Found := GPRs_Found + 1;
                   exit when GPRs_Found > 1;
-                  Project_File := To_Virtual_String (X);
+                  Project_File := LSP.Utils.To_Virtual_String (X);
                end if;
             end loop;
 
@@ -169,7 +152,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
          Load_Project
            (Self        => Self, Project_Path => Project_File,
-            Scenario    => Self.Configuration.Scenario_Variables,
+            Context     => Self.Configuration.Context,
             Environment => GPR2.Environment.Process_Environment,
             Charset     => "iso-8859-1",
             Status      => Single_Project_Found);
@@ -243,23 +226,13 @@ package body LSP.Ada_Handlers.Project_Loading is
    procedure Load_Project
      (Self         : in out Message_Handler'Class;
       Project_Path : VSS.Strings.Virtual_String;
-      Scenario     : LSP.Ada_Configurations.Variable_List;
+      Context      : GPR2.Context.Object;
       Environment  : GPR2.Environment.Object;
       Charset      : VSS.Strings.Virtual_String;
       Status       : Load_Project_Status)
    is
-      use type GNATCOLL.VFS.Virtual_File;
-
       Project_File        : GNATCOLL.VFS.Virtual_File :=
-        To_Virtual_File (Project_Path);
-
-      Project_Environment : Project_Loading.Environment;
-
-      Relocate_Build_Tree : constant GNATCOLL.VFS.Virtual_File :=
-        To_Virtual_File (Self.Configuration.Relocate_Build_Tree);
-
-      Root_Dir            : constant GNATCOLL.VFS.Virtual_File :=
-        To_Virtual_File (Self.Configuration.Relocate_Root);
+        LSP.Utils.To_Virtual_File (Project_Path);
 
       procedure Create_Context_For_Non_Aggregate
         (View : GPR2.Project.View.Object);
@@ -276,7 +249,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          use LSP.Ada_Contexts;
 
          C                   : constant Context_Access :=
-           new Context (Self.Tracer);
+           new LSP.Ada_Contexts.Context (Self.Tracer);
 
          Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
            (Self'Unchecked_Access);
@@ -350,37 +323,12 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  Now load the new project
       Self.Project_Status.Load_Status := Status;
 
-      if not Self.Configuration.Relocate_Build_Tree.Is_Empty then
-         Project_Environment.Build_Path :=
-           GPR2.Path_Name.Create (Relocate_Build_Tree);
-
-         if not Self.Configuration.Relocate_Root.Is_Empty
-           and then Project_File /= GNATCOLL.VFS.No_File
-         then
-            if not Root_Dir.Is_Absolute_Path then
-               Project_Environment.Build_Path :=
-                 GPR2.Path_Name.Create_Directory
-                   (GPR2.Path_Name.Create (Project_File).Relative_Path
-                     (GPR2.Path_Name.Create (Root_Dir)),
-                      GPR2.Filename_Type
-                       (Project_Environment.Build_Path.Value));
-            end if;
-         end if;
-      end if;
-
-      --  Update scenario variables with user provided values
-      for J in 1 .. Scenario.Names.Length loop
-         Project_Environment.Context.Insert
-           (GPR2.Optional_Name_Type
-              (VSS.Strings.Conversions.To_UTF_8_String (Scenario.Names (J))),
-            VSS.Strings.Conversions.To_UTF_8_String (Scenario.Values (J)));
-      end loop;
-
       begin
          Self.Project_Tree.Load_Autoconf
            (Filename    => GPR2.Path_Name.Create (Project_File),
-            Context     => Project_Environment.Context,
-            Build_Path  => Project_Environment.Build_Path,
+            Context     => Context,
+            Build_Path  => LSP.Ada_Configurations.Build_Path
+              (Self.Configuration, GPR2.Path_Name.Create (Project_File)),
             Environment => Environment);
 
          if Self.Project_Tree.Are_Sources_Loaded then
@@ -454,7 +402,7 @@ package body LSP.Ada_Handlers.Project_Loading is
    procedure Load_Project_With_Alire
      (Self               : in out Message_Handler'Class;
       Project_File       : VSS.Strings.Virtual_String := "";
-      Scenario_Variables : LSP.Ada_Configurations.Variable_List;
+      Context            : GPR2.Context.Object;
       Charset            : VSS.Strings.Virtual_String)
    is
 
@@ -527,7 +475,7 @@ package body LSP.Ada_Handlers.Project_Loading is
             Load_Project
               (Self         => Self,
                Project_Path => Project,
-               Scenario     => Scenario_Variables,
+               Context      => Context,
                Environment  => Environment,
                Charset      => (if Charset.Is_Empty then UTF_8 else Charset),
                Status       => Status);
@@ -545,7 +493,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          Load_Project
            (Self         => Self,
             Project_Path => Project,
-            Scenario     => Scenario_Variables,
+            Context      => Context,
             Environment  => Environment,
             Charset      => Charset,
             Status       => Valid_Project_Configured);
@@ -668,7 +616,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          Load_Project_With_Alire
            (Self,
             Project_File,
-            Self.Configuration.Scenario_Variables,
+            Self.Configuration.Context,
             Self.Configuration.Charset);
       end if;
    end Reload_Project;

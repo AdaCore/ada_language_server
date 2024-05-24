@@ -18,8 +18,6 @@
 with Ada.Strings.Unbounded;
 with System;
 
-with GNATCOLL.VFS;
-
 with Libadalang.Common;
 with Libadalang.Lexer;
 with Libadalang.Sources;
@@ -29,7 +27,6 @@ with Langkit_Support.Token_Data_Handlers;
 with Pp.Actions;
 
 with VSS.Strings.Character_Iterators;
-with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Generic_Modulars;
 with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Templates;

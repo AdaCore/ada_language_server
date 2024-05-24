@@ -22,6 +22,7 @@ with Ada.Exceptions;
 
 with VSS.Strings;
 
+with LSP.Ada_Configurations;
 with LSP.GPR_Documents;
 with LSP.GPR_Files;
 with LSP.Structures;
@@ -45,5 +46,13 @@ package LSP.GPR_Job_Contexts is
       Error   : Ada.Exceptions.Exception_Occurrence;
       Message : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String) is abstract;
+
+   function Get_Configuration
+     (Self : GPR_Job_Context)
+      return LSP.Ada_Configurations.Configuration is abstract;
+
+   procedure Set_Configuration
+     (Self  : in out GPR_Job_Context;
+      Value : LSP.Ada_Configurations.Configuration) is abstract;
 
 end LSP.GPR_Job_Contexts;
