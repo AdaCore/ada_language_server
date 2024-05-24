@@ -261,6 +261,16 @@ package LSP.GPR_Files is
    function Image (Id : Variable_Id) return VSS.Strings.Virtual_String;
    --  Variable_Id/String conversions
 
+   type Type_Id is private;
+   --  Used to describe variable's type's names
+
+   No_Type : constant Type_Id;
+   --  Used by untyped variable
+
+   function "+" (Name : String) return Type_Id;
+   function Image (Id : Type_Id) return VSS.Strings.Virtual_String;
+   --  Type_Id/String conversions
+
 private
 
    type Source_Position is record
@@ -350,10 +360,6 @@ private
 
    No_Type : constant Type_Id := 0;
    --  Used by untyped variable
-
-   function "+" (Name : String) return Type_Id;
-   function Image (Id : Type_Id) return VSS.Strings.Virtual_String;
-   --  Type_Id/String conversions
 
    type Variable_Id is new Natural with Default_Value => 0;
    --  Used to describe variable's names

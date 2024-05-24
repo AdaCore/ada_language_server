@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                   Copyright (C) 2023-2024, AdaCore                             --
+--                   Copyright (C) 2023-2024, AdaCore                       --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -17,10 +17,15 @@
 
 with Ada.Characters.Conversions;
 with Ada.Characters.Latin_1;
+with Ada.Characters.Wide_Wide_Latin_1;
+
 with GPR2.Project.Attribute;
+with GPR2.Project.Typ;
 with GPR2.Project.Variable;
+with GPR2.Source_Reference;
 
 with Gpr_Parser.Common;
+with Gpr_Parser_Support.Slocs;
 
 with GPR2.Project.Registry.Attribute.Description;
 with GPR2.Project.Registry.Pack.Description;
@@ -32,12 +37,119 @@ with VSS.Strings.Conversions;
 
 package body LSP.GPR_Documentation is
 
+   function Get_Documentation
+     (Ref   : Gpr_Parser.Common.Token_Reference;
+      Style : GNATdoc.Comments.Options.Documentation_Style)
+      return VSS.Strings.Virtual_String;
+   --  Get variable/type declaration comment.
+
+   -----------------------
+   -- Get_Documentation --
+   -----------------------
+
+   function Get_Documentation
+     (Ref   : Gpr_Parser.Common.Token_Reference;
+      Style : GNATdoc.Comments.Options.Documentation_Style)
+      return VSS.Strings.Virtual_String
+   is
+      Documentation : VSS.Strings.Virtual_String;
+      Add_LF        : Boolean := False;
+      package Slocs renames Gpr_Parser_Support.Slocs;
+      use type Slocs.Line_Number;
+
+      Line  : Slocs.Line_Number := Ref.Data.Sloc_Range.Start_Line;
+      Token : Gpr_Parser.Common.Token_Reference := Ref;
+
+      use type GNATdoc.Comments.Options.Documentation_Style;
+
+      function Next return Gpr_Parser.Common.Token_Reference is
+        (if Style = GNATdoc.Comments.Options.GNAT
+         then Token.Next
+         else Token.Previous);
+      --  Go to next or previous token depending on 'Style' value
+
+      function Valid_Comment return Boolean;
+      --  Return True if comment token is still part of 'Ref' comment.
+
+      -------------------
+      -- Valid_Comment --
+      -------------------
+
+      function Valid_Comment return Boolean is
+         Current_Line : constant Slocs.Line_Number :=
+                          Token.Data.Sloc_Range.Start_Line;
+         Valid        : Boolean := False;
+      begin
+         case Style is
+            when GNATdoc.Comments.Options.GNAT =>
+               if Current_Line <= Line + 1 then
+                  Valid := True;
+               end if;
+            when GNATdoc.Comments.Options.Leading =>
+               if Current_Line >= Line - 1 then
+                  Valid := True;
+               end if;
+         end case;
+         if Valid then
+            --  update Line to allow next/previous comment to still be valid
+            Line := Current_Line;
+         end if;
+         return Valid;
+      end Valid_Comment;
+
+      use type Gpr_Parser.Common.Token_Reference;
+      use type Gpr_Parser.Common.Token_Kind;
+   begin
+      Token := Next;
+      while Token /= Gpr_Parser.Common.No_Token loop
+         if Token.Data.Kind = Gpr_Parser.Common.Gpr_Comment
+         then
+            if Valid_Comment then
+               case Style is
+               when GNATdoc.Comments.Options.GNAT =>
+                  if Add_LF then
+                     Documentation.Append
+                       (VSS.Strings.To_Virtual_String
+                          (Ada.Characters.Wide_Wide_Latin_1.LF & Token.Text));
+                  else
+                     Documentation.Append
+                       (VSS.Strings.To_Virtual_String
+                          (Token.Text));
+                  end if;
+               when GNATdoc.Comments.Options.Leading =>
+                  if Add_LF then
+                     Documentation.Prepend
+                       (VSS.Strings.To_Virtual_String
+                          (Token.Text & Ada.Characters.Wide_Wide_Latin_1.LF));
+                  else
+                     Documentation.Prepend
+                       (VSS.Strings.To_Virtual_String
+                          (Token.Text));
+                  end if;
+               end case;
+               Add_LF := True;
+            else
+               exit;
+            end if;
+         end if;
+         Token := Next;
+      end loop;
+      return Documentation;
+   end Get_Documentation;
+
+   ----------------------
+   -- Get_Tooltip_Text --
+   ----------------------
+
    procedure Get_Tooltip_Text
-     (Self              : LSP.GPR_Files.File_Access;
-      URI               : LSP.Structures.DocumentUri;
-      Document_Provider : LSP.GPR_Documents.Document_Provider_Access;
-      Position          : LSP.Structures.Position;
-      Tooltip_Text      : out VSS.Strings.Virtual_String) is
+     (Self               : LSP.GPR_Files.File_Access;
+      URI                : LSP.Structures.DocumentUri;
+      Document_Provider  : LSP.GPR_Documents.Document_Provider_Access;
+      Position           : LSP.Structures.Position;
+      Style              : GNATdoc.Comments.Options.Documentation_Style;
+      Declaration_Text   : out VSS.Strings.Virtual_String;
+      Documentation_Text : out VSS.Strings.Virtual_String;
+      Location_Text      : out VSS.Strings.Virtual_String) is
       use Gpr_Parser.Common;
 
       package LKD renames LSP.Text_Documents.Langkit_Documents;
@@ -69,6 +181,7 @@ package body LSP.GPR_Documentation is
       begin
          if Reference.Is_Variable_Reference
            or else Reference.Is_Attribute_Reference
+             or else Reference.Is_Type_Reference
          then
             declare
                Document : constant LSP.GPR_Documents.Document_Access :=
@@ -85,9 +198,27 @@ package body LSP.GPR_Documentation is
                                         Reference => Reference);
                      begin
                         if Variable.Is_Defined then
-                           Tooltip_Text.Append
+                           Declaration_Text.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (GPR2.Project.Variable.Image (Variable)));
+                           Location_Text.Append
+                             (VSS.Strings.Conversions.To_Virtual_String
+                                (GPR2.Source_Reference.Format
+                                     (GPR2.Source_Reference.Object
+                                          (Variable))));
+                           if Variable.Has_Type then
+                              declare
+                                 Typ : constant GPR2.Project.Typ.Object :=
+                                         Variable.Typ;
+                              begin
+                                 if Typ.Is_Defined then
+                                    Declaration_Text.Prepend
+                                      (VSS.Strings.Conversions.To_Virtual_String
+                                         (GPR2.Project.Typ.Image (Typ)
+                                          & Ada.Characters.Latin_1.CR));
+                                 end if;
+                              end;
+                           end if;
                         end if;
                      end;
                   elsif Reference.Is_Attribute_Reference then
@@ -98,12 +229,39 @@ package body LSP.GPR_Documentation is
                                          Reference => Reference);
                      begin
                         if Attribute.Is_Defined then
-                           Tooltip_Text.Append
+                           Declaration_Text.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (GPR2.Project.Attribute.Image (Attribute)
                                  & Ada.Characters.Latin_1.CR));
+                           Location_Text.Append
+                             (VSS.Strings.Conversions.To_Virtual_String
+                                (GPR2.Source_Reference.Format
+                                     (GPR2.Source_Reference.Object
+                                          (Attribute))));
+                        end if;
+
+                     end;
+                  elsif Reference.Is_Type_Reference then
+                     declare
+                        Typ : constant GPR2.Project.Typ.Object :=
+                                Document.Get_Type
+
+                                  (Root_File => Self,
+                                   Reference => Reference);
+                     begin
+                        if Typ.Is_Defined then
+                           Declaration_Text.Append
+                             (VSS.Strings.Conversions.To_Virtual_String
+                                (GPR2.Project.Typ.Image (Typ)
+                                 & Ada.Characters.Latin_1.CR));
+                           Location_Text.Append
+                             (VSS.Strings.Conversions.To_Virtual_String
+                                (GPR2.Source_Reference.Format
+                                     (GPR2.Source_Reference.Object
+                                          (Typ))));
                         end if;
                      end;
+
                   end if;
                end if;
             end;
@@ -111,8 +269,6 @@ package body LSP.GPR_Documentation is
       end Append_Value;
 
    begin
-
-      Tooltip_Text.Clear;
 
       if Token /= No_Token and then Token.Data.Kind = Gpr_Identifier then
          declare
@@ -127,14 +283,14 @@ package body LSP.GPR_Documentation is
             if Previous /= No_Token then
                case Previous.Data.Kind is
                when Gpr_Package | Gpr_End =>
-                  Tooltip_Text.Append
+                  Documentation_Text.Append
                     (VSS.Strings.Conversions.To_Virtual_String
                        (Get_Package_Description
                             (Self.Get_Package (Position))));
 
                when Gpr_For =>
                   Append_Value (Reference);
-                  Tooltip_Text.Append
+                  Documentation_Text.Append
                     (VSS.Strings.Conversions.To_Virtual_String
                        (Get_Attribute_Description ((
                         Self.Get_Package (Position),
@@ -143,11 +299,11 @@ package body LSP.GPR_Documentation is
                when others =>
                   Append_Value (Reference);
                   if Reference.Is_Package_Reference then
-                     Tooltip_Text.Append
+                     Documentation_Text.Append
                        (VSS.Strings.Conversions.To_Virtual_String
                           (Get_Package_Description
                                (Reference.Referenced_Package)));
-                  else
+                  elsif Reference.Is_Attribute_Reference then
                      declare
                         Attribute : constant FR.Attribute_Definition :=
                                       Reference.Referenced_Attribute;
@@ -155,12 +311,20 @@ package body LSP.GPR_Documentation is
                         use type FR.Attribute_Definition;
                      begin
                         if Attribute /= FR.No_Attribute_Definition then
-                           Tooltip_Text.Append
+                           Documentation_Text.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (Get_Attribute_Description
                                      (Attribute.Name)));
                         end if;
                      end;
+                  elsif Reference.Is_Variable_Reference
+                    or else Reference.Is_Type_Reference
+                  then
+                     Documentation_Text.Append
+                       (Get_Documentation
+                          (LSP.GPR_Files.References.Token_Reference
+                               (Self, Position),
+                           Style));
                   end if;
                end case;
             end if;
