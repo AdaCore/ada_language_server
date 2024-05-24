@@ -17,6 +17,7 @@
 
 with Ada.Streams;
 with GNAT.OS_Lib;
+with GNATCOLL.VFS;
 
 with VSS.Stream_Element_Vectors;
 with VSS.Strings.Conversions;
@@ -25,12 +26,13 @@ with VSS.String_Vectors;
 with VSS.Characters.Latin;
 with VSS.Regular_Expressions;
 
+with Spawn.Environments;
 with Spawn.Processes;
 with Spawn.Processes.Monitor_Loop;
 with Spawn.Process_Listeners;
 with Spawn.String_Vectors;
 
-package body LSP.Ada_Handlers.Alire is
+package body LSP.Alire is
 
    type Process_Listener is limited
      new Spawn.Process_Listeners.Process_Listener with record
@@ -347,4 +349,20 @@ package body LSP.Ada_Handlers.Alire is
       end loop;
    end Standard_Output_Available;
 
-end LSP.Ada_Handlers.Alire;
+   ------------------
+   -- Alire_Active --
+   ------------------
+
+   function Alire_Active
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean is
+      Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
+                      (if Client.Root.Is_Empty then GNATCOLL.VFS.No_File
+                       else Client.Root_Directory.Create_From_Dir
+                         ("alire.toml"));
+
+   begin
+      return Alire_TOML.Is_Regular_File
+        and Spawn.Environments.System_Environment.Value ("ALIRE") /= "True";
+   end Alire_Active;
+
+end LSP.Alire;

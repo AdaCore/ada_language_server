@@ -1,0 +1,1 @@
+with "config/hello_config.gpr";project Hello is end Hello;

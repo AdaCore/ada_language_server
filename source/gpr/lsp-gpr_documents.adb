@@ -150,6 +150,7 @@ package body LSP.GPR_Documents is
 
    procedure Load
      (Self          : in out Document;
+      Client        : LSP.Ada_Client_Capabilities.Client_Capability;
       Configuration : LSP.Ada_Configurations.Configuration) is
 
       procedure Update_Diagnostics;
@@ -186,7 +187,7 @@ package body LSP.GPR_Documents is
          Context           => Configuration.Context,
          Build_Path        => Configuration.Build_Path (Self.File),
          File_Reader       => Self.File_Provider.Get_File_Reader,
-         Environment       => Self.Environment);
+         Environment       => LSP.GPR_Files.Environment);
 
       Update_Diagnostics;
 

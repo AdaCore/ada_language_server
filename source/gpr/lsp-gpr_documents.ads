@@ -25,7 +25,6 @@ with Langkit_Support.Slocs;
 
 with GNATCOLL.VFS;
 
-with GPR2.Environment;
 with GPR2.Log;
 with GPR2.Path_Name;
 with GPR2.Path_Name.Set;
@@ -34,6 +33,7 @@ with GPR2.Project.Typ;
 with GPR2.Project.Attribute;
 with GPR2.Project.Variable;
 
+with LSP.Ada_Client_Capabilities;
 with LSP.Ada_Configurations;
 with LSP.Text_Documents;
 with LSP.GPR_Files;
@@ -75,6 +75,7 @@ package LSP.GPR_Documents is
 
    procedure Load
      (Self          : in out Document;
+      Client        : LSP.Ada_Client_Capabilities.Client_Capability;
       Configuration : LSP.Ada_Configurations.Configuration);
    --  Load associated GPR tree.
 
@@ -188,9 +189,6 @@ private
 
       File_Provider : LSP.GPR_Files.File_Provider_Access;
       --  Reader used by GPR2 to access opened documents contents
-
-      Environment : GPR2.Environment.Object;
-      --  Environment used by GPR2 extending ALS process environment
 
       Messages : GPR2.Log.Object;
       --  Latest Tree's log

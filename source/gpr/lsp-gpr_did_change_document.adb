@@ -104,7 +104,9 @@ package body LSP.GPR_Did_Change_Document is
 
       --  Load gpr tree & prepare diagnostics
 
-      Self.Document.Load (Self.Parent.Context.Get_Configuration);
+      Self.Document.Load
+        (Client        => Self.Parent.Context.Get_Client.all,
+         Configuration => Self.Parent.Context.Get_Configuration);
 
       --  Build GPR file for LSP needs.
 

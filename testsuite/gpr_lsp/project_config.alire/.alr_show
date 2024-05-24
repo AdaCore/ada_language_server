@@ -1,0 +1,16 @@
+hello=1.0.2: 'Hello, world!' demonstration project
+Origin: path /tmp/hello_1.0.2_5715870b
+Properties:
+   Author: Alejandro R. Mosteo
+   Description: 'Hello, world!' demonstration project
+   Executable: hello
+   License: MIT
+   Maintainer: Alejandro R. Mosteo <alejandro@mosteo.com>
+   Maintainers_Logins: mosteo
+   Name: hello
+   Tag: hello
+   Tag: demo
+   Version: 1.0.2
+   Website: https://github.com/alire-project/hello
+Dependencies (direct):
+   libhello^1.0
