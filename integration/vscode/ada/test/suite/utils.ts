@@ -1,4 +1,5 @@
 import assert from 'assert';
+import { spawnSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import * as vscode from 'vscode';
 import {
@@ -6,6 +7,7 @@ import {
     findTaskByName,
     getConventionalTaskLabel,
 } from '../../src/taskProviders';
+import { setTerminalEnvironment } from '../../src/helpers';
 
 /**
  * This function compares some actual output to an expected referenced stored in
@@ -155,7 +157,39 @@ export async function testTask(
         let msg = `Got status ${execStatus ?? "'undefined'"} for task '${taskName}'`;
         if (task.execution instanceof vscode.ShellExecution) {
             msg += ` with command line: ${getCmdLine(task.execution)}`;
+
+            try {
+                /**
+                 * Let's try re-running the command line explicitlely to obtain its output.
+                 */
+                const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
+                msg += `\nTrying to re-run the command explicitly in: ${cwd}`;
+                const env = { ...process.env };
+                setTerminalEnvironment(env);
+                const cp = spawnSync(
+                    typeof task.execution.command == 'string'
+                        ? task.execution.command
+                        : task.execution.command.value,
+                    task.execution.args.map((arg) => {
+                        if (typeof arg == 'string') {
+                            return arg;
+                        } else {
+                            return arg.value;
+                        }
+                    }),
+                    { cwd: cwd, env: env }
+                );
+
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                msg += `\nProcess ended with exit code ${cp.status} and output:\n`;
+                // msg += cp.stdout.toString() + cp.stderr.toString();
+                msg += cp.output.map((b) => (b != null ? b.toString() : '')).join('');
+            } catch (error) {
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                msg += `\nEncountered an error: ${error}`;
+            }
         }
+
         assert.fail(msg);
     }
 }
