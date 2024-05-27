@@ -1,4 +1,4 @@
 {
   "build": { "dockerfile": "Dockerfile" },
-  "extensions": ["adacore.ada", "webfreak.debug"]
+  "extensions": ["adacore.ada"]
 }

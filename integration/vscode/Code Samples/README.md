@@ -7,3 +7,4 @@ Here is some code samples for the Ada Language Server and the VS Code extension.
 * [Gnatprove](gnatprove/) - SPARK/gnatprove integration example
 * [Refactoring demos](refactoring_demos/) - sample code to check refactoring capabilities
 * [Custom worspace-specific environment](custom_env/) - example showing how to set workspace-specific environment variables
+* [Devcontainer example](devcontainer/) - example showing how to set a devcontainer up

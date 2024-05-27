@@ -3,7 +3,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"preLaunchTask": "build",
+			"preLaunchTask": "ada: Build project",
 			"name": "Ada - Build & Debug (unix)",
 			"type": "cppdbg",
 			"request": "launch",
@@ -11,7 +11,7 @@
 			"cwd": "${workspaceFolder}"
 		},
 		{
-			"preLaunchTask": "build",
+			"preLaunchTask": "ada: Build project",
 			"name": "Ada - Build & Debug (Windows)",
 			"type": "cppvsdbg",
 			"request": "launch",
