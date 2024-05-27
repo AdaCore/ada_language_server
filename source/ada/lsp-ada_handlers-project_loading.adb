@@ -428,24 +428,22 @@ package body LSP.Ada_Handlers.Project_Loading is
 
          if Project.Is_Empty then
 
-            LSP.Ada_Handlers.Alire.Run_Alire
+            LSP.Ada_Handlers.Alire.Determine_Alire_Project
               (Root        => Root (Self).Display_Full_Name,
                Has_Alire   => Has_Alire,
                Error       => Errors,
-               Project     => Project,
-               Environment => Environment);
+               Project     => Project);
 
             Status := Alire_Project;
-         else
-
-            LSP.Ada_Handlers.Alire.Run_Alire
-              (Root        => Root (Self).Display_Full_Name,
-               Has_Alire   => Has_Alire,
-               Error       => Errors,
-               Environment => Environment);
-
-            Status := Valid_Project_Configured;
          end if;
+
+         LSP.Ada_Handlers.Alire.Setup_Alire_Env
+            (Root        => Root (Self).Display_Full_Name,
+            Has_Alire   => Has_Alire,
+            Error       => Errors,
+            Environment => Environment);
+
+         Status := Valid_Project_Configured;
 
          if Has_Alire and then not Errors.Is_Empty then
 

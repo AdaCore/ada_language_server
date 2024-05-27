@@ -24,20 +24,19 @@ with VSS.Strings;
 private
 package LSP.Ada_Handlers.Alire is
 
-   procedure Run_Alire
+   procedure Determine_Alire_Project
      (Root        : String;
       Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
-      Project     : out VSS.Strings.Virtual_String;
-      Environment : in out GPR2.Environment.Object);
+      Project     : out VSS.Strings.Virtual_String);
    --  if Root directory contains `alire.toml` file, then run
-   --  `alr printenv` and fetch the first project from `alire.toml`.
+   --  `alr show` and determine the project from the output.
 
-   procedure Run_Alire
+   procedure Setup_Alire_Env
      (Root        : String;
       Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
       Environment : in out GPR2.Environment.Object);
-   --  The same as above, but without fetching the project file
+   --  Run `alr printenv` and set up the obtained environment variables
 
 end LSP.Ada_Handlers.Alire;
