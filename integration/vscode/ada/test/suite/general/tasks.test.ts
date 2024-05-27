@@ -9,7 +9,14 @@ import {
     createAdaTaskProvider,
     getConventionalTaskLabel,
 } from '../../../src/taskProviders';
-import { activate, getCmdLine, getCommandLines, runTaskAndGetResult, testTask } from '../utils';
+import {
+    activate,
+    closeAllEditors,
+    getCmdLine,
+    getCommandLines,
+    runTaskAndGetResult,
+    testTask,
+} from '../utils';
 
 suite('Task Providers', function () {
     let projectPath: string;
@@ -31,6 +38,7 @@ suite('Task Providers', function () {
 ada: Clean current project
 ada: Build current project
 ada: Check current file
+ada: Compile current file
 ada: Analyze the project with GNAT SAS
 ada: Analyze the current file with GNAT SAS
 ada: Create a report after a GNAT SAS analysis
@@ -54,6 +62,7 @@ ada: Build and run main - src/test.adb
 ada: Clean current project - gprclean -P ${projectPath}
 ada: Build current project - gprbuild -P ${projectPath} -cargs:ada -gnatef
 ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
+ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
 ada: Analyze the project with GNAT SAS - gnatsas analyze -P ${projectPath}
 ada: Analyze the current file with GNAT SAS - gnatsas analyze -P ${projectPath} --file=\${fileBasename}
 ada: Create a report after a GNAT SAS analysis - gnatsas report sarif -P ${projectPath} -o report.sarif
@@ -212,10 +221,15 @@ suite('Task Execution', function () {
         allProvidedTasks.push(...(await createAdaTaskProvider().provideTasks()));
     });
 
+    this.beforeEach(async function () {
+        await closeAllEditors();
+    });
+
     declTaskTest('ada: Build current project');
     declTaskTest('ada: Run main - src/main1.adb');
     declTaskTest('ada: Run main - src/test.adb');
     declTaskTest('ada: Check current file', openSrcFile);
+    declTaskTest('ada: Compile current file', openSrcFile);
     declTaskTest('ada: Clean current project');
     declTaskTest('ada: Build main - src/main1.adb');
     declTaskTest('ada: Build main - src/test.adb');
