@@ -368,4 +368,73 @@ package body LSP.GPR_Documents is
       return GPR2.Project.Attribute.Undefined;
    end Get_Attribute;
 
+   --------------
+   -- Get_Type --
+   --------------
+
+   function Get_Type
+     (Self      : Document'Class;
+      Root_File : LSP.GPR_Files.File_Access;
+      Reference : LSP.GPR_Files.References.Reference)
+      return GPR2.Project.Typ.Object is
+
+      function Typ
+        (View : GPR2.Project.View.Object) return GPR2.Project.Typ.Object;
+
+      ---------
+      -- Typ --
+      ---------
+
+      function Typ
+        (View : GPR2.Project.View.Object) return GPR2.Project.Typ.Object
+      is
+         Name : constant GPR2.Optional_Name_Type :=
+                  GPR2.Optional_Name_Type
+                    (VSS.Strings.Conversions.To_UTF_8_String
+                       (LSP.GPR_Files.Image (Reference.Referenced_Type)));
+
+      begin
+         if View.Has_Types (Name) then
+            return View.Typ (Name);
+         else
+            return GPR2.Project.Typ.Undefined;
+         end if;
+      end Typ;
+
+   begin
+      if LSP.GPR_Files.References.Is_Type_Reference (Reference)
+        and then not Self.Tree.Log_Messages.Has_Error
+      then
+         declare
+            File : constant LSP.GPR_Files.File_Access :=
+                     LSP.GPR_Files.References.Referenced_File
+                       (File      => Root_File,
+                        Reference => Reference);
+            Path : constant GPR2.Path_Name.Object :=
+                     LSP.GPR_Files.Path (File.all);
+            Root : constant GPR2.Project.View.Object := Self.Tree.Root_Project;
+         begin
+            if Root.Path_Name = Path then
+               return Typ (Root);
+            end if;
+            if Root.Is_Extended then
+               declare
+                  Extending : constant GPR2.Project.View.Object :=
+                                Root.Extending;
+               begin
+                  if Extending.Path_Name = Path then
+                     return Typ (Extending);
+                  end if;
+               end;
+            end if;
+            for Import of Root.Imports loop
+               if Import.Path_Name = Path then
+                  return Typ (Import);
+               end if;
+            end loop;
+         end;
+      end if;
+      return GPR2.Project.Typ.Undefined;
+   end Get_Type;
+
 end LSP.GPR_Documents;

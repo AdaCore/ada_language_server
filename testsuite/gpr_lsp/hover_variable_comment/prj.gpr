@@ -1,0 +1,11 @@
+project Prj is
+   -- Not part of Var comment
+
+   -- Var Leading style comment start
+   -- Var Leading style comment end
+   Var := ""; -- Var GNAT style comment start
+   -- Var GNAT style comment end
+
+   -- Not part of Var comment
+   V := Var;
+end Prj;

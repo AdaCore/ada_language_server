@@ -291,30 +291,59 @@ package body LSP.GPR_Handlers is
                              (File_Provider => Self'Unchecked_Access,
                               Path          => Self.To_File
                                                  (Value.textDocument.uri));
-         Tooltip_Text : VSS.Strings.Virtual_String;
+         Declaration_Text          : VSS.Strings.Virtual_String;
+         Documentation_Text : VSS.Strings.Virtual_String;
+         Location_Text      : VSS.Strings.Virtual_String;
       begin
 
          LSP.GPR_Documentation.Get_Tooltip_Text
-           (Self              => File,
-            URI               => Value.textDocument.uri,
-            Document_Provider => Self'Unchecked_Access,
-            Position          => Value.position,
-            Tooltip_Text      => Tooltip_Text);
+           (Self               => File,
+            URI                => Value.textDocument.uri,
+            Document_Provider  => Self'Unchecked_Access,
+            Position           => Value.position,
+            Style              => Self.Configuration.Documentation_Style,
+            Declaration_Text   => Declaration_Text,
+            Documentation_Text => Documentation_Text,
+            Location_Text      => Location_Text);
 
-         if Tooltip_Text.Is_Empty then
+         if Declaration_Text.Is_Empty
+           and then Documentation_Text.Is_Empty
+           and then Location_Text.Is_Empty
+         then
             return;
          end if;
 
          Response := (Is_Null => False, others => <>);
          Response.Value.contents := (Is_MarkupContent => False, others => <>);
 
-         --  Append the package/attribute description
+         --  Append the whole declaration text to the response
 
-         Response.Value.contents.MarkedString_Vector.Append
-           (LSP.Structures.MarkedString'
-              (Is_Virtual_String => False,
-               language          => "plaintext",
-               value             => Tooltip_Text));
+         if not Declaration_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => False,
+                  value             => Declaration_Text,
+                  language          => "gpr"));
+         end if;
+
+         --  Append the location text to the response
+
+         if not Location_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => True,
+                  Virtual_String    => Location_Text));
+         end if;
+
+         --  Append the comments associated with the basic declaration if any.
+
+         if not Documentation_Text.Is_Empty then
+            Response.Value.contents.MarkedString_Vector.Append
+              (LSP.Structures.MarkedString'
+                 (Is_Virtual_String => False,
+                  language          => "plaintext",
+                  value             => Documentation_Text));
+         end if;
 
       end Compute_Response;
 
@@ -611,6 +640,19 @@ package body LSP.GPR_Handlers is
    begin
       Self.Sender.On_Shutdown_Response (Id, Response);
    end On_Shutdown_Request;
+
+   --------------------------------------------
+   -- On_DidChangeConfiguration_Notification --
+   --------------------------------------------
+
+   overriding procedure On_DidChangeConfiguration_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidChangeConfigurationParams) is
+      Reload : Boolean;
+      pragma Warnings (Off, Reload);
+   begin
+      Self.Configuration.Read_JSON (Value.settings, Reload);
+   end On_DidChangeConfiguration_Notification;
 
    -------------------------
    -- Publish_Diagnostics --
