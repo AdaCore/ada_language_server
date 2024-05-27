@@ -78,8 +78,10 @@
    // Allow GitLab-specific Yaml tags in .gitlab-ci.yml
    "yaml.customTags": ["!reference sequence"],
    "triggerTaskOnSave.tasks": {
-      "ada: Compile current file": ["*.adb"],
-      "ada: Check current file": ["*.ads"]
+      // To work with automatically provided tasks, they
+      // must be provided without the `ada: ` prefix.
+      "Compile current file": ["*.adb"],
+      "Check current file": ["*.ads"]
    },
    "triggerTaskOnSave.restart": true,
    "files.watcherExclude": {
