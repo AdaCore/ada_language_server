@@ -55,7 +55,7 @@ ada: Clean current project - gprclean -P ${projectPath}
 ada: Build current project - gprbuild -P ${projectPath} -cargs:ada -gnatef
 ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
 ada: Analyze the project with GNAT SAS - gnatsas analyze -P ${projectPath}
-ada: Analyze the current file with GNAT SAS - gnatsas analyze -P ${projectPath} \${fileBasename}
+ada: Analyze the current file with GNAT SAS - gnatsas analyze -P ${projectPath} --file=\${fileBasename}
 ada: Create a report after a GNAT SAS analysis - gnatsas report sarif -P ${projectPath}
 ada: Generate documentation from the project - gnatdoc -P ${projectPath}
 ada: Create/update test skeletons for the project - gnattest -P ${projectPath}
@@ -212,21 +212,21 @@ suite('Task Execution', function () {
         allProvidedTasks.push(...(await createAdaTaskProvider().provideTasks()));
     });
 
-    declTaskTest('ada: Build current project', testedTaskLabels);
-    declTaskTest('ada: Run main - src/main1.adb', testedTaskLabels);
-    declTaskTest('ada: Run main - src/test.adb', testedTaskLabels);
-    declTaskTest('ada: Check current file', testedTaskLabels, openSrcFile);
-    declTaskTest('ada: Clean current project', testedTaskLabels);
-    declTaskTest('ada: Build main - src/main1.adb', testedTaskLabels);
-    declTaskTest('ada: Build main - src/test.adb', testedTaskLabels);
-    declTaskTest('ada: Build and run main - src/main1.adb', testedTaskLabels);
-    declTaskTest('ada: Build and run main - src/test.adb', testedTaskLabels);
-    declTaskTest('ada: Analyze the project with GNAT SAS', testedTaskLabels);
-    declTaskTest('ada: Create a report after a GNAT SAS analysis', testedTaskLabels);
-    declTaskTest('ada: Analyze the project with GNAT SAS and produce a report', testedTaskLabels);
-    declTaskTest('ada: Analyze the current file with GNAT SAS', testedTaskLabels, openSrcFile);
-    declTaskTest('ada: Generate documentation from the project', testedTaskLabels);
-    declTaskTest('ada: Create/update test skeletons for the project', testedTaskLabels);
+    declTaskTest('ada: Build current project');
+    declTaskTest('ada: Run main - src/main1.adb');
+    declTaskTest('ada: Run main - src/test.adb');
+    declTaskTest('ada: Check current file', openSrcFile);
+    declTaskTest('ada: Clean current project');
+    declTaskTest('ada: Build main - src/main1.adb');
+    declTaskTest('ada: Build main - src/test.adb');
+    declTaskTest('ada: Build and run main - src/main1.adb');
+    declTaskTest('ada: Build and run main - src/test.adb');
+    declTaskTest('ada: Analyze the project with GNAT SAS');
+    declTaskTest('ada: Create a report after a GNAT SAS analysis');
+    declTaskTest('ada: Analyze the project with GNAT SAS and produce a report');
+    declTaskTest('ada: Analyze the current file with GNAT SAS', openSrcFile);
+    declTaskTest('ada: Generate documentation from the project');
+    declTaskTest('ada: Create/update test skeletons for the project');
 
     /**
      * Check that the 'buildAndRunMain' task works fine with projects that
@@ -249,8 +249,8 @@ suite('Task Execution', function () {
             await new Promise((resolve) => setTimeout(resolve, 1000));
             await testTask(
                 'Build and run main - src/main1.adb',
-                allProvidedTasks,
-                testedTaskLabels
+                testedTaskLabels,
+                allProvidedTasks
             );
         } finally {
             // Reset the 'ada.projectFile' setting. If the previous value was
@@ -314,20 +314,23 @@ suite('Task Execution', function () {
      * has to be defined in the same module as the testsuite in order for the
      * testing GUI to detect the tests in VS Code.
      */
-    function declTaskTest(
-        taskName: string,
-        testedTasks: Set<string>,
-        prolog?: () => void | Promise<void>
-    ): Mocha.Test {
+    function declTaskTest(taskName: string, prolog?: () => void | Promise<void>): Mocha.Test {
         return test(taskName, async function () {
             if (prolog) {
                 await prolog();
             }
 
-            await testTask(taskName, allProvidedTasks, testedTasks);
+            /**
+             * If there was a prolog, don't use the static task list computed at
+             * the beginning. Tasks are sensitive to the current cursor location
+             * so we recompute available tasks instead of using the static task
+             * list.
+             */
+            await testTask(taskName, testedTaskLabels, prolog ? undefined : allProvidedTasks);
         });
     }
 });
+
 async function openSrcFile() {
     assert(vscode.workspace.workspaceFolders);
     const testAdbUri = vscode.Uri.joinPath(

@@ -2,12 +2,12 @@ import assert from 'assert';
 import { spawnSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import * as vscode from 'vscode';
+import { setTerminalEnvironment } from '../../src/helpers';
 import {
     SimpleTaskProvider,
     findTaskByName,
     getConventionalTaskLabel,
 } from '../../src/taskProviders';
-import { setTerminalEnvironment } from '../../src/helpers';
 
 /**
  * This function compares some actual output to an expected referenced stored in
@@ -142,12 +142,12 @@ export function getCmdLine(exec: vscode.ShellExecution) {
 
 export async function testTask(
     taskName: string,
-    allProvidedTasks: vscode.Task[],
-    testedTasks: Set<string>
+    testedTasks: Set<string>,
+    allProvidedTasks?: vscode.Task[]
 ) {
     assert(vscode.workspace.workspaceFolders);
 
-    const task = findTaskByName(allProvidedTasks, taskName);
+    const task = await findTaskByName(taskName, allProvidedTasks);
     assert(task);
     testedTasks.add(getConventionalTaskLabel(task));
 

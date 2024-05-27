@@ -823,19 +823,37 @@ abstract class SequentialExecution extends vscode.CustomExecution {
 }
 
 /**
- * Task names contributed by the extension don't have the task type prefix
- * while tasks coming from the workspace typically do since VS Code includes
- * the type prefix when converting an automatic extension task into a
- * configurable workspace task. getConventionalTaskLabel() takes care of
- * that fact.
+ * Finds and returns the task of the given name.
+ *
+ * Task names contributed by the extension don't have the task type prefix in
+ * the name while tasks coming from the workspace typically do since VS Code
+ * includes the type prefix when converting an automatic extension task into a
+ * configurable workspace task. This function accounts for that fact by search
+ * for the task with and without the type prefix.
+ *
+ * If an array of tasks is given, the search will applied to this array and the
+ * API will not be queried for tasks. This can be used to achieve a performance
+ * boost.
  *
  * @returns the task that has the given name, or the given name with the
- * prefix `ada: `.
+ * prefix `ada: ` or `spark: `.
  * @throws an Error if the task is not found.
  */
-export function findTaskByName(tasks: vscode.Task[], taskName: string): vscode.Task {
+export async function findTaskByName(
+    taskName: string,
+    tasks?: vscode.Task[]
+): Promise<vscode.Task> {
+    if (!tasks) {
+        tasks = (
+            await Promise.all([
+                vscode.tasks.fetchTasks({ type: 'ada' }),
+                vscode.tasks.fetchTasks({ type: 'spark' }),
+            ])
+        ).flat();
+    }
+
     if (tasks.length == 0) {
-        throw Error('The given task list is empty.' + ` Cannot find task '${taskName}'`);
+        throw Error('The task list is empty.' + ` Cannot find task '${taskName}'`);
     }
 
     const task = tasks.find((v) => {
@@ -862,7 +880,7 @@ class SequentialExecutionByName extends SequentialExecution {
 
     protected async getTasksToRun(): Promise<vscode.Task[]> {
         const adaTasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
-        return this.taskNames.map((name) => findTaskByName(adaTasks, name));
+        return Promise.all(this.taskNames.map((name) => findTaskByName(name, adaTasks)));
     }
 }
 
