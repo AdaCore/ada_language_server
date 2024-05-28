@@ -7,6 +7,9 @@ VERSION ?=
 # ALS build date
 BUILD_DATE ?=
 
+# CPU limit
+PROCESSORS ?= 0
+
 # Define platform-specific variables
 ifeq ($(OS),Windows_NT)
    PYTHON=python.exe
@@ -35,7 +38,7 @@ TESTER=$(ROOTDIR)/.obj/tester/tester-run$(EXE)
 MOCHA_ALS_UPDATE=
 
 GPRBUILD_EXTRA=
-GPRBUILD_FLAGS=-m -j0 $(GPRBUILD_EXTRA)
+GPRBUILD_FLAGS=-m -j$(PROCESSORS) $(GPRBUILD_EXTRA)
 GPRBUILD=gprbuild $(GPRBUILD_FLAGS) -XSUPERPROJECT=
 GPRCLEAN_EXTRA=
 GPRCLEAN=gprclean -XSUPERPROJECT= $(GPRCLEAN_EXTRA)
