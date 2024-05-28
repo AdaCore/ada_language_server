@@ -48,6 +48,12 @@ package LSP.Ada_Handlers.Refactor.Auto_Import is
    --  Initializes Command based on Suggestion and appends it to
    --  Commands_Vector.
 
+   function Write_Command_Args
+     (Self : Command) return LSP.Structures.LSPAny_Vector;
+   --  Write the given command's arguments as LPS any vector.
+   --  These arguments are then passed to the server by the LSP client when
+   --  executing the command via the executeCommand LSP request.
+
 private
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with record
@@ -68,9 +74,6 @@ private
    overriding function Priority (Self : Command)
      return LSP.Server_Jobs.Job_Priority
        is (LSP.Server_Jobs.Low);
-
-   function Write_Command
-     (Self : Command) return LSP.Structures.LSPAny_Vector;
 
    function Command_To_Refactoring_Edits
      (Self     : Command;

@@ -103,6 +103,19 @@ package body LSP.Text_Documents.Langkit_Documents is
           character => To_LSP_Column
             (End_Line_Text, A_Range.End_Column, False)));
 
+   ---------------------
+   -- To_LSP_Position --
+   ---------------------
+
+   function To_LSP_Position
+     (Self    : Langkit_Text_Document'Class;
+      Sloc : Langkit_Support.Slocs.Source_Location)
+      return LSP.Structures.Position
+   is
+     (line => To_LSP_Line (Sloc.Line),
+      character => To_LSP_Column
+        (Self.Line (Sloc.Line), Sloc.Column, False));
+
    -------------------
    -- To_LSP_Column --
    -------------------
