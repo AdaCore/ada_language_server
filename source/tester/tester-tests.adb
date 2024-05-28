@@ -88,12 +88,20 @@ package body Tester.Tests is
 
    function Generate_Diff
      (Left, Right : GNATCOLL.JSON.JSON_Value;
-      Indent  : Natural;
-      Minimal : Boolean)
+      Indent      : Natural;
+      Minimal     : Boolean)
       return Unbounded_String;
    --  Result is a json like representation of the diff between Left and Right.
    --  Indent represents the current indentation level.
    --  Minimal will only show the different lines.
+
+   function Find_Matching_Request
+     (Request      : GNATCOLL.JSON.JSON_Value;
+      Search_Array : GNATCOLL.JSON.JSON_Array;
+      Request_ID   : out Integer)
+      return GNATCOLL.JSON.JSON_Value;
+   --  Search for the matching Request in Search_Array. Return JSON_Null if
+   --  Request was not matched.
 
    procedure Generate_Diff_Internal
      (Left, Right : GNATCOLL.JSON.JSON_Value;
@@ -902,8 +910,8 @@ package body Tester.Tests is
 
    function Generate_Diff
      (Left, Right : GNATCOLL.JSON.JSON_Value;
-      Indent  : Natural;
-      Minimal : Boolean)
+      Indent      : Natural;
+      Minimal     : Boolean)
       return Unbounded_String
    is
       Result : Unbounded_String;
@@ -916,18 +924,42 @@ package body Tester.Tests is
          --  diagnostics can have leaked in the recent output.
 
          declare
-            L        : constant GNATCOLL.JSON.JSON_Array := Left.Get;
-            Expected : constant GNATCOLL.JSON.JSON_Value :=
-              GNATCOLL.JSON.Get (L, 1);
-            R        : constant GNATCOLL.JSON.JSON_Array := Right.Get;
+            L : constant GNATCOLL.JSON.JSON_Array := Left.Get;
+            R : constant GNATCOLL.JSON.JSON_Array := Right.Get;
          begin
             for J in 1 .. GNATCOLL.JSON.Length (R) loop
-               Generate_Diff_Internal
-                 (Left    => Expected,
-                  Right   => GNATCOLL.JSON.Get (R, J),
-                  Indent  => Indent,
-                  Minimal => Minimal,
-                  Result  => Result);
+               --  For each request, try to find the request with the same ID
+               declare
+                  Expected    : constant GNATCOLL.JSON.JSON_Value :=
+                    GNATCOLL.JSON.Get (R, J);
+                  Expected_ID : Integer;
+                  Matching_Request : constant GNATCOLL.JSON.JSON_Value :=
+                    Find_Matching_Request
+                      (Request      => Expected,
+                       Search_Array => L,
+                       Request_ID   => Expected_ID);
+               begin
+                  if Matching_Request /= GNATCOLL.JSON.JSON_Null then
+                     Generate_Diff_Internal
+                       (Left    => Matching_Request,
+                        Right   => Expected,
+                        Indent  => Indent,
+                        Minimal => Minimal,
+                        Result  => Result);
+                  else
+                     if Expected_ID /= -1 then
+                        --  Alert the user we failed to find the request
+                        Result.Append
+                          ("Failed to find result for request:"
+                           & Expected_ID'Image);
+                        Result.Append (Ada.Characters.Latin_1.LF);
+                        Result.Append
+                          ("Either the result was never received or the id "
+                           & "defined in test.json doesn't match the request");
+                        Result.Append (Ada.Characters.Latin_1.LF);
+                     end if;
+                  end if;
+               end;
             end loop;
          end;
       else
@@ -942,6 +974,46 @@ package body Tester.Tests is
 
       return Result;
    end Generate_Diff;
+
+   ---------------------------
+   -- Find_Matching_Request --
+   ---------------------------
+
+   function Find_Matching_Request
+     (Request      : GNATCOLL.JSON.JSON_Value;
+      Search_Array : GNATCOLL.JSON.JSON_Array;
+      Request_ID   : out Integer)
+      return GNATCOLL.JSON.JSON_Value
+   is
+      function Get_ID (Value : GNATCOLL.JSON.JSON_Value) return Integer;
+
+      ------------
+      -- Get_ID --
+      ------------
+
+      function Get_ID (Value : GNATCOLL.JSON.JSON_Value) return Integer is
+      begin
+         if Value.Kind = JSON_Object_Type and then Value.Has_Field ("id") then
+            return Value.Get ("id");
+         end if;
+         return -1;
+      end Get_ID;
+
+   begin
+      Request_ID := Get_ID (Request);
+      if Request_ID = -1 then
+         --  No ID, so left was not a request object
+         return GNATCOLL.JSON.JSON_Null;
+      end if;
+
+      for J in 1 .. GNATCOLL.JSON.Length (Search_Array) loop
+         if Get_ID (GNATCOLL.JSON.Get (Search_Array, J)) = Request_ID then
+            return GNATCOLL.JSON.Get (Search_Array, J);
+         end if;
+      end loop;
+
+      return GNATCOLL.JSON.JSON_Null;
+   end Find_Matching_Request;
 
    ----------------------------
    -- Generate_Diff_Internal --
@@ -1179,6 +1251,7 @@ package body Tester.Tests is
                        "Received array doesn't match the size"
                      & Ada.Characters.Latin_1.LF
                      & GNATCOLL.JSON.Write (Right, False));
+                  return;
                else
                   for J in 1 .. Len loop
                      Add_Indent (Indent + 1);
@@ -1260,9 +1333,11 @@ package body Tester.Tests is
          Text.Append (GNATCOLL.JSON.Write (Output, False));
 
       else
-         if On_Failed_Val /= "diff" then
+         if On_Failed_Val /= "" and then On_Failed_Val /= "diff" then
             Text.Append
-              ("Unrecognized value for Format: reverting to ""diff""");
+              ("Unrecognized value for Format: """
+               & On_Failed_Val
+               & """ reverting to ""diff""");
          end if;
          declare
             Diff : Unbounded_String;
