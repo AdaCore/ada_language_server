@@ -4,14 +4,20 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "gnat",
-            "taskKind": "buildProject",
+            "type": "ada",
+            "configuration": {
+               "kind": "buildProject",
+               "projectFile": "${config:ada.projectFile}",
+               "args": [
+                  "-gargs",
+                  "-q"
+               ]
+            },
             "problemMatcher": [
                 "$ada"
             ],
             "group": "build",
             "label": "ada: Build project",
-            "args": ["-gargs", "-q"]
         }
     ]
 }
