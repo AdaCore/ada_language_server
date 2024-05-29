@@ -70,6 +70,12 @@ package LSP.Text_Documents.Langkit_Documents is
       return LSP.Structures.A_Range;
    --  Convert Langkit Source_Location_Range to LSP's A_Range
 
+   function To_LSP_Position
+     (Self : Langkit_Text_Document'Class;
+      Sloc : Langkit_Support.Slocs.Source_Location)
+      return LSP.Structures.Position;
+   --  Convert a Langkit Source_Location to the corresponding LSP position.
+
 private
 
    type Langkit_Text_Document is abstract new Text_Document with null record;

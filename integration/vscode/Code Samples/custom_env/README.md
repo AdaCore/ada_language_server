@@ -22,4 +22,4 @@ Open VS Code and click on the `File -> Open Workspace From File...` menu
 and select the `custom_env.code-workspace` file present in this folder.
 
 You can then build the project by clicking on the `Terminal -> Run Task...` menu,
-and by selecting the `gprbuild -> ada: Build current project` task.
+and by selecting the `ada` -> `ada: Build current project` task.

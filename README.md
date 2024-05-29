@@ -28,7 +28,7 @@ The Ada Language Server now also supports the GPR language, via the
 such as navigation, outline and tooltips for GPR files. When this switch is
 present, the server will only support GPR files. To support both GPR and
 Ada/SPARK, you'll need to launch two instances of the server.
-You can refer to the [Supported LSP Server Requests](#supported-lsp-server-requests) 
+You can refer to the [Supported LSP Server Requests](#supported-lsp-server-requests)
 section for more information.
 
 We also provide [Visual Studio Code](https://code.visualstudio.com/)

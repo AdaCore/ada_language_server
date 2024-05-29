@@ -170,7 +170,7 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
                            (title     => <>,
                             command   => VSS.Strings.Conversions.
                               To_Virtual_String (Command'External_Tag),
-                            arguments => Self.Write_Command)),
+                            arguments => Self.Write_Command_Args)),
          data        => <>);
 
       Commands_Vector.Append
@@ -232,7 +232,7 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
    -- Write_Command --
    -------------------
 
-   function Write_Command
+   function Write_Command_Args
      (Self : Command) return LSP.Structures.LSPAny_Vector
    is
       use VSS.JSON.Streams;
@@ -267,6 +267,6 @@ package body LSP.Ada_Handlers.Refactor.Auto_Import is
       Result.Append (JSON_Stream_Element'(Kind => End_Array));
 
       return Result;
-   end Write_Command;
+   end Write_Command_Args;
 
 end LSP.Ada_Handlers.Refactor.Auto_Import;
