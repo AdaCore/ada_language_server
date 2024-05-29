@@ -166,6 +166,7 @@ package body LSP.Ada_Documents is
 
       procedure Append_Auto_Import_Command is
          use LSP.Ada_Handlers.Refactor;
+         use Libadalang.Analysis;
 
          Auto_Import_Command : Auto_Import.Command;
          --  The auto-import command.
@@ -179,20 +180,28 @@ package body LSP.Ada_Documents is
          --  Check if we are completing a dotted name. We want to prepend the
          --  right qualifier only if it's not the case.
 
+         Missing_Unit_Root_Decl : constant Libadalang.Analysis.Basic_Decl :=
+           BD.P_Enclosing_Compilation_Unit.P_Decl;
+         --  The missing unit root declaration for this invisible symbol (e.g:
+         --  the "Ada.Text_IO" package declaration for the
+         --  "Ada.Text_IO.Put_Line" subprogram).
+
          Missing_Unit_Name  : VSS.Strings.Virtual_String :=
            VSS.Strings.Conversions.To_Virtual_String
              (Langkit_Support.Text.To_UTF8
-                (BD.P_Enclosing_Compilation_Unit.P_Decl.
-                       P_Fully_Qualified_Name));
+                (Missing_Unit_Root_Decl.P_Fully_Qualified_Name));
          --  Get the missing unit name.
 
          Missing_Qualifier  : VSS.Strings.Virtual_String :=
-           (if not Is_Dotted_Name then
-               Missing_Unit_Name
+           (if Is_Dotted_Name or else BD = Missing_Unit_Root_Decl then
+               VSS.Strings.Empty_Virtual_String
             else
-               VSS.Strings.Empty_Virtual_String);
-         --  The missing qualifier. We should not add any qualifier if it's
-         --  already present (i.e: when completing a dotted name).
+               Missing_Unit_Name);
+         --  The missing qualifier. We should not add any qualifier if the
+         --  user accepted the completion item corresponding to the missing
+         --  unit itself (e.g: if the user selects "Ada.Text_IO" in the
+         --  completion window, we do not need to add any qualifier) or if
+         --  he's completing a dotted name.
       begin
          Auto_Import_Command.Initialize
            (Context     => Context,
