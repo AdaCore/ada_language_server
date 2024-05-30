@@ -101,6 +101,9 @@
          "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
          "!**/node_modules/**"
       ],
+      "env": {
+         "MOCHA_TIMEOUT": "0"
+      },
       "preLaunchTask": "npm: watch - integration/vscode/ada"
    }
 }
