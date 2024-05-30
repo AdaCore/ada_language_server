@@ -16,7 +16,6 @@
 ----------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import commandExists from 'command-exists';
 import * as vscode from 'vscode';
 import { CMD_GPR_PROJECT_ARGS } from './commands';
 import { adaExtState } from './extension';
@@ -545,6 +544,11 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
     }
 }
 
+/**
+ *
+ * @returns true if ALIRE should be used for task execution, i.e. when the
+ * workspace contains a `alire.toml` file.
+ */
 async function useAlire() {
     return (await adaExtState.getAlireTomls()).length > 0;
 }
@@ -641,18 +645,6 @@ function isEmptyArray(obj: unknown): boolean {
     }
 
     return false;
-}
-
-//  Alire `exec` command if we have `alr` installed and `alire.toml`
-export async function alire(): Promise<string[]> {
-    return vscode.workspace.findFiles('alire.toml').then((found) =>
-        found.length == 0
-            ? [] // not alire.toml found, return no command
-            : // if alire.toml found, search for `alr`
-              commandExists('alr')
-                  .then(() => ['alr', 'exec', '--'])
-                  .catch(() => [])
-    );
 }
 
 export function registerTaskProviders() {
@@ -1004,6 +996,17 @@ export async function findBuildMainTask(adaMain: AdaMain): Promise<vscode.Task |
     );
 }
 
+/**
+ * Create an updated task that uses the `alr` executable.
+ *
+ * If the task matches the pre-defined tasks for building and cleaning the project,
+ * then the commands used will be respectively `alr build` and `alr clean`.
+ *
+ * Otherwise `alr exec -- ...` is used.
+ *
+ * @param taskDef - a task definition to update to ALIRE
+ * @returns a copy of the given task where the `alr` executable is used.
+ */
 function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
     /**
      * Only process shell command tasks, if they are not already using ALIRE
