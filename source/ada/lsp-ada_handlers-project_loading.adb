@@ -350,6 +350,15 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  project.
       Self.Project_Status.GPR2_Messages := Self.Project_Tree.Log_Messages.all;
       Self.Project_Status.Project_File := Project_File;
+      Self.Tracer.Trace ("GPR2 Log Messages:");
+      for Msg of Self.Project_Status.GPR2_Messages loop
+         declare
+            Location : constant String := Msg.Sloc.Format (Full_Path_Name => True);
+            Message : constant String := Msg.Message;
+         begin
+            Self.Tracer.Trace (Location & " " & Message);
+         end;
+      end loop;
 
       if Self.Project_Status.Load_Status /= Status
         or else not Self.Project_Tree.Is_Defined
