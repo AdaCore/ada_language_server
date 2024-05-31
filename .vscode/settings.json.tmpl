@@ -91,6 +91,10 @@
       "**/.hg/store/**": true,
       ".obj/": true
    },
+   // The Extension Test Runner extension loads VS Code Mocha tests into the GUI
+   // by evaluating the JS test sources. If that fails, the following snippet
+   // switches it to a syntactic extraction which might will likely miss
+   // dynamically defined tests but might crashes in test loading.
    // "extension-test-runner.extractSettings": {
    //    "suite": ["describe", "suite"],
    //    "test": ["it", "test"],
