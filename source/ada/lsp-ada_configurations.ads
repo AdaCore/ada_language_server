@@ -24,6 +24,9 @@ with VSS.String_Vectors;
 with LSP.Enumerations;
 with LSP.Structures;
 
+with GPR2.Context;
+with GPR2.Path_Name;
+
 package LSP.Ada_Configurations is
 
    type Configuration is tagged private;
@@ -93,17 +96,18 @@ package LSP.Ada_Configurations is
    function Documentation_Style (Self : Configuration'Class)
      return GNATdoc.Comments.Options.Documentation_Style;
 
-   type Variable_List is record
-      Names  : VSS.String_Vectors.Virtual_String_Vector;
-      Values : VSS.String_Vectors.Virtual_String_Vector;
-   end record;
-
-   function Scenario_Variables
-     (Self : Configuration'Class) return Variable_List;
-   --  Scenario variables, if provided by the user on Configuration/Init
-
    function Display_Method_Ancestry_Policy (Self : Configuration'Class)
      return LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy;
+
+   function Build_Path
+     (Self : Configuration'Class; File : GPR2.Path_Name.Object)
+      return GPR2.Path_Name.Object;
+   --  Convert Self.Relocate_Build_Tree, Self.Relocate_Root & File to
+   --  GPR2.Project.Tree.Load procedures Build_Path parameter.
+
+   function Context (Self : Configuration'Class) return GPR2.Context.Object;
+   --  Convert Configuration scenario variables to
+   --  GPR2.Project.Tree.Load procedures Context parameter.
 
    function Completion_Formatting return Boolean;
    --  Used in LSP.Ada_Completions.Pretty_Print_Snippet
@@ -146,6 +150,8 @@ private
 
       Variables_Names          : VSS.String_Vectors.Virtual_String_Vector;
       Variables_Values         : VSS.String_Vectors.Virtual_String_Vector;
+
+      Context                  : GPR2.Context.Object;
    end record;
 
    function Project_File
@@ -163,10 +169,6 @@ private
    function Relocate_Root
      (Self : Configuration'Class) return VSS.Strings.Virtual_String is
        (Self.Relocate_Root);
-
-   function Scenario_Variables
-     (Self : Configuration'Class) return Variable_List is
-       ((Self.Variables_Names, Self.Variables_Values));
 
    function Diagnostics_Enabled (Self : Configuration'Class) return Boolean is
       (Self.Diagnostics_Enabled);
@@ -215,5 +217,8 @@ private
      return LSP.Structures.DocumentOnTypeFormattingOptions is
      (firstTriggerCharacter => 1 * VSS.Characters.Latin.Line_Feed,
       moreTriggerCharacter  => <>);
+
+   function Context (Self : Configuration'Class) return GPR2.Context.Object
+   is (Self.Context);
 
 end LSP.Ada_Configurations;
