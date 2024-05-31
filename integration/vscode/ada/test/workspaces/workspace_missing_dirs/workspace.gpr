@@ -1,5 +1,5 @@
 --  This .gpr file is used to test the command that displays a popup
 --  to adds source directories not located under the workspace's root folder.
 project Workspace is
-   for Source_Dirs use (".", "../general/src/", "../gnattest/");
+   for Source_Dirs use (".", "../general/src/highlighting/hello", "../general/src/highlighting/nesting");
 end Workspace;
