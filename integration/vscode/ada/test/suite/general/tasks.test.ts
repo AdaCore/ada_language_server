@@ -56,7 +56,7 @@ ada: Build current project - gprbuild -P ${projectPath} -cargs:ada -gnatef
 ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
 ada: Analyze the project with GNAT SAS - gnatsas analyze -P ${projectPath}
 ada: Analyze the current file with GNAT SAS - gnatsas analyze -P ${projectPath} --file=\${fileBasename}
-ada: Create a report after a GNAT SAS analysis - gnatsas report sarif -P ${projectPath}
+ada: Create a report after a GNAT SAS analysis - gnatsas report sarif -P ${projectPath} -o report.sarif
 ada: Generate documentation from the project - gnatdoc -P ${projectPath}
 ada: Create/update test skeletons for the project - gnattest -P ${projectPath}
 ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef

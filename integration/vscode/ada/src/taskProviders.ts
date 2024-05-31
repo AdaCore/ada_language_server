@@ -16,6 +16,7 @@
 ----------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { basename } from 'path';
 import * as vscode from 'vscode';
 import { CMD_GPR_PROJECT_ARGS } from './commands';
 import { adaExtState } from './extension';
@@ -120,6 +121,11 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnatsas',
             args: ['analyze', '${command:ada.gprProjectArgs}'],
         },
+        /**
+         * Analysis results are not printed on stdio so no need to parse them
+         * with a problem matcher. Results should be viewed with the
+         * `gnatsas report` task below
+         */
         problemMatchers: '',
     },
     {
@@ -129,6 +135,11 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnatsas',
             args: ['analyze', '${command:ada.gprProjectArgs}', '--file=${fileBasename}'],
         },
+        /**
+         * Analysis results are not printed on stdio so no need to parse them
+         * with a problem matcher. Results should be viewed with the
+         * `gnatsas report` task below
+         */
         problemMatchers: '',
     },
     {
@@ -136,8 +147,12 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_ADA,
             command: 'gnatsas',
-            args: ['report', 'sarif', '${command:ada.gprProjectArgs}'],
+            args: ['report', 'sarif', '${command:ada.gprProjectArgs}', '-o', 'report.sarif'],
         },
+        /**
+         * Analysis results are not printed on stdio so no need to parse them
+         * with a problem matcher.
+         */
         problemMatchers: '',
     },
     {
@@ -149,6 +164,10 @@ const predefinedTasks: PredefinedTask[] = [
                 'Create a report after a GNAT SAS analysis',
             ],
         },
+        /**
+         * Analysis results are not printed on stdio so no need to parse them
+         * with a problem matcher.
+         */
         problemMatchers: '',
     },
     {
@@ -1011,7 +1030,7 @@ function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
     /**
      * Only process shell command tasks, if they are not already using ALIRE
      */
-    if (taskDef.command && taskDef.command != 'alr' && taskDef.command != 'alr.exe') {
+    if (taskDef.command && !isAlire(taskDef.command)) {
         /**
          * Create a copy of the task definition to modify its properties
          */
@@ -1020,7 +1039,8 @@ function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
         const args = taskDef.args?.concat() ?? [];
 
         /**
-         * Change command to alire
+         * Change command to alire. No need to use `alr.exe` on Windows, just
+         * `alr` works.
          */
         newTaskDef.command = 'alr';
 
@@ -1051,4 +1071,16 @@ function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
     }
 
     return taskDef;
+}
+
+/**
+ *
+ * @param command - a string or {@link vscode.ShellQuotedString} from a task definition
+ * @returns true if the command points to ALIRE, i.e. if it's `alr` or `alr.exe`
+ * or a path to those executables.
+ */
+function isAlire(command: string | vscode.ShellQuotedString): boolean {
+    const value = typeof command == 'string' ? command : command.value;
+    const commandBasename = basename(value);
+    return commandBasename.match(/^alr(\.exe)?$/) != null;
 }
