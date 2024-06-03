@@ -1,0 +1,294 @@
+[
+   {
+      "comment": [
+         "Checks that Sort Dependencies refactoring code action is correctly provided and executed when a prelude range is selected."
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 59002,
+               "locale": "en-gb",
+               "rootPath": "$URI{.}",
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "create",
+                           "rename",
+                           "delete"
+                        ]
+                     },
+                     "executeCommand": {
+                        "dynamicRegistration": true
+                     }
+                  },
+                  "textDocument": {
+                     "codeAction": {
+                        "dynamicRegistration": true,
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": [
+                                 "refactor",
+                                 "refactor.extract",
+                                 "refactor.inline",
+                                 "refactor.rewrite"
+                              ]
+                           }
+                        }
+                     }
+                  },
+                  "experimental": {
+                     "advanced_refactorings": [
+                        "replace_type"
+                     ]
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "codeActionProvider": {
+                        "codeActionKinds": [
+                           "<HAS>",
+                           "refactor.rewrite"
+                        ]
+                     },
+                     "executeCommandProvider": {
+                        "commands": [
+                           "<HAS>",
+                           "als-refactor-sort_dependencies"
+                        ]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "trace": {
+                        "server": "off"
+                     },
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1",
+                     "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                     "enableDiagnostics": true,
+                     "useCompletionSnippets": false,
+                     "renameInComments": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main_package.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "pragma Ada_2012;\n\n--  Comment 1\nwith Ada.Containers; --  Comment 2\n--  Comment 3\nprivate with Ada.Finalization; --  Comment 4\n--  Comment 5\nwith Ada.Strings.Unbounded; --  Comment 6\nprivate with Ada.Unchecked_Deallocation; --  Comment 7\n--  Comment 8\n\n--  Comment 9\n--  Comment 10\nprivate with Qux; --  Comment 11\npragma Elaborate (Qux); -- Comment 12\n\n--  Comment 13\n--  Comment 14\n\n--  Comment 15\n\n--  Comment 16\n--  Comment 17\n--  Comment 18\nwith Foo; --  Comment 19\npragma Elaborate_All (Foo);\npragma Warnings (Off, --  Comment 20\n                 Foo);     -- Comment 21\n-- Comment 22\n\nlimited with Corge;\n--  Comment 23\nwith Bar; use Bar; --  Comment 24\n--  Comment 25\npragma Warnings (Off, --  Comment 26\n                 Bar);\n\nuse Foo;\n--  Comment 27\n--  Comment 28\n\nwith Ada.Strings;\nwith Ada.Containers.Vectors;\nwith Ada.Containers.Hashed_Sets;\n\nwith Ada.Strings.Hash;\n--  Comment 29\n--  Comment 30\n\n\n\npackage Main_Package is\n   pragma Elaborate_Body;\n\nend Main_Package;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main_package.ads}"
+               },
+               "range": {
+                  "start": {
+                     "line": 41,
+                     "character": 1
+                  },
+                  "end": {
+                     "line": 43,
+                     "character": 3
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": [
+                  {
+                     "title": "Sort Dependencies",
+                     "kind": "refactor",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-sort_dependencies",
+                        "arguments": [
+                           {
+                              "context": "Default",
+                              "where": {
+                                 "uri": "$URI{main_package.ads}",
+                                 "range": {
+                                    "start": {
+                                       "line": 41,
+                                       "character": 1
+                                    },
+                                    "end": {
+                                       "line": 43,
+                                       "character": 3
+                                    }
+                                 }
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-refactor-sort_dependencies",
+               "arguments": [
+                  {
+                     "context": "Default",
+                     "where": {
+                        "uri": "$URI{main_package.ads}",
+                        "range": {
+                           "start": {
+                              "line": 41,
+                              "character": 1
+                           },
+                           "end": {
+                              "line": 43,
+                              "character": 3
+                           }
+                        }
+                     }
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 2,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "label": "Sort Dependencies",
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "uri": "$URI{main_package.ads}",
+                              "version": 1
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 41,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 43,
+                                       "character": 32
+                                    }
+                                 },
+                                 "newText": "with Ada.Containers.Hashed_Sets;\nwith Ada.Containers.Vectors;\nwith Ada.Strings;"
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
