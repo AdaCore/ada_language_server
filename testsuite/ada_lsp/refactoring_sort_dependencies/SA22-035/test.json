@@ -252,11 +252,11 @@
                                        "character": 0
                                     },
                                     "end": {
-                                       "line": 51,
-                                       "character": 0
+                                       "line": 47,
+                                       "character": 14
                                     }
                                  },
-                                 "newText": "--  Comment 1\nwith Ada.Containers; --  Comment 2\n--  Comment 3\nwith Ada.Containers.Hashed_Sets;\nwith Ada.Containers.Vectors;\nwith Ada.Strings;\nwith Ada.Strings.Hash;\n--  Comment 29\n--  Comment 30\nwith Ada.Strings.Unbounded; --  Comment 6\nwith Bar; use Bar; --  Comment 24\n--  Comment 25\npragma Warnings (Off, --  Comment 26\n                 Bar);\n--  Comment 16\n--  Comment 17\n--  Comment 18\nwith Foo; --  Comment 19\nuse Foo;\n--  Comment 27\n--  Comment 28\npragma Elaborate_All (Foo);\npragma Warnings (Off, --  Comment 20\n                 Foo);     -- Comment 21\n-- Comment 22\n\nprivate with Ada.Finalization; --  Comment 4\n--  Comment 5\nprivate with Ada.Unchecked_Deallocation; --  Comment 7\n--  Comment 8\n--  Comment 9\n--  Comment 10\nprivate with Qux; --  Comment 11\npragma Elaborate (Qux); -- Comment 12\n\n--  Comment 13\n--  Comment 14\n\n--  Comment 15\n\nlimited with Corge;\n--  Comment 23\n\n"
+                                 "newText": "--  Comment 1\nwith Ada.Containers; --  Comment 2\n--  Comment 3\nwith Ada.Containers.Hashed_Sets;\nwith Ada.Containers.Vectors;\nwith Ada.Strings;\nwith Ada.Strings.Hash;\n--  Comment 29\n--  Comment 30\nwith Ada.Strings.Unbounded; --  Comment 6\nwith Bar; use Bar; --  Comment 24\n--  Comment 25\npragma Warnings (Off, --  Comment 26\n                 Bar);\n--  Comment 16\n--  Comment 17\n--  Comment 18\nwith Foo; --  Comment 19\nuse Foo;\n--  Comment 27\n--  Comment 28\npragma Elaborate_All (Foo);\npragma Warnings (Off, --  Comment 20\n                 Foo);     -- Comment 21\n-- Comment 22\n\nprivate with Ada.Finalization; --  Comment 4\n--  Comment 5\nprivate with Ada.Unchecked_Deallocation; --  Comment 7\n--  Comment 8\n--  Comment 9\n--  Comment 10\nprivate with Qux; --  Comment 11\npragma Elaborate (Qux); -- Comment 12\n\n--  Comment 13\n--  Comment 14\n\n--  Comment 15\n\nlimited with Corge;\n--  Comment 23"
                               }
                            ]
                         }
