@@ -77,12 +77,11 @@ package body LSP.Ada_Handlers.Alire is
    -- Run_Alire --
    ---------------
 
-   procedure Run_Alire
+   procedure Determine_Alire_Project
      (Root        : String;
       Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
-      Project     : out VSS.Strings.Virtual_String;
-      Environment : in out GPR2.Environment.Object)
+      Project     : out VSS.Strings.Virtual_String)
    is
       use type GNAT.OS_Lib.String_Access;
 
@@ -95,10 +94,6 @@ package body LSP.Ada_Handlers.Alire is
       Project_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
         VSS.Regular_Expressions.To_Regular_Expression
           (" +Project_File: ([^\n]+)");
-
-      Export_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
-        VSS.Regular_Expressions.To_Regular_Expression
-          ("export ([^=]+)=""([^\n]+)""");
 
       Lines    : VSS.String_Vectors.Virtual_String_Vector;
    begin
@@ -117,20 +112,38 @@ package body LSP.Ada_Handlers.Alire is
          return;
       end if;
 
-      --  Find project file in `alr show` output
+      --  Find project file in `alr show` output. There are several cases to cover.
+      --
+      --  If alire.toml contains a "project-files" entry providing a list of
+      --  projects, `alr show` prints one line per project of the pattern:
+      --  Project_File: ...
+      --
+      --  Otherwise `alr show` doesn't print a Project_File line and we can expect
+      --  there to be a project named identically to the crate name.
+      --
+      --  So the strategy below is to first use the crate name as a project
+      --  name, and then override it if a Project_File line is found (the first
+      --  one is taken).
 
-      declare
-         First : constant VSS.Strings.Virtual_String := Lines (1);
-         --  We should keep copy of regexp subject string while we have a match
-         Match : constant VSS.Regular_Expressions.Regular_Expression_Match :=
-           Crate_Pattern.Match (First);
-      begin
-         if Match.Has_Match then
-            Project := Match.Captured (1);
-            Project.Append (".gpr");
-         end if;
-      end;
+      --  When `alr show` is called in a directory where /alire/ and /config/
+      --  don't exist, the command auto-generates those directories and prints a
+      --  few lines of output before the actual crate information. So we can't
+      --  assume that the crate name will be on the first line.
+      for Line of Lines loop
+         declare
+            --  We should keep copy of regexp subject string while we have a match
+            Match : constant VSS.Regular_Expressions.Regular_Expression_Match :=
+            Crate_Pattern.Match (Line);
+         begin
+            if Match.Has_Match then
+               Project := Match.Captured (1);
+               Project.Append (".gpr");
+               exit;
+            end if;
+         end;
+      end loop;
 
+      --  Next check if there is a Project_File line, take the first one.
       for Line of Lines loop
          declare
             Match : constant VSS.Regular_Expressions.Regular_Expression_Match
@@ -144,39 +157,19 @@ package body LSP.Ada_Handlers.Alire is
       end loop;
 
       if Project.Is_Empty then
-         Error.Append ("No project file is found by alire");
+         Error.Append ("No project file could be determined from the output of `alr show`:");
+         for Line of Lines loop
+            Error.Append (Line);
+         end loop;
       end if;
 
-      --  Find variables in `alr printenv` output
-
-      Start_Alire
-        (ALR.all, "--non-interactive", "printenv", Root, Error, Lines);
-
-      GNAT.OS_Lib.Free (ALR);
-
-      --  Find variables in `alr printenv` output
-
-      for Line of Lines loop
-         declare
-            Match : constant VSS.Regular_Expressions.Regular_Expression_Match
-              := Export_Pattern.Match (Line, Anchored);
-         begin
-            if Match.Has_Match then
-               Environment.Insert
-                 (Key   => VSS.Strings.Conversions.To_UTF_8_String
-                             (Match.Captured (1)),
-                  Value => VSS.Strings.Conversions.To_UTF_8_String
-                             (Match.Captured (2)));
-            end if;
-         end;
-      end loop;
-   end Run_Alire;
+   end Determine_Alire_Project;
 
    ---------------
    -- Run_Alire --
    ---------------
 
-   procedure Run_Alire
+   procedure Setup_Alire_Env
      (Root        : String;
       Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
@@ -221,7 +214,7 @@ package body LSP.Ada_Handlers.Alire is
             end if;
          end;
       end loop;
-   end Run_Alire;
+   end Setup_Alire_Env;
 
    -----------------
    -- Start_Alire --

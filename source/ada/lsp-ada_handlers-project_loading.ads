@@ -17,8 +17,7 @@
 
 with VSS.Strings;
 with GPR2.Environment;
-
-with LSP.Ada_Configurations;
+with GPR2.Context;
 
 private
 
@@ -27,7 +26,7 @@ package LSP.Ada_Handlers.Project_Loading is
    procedure Load_Project
      (Self         : in out Message_Handler'Class;
       Project_Path : VSS.Strings.Virtual_String;
-      Scenario     : LSP.Ada_Configurations.Variable_List;
+      Context      : GPR2.Context.Object;
       Environment  : GPR2.Environment.Object;
       Charset      : VSS.Strings.Virtual_String;
       Status       : Load_Project_Status);

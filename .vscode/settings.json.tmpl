@@ -78,8 +78,10 @@
    // Allow GitLab-specific Yaml tags in .gitlab-ci.yml
    "yaml.customTags": ["!reference sequence"],
    "triggerTaskOnSave.tasks": {
-      "ada: Compile current file": ["*.adb"],
-      "ada: Check current file": ["*.ads"]
+      // To work with automatically provided tasks, they
+      // must be provided without the `ada: ` prefix.
+      "Compile current file": ["*.adb"],
+      "Check current file": ["*.ads"]
    },
    "triggerTaskOnSave.restart": true,
    "files.watcherExclude": {
@@ -89,16 +91,23 @@
       "**/.hg/store/**": true,
       ".obj/": true
    },
-   "extension-test-runner.extractSettings": {
-      "suite": ["describe", "suite"],
-      "test": ["it", "test"],
-      "extractWith": "syntax"
-   },
+   // The Extension Test Runner extension loads VS Code Mocha tests into the GUI
+   // by evaluating the JS test sources. If that fails, the following snippet
+   // switches it to a syntactic extraction which might will likely miss
+   // dynamically defined tests but might crashes in test loading.
+   // "extension-test-runner.extractSettings": {
+   //    "suite": ["describe", "suite"],
+   //    "test": ["it", "test"],
+   //    "extractWith": "syntax"
+   // },
    "extension-test-runner.debugOptions": {
       "outFiles": [
          "${workspaceFolder}/integration/vscode/ada/out/**/*.js",
          "!**/node_modules/**"
       ],
+      "env": {
+         "MOCHA_TIMEOUT": "0"
+      },
       "preLaunchTask": "npm: watch - integration/vscode/ada"
    }
 }

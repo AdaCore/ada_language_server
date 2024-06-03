@@ -148,7 +148,9 @@ package body LSP.GPR_Documents is
    -- Load --
    ----------
 
-   procedure Load  (Self : in out Document) is
+   procedure Load
+     (Self          : in out Document;
+      Configuration : LSP.Ada_Configurations.Configuration) is
 
       procedure Update_Diagnostics;
       --  Update Self.Messages, Self.Errors_Changed, Self.Has_Diagnostics
@@ -181,7 +183,8 @@ package body LSP.GPR_Documents is
 
       Self.Tree.Load_Autoconf
         (Filename          => Self.File,
-         Context           => Self.Context,
+         Context           => Configuration.Context,
+         Build_Path        => Configuration.Build_Path (Self.File),
          File_Reader       => Self.File_Provider.Get_File_Reader,
          Environment       => Self.Environment);
 

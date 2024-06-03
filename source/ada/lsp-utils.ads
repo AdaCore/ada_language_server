@@ -17,8 +17,9 @@
 
 --  This package provides some utility subprograms.
 
-with VSS.Strings;
+with VSS.Strings.Conversions;
 
+with GNATCOLL.VFS;
 with GPR2.Path_Name;
 with GPR2.Message;
 with GPR2.Source_Reference;
@@ -118,5 +119,16 @@ package LSP.Utils is
      (Message : GPR2.Message.Object) return LSP.Structures.Diagnostic;
    --  Convert a GPR2 message into a proper LSP diagnostic, with the right
    --  severity level and the location reported by GPR2.
+
+   function To_Virtual_File
+     (Value : VSS.Strings.Virtual_String) return GNATCOLL.VFS.Virtual_File is
+     (GNATCOLL.VFS.Create_From_UTF8
+        (VSS.Strings.Conversions.To_UTF_8_String (Value)));
+   --  Cast Virtual_String to Virtual_File
+
+   function To_Virtual_String
+     (Value : GNATCOLL.VFS.Virtual_File) return VSS.Strings.Virtual_String is
+     (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
+   --  Cast Virtual_File to Virtual_String
 
 end LSP.Utils;

@@ -1,0 +1,5 @@
+project Prj is
+--  leading documentation style
+Var := external("GPR_LSP_CONFIGURATION", "default");
+--  gnat documentation style
+end Prj;

@@ -20,6 +20,9 @@ pragma Ada_2022;
 with Ada.Containers.Generic_Anonymous_Array_Sort;
 
 with GNATCOLL.Traces;
+with GNATCOLL.VFS;
+
+with LSP.Utils;
 
 with VSS.JSON.Pull_Readers.Simple;
 with VSS.JSON.Streams;
@@ -70,6 +73,43 @@ package body LSP.Ada_Configurations is
       JSON   : LSP.Structures.LSPAny;
       From   : Positive;
       Reload : out Boolean);
+
+   ----------------
+   -- Build_Path --
+   ----------------
+
+   function Build_Path
+     (Self : Configuration'Class;
+      File : GPR2.Path_Name.Object)
+      return GPR2.Path_Name.Object
+   is
+      Result : GPR2.Path_Name.Object;
+
+      Relocate_Build_Tree : constant GNATCOLL.VFS.Virtual_File :=
+                              LSP.Utils.To_Virtual_File
+                                (Self.Relocate_Build_Tree);
+
+      Root_Dir            : constant GNATCOLL.VFS.Virtual_File :=
+                              LSP.Utils.To_Virtual_File (Self.Relocate_Root);
+
+   begin
+      if not Self.Relocate_Build_Tree.Is_Empty then
+         Result := GPR2.Path_Name.Create (Relocate_Build_Tree);
+
+         if not Self.Relocate_Root.Is_Empty and then File.Is_Defined
+         then
+            if not Root_Dir.Is_Absolute_Path then
+               Result :=
+                 GPR2.Path_Name.Create_Directory
+                   (File.Relative_Path
+                    (GPR2.Path_Name.Create (Root_Dir)),
+                    GPR2.Filename_Type
+                      (Result.Value));
+            end if;
+         end if;
+      end if;
+      return Result;
+   end Build_Path;
 
    ---------------------------
    -- Completion_Formatting --
@@ -216,6 +256,17 @@ package body LSP.Ada_Configurations is
 
             Self.Variables_Names := Variables_Names;
             Self.Variables_Values := Variables_Values;
+
+            --  Replace Context with user provided values
+            Self.Context.Clear;
+            for J in 1 .. Variables_Names.Length loop
+               Self.Context.Insert
+                 (GPR2.Optional_Name_Type
+                    (VSS.Strings.Conversions.To_UTF_8_String
+                         (Variables_Names (J))),
+                  VSS.Strings.Conversions.To_UTF_8_String
+                    (Variables_Values (J)));
+            end loop;
 
          elsif Name = "defaultCharset"
            and then JSON (Index).Kind = String_Value

@@ -51,6 +51,8 @@ extension at
     - [Refactoring](#refactoring)
     - [Tasks](#tasks)
       - [Task Customization](#task-customization)
+      - [Tasks for Project Mains](#tasks-for-project-mains)
+      - [ALIRE Support](#alire-support)
     - [Commands and Shortcuts](#commands-and-shortcuts)
       - [Ada: Go to other file](#ada-go-to-other-file)
       - [Ada: Add subprogram box](#ada-add-subprogram-box)
@@ -190,6 +192,10 @@ The extension provides the following auto-detected tasks
 * `spark: Prove selected region` - launch `gnatprove` on the selected region in the current editor
 * `spark: Prove line` - launch `gnatprove` on the cursor line in the current editor
 * `spark: Clean project for proof` - launch `gnatprove` on the current GPR project to clean proof artefacts
+* `ada: Analyze the project with GNAT SAS`
+* `ada: Analyze the current file with GNAT SAS`
+* `ada: Create a report after a GNAT SAS analysis`
+* `ada: Analyze the project with GNAT SAS and produce a report`
 
 You can bind keyboard shortcuts to them by adding to the `keybindings.json` file:
 
@@ -205,7 +211,7 @@ You can bind keyboard shortcuts to them by adding to the `keybindings.json` file
 #### Task Customization
 
 You can [customize auto-detected tasks](https://code.visualstudio.com/docs/editor/tasks#_customizing-autodetected-tasks)
-by providing extra tool command line options via the `args` property of the `configuration` object in the `tasks.json`:
+by providing extra tool command line options via the `args` property of the object in the `tasks.json`:
 
 ```json
 {
@@ -213,18 +219,69 @@ by providing extra tool command line options via the `args` property of the `con
    "tasks": [
       {
          "type": "ada",
-         "configuration": {
-            "kind": "buildProject",
-            "projectFile": "${config:ada.projectFile}",
-            "args": ["-gargs", "-vh"]
-         },
+         "command": "gprbuild",
+         "args": [
+            "${command:ada.gprProjectArgs}",
+            "-cargs:ada",
+            "-gnatef",
+            "-gargs",
+            "-vh"
+         ],
          "problemMatcher": ["$ada"],
          "group": "build",
-         "label": "ada: Build current project with custom options"
+         "label": "ada: Build current project"
       }
    ]
 }
 ```
+
+You can also customize the working directory of the task or the environment variables via the `options` property:
+
+```json
+{
+   "version": "2.0.0",
+   "tasks": [
+      {
+         "type": "ada",
+         "command": "gprbuild",
+         "args": [
+            "${command:ada.gprProjectArgs}",
+            "-cargs:ada",
+            "-gnatef"
+         ],
+         "options": {
+            "cwd": "${workspaceFolder}/my/subdir",
+            "env": {
+               "MY_ENV_VAR": "value"
+            }
+         },
+         "problemMatcher": ["$ada"],
+         "group": "build",
+         "label": "ada: Build current project"
+      }
+   ]
+}
+```
+
+#### Tasks for Project Mains
+
+If your GPR project defines main programs via the project attribute `Main`, additional tasks are automatically provided for each defined main.
+For example, if the project defines a `main1.adb` and `main2.adb` located under the `src/` source directory, the following tasks will be available:
+
+* `ada: Build main - src/main1.adb`
+* `ada: Run main - src/main1.adb`
+* `ada: Build and run main - src/main1.adb`
+* `ada: Build main - src/main2.adb`
+* `ada: Run main - src/main2.adb`
+* `ada: Build and run main - src/main2.adb`
+
+#### ALIRE Support
+
+When the workspace is an ALIRE project (i.e. it contains an `alire.toml` file), tasks automatically use standard ALIRE commands.
+
+For example, the `ada: Build current project` task uses the command `alr build` and the `ada: Clean current project` task uses the command `alr clean`.
+
+All other tasks use `alr exec -- ...` to execute the command in the environment provided by ALIRE.
 
 ### Commands and Shortcuts
 
@@ -259,12 +316,13 @@ The VS Code extension has a few limitations and some differences compared to [GN
 * **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
 formatting might no succeed on incomplete/illegal code.
 
-* **Tooling support**: we currently provide minimal support for *SPARK* (see *Prove/Examine* tasks in the [Auto-detected tasks](#auto-detected-tasks) section), but there is no support for tools such as *CodePeer*, *GNATcheck*, *GNATtest* or *GNATcoverage*.
+* **Tooling support**: we currently provide support for some *SPARK*, *GNATtest* and *GNAT SAS* [Tasks](#tasks), but there is no support for tools such as *GNATcheck* or *GNATcoverage* yet.
 
 * **Alire support**: if the root folder contains an `alire.toml` file and
   there is `alr` executable in the `PATH`, then the language server fetches
   the project's search path, environment variables and the project's file
-  name from the crate description.
+  name from the crate description. [Tasks](#tasks) are also automatically
+  invoked with ALIRE in this case.
 
 * **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/settings.md)). Saving the settings file after changing the values will automatically reload the project and update the
 predefined tasks to take into account the new scenario values.

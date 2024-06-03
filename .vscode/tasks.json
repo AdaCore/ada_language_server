@@ -9,16 +9,6 @@
          "group": "test"
       },
       {
-         "type": "ada",
-         "configuration": {
-            "kind": "checkFile",
-            "projectFile": "${config:ada.projectFile}"
-         },
-         "problemMatcher": ["$ada"],
-         "group": "build",
-         "label": "ada: Check current file"
-      },
-      {
          "type": "npm",
          "script": "watch",
          "path": "integration/vscode/ada",

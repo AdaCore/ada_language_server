@@ -1,6 +1,13 @@
 import assert from 'assert';
+import { spawnSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import * as vscode from 'vscode';
+import { setTerminalEnvironment } from '../../src/helpers';
+import {
+    SimpleTaskProvider,
+    findTaskByName,
+    getConventionalTaskLabel,
+} from '../../src/taskProviders';
 
 /**
  * This function compares some actual output to an expected referenced stored in
@@ -58,4 +65,142 @@ export async function activate(): Promise<void> {
      * does report activation errors as a promise rejection.
      */
     await ext.activate();
+}
+export async function getCommandLines(prov: SimpleTaskProvider) {
+    const tasks = await prov.provideTasks();
+    assert(tasks);
+
+    const actualCommandLines = (
+        await Promise.all(
+            tasks.map(async (t) => {
+                return { task: t, execution: (await prov.resolveTask(t))?.execution };
+            })
+        )
+    )
+        .filter(function ({ execution }) {
+            return execution instanceof vscode.ShellExecution;
+        })
+        .map(function ({ task, execution }) {
+            assert(execution instanceof vscode.ShellExecution);
+            return `${task.source}: ${task.name} - ${getCmdLine(execution)}`;
+        })
+        .join('\n');
+    return actualCommandLines;
+}
+export async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
+    return await new Promise<number | undefined>((resolve, reject) => {
+        let started = false;
+
+        const startDisposable = vscode.tasks.onDidStartTask((e) => {
+            if (e.execution.task == task) {
+                /**
+                 * Task was started, let's listen to the end.
+                 */
+                started = true;
+                startDisposable.dispose();
+            }
+        });
+
+        const endDisposable = vscode.tasks.onDidEndTaskProcess((e) => {
+            if (e.execution.task == task) {
+                endDisposable.dispose();
+                resolve(e.exitCode);
+            }
+        });
+
+        setTimeout(() => {
+            /**
+             * If the task has not started within the timeout below, it means an
+             * error occured during startup. Reject the promise.
+             */
+            if (!started) {
+                const msg = `The task '${getConventionalTaskLabel(
+                    task
+                )}' was not started, likely due to an error.\n`;
+                reject(Error(msg));
+            }
+        }, 3000);
+
+        void vscode.tasks.executeTask(task);
+    }).catch(async (reason) => {
+        if (reason instanceof Error) {
+            let msg = 'The current list of tasks is:\n';
+            msg += await vscode.tasks.fetchTasks({ type: task.definition.type }).then(
+                (list) => list.map(getConventionalTaskLabel).join('\n'),
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                (reason) => `fetchTasks promise was rejected: ${reason}`
+            );
+
+            reason.message += '\n' + msg;
+        }
+
+        return Promise.reject(reason);
+    });
+}
+export function getCmdLine(exec: vscode.ShellExecution) {
+    return [exec.command]
+        .concat(exec.args)
+        .map((s) => {
+            if (typeof s == 'object') {
+                return s.value;
+            } else {
+                return s;
+            }
+        })
+        .join(' ');
+}
+
+export async function testTask(
+    taskName: string,
+    testedTasks: Set<string>,
+    allProvidedTasks?: vscode.Task[]
+) {
+    assert(vscode.workspace.workspaceFolders);
+
+    const task = await findTaskByName(taskName, allProvidedTasks);
+    assert(task);
+    testedTasks.add(getConventionalTaskLabel(task));
+
+    const execStatus: number | undefined = await runTaskAndGetResult(task);
+
+    if (execStatus != 0) {
+        let msg = `Got status ${execStatus ?? "'undefined'"} for task '${taskName}'`;
+        if (task.execution instanceof vscode.ShellExecution) {
+            const cmdLine = [task.execution.command].concat(task.execution.args).map((arg) => {
+                if (typeof arg == 'string') {
+                    return arg;
+                } else {
+                    return arg.value;
+                }
+            });
+            msg += ` with command line: ${cmdLine.join(' ')}`;
+
+            try {
+                /**
+                 * Let's try re-running the command line explicitlely to obtain its output.
+                 */
+                const cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
+                msg += `\nTrying to re-run the command explicitly in: ${cwd}`;
+                const env = { ...process.env };
+                setTerminalEnvironment(env);
+                const cp = spawnSync(cmdLine[0], cmdLine.slice(1), { cwd: cwd, env: env });
+
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                msg += `\nProcess ended with exit code ${cp.status} and output:\n`;
+                // msg += cp.stdout.toString() + cp.stderr.toString();
+                msg += cp.output.map((b) => (b != null ? b.toString() : '')).join('');
+            } catch (error) {
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                msg += `\nEncountered an error: ${error}`;
+            }
+        }
+
+        assert.fail(msg);
+    }
+}
+
+export async function closeAllEditors() {
+    while (vscode.window.activeTextEditor) {
+        await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    }
 }
