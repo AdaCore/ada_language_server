@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                     Copyright (C) 2023-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -133,22 +133,24 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
 
       Message_Handler  : LSP.Ada_Handlers.Message_Handler renames
         LSP.Ada_Handlers.Message_Handler (Handler.all);
+      Document         : constant LSP.Ada_Documents.Document_Access :=
+        Message_Handler.Get_Open_Document (URI => Self.Where.uri);
       Context          : LSP.Ada_Contexts.Context renames
         Message_Handler.Contexts.Get (Self.Context).all;
       File             : constant GNATCOLL.VFS.Virtual_File :=
         Message_Handler.To_File (Self.Where.uri);
       Analysis_Unit    : constant Libadalang.Analysis.Analysis_Unit :=
         Context.Get_AU (File);
-      Sloc             : constant Source_Location :=
-        (Langkit_Support.Slocs.Line_Number
-           (Self.Where.a_range.start.line) + 1,
-         Langkit_Support.Slocs.Column_Number
-           (Self.Where.a_range.start.character) + 1);
+      Where            : constant Source_Location_Range :=
+        Document.To_Source_Location_Range (Self.Where.a_range);
       Compilation_Unit : constant Libadalang.Analysis.Compilation_Unit :=
-        Analysis_Unit.Root.Lookup (Sloc).P_Enclosing_Compilation_Unit;
+        Analysis_Unit
+          .Root
+          .Lookup (Where.Start_Sloc)
+          .P_Enclosing_Compilation_Unit;
+      Sorter           : constant Dependencies_Sorter :=
+        Create_Dependencies_Sorter (Compilation_Unit, Where);
 
-      Sorter : constant Dependencies_Sorter :=
-        Create_Dependencies_Sorter (Compilation_Unit);
    begin
       Edits := Sorter.Refactor (null);
    end Refactor;

@@ -1032,10 +1032,8 @@ package body LSP.Ada_Handlers is
             use LSP.Ada_Handlers.Refactor.Sort_Dependencies;
             use LSP.Structures;
 
-            Location        : constant Source_Location :=
-              (Langkit_Support.Slocs.Line_Number
-                 (Value.a_range.start.line) + 1,
-               Column_Number (Value.a_range.start.character) + 1);
+            Location : constant Langkit_Support.Slocs.Source_Location_Range :=
+              Document.To_Source_Location_Range (Value.a_range);
 
             Sort_Dependencies_Command :
               LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command;
