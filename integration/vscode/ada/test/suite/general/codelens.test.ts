@@ -1,11 +1,15 @@
 import assert from 'assert';
 import { Uri, window, workspace } from 'vscode';
 import { adaExtState } from '../../../src/extension';
-import { activate } from '../utils';
+import { activate, closeAllEditors } from '../utils';
 
 suite('CodeLens', function () {
     this.beforeAll(async () => {
         await activate();
+    });
+
+    this.beforeEach(async function () {
+        await closeAllEditors();
     });
 
     test('in main file offer run & debug', async () => {
@@ -16,28 +20,29 @@ suite('CodeLens', function () {
         const codelenses = await adaExtState.codelensProvider.provideCodeLenses(
             textEditor.document
         );
-        assert.equal(
+        assert.deepEqual(
             /**
-             * Check a string representation of the CodeLenses.
+             * Check a subset of the fields in CodeLenses
              */
-            toString(codelenses),
-            `
-[
-  {
-    "command": "ada.buildAndRunMain",
-    "title": "$(run) Run",
-    "arguments": [
-      "src/main1.adb"
-    ]
-  },
-  {
-    "command": "ada.buildAndDebugMain",
-    "title": "$(debug-alt-small) Debug",
-    "arguments": [
-      "src/main1.adb"
-    ]
-  }
-]`.trim()
+            codelenses?.map((v) => ({
+                ...v.command,
+                // The argument is expected to be a Uri, in which case use the
+                // normalized fsPath for comparison with the expected result
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                arguments: v.command?.arguments?.map((a) => (a instanceof Uri ? a.fsPath : a)),
+            })),
+            [
+                {
+                    command: 'ada.buildAndRunMain',
+                    title: '$(run) Run',
+                    arguments: [mainUri.fsPath],
+                },
+                {
+                    command: 'ada.buildAndDebugMain',
+                    title: '$(debug-alt-small) Debug',
+                    arguments: [mainUri.fsPath],
+                },
+            ]
         );
     });
 

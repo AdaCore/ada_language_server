@@ -10,83 +10,82 @@ import { activate } from '../utils';
 import { adaExtState } from '../../../src/extension';
 
 suite('Debug Configurations', function () {
-    let expectedConfigs: string;
+    let expectedConfigs: AdaConfig[];
 
     this.beforeAll(async () => {
         await activate();
-        expectedConfigs = `
-[
-  {
-    "type": "cppdbg",
-    "name": "Ada: Debug main - src/main1.adb",
-    "request": "launch",
-    "targetArchitecture": "x64",
-    "cwd": "\${workspaceFolder}",
-    "program": "\${workspaceFolder}/obj/main1exec${exe}",
-    "stopAtEntry": false,
-    "externalConsole": false,
-    "args": [],
-    "MIMode": "gdb",
-    "preLaunchTask": "ada: Build main - src/main1.adb",
-    "setupCommands": [
-      {
-        "description": "Catch all Ada exceptions",
-        "text": "catch exception",
-        "ignoreFailures": true
-      },
-      {
-        "description": "Enable pretty-printing for gdb",
-        "text": "-enable-pretty-printing",
-        "ignoreFailures": true
-      }
-    ],
-    "miDebuggerPath": "${getOrFindGdb()?.replace(/\\/g, '\\\\') ?? '<undefined>'}"
-  },
-  {
-    "name": "Ada: Attach debugger to running process - src/main1.adb",
-    "type": "cppdbg",
-    "request": "attach",
-    "program": "\${workspaceFolder}/obj/main1exec${exe}",
-    "processId": "\${command:pickProcess}",
-    "MIMode": "gdb",
-    "miDebuggerPath": "${getOrFindGdb()?.replace(/\\/g, '\\\\') ?? '<undefined>'}"
-  },
-  {
-    "type": "cppdbg",
-    "name": "Ada: Debug main - src/test.adb",
-    "request": "launch",
-    "targetArchitecture": "x64",
-    "cwd": "\${workspaceFolder}",
-    "program": "\${workspaceFolder}/obj/test${exe}",
-    "stopAtEntry": false,
-    "externalConsole": false,
-    "args": [],
-    "MIMode": "gdb",
-    "preLaunchTask": "ada: Build main - src/test.adb",
-    "setupCommands": [
-      {
-        "description": "Catch all Ada exceptions",
-        "text": "catch exception",
-        "ignoreFailures": true
-      },
-      {
-        "description": "Enable pretty-printing for gdb",
-        "text": "-enable-pretty-printing",
-        "ignoreFailures": true
-      }
-    ],
-    "miDebuggerPath": "${getOrFindGdb() ?? '<undefined>'}"
-  },
-  {
-    "name": "Ada: Attach debugger to running process - src/test.adb",
-    "type": "cppdbg",
-    "request": "attach",
-    "program": "\${workspaceFolder}/obj/test${exe}",
-    "processId": "\${command:pickProcess}",
-    "MIMode": "gdb",
-    "miDebuggerPath": "${getOrFindGdb() ?? '<undefined>'}"
-  }
-]`;
+        expectedConfigs = [
+            {
+                type: 'cppdbg',
+                name: 'Ada: Debug main - src/main1.adb',
+                request: 'launch',
+                targetArchitecture: 'x64',
+                cwd: '${workspaceFolder}',
+                program: '${workspaceFolder}/obj/main1exec' + exe,
+                stopAtEntry: false,
+                externalConsole: false,
+                args: [],
+                MIMode: 'gdb',
+                preLaunchTask: 'ada: Build main - src/main1.adb',
+                setupCommands: [
+                    {
+                        description: 'Catch all Ada exceptions',
+                        text: 'catch exception',
+                        ignoreFailures: true,
+                    },
+                    {
+                        description: 'Enable pretty-printing for gdb',
+                        text: '-enable-pretty-printing',
+                        ignoreFailures: true,
+                    },
+                ],
+                miDebuggerPath: getOrFindGdb() ?? '<undefined>',
+            },
+            {
+                name: 'Ada: Attach debugger to running process - src/main1.adb',
+                type: 'cppdbg',
+                request: 'attach',
+                program: '${workspaceFolder}/obj/main1exec' + exe,
+                processId: '${command:pickProcess}',
+                MIMode: 'gdb',
+                miDebuggerPath: getOrFindGdb() ?? '<undefined>',
+            },
+            {
+                type: 'cppdbg',
+                name: 'Ada: Debug main - src/test.adb',
+                request: 'launch',
+                targetArchitecture: 'x64',
+                cwd: '${workspaceFolder}',
+                program: '${workspaceFolder}/obj/test' + exe,
+                stopAtEntry: false,
+                externalConsole: false,
+                args: [],
+                MIMode: 'gdb',
+                preLaunchTask: 'ada: Build main - src/test.adb',
+                setupCommands: [
+                    {
+                        description: 'Catch all Ada exceptions',
+                        text: 'catch exception',
+                        ignoreFailures: true,
+                    },
+                    {
+                        description: 'Enable pretty-printing for gdb',
+                        text: '-enable-pretty-printing',
+                        ignoreFailures: true,
+                    },
+                ],
+                miDebuggerPath: getOrFindGdb() ?? '<undefined>',
+            },
+            {
+                name: 'Ada: Attach debugger to running process - src/test.adb',
+                type: 'cppdbg',
+                request: 'attach',
+                program: '${workspaceFolder}/obj/test' + exe,
+                processId: '${command:pickProcess}',
+                MIMode: 'gdb',
+                miDebuggerPath: getOrFindGdb() ?? '<undefined>',
+            },
+        ];
     });
 
     test('GDB path is explicitely set in offered debug config', async () => {
@@ -136,24 +135,18 @@ All of the above - Create all of the above configurations in the launch.json fil
             expected.trim()
         );
 
-        assert.equal(
-            JSON.stringify(
-                quickpick
-                    .filter((e) => 'conf' in e)
-                    .map((e) => {
-                        assert('conf' in e);
-                        return e.conf;
-                    }),
-                null,
-                2
-            ).trim(),
-            expectedConfigs.trim()
-        );
+        const actualConfigs = quickpick
+            .filter((e) => 'conf' in e)
+            .map((e) => {
+                assert('conf' in e);
+                return e.conf;
+            });
+
+        assert.deepEqual(actualConfigs, expectedConfigs);
     });
 
     test('Dynamic', async () => {
         const configs = await adaExtState.dynamicDebugConfigProvider.provideDebugConfigurations();
-
-        assert.equal(JSON.stringify(configs, undefined, 2).trim(), expectedConfigs.trim());
+        assert.deepEqual(configs, expectedConfigs);
     });
 });
