@@ -82,10 +82,18 @@ package body LSP.Ada_Execute_Command is
          else Ada.Tags.Internal_Tag
            (VSS.Strings.Conversions.To_UTF_8_String (Params.command)));
 
-      Command : constant Command_Access :=
-        (if Tag = Ada.Tags.No_Tag then null
-         else new LSP.Ada_Commands.Command'Class'
-           (Create_Command (Tag, Params.arguments'Unrestricted_Access)));
+      function Command return Command_Access;
+      --  Construct corresponding command for known Tag or return null
+
+      function Command return Command_Access is
+         Result : Command_Access;
+      begin
+         if Tag /= Ada.Tags.No_Tag then
+            Result := new LSP.Ada_Commands.Command'Class'
+             (Create_Command (Tag, Params.arguments'Unrestricted_Access));
+         end if;
+         return Result;
+      end Command;
 
       Result : constant LSP.Server_Jobs.Server_Job_Access :=
         new Ada_Execute_Command_Job'
