@@ -1,0 +1,7 @@
+{
+   "no-inline-html": {
+      "allowed_elements": ["img"]
+   },
+   "line-length": false,
+   "ul-style": false
+}

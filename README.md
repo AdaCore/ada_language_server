@@ -52,6 +52,7 @@ extension at
     - [Tasks](#tasks)
       - [Task Customization](#task-customization)
       - [Tasks for Project Mains](#tasks-for-project-mains)
+      - [GNATtest Support](#gnattest-support)
       - [ALIRE Support](#alire-support)
     - [Commands and Shortcuts](#commands-and-shortcuts)
       - [Ada: Go to other file](#ada-go-to-other-file)
@@ -70,7 +71,6 @@ extension at
   - [Authors \& Contributors](#authors--contributors)
   - [Contribute](#contribute)
   - [License](#license)
-
 
 ## Install
 
@@ -274,6 +274,34 @@ For example, if the project defines a `main1.adb` and `main2.adb` located under 
 * `ada: Build main - src/main2.adb`
 * `ada: Run main - src/main2.adb`
 * `ada: Build and run main - src/main2.adb`
+
+#### GNATtest Support
+
+If you install GNATtest, the Ada & SPARK extension for VS Code will provide the following functionalities:
+
+* The task `ada: Create/update test skeletons for the project` will call `gnattest` to create test skeletons for your project automatically. You can use standard VS Code task customization to configure command line arguments to your liking in a `tasks.json` file.
+
+* Tests created with GNATtest will be loaded in the VS Code **Testing** view as follows.
+
+  <img src="doc/gnattest-test-tree.png" width="650" alt="GNATtest Test Tree">
+
+* Tests can be executed individually or in batch through the available buttons in the interface, or through the `Test: Run All Tests` command or related commands.
+
+* Test execution results are reflected in the test tree.
+
+  <img src="doc/gnattest-results.png" width="500" alt="GNATtest Test Results">
+
+GNATtest support has the following known limitations:
+
+* The extension relies on the default conventions of GNATtest such as the naming, location and object directory of the test harness project.
+  If those aspects are configured or altered manually, the features may no longer work.
+
+* Test execution always starts with a `gprbuild` call on the test harness project. It is not possible to disable that call or customize its arguments. This limitation will be lifted in future releases.
+
+* Language support such as navigation and auto-completion is limited when editing test sources. A workaround is to modify the `ada.projectFile` setting to point to the test harness project created by GNATtest. That should restore language support when developing tests.
+
+* Sections of test sources delimited by `begin read only` and `end read only` comments are not really protected from inadvertant edits.
+  To ensure proper interactions with GNATtest, you must refrain from making edits in those sections.
 
 #### ALIRE Support
 
