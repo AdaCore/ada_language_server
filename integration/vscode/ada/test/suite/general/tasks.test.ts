@@ -3,7 +3,7 @@ import assert from 'assert';
 import path from 'path';
 import * as vscode from 'vscode';
 import { getEnclosingSymbol, getSelectedRegion } from '../../../src/commands';
-import { getProjectFile } from '../../../src/helpers';
+import { exe, getProjectFile } from '../../../src/helpers';
 import {
     SimpleTaskDef,
     createAdaTaskProvider,
@@ -60,9 +60,9 @@ ada: Create a report after a GNAT SAS analysis - gnatsas report sarif -P ${proje
 ada: Generate documentation from the project - gnatdoc -P ${projectPath}
 ada: Create/update test skeletons for the project - gnattest -P ${projectPath}
 ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef
-ada: Run main - src/main1.adb - obj/main1exec
+ada: Run main - src/main1.adb - obj/main1exec${exe}
 ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb -cargs:ada -gnatef
-ada: Run main - src/test.adb - obj/test
+ada: Run main - src/test.adb - obj/test${exe}
 `.trim();
 
         const prov = createAdaTaskProvider();
