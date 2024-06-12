@@ -9,6 +9,7 @@ import {
     SymbolKind,
     TextDocument,
     commands,
+    Uri,
 } from 'vscode';
 import { CMD_BUILD_AND_DEBUG_MAIN, CMD_BUILD_AND_RUN_MAIN } from './commands';
 import { getMains, getSymbols } from './helpers';
@@ -30,7 +31,14 @@ export class AdaCodeLensProvider implements CodeLensProvider {
          * For main procedures, provide Run and Debug CodeLenses.
          */
         const res1 = getMains().then((mains) => {
-            if (mains.some((m) => m == document.fileName)) {
+            if (
+                mains.some(
+                    (m) =>
+                        // Here we go through the Uri class to benefit from the normalization
+                        // of path casing on Windows. See Uri.fsPath documentation.
+                        Uri.file(m).fsPath == document.uri.fsPath
+                )
+            ) {
                 // It's a main file, so let's offer Run and Debug actions on the main subprogram
                 return symbols.then((symbols) => {
                     const functions = symbols.filter((s) => s.kind == SymbolKind.Function);
