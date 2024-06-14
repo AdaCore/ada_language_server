@@ -19,10 +19,16 @@
 
 with GPR2.Environment;
 
+with LSP.Ada_Client_Capabilities;
+
 with VSS.Strings;
 
 private
-package LSP.Ada_Handlers.Alire is
+package LSP.Alire is
+
+   function Alire_Active
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean;
+   --  True if 'alire.toml' exists at 'Client' root & $ALIRE variable is True
 
    procedure Determine_Alire_Project
      (Root        : String;
@@ -39,4 +45,4 @@ package LSP.Ada_Handlers.Alire is
       Environment : in out GPR2.Environment.Object);
    --  Run `alr printenv` and set up the obtained environment variables
 
-end LSP.Ada_Handlers.Alire;
+end LSP.Alire;
