@@ -22,6 +22,7 @@ with Ada.Exceptions;
 
 with VSS.Strings;
 
+with LSP.Ada_Client_Capabilities;
 with LSP.Ada_Configurations;
 with LSP.GPR_Documents;
 with LSP.GPR_Files;
@@ -54,5 +55,8 @@ package LSP.GPR_Job_Contexts is
    procedure Set_Configuration
      (Self  : in out GPR_Job_Context;
       Value : LSP.Ada_Configurations.Configuration) is abstract;
+
+   function Get_Client (Self : GPR_Job_Context) return
+   access constant LSP.Ada_Client_Capabilities.Client_Capability is abstract;
 
 end LSP.GPR_Job_Contexts;

@@ -1,0 +1,185 @@
+[
+  {
+    "comment": [
+      "This test check language server is able to handle a project file",
+      "using alr and alire.toml."
+    ]
+  },
+  {
+    "prepend_to_env": {
+      "PATH": "${DIR}"
+    }
+  },
+  {
+    "start": {
+      "cmd": [
+        "${ALS}",
+        "--language-gpr"
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 0,
+        "method": "initialize",
+        "params": {
+          "processId": 1,
+          "rootUri": "$URI{.}",
+          "capabilities": {}
+        }
+      },
+      "wait": [
+        {
+          "id": 0,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "completionProvider": {
+                "triggerCharacters": [
+                  " "
+                ],
+                "resolveProvider": true
+              },
+              "hoverProvider": true,
+              "declarationProvider": true,
+              "definitionProvider": true,
+              "documentSymbolProvider": {}
+            }
+          }
+        }
+      ]
+    }
+  },
+    {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with \"config/hello_config.gpr\";project Hello is end Hello;", 
+                  "version": 0, 
+                  "uri": "$URI{hello.gpr}", 
+                  "languageId": "Gpr"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": [{
+            "method": "textDocument/publishDiagnostics",
+            "params": {
+              "uri": "$URI{hello.gpr}",
+              "diagnostics": [
+              ]
+            }
+         }]
+      }
+   },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "defname-1",
+        "method": "textDocument/definition",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{hello.gpr}"
+          },
+          "position": {
+            "line": 0,
+            "character": 20
+          }
+        }
+      },
+      "wait": [
+        {
+          "jsonrpc": "2.0",
+          "id": "defname-1",
+          "result": {
+            "uri": "$URI{config/hello_config.gpr}",
+            "range": {
+              "start": {
+                "line": 2,
+                "character": 17
+              },
+              "end": {
+                "line": 2,
+                "character": 29
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "defname-2",
+        "method": "textDocument/definition",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{config/hello_config.gpr}"
+          },
+          "position": {
+            "line": 1,
+            "character": 10
+          }
+        }
+      },
+      "wait": [
+        {
+          "id": "defname-2",
+          "result": {
+            "uri": "$URI{alire/cache/dependencies/libhello_1.0.1_3c15bc7f/libhello.gpr}",
+            "range": {
+              "start": {
+                "line": 1,
+                "character": 8
+              },
+              "end": {
+                "line": 1,
+                "character": 16
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "shutdown",
+        "method": "shutdown",
+        "params": null
+      },
+      "wait": [
+        {
+          "id": "shutdown",
+          "result": null
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "exit"
+      },
+      "wait": []
+    }
+  },
+  {
+    "stop": {
+      "exit_code": 0
+    }
+  }
+]

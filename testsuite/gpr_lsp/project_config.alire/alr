@@ -1,0 +1,7 @@
+#!/bin/sh
+set -e
+# A dummy Alire replacement for testing purposes
+while [ $# -gt 1 ] ; do shift ; done
+DIR=`cd $(dirname $0); pwd`
+GNAT=$(dirname `which gnat`)
+sed -e "s#\${DIR}#${DIR}#g" -e "s#\${GNAT}#${GNAT}#g" ${DIR}/.alr_$1

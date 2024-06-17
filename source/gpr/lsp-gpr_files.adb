@@ -21,6 +21,8 @@ with Ada.Characters.Handling;
 
 with GNATCOLL.Utils;
 
+with LSP.Alire;
+
 with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Generic_Integers;
 with VSS.Transformers.Casing;
@@ -1295,7 +1297,8 @@ package body LSP.GPR_Files is
       --  Reset project kind to default value.
       File.Kind := GPR2.K_Standard;
 
-      File.Search_Paths.Prepend (File.Path.Containing_Directory);
+      File.Prepended.Append (File.Path.Containing_Directory);
+
       File.Name := +To_String (Project_Name);
 
       Load;
@@ -1668,5 +1671,44 @@ package body LSP.GPR_Files is
       end if;
       return No_Index;
    end Index;
+
+   ------------------
+   -- Search_Paths --
+   ------------------
+
+   function Search_Paths (Self : File) return GPR2.Path_Name.Set.Object is
+      Result : GPR2.Path_Name.Set.Object;
+   begin
+      Result := GPR2.Project.Default_Search_Paths (False, Environment);
+      for Path of Self.Prepended loop
+         Result.Prepend (Path);
+      end loop;
+      return Result;
+   end Search_Paths;
+
+   ---------------------
+   -- Set_Environment --
+   ---------------------
+
+   procedure Set_Environment
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability)
+   is
+   begin
+      Env := GPR2.Environment.Process_Environment;
+
+      if LSP.Alire.Alire_Active (Client) then
+         declare
+            Has_Alire : Boolean;
+            Error     : VSS.Strings.Virtual_String;
+         begin
+            --  set Environment from Alire
+            LSP.Alire.Setup_Alire_Env
+              (Root        => Client.Root_Directory.Display_Full_Name,
+               Has_Alire   => Has_Alire,
+               Error       => Error,
+               Environment => Env);
+         end;
+      end if;
+   end Set_Environment;
 
 end LSP.GPR_Files;

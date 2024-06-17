@@ -25,9 +25,9 @@ private with GNATCOLL.VFS;
 private with GPR2.File_Readers;
 private with GPR2.Path_Name;
 
+with LSP.Ada_Client_Capabilities;
 with LSP.Ada_Configurations;
 with LSP.Client_Message_Receivers;
-with LSP.GPR_Client_Capabilities;
 with LSP.GPR_Documents;
 with LSP.GPR_Files;
 with LSP.GPR_Job_Contexts;
@@ -94,7 +94,8 @@ private
      and LSP.GPR_Files.File_Provider
      and LSP.GPR_Job_Contexts.GPR_Job_Context
    with record
-      Client               : LSP.GPR_Client_Capabilities.Client_Capability;
+      Client               : aliased LSP.Ada_Client_Capabilities.Client_Capability;
+      --  Client capabilities provided at On_Initialize_Request
 
       Open_Documents       : Document_Maps.Map;
       --  The documents that are currently open
@@ -211,6 +212,10 @@ private
    overriding procedure Set_Configuration
      (Self  : in out Message_Handler;
       Value : LSP.Ada_Configurations.Configuration);
+
+   overriding function Get_Client (Self : Message_Handler) return
+   access constant LSP.Ada_Client_Capabilities.Client_Capability
+   is (Self.Client'Unchecked_Access);
 
    ---------------------------------
    -- LSP.GPR_Files.File_Provider --

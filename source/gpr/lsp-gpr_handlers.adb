@@ -222,7 +222,9 @@ package body LSP.GPR_Handlers is
       --  Load gpr tree & prepare diagnostics
 
       begin
-         Object.Load (Self.Get_Configuration);
+         Object.Load
+           (Client        => Self.Client,
+            Configuration => Self.Get_Configuration);
       exception
          when E : others =>
             Self.Tracer.Trace_Exception (E, "On_DidOpen_Notification");
@@ -661,7 +663,7 @@ package body LSP.GPR_Handlers is
       for Document of Self.Open_Documents loop
          begin
             --  reload gpr tree
-            Document.Load (Self.Configuration);
+            Document.Load (Self.Client, Self.Configuration);
 
          exception
             when E : others =>

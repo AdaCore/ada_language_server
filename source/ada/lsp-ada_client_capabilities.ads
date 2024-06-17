@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.VFS;
+
 with VSS.Strings;
 
 with LSP.Structures;
@@ -45,6 +47,10 @@ package LSP.Ada_Client_Capabilities is
    --  rootUri (or rootPath)
    --  if not rootUri/rootPath is provided, then it means no folder is open.
    --  Return an empty string in this case.
+
+   function Root_Directory
+     (Client : Client_Capability'Class) return GNATCOLL.VFS.Virtual_File;
+   --  Return the root directory of the client workspace
 
    procedure Set_Root_If_Empty
      (Self  : in out Client_Capability'Class;

@@ -29,11 +29,9 @@ with Libadalang.Preprocessing;
 
 with VSS.Strings.Conversions;
 
-with Spawn.Environments;
-
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
-with LSP.Ada_Handlers.Alire;
+with LSP.Alire;
 with LSP.Ada_Handlers.File_Readers;
 with LSP.Ada_Indexing;
 with LSP.Enumerations;
@@ -85,10 +83,6 @@ package body LSP.Ada_Handlers.Project_Loading is
    --  Mark all sources in all projects for indexing. This factorizes code
    --  between Load_Project and Load_Implicit_Project.
 
-   function Root
-     (Self : Message_Handler'Class) return GNATCOLL.VFS.Virtual_File;
-   --  Return the root directory of the client workspace
-
    ---------------------------
    -- Ensure_Project_Loaded --
    ---------------------------
@@ -125,7 +119,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       if not Self.Client.Root.Is_Empty then
          declare
             Files : GNATCOLL.VFS.File_Array_Access :=
-              Root (Self).Read_Dir (GNATCOLL.VFS.Files_Only);
+              Self.Client.Root_Directory.Read_Dir (GNATCOLL.VFS.Files_Only);
          begin
             for X of Files.all loop
                if X.Has_Suffix (".gpr") then
@@ -203,7 +197,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  root directory in the workspace.
 
       if not Self.Client.Root.Is_Empty then
-         Self.Project_Dirs_Loaded.Include (Root (Self));
+         Self.Project_Dirs_Loaded.Include (Self.Client.Root_Directory);
       end if;
 
       Reload_Implicit_Project_Dirs (Self);
@@ -313,8 +307,11 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  relative path; if so, we're assuming it's relative
       --  to Self.Root.
 
-      if not Project_File.Is_Absolute_Path and then not Self.Client.Root.Is_Empty then
-         Project_File := GNATCOLL.VFS.Join (Root (Self), Project_File);
+      if not Project_File.Is_Absolute_Path
+        and then not Self.Client.Root.Is_Empty
+      then
+         Project_File := GNATCOLL.VFS.Join (Self.Client.Root_Directory,
+                                            Project_File);
       end if;
 
       --  Unload the project tree and the project environment
@@ -424,21 +421,15 @@ package body LSP.Ada_Handlers.Project_Loading is
       Environment : GPR2.Environment.Object :=
         GPR2.Environment.Process_Environment;
 
-      Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
-        (if Self.Client.Root.Is_Empty then GNATCOLL.VFS.No_File
-         else Root (Self).Create_From_Dir ("alire.toml"));
-
    begin
-      if Alire_TOML.Is_Regular_File
-        and Spawn.Environments.System_Environment.Value ("ALIRE") /= "True"
-      then
+      if LSP.Alire.Alire_Active (Self.Client) then
 
          Self.Tracer.Trace ("Check alire:");
 
          if Project.Is_Empty then
 
-            LSP.Ada_Handlers.Alire.Determine_Alire_Project
-              (Root        => Root (Self).Display_Full_Name,
+            LSP.Alire.Determine_Alire_Project
+              (Root        => Self.Client.Root_Directory.Display_Full_Name,
                Has_Alire   => Has_Alire,
                Error       => Errors,
                Project     => Project);
@@ -446,8 +437,8 @@ package body LSP.Ada_Handlers.Project_Loading is
             Status := Alire_Project;
          end if;
 
-         LSP.Ada_Handlers.Alire.Setup_Alire_Env
-            (Root        => Root (Self).Display_Full_Name,
+         LSP.Alire.Setup_Alire_Env
+            (Root        => Self.Client.Root_Directory.Display_Full_Name,
             Has_Alire   => Has_Alire,
             Error       => Errors,
             Environment => Environment);
@@ -627,23 +618,6 @@ package body LSP.Ada_Handlers.Project_Loading is
             Self.Configuration.Charset);
       end if;
    end Reload_Project;
-
-   ----------
-   -- Root --
-   ----------
-
-   function Root
-     (Self : Message_Handler'Class) return GNATCOLL.VFS.Virtual_File
-   is
-      Value : constant VSS.Strings.Virtual_String := Self.Client.Root;
-      Root  : constant String :=
-        VSS.Strings.Conversions.To_UTF_8_String (Value);
-   begin
-      return GNATCOLL.VFS.Create_From_UTF8
-        (if Value.Starts_With ("file://")
-         then URIs.Conversions.To_File (Root, True)
-         else Root);
-   end Root;
 
    ---------------------------------------
    -- Update_Project_Predefined_Sources --

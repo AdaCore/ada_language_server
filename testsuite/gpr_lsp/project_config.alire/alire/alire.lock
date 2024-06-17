@@ -1,0 +1,35 @@
+# THIS FILE IS GENERATED. DO NOT EDIT.
+
+[solution]
+[solution.context]
+solved = true
+[[solution.state]]
+crate = "libhello"
+fulfilment = "solved"
+pinned = false
+transitivity = "direct"
+versions = "^1.0"
+[solution.state.release]
+authors = [
+"Alejandro R. Mosteo",
+]
+description = "Basic library demonstration project"
+licenses = "MIT"
+maintainers = [
+"Alejandro R. Mosteo <alejandro@mosteo.com>",
+]
+maintainers-logins = [
+"mosteo",
+]
+name = "libhello"
+tags = [
+"hello",
+"demo",
+"library",
+]
+version = "1.0.1"
+website = "https://github.com/alire-project/libhello"
+[solution.state.release.origin]
+commit = "3c15bc7f3df22298077c9e96f178adc2829feb42"
+url = "git+https://github.com/alire-project/libhello.git"
+

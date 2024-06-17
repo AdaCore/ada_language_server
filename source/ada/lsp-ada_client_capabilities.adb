@@ -17,6 +17,8 @@
 
 pragma Ada_2022;
 
+with URIs;
+
 with VSS.Characters.Latin;
 with VSS.JSON.Streams;
 with VSS.String_Vectors;
@@ -25,6 +27,7 @@ with VSS.Strings.Conversions;
 with LSP.Ada_Configurations;
 with LSP.Constants;
 with LSP.Enumerations;
+with LSP.GPR_Files;
 with LSP.Structures.Unwrap;
 
 with LSP.Structures.LSPAny_Vectors;
@@ -205,6 +208,9 @@ package body LSP.Ada_Client_Capabilities is
       end if;
 
       Self.Parse_Experimental;
+
+      LSP.GPR_Files.Set_Environment (Client_Capability (Self));
+
    end Initialize;
 
    ------------------------
@@ -592,5 +598,22 @@ package body LSP.Ada_Client_Capabilities is
    begin
       return (if Result.Is_Set then Result.Value else False);
    end Versioned_Documents;
+
+   --------------------
+   -- Root_Directory --
+   --------------------
+
+   function Root_Directory (Client : Client_Capability'Class)
+      return GNATCOLL.VFS.Virtual_File
+   is
+      Value : constant VSS.Strings.Virtual_String := Client.Root;
+      Root  : constant String :=
+                 VSS.Strings.Conversions.To_UTF_8_String (Value);
+   begin
+      return GNATCOLL.VFS.Create_From_UTF8
+               (if Value.Starts_With ("file://")
+                then URIs.Conversions.To_File (Root, True)
+               else Root);
+   end Root_Directory;
 
 end LSP.Ada_Client_Capabilities;

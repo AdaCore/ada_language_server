@@ -131,4 +131,9 @@ package LSP.Utils is
      (VSS.Strings.Conversions.To_Virtual_String (Value.Display_Full_Name));
    --  Cast Virtual_File to Virtual_String
 
+   function To_Virtual_String
+     (Path : GPR2.Path_Name.Object) return VSS.Strings.Virtual_String is
+     (VSS.Strings.Conversions.To_Virtual_String (Path.Value));
+   --  Cast GPR2.Path_Name.Object to Virtual_String
+
 end LSP.Utils;

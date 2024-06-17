@@ -44,6 +44,7 @@ with Gpr_Parser_Support.Token_Data_Handlers;
 
 with Langkit_Support.Slocs;
 
+with LSP.Ada_Client_Capabilities;
 with LSP.Text_Documents.Langkit_Documents;
 
 with VSS.Strings;
@@ -183,6 +184,9 @@ package LSP.GPR_Files is
      (Get_Line (Self, Integer (Line_Number)));
    --  Get the 'Self' file line at 'Line_Number'
 
+   function Search_Paths (Self : File) return GPR2.Path_Name.Set.Object;
+   --  Search paths to be used to locate imported & extended projects.
+
    -------------------------------------------------
    -- GPR Parser / LSP Slocs-Position conversions --
    -------------------------------------------------
@@ -270,6 +274,13 @@ package LSP.GPR_Files is
    function "+" (Name : String) return Type_Id;
    function Image (Id : Type_Id) return VSS.Strings.Virtual_String;
    --  Type_Id/String conversions
+
+   procedure Set_Environment
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability);
+   --  Set environment to be used when parsing GPR files
+
+   function Environment return GPR2.Environment.Object;
+   --  The environment used when parsing project
 
 private
 
@@ -569,7 +580,7 @@ private
          Path : GPR2.Path_Name.Object;
          --  project path of this gpr file
 
-         Search_Paths : GPR2.Path_Name.Set.Object :=
+         Prepended : GPR2.Path_Name.Set.Object :=
                           GPR2.Project.Default_Search_Paths
                             (False, GPR2.Environment.Process_Environment);
 
@@ -728,5 +739,10 @@ private
    function Path
      (Self : LSP.GPR_Files.File)
       return GPR2.Path_Name.Object is (Self.Path);
+
+   Env : GPR2.Environment.Object := GPR2.Environment.Process_Environment;
+   --  Environment used when parsing GPR projects
+
+   function Environment return GPR2.Environment.Object is (Env);
 
 end LSP.GPR_Files;
