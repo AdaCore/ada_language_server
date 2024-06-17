@@ -147,7 +147,7 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
                         GPR2.Path_Name.Create_File
                           (GPR2.Filename_Type (Sloc.Filename))
                      else
-                        Self.Handler.Project_Tree.Root_Path);
+                        Self.Handler.Project_Tree.Root_Project.Path_Name);
                begin
                   Parent_Diagnostic.relatedInformation.Append
                     (LSP .Structures.DiagnosticRelatedInformation'

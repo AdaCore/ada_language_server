@@ -64,7 +64,8 @@ package body LSP.Ada_Handlers.Executables_Commands is
          Element := Handler.Project_Tree.Root_Project;
 
          for Exec of Element.Executables loop
-            Value := VSS.Strings.Conversions.To_Virtual_String (Exec.Value);
+            Value := VSS.Strings.Conversions.To_Virtual_String
+              (String (Exec.Value));
             Append ((VSS.JSON.Streams.String_Value, Value));
          end loop;
       end if;

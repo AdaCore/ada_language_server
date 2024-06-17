@@ -624,7 +624,7 @@ package body LSP.Utils is
      (Path : GPR2.Path_Name.Object) return LSP.Structures.DocumentUri
    is
      (VSS.Strings.Conversions.To_Virtual_String
-        (URIs.Conversions.From_File (Path.Value)) with null record);
+        (URIs.Conversions.From_File (String (Path.Value))) with null record);
 
    ------------------------------------
    -- To_Optional_DiagnosticSeverity --

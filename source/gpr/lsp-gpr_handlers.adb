@@ -671,7 +671,7 @@ package body LSP.GPR_Handlers is
                  (E,
                   VSS.Strings.Conversions.To_Virtual_String
                     ("On_DidChangeConfiguration_Notification for " &
-                       Document.File.Value));
+                       String (Document.File.Value)));
 
          end;
       end loop;

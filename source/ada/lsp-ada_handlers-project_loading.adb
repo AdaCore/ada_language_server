@@ -20,10 +20,13 @@ with GNATCOLL.VFS;
 
 with GPR2.Path_Name;
 with GPR2.Project.View;
+with GPR2.Options;
 with GPR2.Containers;
 with GPR2.Project.Registry.Attribute;
-with GPR2.Project.Source.Set;
 with GPR2.Project.Tree.View_Builder;
+
+pragma Warnings (Off, "unit ""GPR2.Build.Source.Sets"" is not referenced");
+with GPR2.Build.Source.Sets;
 
 with Libadalang.Preprocessing;
 
@@ -320,33 +323,58 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  Now load the new project
       Self.Project_Status.Load_Status := Status;
 
+      declare
+         Opts       : GPR2.Options.Object;
+         Update_Log : GPR2.Log.Object;
+         Success    : Boolean;
       begin
-         Self.Project_Tree.Load_Autoconf
-           (Filename    => GPR2.Path_Name.Create (Project_File),
-            Context     => Context,
-            Build_Path  => LSP.Ada_Configurations.Build_Path
-              (Self.Configuration, GPR2.Path_Name.Create (Project_File)),
-            Environment => Environment);
+         --  Do not print any gpr messages on the standard output
+         GPR2.Project.Tree.Verbosity := GPR2.Project.Tree.Quiet;
 
-         if Self.Project_Tree.Are_Sources_Loaded then
-            --  Update_Sources can't be called when the sources are already
-            --  loaded
-            Self.Project_Tree.Invalidate_Sources;
+         --  Load the project
+         Opts.Add_Switch (GPR2.Options.P, Project_File.Display_Full_Name);
+
+         Success := Self.Project_Tree.Load
+            (Opts,
+             With_Runtime     => True,
+             Absent_Dir_Error => GPR2.No_Error,
+             Environment      => Environment);
+
+         if Success then
+            Success := Self.Project_Tree.Set_Context (Context);
          end if;
-         Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+         if not Success then
+            Self.Project_Status.Load_Status := Invalid_Project_Configured;
+         end if;
+
+         Self.Project_Tree.Update_Sources (Update_Log);
+         if Update_Log.Has_Error then
+            Self.Project_Status.Load_Status := Invalid_Project_Configured;
+         end if;
+
+         --  Retrieve the GPR2 error/warning messages right after loading the
+         --  project.
+
+         --  Collect all messages coming from Load...
+         for C in Self.Project_Tree.Log_Messages.Iterate loop
+            Self.Project_Status.GPR2_Messages.Append (C.Element);
+         end loop;
+
+         --  ... and all messages coming from Update_Sources
+         for C in Update_Log.Iterate loop
+            Self.Project_Status.GPR2_Messages.Append (C.Element);
+         end loop;
 
       exception
          when E : others =>
-
             Self.Tracer.Trace_Exception (E);
-
             Self.Project_Status.Load_Status := Invalid_Project_Configured;
       end;
 
-      --  Retrieve the GPR2 error/warning messages right after loading the
-      --  project.
-      Self.Project_Status.GPR2_Messages := Self.Project_Tree.Log_Messages.all;
       Self.Project_Status.Project_File := Project_File;
+
+      --  Trace all messages collected above
       Self.Tracer.Trace ("GPR2 Log Messages:");
       for Msg of Self.Project_Status.GPR2_Messages loop
          declare
@@ -364,7 +392,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          Load_Implicit_Project (Self, Invalid_Project_Configured);
 
       else
-         --  No exception during Load_Autoconf, check if we have runtime
+         --  No exception during Load, check if we have runtime
          if not Self.Project_Tree.Has_Runtime_Project then
             Self.Project_Status.Load_Status := No_Runtime_Found;
          end if;
@@ -561,36 +589,45 @@ package body LSP.Ada_Handlers.Project_Loading is
      (Self : in out Message_Handler'Class)
    is
       Project : GPR2.Project.Tree.View_Builder.Object :=
-                   GPR2.Project.Tree.View_Builder.Create
-                     (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
-                      Name        => "default");
+                  GPR2.Project.Tree.View_Builder.Create
+                    (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
+                     Name        => "default");
       Values  : GPR2.Containers.Value_List;
+      Opts    : GPR2.Options.Object;
+      Success : Boolean;
    begin
+      Self.Project_Tree.Unload;
+
+      --  Load all the dirs
+
       for Dir of Self.Project_Dirs_Loaded loop
-         Values.Append (Dir.Display_Full_Name);
+            Values.Append (Dir.Display_Full_Name);
       end loop;
 
       Project.Set_Attribute
-        (GPR2.Project.Registry.Attribute.Source_Dirs, Values);
+        (GPR2.Project.Registry.Attribute.Source_Dirs,
+        Values);
 
-      --  Load_Autoconf is assuming loading unloaded tree.
+      --  First we load the fallback project
+      Success := Self.Project_Tree.Load_Virtual_View
+         (Project,
+          Opts,
+          With_Runtime     => True,
+          Absent_Dir_Error => GPR2.No_Error);
 
-      Self.Project_Tree.Unload;
-
-      GPR2.Project.Tree.View_Builder.Load_Autoconf
-        (Self    => Self.Project_Tree,
-         Project => Project,
-         Context => GPR2.Context.Empty);
-
-      if Self.Project_Tree.Are_Sources_Loaded then
-         --  Update_Sources can't be called when the sources are already loaded
-         Self.Project_Tree.Invalidate_Sources;
+      if not Success then
+         for C in Self.Project_Tree.Log_Messages.Iterate loop
+            Self.Tracer.Trace (C.Element.Format);
+         end loop;
+         Self.Project_Status.Load_Status := Invalid_Project_Configured;
       end if;
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+      Self.Project_Tree.Update_Sources;
 
    exception
       when E : others =>
          Self.Tracer.Trace_Exception (E, "Reload_Implicit_Project_Dirs");
+         Self.Project_Status.Load_Status := Invalid_Project_Configured;
    end Reload_Implicit_Project_Dirs;
 
    --------------------
@@ -627,7 +664,7 @@ package body LSP.Ada_Handlers.Project_Loading is
      (Self : in out Message_Handler'Class)
    is
       use GPR2;
-      use GPR2.Project.Source.Set;
+      use GPR2.Build.Source.Sets;
    begin
       Self.Project_Predefined_Sources.Clear;
 
