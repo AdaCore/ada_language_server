@@ -132,9 +132,11 @@ package body LSP.Job_Schedulers is
       end if;
 
       if Job.Priority = Fence then
-         --  Process other jobs before any Fence job
-         while (for some List of Self.Jobs => not List.Is_Empty) loop
-            Self.Process_Job (Client, Waste);
+         --  Process other jobs (excluding indexing) before any Fence job
+         while
+           (for some List of Self.Jobs (Low .. High) => not List.Is_Empty)
+         loop
+            Self.Process_Job (Client, Waste, From => Low);
 
             if Waste.Assigned then
                return;
@@ -163,14 +165,17 @@ package body LSP.Job_Schedulers is
      (Self   : in out Job_Scheduler'Class;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste  : out LSP.Server_Messages.Server_Message_Access)
+      Waste  : out LSP.Server_Messages.Server_Message_Access;
+      From   : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Lowest)
    is
       Status : LSP.Server_Jobs.Execution_Status;
    begin
       Self.Complete_Last_Fence_Job (null, Waste);
 
       if not Waste.Assigned then
-         for List of reverse Self.Jobs when not List.Is_Empty loop
+         for List of reverse Self.Jobs (From .. LSP.Server_Jobs.High)
+           when not List.Is_Empty
+         loop
             declare
                Job : LSP.Server_Jobs.Server_Job_Access := List.First_Element;
             begin
