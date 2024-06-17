@@ -422,7 +422,7 @@
                            "character": 0
                          }
                        },
-                       "severity": 1,
+                       "severity": 2,
                        "source": "project",
                        "message": "No project found in root directory. Please create a project file and add it to the configuration."
                      }
@@ -478,7 +478,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
@@ -547,7 +547,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
@@ -603,7 +603,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
@@ -685,7 +685,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
@@ -741,7 +741,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
@@ -823,7 +823,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
@@ -879,7 +879,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
@@ -961,7 +961,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }
@@ -1017,7 +1017,7 @@
                             "character": 0
                           }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "project",
                         "message": "No project found in root directory. Please create a project file and add it to the configuration."
                       }

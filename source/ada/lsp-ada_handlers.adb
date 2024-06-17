@@ -28,7 +28,6 @@ with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
 with VSS.String_Vectors;
-with VSS.JSON.Streams;
 
 with Laltools.Common;
 with Laltools.Partial_GNATPP;
@@ -83,7 +82,6 @@ with LSP.Ada_Handlers.Symbols;
 with LSP.Ada_Commands;
 with LSP.Client_Side_File_Monitors;
 with LSP.Diagnostic_Sources;
-with LSP.Enumerations;
 with LSP.Errors;
 with LSP.Formatters.Texts;
 with LSP.Generic_Cancel_Check;
@@ -93,6 +91,7 @@ with LSP.Servers;
 with LSP.Servers.FS_Watch;
 with LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
+with LSP.Enumerations;
 
 package body LSP.Ada_Handlers is
 
@@ -571,10 +570,6 @@ package body LSP.Ada_Handlers is
       --  Return Found = True if some refactoring is possible. Populate
       --  Result with Code_Actions in this case. Return Done = True if futher
       --  analysis has no sense.
-
-      procedure Append_Project_Status_Code_Actions
-        (Result : in out LSP.Structures.Command_Or_CodeAction_Vector);
-      --  Append project status code action if needed
 
       ------------------------
       -- Analyse_In_Context --
@@ -1242,111 +1237,6 @@ package body LSP.Ada_Handlers is
          end if;
       end Analyse_Node;
 
-      ----------------------------------------
-      -- Append_Project_Status_Code_Actions --
-      ----------------------------------------
-
-      procedure Append_Project_Status_Code_Actions
-        (Result : in out LSP.Structures.Command_Or_CodeAction_Vector)
-      is
-         use type VSS.Strings.Virtual_String;
-
-         Diagnostics : LSP.Structures.Diagnostic_Vector;
-
-      begin
-         for Item of Value.context.diagnostics loop
-            if Item.source = "project" then
-               Diagnostics.Append (Item);
-            end if;
-         end loop;
-
-         case Self.Project_Status.Load_Status is
-            when Valid_Project_Configured | Alire_Project =>
-               null;
-            when No_Runtime_Found =>
-               --  TODO: Provide help with the compiler installation
-               null;
-            when Single_Project_Found | Multiple_Projects_Found =>
-               declare
-                  Item    : LSP.Structures.CodeAction;
-                  Command : LSP.Structures.Command;
-                  Arg     : constant VSS.JSON.Streams.JSON_Stream_Element :=
-                    VSS.JSON.Streams.JSON_Stream_Element'
-                      (Kind         => VSS.JSON.Streams.String_Value,
-                       String_Value => "ada.projectFile");
-               begin
-                  Command.title := "Open settings for ada.projectFile";
-                  Command.command := "workbench.action.openSettings";
-                  Command.arguments.Append (Arg);
-
-                  Item :=
-                    (title       => Command.title,
-                     kind        => (True, LSP.Enumerations.QuickFix),
-                     diagnostics => Diagnostics,
-                     disabled    => (Is_Set => False),
-                     edit        => (Is_Set => False),
-                     isPreferred => LSP.Constants.True,
-                     command     => (True, Command),
-                     data        => <>);
-
-                  Result.Append
-                    (LSP.Structures.Command_Or_CodeAction'
-                       (Is_Command => False, CodeAction => Item));
-               end;
-            when No_Project_Found =>
-               declare
-                  Title  : constant VSS.Strings.Virtual_String :=
-                    "Create a default project file (default.gpr)";
-                  URI    : constant LSP.Structures.DocumentUri :=
-                    Self.To_URI
-                      (GNATCOLL.VFS.Create_From_UTF8
-                         (VSS.Strings.Conversions.To_UTF_8_String
-                            (Self.Client.Root)).Join
-                              ("default.gpr").Display_Full_Name);
-
-                  Create : constant LSP.Structures.
-                    documentChanges_OfWorkspaceEdit_Item :=
-                      (Kind    => LSP.Structures.create,
-                       create  => (uri    => URI,
-                                   others => <>));
-
-                  Text   : constant LSP.Structures.
-                    TextEdit_Or_AnnotatedTextEdit :=
-                      (Is_TextEdit => True,
-                       TextEdit    =>
-                         (a_range => ((0, 0), (0, 0)),
-                          newText => "project Default is end Default;"));
-                  Insert : LSP.Structures.
-                    documentChanges_OfWorkspaceEdit_Item :=
-                    (LSP.Structures.Variant_1,
-                     (textDocument => (uri => URI, others => <>),
-                      edits        => <>));
-
-                  Item   : LSP.Structures.CodeAction;
-                  Edit   : LSP.Structures.WorkspaceEdit;
-               begin
-                  Insert.Variant_1.edits.Append (Text);
-                  Edit.documentChanges.Append (Create);
-                  Edit.documentChanges.Append (Insert);
-                  Item :=
-                    (title       => Title,
-                     kind        => (True, LSP.Enumerations.QuickFix),
-                     diagnostics => Diagnostics,
-                     disabled    => (Is_Set => False),
-                     edit        => (True, Edit),
-                     isPreferred => LSP.Constants.True,
-                     command     => (Is_Set => False),
-                     data        => <>);
-
-                  Result.Append
-                    (LSP.Structures.Command_Or_CodeAction'
-                       (Is_Command => False, CodeAction => Item));
-               end;
-            when Invalid_Project_Configured =>
-               null;
-         end case;
-      end Append_Project_Status_Code_Actions;
-
       ----------------------------------
       -- Has_Assoc_Without_Designator --
       ----------------------------------
@@ -1500,7 +1390,29 @@ package body LSP.Ada_Handlers is
       end loop;
 
       if Value.a_range.start = LSP.Constants.Empty then
-         Append_Project_Status_Code_Actions (Response);
+         declare
+            Diagnostics : LSP.Structures.Diagnostic_Vector;
+            use type VSS.Strings.Virtual_String;
+
+            Default_URI : constant LSP.Structures.DocumentUri :=
+              Self.To_URI
+                (GNATCOLL.VFS.Create_From_UTF8
+                   (URIs.Conversions.To_File
+                      (VSS.Strings.Conversions.To_UTF_8_String
+                           (Self.Client.Root), Normalize => True)).Join
+                     ("default.gpr").Display_Full_Name);
+         begin
+            for Item of Value.context.diagnostics loop
+               if Item.source = "project" then
+                  Diagnostics.Append (Item);
+               end if;
+            end loop;
+            LSP.Ada_Project_Loading.Project_Status_Code_Actions
+              (Result      => Response,
+               Project     => Self.Project_Status,
+               Diagnostics => Diagnostics,
+               Default_URI => Default_URI);
+         end;
       end if;
 
       Self.Sender.On_CodeAction_Response (Id, Response);
@@ -2090,7 +2002,8 @@ package body LSP.Ada_Handlers is
       --  Handle the case where we're loading the implicit project: do
       --  we need to add the directory in which the document is open?
 
-      if Self.Project_Status.Load_Status in Implicit_Project_Loaded then
+      if LSP.Ada_Project_Loading.Is_Implicit_Fallback (Self.Project_Status)
+      then
          declare
             Dir : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI).Dir;
          begin
