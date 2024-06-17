@@ -86,7 +86,7 @@ private
 
    overriding function Priority
      (Self : Indexing_Job) return LSP.Server_Jobs.Job_Priority is
-       (LSP.Server_Jobs.Low);
+       (LSP.Server_Jobs.Lowest);
 
    overriding procedure Execute
      (Self   : in out Indexing_Job;
