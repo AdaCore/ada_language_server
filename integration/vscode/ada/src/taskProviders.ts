@@ -1049,9 +1049,8 @@ function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
              * Replace the entire command with `alr build`. Ignore project and
              * scenario args because they are managed by ALIRE.
              *
-             * TODO what about -cargs:ada -gnatef ?
              */
-            args.splice(0, args.length, 'build');
+            args.splice(0, args.length, 'build', '--', '-cargs:ada', '-gnatef');
         } else if (taskDef == TASK_CLEAN_PROJECT.taskDef) {
             /**
              * Replace the entire command with `alr clean`. Ignore project and
