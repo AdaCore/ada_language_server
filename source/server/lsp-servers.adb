@@ -853,6 +853,10 @@ package body LSP.Servers is
                end;
             end select;
          end loop;
+      exception
+         when E : others =>
+            --  Message handler should never raise any exception
+            Server.Tracer.Trace_Exception (E, "Execute_Jobs raised error!");
       end Execute_Jobs;
 
       ---------------------
@@ -884,7 +888,7 @@ package body LSP.Servers is
       exception
          when E : others =>
             --  Message handler should never raise any exception
-            Server.Tracer.Trace_Exception (E, "Message handler raised error!");
+            Server.Tracer.Trace_Exception (E, "Process_Message raised error!");
       end Process_Message;
 
       Request : Server_Message_Access;

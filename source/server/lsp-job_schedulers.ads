@@ -68,8 +68,9 @@ package LSP.Job_Schedulers is
      (Self   : in out Job_Scheduler'Class;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
-      Waste  : out LSP.Server_Messages.Server_Message_Access);
-   --  Execute (already created) jobs with ordinal priority (Low, High).
+      Waste  : out LSP.Server_Messages.Server_Message_Access;
+      From   : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Lowest);
+   --  Execute (already created) jobs with ordinal priority (From .. High).
    --  When a job is done the routine returns (in Waste) the message to be
    --  deallocated by the server. The Client is used to send messages during
    --  the execution of the job.
@@ -88,8 +89,7 @@ private
    package Job_Lists is new Ada.Containers.Doubly_Linked_Lists
      (LSP.Server_Jobs.Server_Job_Access, LSP.Server_Jobs."=");
 
-   subtype Ordinal_Priority is LSP.Server_Jobs.Job_Priority
-     range LSP.Server_Jobs.Low .. LSP.Server_Jobs.High;
+   subtype Ordinal_Priority is LSP.Server_Jobs.Ordinal_Priority;
 
    type Job_List_Array is array (Ordinal_Priority) of Job_Lists.List;
 

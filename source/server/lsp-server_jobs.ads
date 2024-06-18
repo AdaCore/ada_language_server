@@ -21,9 +21,10 @@ with LSP.Server_Messages;
 package LSP.Server_Jobs is
    pragma Preelaborate;
 
-   type Job_Priority is (Low, High, Immediate, Fence);
+   type Job_Priority is (Lowest, Low, High, Immediate, Fence);
    --  Job priority to schedule jobs.
    --
+   --  @value Lowest - indexing jobs
    --  @value Low - long running jobs like find-all-references
    --  @value High - fast queries like hover
    --  @value Immediate - urgent queries like cancel-request
@@ -33,7 +34,7 @@ package LSP.Server_Jobs is
    --  new messages until the job is done. Server execute each job in its
    --  queue before executing any Fence job.
 
-   subtype Ordinal_Priority is Job_Priority range Low .. High;
+   subtype Ordinal_Priority is Job_Priority range Lowest .. High;
 
    type Server_Job is limited interface;
 
