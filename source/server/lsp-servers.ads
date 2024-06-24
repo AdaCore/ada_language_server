@@ -42,7 +42,7 @@ private with Ada.Containers.Unbounded_Synchronized_Queues;
 private with GNAT.Semaphores;
 private with System;
 private with LSP.Job_Schedulers;
-private with LSP.Sequential_Message_Handlers;
+private with LSP.Default_Message_Handlers;
 private with LSP.Server_Notifications;
 private with LSP.Server_Requests;
 private with VSS.Stream_Element_Vectors;
@@ -234,7 +234,7 @@ private
       Tracer          : LSP.Tracers.Tracer_Access;
       Scheduler       : LSP.Job_Schedulers.Job_Scheduler;
       Default_Handler : aliased
-           LSP.Sequential_Message_Handlers.Sequential_Message_Handler;
+           LSP.Default_Message_Handlers.Default_Message_Handler;
    end record;
 
    overriding procedure On_Message
