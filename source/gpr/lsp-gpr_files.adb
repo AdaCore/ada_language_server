@@ -1475,8 +1475,9 @@ package body LSP.GPR_Files is
    begin
       if Name'Length > 0 then
          return GPR2.Project.Create
-           (GPR2.Filename_Type (Name),
-            File.Search_Paths);
+           (Name          => GPR2.Filename_Type (Name),
+            Resolve_Links => File.File_Provider.Follow_Symlinks,
+            Paths         => File.Search_Paths);
       else
          return Path_Name.Undefined;
       end if;
