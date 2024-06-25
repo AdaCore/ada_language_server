@@ -585,10 +585,11 @@ package body LSP.Servers is
       Handler      : not null Server_Message_Visitor_Access;
       Tracer       : not null LSP.Tracers.Tracer_Access;
       In_Logger    : Server_Message_Visitor_Access;
-      Out_Logger   : Client_Message_Visitor_Access) is
+      Out_Logger   : Client_Message_Visitor_Access;
+      Priority     : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Fence) is
    begin
       Self.Tracer := Tracer;
-      Self.Default_Handler.Initialize (Handler);
+      Self.Default_Handler.Initialize (Handler, Priority);
 
       Self.Processing_Task.Start (Handler);
       Self.Output_Task.Start (Out_Logger);

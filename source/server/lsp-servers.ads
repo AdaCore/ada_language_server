@@ -83,12 +83,14 @@ package LSP.Servers is
       Handler      : not null Server_Message_Visitor_Access;
       Tracer       : not null LSP.Tracers.Tracer_Access;
       In_Logger    : Server_Message_Visitor_Access;
-      Out_Logger   : Client_Message_Visitor_Access);
+      Out_Logger   : Client_Message_Visitor_Access;
+      Priority     : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Fence);
    --  Run the server using given Request and Notification handler.
    --  Tracer object provides tracing/logging capabilities for the main trace,
    --  all input & output traces for debugging purposes.
    --  In/out loggers are used to dump client-to-server and server-to-client
-   --  messages.
+   --  messages. Priority is used to run Handler on out-of-order scheduler.
+   --  Default priority (Fence) means in-order message handling.
 
    procedure Stop (Self : in out Server);
    --  Ask server to stop
