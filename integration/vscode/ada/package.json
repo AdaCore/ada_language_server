@@ -911,10 +911,10 @@
         "@types/ws": "8.5.4",
         "@typescript-eslint/eslint-plugin": "5.54.0",
         "@typescript-eslint/parser": "5.55.0",
+        "@vscode/test-cli": "^0.0.6",
         "@vscode/test-electron": "^2.3.0",
         "@vscode/vsce": "^2.21.1",
         "esbuild-wasm": "0.17.11",
-        "@vscode/test-cli": "^0.0.6",
         "eslint": "8.36.0",
         "eslint-config-prettier": "8.7.0",
         "eslint-plugin-prettier": "4.2.1",
@@ -948,6 +948,6 @@
         "process": "0.11.10",
         "vscode-languageclient": "9.0.1",
         "winston": "3.10.0",
-        "ws": "8.13.0"
+        "ws": "^8.17.1"
     }
 }
