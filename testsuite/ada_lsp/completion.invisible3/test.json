@@ -1,14 +1,12 @@
 [
    {
       "comment": [
-          "Check no 'unneeded' symbols (symbols of some decl kinds, from body and private part) in completion."
+         "Check no 'unneeded' symbols (symbols of some decl kinds, from body and private part) in completion."
       ]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -28,10 +26,7 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ]
+                           "documentationFormat": ["markdown", "plaintext"]
                         }
                      }
                   },
@@ -42,24 +37,19 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
@@ -80,23 +70,23 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile":"default.gpr"
+                     "projectFile": "default.gpr"
                   }
                }
             }
          },
          "wait": [
             {
-                "jsonrpc": "2.0",
-                "method": "$/progress",
-                "params": {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
                   "token": "<ANY>",
                   "value": {
-                    "kind": "end"
+                     "kind": "end"
                   }
-                }
+               }
             }
-        ]
+         ]
       }
    },
    {
@@ -135,7 +125,7 @@
                }
             }
          },
-         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "sortReply": { "result": { "items": ["label", "documentation"] } },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -153,9 +143,9 @@
                      },
                      {
                         "label": "ABC14 (invisible)",
-                        "kind": 9,
+                        "kind": 18,
                         "detail": "generic\n   ABC13 : Integer;\npackage ABC14",
-                        "documentation": "at pkg.ads (19:4)",
+                        "documentation": "at pkg.ads (17:4)",
                         "sortText": "~100&00001ABC14",
                         "insertText": "ABC14"
                      },
