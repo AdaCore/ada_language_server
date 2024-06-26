@@ -189,6 +189,21 @@ const predefinedTasks: PredefinedTask[] = [
         problemMatchers: '',
     },
     {
+        label: 'Analyze the current file with GNAT SAS and produce a report',
+        taskDef: {
+            type: TASK_TYPE_ADA,
+            compound: [
+                'Analyze the current file with GNAT SAS',
+                'Create a report after a GNAT SAS analysis',
+            ],
+        },
+        /**
+         * Analysis results are not printed on stdio so no need to parse them
+         * with a problem matcher.
+         */
+        problemMatchers: '',
+    },
+    {
         label: 'Generate documentation from the project',
         taskDef: {
             type: TASK_TYPE_ADA,

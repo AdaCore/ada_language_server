@@ -43,6 +43,7 @@ ada: Analyze the project with GNAT SAS
 ada: Analyze the current file with GNAT SAS
 ada: Create a report after a GNAT SAS analysis
 ada: Analyze the project with GNAT SAS and produce a report
+ada: Analyze the current file with GNAT SAS and produce a report
 ada: Generate documentation from the project
 ada: Create/update test skeletons for the project
 ada: Build main - src/main1.adb
@@ -238,6 +239,7 @@ suite('Task Execution', function () {
     declTaskTest('ada: Analyze the project with GNAT SAS');
     declTaskTest('ada: Create a report after a GNAT SAS analysis');
     declTaskTest('ada: Analyze the project with GNAT SAS and produce a report');
+    declTaskTest('ada: Analyze the current file with GNAT SAS and produce a report', openSrcFile);
     declTaskTest('ada: Analyze the current file with GNAT SAS', openSrcFile);
     declTaskTest('ada: Generate documentation from the project');
     declTaskTest('ada: Create/update test skeletons for the project');
