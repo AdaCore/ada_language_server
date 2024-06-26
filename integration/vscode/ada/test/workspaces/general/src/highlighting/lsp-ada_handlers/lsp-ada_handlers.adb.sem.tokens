@@ -281,6 +281,8 @@ line 759: column 36 - 39: parameter     [declaration, readonly]          : Node
 line 766: column 20 - 33: function      [declaration]                    : Append_Command
 line 766: column 36 - 39: parameter     [declaration, readonly]          : Node
 line 767: column 13 - 19: variable      [declaration]                    : Command
+line 767: column 23 - 25: namespace                                      : LSP
+line 767: column 27 - 38: namespace                                      : Ada_Handlers
 line 768: column 13 - 19: variable      [declaration]                    : Pointer
 line 768: column 23 - 25: namespace                                      : LSP
 line 769: column 13 - 16: variable      [declaration]                    : Item
