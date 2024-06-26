@@ -115,6 +115,24 @@ const predefinedTasks: PredefinedTask[] = [
         problemMatchers: DEFAULT_PROBLEM_MATCHER,
     },
     {
+        label: 'Compile current file',
+        taskDef: {
+            type: TASK_TYPE_ADA,
+            command: 'gprbuild',
+            args: [
+                '-q',
+                '-f',
+                '-c',
+                '-u',
+                '${command:ada.gprProjectArgs}',
+                '${fileBasename}',
+                '-cargs:ada',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
         label: 'Analyze the project with GNAT SAS',
         taskDef: {
             type: TASK_TYPE_ADA,
