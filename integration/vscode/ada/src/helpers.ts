@@ -24,6 +24,7 @@ import winston from 'winston';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ExtensionState } from './ExtensionState';
 import { adaExtState, logger } from './extension';
+import { existsSync } from 'fs';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -435,4 +436,47 @@ export function getSymbols(
  */
 export function escapeRegExp(text: string) {
     return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+}
+
+/**
+ *
+ * @param execName - the name of an executable (without the extension) to find
+ * using the PATH environment variable.
+ * @returns `true` if the executable is found, `false` otherwise.
+ */
+export function envHasExec(execName: string): boolean {
+    const exePath: string | undefined = which(execName);
+
+    return exePath != undefined;
+}
+
+/**
+ * Finds the path to an executable using the PATH environment variable.
+ *
+ * On Windows, the extension of the executable does not need to be provided. The
+ * env variable PATHEXT is used to consider all applicable extensions (e.g.
+ * .exe, .cmd).
+ *
+ * @param execName - name of executable to find using PATH environment variable.
+ * @returns the full path to the executable if found, otherwise `undefined`
+ */
+export function which(execName: string) {
+    const env = { ...process.env };
+    setTerminalEnvironment(env);
+    const pathVal = env.PATH;
+    const paths = pathVal?.split(path.delimiter);
+    const exeExtensions =
+        process.platform == 'win32'
+            ? /**
+               * On Windows use a default list of extensions in case PATHEXT is
+               * not set.
+               */
+              env.PATHEXT?.split(path.delimiter) ?? ['.exe', '.cmd', '.bat']
+            : [''];
+
+    const exePath: string | undefined = paths
+        ?.flatMap((p) => exeExtensions.map((ext) => path.join(p, execName + ext)))
+        .find(existsSync);
+
+    return exePath;
 }

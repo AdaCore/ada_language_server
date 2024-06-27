@@ -1,7 +1,14 @@
 import assert from 'assert';
-import { Uri, window, workspace } from 'vscode';
-import { adaExtState } from '../../../src/extension';
-import { activate, closeAllEditors } from '../utils';
+import { DocumentSymbol, SymbolKind, commands } from 'vscode';
+import { envHasExec, getSymbols } from '../../../src/helpers';
+import {
+    activate,
+    closeAllEditors,
+    codeLensesToString,
+    getCodeLenses,
+    showTextDocument,
+    simplifyCodelenses,
+} from '../utils';
 
 suite('CodeLens', function () {
     this.beforeAll(async () => {
@@ -13,47 +20,30 @@ suite('CodeLens', function () {
     });
 
     test('in main file offer run & debug', async () => {
-        assert(workspace.workspaceFolders !== undefined);
-        const rootUri = workspace.workspaceFolders[0].uri;
-        const mainUri = Uri.joinPath(rootUri, 'src', 'main1.adb');
-        const textEditor = await window.showTextDocument(mainUri);
-        const codelenses = await adaExtState.codelensProvider.provideCodeLenses(
-            textEditor.document
-        );
-        assert.deepEqual(
-            /**
-             * Check a subset of the fields in CodeLenses
-             */
-            codelenses?.map((v) => ({
-                ...v.command,
-                // The argument is expected to be a Uri, in which case use the
-                // normalized fsPath for comparison with the expected result
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                arguments: v.command?.arguments?.map((a) => (a instanceof Uri ? a.fsPath : a)),
-            })),
-            [
-                {
-                    command: 'ada.buildAndRunMain',
+        const codelenses = await getCodeLenses('src', 'main1.adb');
+        assert.deepEqual(simplifyCodelenses(codelenses), [
+            {
+                range: '9:0 -> 15:9',
+                command: {
                     title: '$(run) Run',
-                    arguments: [mainUri.fsPath],
+                    command: 'ada.buildAndRunMain',
+                    arguments: ['src/main1.adb'],
                 },
-                {
-                    command: 'ada.buildAndDebugMain',
+            },
+            {
+                range: '9:0 -> 15:9',
+                command: {
                     title: '$(debug-alt-small) Debug',
-                    arguments: [mainUri.fsPath],
+                    command: 'ada.buildAndDebugMain',
+                    arguments: ['src/main1.adb'],
                 },
-            ]
-        );
+            },
+        ]);
     });
 
     test("in non-main file don't offer run & debug", async () => {
-        assert(workspace.workspaceFolders !== undefined);
-        const rootUri = workspace.workspaceFolders[0].uri;
-        const mainUri = Uri.joinPath(rootUri, 'src', 'foo.ads');
-        const textEditor = await window.showTextDocument(mainUri);
-        const codelenses = await adaExtState.codelensProvider.provideCodeLenses(
-            textEditor.document
-        );
+        const srcRelPath = ['src', 'foo.ads'];
+        const codelenses = await getCodeLenses(...srcRelPath);
 
         if (codelenses) {
             /**
@@ -70,24 +60,30 @@ suite('CodeLens', function () {
             );
         }
     });
-});
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function toString(codelenses: import('vscode').CodeLens[] | null | undefined): unknown {
-    return JSON.stringify(
-        codelenses?.map((cl) => ({
-            command: cl.command?.command ?? '',
-            title: cl.command?.title ?? '',
-            arguments: cl.command?.arguments?.map((o) =>
-                /**
-                 * If the argument is a URI, render it as a relative
-                 * path.  Otherwise, keep the object as is.
-                 */
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                o instanceof Uri ? workspace.asRelativePath(o) : o
-            ),
-        })),
-        null,
-        2
-    );
-}
+    test('no SPARK codelenses in SPARK-less env', async function () {
+        assert(!envHasExec('gnatprove'), 'This test must run in an env without gnatprove');
+
+        const srcRelPath = ['src', 'bar.ads'];
+        /**
+         * Check that the test file contains subprograms.
+         */
+        const textEditor = await showTextDocument(...srcRelPath);
+        const symbols = await commands.executeCommand<DocumentSymbol[]>(
+            'vscode.executeDocumentSymbolProvider',
+            textEditor.document.uri
+        );
+        assert(getSymbols(symbols, [SymbolKind.Function]).length > 0);
+
+        const codelenses = await getCodeLenses(...srcRelPath);
+        if (codelenses) {
+            /**
+             * Assert that SPARK codelenses were not provided for the subprograms
+             */
+            assert(
+                !codeLensesToString(codelenses).toLowerCase().includes('prove'),
+                `CodeLense for SPARK was unexpectedly provided:\n${codeLensesToString(codelenses)}`
+            );
+        }
+    });
+});
