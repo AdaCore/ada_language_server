@@ -13,29 +13,41 @@ This extension provides support for the Ada and SPARK programming languages in V
 
 ## Features
 
-Ada and SPARK are compiled languages which means that a compiler is needed to translate the source code into a program that can be executed.
-Additionally if your source code uses the SPARK subset of Ada, you can perform formal proof on it using GNATprove.
+Ada and SPARK are compiled languages which means that a compiler (GNAT) is needed to translate the source code into a program that can be executed.
+Other tools are also needed to perform tasks such as testing, static analysis and formal proof of SPARK code.
 
-Even though this extension **does not include a compiler nor a proof tool**, a number of features are available without those tools, and it is easy to obtain them if needed.
+This extension **does not include a compiler nor additional tools**. Nonetheless it offers a number of features out of the box and more capabilities can be accessed by installing additional tools.
 
 <!-- markdownlint-disable MD033 -->
-|                     |   Without<br>Additional Tools  | With<br>Ada Compiler | With<br>Ada Compiler & GNATprove |
-|---------------------|:------------------------------:|:---------------------:|:---------------------------------:|
-| Syntax Highlighting |                ✅               |           ✅           |                 ✅                 |
-| Navigation          | ✅<br>(except standard runtime) |           ✅           |                 ✅                 |
-| Auto-completion     | ✅<br>(except standard runtime) |           ✅           |                 ✅                 |
-| Refactoring         |                ✅               |           ✅           |                 ✅                 |
-| Build               |                                |           ✅           |                 ✅                 |
-| Debug               |                                |           ✅           |                 ✅                 |
-| Formal Proof        |                                |                       |                 ✅                 |
+| Tool                                         | Feature | Support |
+|----------------------------------------------|---|:-:|
+| **Ada & SPARK Extension**                    |   | |
+| | Syntax Highlighting                          | ✅ |
+| | Navigation<br>(except standard runtime)      | ✅ |
+| | Auto-completion<br>(except standard runtime) | ✅ |
+| | Refactoring                                  | ✅ |
+| **GNAT Compiler** | | |
+| | Full Navigation      | ✅ |
+| | Full Auto-completion | ✅ |
+| | Build                | ✅ |
+| | Debug                | ✅ |
+| **GNAT DAS** | | |
+| | Test                | ✅ |
+| | Code Coverage       | 🚧 |
+| **GNAT SAS** | | |
+| | Static Analysis     |       ✅            |
+| **SPARK** | | |
+| | Formal Proof        |       ✅          |
 
-## Getting an Ada Compiler or GNATprove
+🚧 _= The integration of this tool feature in Visual Studio Code is in progress._
 
-For a fully operational development environment you can obtain a compiler and/or GNATprove from the following channels.
+## Getting Additional Tools
+
+For a fully operational development environment you can obtain a compiler and/or other tools from the following channels.
 
 ### AdaCore Customers
 
-If you are an [AdaCore](https://www.adacore.com/) customer, you can log into your account on [GNAT Tracker](https://support.adacore.com/csm) to download the tools available in your subscription.
+If you are an [AdaCore](https://www.adacore.com/) customer, log into your account on [GNAT Tracker](https://support.adacore.com/csm) to download the tools available in your subscription.
 
 ### Community Users
 
