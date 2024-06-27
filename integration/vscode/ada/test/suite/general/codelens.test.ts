@@ -72,6 +72,7 @@ suite('CodeLens', function () {
     });
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function toString(codelenses: import('vscode').CodeLens[] | null | undefined): unknown {
     return JSON.stringify(
         codelenses?.map((cl) => ({

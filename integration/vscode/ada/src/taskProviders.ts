@@ -115,6 +115,24 @@ const predefinedTasks: PredefinedTask[] = [
         problemMatchers: DEFAULT_PROBLEM_MATCHER,
     },
     {
+        label: 'Compile current file',
+        taskDef: {
+            type: TASK_TYPE_ADA,
+            command: 'gprbuild',
+            args: [
+                '-q',
+                '-f',
+                '-c',
+                '-u',
+                '${command:ada.gprProjectArgs}',
+                '${fileBasename}',
+                '-cargs:ada',
+                '-gnatef',
+            ],
+        },
+        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    },
+    {
         label: 'Analyze the project with GNAT SAS',
         taskDef: {
             type: TASK_TYPE_ADA,
@@ -161,6 +179,21 @@ const predefinedTasks: PredefinedTask[] = [
             type: TASK_TYPE_ADA,
             compound: [
                 'Analyze the project with GNAT SAS',
+                'Create a report after a GNAT SAS analysis',
+            ],
+        },
+        /**
+         * Analysis results are not printed on stdio so no need to parse them
+         * with a problem matcher.
+         */
+        problemMatchers: '',
+    },
+    {
+        label: 'Analyze the current file with GNAT SAS and produce a report',
+        taskDef: {
+            type: TASK_TYPE_ADA,
+            compound: [
+                'Analyze the current file with GNAT SAS',
                 'Create a report after a GNAT SAS analysis',
             ],
         },
