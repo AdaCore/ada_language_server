@@ -17,6 +17,7 @@
 --
 --  This is driver to run LSP server for Ada language.
 
+with Ada.Characters.Latin_1;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with GNAT.OS_Lib;
@@ -257,6 +258,14 @@ procedure LSP.Ada_Driver is
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
 
+   Default_Traces_File_Contents : constant String :=
+     ">als.$T.txt:buffer_size=0" & Ada.Characters.Latin_1.LF
+     & "ALS.MAIN=yes" & Ada.Characters.Latin_1.LF
+     & "ALS.IN=no" & Ada.Characters.Latin_1.LF
+     & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;
+
+   Traces_File : Virtual_File;
+
    Trace_File_Option      : constant VSS.Command_Line.Value_Option :=
      (Short_Name  => "",
       Long_Name   => "tracefile",
@@ -309,31 +318,42 @@ begin
    --     - in a .gnatdebug file locally
    --     - in "traces.cfg" in the ALS home directory
    if VSS.Command_Line.Is_Specified (Trace_File_Option) then
-      declare
-         Traces_File : constant Virtual_File := Create_From_UTF8
-           (VSS.Strings.Conversions.To_UTF_8_String
-              (VSS.Command_Line.Value (Trace_File_Option)));
-      begin
-         if not Traces_File.Is_Regular_File then
-            Ada.Text_IO.Put_Line ("Could not find the specified traces file");
-            GNAT.OS_Lib.OS_Exit (1);
-         end if;
+      Traces_File := Create_From_UTF8
+         (VSS.Strings.Conversions.To_UTF_8_String
+            (VSS.Command_Line.Value (Trace_File_Option)));
+      if not Traces_File.Is_Regular_File then
+         Ada.Text_IO.Put_Line ("Could not find the specified traces file");
+         GNAT.OS_Lib.OS_Exit (1);
+      end if;
 
-         Parse_Config_File (Traces_File);
-      end;
+      Parse_Config_File (Traces_File);
+
    elsif GNATdebug.Is_Regular_File then
       Parse_Config_File (GNATdebug);
 
-   elsif ALS_Dir.Is_Directory then
+   else
+      --  No $HOME/.als directory: create one first
+      if not ALS_Dir.Is_Directory then
+         Make_Dir (ALS_Dir);
+      end if;
+
+      Traces_File := Create_From_Dir
+         (Dir       => ALS_Dir,
+          Base_Name => "traces.cfg");
+
+      --  No default traces file found: create one
+      if not Traces_File.Is_Regular_File then
+         declare
+            W_Traces_File : Writable_File;
+         begin
+            W_Traces_File := Traces_File.Write_File;
+            W_Traces_File.Write (Default_Traces_File_Contents);
+            W_Traces_File.Close;
+         end;
+      end if;
+
       Clean_ALS_Dir := True;
-
-      --  Search for custom traces config in traces.cfg
-      Parse_Config_File (+Virtual_File'(ALS_Dir / "traces.cfg").Full_Name);
-
-      --  Set log file
-      Set_Default_Stream
-        (">" & (+Virtual_File'(ALS_Dir / "als").Full_Name) &
-           ".$T.$$.log:buffer_size=0");
+      Parse_Config_File (Traces_File);
    end if;
 
    --  Look for a config file, that contains the configuration for the server

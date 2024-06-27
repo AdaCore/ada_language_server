@@ -1,22 +1,27 @@
 # ALS Trace File
 
-Default trace file name is `$HOME/.als/traces.cfg`.
-You can provide another file by `--tracefile=<FILE>` command line option.
+Default trace file name is `$HOME/.als/traces.cfg`. This file gets automatically created
+if not present on the disk. The first line of the traces file
+defines the traces output stream (a filename in our case) and the other
+lines are used to enable or disable traces.
 
-Here is a list of supported settings.
+Note that you can provide another traces file via the `--tracefile=<FILE>` command line option.
+
+Here is a list of the most useful supported traces:
 
 ## `ALS.IN` (default no)
-Show all the server input. Use this way:
+Shows all the server's input. Use this way:
 
-    ALS.IN=yes > inout.txt:buffer_size=0
+    ALS.IN=yes
 
 ## `ALS.OUT` (default no)
-Show all the server output. Use this way:
+Shows all the server's output. Use this way:
 
-    ALS.OUT=yes > inout.txt:buffer_size=0
+    ALS.OUT=yes
 
-## `ALS.MAIN` (default no)
-Trace requests, notifications and responses in an ALS log file.
+## `ALS.MAIN` (default yes)
+Trace requests, notifications and responses in ALS log files. Will
+also log any exception that occurs when handling LSP requests.
 
     ALS.MAIN=yes
 
