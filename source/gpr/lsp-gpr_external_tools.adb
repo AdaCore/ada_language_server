@@ -702,10 +702,89 @@ package body LSP.GPR_External_Tools is
            "passed to GNATcoverage tool. Each attribute specification " &
            "requires an index indicating what 'gnatcov' operation the " &
            "switches apply to.",
+         Index_Type            => PRA.String_Index,
+         Value                 => List,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Units",
+         Description           => "List of monitored units.",
          Index_Type            => PRA.No_Index,
          Value                 => List,
          Value_Case_Sensitive  => True);
 
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Units_List",
+         Description           => "File indicating the monitored units.",
+         Index_Type            => PRA.No_Index,
+         Value                 => Single,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Excluded_Units",
+         Description           => "List of excluded units.",
+         Index_Type            => PRA.No_Index,
+         Value                 => List,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Excluded_Units_List",
+         Description           => "File indicating the excluded units.",
+         Index_Type            => PRA.No_Index,
+         Value                 => Single,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Ignored_Units",
+         Description           => "List of ignored units.",
+         Index_Type            => PRA.No_Index,
+         Value                 => List,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Ignored_Units_List",
+         Description           => "File indicating the ignored units.",
+         Index_Type            => PRA.No_Index,
+         Value                 => Single,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Routines",
+         Description           => "List of routines.",
+         Index_Type            => PRA.No_Index,
+         Value                 => List,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Routines_List",
+         Description           => "File containing the list of routine.",
+         Index_Type            => PRA.No_Index,
+         Value                 => Single,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Excluded_Routines",
+         Description           => "List of excluded routines.",
+         Index_Type            => PRA.No_Index,
+         Value                 => List,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Coverage",
+         Attribute_Name        => +"Excluded_Routines_List",
+         Description           => "File containing the excluded routines.",
+         Index_Type            => PRA.No_Index,
+         Value                 => Single,
+         Value_Case_Sensitive  => True);
    end Import_GNATcov_Attributes;
 
    --------------------------------
