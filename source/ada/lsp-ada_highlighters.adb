@@ -381,8 +381,8 @@ package body LSP.Ada_Highlighters is
                --  categorization.
                Map : constant array (Libadalang.Common.Token_Kind) of
                  LSP.Enumerations.SemanticTokenTypes :=
-                   (--  Operators
-                    Ada_Abs      | Ada_Divide   |
+                   --  Operators
+                   (Ada_Abs      | Ada_Divide   |
                     Ada_Equal    | Ada_Gt       |
                     Ada_Gte      | Ada_Lt       |
                     Ada_Lte      | Ada_Minus    |
