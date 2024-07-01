@@ -377,15 +377,45 @@ package body LSP.Ada_Highlighters is
                Start : constant Langkit_Support.Slocs.Source_Location :=
                  Langkit_Support.Slocs.Start_Sloc (Sloc_Range);
 
+               --  TODO: Check whether Libadalang could provide this
+               --  categorization.
                Map : constant array (Libadalang.Common.Token_Kind) of
                  LSP.Enumerations.SemanticTokenTypes :=
-                   (Ada_All .. Ada_Xor | Ada_With => keyword,
-                    Ada_Par_Close .. Ada_Target   => operator,
-                    Ada_String | Ada_Char         => LSP.Enumerations.string,
-                    Ada_Decimal | Ada_Integer     => number,
-                    Ada_Comment                   => comment,
-                    Ada_Identifier                => Skip,
-                    others                        => Skip);
+                   --  Operators
+                   (Ada_Abs      | Ada_Divide   |
+                    Ada_Equal    | Ada_Gt       |
+                    Ada_Gte      | Ada_Lt       |
+                    Ada_Lte      | Ada_Minus    |
+                    Ada_Mult     | Ada_Notequal |
+                    Ada_Plus     | Ada_Power    |
+                    Ada_Target   | Ada_Mod      |
+                    Ada_Rem      | Ada_Xor     => operator,
+
+                    --  Strings
+                    Ada_String              |
+                    Ada_Format_String_End   |
+                    Ada_Format_String_Start |
+                    Ada_Format_String_Mid   |
+                    Ada_Char  => LSP.Enumerations.string,
+
+                    --  Numbers
+                    Ada_Decimal  | Ada_Integer => number,
+
+                    --  Comments
+                    Ada_Comment => comment,
+
+                    --  Regular text
+                    Ada_Identifier  | Ada_Brack_Close |
+                    Ada_Brack_Open  | Ada_Arrow       |
+                    Ada_Assign      | Ada_Colon       |
+                    Ada_Comma       | Ada_Diamond     |
+                    Ada_Dot         | Ada_Doubledot   |
+                    Ada_Par_Close   | Ada_Par_Open    |
+                    Ada_Pipe        | Ada_Semicolon   |
+                    Ada_Tick        | Ada_Whitespace  => Skip,
+
+                    --  Assume the rest are keywords
+                    others                            => keyword);
 
                Mapped_Token : constant LSP.Enumerations.SemanticTokenTypes :=
                  Map (Libadalang.Common.Kind (Token_Data));
