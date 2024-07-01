@@ -266,7 +266,8 @@ private
       Item : GPR2.Path_Name.Object) return LSP.Structures.DocumentUri
    is
      (VSS.Strings.Conversions.To_Virtual_String
-        (URIs.Conversions.From_File (Item.Value)) with null record);
+        (URIs.Conversions.From_File (String (Item.Value)))
+        with null record);
 
    overriding procedure Publish_Diagnostics
      (Self     : in out Message_Handler;

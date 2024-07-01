@@ -17,9 +17,9 @@
 
 with VSS.JSON.Streams;
 
-with GNATCOLL.Tribooleans;
+with GNATCOLL.VFS; use GNATCOLL.VFS;
 
-with GPR2.Project.Source;
+with GPR2.Build.Compilation_Unit;
 with GPR2.Path_Name;
 
 with LSP.Constants;
@@ -90,42 +90,59 @@ package body LSP.Ada_Handlers.Other_File_Commands is
       ----------------
 
       function Other_File return GNATCOLL.VFS.Virtual_File is
-         F : constant GPR2.Path_Name.Object := GPR2.Path_Name.Create (File);
-      begin
-         for V in Handler.Project_Tree.Iterate
-           (Status => (GPR2.Project.S_Externally_Built =>
-                           GNATCOLL.Tribooleans.Indeterminate))
-         loop
-            declare
-               Source     : constant GPR2.Project.Source.Object :=
-                               GPR2.Project.Tree.Element (V).Source (F);
-               Other_Part : GPR2.Project.Source.Source_Part;
-            begin
-               if Source.Is_Defined then
-                  Other_Part := Source.Other_Part_Unchecked (GPR2.No_Index);
-                  if Other_Part.Source.Is_Defined then
-                     return Other_Part.Source.Path_Name.Virtual_File;
-                  end if;
-               end if;
-            end;
-         end loop;
 
-         if Handler.Project_Tree.Has_Runtime_Project then
-            declare
-               Source     : constant GPR2.Project.Source.Object :=
-                               Handler.Project_Tree.Runtime_Project.
-                                 Source (F);
-               Other_Part : GPR2.Project.Source.Source_Part;
-            begin
-               if Source.Is_Defined then
-                  Other_Part := Source.Other_Part_Unchecked (GPR2.No_Index);
-                  if Other_Part.Source.Is_Defined then
-                     return Other_Part.Source.Path_Name.Virtual_File;
-                  end if;
-               end if;
-            end;
-         end if;
-         return File;
+         F : constant GPR2.Path_Name.Object := GPR2.Path_Name.Create (File);
+
+         function Other_File_From_Unit
+           (Unit : GPR2.Build.Compilation_Unit.Object)
+           return GNATCOLL.VFS.Virtual_File;
+         --  Return the other file, knowing that the original file was
+         --  related to Unit.
+
+         function Unit_For_File return GPR2.Build.Compilation_Unit.Object;
+         --   File the Unit object corresponding to File.
+
+         --------------------------
+         -- Other_File_From_Unit --
+         --------------------------
+
+         function Other_File_From_Unit
+           (Unit : GPR2.Build.Compilation_Unit.Object)
+           return GNATCOLL.VFS.Virtual_File
+         is
+            Spec_File : Virtual_File;
+            Body_File : Virtual_File;
+         begin
+            Spec_File := Unit.Spec.Source.Virtual_File;
+            Body_File := Unit.Main_Body.Source.Virtual_File;
+            if File = Spec_File then
+               return Body_File;
+            else
+               return Spec_File;
+            end if;
+         end Other_File_From_Unit;
+
+         -------------------
+         -- Unit_For_File --
+         -------------------
+
+         function Unit_For_File return GPR2.Build.Compilation_Unit.Object
+         is
+            Unit : GPR2.Build.Compilation_Unit.Object;
+         begin
+            --  First look in the closure of sources, then in the
+            --  runtime project.
+            Unit := Handler.Project_Tree.Root_Project.Unit (F.Base_Name);
+
+            if not Unit.Is_Defined then
+               Unit := Handler.Project_Tree.Runtime_Project.Unit
+                 (F.Base_Name);
+            end if;
+            return Unit;
+         end Unit_For_File;
+
+      begin
+         return Other_File_From_Unit (Unit_For_File);
       end Other_File;
 
       URI : constant LSP.Structures.DocumentUri :=

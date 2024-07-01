@@ -1965,12 +1965,7 @@ package body LSP.Ada_Handlers is
       Self.Log_Method_In ("On_DidCreateFiles_Notification");
 
       --  New sources were created on this project, so recompute its view
-
-      if Self.Project_Tree.Are_Sources_Loaded then
-         --  Update_Sources can't be called when the sources are already loaded
-         Self.Project_Tree.Invalidate_Sources;
-      end if;
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Clear_Sources;
 
       --  For each created file of Value.files:
       --  - find the contexts that contains its directory
@@ -2020,12 +2015,7 @@ package body LSP.Ada_Handlers is
       Self.Log_Method_In ("On_DidDeleteFiles_Notification");
 
       --  Some project sources were deleted, so recompute its view
-
-      if Self.Project_Tree.Are_Sources_Loaded then
-         --  Update_Sources can't be called when the sources are already loaded
-         Self.Project_Tree.Invalidate_Sources;
-      end if;
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Clear_Sources;
 
       --  For each delete file of Value.files:
       --  - find the contexts that contains it
@@ -2139,12 +2129,7 @@ package body LSP.Ada_Handlers is
       Self.Log_Method_In ("On_DidRenameFiles_Notification");
 
       --  Some project sources were renamed, so recompute its view
-
-      if Self.Project_Tree.Are_Sources_Loaded then
-         --  Update_Sources can't be called when the sources are already loaded
-         Self.Project_Tree.Invalidate_Sources;
-      end if;
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Clear_Sources;
 
       --  For each oldUri of Value.files:
       --  - map it to a list of context that contains it

@@ -18,8 +18,10 @@
 with Ada.Exceptions;
 
 with GPR2.Message;
+with GPR2.Options;
 with GPR2.Project.View;
 with GPR2.Source_Reference;
+with GPR2.Project.Typ.Set;
 
 with VSS.Strings.Conversions;
 
@@ -31,7 +33,7 @@ package body LSP.GPR_Documents is
 
    procedure Cleanup (Self : in out Document) is
    begin
-      Self.Tree.Unload (True);
+      Self.Tree.Unload;
    end Cleanup;
 
    ----------------
@@ -182,17 +184,36 @@ package body LSP.GPR_Documents is
       --  Unload it to clean log.
       Self.Tree.Unload;
 
-      Self.Tree.Load_Autoconf
-        (Filename          => Self.File,
-         Context           => Configuration.Context,
-         Build_Path        => Configuration.Build_Path (Self.File),
-         File_Reader       => Self.File_Provider.Get_File_Reader,
-         Environment       => LSP.GPR_Files.Environment);
+      declare
+         Opts    : GPR2.Options.Object;
+         Success : Boolean;
+      begin
+         Opts.Add_Switch (GPR2.Options.P, String (Self.File.Value));
+
+         Success := Self.Tree.Load
+            (Opts,
+             With_Runtime     => True,
+             Absent_Dir_Error => GPR2.No_Error,
+             File_Reader      => Self.File_Provider.Get_File_Reader,
+             Environment      => LSP.GPR_Files.Environment);
+
+         if Success then
+            Success := Self.Tree.Set_Context (Configuration.Context);
+         end if;
+
+         if not Success then
+            for C in Self.Tree.Log_Messages.Iterate loop
+               Self.Tracer.Trace (C.Element.Format);
+               Self.Messages.Append (C.Element);
+            end loop;
+            Self.Has_Messages := True;
+         end if;
+      end;
 
       Update_Diagnostics;
 
    exception
-      when GPR2.Project_Error | GPR2.Processing_Error =>
+      when GPR2.Project_Error =>
 
          Update_Diagnostics;
 
@@ -399,7 +420,11 @@ package body LSP.GPR_Documents is
 
       begin
          if View.Has_Types (Name) then
-            return View.Typ (Name);
+            declare
+               Set : constant GPR2.Project.Typ.Set.Object := View.Types;
+            begin
+               return Set (Name);
+            end;
          else
             return GPR2.Project.Typ.Undefined;
          end if;

@@ -66,7 +66,7 @@ package body LSP.Ada_Handlers.Mains_Commands is
          if Element.Has_Mains then
             for Main of Element.Mains loop
                Value := VSS.Strings.Conversions.To_Virtual_String
-                 (Main.Source.Value);
+                 (String (Main.Source.Value));
 
                Append ((VSS.JSON.Streams.String_Value, Value));
             end loop;

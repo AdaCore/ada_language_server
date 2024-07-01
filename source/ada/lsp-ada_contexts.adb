@@ -22,11 +22,14 @@ with GNAT.Strings;
 with GNATCOLL.Traces;             use GNATCOLL.Traces;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
 
+with GPR2;
 with GPR2.Containers;
 with GPR2.Path_Name;
 with GPR2.Project.Attribute;
 with GPR2.Project.Attribute_Index;
-with GPR2.Project.Source;
+with GPR2.Project.View.Set;
+with GPR2.Build.Source;
+with GPR2.Build.Source.Sets;
 
 with VSS.Strings.Conversions;
 
@@ -593,14 +596,14 @@ package body LSP.Ada_Contexts is
 
       procedure Update_Source_Files is
 
-         procedure Insert_Source (Source : GPR2.Project.Source.Object);
+         procedure Insert_Source (Source : GPR2.Build.Source.Object);
          --  Insert Source in Self.Source_Files
 
          -------------------
          -- Insert_Source --
          -------------------
 
-         procedure Insert_Source (Source : GPR2.Project.Source.Object) is
+         procedure Insert_Source (Source : GPR2.Build.Source.Object) is
             Path : constant Virtual_File := Source.Path_Name.Virtual_File;
          begin
             if not Self.Source_Files.Contains (Path) then
@@ -611,29 +614,43 @@ package body LSP.Ada_Contexts is
       begin
          Self.Source_Files.Clear;
 
-         Tree.For_Each_Source
-           (View             => Root,
-            Action           => Insert_Source'Access,
-            Language         => GPR2.Ada_Language,
-            Externally_Built => True);
+         for View of Root.Closure (Include_Self => True)
+           when not View.Is_Runtime
+         loop
+            declare
+               Sources : constant GPR2.Build.Source.Sets.Object
+                  := View.Sources;
+               use type GPR2.Language_Id;
+            begin
+               for Source of Sources loop
+                  if Source.Language = GPR2.Ada_Language then
+                     Insert_Source (Source);
+                  end if;
+               end loop;
+            end;
+         end loop;
 
          Self.Source_Dirs.Clear;
-
-         for Dir of Tree.Source_Directories
-           (View             => Root,
-            Externally_Built => False)
-         loop
-            Self.Source_Dirs.Include (Dir.Virtual_File);
-         end loop;
-
          Self.External_Source_Dirs.Clear;
 
-         for Dir of Tree.Source_Directories
-           (View             => Root,
-            Externally_Built => True)
-         loop
-            Self.External_Source_Dirs.Include (Dir.Virtual_File);
-         end loop;
+         declare
+            Views : constant GPR2.Project.View.Set.Object :=
+               Root.Closure (Include_Self => True);
+         begin
+            for View of Views
+              when not View.Is_Runtime
+            loop
+               if View.Is_Externally_Built then
+                  for Dir of View.Source_Directories loop
+                     Self.External_Source_Dirs.Include (Dir.Virtual_File);
+                  end loop;
+               else
+                  for Dir of View.Source_Directories loop
+                     Self.Source_Dirs.Include (Dir.Virtual_File);
+                  end loop;
+               end if;
+            end loop;
+         end;
 
          Self.Extension_Set.Clear;
 
@@ -725,7 +742,7 @@ package body LSP.Ada_Contexts is
    begin
       Self.Id := VSS.Strings.Conversions.To_Virtual_String
                    (String (Root.Name));
-      Self.Tree := Tree.Reference;
+      Self.Tree := Tree;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
       Self.Unit_Provider :=
@@ -763,7 +780,7 @@ package body LSP.Ada_Contexts is
    begin
       Self.Source_Files.Clear;
       Self.Source_Dirs.Clear;
-      Self.Tree := null;
+      Self.Tree := GPR2.Project.Tree.Undefined;
 
       --  Cleanup gnatpp's template tables
       Pp.Actions.Clear_Template_Tables;
