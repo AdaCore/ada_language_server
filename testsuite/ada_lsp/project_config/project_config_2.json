@@ -73,17 +73,18 @@
                     }
                 }
             },
+            "comment": "NOTE: we are loading an invalid project which has two files containing the same compilation unit: the behavior is undetermined.",
             "wait":[{
                 "id": "defname-1",
                 "result":{
-                    "uri": "$URI{third.ads}",
+                    "uri": "$URI{second.ads}",
                     "range": {
                         "start": {
-                            "line": 3,
+                            "line": 0,
                             "character": 10
                         },
                         "end": {
-                            "line": 3,
+                            "line": 0,
                             "character": 22
                         }
                     }
