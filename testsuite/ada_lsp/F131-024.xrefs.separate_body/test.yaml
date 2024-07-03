@@ -1,1 +1,6 @@
 title: 'F131-024.xrefs.separate_body'
+
+# This test is expected to fail until eng/libadalang/libadalang#1409
+# is fixed.
+skip:
+    - ['XFAIL', 'True']
