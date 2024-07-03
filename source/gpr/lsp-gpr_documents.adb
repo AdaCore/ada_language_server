@@ -185,8 +185,9 @@ package body LSP.GPR_Documents is
       Self.Tree.Unload;
 
       declare
-         Opts    : GPR2.Options.Object;
-         Success : Boolean;
+         Opts       : GPR2.Options.Object;
+         Success    : Boolean;
+         Update_Log : GPR2.Log.Object;
       begin
          Opts.Add_Switch (GPR2.Options.P, String (Self.File.Value));
 
@@ -198,16 +199,29 @@ package body LSP.GPR_Documents is
              Environment      => LSP.GPR_Files.Environment);
 
          if Success then
-            Success := Self.Tree.Set_Context (Configuration.Context);
+            Self.Tree.Update_Sources (Update_Log);
+            if Update_Log.Has_Error then
+               Self.Has_Messages := True;
+            else
+               Success := Self.Tree.Set_Context (Configuration.Context);
+            end if;
          end if;
 
          if not Success then
-            for C in Self.Tree.Log_Messages.Iterate loop
-               Self.Tracer.Trace (C.Element.Format);
-               Self.Messages.Append (C.Element);
-            end loop;
             Self.Has_Messages := True;
          end if;
+
+         --  Collect all messages coming from Load...
+         for C in Self.Tree.Log_Messages.Iterate loop
+            Self.Tracer.Trace (C.Element.Format);
+            Self.Messages.Append (C.Element);
+         end loop;
+
+         --  ... and all messages coming from Update_Sources
+         for C in Update_Log.Iterate loop
+            Self.Tracer.Trace (C.Element.Format);
+            Self.Messages.Append (C.Element);
+         end loop;
       end;
 
       Update_Diagnostics;
