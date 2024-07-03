@@ -1,6 +1,6 @@
 title: 'C825-005.xrefs.extending'
 
 # This test needs a change of behaviour in gpr2,
-# see https://gitlab.adacore-it.com/eng/gpr/gpr-issues/-/issues/328
+# see eng/gpr/gpr-issues#328
 skip:
     - ['XFAIL', 'True']
