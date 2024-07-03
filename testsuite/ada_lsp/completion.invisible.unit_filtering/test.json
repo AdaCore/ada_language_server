@@ -1,0 +1,222 @@
+[
+   {
+      "comment": [
+         "This test check that we filter invisible completion items",
+         " on units that have been specified before a '.' in any (i.e: if we type 'Ada.Text_IO.'",
+         " we list only the symbols defined in 'Ada.Text_IO')"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "text": "\nwith Ada.Text_IO;\n\nprocedure Main is\n\nbegin\n\n   Foo.\nend Main;\n",
+                  "version": 1,
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 7,
+                  "character": 10
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "sortReply": { "result": { "items": ["label", "documentation"] } },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 7,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "command": {
+                           "arguments": [
+                              {
+                                 "context": "Default",
+                                 "import": "Foo",
+                                 "qualifier": "",
+                                 "where": {
+                                    "position": {
+                                       "character": 8,
+                                       "line": 7
+                                    },
+                                    "textDocument": {
+                                       "uri": "$URI{main.adb}"
+                                    }
+                                 }
+                              }
+                           ],
+                           "command": "als-auto-import",
+                           "title": ""
+                        },
+                        "detail": "procedure Do_Nothing",
+                        "documentation": "at foo.ads (3:4)",
+                        "filterText": "Do_Nothing",
+                        "insertText": "Do_Nothing",
+                        "kind": 3,
+                        "label": "Do_Nothing (invisible)",
+                        "sortText": "~25&00001Do_Nothing"
+                     },
+                     {
+                        "command": {
+                           "arguments": [
+                              {
+                                 "context": "Default",
+                                 "import": "Foo",
+                                 "qualifier": "",
+                                 "where": {
+                                    "position": {
+                                       "character": 8,
+                                       "line": 7
+                                    },
+                                    "textDocument": {
+                                       "uri": "$URI{main.adb}"
+                                    }
+                                 }
+                              }
+                           ],
+                           "command": "als-auto-import",
+                           "title": ""
+                        },
+                        "detail": "type Foo_Type is tagged null record;",
+                        "documentation": "at foo.ads (5:4)",
+                        "filterText": "Foo_Type",
+                        "insertText": "Foo_Type",
+                        "kind": 7,
+                        "label": "Foo_Type (invisible)",
+                        "sortText": "~100&00002Foo_Type"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 44,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 44,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

@@ -85,7 +85,9 @@ package LSP.Ada_File_Sets is
       Callback          : not null access procedure
         (File          : GNATCOLL.VFS.Virtual_File;
          Defining_Name : Libadalang.Analysis.Defining_Name;
-         Stop          : in out Boolean));
+         Stop          : in out Boolean);
+      Unit_Prefix : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String);
    --  Find symbols starting with given Prefix in all files of the set and
    --  call Callback for each. Get_Defining_Name callback is used for getting
    --  the Defining_Name at the given location Loc in a unit.
