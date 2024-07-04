@@ -245,11 +245,15 @@ package LSP.Ada_Contexts is
       Callback    : not null access procedure
         (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean));
+         Stop : in out Boolean);
+      Unit_Prefix : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String);
    --  Find symbols starting with given Prefix in all files of the context and
    --  call Callback for each. Name could contain a stale reference if the File
    --  was updated since last indexing operation. If Only_Public is True it
    --  will skip any "private" symbols (like symbols in private part or body).
+   --  Unit_Prefix is used for additional filtering: when specified, only the
+   --  symbols declared in this non-visible unit will be returned.
 
    function Charset (Self : Context) return String;
    --  Return the charset for this context

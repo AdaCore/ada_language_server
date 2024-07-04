@@ -17,20 +17,20 @@
 
 with LSP.Client_Message_Receivers;
 
-package body LSP.Sequential_Message_Handlers is
+package body LSP.Default_Message_Handlers is
 
    type Sequential_Job is new LSP.Server_Jobs.Server_Job with record
-      Handler : Server_Message_Visitor_Access;
-      Message : LSP.Server_Messages.Server_Message_Access;
-      Is_Done : Boolean := False;
+      Handler  : Server_Message_Visitor_Access;
+      Priority : LSP.Server_Jobs.Job_Priority;
+      Message  : LSP.Server_Messages.Server_Message_Access;
+      Is_Done  : Boolean := False;
    end record;
 
    type Sequential_Job_Access is access all Sequential_Job'Class;
 
    overriding function Priority
      (Self : Sequential_Job) return LSP.Server_Jobs.Job_Priority is
-       (LSP.Server_Jobs.Fence);
-   --  In-order execution for this kind of jobs
+       (Self.Priority);
 
    overriding function Message (Self : Sequential_Job)
      return LSP.Server_Messages.Server_Message_Access is (Self.Message);
@@ -56,14 +56,15 @@ package body LSP.Sequential_Message_Handlers is
    ----------------
 
    overriding function Create_Job
-     (Self    : Sequential_Message_Handler;
+     (Self    : Default_Message_Handler;
       Message : LSP.Server_Messages.Server_Message_Access)
       return LSP.Server_Jobs.Server_Job_Access
    is
       Result : constant Sequential_Job_Access := new Sequential_Job'
-        (Handler => Self.Handler,
-         Message => Message,
-         Is_Done => False);
+        (Handler  => Self.Handler,
+         Priority => Self.Priority,
+         Message  => Message,
+         Is_Done  => False);
    begin
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
@@ -90,11 +91,13 @@ package body LSP.Sequential_Message_Handlers is
    ----------------
 
    procedure Initialize
-     (Self    : in out Sequential_Message_Handler'Class;
+     (Self    : in out Default_Message_Handler'Class;
       Handler : not null access
-        LSP.Server_Message_Visitors.Server_Message_Visitor'Class) is
+        LSP.Server_Message_Visitors.Server_Message_Visitor'Class;
+      Priority : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Fence) is
    begin
       Self.Handler := Handler;
+      Self.Priority := Priority;
    end Initialize;
 
-end LSP.Sequential_Message_Handlers;
+end LSP.Default_Message_Handlers;

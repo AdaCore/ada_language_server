@@ -485,7 +485,9 @@ package body LSP.Ada_Contexts is
       Callback : not null access procedure
         (File : GNATCOLL.VFS.Virtual_File;
          Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean))
+         Stop : in out Boolean);
+      Unit_Prefix : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String)
    is
       function Get_Defining_Name
         (File : GNATCOLL.VFS.Virtual_File;
@@ -512,7 +514,11 @@ package body LSP.Ada_Contexts is
 
    begin
       Self.Source_Files.Get_Any_Symbol
-        (Pattern, Only_Public, Get_Defining_Name'Access, Callback);
+        (Pattern           => Pattern,
+         Only_Public       => Only_Public,
+         Get_Defining_Name => Get_Defining_Name'Access,
+         Callback          => Callback,
+         Unit_Prefix       => Unit_Prefix);
    end Get_Any_Symbol;
 
    -----------------

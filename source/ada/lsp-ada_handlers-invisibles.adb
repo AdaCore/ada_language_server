@@ -15,8 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL;
+with GNATCOLL.Utils;
 with GNATCOLL.VFS;
 
+with Langkit_Support.Text;
 with VSS.Strings;
 
 with LSP.Enumerations;
@@ -39,8 +42,6 @@ package body LSP.Ada_Handlers.Invisibles is
       Result : in out LSP.Structures.CompletionList)
    is
       pragma Unreferenced (Result);
-      use all type Libadalang.Common.Token_Kind;
-      use all type Libadalang.Common.Token_Reference;
       use type Ada.Containers.Count_Type;
 
       procedure On_Inaccessible_Name
@@ -79,22 +80,17 @@ package body LSP.Ada_Handlers.Invisibles is
          end if;
       end On_Inaccessible_Name;
 
-      Previous_Tok : constant Libadalang.Common.Token_Reference :=
-         Libadalang.Common.Previous (Token, Exclude_Trivia => True);
-      Dot_Token    : constant Libadalang.Common.Token_Data_Type :=
-        Libadalang.Common.Data
-          (if Libadalang.Common.Is_Trivia (Token)
-            and then Previous_Tok /= Libadalang.Common.No_Token
-           then Previous_Tok
-           else Token);
-
       function Dummy_Canceled return Boolean is (False);
 
+      Unit_Prefix : VSS.Strings.Virtual_String;
+      --  The unit prefix specified before the point of completion, if any
+      --  (e.g: "Ada.Text_IO" when completing "Ada.Text_IO.").
+      --  Used to filter invisible completion items: if there is a unit prefix,
+      --  we want to show only the public symbols declared in this
+      --  non-visible unit.
+
    begin
-      if Libadalang.Common.Kind (Dot_Token) = Ada_Dot then
-         --  Don't provide completion after a dot
-         return;
-      elsif Filter.Is_Numeric_Literal
+      if Filter.Is_Numeric_Literal
         or else Filter.Is_Attribute_Ref
         or else Filter.Is_Aspect
         or else Filter.Is_End_Label
@@ -111,8 +107,7 @@ package body LSP.Ada_Handlers.Invisibles is
       if Node.Is_Null or else
         (not Node.Parent.Is_Null and then Node.Parent.Kind in
            Libadalang.Common.Ada_Defining_Name_Range
-             | Libadalang.Common.Ada_Dotted_Name_Range
-               | Libadalang.Common.Ada_Ada_Node_List_Range)
+             | Libadalang.Common.Ada_Ada_Node_List_Range)
       then
          return;
       end if;
@@ -121,6 +116,20 @@ package body LSP.Ada_Handlers.Invisibles is
       --  dealing with a syntax error.
       if Node.Kind in Libadalang.Common.Ada_Error_Decl_Range then
          return;
+      end if;
+
+      --  We are completing a dotted-name: check if we have a unit prefix
+      if Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range then
+         declare
+            Prefix : constant String :=
+              Langkit_Support.Text.To_UTF8 (Node.Text);
+            Dot_Idx : Integer := -1;
+         begin
+            Dot_Idx := GNATCOLL.Utils.Find_Char (Prefix, '.');
+            Unit_Prefix :=
+              VSS.Strings.Conversions.To_Virtual_String
+                (Prefix (Prefix'First .. Dot_Idx - 1));
+         end;
       end if;
 
       declare
@@ -146,7 +155,8 @@ package body LSP.Ada_Handlers.Invisibles is
                Self.Context.Get_Any_Symbol
                  (Pattern     => Pattern,
                   Only_Public => True,
-                  Callback    => On_Inaccessible_Name'Access);
+                  Callback    => On_Inaccessible_Name'Access,
+                  Unit_Prefix => Unit_Prefix);
 
                for Doc of Self.Handler.Open_Documents loop
                   Doc.Get_Any_Symbol

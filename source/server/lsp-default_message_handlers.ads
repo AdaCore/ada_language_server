@@ -20,19 +20,24 @@ with LSP.Server_Message_Handlers;
 with LSP.Server_Message_Visitors;
 with LSP.Server_Messages;
 
-package LSP.Sequential_Message_Handlers is
+package LSP.Default_Message_Handlers is
    pragma Preelaborate;
 
-   type Sequential_Message_Handler is
+   type Default_Message_Handler is
      new LSP.Server_Message_Handlers.Server_Message_Handler
        with private;
-   --  This message handler processes messages in the order they are received.
-   --  TO do this for each message it creates a job with Fence priority.
+   --  This message handler creates jobs to process messages using a hanlder
+   --  (Server_Message_Visitor) provided during initialization. When used with
+   --  Fence priority it processes messages in the order they are received.
 
    procedure Initialize
-     (Self    : in out Sequential_Message_Handler'Class;
-      Handler : not null access
-        LSP.Server_Message_Visitors.Server_Message_Visitor'Class);
+     (Self     : in out Default_Message_Handler'Class;
+      Handler  : not null access
+        LSP.Server_Message_Visitors.Server_Message_Visitor'Class;
+      Priority : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Fence);
+   --  Provide Handler and Priority to be used to handle requests and
+   --  notifications. By default use Fence priority that means
+   --  in-order execution for all kinds of messages.
 
 private
 
@@ -40,15 +45,16 @@ private
      LSP.Server_Message_Visitors.Server_Message_Visitor'Class
        with Storage_Size => 0;
 
-   type Sequential_Message_Handler is
+   type Default_Message_Handler is
      new LSP.Server_Message_Handlers.Server_Message_Handler
    with record
-      Handler : Server_Message_Visitor_Access;
+      Handler  : Server_Message_Visitor_Access;
+      Priority : LSP.Server_Jobs.Job_Priority;
    end record;
 
    overriding function Create_Job
-     (Self    : Sequential_Message_Handler;
+     (Self    : Default_Message_Handler;
       Message : LSP.Server_Messages.Server_Message_Access)
         return LSP.Server_Jobs.Server_Job_Access;
 
-end LSP.Sequential_Message_Handlers;
+end LSP.Default_Message_Handlers;

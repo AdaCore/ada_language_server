@@ -74,6 +74,7 @@ with LSP.Ada_Handlers.Source_Dirs_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.Ada_Tokens_Full;
 with LSP.Ada_Tokens_Range;
+with LSP.Default_Message_Handlers;
 with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
 with LSP.GPR_Handlers;
@@ -82,14 +83,20 @@ with LSP.GPR_Did_Change_Document;
 with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
 with LSP.Secure_Message_Loggers;
+with LSP.Server_Jobs;
 with LSP.Server_Notifications.DidChange;
 with LSP.Server_Notifications.DidChangeConfiguration;
-with LSP.Server_Requests.Definition;
+with LSP.Server_Notifications.DidChangeWorkspaceFolders;
+with LSP.Server_Notifications.DidClose;
+with LSP.Server_Notifications.DidOpen;
+with LSP.Server_Notifications.Exits;
 with LSP.Server_Requests.Declaration;
+with LSP.Server_Requests.Definition;
 with LSP.Server_Requests.DocumentSymbol;
 with LSP.Server_Requests.ExecuteCommand;
 with LSP.Server_Requests.FoldingRange;
 with LSP.Server_Requests.Hover;
+with LSP.Server_Requests.Initialize;
 with LSP.Server_Requests.References;
 with LSP.Server_Requests.Tokens_Full;
 with LSP.Server_Requests.Tokens_Range;
@@ -231,6 +238,10 @@ procedure LSP.Ada_Driver is
    Ada_Tokens_Range_Handler : aliased
      LSP.Ada_Tokens_Range.Ada_Tokens_Range_Handler
        (Ada_Handler'Unchecked_Access);
+
+   Ada_Fence_Message_Handler : aliased
+     LSP.Default_Message_Handlers.Default_Message_Handler;
+   --  A shared handler with Fense priority
 
    GPR_Did_Change_Doc_Handler : aliased
      LSP.GPR_Did_Change_Document.GPR_Did_Change_Handler
@@ -451,6 +462,30 @@ begin
          LSP.Predefined_Completion.Load_Predefined_Completion_Db
            (Server_Trace);
 
+         Ada_Fence_Message_Handler.Initialize
+           (Handler  => Ada_Handler'Unchecked_Access,
+            Priority => LSP.Server_Jobs.Fence);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.Initialize.Request'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.DidOpen.Notification'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.DidClose.Notification'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.DidChangeWorkspaceFolders.Notification'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.Exits.Notification'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
          Server.Register_Handler
            (LSP.Server_Notifications.DidChangeConfiguration.Notification'Tag,
             Ada_Did_Change_Handler'Unchecked_Access);
@@ -501,7 +536,8 @@ begin
             In_Logger  => (if In_Trace.Is_Active
                            then In_Logger'Unchecked_Access else null),
             Out_Logger => (if Out_Trace.Is_Active
-                           then Out_Logger'Unchecked_Access else null));
+                           then Out_Logger'Unchecked_Access else null),
+            Priority   => LSP.Server_Jobs.Low);
       end if;
    exception
       when E : others =>

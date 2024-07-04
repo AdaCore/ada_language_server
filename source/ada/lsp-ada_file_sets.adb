@@ -16,11 +16,14 @@
 ------------------------------------------------------------------------------
 
 with Langkit_Support.Symbols;     use Langkit_Support.Symbols;
+with Langkit_Support.Text;
 with Libadalang.Common;           use Libadalang.Common;
 with Libadalang.Iterators;
 with Libadalang.Sources;
 
 with LSP.Predicates;
+
+with VSS.Strings.Conversions;
 
 package body LSP.Ada_File_Sets is
 
@@ -91,7 +94,9 @@ package body LSP.Ada_File_Sets is
       Callback          : not null access procedure
         (File          : GNATCOLL.VFS.Virtual_File;
          Defining_Name : Libadalang.Analysis.Defining_Name;
-         Stop          : in out Boolean))
+         Stop          : in out Boolean);
+      Unit_Prefix : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String)
    is
       use all type LSP.Search.Search_Kind;
 
@@ -104,6 +109,29 @@ package body LSP.Ada_File_Sets is
         and then ((Pattern.Get_Kind = Full_Text
                    and then Pattern.Get_Whole_Word)
                   or else Pattern.Get_Kind = Start_Word_Text);
+
+      function Matches_Unit_Prefix
+        (Name : Libadalang.Analysis.Defining_Name'Class) return Boolean;
+      --  Return true if the given defining name's unit matches the unit prefix
+      --  given in parameter.
+
+      -------------------------
+      -- Matches_Unit_Prefix --
+      -------------------------
+
+      function Matches_Unit_Prefix
+        (Name : Libadalang.Analysis.Defining_Name'Class) return Boolean
+      is
+         Unit_Root_Decl : constant Libadalang.Analysis.Basic_Decl :=
+           Name.P_Enclosing_Compilation_Unit.P_Decl;
+         Unit_Name      : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.Conversions.To_Virtual_String
+             (Langkit_Support.Text.To_UTF8
+                (Unit_Root_Decl.P_Fully_Qualified_Name));
+      begin
+         return Unit_Prefix.Is_Empty
+           or else Unit_Name.Starts_With (Unit_Prefix);
+      end Matches_Unit_Prefix;
 
    begin
       if Use_Celling then
@@ -139,7 +167,9 @@ package body LSP.Ada_File_Sets is
             for Item of Self.All_Symbols (Cursor) loop
                if not Only_Public or else Item.Is_Public then
                   Defining_Name := Get_Defining_Name (Item.File, Item.Loc);
-                  if not Defining_Name.Is_Null then
+                  if not Defining_Name.Is_Null
+                    and then Matches_Unit_Prefix (Defining_Name)
+                  then
                      Callback (Item.File, Defining_Name, Stop);
                   end if;
                end if;

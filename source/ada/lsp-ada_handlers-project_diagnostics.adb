@@ -143,20 +143,26 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
                   Sloc : constant GPR2.Source_Reference.Object :=
                     GPR2.Message.Sloc (Msg);
                   File : constant GPR2.Path_Name.Object :=
-                    (if Sloc.Is_Defined and then Sloc.Has_Source_Reference then
+                    (if Sloc.Is_Defined and then Sloc.Has_Source_Reference
+                     then
                         GPR2.Path_Name.Create_File
                           (GPR2.Filename_Type (Sloc.Filename))
                      else
                         Self.Handler.Project_Tree.Root_Project.Path_Name);
                begin
-                  Parent_Diagnostic.relatedInformation.Append
-                    (LSP .Structures.DiagnosticRelatedInformation'
-                       (location => LSP.Structures.Location'
-                            (uri     => LSP.Utils.To_URI (File),
-                             a_range => LSP.Utils.To_Range (Sloc),
-                             others  => <>),
-                        message  => VSS.Strings.Conversions.To_Virtual_String
-                          (Msg.Message)));
+                  --  Display a diagnostic for GPR2 messages only if the file
+                  --  attached to the message is defined.
+                  if File.Is_Defined and then File.Has_Value then
+                     Parent_Diagnostic.relatedInformation.Append
+                       (LSP .Structures.DiagnosticRelatedInformation'
+                          (location => LSP.Structures.Location'
+                               (uri     => LSP.Utils.To_URI (File),
+                                a_range => LSP.Utils.To_Range (Sloc),
+                                others  => <>),
+                           message  =>
+                             VSS.Strings.Conversions.To_Virtual_String
+                               (Msg.Message)));
+                  end if;
                end;
 
                --  If we have one error in the GPR2 messages, the parent
