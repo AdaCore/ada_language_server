@@ -22,9 +22,9 @@ import { CancellationError, CancellationToken, DocumentSymbol, SymbolKind } from
 import { LanguageClient } from 'vscode-languageclient/node';
 import winston from 'winston';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ExtensionState } from './ExtensionState';
-import { adaExtState, logger } from './extension';
 import { existsSync } from 'fs';
+import { ExtensionState } from './ExtensionState';
+import { EXTENSION_NAME, adaExtState, logger, mainOutputChannel } from './extension';
 
 /**
  * Substitue any variable reference present in the given string. VS Code
@@ -479,4 +479,23 @@ export function which(execName: string) {
         .find(existsSync);
 
     return exePath;
+}
+
+/**
+ * Show an error message with a button "Open Log" that opens the main extension
+ * log (not the Ada LS or the GPR LS)
+ *
+ * @param msg - the message to display
+ * @param options - message options to pass to {@link vscode.window.showErrorMessage}
+ */
+export async function showErrorMessageWithOpenLogButton(
+    msg: string,
+    options?: vscode.MessageOptions
+) {
+    const answer = await vscode.window.showErrorMessage<vscode.MessageItem>(msg, options ?? {}, {
+        title: `Open ${EXTENSION_NAME} Extension Log`,
+    });
+    if (answer) {
+        mainOutputChannel.show();
+    }
 }

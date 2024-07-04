@@ -684,11 +684,9 @@ function getLimitSubpArg(filename: string, range: vscode.Range) {
  * to the current editor's selection.
  */
 export const sparkLimitRegionArg = (): Promise<string[]> => {
-    return new Promise((resolve) => {
-        resolve([
-            `--limit-region=\${fileBasename}:${getSelectedRegion(vscode.window.activeTextEditor)}`,
-        ]);
-    });
+    return Promise.resolve([
+        `--limit-region=\${fileBasename}:${getSelectedRegion(vscode.window.activeTextEditor)}`,
+    ]);
 };
 
 /**
@@ -711,6 +709,10 @@ export const getSelectedRegion = (editor: vscode.TextEditor | undefined): string
 /**
  * Return the closest DocumentSymbol of the given kinds enclosing the
  * the given editor's cursor position, if any.
+ *
+ * If the given editor is undefined or not on an Ada file, the function returns
+ * `null` immediately.
+ *
  * @param editor - The editor in which we want
  * to find the closest symbol enclosing the cursor's position.
  * @returns Return the closest enclosing symbol.
@@ -720,7 +722,7 @@ export async function getEnclosingSymbol(
     editor: vscode.TextEditor | undefined,
     kinds: vscode.SymbolKind[]
 ): Promise<vscode.DocumentSymbol | null> {
-    if (editor) {
+    if (editor && editor.document.languageId == 'ada') {
         const line = editor.selection.active.line;
 
         // First get all symbols for current file

@@ -31,6 +31,14 @@ import {
     getEvaluatedTerminalEnv,
     startedInDebugMode,
 } from './helpers';
+/**
+ * This import gives access to the package.json content.
+ */
+import * as meta from '../package.json';
+
+// eslint-disable-next-line max-len
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+export const EXTENSION_NAME: string = meta.displayName;
 
 const ADA_CONTEXT = 'ADA_PROJECT_CONTEXT';
 
