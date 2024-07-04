@@ -84,6 +84,8 @@ const TASK_CLEAN_PROJECT = {
     taskGroup: vscode.TaskGroup.Clean,
 };
 
+export const TASK_PROVE_SUPB_PLAIN_NAME = 'Prove subprogram';
+
 /**
  * Predefined tasks offered by the extension. Both 'ada' and 'spark' tasks are
  * included in this array. They are later on split and provided by different
@@ -301,7 +303,7 @@ const predefinedTasks: PredefinedTask[] = [
         problemMatchers: DEFAULT_PROBLEM_MATCHER,
     },
     {
-        label: 'Prove subprogram',
+        label: TASK_PROVE_SUPB_PLAIN_NAME,
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
@@ -440,38 +442,12 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 throw new vscode.CancellationError();
             }
 
-            let execution = undefined;
-            if (tDecl.taskDef.compound) {
-                /**
-                 * It's a compound task.
-                 */
-                execution = new SequentialExecutionByName(tDecl.label, tDecl.taskDef.compound);
-            } else {
-                /**
-                 * It's a shell invocation task.
-                 */
-                assert(tDecl.taskDef.command);
-                assert(tDecl.taskDef.args);
-
-                /**
-                 * Ideally we would have liked to provide unresolved tasks and
-                 * let resolving only happen in the resolveTask method, but
-                 * that's not how VS Code works. This method is expected to
-                 * return fully resolved tasks, hence we must provide an
-                 * execution object with arguments evaluated now.
-                 */
-                execution = new vscode.ShellExecution(
-                    tDecl.taskDef.command,
-                    await evaluateArgs(tDecl.taskDef.args)
-                );
-            }
-
             const task = new vscode.Task(
                 tDecl.taskDef,
                 vscode.TaskScope.Workspace,
                 tDecl.label,
                 tDecl.taskDef.type,
-                execution,
+                undefined,
                 tDecl.problemMatchers
             );
 
@@ -479,7 +455,16 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 task.group = tDecl.taskGroup;
             }
 
-            result.push(task);
+            /**
+             * Ideally we would have liked to provide unresolved tasks and let
+             * resolving only happen in the resolveTask method, but that's not
+             * how VS Code works. This method is expected to return fully
+             * resolved tasks, hence we must resolve pre-defined tasks here.
+             */
+            const resolvedTask = await this.resolveTask(task, token);
+            assert(resolvedTask);
+
+            result.push(resolvedTask);
         }
 
         return result;
@@ -512,10 +497,16 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
          */
         let execution;
         if (taskDef.compound) {
+            /**
+             * It's a compound task.
+             */
             assert(!taskDef.command);
             assert(!taskDef.args);
             execution = new SequentialExecutionByName(task.name, taskDef.compound);
         } else {
+            /**
+             * It's a shell invocation task.
+             */
             assert(taskDef.command);
             /**
              * We support working with just the command property, in which case
@@ -697,13 +688,6 @@ function isEmptyArray(obj: unknown): boolean {
     }
 
     return false;
-}
-
-export function registerTaskProviders() {
-    return [
-        vscode.tasks.registerTaskProvider(TASK_TYPE_ADA, createAdaTaskProvider()),
-        vscode.tasks.registerTaskProvider(TASK_TYPE_SPARK, createSparkTaskProvider()),
-    ];
 }
 
 /**
@@ -970,7 +954,7 @@ function runTaskSequence(
 /**
  * A sorting function that puts tasks defined by the User in the workspace first.
  */
-const workspaceTasksFirst = (a: vscode.Task, b: vscode.Task): number => {
+export const workspaceTasksFirst = (a: vscode.Task, b: vscode.Task): number => {
     if (a.source == b.source) {
         return a.name.localeCompare(b.name);
     } else if (isFromWorkspace(a)) {

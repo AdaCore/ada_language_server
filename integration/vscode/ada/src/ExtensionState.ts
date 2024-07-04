@@ -3,12 +3,18 @@ import { Disposable, ExecuteCommandRequest, LanguageClient } from 'vscode-langua
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { createClient } from './clients';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
+import { logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
 import { TERMINAL_ENV_SETTING_NAME } from './helpers';
-import { registerTaskProviders } from './taskProviders';
-import { logger } from './extension';
+import {
+    SimpleTaskProvider,
+    TASK_TYPE_ADA,
+    TASK_TYPE_SPARK,
+    createAdaTaskProvider,
+    createSparkTaskProvider,
+} from './taskProviders';
 
 /**
  * This class encapsulates all state that should be maintained throughout the
@@ -44,6 +50,9 @@ export class ExtensionState {
     cachedMains: string[] | undefined;
     cachedExecutables: string[] | undefined;
     cachedAlireTomls: vscode.Uri[] | undefined;
+
+    private adaTaskProvider?: SimpleTaskProvider;
+    private sparkTaskProvider?: SimpleTaskProvider;
 
     public clearALSCache() {
         this.cachedProjectFile = undefined;
@@ -89,13 +98,18 @@ export class ExtensionState {
     };
 
     public registerTaskProviders = (): void => {
+        this.adaTaskProvider = createAdaTaskProvider();
+        this.sparkTaskProvider = createSparkTaskProvider();
+
         this.registeredTaskProviders = [
             vscode.tasks.registerTaskProvider(GnatTaskProvider.gnatType, new GnatTaskProvider()),
             vscode.tasks.registerTaskProvider(
                 GprTaskProvider.gprTaskType,
                 new GprTaskProvider(this.adaClient)
             ),
-        ].concat(registerTaskProviders());
+            vscode.tasks.registerTaskProvider(TASK_TYPE_ADA, this.adaTaskProvider),
+            vscode.tasks.registerTaskProvider(TASK_TYPE_SPARK, this.sparkTaskProvider),
+        ];
     };
 
     public unregisterTaskProviders = (): void => {
@@ -214,5 +228,14 @@ export class ExtensionState {
         }
 
         return this.cachedAlireTomls;
+    }
+
+    /**
+     *
+     * @returns the SPARK task provider which can be useful for resolving tasks
+     * created on the fly, e.g. when running SPARK CodeLenses.
+     */
+    public getSparkTaskProvider() {
+        return this.sparkTaskProvider;
     }
 }
