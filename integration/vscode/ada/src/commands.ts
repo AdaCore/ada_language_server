@@ -760,6 +760,12 @@ export async function getEnclosingSymbol(
  *
  * It is implemented by fetching the 'Prove subbprogram' task and using it as a
  * template such that the User can customize the task to impact the CodeLens.
+ *
+ * Another option could have been to use the command
+ * `workbench.action.tasks.runTask` with the name of the SPARK task as argument
+ * however that would run the task using the current cursor location which may
+ * not match the CodeLens that was triggered. So it is better to create a task
+ * dedicated to the location of the CodeLens.
  */
 async function sparkProveSubprogram(
     uri: vscode.Uri,

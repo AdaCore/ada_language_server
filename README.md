@@ -58,6 +58,7 @@ extension at
       - [Ada: Go to other file](#ada-go-to-other-file)
       - [Ada: Add subprogram box](#ada-add-subprogram-box)
       - [Ada: Reload project](#ada-reload-project)
+      - [Tasks with keyboard shortcuts](#tasks-with-keyboard-shortcuts)
     - [Bug Reporting](#bug-reporting)
     - [Limitations and Differences with GNAT Studio](#limitations-and-differences-with-gnat-studio)
   - [Integration with other editors and IDEs](#integration-with-other-editors-and-ides)
@@ -330,6 +331,30 @@ The default shortcut is `Alt+Shift+B`.
 
 This command reloads the current project.
 The default shortcut is `None`.
+
+#### Tasks with keyboard shortcuts
+
+The following default shortcuts are provided for tasks:
+
+| Task                           | Shortcut        |
+|--------------------------------|-----------------|
+| `spark: Prove file`            | `Meta+Y Meta+F` |
+| `spark: Prove subprogram`      | `Meta+Y Meta+S` |
+| `spark: Prove selected region` | `Meta+Y Meta+R` |
+| `spark: Prove line`            | `Meta+Y Meta+L` |
+
+`Meta` = ⌘ on macOS, `Win` on Windows, `Meta` on Linux
+
+These shortcuts can be customized and new shortcuts can be added for other tasks by using the command `Preferences: Open Keyboard Shortcuts (JSON)` and adding entries like the following example:
+
+```json
+{
+    "command": "workbench.action.tasks.runTask",
+    "args": "ada: Check current file",
+    "key": "meta+y meta+c",
+    "when": "editorLangId == ada && editorTextFocus"
+}
+```
 
 ### Bug Reporting
 
