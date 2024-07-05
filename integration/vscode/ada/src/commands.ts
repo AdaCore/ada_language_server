@@ -1,5 +1,6 @@
 import assert from 'assert';
 import { existsSync } from 'fs';
+import { basename } from 'path';
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
@@ -10,10 +11,13 @@ import { adaExtState, logger, mainOutputChannel } from './extension';
 import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
 import {
     SimpleTaskDef,
+    TASK_PROVE_SUPB_PLAIN_NAME,
+    TASK_TYPE_SPARK,
     findBuildAndRunTask,
     getBuildAndRunTasks,
     getConventionalTaskLabel,
     isFromWorkspace,
+    workspaceTasksFirst,
 } from './taskProviders';
 
 /**
@@ -50,6 +54,7 @@ export const CMD_GET_PROJECT_FILE = 'ada.getProjectFile';
 
 export const CMD_SPARK_LIMIT_SUBP_ARG = 'ada.spark.limitSubpArg';
 export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
+export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
@@ -124,6 +129,9 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SPARK_LIMIT_REGION_ARG, sparkLimitRegionArg)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram)
     );
 }
 /**
@@ -640,8 +648,8 @@ export async function sparkLimitSubpArg(): Promise<string[]> {
     return getEnclosingSymbol(vscode.window.activeTextEditor, [vscode.SymbolKind.Function]).then(
         (Symbol) => {
             if (Symbol) {
-                const subprogram_line: string = (Symbol.range.start.line + 1).toString();
-                return [`--limit-subp=\${fileBasename}:${subprogram_line}`];
+                const range = Symbol.range;
+                return [getLimitSubpArg('${fileBasename}', range)];
             } else {
                 /**
                  * If we can't find a subprogram, we use the VS Code predefined
@@ -656,6 +664,19 @@ export async function sparkLimitSubpArg(): Promise<string[]> {
             }
         }
     );
+}
+
+/**
+ *
+ * @param filename - a filename
+ * @param range - a {@link vscode.Range}
+ * @returns the --limit-subp `gnatprove` CLI argument corresponding to the given
+ * arguments. Note that lines and columns in {@link vscode.Range}es are
+ * zero-based while the `gnatprove` convention is one-based. This function does
+ * the conversion.
+ */
+function getLimitSubpArg(filename: string, range: vscode.Range) {
+    return `--limit-subp=${filename}:${range.start.line + 1}`;
 }
 
 /**
@@ -730,4 +751,72 @@ export async function getEnclosingSymbol(
     }
 
     return null;
+}
+
+/**
+ * Command corresponding to the 'Prove' CodeLens provided on subprograms.
+ *
+ * It is implemented by fetching the 'Prove subbprogram' task and using it as a
+ * template such that the User can customize the task to impact the CodeLens.
+ */
+async function sparkProveSubprogram(
+    uri: vscode.Uri,
+    range: vscode.Range
+): Promise<vscode.TaskExecution> {
+    /**
+     * Get the 'Prove subprogram' task. Prioritize workspace tasks so that User
+     * customization of the task takes precedence.
+     */
+    const task = (await vscode.tasks.fetchTasks({ type: TASK_TYPE_SPARK }))
+        .sort(workspaceTasksFirst)
+        .find(
+            (t) =>
+                getConventionalTaskLabel(t) == `${TASK_TYPE_SPARK}: ${TASK_PROVE_SUPB_PLAIN_NAME}`
+        );
+    assert(task);
+
+    /**
+     * Create a copy of the task.
+     */
+    const newTask = new vscode.Task(
+        { ...task.definition },
+        task.scope ?? vscode.TaskScope.Workspace,
+        task.name,
+        task.source,
+        undefined,
+        task.problemMatchers
+    );
+
+    /**
+     * Replace the subp-region argument based on the parameter given to the
+     * command.
+     */
+    const taskDef = newTask.definition as SimpleTaskDef;
+    assert(taskDef.args);
+    const regionArg = '${command:ada.spark.limitSubpArg}';
+    const regionArgIdx = taskDef.args.findIndex((arg) => arg == regionArg);
+    if (regionArgIdx >= 0) {
+        const fileBasename = basename(uri.fsPath);
+        taskDef.args[regionArgIdx] = getLimitSubpArg(fileBasename, range);
+        /**
+         * Change the task name accordingly, otherwise all invocations appear
+         * with the same name in the task history.
+         */
+        newTask.name = `${task.name} - ${fileBasename}:${range.start.line + 1}`;
+    } else {
+        throw Error(
+            `Task '${getConventionalTaskLabel(task)}' is missing a '${regionArg}' argument`
+        );
+    }
+
+    /**
+     * Resolve the task.
+     */
+    const resolvedTask = await adaExtState.getSparkTaskProvider()?.resolveTask(newTask);
+    assert(resolvedTask);
+
+    /**
+     * Execute the task.
+     */
+    return await vscode.tasks.executeTask(resolvedTask);
 }

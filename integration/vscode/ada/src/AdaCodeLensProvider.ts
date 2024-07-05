@@ -11,12 +11,10 @@ import {
     commands,
     Uri,
 } from 'vscode';
-import { CMD_BUILD_AND_DEBUG_MAIN, CMD_BUILD_AND_RUN_MAIN } from './commands';
-import { getMains, getSymbols } from './helpers';
+import { CMD_BUILD_AND_DEBUG_MAIN, CMD_BUILD_AND_RUN_MAIN, CMD_SPARK_PROVE_SUBP } from './commands';
+import { envHasExec, getMains, getSymbols } from './helpers';
 
 export class AdaCodeLensProvider implements CodeLensProvider {
-    static readonly ENABLE_SPARK_CODELENS = false;
-
     onDidChangeCodeLenses?: Event<void> | undefined;
     provideCodeLenses(
         document: TextDocument,
@@ -73,7 +71,7 @@ export class AdaCodeLensProvider implements CodeLensProvider {
         });
 
         let res2;
-        if (AdaCodeLensProvider.ENABLE_SPARK_CODELENS) {
+        if (envHasExec('gnatprove')) {
             /**
              * This is tentative deactivated code in preparation of SPARK support.
              */
@@ -88,10 +86,11 @@ export class AdaCodeLensProvider implements CodeLensProvider {
                     if (token?.isCancellationRequested) {
                         throw new CancellationError();
                     }
-                    // TODO make SPARK codelenses conditional to the availability of SPARK on PATH
-                    return new CodeLens(f.range, {
-                        title: '$(play-circle) Prove',
-                        command: 'TODO',
+
+                    return new CodeLens(f.selectionRange, {
+                        title: '$(check) Prove',
+                        command: CMD_SPARK_PROVE_SUBP,
+                        arguments: [document.uri, f.selectionRange],
                     });
                 });
             });

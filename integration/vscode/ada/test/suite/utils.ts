@@ -1,7 +1,10 @@
 import assert from 'assert';
 import { spawnSync } from 'child_process';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
+import path from 'path';
 import * as vscode from 'vscode';
+import { CodeLens, Uri, window, workspace } from 'vscode';
+import { adaExtState } from '../../src/extension';
 import { setTerminalEnvironment } from '../../src/helpers';
 import {
     SimpleTaskProvider,
@@ -36,6 +39,11 @@ export function assertEqualToFileContent(actual: string, expectedUri: vscode.Uri
     }
 }
 
+/**
+ *
+ * Normalize line endings in the given string to the `\n` or to `lineEnding` if
+ * given.
+ */
 export function normalizeLineEndings(str: string, lineEnding = '\n'): string {
     return str.replace(/\r?\n/g, lineEnding);
 }
@@ -66,6 +74,14 @@ export async function activate(): Promise<void> {
      */
     await ext.activate();
 }
+
+/**
+ *
+ * @param prov - a TaskProvider
+ * @returns a string representation of the subset of tasks offered by the
+ * provider that are based on a ShellExecution. The string includes the command
+ * line of each task.
+ */
 export async function getCommandLines(prov: SimpleTaskProvider) {
     const tasks = await prov.provideTasks();
     assert(tasks);
@@ -87,6 +103,15 @@ export async function getCommandLines(prov: SimpleTaskProvider) {
         .join('\n');
     return actualCommandLines;
 }
+
+/**
+ * Execute the given task, wait until it finishes and return the underlying
+ * process exit code.
+ *
+ * @param task - a {@link vscode.Task}
+ * @returns a Promise that resolves to the underlying process exit code when the
+ * task finishes execution.
+ */
 export async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
     return await new Promise<number | undefined>((resolve, reject) => {
         let started = false;
@@ -137,6 +162,12 @@ export async function runTaskAndGetResult(task: vscode.Task): Promise<number | u
         return Promise.reject(reason);
     });
 }
+
+/**
+ *
+ * @param exec - a ShellExecution
+ * @returns the command line of the ShellExecution as a string
+ */
 export function getCmdLine(exec: vscode.ShellExecution) {
     return [exec.command]
         .concat(exec.args)
@@ -150,6 +181,14 @@ export function getCmdLine(exec: vscode.ShellExecution) {
         .join(' ');
 }
 
+/**
+ *
+ * @param taskName - the name of the task to test
+ * @param testedTasks - an array where the given task will be pushed to indicate
+ * that it has been tested.
+ * @param allProvidedTasks - an optional array of tasks where the task name
+ * should be looked up. If not given, {@link vscode.tasks.fetchTasks} is used.
+ */
 export async function testTask(
     taskName: string,
     testedTasks: Set<string>,
@@ -199,8 +238,97 @@ export async function testTask(
     }
 }
 
+/**
+ * Call the `workbench.action.closeActiveEditor` command to close all open editors.
+ */
 export async function closeAllEditors() {
     while (vscode.window.activeTextEditor) {
         await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     }
+}
+
+/**
+ *
+ * @param srcRelPath - a path to a source file relative to the workspace root
+ * @returns a text editor opened for the source file.
+ */
+export async function showTextDocument(...srcRelPath: string[]) {
+    const mainUri = getWsUri(...srcRelPath);
+    const textEditor = await window.showTextDocument(mainUri);
+    return textEditor;
+}
+
+/**
+ *
+ * @param srcRelPath - a path relative to the workspace root
+ * @returns a {@link vscode.Uri} representing the given path.
+ */
+export function getWsUri(...srcRelPath: string[]) {
+    assert(workspace.workspaceFolders !== undefined);
+    const rootUri = workspace.workspaceFolders[0].uri;
+    const uri = Uri.joinPath(rootUri, ...srcRelPath);
+    return uri;
+}
+
+/**
+ * Opens the given source file in an editor and returns the CodeLenses provided
+ * for that file.
+ *
+ * @param srcRelPath - relative path of a source file in the workspace
+ * @returns array of CodeLenses provided for that source file.
+ */
+export async function getCodeLenses(...srcRelPath: string[]) {
+    const textEditor = await showTextDocument(...srcRelPath);
+    const codelenses = await adaExtState.codelensProvider.provideCodeLenses(textEditor.document);
+    return codelenses ?? [];
+}
+
+/**
+ * A testing utility to simplify CodeLenses for convenient comparison with
+ * expected results. This selects a subset of properties of CodeLenses and
+ * converts Uris to relative Posix paths and ranges to a convenient string
+ * representation.
+ */
+export function simplifyCodelenses(cls: CodeLens[]) {
+    return cls.map((cl) => ({
+        range: rangeToStr(cl.range),
+        command: {
+            title: cl.command?.title,
+            command: cl.command?.command,
+            arguments: cl.command?.arguments?.map((a) =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                a instanceof Uri
+                    ? /**
+                       * Normalize URI to a relative Posix path.
+                       */
+                      workspace.asRelativePath(a.fsPath).split(path.sep).join(path.posix.sep)
+                    : a instanceof vscode.Range
+                    ? /**
+                       * Represent Ranges as a string
+                       */
+                      rangeToStr(a)
+                    : a
+            ),
+        },
+    }));
+}
+
+/**
+ *
+ * @param codelenses - array of CodeLens
+ * @returns a JSON string representation of the given CodeLenses.
+ */
+export function codeLensesToString(codelenses: CodeLens[]): string {
+    return JSON.stringify(simplifyCodelenses(codelenses), null, 2);
+}
+
+/**
+ *
+ * @param range - a {@link vscode.Range}
+ * @returns a string representation of the range, convenient for comparison to
+ * references in testing.
+ */
+export function rangeToStr(range: vscode.Range): string {
+    // eslint-disable-next-line max-len
+    return `${range.start.line}:${range.start.character} -> ${range.end.line}:${range.end.character}`;
 }
