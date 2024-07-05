@@ -19,8 +19,8 @@ import assert from 'assert';
 import { basename } from 'path';
 import * as vscode from 'vscode';
 import { CMD_GPR_PROJECT_ARGS } from './commands';
-import { adaExtState } from './extension';
-import { AdaMain, getAdaMains } from './helpers';
+import { adaExtState, logger } from './extension';
+import { AdaMain, getAdaMains, showErrorMessageWithOpenLogButton } from './helpers';
 
 export const TASK_TYPE_ADA = 'ada';
 export const TASK_TYPE_SPARK = 'spark';
@@ -462,9 +462,12 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
              * resolved tasks, hence we must resolve pre-defined tasks here.
              */
             const resolvedTask = await this.resolveTask(task, token);
-            assert(resolvedTask);
 
-            result.push(resolvedTask);
+            if (resolvedTask) {
+                result.push(resolvedTask);
+            } else {
+                logger.error(`Failed to resolve task: ${JSON.stringify(task, undefined, 2)}`);
+            }
         }
 
         return result;
@@ -520,10 +523,12 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 execution = new vscode.ShellExecution(taskDef.command, evaluatedArgs);
             } catch (err) {
                 let msg = 'Error while evaluating task arguments.';
+                logger.error(msg);
+                logger.error(err);
                 if (err instanceof Error) {
                     msg += ' ' + err.message;
                 }
-                void vscode.window.showErrorMessage(msg);
+                void showErrorMessageWithOpenLogButton(msg);
                 return undefined;
             }
         }

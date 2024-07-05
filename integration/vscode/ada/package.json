@@ -787,6 +787,30 @@
                 "command": "ada.subprogramBox",
                 "key": "alt+shift+B",
                 "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "workbench.action.tasks.runTask",
+                "args": "spark: Prove file",
+                "key": "meta+y meta+f",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "workbench.action.tasks.runTask",
+                "args": "spark: Prove subprogram",
+                "key": "meta+y meta+s",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "workbench.action.tasks.runTask",
+                "args": "spark: Prove selected region",
+                "key": "meta+y meta+r",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "workbench.action.tasks.runTask",
+                "args": "spark: Prove line",
+                "key": "meta+y meta+l",
+                "when": "editorLangId == ada && editorTextFocus"
             }
         ],
         "menus": {
