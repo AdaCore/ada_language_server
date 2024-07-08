@@ -106,6 +106,13 @@
                      "line": 7,
                      "character": 1
                   }
+               },
+               "options": {
+                  "trimTrailingWhitespace": true,
+                  "insertSpaces": true,
+                  "tabSize": 3,
+                  "trimFinalNewlines": true,
+                  "insertFinalNewline": false
                }
             }
          },

@@ -20,7 +20,7 @@ with Ada.Tags;
 with GNAT.Strings;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
-
+with Gnatformat.Configuration;
 with Gnatformat.Formatting;
 
 with Langkit_Support.Symbols;
@@ -50,6 +50,7 @@ with LSP.Ada_Id_Iterators;
 with LSP.Enumerations;
 with LSP.Formatters.File_Names;
 with LSP.Formatters.Texts;
+with LSP.GNATFormat_Utils;
 with LSP.Predicates;
 with LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
@@ -1242,15 +1243,22 @@ package body LSP.Ada_Documents is
    function Range_Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
-      Span    : LSP.Structures.A_Range)
+      Span    : LSP.Structures.A_Range;
+      Options : LSP.Structures.FormattingOptions)
       return LSP.Structures.TextEdit
    is
       use type LSP.Structures.A_Range;
+      use Gnatformat.Configuration;
 
+      Full_Options : Format_Options_Type := Context.Get_Format_Options;
    begin
       if Span = LSP.Text_Documents.Empty_Range then
          return (LSP.Constants.Empty, VSS.Strings.Empty_Virtual_String);
       end if;
+
+      --  Combine the project options with the ones from the request
+      Full_Options.Overwrite
+        (LSP.GNATFormat_Utils.Get_Format_Option (Options));
 
       declare
          Range_Formatted_Document :
@@ -1258,7 +1266,7 @@ package body LSP.Ada_Documents is
              Gnatformat.Formatting.Range_Format
                (Self.Unit (Context),
                 Self.To_Source_Location_Range (Span),
-                Context.Get_Format_Options);
+                Full_Options);
 
       begin
          return

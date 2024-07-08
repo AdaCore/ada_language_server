@@ -187,7 +187,8 @@ package body LSP.Ada_Handlers.Formatting is
       begin
          Success := True;
          Response.Clear;
-         Response.Append (Document.Range_Format (Context, Span));
+         Response.Append
+           (Document.Range_Format (Context, Span, Options => Options));
 
       exception
          when E : others =>

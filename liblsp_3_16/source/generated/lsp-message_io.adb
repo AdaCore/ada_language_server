@@ -7855,6 +7855,10 @@ package body LSP.Message_IO is
                Optional_Boolean'Read (S, V.insertFinalNewline);
             elsif Key = "trimFinalNewlines" then
                Optional_Boolean'Read (S, V.trimFinalNewlines);
+            elsif Key = "gnatFormatMaxSize" then
+               Optional_uinteger'Read (S, V.gnatFormatMaxSize);
+            elsif Key = "gnatFormatContinuationLineIndent" then
+               Optional_uinteger'Read (S, V.gnatFormatContinuationLineIndent);
             else
                JS.Skip_Value;
             end if;
@@ -7880,6 +7884,10 @@ package body LSP.Message_IO is
       Optional_Boolean'Write (S, V.insertFinalNewline);
       JS.Key ("trimFinalNewlines");
       Optional_Boolean'Write (S, V.trimFinalNewlines);
+      JS.Key ("gnatFormatMaxSize");
+      Optional_uinteger'Write (S, V.gnatFormatMaxSize);
+      JS.Key ("gnatFormatContinuationLineIndent");
+      Optional_uinteger'Write (S, V.gnatFormatContinuationLineIndent);
       JS.End_Object;
    end Write_FormattingOptions;
 

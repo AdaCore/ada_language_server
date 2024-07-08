@@ -382,7 +382,9 @@ package body LSP.Inputs.Part_19 is
          "insertSpaces",
          "trimTrailingWhitespace",
          "insertFinalNewline",
-         "trimFinalNewlines"]);
+         "trimFinalNewlines",
+         "gnatFormatMaxSize",
+         "gnatFormatContinuationLineIndent"]);
 
    end FormattingOptions_Scope;
 
@@ -425,6 +427,20 @@ package body LSP.Inputs.Part_19 is
                     (Is_Set => True,
                      Value  => <>);
                   Value.trimFinalNewlines.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
+               when 6 =>  --  gnatFormatMaxSize
+                  Value.gnatFormatMaxSize       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.gnatFormatMaxSize.Value :=
+                    Integer (Handler.Number_Value.Integer_Value);
+                  Handler.Read_Next;
+               when 7 =>  --  gnatFormatContinuationLineIndent
+                  Value.gnatFormatContinuationLineIndent       :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.gnatFormatContinuationLineIndent.Value :=
+                    Integer (Handler.Number_Value.Integer_Value);
                   Handler.Read_Next;
                when others =>
                   Handler.Skip_Current_Value;
