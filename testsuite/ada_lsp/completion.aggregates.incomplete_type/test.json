@@ -1,15 +1,13 @@
 [
    {
       "comment": [
-          "This test checks that aggregate completion works fine when ",
-          "an incomplete type is involved in the aggregate declaration"
+         "This test checks that aggregate completion works fine when ",
+         "an incomplete type is involved in the aggregate declaration"
       ]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -21,10 +19,7 @@
                   "textDocument": {
                      "completion": {
                         "completionItem": {
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "snippetSupport": true
                         },
                         "dynamicRegistration": true
@@ -66,26 +61,21 @@
             "id": 1,
             "method": "initialize"
          },
-          "wait": [
-              {
-                  "jsonrpc": "2.0",
-                  "id": 1,
-                  "result": {
-                      "capabilities": {
-                          "textDocumentSync": 2,
-                          "completionProvider": {
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ],
-                              "resolveProvider": true
-                          }
-                      }
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
                   }
-              }
-          ]
+               }
+            }
+         ]
       }
    },
    {
@@ -188,21 +178,21 @@
                         "kind": 5,
                         "sortText": "+1",
                         "insertText": "Value => ",
-                         "insertTextFormat": 1
+                        "insertTextFormat": 1
                      },
                      {
-                         "label": "Succ",
-                         "kind": 5,
-                         "sortText": "+2",
-                         "insertText": "Succ => ",
-                         "insertTextFormat": 1
+                        "label": "Succ",
+                        "kind": 5,
+                        "sortText": "+2",
+                        "insertText": "Succ => ",
+                        "insertTextFormat": 1
                      },
                      {
-                         "label": "Pred",
-                         "kind": 5,
-                         "sortText": "+3",
-                         "insertText": "Pred => ",
-                         "insertTextFormat": 1
+                        "label": "Pred",
+                        "kind": 5,
+                        "sortText": "+3",
+                        "insertText": "Pred => ",
+                        "insertTextFormat": 1
                      }
                   ]
                }

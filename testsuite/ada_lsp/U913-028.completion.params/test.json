@@ -1,15 +1,13 @@
 [
    {
       "comment": [
-          "This test checks the completion provider for parameters when",
-          "a function call"
+         "This test checks the completion provider for parameters when",
+         "a function call"
       ]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -29,16 +27,10 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ],
-                            "resolveSupport": {
-                                "properties": [
-                                    "documentation",
-                                    "detail"
-                                ]
-                            }
+                           "documentationFormat": ["markdown", "plaintext"],
+                           "resolveSupport": {
+                              "properties": ["documentation", "detail"]
+                           }
                         }
                      }
                   },
@@ -49,24 +41,19 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
@@ -172,12 +159,12 @@
                            "uri": "$URI{foo.adb}",
                            "range": {
                               "start": {
-                                  "line": 2,
-                                  "character": 3
+                                 "line": 2,
+                                 "character": 3
                               },
                               "end": {
-                                  "line": 2,
-                                  "character": 42
+                                 "line": 2,
+                                 "character": 42
                               }
                            }
                         }
@@ -206,12 +193,12 @@
                            "uri": "$URI{foo.adb}",
                            "range": {
                               "start": {
-                                  "line": 1,
-                                  "character": 3
+                                 "line": 1,
+                                 "character": 3
                               },
                               "end": {
-                                  "line": 1,
-                                  "character": 34
+                                 "line": 1,
+                                 "character": 34
                               }
                            }
                         }
@@ -258,7 +245,7 @@
                   "kind": 1,
                   "insertText": "F => ",
                   "insertTextFormat": 1
-              }
+               }
             }
          ]
       }
@@ -357,36 +344,6 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "method": "textDocument/didChange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo.adb}",
-                  "version": 6
-               },
-               "contentChanges": [
-                  {
-                     "range": {
-                        "start": {
-                           "line": 12,
-                           "character": 15
-                        },
-                        "end": {
-                           "line": 12,
-                           "character": 15
-                        }
-                     },
-                     "text": " "
-                  }
-               ]
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
             "id": 28,
             "method": "textDocument/completion",
             "params": {
@@ -395,7 +352,7 @@
                },
                "position": {
                   "line": 12,
-                  "character": 16
+                  "character": 15
                }
             }
          },
@@ -409,18 +366,18 @@
                         "label": "Params of Bar",
                         "kind": 15,
                         "sortText": "+0",
-                        "insertText": "I => ${1:Integer})$0",
+                        "insertText": " I => ${1:Integer})$0",
                         "insertTextFormat": 2,
                         "data": {
                            "uri": "$URI{foo.adb}",
                            "range": {
                               "start": {
-                                  "line": 2,
-                                  "character": 3
+                                 "line": 2,
+                                 "character": 3
                               },
                               "end": {
-                                  "line": 2,
-                                  "character": 42
+                                 "line": 2,
+                                 "character": 42
                               }
                            }
                         }
@@ -429,7 +386,7 @@
                         "label": "I",
                         "kind": 5,
                         "sortText": "+1",
-                        "insertText": "I => ",
+                        "insertText": " I => ",
                         "insertTextFormat": 1
                      }
                   ]
@@ -447,7 +404,7 @@
             "params": {
                "label": "I",
                "kind": 1,
-               "insertText": "I => ",
+               "insertText": " I => ",
                "insertTextFormat": 1
             }
          },
@@ -457,7 +414,7 @@
                "result": {
                   "label": "I",
                   "kind": 1,
-                  "insertText": "I => ",
+                  "insertText": " I => ",
                   "insertTextFormat": 1
                }
             }
@@ -473,7 +430,7 @@
             "params": {
                "label": "Params of Bar",
                "kind": 15,
-               "insertText": "I => $1)$0",
+               "insertText": " I => $1)$0",
                "insertTextFormat": 2
             }
          },
@@ -483,7 +440,7 @@
                "result": {
                   "label": "Params of Bar",
                   "kind": 15,
-                  "insertText": "I => $1)$0",
+                  "insertText": " I => $1)$0",
                   "insertTextFormat": 2
                }
             }
@@ -505,11 +462,11 @@
                      "range": {
                         "start": {
                            "line": 12,
-                           "character": 16
+                           "character": 15
                         },
                         "end": {
                            "line": 12,
-                           "character": 16
+                           "character": 15
                         }
                      },
                      "text": "I =>  )"

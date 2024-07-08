@@ -309,4 +309,45 @@ package body LSP.Ada_Completions.Filters is
       return Self.Is_Comma.Value;
    end Is_Comma;
 
+   -------------------------
+   -- Is_Open_Parenthesis --
+   -------------------------
+
+   function Is_Open_Parenthesis
+      (Self           : in out Filter'Class;
+       Exclude_Trivia : Boolean := True) return Boolean
+   is
+   begin
+      if not Self.Is_Open_Parenthesis.Is_Set then
+         declare
+            use all type Libadalang.Common.Token_Kind;
+            use all type Libadalang.Common.Token_Reference;
+
+            Token_Kind : constant Libadalang.Common.Token_Kind := Self.Token.Data.Kind;
+         begin
+            Self.Is_Open_Parenthesis := (True, Token_Kind = Ada_Par_Open);
+
+            --  The curent token is not an open parenthesis: check for the previous
+            --  one if we are on a trivia.
+            if not Self.Is_Open_Parenthesis.Value
+              and then (Self.Token.Is_Trivia and then Exclude_Trivia)
+            then
+               declare
+                  Previous_Token :
+                    constant Libadalang.Common.Token_Reference :=
+                    Self.Token.Previous (Exclude_Trivia => True);
+               begin
+                  Self.Is_Open_Parenthesis :=
+                    (True,
+                     Previous_Token /= Libadalang.Common.No_Token
+                     and then Previous_Token.Data.Kind =
+                       Ada_Par_Open);
+               end;
+            end if;
+         end;
+      end if;
+
+      return Self.Is_Open_Parenthesis.Value;
+   end Is_Open_Parenthesis;
+
 end LSP.Ada_Completions.Filters;
