@@ -15,7 +15,8 @@
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
-        "noUnusedParameters": true
+        "noUnusedParameters": true,
+        "resolveJsonModule": true
     },
     "exclude": ["node_modules", "out"],
     "include": ["test", "src"]
