@@ -18,9 +18,11 @@
 with Langkit_Support.Errors;
 
 with VSS.Strings;
-with VSS.Transformers.Caseless;
 
 with LSP.Ada_Completions.Filters;
+with LSP.Enumerations;
+with LSP.Search;
+with LSP.Utils;
 
 package body LSP.Ada_Completions.Names is
 
@@ -114,11 +116,13 @@ package body LSP.Ada_Completions.Names is
          return;
       end if;
 
-      --  Don't complete numeric literals, attributes nor end labels or aspects
+      --  Don't complete numeric literals, attributes, end labels, aspects
+      --  or right after typing an open parenthesis
       if Filter.Is_Numeric_Literal
         or else Filter.Is_Attribute_Ref
         or else Filter.Is_Aspect
         or else Filter.Is_End_Label
+        or else Filter.Is_Open_Parenthesis
       then
          return;
       end if;
@@ -156,9 +160,24 @@ package body LSP.Ada_Completions.Names is
 
       declare
          use Libadalang.Analysis;
+         use Libadalang.Common;
 
-         Prefix              : constant VSS.Strings.Virtual_String :=
-           VSS.Strings.To_Virtual_String (Node.Text);
+         Word : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (if
+                Libadalang.Common.Is_Trivia (Token)
+                or else Token.Data.Kind = Libadalang.Common.Ada_Dot
+              then ""
+              else Libadalang.Common.Text (Token));
+         Canonical_Prefix : constant VSS.Strings.Virtual_String :=
+           LSP.Utils.Canonicalize (Word);
+         Pattern : constant LSP.Search.Search_Pattern'Class :=
+            LSP.Search.Build
+               (Pattern        => Canonical_Prefix,
+                Case_Sensitive => False,
+                Whole_Word     => False,
+                Negate         => False,
+                Kind           => LSP.Enumerations.Start_Word_Text);
          Raw_Completions     : constant Completion_Item_Iterator :=
            Dotted_Node.P_Complete;
 
@@ -167,13 +186,13 @@ package body LSP.Ada_Completions.Names is
          Completion_Count    : Natural := Natural (Result.items.Length);
          Name                : VSS.Strings.Virtual_String;
          Underscore          : constant VSS.Strings.Virtual_String := "_";
-
       begin
          while Next (Raw_Completions, Item) loop
             BD := Decl (Item).As_Basic_Decl;
 
             if not BD.Is_Null then
                for DN of BD.P_Defining_Names loop
+
                   Name := VSS.Strings.To_Virtual_String
                     (DN.P_Relative_Name.Text);
 
@@ -181,14 +200,8 @@ package body LSP.Ada_Completions.Names is
                      --  Skip `root_types_` until UB30-020 is fixed.
                      null;
 
-                  --  If we are not completing a dotted name, filter the
-                  --  raw completion results by the node's prefix.
-                  elsif Dotted_Node.Kind in
-                       Libadalang.Common.Ada_Dotted_Name_Range
-                    or else Name.Starts_With
-                      (Prefix,
-                       VSS.Transformers.Caseless.To_Identifier_Caseless)
-                  then
+                  --  Filter the raw completion results by the node's prefix.
+                  elsif Pattern.Match (Name) then
                      Completion_Count := Completion_Count + 1;
 
                      Names.Include

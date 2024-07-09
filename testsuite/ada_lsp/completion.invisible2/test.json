@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-          "Check no duplication with invisible symbols in completion."
-      ]
+      "comment": ["Check no duplication with invisible symbols in completion."]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -28,10 +24,7 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ]
+                           "documentationFormat": ["markdown", "plaintext"]
                         }
                      }
                   },
@@ -42,24 +35,19 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
@@ -80,23 +68,23 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile":"default.gpr"
+                     "projectFile": "default.gpr"
                   }
                }
             }
          },
          "wait": [
             {
-                "jsonrpc": "2.0",
-                "method": "$/progress",
-                "params": {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
                   "token": "<ANY>",
                   "value": {
-                    "kind": "end"
+                     "kind": "end"
                   }
-                }
+               }
             }
-        ]
+         ]
       }
    },
    {
@@ -135,7 +123,7 @@
                }
             }
          },
-         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "sortReply": { "result": { "items": ["label", "documentation"] } },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -144,18 +132,11 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "A",
-                        "kind": 5,
-                        "detail": "type My_Int is tagged record\n   A : Integer;\nend record;",
-                        "documentation": "at bar.ads (4:7)\n\n@field A",
-                        "sortText": "00&00001A"
-                     },
-                     {
                         "label": "Do_Nothing",
                         "kind": 3,
                         "detail": "procedure Do_Nothing (Obj : My_Int; A :Integer; B : Integer)",
                         "documentation": "at bar.ads (7:4)",
-                        "sortText": "25&00002Do_Nothing",
+                        "sortText": "25&00001Do_Nothing",
                         "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2
                      }
