@@ -932,13 +932,13 @@
     "devDependencies": {
         "@types/mocha": "10.0.1",
         "@types/node": "16.18.16",
-        "@types/vscode": "^1.83.3",
+        "@types/vscode": "^1.91.0",
         "@types/ws": "8.5.4",
         "@typescript-eslint/eslint-plugin": "5.54.0",
         "@typescript-eslint/parser": "5.55.0",
-        "@vscode/test-cli": "^0.0.6",
-        "@vscode/test-electron": "^2.3.0",
-        "@vscode/vsce": "^2.21.1",
+        "@vscode/test-cli": "^0.0.10",
+        "@vscode/test-electron": "^2.4.1",
+        "@vscode/vsce": "2.21.1",
         "esbuild-wasm": "0.17.11",
         "eslint": "8.36.0",
         "eslint-config-prettier": "8.7.0",
@@ -946,7 +946,7 @@
         "eslint-plugin-tsdoc": "0.2.17",
         "glob": "9.3.0",
         "mocha": "10.2.0",
-        "mocha-junit-reporter": "^2.2.0",
+        "mocha-junit-reporter": "^2.2.1",
         "prettier": "2.8.4",
         "ts-mockito": "^2.6.1",
         "typescript": "4.9.5",
@@ -973,6 +973,6 @@
         "process": "0.11.10",
         "vscode-languageclient": "9.0.1",
         "winston": "3.10.0",
-        "ws": "^8.17.1"
+        "ws": "^8.18.0"
     }
 }
