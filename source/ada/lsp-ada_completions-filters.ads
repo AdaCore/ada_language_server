@@ -48,17 +48,26 @@ package LSP.Ada_Completions.Filters is
    function Is_Comma (Self : in out Filter'Class) return Boolean;
    --  Check if we complete right after ","
 
+   function Is_Open_Parenthesis
+      (Self           : in out Filter'Class;
+       Exclude_Trivia : Boolean := True) return Boolean;
+   --  Check if we complete right after "(".
+   --  If Exclude_Trivia is True and if the current token is a trivia
+   --  (e.g: whitespace), the first previous non-trivia token ill be
+   --  checked too.
+
 private
 
    type Filter is tagged limited record
-      Token              : Libadalang.Common.Token_Reference;
-      Node               : Libadalang.Analysis.Ada_Node;
-      Is_End_Label       : LSP.Structures.Boolean_Optional;
-      Is_Numeric_Literal : LSP.Structures.Boolean_Optional;
-      Is_Attribute       : LSP.Structures.Boolean_Optional;
-      Is_Aspect          : LSP.Structures.Boolean_Optional;
-      Is_Semicolon       : LSP.Structures.Boolean_Optional;
-      Is_Comma           : LSP.Structures.Boolean_Optional;
+      Token               : Libadalang.Common.Token_Reference;
+      Node                : Libadalang.Analysis.Ada_Node;
+      Is_End_Label        : LSP.Structures.Boolean_Optional;
+      Is_Numeric_Literal  : LSP.Structures.Boolean_Optional;
+      Is_Attribute        : LSP.Structures.Boolean_Optional;
+      Is_Aspect           : LSP.Structures.Boolean_Optional;
+      Is_Semicolon        : LSP.Structures.Boolean_Optional;
+      Is_Comma            : LSP.Structures.Boolean_Optional;
+      Is_Open_Parenthesis : LSP.Structures.Boolean_Optional;
    end record;
 
 end LSP.Ada_Completions.Filters;

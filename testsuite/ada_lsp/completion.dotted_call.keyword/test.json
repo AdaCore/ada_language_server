@@ -7,9 +7,7 @@
    },
    {
       "start": {
-         "cmd": [
-             "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -29,15 +27,9 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ],
+                           "documentationFormat": ["markdown", "plaintext"],
                            "resolveSupport": {
-                              "properties": [
-                                 "documentation",
-                                 "detail"
-                              ]
+                              "properties": ["documentation", "detail"]
                            }
                         }
                      }
@@ -56,12 +48,7 @@
                   "capabilities": {
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
+                        "triggerCharacters": [".", ",", "'", "("],
                         "resolveProvider": true
                      }
                   }
@@ -221,27 +208,9 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "A",
-                        "kind": 5,
-                        "sortText": "00&00001A",
-                        "data": {
-                           "uri": "$URI{bar.ads}",
-                           "range": {
-                              "start": {
-                                 "line": 3,
-                                 "character": 6
-                              },
-                              "end": {
-                                 "line": 3,
-                                 "character": 18
-                              }
-                           }
-                        }
-                     },
-                     {
                         "label": "Do_Nothing",
                         "kind": 3,
-                        "sortText": "25&00002Do_Nothing",
+                        "sortText": "25&00001Do_Nothing",
                         "insertText": "Do_Nothing (${1:A : Integer}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
                         "data": {

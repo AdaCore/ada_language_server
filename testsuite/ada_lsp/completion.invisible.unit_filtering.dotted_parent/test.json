@@ -1,10 +1,14 @@
 [
    {
-      "comment": ["test automatically generated"]
+      "comment": [
+         "This test check that we filter invisible completion items",
+         " on unit names, handling child packages correctly (i.e: not proposing",
+         " symbols declared in 'Foo.Child' when completing 'Foo.C')."
+      ]
    },
    {
       "start": {
-         "cmd": ["${ALS}", "--tracefile=./traces.cfg"]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -14,60 +18,29 @@
             "id": 1,
             "method": "initialize",
             "params": {
-               "processId": 591974,
+               "processId": 199714,
                "rootUri": "$URI{.}",
                "capabilities": {
                   "workspace": {
-                     "applyEdit": true,
-                     "workspaceEdit": {},
-                     "didChangeConfiguration": {},
-                     "didChangeWatchedFiles": {},
-                     "executeCommand": {}
+                     "applyEdit": true
                   },
                   "textDocument": {
-                     "synchronization": {},
                      "completion": {
-                        "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": ["plaintext", "markdown"]
+                           "documentationFormat": ["markdown", "plaintext"]
                         }
-                     },
-                     "hover": {},
-                     "signatureHelp": {},
-                     "declaration": {},
-                     "definition": {},
-                     "typeDefinition": {},
-                     "implementation": {},
-                     "references": {},
-                     "documentHighlight": {},
-                     "documentSymbol": {
-                        "hierarchicalDocumentSymbolSupport": true
-                     },
-                     "codeLens": {},
-                     "colorProvider": {},
-                     "formatting": {
-                        "dynamicRegistration": false
-                     },
-                     "rangeFormatting": {
-                        "dynamicRegistration": false
-                     },
-                     "onTypeFormatting": {
-                        "dynamicRegistration": false
-                     },
-                     "foldingRange": {
-                        "lineFoldingOnly": true
-                     },
-                     "selectionRange": {},
-                     "linkedEditingRange": {},
-                     "callHierarchy": {},
-                     "moniker": {}
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
                   }
                }
             }
          },
          "wait": [
             {
+               "jsonrpc": "2.0",
                "id": 1,
                "result": {
                   "capabilities": {
@@ -99,10 +72,7 @@
             "params": {
                "settings": {
                   "ada": {
-                     "scenarioVariables": {},
-                     "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": false,
-                     "followSymlinks": false
+                     "projectFile": "default.gpr"
                   }
                }
             }
@@ -128,10 +98,10 @@
             "method": "textDocument/didOpen",
             "params": {
                "textDocument": {
+                  "text": "\nprocedure Main is\nbegin\n   Foo.C\nend Main;\n",
+                  "version": 1,
                   "uri": "$URI{main.adb}",
-                  "languageId": "Ada",
-                  "version": 0,
-                  "text": "\nprocedure Main is\nbegin\n   Ada.Te\nend Main;\n"
+                  "languageId": "ada"
                }
             }
          },
@@ -142,7 +112,7 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 6,
+            "id": 7,
             "method": "textDocument/completion",
             "params": {
                "textDocument": {
@@ -150,13 +120,18 @@
                },
                "position": {
                   "line": 3,
-                  "character": 9
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
                }
             }
          },
+         "sortReply": { "result": { "items": ["label", "documentation"] } },
          "wait": [
             {
-               "id": 6,
+               "jsonrpc": "2.0",
+               "id": 7,
                "result": {
                   "isIncomplete": false,
                   "items": [
@@ -165,11 +140,11 @@
                            "arguments": [
                               {
                                  "context": "Default",
-                                 "import": "Ada.Text_IO",
+                                 "import": "Foo",
                                  "qualifier": "",
                                  "where": {
                                     "position": {
-                                       "character": 9,
+                                       "character": 8,
                                        "line": 3
                                     },
                                     "textDocument": {
@@ -181,13 +156,42 @@
                            "command": "als-auto-import",
                            "title": ""
                         },
-                        "detail": "package Ada.Text_IO",
-                        "documentation": "at a-textio.ads (58:1)\n\nPreconditions in this unit are meant for analysis only, not for run-time\nchecking, so that the expected exceptions are raised. This is enforced by\nsetting the corresponding assertion policy to Ignore. These preconditions\nare partial. They protect fully against Status_Error and Mode_Error,\npartially against Layout_Error (see SPARK User's Guide for details), and\nnot against other types of errors.",
-                        "filterText": "Text_IO",
-                        "insertText": "Text_IO",
+                        "detail": "procedure Calculate",
+                        "documentation": "at foo.ads (7:4)",
+                        "filterText": "Calculate",
+                        "insertText": "Calculate",
+                        "kind": 3,
+                        "label": "Calculate (invisible)",
+                        "sortText": "~25&00001Calculate"
+                     },
+                     {
+                        "command": {
+                           "arguments": [
+                              {
+                                 "context": "Default",
+                                 "import": "Foo.Child",
+                                 "qualifier": "",
+                                 "where": {
+                                    "position": {
+                                       "character": 8,
+                                       "line": 3
+                                    },
+                                    "textDocument": {
+                                       "uri": "$URI{main.adb}"
+                                    }
+                                 }
+                              }
+                           ],
+                           "command": "als-auto-import",
+                           "title": ""
+                        },
+                        "detail": "package Foo.Child",
+                        "documentation": "at foo-child.ads (1:1)",
+                        "filterText": "Child",
+                        "insertText": "Child",
                         "kind": 9,
-                        "label": "Text_IO (invisible)",
-                        "sortText": "~100&00001Text_IO"
+                        "label": "Child (invisible)",
+                        "sortText": "~100&00002Child"
                      }
                   ]
                }
@@ -199,12 +203,12 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 7,
+            "id": 44,
             "method": "shutdown"
          },
          "wait": [
             {
-               "id": 7,
+               "id": 44,
                "result": null
             }
          ]
