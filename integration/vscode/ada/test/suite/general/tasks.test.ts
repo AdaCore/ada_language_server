@@ -157,6 +157,9 @@ ada: Run main - src/test.adb - obj/test${exe}
         const adaTasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
         const buildTask = await findTaskByName('ada: Build current project', adaTasks);
         const resolved = await prov.resolveTask(buildTask);
+        const tasks: vscode.TaskDefinition[] =
+            vscode.workspace.getConfiguration('tasks').get('tasks') ?? [];
+        assert(tasks.length > 0, "No tasks registered in 'tasks.json'");
         assert(resolved);
         assert(resolved.execution);
         assert(

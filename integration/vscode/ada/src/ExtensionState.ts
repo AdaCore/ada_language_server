@@ -7,14 +7,16 @@ import { logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
-import { TERMINAL_ENV_SETTING_NAME } from './helpers';
+import { getArgValue, TERMINAL_ENV_SETTING_NAME } from './helpers';
 import {
+    SimpleTaskDef,
     SimpleTaskProvider,
     TASK_TYPE_ADA,
     TASK_TYPE_SPARK,
     createAdaTaskProvider,
     createSparkTaskProvider,
 } from './taskProviders';
+import { isAbsolute } from 'path';
 
 /**
  * This class encapsulates all state that should be maintained throughout the
@@ -36,7 +38,7 @@ export class ExtensionState {
     };
     public readonly initialDebugConfigProvider: AdaInitialDebugConfigProvider;
 
-    private registeredTaskProviders: Disposable[];
+    private taskDisposables: Disposable[];
 
     public readonly codelensProvider = new AdaCodeLensProvider();
     public readonly testController: vscode.TestController;
@@ -78,7 +80,7 @@ export class ExtensionState {
             [],
             '**/.{adb,ads,adc,ada}'
         );
-        this.registeredTaskProviders = [];
+        this.taskDisposables = [];
         const result = initializeDebugging(this.context);
         this.initialDebugConfigProvider = result.providerInitial;
         this.dynamicDebugConfigProvider = result.providerDynamic;
@@ -87,21 +89,25 @@ export class ExtensionState {
 
     public start = async () => {
         await Promise.all([this.gprClient.start(), this.adaClient.start()]);
-        this.registerTaskProviders();
+        this.registerTaskDisposables();
         this.context.subscriptions.push(
             vscode.languages.registerCodeLensProvider('ada', this.codelensProvider)
         );
     };
 
     public dispose = () => {
-        this.unregisterTaskProviders();
+        this.unregisterTaskDisposables();
     };
 
-    public registerTaskProviders = (): void => {
+    /**
+     * Register all the task disposables needed by the extension (e.g: task providers,
+     * listeners...).
+     */
+    public registerTaskDisposables = (): void => {
         this.adaTaskProvider = createAdaTaskProvider();
         this.sparkTaskProvider = createSparkTaskProvider();
 
-        this.registeredTaskProviders = [
+        this.taskDisposables = [
             vscode.tasks.registerTaskProvider(GnatTaskProvider.gnatType, new GnatTaskProvider()),
             vscode.tasks.registerTaskProvider(
                 GprTaskProvider.gprTaskType,
@@ -109,14 +115,25 @@ export class ExtensionState {
             ),
             vscode.tasks.registerTaskProvider(TASK_TYPE_ADA, this.adaTaskProvider),
             vscode.tasks.registerTaskProvider(TASK_TYPE_SPARK, this.sparkTaskProvider),
+
+            //  Add a listener on tasks to open the SARIF Viewer when the
+            //  task that ends outputs a SARIF file.
+            vscode.tasks.onDidEndTaskProcess(async (e) => {
+                const task = e.execution.task;
+                await openSARIFViewerIfNeeded(task);
+            }),
         ];
     };
 
-    public unregisterTaskProviders = (): void => {
-        for (const item of this.registeredTaskProviders) {
+    /**
+     * Unregister all the task disposables needed by the extension (e.g: task providers,
+     * listeners...).
+     */
+    public unregisterTaskDisposables = (): void => {
+        for (const item of this.taskDisposables) {
             item.dispose();
         }
-        this.registeredTaskProviders = [];
+        this.taskDisposables = [];
     };
 
     /**
@@ -150,8 +167,8 @@ export class ExtensionState {
         ) {
             logger.info('project related settings have changed: clearing caches for tasks');
             this.clearALSCache();
-            this.unregisterTaskProviders();
-            this.registerTaskProviders();
+            this.unregisterTaskDisposables();
+            this.registerTaskDisposables();
         }
 
         //  React to changes made in the environment variables, showing
@@ -237,5 +254,64 @@ export class ExtensionState {
      */
     public getSparkTaskProvider() {
         return this.sparkTaskProvider;
+    }
+}
+
+/**
+ *
+ * Open the SARIF Viewer if the given task outputs its results in
+ * a SARIF file (e.g: GNAT SAS Report task).
+ */
+async function openSARIFViewerIfNeeded(task: vscode.Task) {
+    const definition: SimpleTaskDef = task.definition;
+
+    if (definition) {
+        const args = definition.args;
+
+        if (args?.some((arg) => getArgValue(arg).includes('sarif'))) {
+            const execution = task.execution;
+            let cwd = undefined;
+
+            if (execution && execution instanceof vscode.ShellExecution) {
+                cwd = execution.options?.cwd;
+            }
+
+            if (!cwd && vscode.workspace.workspaceFolders) {
+                cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
+            }
+
+            const sarifExt = vscode.extensions.getExtension('ms-sarifvscode.sarif-viewer');
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const sarifExtAPI = sarifExt ? await sarifExt.activate() : undefined;
+
+            if (cwd && sarifExtAPI) {
+                const cwdURI = vscode.Uri.file(cwd);
+                const outputFilePathArgRaw = args.find((arg) =>
+                    getArgValue(arg).includes('.sarif')
+                );
+
+                if (outputFilePathArgRaw) {
+                    // Convert the raw argument into a string
+                    const outputFilePathArg = getArgValue(outputFilePathArgRaw);
+
+                    // The SARIF output file can be specified as '--output=path/to/file.sarif':
+                    // split the argument on '=' if that's the case, to retrieve only the file path
+                    const outputFilePath = outputFilePathArg.includes('=')
+                        ? outputFilePathArg.split('=').pop()
+                        : outputFilePathArg;
+
+                    if (outputFilePath) {
+                        const sarifFileURI = isAbsolute(outputFilePath)
+                            ? vscode.Uri.file(outputFilePath)
+                            : vscode.Uri.joinPath(cwdURI, outputFilePath);
+
+                        // eslint-disable-next-line max-len
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                        await sarifExtAPI.openLogs([sarifFileURI]);
+                    }
+                }
+            }
+        }
     }
 }
