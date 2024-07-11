@@ -1,0 +1,19 @@
+{
+    "tasks": [
+        {
+            "type": "ada",
+            "command": "gprbuild",
+            "args": [
+                "${command:ada.gprProjectArgs}",
+                "--no-object-check",
+                "-cargs:ada",
+                "-gnatef"
+            ],
+            "problemMatcher": [
+                "$ada"
+            ],
+            "group": "build",
+            "label": "ada: Build current project"
+        }
+    ]
+}

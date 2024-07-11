@@ -6,8 +6,11 @@ import { getEnclosingSymbol, getSelectedRegion } from '../../../src/commands';
 import { exe, getProjectFile } from '../../../src/helpers';
 import {
     SimpleTaskDef,
+    TASK_TYPE_ADA,
     createAdaTaskProvider,
+    findTaskByName,
     getConventionalTaskLabel,
+    isFromWorkspace,
 } from '../../../src/taskProviders';
 import {
     activate,
@@ -141,6 +144,35 @@ ada: Run main - src/test.adb - obj/test${exe}
             selection: new vscode.Range(15, 13, 17, 13),
         });
         assert.equal(getSelectedRegion(vscode.window.activeTextEditor), '16:18');
+    });
+
+    /**
+     * Verify that {@link findTaskByName} returns the predefined task that
+     * has been customized in the workspaces's 'tasks.json' file if any, and
+     * not the default predefined task from the extension's TaskProvider.
+     */
+    test('Customized predefined task command line', async function () {
+        const prov = createAdaTaskProvider();
+
+        const adaTasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
+        const buildTask = await findTaskByName('ada: Build current project', adaTasks);
+        const resolved = await prov.resolveTask(buildTask);
+        assert(resolved);
+        assert(resolved.execution);
+        assert(
+            isFromWorkspace(resolved),
+            'Build task does not come from workspace. Source is: ' + resolved.source
+        );
+
+        const exec = buildTask.execution as vscode.ShellExecution;
+        const actualCmd = getCmdLine(exec);
+
+        // The '--no-object-check' switch has been added to the 'ada: Build current project'
+        // predefined task in the workspace's tasks.json file: check that it's indeed present
+        // in the returned task's command line.
+        const expectedCmd = `gprbuild -P ${projectPath} --no-object-check -cargs:ada -gnatef`;
+
+        assert.strictEqual(actualCmd, expectedCmd);
     });
 
     test('Obsolete task definition causes error', async function () {

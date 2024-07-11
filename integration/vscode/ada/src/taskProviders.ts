@@ -42,6 +42,8 @@ export interface SimpleTaskDef extends vscode.TaskDefinition {
      * This property should not occur at the same time as command and args.
      * {@link SimpleTaskProvider.resolveTask} checks that in case it occurs in
      * User task definitions and raises errors accordingly.
+     * The tasks' names should be prefixed by their source
+     * (e.g: 'ada: Build current project' instead of 'Build current project').
      */
     compound?: string[];
 }
@@ -180,8 +182,8 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_ADA,
             compound: [
-                'Analyze the project with GNAT SAS',
-                'Create a report after a GNAT SAS analysis',
+                'ada: Analyze the project with GNAT SAS',
+                'ada: Create a report after a GNAT SAS analysis',
             ],
         },
         /**
@@ -195,8 +197,8 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_ADA,
             compound: [
-                'Analyze the current file with GNAT SAS',
-                'Create a report after a GNAT SAS analysis',
+                'ada: Analyze the current file with GNAT SAS',
+                'ada: Create a report after a GNAT SAS analysis',
             ],
         },
         /**
@@ -856,7 +858,8 @@ abstract class SequentialExecution extends vscode.CustomExecution {
 }
 
 /**
- * Finds and returns the task of the given name.
+ * Finds and returns the task of the given name, prioritizing the one
+ * defined/customized in the workspace's 'tasks.json' file if any.
  *
  * Task names contributed by the extension don't have the task type prefix in
  * the name while tasks coming from the workspace typically do since VS Code
@@ -888,6 +891,11 @@ export async function findTaskByName(
     if (tasks.length == 0) {
         throw Error('The task list is empty.' + ` Cannot find task '${taskName}'`);
     }
+
+    // Sort the given tasks to put the workspace-defined ones first
+    // in the list. This allows to pick-up predefined tasks that
+    // have been customized by the user in priority.
+    tasks = tasks.sort(workspaceTasksFirst);
 
     const task = tasks.find((v) => {
         return taskName == getConventionalTaskLabel(v) || taskName == v.name;
