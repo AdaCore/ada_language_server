@@ -26,6 +26,9 @@ import { existsSync } from 'fs';
 import { ExtensionState } from './ExtensionState';
 import { EXTENSION_NAME, adaExtState, logger, mainOutputChannel } from './extension';
 
+/* Whether we are under Windows */
+const isWindows = process.platform === 'win32';
+
 /**
  * Substitue any variable reference present in the given string. VS Code
  * variable references are listed here:
@@ -377,10 +380,22 @@ export const exe: '.exe' | '' = process.platform == 'win32' ? '.exe' : '';
  */
 export async function findAdaMain(mainPath: string): Promise<AdaMain | undefined> {
     const projectMains = await getAdaMains();
-    const adaMain = projectMains.find(
-        (val) => val.mainRelPath() == mainPath || val.mainFullPath == mainPath
-    );
-    return adaMain;
+
+    if (isWindows) {
+        /* Case-insensitive comparison under Windows */
+        const lc_main = mainPath.toLowerCase();
+        const adaMain = projectMains.find(
+            (val) =>
+                val.mainRelPath().toLowerCase() == lc_main ||
+                val.mainFullPath.toLowerCase() == lc_main
+        );
+        return adaMain;
+    } else {
+        const adaMain = projectMains.find(
+            (val) => val.mainRelPath() == mainPath || val.mainFullPath == mainPath
+        );
+        return adaMain;
+    }
 }
 /**
  * Starting from an array of symbols {@link rootSymbols} (usually obtained for a
