@@ -68,23 +68,6 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "method": "textDocument/didOpen",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{main.adb}",
-                  "languageId": "ada",
-                  "version": 1,
-                  "text": "\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Bar.Do_N\nend Main;\n"
-               }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration",
             "params": {
                "settings": {
@@ -107,6 +90,23 @@
             }
          ]
       }
+   },
+   {
+    "send": {
+       "request": {
+          "jsonrpc": "2.0",
+          "method": "textDocument/didOpen",
+          "params": {
+             "textDocument": {
+                "uri": "$URI{main.adb}",
+                "languageId": "ada",
+                "version": 1,
+                "text": "\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Bar.Do_N\nend Main;\n"
+             }
+          }
+       },
+       "wait": []
+    }
    },
    {
       "send": {
