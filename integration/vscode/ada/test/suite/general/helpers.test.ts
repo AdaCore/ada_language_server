@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { envHasExec, getSymbols, which } from '../../../src/helpers';
+import { envHasExec, findAdaMain, getSymbols, which } from '../../../src/helpers';
 import { DocumentSymbol, SymbolKind, Uri, commands, workspace } from 'vscode';
 import { rangeToStr } from '../utils';
 
@@ -7,7 +7,10 @@ suite('which and envHasExec', function () {
     test('existing', function () {
         switch (process.platform) {
             case 'win32':
-                assert(which('where')?.endsWith('where.exe'));
+                /* which() relies on PATHEXT which could contain .EXE or .exe.
+                   Lowercase the comparison for this test.
+                */
+                assert(which('where')?.toLowerCase().endsWith('where.exe'));
                 assert(envHasExec('where'));
                 break;
 
@@ -20,6 +23,27 @@ suite('which and envHasExec', function () {
     test('non-existing', function () {
         assert.equal(which('some-non-existing-exec'), undefined);
         assert(!envHasExec('some-non-existing-exec'));
+    });
+});
+
+suite('findAdaMain', function () {
+    test('Find one main (simple case)', async function () {
+        /* Test that findAdaMain works in a simple case */
+        const uri = Uri.joinPath(workspace.workspaceFolders![0].uri, 'src', 'main1.adb');
+        const adaMain = await findAdaMain(uri.fsPath);
+        assert(adaMain);
+    });
+    test('Find one main (case sensitivity)', async function () {
+        /* Test the behavior of findAdaMain with respect to case sensitivity */
+        const uri_uppercase = Uri.joinPath(workspace.workspaceFolders![0].uri, 'src', 'MAIN1.ADB');
+        const adaMain_from_uppercase = await findAdaMain(uri_uppercase.fsPath);
+
+        /* On Windows we should have a main here, otherwise we should not */
+        if (process.platform === 'win32') {
+            assert(adaMain_from_uppercase);
+        } else {
+            assert(!adaMain_from_uppercase);
+        }
     });
 });
 
