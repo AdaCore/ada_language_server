@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2021, AdaCore                     --
+--                     Copyright (C) 2018-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,7 +21,7 @@ with "spawn_glib";
 project LSP_Client_Glib is
 
    for Source_Dirs use ("../source/client");
-   for Object_Dir use "../.obj/" & LSP.Superproject & "/client_glib";
+   for Object_Dir use "../.obj/client_glib";
 
    package Compiler renames LSP.Compiler;
 
