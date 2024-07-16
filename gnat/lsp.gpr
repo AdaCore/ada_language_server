@@ -12,8 +12,8 @@ with "lsp_common";
 project LSP is
 
    for Source_Dirs use
-     ("../source/protocol", 
-      "../source/protocol/generated");
+     ("../liblsp_3_16/source/",
+      "../liblsp_3_16/source/generated/");
    for Object_Dir use "../.obj/" & LSP_Common.Superproject & "/lsp";
 
    package Compiler renames LSP_Common.Compiler;
