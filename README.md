@@ -136,8 +136,8 @@ The `ada_language_server` relies on [Libadalang](https://github.com/AdaCore/liba
 Most of this computation is done while indexing which will create an internal cache.
 The expected memory size of this cache is around 300Mb per 100k lines of Ada code.
 Furthermore, 450Mb are necessary for the runtime.
-Please note, some Ada structures like generic and tagged types will take more
-memory. This is also the case for aggregate project.
+Please note that some Ada structures like generics and tagged types might 
+increase the memory usage. This is also the case when using aggregate projects.
 These measures were taken using both Resident Set Size and [Valgrind massif](https://valgrind.org/docs/manual/ms-manual.html) on Ubuntu 22.04LTS.
 
 ## Supported LSP Server Requests
