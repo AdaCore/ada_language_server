@@ -1,19 +1,8 @@
-------------------------------------------------------------------------------
---                         Language Server Protocol                         --
---                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
---                                                                          --
--- This is free software;  you can redistribute it  and/or modify it  under --
--- terms of the  GNU General Public License as published  by the Free Soft- --
--- ware  Foundation;  either version 3,  or (at your option) any later ver- --
--- sion.  This software is distributed in the hope  that it will be useful, --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License for  more details.  You should have  received  a copy of the GNU --
--- General  Public  License  distributed  with  this  software;   see  file --
--- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
--- of the license.                                                          --
-------------------------------------------------------------------------------
+--
+--  Copyright (C) 2018-2024, AdaCore
+--
+--  SPDX-License-Identifier: Apache-2.0
+--
 
 with "gpr2.gpr";
 with "libadalang";
@@ -24,6 +13,7 @@ with "libgnatdoc.gpr";
 with "spawn.gpr";
 
 with "lsp_3_17";
+with "lsp_common";
 
 project LSP_Server is
 
@@ -41,6 +31,7 @@ project LSP_Server is
    for Source_Dirs use
      ("../source/server",
       "../source/ada",
+      "../source/common",
       "../source/gpr",
       "../source/ada/generated",
       "../source/memory");
@@ -48,6 +39,19 @@ project LSP_Server is
    for Object_Dir use "../.obj/server";
    for Main use ("lsp-ada_driver.adb");
    for Languages use ("Ada", "C++");
+
+   package Naming is
+      case LSP_Common.OS_API is
+         when "Windows_NT" =>
+            for Implementation ("LSP.Stdio_Streams.Initialize")
+              use "lsp-stdio_streams-init_windows.adb";
+
+         when others =>
+            for Implementation ("LSP.Stdio_Streams.Initialize")
+              use "lsp-stdio_streams-init_others.adb";
+
+      end case;
+   end Naming;
 
    package Compiler is
       for Default_Switches ("Ada") use
