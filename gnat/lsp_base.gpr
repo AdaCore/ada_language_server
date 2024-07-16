@@ -1,0 +1,36 @@
+--
+--  Copyright (C) 2018-2024, AdaCore
+--
+--  SPDX-License-Identifier: Apache-2.0
+--
+
+with "vss_text";
+with "vss_json";
+
+with "lsp_common";
+
+project LSP_Base is
+
+   for Source_Dirs use
+     ("../source/common",
+      "../source/uri");
+   for Object_Dir use "../.obj/" & LSP_Common.Superproject & "/lsp_base";
+
+   package Compiler renames LSP_Common.Compiler;
+
+   package Naming is
+      case LSP_Common.OS_API is
+         when "Windows_NT" =>
+            for Implementation ("LSP.Stdio_Streams.Initialize")
+              use "lsp-stdio_streams-init_windows.adb";
+
+         when others =>
+            for Implementation ("LSP.Stdio_Streams.Initialize")
+              use "lsp-stdio_streams-init_others.adb";
+
+      end case;
+   end Naming;
+
+   package Pretty_Printer renames LSP_Common.Pretty_Printer;
+
+end LSP_Base;
