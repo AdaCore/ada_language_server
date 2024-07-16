@@ -166,7 +166,7 @@ endif
 
 vscode-test:
 	# Run the VS Code integration testsuite.
-	cd integration/vscode/ada; MOCHA_ALS_UPDATE=$(MOCHA_ALS_UPDATE) LD_LIBRARY_PATH= python vscode-test-win-workaround.py npm run test
+	cd integration/vscode/ada; MOCHA_ALS_UPDATE=$(MOCHA_ALS_UPDATE) LD_LIBRARY_PATH= npm run test
 
 vscode-package:
 	cd integration/vscode/ada; LD_LIBRARY_PATH= $(VSCE) package
