@@ -1,0 +1,175 @@
+[
+   {
+      "comment": [
+         "This test checks that we append the right 'auto-import' command to invisible ",
+         "completion items dealing with renamed units."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Main is\nbegin\n   Foo.Do_Some\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 14
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 13,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "command": {
+                           "arguments": [
+                              {
+                                 "context": "Default",
+                                 "import": "Foo",
+                                 "qualifier": "",
+                                 "where": {
+                                    "position": {
+                                       "character": 14,
+                                       "line": 2
+                                    },
+                                    "textDocument": {
+                                       "uri": "$URI{main.adb}"
+                                    }
+                                 }
+                              }
+                           ],
+                           "command": "als-auto-import",
+                           "title": ""
+                        },
+                        "detail": "procedure Do_Something",
+                        "documentation": "at bar.ads (3:4)",
+                        "filterText": "Do_Something",
+                        "insertText": "Do_Something",
+                        "kind": 3,
+                        "label": "Do_Something (invisible)",
+                        "sortText": "~25&00001Do_Something"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
