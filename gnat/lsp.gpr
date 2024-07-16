@@ -1,118 +1,23 @@
-------------------------------------------------------------------------------
---                         Language Server Protocol                         --
---                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
---                                                                          --
--- This is free software;  you can redistribute it  and/or modify it  under --
--- terms of the  GNU General Public License as published  by the Free Soft- --
--- ware  Foundation;  either version 3,  or (at your option) any later ver- --
--- sion.  This software is distributed in the hope  that it will be useful, --
--- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
--- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
--- License for  more details.  You should have  received  a copy of the GNU --
--- General  Public  License  distributed  with  this  software;   see  file --
--- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
--- of the license.                                                          --
-------------------------------------------------------------------------------
+--
+--  Copyright (C) 2018-2024, AdaCore
+--
+--  SPDX-License-Identifier: Apache-2.0
+--
 
 with "gnatcoll";
-with "vss_text";
-with "vss_json";
+
+with "lsp_base";
+with "lsp_common";
 
 project LSP is
 
-   type Any_Build_Mode is (
-      "prod",
-      --  Produce efficient code to be used in production and don't treat
-      --  warnings as errors.
+   for Source_Dirs use
+     ("../source/protocol", 
+      "../source/protocol/generated");
+   for Object_Dir use "../.obj/" & LSP_Common.Superproject & "/lsp";
 
-      "dev"
-      --  Produce easy-to-debug code with extra checks. Treat warnings as
-      --  errors.
-   );
-   Build_Mode : Any_Build_Mode := external ("BUILD_MODE", "dev");
+   package Compiler renames LSP_Common.Compiler;
 
-   Superproject := external ("SUPERPROJECT", "");
+   package Pretty_Printer renames LSP_Common.Pretty_Printer;
 
-   type Any_Boolean is ("false", "true");
-
-   --  By default, treat warnings as errors in dev mode, but not in prod
-   --  mode. Let users override this default using the ALS_WARN_ERRORS
-   --  environment variable.
-
-   Warnings_As_Errors : Any_Boolean := "true";
-   case Build_Mode is
-      when "dev"  => Warnings_As_Errors := "true";
-      when "prod" => Warnings_As_Errors := "false";
-   end case;
-   Warnings_As_Errors : Any_Boolean :=
-      external ("ALS_WARN_ERRORS", Warnings_As_Errors);
-
-   for Source_Dirs use ("../source/protocol", 
-                        "../source/protocol/generated",
-                        "../source/common",
-                        "../source/uri");
-   for Object_Dir use "../.obj/" & Superproject & "/lsp";
-   for Main use ();
-
-   -- Compute the list of default switches to build Ada unit
-
-   Common_Ada_Switches := (
-      --  Generate debug information even in production: this is useful to
-      --  get meaningful tracebacks.
-      "-g",
-
-      --  Compile with "-gnatX" to support the "[]" syntax for array
-      --  aggregates: this is the common ground between all compilers
-      --  commonly used to build the language server.
-      "-gnatX");
-
-   Ada_Switches := ();
-   case Build_Mode is
-      when "prod" =>
-         Ada_Switches := (
-            --  Compile with optimizations
-            "-O2"
-         );
-
-      when "dev" =>
-         Ada_Switches := (
-            --  Compile with no optimization and with debug information to ease
-            --  investigation in debuggers.
-            "-O0",
-
-            --  Enable all warnings and GNAT stylechecks (plus O: check for
-            --  overriding indicators).
-            "-gnatwaJ", "-gnatygO",
-
-            --  Enable assertions and all validity checking options
-            "-gnata", "-gnatVa",
-
-            --  Enable stack overflow checks
-            "-fstack-check"
-         );
-   end case;
-
-   case Warnings_As_Errors is
-      when "true"  => Ada_Switches := Ada_Switches & ("-gnatwe");
-      when "false" => null;
-   end case;
-
-   package Compiler is
-      for Default_Switches ("Ada") use Common_Ada_Switches & Ada_Switches;
-      for Local_Configuration_Pragmas use "gnat.adc";
-   end Compiler;
-
-   package Naming is
-      case GnatColl.OS is
-         when "windows" =>
-            for Implementation ("LSP.Stdio_Streams.Initialize")
-              use "lsp-stdio_streams-init_windows.adb";
-
-         when others =>
-            for Implementation ("LSP.Stdio_Streams.Initialize")
-            use "lsp-stdio_streams-init_others.adb";
-
-      end case;
-   end Naming;
 end LSP;
