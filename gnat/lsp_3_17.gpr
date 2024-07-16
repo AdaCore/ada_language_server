@@ -10,8 +10,8 @@ with "lsp_common";
 project LSP_3_17 is
 
    for Source_Dirs use
-     ("../source/lsp_3.17",
-      "../source/lsp_3.17/generated");
+     ("../liblsp_3_17/source/",
+      "../liblsp_3_17/source/generated/");
    for Object_Dir use "../.obj/" & LSP_Common.Superproject & "/lsp_317";
 
    package Compiler extends LSP_Common.Compiler is
