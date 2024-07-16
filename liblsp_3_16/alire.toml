@@ -1,0 +1,24 @@
+name = "liblsp_3_16"
+description = "Language Server Protocol Support, Version 3.16"
+version = "0.1.0-dev"
+
+authors = ["Vadim Godunko"]
+maintainers = ["Vadim Godunko <vgodunko@gmail.com>"]
+maintainers-logins = ["godunko"]
+licenses = "Apache-2.0"
+website = ""
+tags = ["lsp"]
+
+project-files = ["../gnat/lsp.gpr"]
+
+[configuration]
+generate_ada = false
+generate_c = false
+generate_gpr = true
+
+[[depends-on]]
+liblsp_base = "*"
+gnatcoll = "*"
+
+[[pins]]
+liblsp_base = { path='../liblsp_base' }
