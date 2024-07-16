@@ -152,30 +152,57 @@ ada: Run main - src/test.adb - obj/test${exe}
      * not the default predefined task from the extension's TaskProvider.
      */
     test('Customized predefined task command line', async function () {
-        const prov = createAdaTaskProvider();
-
-        const adaTasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
-        const buildTask = await findTaskByName('ada: Build current project', adaTasks);
-        const resolved = await prov.resolveTask(buildTask);
-        const tasks: vscode.TaskDefinition[] =
+        const initialTasks: vscode.TaskDefinition[] =
             vscode.workspace.getConfiguration('tasks').get('tasks') ?? [];
-        assert(tasks.length > 0, "No tasks registered in 'tasks.json'");
-        assert(resolved);
-        assert(resolved.execution);
-        assert(
-            isFromWorkspace(resolved),
-            'Build task does not come from workspace. Source is: ' + resolved.source
-        );
 
-        const exec = buildTask.execution as vscode.ShellExecution;
-        const actualCmd = getCmdLine(exec);
+        try {
+            // Customize the 'ada: Build current project' task
+            const tasks: vscode.TaskDefinition[] = initialTasks.concat();
+            const def: SimpleTaskDef = {
+                type: 'ada',
+                command: 'gprbuild',
+                problemMatcher: ['$ada'],
+                args: [
+                    '${command:ada.gprProjectArgs}',
+                    '--no-object-check',
+                    '-cargs:ada',
+                    '-gnatef',
+                ],
+                label: 'ada: Build current project',
+            };
+            tasks.push(def);
+            await vscode.workspace.getConfiguration().update('tasks.tasks', tasks);
 
-        // The '--no-object-check' switch has been added to the 'ada: Build current project'
-        // predefined task in the workspace's tasks.json file: check that it's indeed present
-        // in the returned task's command line.
-        const expectedCmd = `gprbuild -P ${projectPath} --no-object-check -cargs:ada -gnatef`;
+            //  Fetch the available tasks to find the one we have customized: make
+            //  sure its source is 'workspace', since it has been manually customized.
 
-        assert.strictEqual(actualCmd, expectedCmd);
+            const prov = createAdaTaskProvider();
+            const adaTasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA });
+            const buildTask = await findTaskByName('ada: Build current project', adaTasks);
+            const resolved = await prov.resolveTask(buildTask);
+            assert(resolved);
+            assert(resolved.execution);
+            assert(
+                isFromWorkspace(resolved),
+                'Build task does not come from workspace. Source is: ' + resolved.source
+            );
+
+            const exec = buildTask.execution as vscode.ShellExecution;
+            const actualCmd = getCmdLine(exec);
+
+            // The '--no-object-check' switch has been added to the 'ada: Build current project'
+            // predefined task in the workspace's tasks.json file: check that it's indeed present
+            // in the returned task's command line.
+            const expectedCmd = `gprbuild -P ${projectPath} --no-object-check -cargs:ada -gnatef`;
+
+            assert.strictEqual(actualCmd, expectedCmd);
+        } finally {
+            // Reset the 'tasks.tasks' setting. If the previous value was
+            // empty, update to 'undefined' so that the setting gets removed.
+            await vscode.workspace
+                .getConfiguration()
+                .update('tasks.tasks', initialTasks ?? undefined);
+        }
     });
 
     test('Obsolete task definition causes error', async function () {
