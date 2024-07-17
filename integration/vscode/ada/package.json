@@ -13,7 +13,8 @@
         "Extension Packs"
     ],
     "extensionPack": [
-        "ms-vscode.cpptools"
+        "ms-vscode.cpptools",
+        "ms-sarifvscode.sarif-viewer"
     ],
     "activationEvents": [
         "workspaceContains:*.gpr",
