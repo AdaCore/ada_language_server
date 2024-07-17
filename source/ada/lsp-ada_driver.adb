@@ -269,12 +269,6 @@ procedure LSP.Ada_Driver is
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
 
-   Default_Traces_File_Contents : constant String :=
-     ">als.$T.txt:buffer_size=0" & Ada.Characters.Latin_1.LF
-     & "ALS.MAIN=yes" & Ada.Characters.Latin_1.LF
-     & "ALS.IN=no" & Ada.Characters.Latin_1.LF
-     & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;
-
    Traces_File : Virtual_File;
 
    Trace_File_Option      : constant VSS.Command_Line.Value_Option :=
@@ -350,12 +344,22 @@ begin
 
       Traces_File := Create_From_Dir
          (Dir       => ALS_Dir,
-          Base_Name => "traces.cfg");
+          Base_Name =>
+            (if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
+             "gpr_ls" else "ada_ls") & "_traces.cfg");
 
       --  No default traces file found: create one
       if not Traces_File.Is_Regular_File then
          declare
-            W_Traces_File : Writable_File;
+            W_Traces_File                : Writable_File;
+            Default_Traces_File_Contents : constant String :=
+            ">"
+            & (if VSS.Command_Line.Is_Specified (Language_GPR_Option)
+               then "gpr_ls" else "ada_ls")
+            & "_log.$T.log:buffer_size=0" & Ada.Characters.Latin_1.LF
+            & "ALS.MAIN=yes" & Ada.Characters.Latin_1.LF
+            & "ALS.IN=no" & Ada.Characters.Latin_1.LF
+            & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;
          begin
             W_Traces_File := Traces_File.Write_File;
             W_Traces_File.Write (Default_Traces_File_Contents);

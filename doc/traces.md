@@ -1,8 +1,12 @@
 # ALS Trace File
 
-Default trace file name is `$HOME/.als/traces.cfg`. This file gets automatically created
-if not present on the disk. The first line of the traces file
-defines the traces output stream (a filename in our case) and the other
+Default trace file names are:
+
+* `$HOME/.als/ada_ls_traces.cfg` for the language server spawned for Ada projects/files, which produce `ada_ls_log.<timestamp>.log` log files by default.
+* `$HOME/.als/gpr_ls_traces.cfg` for the language server spawned for GPR project files, which produce `gpr_ls_log.<timestamp>.log` log files by default.
+
+These files gets automatically created if not present on the disk. The first line of the
+traces files defines the traces output stream (a filename in our case) and the other
 lines are used to enable or disable traces.
 
 Note that you can provide another traces file via the `--tracefile=<FILE>` command line option.
