@@ -1,0 +1,21 @@
+--
+--  Copyright (C) 2018-2024, AdaCore
+--
+--  SPDX-License-Identifier: Apache-2.0
+--
+
+with "vss_text";
+with "vss_json";
+
+with "lsp_common";
+
+project LSP_Base is
+
+   for Source_Dirs use ("../liblsp_base/source/");
+   for Object_Dir use "../.obj/" & LSP_Common.Superproject & "/lsp_base";
+
+   package Compiler renames LSP_Common.Compiler;
+
+   package Pretty_Printer renames LSP_Common.Pretty_Printer;
+
+end LSP_Base;

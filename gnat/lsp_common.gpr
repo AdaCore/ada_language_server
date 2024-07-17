@@ -1,0 +1,102 @@
+--
+--  Copyright (C) 2018-2024, AdaCore
+--
+--  SPDX-License-Identifier: Apache-2.0
+--
+
+abstract project LSP_Common is
+
+   type OS_API_Kind is ("unix", "osx", "Windows_NT");
+   OS_API : OS_API_Kind :=
+     external ("LSP_OS", external ("OS", "unix"));
+
+   type Any_Build_Mode is (
+      "prod",
+      --  Produce efficient code to be used in production and don't treat
+      --  warnings as errors.
+
+      "dev"
+      --  Produce easy-to-debug code with extra checks. Treat warnings as
+      --  errors.
+   );
+   Build_Mode : Any_Build_Mode := external ("BUILD_MODE", "dev");
+
+   Superproject := external ("SUPERPROJECT", "");
+
+   type Any_Boolean is ("false", "true");
+
+   --  By default, treat warnings as errors in dev mode, but not in prod
+   --  mode. Let users override this default using the ALS_WARN_ERRORS
+   --  environment variable.
+
+   Warnings_As_Errors : Any_Boolean := "true";
+   case Build_Mode is
+      when "dev"  => Warnings_As_Errors := "true";
+      when "prod" => Warnings_As_Errors := "false";
+   end case;
+   Warnings_As_Errors : Any_Boolean :=
+      external ("ALS_WARN_ERRORS", Warnings_As_Errors);
+
+   -- Compute the list of default switches to build Ada unit
+
+   Common_Ada_Switches := (
+      --  Generate debug information even in production: this is useful to
+      --  get meaningful tracebacks.
+      "-g",
+
+      --  Compile with "-gnatX" to support the "[]" syntax for array
+      --  aggregates: this is the common ground between all compilers
+      --  commonly used to build the language server.
+      "-gnatX");
+
+   Ada_Switches := ();
+   case Build_Mode is
+      when "prod" =>
+         Ada_Switches := (
+            --  Compile with optimizations
+            "-O2"
+         );
+
+      when "dev" =>
+         Ada_Switches := (
+            --  Compile with no optimization and with debug information to ease
+            --  investigation in debuggers.
+            "-O0",
+
+            --  Enable all warnings and GNAT stylechecks (plus O: check for
+            --  overriding indicators).
+            "-gnatwaJ", "-gnatygO",
+
+            --  Generated files may contain long lines
+            "-gnatyM150",
+
+            --  Enable assertions and all validity checking options
+            "-gnata", "-gnatVa",
+
+            --  Enable stack overflow checks
+            "-fstack-check"
+         );
+   end case;
+
+   case Warnings_As_Errors is
+      when "true"  => Ada_Switches := Ada_Switches & ("-gnatwe");
+      when "false" => null;
+   end case;
+
+   package Compiler is
+      for Default_Switches ("Ada") use Common_Ada_Switches & Ada_Switches;
+      for Local_Configuration_Pragmas use "gnat.adc";
+   end Compiler;
+
+   package Pretty_Printer is
+      for Default_Switches ("ada") use
+        ("--no-align-modes",
+         "--no-separate-is",
+         "--comments-fill",
+         "--call-threshold=1",
+         "--par-threshold=2",
+         "--vertical-named-aggregates",
+         "--wide-character-encoding=8");
+   end Pretty_Printer;
+
+end LSP_Common;

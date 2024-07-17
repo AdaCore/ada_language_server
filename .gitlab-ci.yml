@@ -167,6 +167,7 @@ test-vscode-extension:
 
 .run_ci_common: &run_ci_common
   stage: run_downstream_ci
+  needs: ["test-als"]
   rules:
     - if: $CI_PIPELINE_SOURCE == 'push'
       when: never

@@ -43,6 +43,7 @@ extension at
   - [Install](#install)
     - [Dependencies](#dependencies)
   - [Usage](#usage)
+    - [Memory Consumption](#memory-consumption)
   - [Supported LSP Server Requests](#supported-lsp-server-requests)
     - [Protocol Extensions](#protocol-extensions)
   - [VS Code Extension](#vs-code-extension)
@@ -128,6 +129,16 @@ See more [details here](doc/settings.md). Each LSP
 client provides its-own way to set such settings. You can use the `--config`
 option if you want to provide the configuration directly via a JSON file
 instead of specifying it via the requests listed just above.
+
+### Memory Consumption
+
+The `ada_language_server` relies on [Libadalang](https://github.com/AdaCore/libadalang) to compute the cross references.
+Most of this computation is done while indexing which will create an internal cache.
+The expected memory size of this cache is around 300Mb per 100k lines of Ada code.
+Furthermore, 450Mb are necessary for the runtime.
+Please note that some Ada structures like generics and tagged types might 
+increase the memory usage. This is also the case when using aggregate projects.
+These measures were taken using both Resident Set Size and [Valgrind massif](https://valgrind.org/docs/manual/ms-manual.html) on Ubuntu 22.04LTS.
 
 ## Supported LSP Server Requests
 
