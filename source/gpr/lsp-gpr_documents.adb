@@ -123,10 +123,11 @@ package body LSP.GPR_Documents is
    ----------------
 
    function Has_Errors
-     (Self    : Document)
+     (Self : Document)
       return Boolean is
    begin
-      return Self.Tree.Log_Messages.Has_Error;
+      return Self.Tree.Log_Messages.Has_Error
+        or else not Self.Tree.Root_Project.Is_Defined;
    end Has_Errors;
 
    ----------------
@@ -300,7 +301,7 @@ package body LSP.GPR_Documents is
 
    begin
       if LSP.GPR_Files.References.Is_Variable_Reference (Reference)
-        and then not Self.Tree.Log_Messages.Has_Error
+        and then not Self.Has_Errors
       then
          declare
             File : constant LSP.GPR_Files.File_Access :=
@@ -373,7 +374,7 @@ package body LSP.GPR_Documents is
 
    begin
       if LSP.GPR_Files.References.Is_Attribute_Reference (Reference)
-        and then not Self.Tree.Log_Messages.Has_Error
+        and then not Self.Has_Errors
       then
          declare
             File : constant LSP.GPR_Files.File_Access :=
@@ -446,7 +447,7 @@ package body LSP.GPR_Documents is
 
    begin
       if LSP.GPR_Files.References.Is_Type_Reference (Reference)
-        and then not Self.Tree.Log_Messages.Has_Error
+        and then not Self.Has_Errors
       then
          declare
             File : constant LSP.GPR_Files.File_Access :=
