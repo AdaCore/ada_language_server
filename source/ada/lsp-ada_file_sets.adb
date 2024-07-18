@@ -146,12 +146,14 @@ package body LSP.Ada_File_Sets is
             --  Match each element individually because
             --  All_Symbols is case insensitive
             for Item of Self.All_Symbols (Cursor) loop
-               Defining_Name := Get_Defining_Name (Item.File, Item.Loc);
+               Defining_Name :=
+                 Get_Defining_Name (Item.File, Item.Loc);
 
-               if not Defining_Name.Is_Null
-                 and then Pattern.Match
-                   (VSS.Strings.To_Virtual_String
-                      (Defining_Name.As_Ada_Node.Text))
+               if not Defining_Name.Is_Null and then
+                   (Pattern.Get_Canonical_Pattern.Is_Empty
+                    or else Pattern.Match
+                      (VSS.Strings.To_Virtual_String
+                         (Defining_Name.As_Ada_Node.Text)))
                then
                   if not Only_Public or else Item.Is_Public then
                      Callback (Item.File, Defining_Name, Stop);
@@ -161,12 +163,16 @@ package body LSP.Ada_File_Sets is
                end if;
             end loop;
 
-         elsif Pattern.Match (Symbol_Maps.Key (Cursor)) then
+         elsif
+           Pattern.Get_Canonical_Pattern.Is_Empty
+            or else Pattern.Match (Symbol_Maps.Key (Cursor))
+         then
             --  All_Symbols is case insensitive so if the key is matched
             --  this means that all elements are also matched the pattern
             for Item of Self.All_Symbols (Cursor) loop
                if not Only_Public or else Item.Is_Public then
-                  Defining_Name := Get_Defining_Name (Item.File, Item.Loc);
+                  Defining_Name :=
+                    Get_Defining_Name (Item.File, Item.Loc);
                   if not Defining_Name.Is_Null
                     and then Matches_Unit_Prefix (Defining_Name)
                   then
