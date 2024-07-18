@@ -9,7 +9,7 @@ import { exe } from '../../../src/helpers';
 import { activate } from '../utils';
 import { adaExtState } from '../../../src/extension';
 
-suite('Debug Configurations', function () {
+suite('Dbg Cfgs', function () {
     let expectedConfigs: AdaConfig[];
 
     this.beforeAll(async () => {
@@ -88,7 +88,7 @@ suite('Debug Configurations', function () {
         ];
     });
 
-    test('GDB path is explicitely set in offered debug config', async () => {
+    test('GDB path is set in offered config', async () => {
         const firstConfig = (await adaDynamicDebugConfigProvider.provideDebugConfigurations()).at(
             0
         ) as AdaConfig;
