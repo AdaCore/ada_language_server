@@ -620,9 +620,7 @@ package body LSP.GPR_Handlers is
          declare
             Message : constant VSS.Strings.Virtual_String :=
               VSS.Strings.Conversions.To_Virtual_String
-                ("Exception: " &
-                   Ada.Exceptions.Exception_Name (E) & " (" &
-                     Ada.Exceptions.Exception_Message (E) & ")");
+                ("Exception: " & Ada.Exceptions.Exception_Information (E));
 
          begin
             Self.Tracer.Trace_Exception (E, "On_Server_Request");
