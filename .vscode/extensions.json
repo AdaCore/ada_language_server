@@ -10,6 +10,7 @@
       "davidanson.vscode-markdownlint",
       "adacore.ada",
       "ms-vscode.extension-test-runner",
-      "timonwong.shellcheck"
+      "timonwong.shellcheck",
+      "foxundermoon.shell-format"
    ]
 }
