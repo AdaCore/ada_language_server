@@ -23,14 +23,13 @@ import { LanguageClient } from 'vscode-languageclient/node';
 import winston from 'winston';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { existsSync } from 'fs';
-import { ExtensionState } from './ExtensionState';
 import { EXTENSION_NAME, adaExtState, logger, mainOutputChannel } from './extension';
 
 /* Whether we are under Windows */
 const isWindows = process.platform === 'win32';
 
 /**
- * Substitue any variable reference present in the given string. VS Code
+ * Substitute any variable reference present in the given string. VS Code
  * variable references are listed here:
  * https://code.visualstudio.com/docs/editor/variables-reference
  * @param str - string to perform substitution on
@@ -162,6 +161,15 @@ export function getEvaluatedTerminalEnv() {
     }
 
     return custom_env;
+}
+
+/**
+ * Get the given argument actual string value, converting it to a string if
+ * specified as {@link vscode.ShellQuotedString}.
+ * @returns a string containing the argument's actual value.
+ */
+export function getArgValue(a: string | vscode.ShellQuotedString): string {
+    return typeof a == 'string' ? a : a.value;
 }
 
 /**

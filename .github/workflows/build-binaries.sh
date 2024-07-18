@@ -4,7 +4,7 @@
 # -e causes the execution to terminate as soon as any command fails
 set -x -e
 DEBUG=$1  # Value is '' or 'debug'
-RUNNER_OS=$2  #  ${{ runner.os }} is Linux, Windiws, maxOS
+RUNNER_OS=$2  #  ${{ runner.os }} is Linux, Windows, macOS
 TAG=$3 # For master it's 24.0.999, while for tag it's the tag itself
 NO_REBASE=$4 # Specify this to skip the rebase over the edge branch. Used for local debugging.
 CROSS=$5 # '' for native, aarch64 for ARM cross

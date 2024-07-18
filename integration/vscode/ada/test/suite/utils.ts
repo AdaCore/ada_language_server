@@ -5,7 +5,7 @@ import path from 'path';
 import * as vscode from 'vscode';
 import { CodeLens, Uri, window, workspace } from 'vscode';
 import { adaExtState } from '../../src/extension';
-import { setTerminalEnvironment } from '../../src/helpers';
+import { getArgValue, setTerminalEnvironment } from '../../src/helpers';
 import {
     SimpleTaskProvider,
     findTaskByName,
@@ -206,11 +206,7 @@ export async function testTask(
         let msg = `Got status ${execStatus ?? "'undefined'"} for task '${taskName}'`;
         if (task.execution instanceof vscode.ShellExecution) {
             const cmdLine = [task.execution.command].concat(task.execution.args).map((arg) => {
-                if (typeof arg == 'string') {
-                    return arg;
-                } else {
-                    return arg.value;
-                }
+                return getArgValue(arg);
             });
             msg += ` with command line: ${cmdLine.join(' ')}`;
 
