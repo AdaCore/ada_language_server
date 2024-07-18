@@ -337,11 +337,23 @@ package body LSP.Ada_Document_Symbol is
 
             when Libadalang.Common.Ada_Pragma_Node =>
                if Self.Stack.Length < 3 then
-                  Append_Name
-                    (Node.As_Pragma_Node.F_Id,
-                     Kind   => LSP.Enumerations.Property,
-                     Detail => VSS.Strings.To_Virtual_String
-                       ("(" & Node.As_Pragma_Node.F_Args.Text & ")"));
+                  declare
+                     Pragma_Node : constant Libadalang.Analysis.Pragma_Node :=
+                       Node.As_Pragma_Node;
+                  begin
+                     if not
+                       (Pragma_Node.F_Id.Is_Null
+                        and then Pragma_Node.F_Args.Is_Null)
+                     then
+                        Append_Name
+                          (Node.As_Pragma_Node.F_Id,
+                           Kind   => LSP.Enumerations.Property,
+                           Detail =>
+                             VSS.Strings.To_Virtual_String
+                               ("("
+                                & Node.As_Pragma_Node.F_Args.Text & ")"));
+                     end if;
+                  end;
                end if;
 
             when others =>
