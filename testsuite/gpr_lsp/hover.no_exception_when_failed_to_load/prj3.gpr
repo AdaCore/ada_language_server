@@ -1,0 +1,16 @@
+with "unknown";
+project Prj3 is
+  type T is ("project.Var value ");
+  Var : T := "project.Var value ";
+   package Builder is
+    Var := "project.Builder.Var value ";
+    for Global_Configuration_Pragmas use "project.Builder'Global_Configuration_Pragmas value ";
+  end Builder;
+  Var1 := Var & project.Var & project.Builder.Var & project'Name & Prj3'Name & Prj3.Builder'Global_Configuration_Pragmas;
+  package Compiler is
+    for Switches ("main.adb") use ("value1");
+    for Switches ("main.adb" at 1) use ("value2");
+    for Switches (others) use ("value3");
+    Var := Compiler'Switches ("main.adb") & Compiler'Switches (others);
+  end Compiler;
+end Prj3;
