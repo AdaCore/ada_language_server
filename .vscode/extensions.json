@@ -9,6 +9,7 @@
       "gruntfuggly.triggertaskonsave",
       "davidanson.vscode-markdownlint",
       "adacore.ada",
-      "ms-vscode.extension-test-runner"
+      "ms-vscode.extension-test-runner",
+      "timonwong.shellcheck"
    ]
 }
