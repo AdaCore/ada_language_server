@@ -90,8 +90,7 @@ package body LSP.GNATCOLL_Tracers is
         (if Message.Is_Empty then "Exception:" else Message);
 
       Self.Trace
-        (Ada.Exceptions.Exception_Name (Error) & " - " &
-           Ada.Exceptions.Exception_Message (Error));
+        (Ada.Exceptions.Exception_Information (Error));
 
       Self.Trace (GNAT.Traceback.Symbolic.Symbolic_Traceback (Error));
    end Trace_Exception;

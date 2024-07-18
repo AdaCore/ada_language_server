@@ -51,9 +51,7 @@ package body LSP.Server_Request_Jobs is
          declare
             Message : constant VSS.Strings.Virtual_String :=
               VSS.Strings.Conversions.To_Virtual_String
-                ("Exception: " &
-                   Ada.Exceptions.Exception_Name (E) & " (" &
-                     Ada.Exceptions.Exception_Message (E) & ")");
+                ("Exception: " & Ada.Exceptions.Exception_Information (E));
 
          begin
             Client.On_Error_Response
