@@ -240,8 +240,7 @@ package body LSP.GPR_Documents is
            (GPR2.Message.Create
               (Level   => GPR2.Message.Error,
                Message => "GPR parser unexpected " &
-                 Ada.Exceptions.Exception_Name (E) & " " &
-                 Ada.Exceptions.Exception_Message (E),
+                 Ada.Exceptions.Exception_Information (E),
                Sloc    => GPR2.Source_Reference.Create
                  (Filename => Self.File.Value,
                   Line     => 1,

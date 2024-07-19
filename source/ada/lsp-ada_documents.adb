@@ -132,9 +132,112 @@ package body LSP.Ada_Documents is
       --  Return a suitable sortText according to the completion item's
       --  visibility and position in the completion list.
 
+      procedure Get_Missing_Unit_And_Qualifier
+        (Missing_Unit_Name : out VSS.Strings.Virtual_String;
+         Missing_Qualifier : out VSS.Strings.Virtual_String);
+      --  Get the missing unit name and qualifier (if needed) for invisible
+      --  completion items.
+
       procedure Append_Auto_Import_Command;
       --  Append the needed command to add the missing with-clause/qualifier
       --  when accepting an invisible completion item.
+
+      ------------------------------------
+      -- Get_Missing_unit_and_qualifier --
+      ------------------------------------
+
+      procedure Get_Missing_Unit_And_Qualifier
+        (Missing_Unit_Name : out VSS.Strings.Virtual_String;
+         Missing_Qualifier : out VSS.Strings.Virtual_String)
+      is
+         use Libadalang.Analysis;
+
+         Prefix : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.Conversions.To_Virtual_String
+             (Langkit_Support.Text.To_UTF8 (Node.Text));
+
+         Dotted_Node         : constant Ada_Node :=
+           (if Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range then
+               Node
+            else
+               Node.Parent);
+
+         Is_Dotted_Name     : constant Boolean :=
+           not Dotted_Node.Is_Null and then
+           Dotted_Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range;
+         --  Check if we are completing a dotted name. We want to prepend the
+         --  right qualifier only if it's not the case.
+
+         Dotted_Node_Prefix  : VSS.Strings.Virtual_String :=
+           (if Is_Dotted_Name then
+               VSS.Strings.Conversions.To_Virtual_String
+                 (Langkit_Support.Text.To_UTF8
+                   (Dotted_Node.As_Dotted_Name.F_Prefix.Text))
+            else
+               VSS.Strings.Empty_Virtual_String);
+         --  The prefix of the dotted name we are completion, or an empty
+         --  string if we are not completing a dotted name.
+
+         Missing_Unit_Root_Decl : constant Libadalang.Analysis.Basic_Decl :=
+           BD.P_Enclosing_Compilation_Unit.P_Decl;
+         --  The missing unit root declaration for this invisible symbol (e.g:
+         --  the "Ada.Text_IO" package declaration for the
+         --  "Ada.Text_IO.Put_Line" subprogram).
+
+      begin
+         Missing_Unit_Name :=  VSS.Strings.Conversions.To_Virtual_String
+           (Langkit_Support.Text.To_UTF8
+              (Missing_Unit_Root_Decl.P_Fully_Qualified_Name));
+
+         --  We are completing a dotted name but its prefix does not match
+         --  with the completion item's defining name's unit: this means we
+         --  are dealing with renames (e.g: 'GNAT.Strings.Strings_Access'
+         --  is a forward declaration of 'System.Strings.String_Access'). In
+         --  that case, use the prefix specified by the user instead of the
+         --  completion item's defining name's unit: the user explcitly wants
+         --  to use the renamed symbol instead of the base one.
+
+         if Is_Dotted_Name
+           and then not Missing_Unit_Name.Starts_With (Dotted_Node_Prefix)
+         then
+            declare
+               Dotted_Prefix_Parts : VSS.String_Vectors.
+                 Virtual_String_Vector :=
+                 Dotted_Node_Prefix.Split
+                   (Separator => VSS.Characters.Latin.Full_Stop);
+            begin
+               --  Check if the unit specified as a prefix actually exists.
+               --  If not, it might be a renamed package
+               --  declaration/instantiation: in that case we want to add a
+               --  with-clause on the enclosing unit (e.g: the prefix before
+               --  the last '.').
+
+               while Get_From_Provider
+                 (Context => Context.LAL_Context,
+                  Name    => Langkit_Support.Text.To_Text
+                    (VSS.Strings.Conversions.To_UTF_8_String
+                         (Dotted_Node_Prefix)),
+                  Kind    => Libadalang.Common.Unit_Specification).Root.Is_Null
+               loop
+                  Dotted_Prefix_Parts.Delete_Last;
+                  Dotted_Node_Prefix :=
+                    Dotted_Prefix_Parts.Join (VSS.Characters.Latin.Full_Stop);
+               end loop;
+
+               Missing_Unit_Name := Dotted_Node_Prefix;
+            end;
+         end if;
+
+         --  We should not add any qualifier if the user accepted the
+         --  completion item corresponding to the missing unit itself (e.g: if
+         --  the user selects "Ada.Text_IO" in the completion window, we do not
+         --  need to add any qualifier) or if he's completing a dotted name.
+         Missing_Qualifier :=
+           (if Is_Dotted_Name or else BD = Missing_Unit_Root_Decl then
+               VSS.Strings.Empty_Virtual_String
+            else
+               Missing_Unit_Name);
+      end Get_Missing_Unit_And_Qualifier;
 
       -------------------
       -- Get_Sort_Text --
@@ -166,43 +269,15 @@ package body LSP.Ada_Documents is
 
       procedure Append_Auto_Import_Command is
          use LSP.Ada_Handlers.Refactor;
-         use Libadalang.Analysis;
 
          Auto_Import_Command : Auto_Import.Command;
          --  The auto-import command.
 
-         Is_Dotted_Name     : constant Boolean :=
-           Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range
-           or else
-             (not Node.Parent.Is_Null and then
-              Node.Parent.Kind
-              in Libadalang.Common.Ada_Dotted_Name_Range);
-         --  Check if we are completing a dotted name. We want to prepend the
-         --  right qualifier only if it's not the case.
-
-         Missing_Unit_Root_Decl : constant Libadalang.Analysis.Basic_Decl :=
-           BD.P_Enclosing_Compilation_Unit.P_Decl;
-         --  The missing unit root declaration for this invisible symbol (e.g:
-         --  the "Ada.Text_IO" package declaration for the
-         --  "Ada.Text_IO.Put_Line" subprogram).
-
-         Missing_Unit_Name  : VSS.Strings.Virtual_String :=
-           VSS.Strings.Conversions.To_Virtual_String
-             (Langkit_Support.Text.To_UTF8
-                (Missing_Unit_Root_Decl.P_Fully_Qualified_Name));
-         --  Get the missing unit name.
-
-         Missing_Qualifier  : VSS.Strings.Virtual_String :=
-           (if Is_Dotted_Name or else BD = Missing_Unit_Root_Decl then
-               VSS.Strings.Empty_Virtual_String
-            else
-               Missing_Unit_Name);
-         --  The missing qualifier. We should not add any qualifier if the
-         --  user accepted the completion item corresponding to the missing
-         --  unit itself (e.g: if the user selects "Ada.Text_IO" in the
-         --  completion window, we do not need to add any qualifier) or if
-         --  he's completing a dotted name.
+         Missing_Unit_Name  : VSS.Strings.Virtual_String;
+         Missing_Qualifier  : VSS.Strings.Virtual_String;
       begin
+         Get_Missing_Unit_And_Qualifier (Missing_Unit_Name, Missing_Qualifier);
+
          Auto_Import_Command.Initialize
            (Context     => Context,
             Where       =>
