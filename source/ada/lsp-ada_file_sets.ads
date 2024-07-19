@@ -88,8 +88,11 @@ package LSP.Ada_File_Sets is
          Stop          : in out Boolean);
       Unit_Prefix : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String);
-   --  Find symbols starting with given Prefix in all files of the set and
-   --  call Callback for each. Get_Defining_Name callback is used for getting
+   --  Find symbols that match the given Pattern in all files of the set and
+   --  call Callback for each.
+   --  If Pattern is an empty string, all the symbols in all files will be
+   --  returned.
+   --  Get_Defining_Name callback is used for getting
    --  the Defining_Name at the given location Loc in a unit.
    --  Name could contain a stale reference if the File was updated since
    --  last indexing operation. If Only_Public is True it will skip any
