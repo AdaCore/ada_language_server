@@ -16,3 +16,4 @@ tsconfig.json
 **/*.ts.map
 xfail.yaml
 vscode-test-win-workaround.py
+convert-mocha-junit-report.py
