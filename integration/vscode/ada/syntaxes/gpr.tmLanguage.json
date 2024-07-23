@@ -7,6 +7,13 @@
         { "include": "#comment" }
     ],
     "repository": {
+        "empty_declaration": {
+            "begin": "(null)",
+            "end": ";",
+            "beginCaptures": {
+                "0": { "name": "keyword.gpr" }
+            }
+        },
         "assignment": {
             "begin": ":=",
             "end": "(?=;)",
@@ -42,7 +49,7 @@
         },
         "case_construction": {
             "name": "meta.case.gpr",
-            "begin": "(?i)\\b(case)\\s+((?:\\w|\\d|_)+)\\s+(is)\\b",
+            "begin": "(?i)\\b(case)\\s+(.+)\\s+(is)\\b",
             "end": "(?i)\\b(end)\\s+(case)\\s*(;)",
             "beginCaptures": {
                 "1": { "name": "keyword.control.gpr" },
@@ -55,9 +62,11 @@
                 "3": { "name": "punctuation.gpr" }
             },
             "patterns": [
+                { "include": "#case_construction" },
                 { "include": "#case_when" },
                 { "include": "#comment" },
-                { "include": "#attribute" }
+                { "include": "#attribute" },
+                { "include": "#empty_declaration" }
             ]
         },
         "case_when": {
@@ -117,7 +126,8 @@
                     "patterns": [
                         { "include": "#case_construction" },
                         { "include": "#comment" },
-                        { "include": "#attribute" }
+                        { "include": "#attribute" },
+                        { "include": "#empty_declaration" }
                     ]
                 },
                 {
