@@ -29,13 +29,17 @@ suite('which and envHasExec', function () {
 suite('findAdaMain', function () {
     test('Find one main (simple case)', async function () {
         /* Test that findAdaMain works in a simple case */
-        const uri = Uri.joinPath(workspace.workspaceFolders![0].uri, 'src', 'main1.adb');
+        const folders = workspace.workspaceFolders;
+        assert(folders && folders.length > 0);
+        const uri = Uri.joinPath(folders[0].uri, 'src', 'main1.adb');
         const adaMain = await findAdaMain(uri.fsPath);
         assert(adaMain);
     });
     test('Find one main (case sensitivity)', async function () {
         /* Test the behavior of findAdaMain with respect to case sensitivity */
-        const uri_uppercase = Uri.joinPath(workspace.workspaceFolders![0].uri, 'src', 'MAIN1.ADB');
+        const folders = workspace.workspaceFolders;
+        assert(folders && folders.length > 0);
+        const uri_uppercase = Uri.joinPath(folders[0].uri, 'src', 'MAIN1.ADB');
         const adaMain_from_uppercase = await findAdaMain(uri_uppercase.fsPath);
 
         /* On Windows we should have a main here, otherwise we should not */
