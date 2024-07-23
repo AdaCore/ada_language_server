@@ -97,7 +97,7 @@ package body LSP.Predefined_Completion is
                Virtual_String    =>
                  VSS.Strings.Conversions.To_Virtual_String
                    (String'(Value.Get ("DOC")))));
-         Item.kind := (Is_Set => True, Value => LSP.Enumerations.Text);
+         Item.kind := (Is_Set => True, Value => LSP.Enumerations.EnumMember);
 
          Items.Append (Item);
       end Load_Item;
