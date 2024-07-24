@@ -79,15 +79,15 @@
                         "range": {
                            "start": {
                               "line": 0,
-                              "character": 0
+                              "character": 17
                            },
                            "end": {
                               "line": 0,
-                              "character": 0
+                              "character": 17
                            }
                         },
                         "severity": 1,
-                        "message": "GPR parser unexpected ADA.ASSERTIONS.ASSERTION_ERROR DYNAMIC_PREDICATE failed at gpr2-project-parser.adb:83"
+                        "message": "missing project file for with clause"
                      }
                   ]
                }
