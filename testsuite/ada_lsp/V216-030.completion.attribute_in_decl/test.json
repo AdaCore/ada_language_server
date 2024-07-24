@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "test automatically generated"
-      ]
+      "comment": ["test automatically generated"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -25,9 +21,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "rename"
-                        ]
+                        "resourceOperations": ["rename"]
                      }
                   },
                   "textDocument": {
@@ -36,15 +30,9 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": false,
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "resolveSupport": {
-                              "properties": [
-                                 "detail",
-                                 "documentation"
-                              ]
+                              "properties": ["detail", "documentation"]
                            }
                         }
                      },
@@ -80,12 +68,7 @@
                   "capabilities": {
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
+                        "triggerCharacters": [".", ",", "'", "("],
                         "resolveProvider": true
                      }
                   }
@@ -204,13 +187,13 @@
                      "<HAS>",
                      {
                         "label": "Abort_Signal",
-                        "kind": 1,
+                        "kind": 20,
                         "detail": "GNAT RM",
                         "documentation": "`Standard'Abort_Signal' (`Standard' is the only allowed prefix)\nprovides the entity for the special exception used to signal task abort\nor asynchronous transfer of control.  Normally this attribute should\nonly be used in the tasking runtime (it is highly peculiar, and\ncompletely outside the normal semantics of Ada, for a user program to\nintercept the abort exception)."
                      },
                      {
                         "label": "First_Bit",
-                        "kind": 1,
+                        "kind": 20,
                         "detail": "Ada RM",
                         "documentation": "For a component C of a composite, non-array object R:\n\n\nIf the nondefault bit ordering applies to the composite type,\nand if a component_clause specifies the placement of C,\ndenotes the value given for the first_bit of the\ncomponent_clause; otherwise, denotes the offset, from the\nstart of the first of the storage elements occupied by C, of\nthe first bit occupied by C. This offset is measured in bits.\nThe first bit of a storage element is numbered zero. The value\nof this attribute is of the type universal_integer. See"
                      }
