@@ -174,104 +174,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -321,104 +225,8 @@
                         "label": "Imported_Variable"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      }
                   ]
                }
@@ -832,104 +640,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -1168,104 +880,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -1324,104 +940,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -1480,104 +1000,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -1770,14 +1194,6 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
                         "label": "Imported"
                      }
                   ]
@@ -1812,14 +1228,6 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
                      {
                         "label": "project"
                      },
@@ -1859,10 +1267,6 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
                         "label": "Extended"
                      }
                   ]
@@ -1898,14 +1302,6 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
                         "label": "Imported"
                      }
                   ]
@@ -1940,14 +1336,6 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
                      {
                         "label": "project"
                      },
@@ -2024,10 +1412,6 @@
                   "items": [
                      {
                         "label": "Extended_Variable"
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
                      }
                   ]
                }
