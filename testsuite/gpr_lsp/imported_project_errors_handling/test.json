@@ -1,197 +1,190 @@
 [
-  {
-    "comment": [
-      "test imported projects errors handling"
-    ]
-  },
-  {
-    "start": {
-      "cmd": [
-        "${ALS}",
-        "--language-gpr"
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "params": {
-          "processId": 30612,
-          "capabilities": {
-            "workspace": {
-              "applyEdit": false
-            }
-          },
-          "rootUri": "$URI{.}"
-        },
-        "jsonrpc": "2.0",
-        "id": 1,
-        "method": "initialize"
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 1,
-          "result": {
-            "capabilities": {
-              "textDocumentSync": {
-                "openClose": true,
-                "change": 1
-              },
-              "completionProvider": {
-                "triggerCharacters": [
-                  " "
-                ],
-                "resolveProvider": true
-              },
-              "hoverProvider": true,
-              "definitionProvider": true,
-              "documentSymbolProvider": {}
-            }
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "method": "initialized"
-      },
-      "wait": []
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "params": {
-          "textDocument": {
-            "text": "with \"imported\", \"\"; project prj is end prj;",
-            "version": 0,
-            "uri": "$URI{prj.gpr}",
-            "languageId": "Gpr"
-          }
-        },
-        "jsonrpc": "2.0",
-        "method": "textDocument/didOpen"
-      },
-      "wait": [
-        {
-          "method": "textDocument/publishDiagnostics",
-          "params": {
-            "uri": "$URI{prj.gpr}",
-            "diagnostics": [
-              {
-                "range": {
-                  "start": {
-                    "line": 0,
-                    "character": 0
-                  },
-                  "end": {
-                    "line": 0,
-                    "character": 0
+   {
+      "comment": ["test imported projects errors handling"]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 30612,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
                   }
-                },
-                "severity": 1,
-                "message": "GPR parser unexpected ADA.ASSERTIONS.ASSERTION_ERROR DYNAMIC_PREDICATE failed at gpr2-project-parser.adb:83"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "method": "textDocument/didChange",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}",
-            "version": 1
-          },
-          "contentChanges": [
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
             {
-              "range": {
-                "start": {
-                  "line": 0,
-                  "character": 18
-                },
-                "end": {
-                  "line": 0,
-                  "character": 18
-                }
-              },
-              "text": "imported1"
-            }
-          ]
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "method": "textDocument/publishDiagnostics",
-          "params": {
-            "uri": "$URI{prj.gpr}",
-            "diagnostics": []
-          }
-        },
-        {
-          "jsonrpc": "2.0",
-          "method": "textDocument/publishDiagnostics",
-          "params": {
-            "uri": "$URI{imported1.gpr}",
-            "diagnostics": [
-              {
-                "range": {
-                  "start": {
-                    "line": 0,
-                    "character": 0
-                  },
-                  "end": {
-                    "line": 0,
-                    "character": 0
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {
+                        "triggerCharacters": [" ", "."],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "definitionProvider": true,
+                     "documentSymbolProvider": {}
                   }
-                },
-                "severity": 1,
-                "message": "duplicate project name \"Imported\" in \"$FILE{imported.gpr}\""
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": "shutdown",
-        "method": "shutdown",
-        "params": null
-      },
-      "wait": [
-        {
-          "id": "shutdown",
-          "result": null
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "method": "exit"
-      },
-      "wait": []
-    }
-  },
-  {
-    "stop": {
-      "exit_code": 0
-    }
-  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "with \"imported\", \"\"; project prj is end prj;",
+                  "version": 0,
+                  "uri": "$URI{prj.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{prj.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 1,
+                        "message": "GPR parser unexpected ADA.ASSERTIONS.ASSERTION_ERROR DYNAMIC_PREDICATE failed at gpr2-project-parser.adb:83"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 18
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 18
+                        }
+                     },
+                     "text": "imported1"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{prj.gpr}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{imported1.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 1,
+                        "message": "duplicate project name \"Imported\" in \"$FILE{imported.gpr}\""
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [
+            {
+               "id": "shutdown",
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "exit"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
 ]

@@ -1,2720 +1,2043 @@
 [
-  {
-    "comment": [
-      "references completion"
-    ]
-  },
-  {
-    "start": {
-      "cmd": [
-        "${ALS}",
-        "--language-gpr"
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 0,
-        "method": "initialize",
-        "params": {
-          "processId": 2243210,
-          "clientInfo": {
-            "name": "Visual Studio Code",
-            "version": "1.63.2"
-          },
-          "rootUri": "$URI{.}",
-          "capabilities": {
-            "workspace": {
-              "applyEdit": true,
-              "workspaceEdit": {
-                "documentChanges": true,
-                "resourceOperations": [
-                  "create",
-                  "rename",
-                  "delete"
-                ],
-                "normalizesLineEndings": true
-              },
-              "didChangeConfiguration": {},
-              "didChangeWatchedFiles": {},
-              "symbol": {},
-              "executeCommand": {},
-              "configuration": true,
-              "workspaceFolders": true,
-              "fileOperations": {
-                "dynamicRegistration": true,
-                "didCreate": true,
-                "didRename": true,
-                "didDelete": true,
-                "willCreate": true,
-                "willRename": true,
-                "willDelete": true
-              }
-            },
-            "textDocument": {
-              "publishDiagnostics": {},
-              "synchronization": {},
-              "completion": {
-                "contextSupport": true,
-                "completionItem": {
-                  "snippetSupport": true,
-                  "commitCharactersSupport": true,
-                  "documentationFormat": [
-                    "markdown",
-                    "plaintext"
-                  ],
-                  "deprecatedSupport": true,
-                  "preselectSupport": true,
-                  "tagSupport": {
-                    "valueSet": [
-                      1
-                    ]
+   {
+      "comment": ["references completion"]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 2243210,
+               "clientInfo": {
+                  "name": "Visual Studio Code",
+                  "version": "1.63.2"
+               },
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": ["create", "rename", "delete"],
+                        "normalizesLineEndings": true
+                     },
+                     "didChangeConfiguration": {},
+                     "didChangeWatchedFiles": {},
+                     "symbol": {},
+                     "executeCommand": {},
+                     "configuration": true,
+                     "workspaceFolders": true,
+                     "fileOperations": {
+                        "dynamicRegistration": true,
+                        "didCreate": true,
+                        "didRename": true,
+                        "didDelete": true,
+                        "willCreate": true,
+                        "willRename": true,
+                        "willDelete": true
+                     }
                   },
-                  "insertReplaceSupport": true,
-                  "resolveSupport": {
-                    "properties": [
-                      "documentation",
-                      "detail",
-                      "additionalTextEdits"
-                    ]
+                  "textDocument": {
+                     "publishDiagnostics": {},
+                     "synchronization": {},
+                     "completion": {
+                        "contextSupport": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "commitCharactersSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"],
+                           "deprecatedSupport": true,
+                           "preselectSupport": true,
+                           "tagSupport": {
+                              "valueSet": [1]
+                           },
+                           "insertReplaceSupport": true,
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail",
+                                 "additionalTextEdits"
+                              ]
+                           },
+                           "insertTextModeSupport": {
+                              "valueSet": [1, 2]
+                           }
+                        },
+                        "completionItemKind": {
+                           "valueSet": [
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25
+                           ]
+                        }
+                     },
+                     "documentSymbol": {},
+                     "codeAction": {}
                   },
-                  "insertTextModeSupport": {
-                    "valueSet": [
-                      1,
-                      2
-                    ]
+                  "window": {
+                     "workDoneProgress": true
                   }
-                },
-                "completionItemKind": {
-                  "valueSet": [
-                    1,
-                    2,
-                    3,
-                    4,
-                    5,
-                    6,
-                    7,
-                    8,
-                    9,
-                    10,
-                    11,
-                    12,
-                    13,
-                    14,
-                    15,
-                    16,
-                    17,
-                    18,
-                    19,
-                    20,
-                    21,
-                    22,
-                    23,
-                    24,
-                    25
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {
+                        "triggerCharacters": [" ", "."],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "documentSymbolProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1"
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 12,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 12,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "V2"
+                     },
+                     {
+                        "label": "V3"
+                     },
+                     {
+                        "label": "V4"
+                     },
+                     {
+                        "label": "V5"
+                     },
+                     {
+                        "label": "Binder",
+                        "data": ["Binder"]
+                     },
+                     {
+                        "label": "Builder",
+                        "data": ["Builder"]
+                     },
+                     {
+                        "label": "Clean",
+                        "data": ["Clean"]
+                     },
+                     {
+                        "label": "Compiler",
+                        "data": ["Compiler"]
+                     },
+                     {
+                        "label": "Gnatls",
+                        "data": ["Gnatls"]
+                     },
+                     {
+                        "label": "Install",
+                        "data": ["Install"]
+                     },
+                     {
+                        "label": "Linker",
+                        "data": ["Linker"]
+                     },
+                     {
+                        "label": "Naming",
+                        "data": ["Naming"]
+                     },
+                     {
+                        "label": "Remote",
+                        "data": ["Remote"]
+                     },
+                     {
+                        "label": "Pretty_Printer",
+                        "data": ["Pretty_Printer"]
+                     },
+                     {
+                        "label": "Ide",
+                        "data": ["Ide"]
+                     },
+                     {
+                        "label": "Ant",
+                        "data": ["Ant"]
+                     },
+                     {
+                        "label": "Make",
+                        "data": ["Make"]
+                     },
+                     {
+                        "label": "Analyzer",
+                        "data": ["Analyzer"]
+                     },
+                     {
+                        "label": "Check",
+                        "data": ["Check"]
+                     },
+                     {
+                        "label": "Codepeer",
+                        "data": ["Codepeer"]
+                     },
+                     {
+                        "label": "Coverage",
+                        "data": ["Coverage"]
+                     },
+                     {
+                        "label": "Dsa",
+                        "data": ["Dsa"]
+                     },
+                     {
+                        "label": "Documentation",
+                        "data": ["Documentation"]
+                     },
+                     {
+                        "label": "Emulator",
+                        "data": ["Emulator"]
+                     },
+                     {
+                        "label": "Gnattest",
+                        "data": ["Gnattest"]
+                     },
+                     {
+                        "label": "Prove",
+                        "data": ["Prove"]
+                     },
+                     {
+                        "label": "Qgen",
+                        "data": ["Qgen"]
+                     },
+                     {
+                        "label": "Stack",
+                        "data": ["Stack"]
+                     },
+                     {
+                        "label": "Stub",
+                        "data": ["Stub"]
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Prj"
+                     },
+                     {
+                        "label": "Imported"
+                     },
+                     {
+                        "label": "Extended"
+                     }
                   ]
-                }
-              },
-              "documentSymbol": {},
-              "codeAction": {}
-            },
-            "window": {
-              "workDoneProgress": true
+               }
             }
-          }
-        }
-      },
-      "wait": [
-        {
-          "id": 0,
-          "result": {
-            "capabilities": {
-              "textDocumentSync": {
-                "openClose": true,
-                "change": 1
-              },
-              "completionProvider": {
-                "triggerCharacters": [
-                  " "
-                ],
-                "resolveProvider": true
-              },
-              "hoverProvider": true,
-              "documentSymbolProvider": {}
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 13,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
             }
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "method": "initialized",
-        "params": {}
-      },
-      "wait": []
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "method": "workspace/didChangeConfiguration",
-        "params": {
-          "settings": {
-            "ada": {
-              "scenarioVariables": {},
-              "enableDiagnostics": false,
-              "defaultCharset": "ISO-8859-1"
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 13,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Imported_Variable"
+                     },
+                     {
+                        "label": "Binder",
+                        "data": ["Binder"]
+                     },
+                     {
+                        "label": "Builder",
+                        "data": ["Builder"]
+                     },
+                     {
+                        "label": "Clean",
+                        "data": ["Clean"]
+                     },
+                     {
+                        "label": "Compiler",
+                        "data": ["Compiler"]
+                     },
+                     {
+                        "label": "Gnatls",
+                        "data": ["Gnatls"]
+                     },
+                     {
+                        "label": "Install",
+                        "data": ["Install"]
+                     },
+                     {
+                        "label": "Linker",
+                        "data": ["Linker"]
+                     },
+                     {
+                        "label": "Naming",
+                        "data": ["Naming"]
+                     },
+                     {
+                        "label": "Remote",
+                        "data": ["Remote"]
+                     },
+                     {
+                        "label": "Pretty_Printer",
+                        "data": ["Pretty_Printer"]
+                     },
+                     {
+                        "label": "Ide",
+                        "data": ["Ide"]
+                     },
+                     {
+                        "label": "Ant",
+                        "data": ["Ant"]
+                     },
+                     {
+                        "label": "Make",
+                        "data": ["Make"]
+                     },
+                     {
+                        "label": "Analyzer",
+                        "data": ["Analyzer"]
+                     },
+                     {
+                        "label": "Check",
+                        "data": ["Check"]
+                     },
+                     {
+                        "label": "Codepeer",
+                        "data": ["Codepeer"]
+                     },
+                     {
+                        "label": "Coverage",
+                        "data": ["Coverage"]
+                     },
+                     {
+                        "label": "Dsa",
+                        "data": ["Dsa"]
+                     },
+                     {
+                        "label": "Documentation",
+                        "data": ["Documentation"]
+                     },
+                     {
+                        "label": "Emulator",
+                        "data": ["Emulator"]
+                     },
+                     {
+                        "label": "Gnattest",
+                        "data": ["Gnattest"]
+                     },
+                     {
+                        "label": "Prove",
+                        "data": ["Prove"]
+                     },
+                     {
+                        "label": "Qgen",
+                        "data": ["Qgen"]
+                     },
+                     {
+                        "label": "Stack",
+                        "data": ["Stack"]
+                     },
+                     {
+                        "label": "Stub",
+                        "data": ["Stub"]
+                     }
+                  ]
+               }
             }
-          }
-        }
-      },
-      "wait": []
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 12,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 12,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 12,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "V2"
-              },
-              {
-                "label": "V3"
-              },
-              {
-                "label": "V4"
-              },
-              {
-                "label": "V5"
-              },
-              {
-                "label": "Binder",
-                "data": [
-                  "Binder"
-                ]
-              },
-              {
-                "label": "Builder",
-                "data": [
-                  "Builder"
-                ]
-              },
-              {
-                "label": "Clean",
-                "data": [
-                  "Clean"
-                ]
-              },
-              {
-                "label": "Compiler",
-                "data": [
-                  "Compiler"
-                ]
-              },
-              {
-                "label": "Gnatls",
-                "data": [
-                  "Gnatls"
-                ]
-              },
-              {
-                "label": "Install",
-                "data": [
-                  "Install"
-                ]
-              },
-              {
-                "label": "Linker",
-                "data": [
-                  "Linker"
-                ]
-              },
-              {
-                "label": "Naming",
-                "data": [
-                  "Naming"
-                ]
-              },
-              {
-                "label": "Remote",
-                "data": [
-                  "Remote"
-                ]
-              },
-              {
-                "label": "Pretty_Printer",
-                "data": [
-                  "Pretty_Printer"
-                ]
-              },
-              {
-                "label": "Ide",
-                "data": [
-                  "Ide"
-                ]
-              },
-              {
-                "label": "Ant",
-                "data": [
-                  "Ant"
-                ]
-              },
-              {
-                "label": "Make",
-                "data": [
-                  "Make"
-                ]
-              },
-              {
-                "label": "Analyzer",
-                "data": [
-                  "Analyzer"
-                ]
-              },
-              {
-                "label": "Check",
-                "data": [
-                  "Check"
-                ]
-              },
-              {
-                "label": "Codepeer",
-                "data": [
-                  "Codepeer"
-                ]
-              },
-              {
-                "label": "Coverage",
-                "data": [
-                  "Coverage"
-                ]
-              },
-              {
-                "label": "Dsa",
-                "data": [
-                  "Dsa"
-                ]
-              },
-              {
-                "label": "Documentation",
-                "data": [
-                  "Documentation"
-                ]
-              },
-              {
-                "label": "Emulator",
-                "data": [
-                  "Emulator"
-                ]
-              },
-              {
-                "label": "Gnattest",
-                "data": [
-                  "Gnattest"
-                ]
-              },
-              {
-                "label": "Prove",
-                "data": [
-                  "Prove"
-                ]
-              },
-              {
-                "label": "Qgen",
-                "data": [
-                  "Qgen"
-                ]
-              },
-              {
-                "label": "Stack",
-                "data": [
-                  "Stack"
-                ]
-              },
-              {
-                "label": "Stub",
-                "data": [
-                  "Stub"
-                ]
-              },
-              {
-                "label": "project"
-              },
-              {
-                "label": "Prj"
-              },
-              {
-                "label": "Imported"
-              },
-              {
-                "label": "Extended"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 13,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 13,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 13,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Imported_Variable"
-              },
-              {
-                "label": "Binder",
-                "data": [
-                  "Binder"
-                ]
-              },
-              {
-                "label": "Builder",
-                "data": [
-                  "Builder"
-                ]
-              },
-              {
-                "label": "Clean",
-                "data": [
-                  "Clean"
-                ]
-              },
-              {
-                "label": "Compiler",
-                "data": [
-                  "Compiler"
-                ]
-              },
-              {
-                "label": "Gnatls",
-                "data": [
-                  "Gnatls"
-                ]
-              },
-              {
-                "label": "Install",
-                "data": [
-                  "Install"
-                ]
-              },
-              {
-                "label": "Linker",
-                "data": [
-                  "Linker"
-                ]
-              },
-              {
-                "label": "Naming",
-                "data": [
-                  "Naming"
-                ]
-              },
-              {
-                "label": "Remote",
-                "data": [
-                  "Remote"
-                ]
-              },
-              {
-                "label": "Pretty_Printer",
-                "data": [
-                  "Pretty_Printer"
-                ]
-              },
-              {
-                "label": "Ide",
-                "data": [
-                  "Ide"
-                ]
-              },
-              {
-                "label": "Ant",
-                "data": [
-                  "Ant"
-                ]
-              },
-              {
-                "label": "Make",
-                "data": [
-                  "Make"
-                ]
-              },
-              {
-                "label": "Analyzer",
-                "data": [
-                  "Analyzer"
-                ]
-              },
-              {
-                "label": "Check",
-                "data": [
-                  "Check"
-                ]
-              },
-              {
-                "label": "Codepeer",
-                "data": [
-                  "Codepeer"
-                ]
-              },
-              {
-                "label": "Coverage",
-                "data": [
-                  "Coverage"
-                ]
-              },
-              {
-                "label": "Dsa",
-                "data": [
-                  "Dsa"
-                ]
-              },
-              {
-                "label": "Documentation",
-                "data": [
-                  "Documentation"
-                ]
-              },
-              {
-                "label": "Emulator",
-                "data": [
-                  "Emulator"
-                ]
-              },
-              {
-                "label": "Gnattest",
-                "data": [
-                  "Gnattest"
-                ]
-              },
-              {
-                "label": "Prove",
-                "data": [
-                  "Prove"
-                ]
-              },
-              {
-                "label": "Qgen",
-                "data": [
-                  "Qgen"
-                ]
-              },
-              {
-                "label": "Stack",
-                "data": [
-                  "Stack"
-                ]
-              },
-              {
-                "label": "Stub",
-                "data": [
-                  "Stub"
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 14,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 14,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 14,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Imported_Compiler_Variable"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 17,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 17,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 17,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Archive_Builder",
-                "data": [
-                  "",
-                  "Archive_Builder"
-                ]
-              },
-              {
-                "label": "Archive_Builder_Append_Option",
-                "data": [
-                  "",
-                  "Archive_Builder_Append_Option"
-                ]
-              },
-              {
-                "label": "Archive_Indexer",
-                "data": [
-                  "",
-                  "Archive_Indexer"
-                ]
-              },
-              {
-                "label": "Archive_Suffix",
-                "data": [
-                  "",
-                  "Archive_Suffix"
-                ]
-              },
-              {
-                "label": "Canonical_Target",
-                "data": [
-                  "",
-                  "Canonical_Target"
-                ]
-              },
-              {
-                "label": "Create_Missing_Dirs",
-                "data": [
-                  "",
-                  "Create_Missing_Dirs"
-                ]
-              },
-              {
-                "label": "Config_Prj_File",
-                "data": [
-                  "",
-                  "Config_Prj_File"
-                ]
-              },
-              {
-                "label": "Default_Language",
-                "data": [
-                  "",
-                  "Default_Language"
-                ]
-              },
-              {
-                "label": "Excluded_Source_Files",
-                "data": [
-                  "",
-                  "Excluded_Source_Files"
-                ]
-              },
-              {
-                "label": "Excluded_Source_Dirs",
-                "data": [
-                  "",
-                  "Excluded_Source_Dirs"
-                ]
-              },
-              {
-                "label": "Excluded_Source_List_File",
-                "data": [
-                  "",
-                  "Excluded_Source_List_File"
-                ]
-              },
-              {
-                "label": "Exec_Dir",
-                "data": [
-                  "",
-                  "Exec_Dir"
-                ]
-              },
-              {
-                "label": "Externally_Built",
-                "data": [
-                  "",
-                  "Externally_Built"
-                ]
-              },
-              {
-                "label": "Ignore_Source_Sub_Dirs",
-                "data": [
-                  "",
-                  "Ignore_Source_Sub_Dirs"
-                ]
-              },
-              {
-                "label": "Include_Switches_Via_Spec",
-                "data": [
-                  "",
-                  "Include_Switches_Via_Spec"
-                ]
-              },
-              {
-                "label": "Inherit_Source_Path",
-                "data": [
-                  "",
-                  "Inherit_Source_Path"
-                ]
-              },
-              {
-                "label": "Interfaces",
-                "data": [
-                  "",
-                  "Interfaces"
-                ]
-              },
-              {
-                "label": "Languages",
-                "data": [
-                  "",
-                  "Languages"
-                ]
-              },
-              {
-                "label": "Leading_Library_Options",
-                "data": [
-                  "",
-                  "Leading_Library_Options"
-                ]
-              },
-              {
-                "label": "Library_Auto_Init_Supported",
-                "data": [
-                  "",
-                  "Library_Auto_Init_Supported"
-                ]
-              },
-              {
-                "label": "Library_Builder",
-                "data": [
-                  "",
-                  "Library_Builder"
-                ]
-              },
-              {
-                "label": "Library_Encapsulated_Options",
-                "data": [
-                  "",
-                  "Library_Encapsulated_Options"
-                ]
-              },
-              {
-                "label": "Library_Gcc",
-                "data": [
-                  "",
-                  "Library_Gcc"
-                ]
-              },
-              {
-                "label": "Library_Install_Name_Option",
-                "data": [
-                  "",
-                  "Library_Install_Name_Option"
-                ]
-              },
-              {
-                "label": "Library_Major_Minor_Id_Supported",
-                "data": [
-                  "",
-                  "Library_Major_Minor_Id_Supported"
-                ]
-              },
-              {
-                "label": "Library_Partial_Linker",
-                "data": [
-                  "",
-                  "Library_Partial_Linker"
-                ]
-              },
-              {
-                "label": "Library_Reference_Symbol_File",
-                "data": [
-                  "",
-                  "Library_Reference_Symbol_File"
-                ]
-              },
-              {
-                "label": "Library_Rpath_Options",
-                "data": [
-                  "",
-                  "Library_Rpath_Options"
-                ]
-              },
-              {
-                "label": "Library_Support",
-                "data": [
-                  "",
-                  "Library_Support"
-                ]
-              },
-              {
-                "label": "Library_Version_Switches",
-                "data": [
-                  "",
-                  "Library_Version_Switches"
-                ]
-              },
-              {
-                "label": "Locally_Removed_Files",
-                "data": [
-                  "",
-                  "Locally_Removed_Files"
-                ]
-              },
-              {
-                "label": "Main",
-                "data": [
-                  "",
-                  "Main"
-                ]
-              },
-              {
-                "label": "Name",
-                "data": [
-                  "",
-                  "Name"
-                ]
-              },
-              {
-                "label": "Object_Dir",
-                "data": [
-                  "",
-                  "Object_Dir"
-                ]
-              },
-              {
-                "label": "Object_Generated",
-                "data": [
-                  "",
-                  "Object_Generated"
-                ]
-              },
-              {
-                "label": "Objects_Linked",
-                "data": [
-                  "",
-                  "Objects_Linked"
-                ]
-              },
-              {
-                "label": "Object_Lister",
-                "data": [
-                  "",
-                  "Object_Lister"
-                ]
-              },
-              {
-                "label": "Object_Lister_Matcher",
-                "data": [
-                  "",
-                  "Object_Lister_Matcher"
-                ]
-              },
-              {
-                "label": "Origin_Project",
-                "data": [
-                  "",
-                  "Origin_Project"
-                ]
-              },
-              {
-                "label": "Only_Dirs_With_Sources",
-                "data": [
-                  "",
-                  "Only_Dirs_With_Sources"
-                ]
-              },
-              {
-                "label": "Project_Dir",
-                "data": [
-                  "",
-                  "Project_Dir"
-                ]
-              },
-              {
-                "label": "Required_Toolchain_Version",
-                "data": [
-                  "",
-                  "Required_Toolchain_Version"
-                ]
-              },
-              {
-                "label": "Roots",
-                "data": [
-                  "",
-                  "Roots"
-                ]
-              },
-              {
-                "label": "Run_Path_Option",
-                "data": [
-                  "",
-                  "Run_Path_Option"
-                ]
-              },
-              {
-                "label": "Run_Path_Origin",
-                "data": [
-                  "",
-                  "Run_Path_Origin"
-                ]
-              },
-              {
-                "label": "Runtime",
-                "data": [
-                  "",
-                  "Runtime"
-                ]
-              },
-              {
-                "label": "Runtime_Dir",
-                "data": [
-                  "",
-                  "Runtime_Dir"
-                ]
-              },
-              {
-                "label": "Runtime_Library_Dir",
-                "data": [
-                  "",
-                  "Runtime_Library_Dir"
-                ]
-              },
-              {
-                "label": "Runtime_Source_Dir",
-                "data": [
-                  "",
-                  "Runtime_Source_Dir"
-                ]
-              },
-              {
-                "label": "Runtime_Source_Dirs",
-                "data": [
-                  "",
-                  "Runtime_Source_Dirs"
-                ]
-              },
-              {
-                "label": "Separate_Run_Path_Options",
-                "data": [
-                  "",
-                  "Separate_Run_Path_Options"
-                ]
-              },
-              {
-                "label": "Shared_Library_Minimum_Switches",
-                "data": [
-                  "",
-                  "Shared_Library_Minimum_Switches"
-                ]
-              },
-              {
-                "label": "Shared_Library_Prefix",
-                "data": [
-                  "",
-                  "Shared_Library_Prefix"
-                ]
-              },
-              {
-                "label": "Shared_Library_Suffix",
-                "data": [
-                  "",
-                  "Shared_Library_Suffix"
-                ]
-              },
-              {
-                "label": "Source_Dirs",
-                "data": [
-                  "",
-                  "Source_Dirs"
-                ]
-              },
-              {
-                "label": "Source_Files",
-                "data": [
-                  "",
-                  "Source_Files"
-                ]
-              },
-              {
-                "label": "Source_List_File",
-                "data": [
-                  "",
-                  "Source_List_File"
-                ]
-              },
-              {
-                "label": "Symbolic_Link_Supported",
-                "data": [
-                  "",
-                  "Symbolic_Link_Supported"
-                ]
-              },
-              {
-                "label": "Target",
-                "data": [
-                  "",
-                  "Target"
-                ]
-              },
-              {
-                "label": "Toolchain_Version",
-                "data": [
-                  "",
-                  "Toolchain_Version"
-                ]
-              },
-              {
-                "label": "Toolchain_Name",
-                "data": [
-                  "",
-                  "Toolchain_Name"
-                ]
-              },
-              {
-                "label": "Toolchain_Description",
-                "data": [
-                  "",
-                  "Toolchain_Description"
-                ]
-              },
-              {
-                "label": "Toolchain_Path",
-                "data": [
-                  "",
-                  "Toolchain_Path"
-                ]
-              },
-              {
-                "label": "Warning_Message",
-                "data": [
-                  "",
-                  "Warning_Message"
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 20,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 20,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 20,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Switches",
-                "data": [
-                  "Emulator",
-                  "Switches"
-                ]
-              },
-              {
-                "label": "Debug_Port",
-                "data": [
-                  "Emulator",
-                  "Debug_Port"
-                ]
-              },
-              {
-                "label": "Board",
-                "data": [
-                  "Emulator",
-                  "Board"
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 23,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 23,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 23,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "V2"
-              },
-              {
-                "label": "V3"
-              },
-              {
-                "label": "V4"
-              },
-              {
-                "label": "V5"
-              },
-              {
-                "label": "Binder",
-                "data": [
-                  "Binder"
-                ]
-              },
-              {
-                "label": "Builder",
-                "data": [
-                  "Builder"
-                ]
-              },
-              {
-                "label": "Clean",
-                "data": [
-                  "Clean"
-                ]
-              },
-              {
-                "label": "Compiler",
-                "data": [
-                  "Compiler"
-                ]
-              },
-              {
-                "label": "Gnatls",
-                "data": [
-                  "Gnatls"
-                ]
-              },
-              {
-                "label": "Install",
-                "data": [
-                  "Install"
-                ]
-              },
-              {
-                "label": "Linker",
-                "data": [
-                  "Linker"
-                ]
-              },
-              {
-                "label": "Naming",
-                "data": [
-                  "Naming"
-                ]
-              },
-              {
-                "label": "Remote",
-                "data": [
-                  "Remote"
-                ]
-              },
-              {
-                "label": "Pretty_Printer",
-                "data": [
-                  "Pretty_Printer"
-                ]
-              },
-              {
-                "label": "Ide",
-                "data": [
-                  "Ide"
-                ]
-              },
-              {
-                "label": "Ant",
-                "data": [
-                  "Ant"
-                ]
-              },
-              {
-                "label": "Make",
-                "data": [
-                  "Make"
-                ]
-              },
-              {
-                "label": "Analyzer",
-                "data": [
-                  "Analyzer"
-                ]
-              },
-              {
-                "label": "Check",
-                "data": [
-                  "Check"
-                ]
-              },
-              {
-                "label": "Codepeer",
-                "data": [
-                  "Codepeer"
-                ]
-              },
-              {
-                "label": "Coverage",
-                "data": [
-                  "Coverage"
-                ]
-              },
-              {
-                "label": "Dsa",
-                "data": [
-                  "Dsa"
-                ]
-              },
-              {
-                "label": "Documentation",
-                "data": [
-                  "Documentation"
-                ]
-              },
-              {
-                "label": "Emulator",
-                "data": [
-                  "Emulator"
-                ]
-              },
-              {
-                "label": "Gnattest",
-                "data": [
-                  "Gnattest"
-                ]
-              },
-              {
-                "label": "Prove",
-                "data": [
-                  "Prove"
-                ]
-              },
-              {
-                "label": "Qgen",
-                "data": [
-                  "Qgen"
-                ]
-              },
-              {
-                "label": "Stack",
-                "data": [
-                  "Stack"
-                ]
-              },
-              {
-                "label": "Stub",
-                "data": [
-                  "Stub"
-                ]
-              },
-              {
-                "label": "project"
-              },
-              {
-                "label": "Prj"
-              },
-              {
-                "label": "Imported"
-              },
-              {
-                "label": "Extended"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 24,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 24,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 24,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Default_Switches",
-                "data": [
-                  "Compiler",
-                  "Default_Switches"
-                ]
-              },
-              {
-                "label": "Driver",
-                "data": [
-                  "Compiler",
-                  "Driver"
-                ]
-              },
-              {
-                "label": "Required_Switches",
-                "data": [
-                  "Compiler",
-                  "Required_Switches"
-                ]
-              },
-              {
-                "label": "Switches",
-                "data": [
-                  "Compiler",
-                  "Switches"
-                ]
-              },
-              {
-                "label": "Config_Body_File_Name",
-                "data": [
-                  "Compiler",
-                  "Config_Body_File_Name"
-                ]
-              },
-              {
-                "label": "Config_Body_File_Name_Index",
-                "data": [
-                  "Compiler",
-                  "Config_Body_File_Name_Index"
-                ]
-              },
-              {
-                "label": "Config_Body_File_Name_Pattern",
-                "data": [
-                  "Compiler",
-                  "Config_Body_File_Name_Pattern"
-                ]
-              },
-              {
-                "label": "Config_File_Switches",
-                "data": [
-                  "Compiler",
-                  "Config_File_Switches"
-                ]
-              },
-              {
-                "label": "Config_File_Unique",
-                "data": [
-                  "Compiler",
-                  "Config_File_Unique"
-                ]
-              },
-              {
-                "label": "Config_Spec_File_Name",
-                "data": [
-                  "Compiler",
-                  "Config_Spec_File_Name"
-                ]
-              },
-              {
-                "label": "Config_Spec_File_Name_Index",
-                "data": [
-                  "Compiler",
-                  "Config_Spec_File_Name_Index"
-                ]
-              },
-              {
-                "label": "Config_Spec_File_Name_Pattern",
-                "data": [
-                  "Compiler",
-                  "Config_Spec_File_Name_Pattern"
-                ]
-              },
-              {
-                "label": "Dependency_Driver",
-                "data": [
-                  "Compiler",
-                  "Dependency_Driver"
-                ]
-              },
-              {
-                "label": "Dependency_Kind",
-                "data": [
-                  "Compiler",
-                  "Dependency_Kind"
-                ]
-              },
-              {
-                "label": "Dependency_Switches",
-                "data": [
-                  "Compiler",
-                  "Dependency_Switches"
-                ]
-              },
-              {
-                "label": "Include_Path",
-                "data": [
-                  "Compiler",
-                  "Include_Path"
-                ]
-              },
-              {
-                "label": "Include_Path_File",
-                "data": [
-                  "Compiler",
-                  "Include_Path_File"
-                ]
-              },
-              {
-                "label": "Include_Switches",
-                "data": [
-                  "Compiler",
-                  "Include_Switches"
-                ]
-              },
-              {
-                "label": "Language_Kind",
-                "data": [
-                  "Compiler",
-                  "Language_Kind"
-                ]
-              },
-              {
-                "label": "Leading_Required_Switches",
-                "data": [
-                  "Compiler",
-                  "Leading_Required_Switches"
-                ]
-              },
-              {
-                "label": "Local_Config_File",
-                "data": [
-                  "Compiler",
-                  "Local_Config_File"
-                ]
-              },
-              {
-                "label": "Local_Configuration_Pragmas",
-                "data": [
-                  "Compiler",
-                  "Local_Configuration_Pragmas"
-                ]
-              },
-              {
-                "label": "Mapping_Body_Suffix",
-                "data": [
-                  "Compiler",
-                  "Mapping_Body_Suffix"
-                ]
-              },
-              {
-                "label": "Mapping_File_Switches",
-                "data": [
-                  "Compiler",
-                  "Mapping_File_Switches"
-                ]
-              },
-              {
-                "label": "Mapping_Spec_Suffix",
-                "data": [
-                  "Compiler",
-                  "Mapping_Spec_Suffix"
-                ]
-              },
-              {
-                "label": "Max_Command_Line_Length",
-                "data": [
-                  "Compiler",
-                  "Max_Command_Line_Length"
-                ]
-              },
-              {
-                "label": "Multi_Unit_Object_Separator",
-                "data": [
-                  "Compiler",
-                  "Multi_Unit_Object_Separator"
-                ]
-              },
-              {
-                "label": "Multi_Unit_Switches",
-                "data": [
-                  "Compiler",
-                  "Multi_Unit_Switches"
-                ]
-              },
-              {
-                "label": "Object_File_Suffix",
-                "data": [
-                  "Compiler",
-                  "Object_File_Suffix"
-                ]
-              },
-              {
-                "label": "Object_File_Switches",
-                "data": [
-                  "Compiler",
-                  "Object_File_Switches"
-                ]
-              },
-              {
-                "label": "Object_Path_Switches",
-                "data": [
-                  "Compiler",
-                  "Object_Path_Switches"
-                ]
-              },
-              {
-                "label": "Path_Syntax",
-                "data": [
-                  "Compiler",
-                  "Path_Syntax"
-                ]
-              },
-              {
-                "label": "Pic_Option",
-                "data": [
-                  "Compiler",
-                  "Pic_Option"
-                ]
-              },
-              {
-                "label": "Response_File_Format",
-                "data": [
-                  "Compiler",
-                  "Response_File_Format"
-                ]
-              },
-              {
-                "label": "Response_File_Switches",
-                "data": [
-                  "Compiler",
-                  "Response_File_Switches"
-                ]
-              },
-              {
-                "label": "Source_File_Switches",
-                "data": [
-                  "Compiler",
-                  "Source_File_Switches"
-                ]
-              },
-              {
-                "label": "Trailing_Required_Switches",
-                "data": [
-                  "Compiler",
-                  "Trailing_Required_Switches"
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 27,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 27,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 27,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "V2"
-              },
-              {
-                "label": "V3"
-              },
-              {
-                "label": "V4"
-              },
-              {
-                "label": "V5"
-              },
-              {
-                "label": "Binder",
-                "data": [
-                  "Binder"
-                ]
-              },
-              {
-                "label": "Builder",
-                "data": [
-                  "Builder"
-                ]
-              },
-              {
-                "label": "Clean",
-                "data": [
-                  "Clean"
-                ]
-              },
-              {
-                "label": "Compiler",
-                "data": [
-                  "Compiler"
-                ]
-              },
-              {
-                "label": "Gnatls",
-                "data": [
-                  "Gnatls"
-                ]
-              },
-              {
-                "label": "Install",
-                "data": [
-                  "Install"
-                ]
-              },
-              {
-                "label": "Linker",
-                "data": [
-                  "Linker"
-                ]
-              },
-              {
-                "label": "Naming",
-                "data": [
-                  "Naming"
-                ]
-              },
-              {
-                "label": "Remote",
-                "data": [
-                  "Remote"
-                ]
-              },
-              {
-                "label": "Pretty_Printer",
-                "data": [
-                  "Pretty_Printer"
-                ]
-              },
-              {
-                "label": "Ide",
-                "data": [
-                  "Ide"
-                ]
-              },
-              {
-                "label": "Ant",
-                "data": [
-                  "Ant"
-                ]
-              },
-              {
-                "label": "Make",
-                "data": [
-                  "Make"
-                ]
-              },
-              {
-                "label": "Analyzer",
-                "data": [
-                  "Analyzer"
-                ]
-              },
-              {
-                "label": "Check",
-                "data": [
-                  "Check"
-                ]
-              },
-              {
-                "label": "Codepeer",
-                "data": [
-                  "Codepeer"
-                ]
-              },
-              {
-                "label": "Coverage",
-                "data": [
-                  "Coverage"
-                ]
-              },
-              {
-                "label": "Dsa",
-                "data": [
-                  "Dsa"
-                ]
-              },
-              {
-                "label": "Documentation",
-                "data": [
-                  "Documentation"
-                ]
-              },
-              {
-                "label": "Emulator",
-                "data": [
-                  "Emulator"
-                ]
-              },
-              {
-                "label": "Gnattest",
-                "data": [
-                  "Gnattest"
-                ]
-              },
-              {
-                "label": "Prove",
-                "data": [
-                  "Prove"
-                ]
-              },
-              {
-                "label": "Qgen",
-                "data": [
-                  "Qgen"
-                ]
-              },
-              {
-                "label": "Stack",
-                "data": [
-                  "Stack"
-                ]
-              },
-              {
-                "label": "Stub",
-                "data": [
-                  "Stub"
-                ]
-              },
-              {
-                "label": "project"
-              },
-              {
-                "label": "Prj"
-              },
-              {
-                "label": "Imported"
-              },
-              {
-                "label": "Extended"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 30,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 30,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 30,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "V2"
-              },
-              {
-                "label": "V3"
-              },
-              {
-                "label": "V4"
-              },
-              {
-                "label": "V5"
-              },
-              {
-                "label": "Binder",
-                "data": [
-                  "Binder"
-                ]
-              },
-              {
-                "label": "Builder",
-                "data": [
-                  "Builder"
-                ]
-              },
-              {
-                "label": "Clean",
-                "data": [
-                  "Clean"
-                ]
-              },
-              {
-                "label": "Compiler",
-                "data": [
-                  "Compiler"
-                ]
-              },
-              {
-                "label": "Gnatls",
-                "data": [
-                  "Gnatls"
-                ]
-              },
-              {
-                "label": "Install",
-                "data": [
-                  "Install"
-                ]
-              },
-              {
-                "label": "Linker",
-                "data": [
-                  "Linker"
-                ]
-              },
-              {
-                "label": "Naming",
-                "data": [
-                  "Naming"
-                ]
-              },
-              {
-                "label": "Remote",
-                "data": [
-                  "Remote"
-                ]
-              },
-              {
-                "label": "Pretty_Printer",
-                "data": [
-                  "Pretty_Printer"
-                ]
-              },
-              {
-                "label": "Ide",
-                "data": [
-                  "Ide"
-                ]
-              },
-              {
-                "label": "Ant",
-                "data": [
-                  "Ant"
-                ]
-              },
-              {
-                "label": "Make",
-                "data": [
-                  "Make"
-                ]
-              },
-              {
-                "label": "Analyzer",
-                "data": [
-                  "Analyzer"
-                ]
-              },
-              {
-                "label": "Check",
-                "data": [
-                  "Check"
-                ]
-              },
-              {
-                "label": "Codepeer",
-                "data": [
-                  "Codepeer"
-                ]
-              },
-              {
-                "label": "Coverage",
-                "data": [
-                  "Coverage"
-                ]
-              },
-              {
-                "label": "Dsa",
-                "data": [
-                  "Dsa"
-                ]
-              },
-              {
-                "label": "Documentation",
-                "data": [
-                  "Documentation"
-                ]
-              },
-              {
-                "label": "Emulator",
-                "data": [
-                  "Emulator"
-                ]
-              },
-              {
-                "label": "Gnattest",
-                "data": [
-                  "Gnattest"
-                ]
-              },
-              {
-                "label": "Prove",
-                "data": [
-                  "Prove"
-                ]
-              },
-              {
-                "label": "Qgen",
-                "data": [
-                  "Qgen"
-                ]
-              },
-              {
-                "label": "Stack",
-                "data": [
-                  "Stack"
-                ]
-              },
-              {
-                "label": "Stub",
-                "data": [
-                  "Stub"
-                ]
-              },
-              {
-                "label": "project"
-              },
-              {
-                "label": "Prj"
-              },
-              {
-                "label": "Imported"
-              },
-              {
-                "label": "Extended"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 33,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 33,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 33,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "V2"
-              },
-              {
-                "label": "V3"
-              },
-              {
-                "label": "V4"
-              },
-              {
-                "label": "V5"
-              },
-              {
-                "label": "Binder",
-                "data": [
-                  "Binder"
-                ]
-              },
-              {
-                "label": "Builder",
-                "data": [
-                  "Builder"
-                ]
-              },
-              {
-                "label": "Clean",
-                "data": [
-                  "Clean"
-                ]
-              },
-              {
-                "label": "Compiler",
-                "data": [
-                  "Compiler"
-                ]
-              },
-              {
-                "label": "Gnatls",
-                "data": [
-                  "Gnatls"
-                ]
-              },
-              {
-                "label": "Install",
-                "data": [
-                  "Install"
-                ]
-              },
-              {
-                "label": "Linker",
-                "data": [
-                  "Linker"
-                ]
-              },
-              {
-                "label": "Naming",
-                "data": [
-                  "Naming"
-                ]
-              },
-              {
-                "label": "Remote",
-                "data": [
-                  "Remote"
-                ]
-              },
-              {
-                "label": "Pretty_Printer",
-                "data": [
-                  "Pretty_Printer"
-                ]
-              },
-              {
-                "label": "Ide",
-                "data": [
-                  "Ide"
-                ]
-              },
-              {
-                "label": "Ant",
-                "data": [
-                  "Ant"
-                ]
-              },
-              {
-                "label": "Make",
-                "data": [
-                  "Make"
-                ]
-              },
-              {
-                "label": "Analyzer",
-                "data": [
-                  "Analyzer"
-                ]
-              },
-              {
-                "label": "Check",
-                "data": [
-                  "Check"
-                ]
-              },
-              {
-                "label": "Codepeer",
-                "data": [
-                  "Codepeer"
-                ]
-              },
-              {
-                "label": "Coverage",
-                "data": [
-                  "Coverage"
-                ]
-              },
-              {
-                "label": "Dsa",
-                "data": [
-                  "Dsa"
-                ]
-              },
-              {
-                "label": "Documentation",
-                "data": [
-                  "Documentation"
-                ]
-              },
-              {
-                "label": "Emulator",
-                "data": [
-                  "Emulator"
-                ]
-              },
-              {
-                "label": "Gnattest",
-                "data": [
-                  "Gnattest"
-                ]
-              },
-              {
-                "label": "Prove",
-                "data": [
-                  "Prove"
-                ]
-              },
-              {
-                "label": "Qgen",
-                "data": [
-                  "Qgen"
-                ]
-              },
-              {
-                "label": "Stack",
-                "data": [
-                  "Stack"
-                ]
-              },
-              {
-                "label": "Stub",
-                "data": [
-                  "Stub"
-                ]
-              },
-              {
-                "label": "project"
-              },
-              {
-                "label": "Prj"
-              },
-              {
-                "label": "Imported"
-              },
-              {
-                "label": "Extended"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 36,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 36,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 36,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "T1"
-              },
-              {
-                "label": "Imported"
-              },
-              {
-                "label": "Extended"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 37,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 37,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 37,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Imported_Type"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 41,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 41,
-            "character": 0
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 41,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Extended_Type"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 44,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 44,
-            "character": 1
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 44,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Extended"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 47,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 47,
-            "character": 1
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 47,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Install",
-                "data": [
-                  "Install"
-                ]
-              },
-              {
-                "label": "Ide",
-                "data": [
-                  "Ide"
-                ]
-              },
-              {
-                "label": "Imported"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 50,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 50,
-            "character": 1
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 50,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Pretty_Printer",
-                "data": [
-                  "Pretty_Printer"
-                ]
-              },
-              {
-                "label": "Prove",
-                "data": [
-                  "Prove"
-                ]
-              },
-              {
-                "label": "project"
-              },
-              {
-                "label": "Prj"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 53,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 53,
-            "character": 1
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 53,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Emulator",
-                "data": [
-                  "Emulator"
-                ]
-              },
-              {
-                "label": "Extended"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 56,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 56,
-            "character": 1
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 56,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Install",
-                "data": [
-                  "Install"
-                ]
-              },
-              {
-                "label": "Ide",
-                "data": [
-                  "Ide"
-                ]
-              },
-              {
-                "label": "Imported"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 59,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 59,
-            "character": 1
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 59,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Pretty_Printer",
-                "data": [
-                  "Pretty_Printer"
-                ]
-              },
-              {
-                "label": "Prove",
-                "data": [
-                  "Prove"
-                ]
-              },
-              {
-                "label": "project"
-              },
-              {
-                "label": "Prj"
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 62,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 62,
-            "character": 1
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 62,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Name",
-                "data": [
-                  "",
-                  "Name"
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "send": {
-      "request": {
-        "jsonrpc": "2.0",
-        "id": 65,
-        "method": "textDocument/completion",
-        "params": {
-          "textDocument": {
-            "uri": "$URI{prj.gpr}"
-          },
-          "position": {
-            "line": 65,
-            "character": 1
-          },
-          "context": {
-            "triggerKind": 1
-          }
-        }
-      },
-      "wait": [
-        {
-          "jsonrpc": "2.0",
-          "id": 65,
-          "result": {
-            "isIncomplete": false,
-            "items": [
-              {
-                "label": "Extended_Variable"
-              },
-              {
-                "label": "Emulator",
-                "data": [
-                  "Emulator"
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    }
-  },
-  {
-    "stop": {
-      "exit_code": 0
-    }
-  }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 14,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 14,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Imported_Compiler_Variable"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 17,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 17,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 17,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Archive_Builder",
+                        "data": ["", "Archive_Builder"]
+                     },
+                     {
+                        "label": "Archive_Builder_Append_Option",
+                        "data": ["", "Archive_Builder_Append_Option"]
+                     },
+                     {
+                        "label": "Archive_Indexer",
+                        "data": ["", "Archive_Indexer"]
+                     },
+                     {
+                        "label": "Archive_Suffix",
+                        "data": ["", "Archive_Suffix"]
+                     },
+                     {
+                        "label": "Canonical_Target",
+                        "data": ["", "Canonical_Target"]
+                     },
+                     {
+                        "label": "Create_Missing_Dirs",
+                        "data": ["", "Create_Missing_Dirs"]
+                     },
+                     {
+                        "label": "Config_Prj_File",
+                        "data": ["", "Config_Prj_File"]
+                     },
+                     {
+                        "label": "Default_Language",
+                        "data": ["", "Default_Language"]
+                     },
+                     {
+                        "label": "Excluded_Source_Files",
+                        "data": ["", "Excluded_Source_Files"]
+                     },
+                     {
+                        "label": "Excluded_Source_Dirs",
+                        "data": ["", "Excluded_Source_Dirs"]
+                     },
+                     {
+                        "label": "Excluded_Source_List_File",
+                        "data": ["", "Excluded_Source_List_File"]
+                     },
+                     {
+                        "label": "Exec_Dir",
+                        "data": ["", "Exec_Dir"]
+                     },
+                     {
+                        "label": "Externally_Built",
+                        "data": ["", "Externally_Built"]
+                     },
+                     {
+                        "label": "Ignore_Source_Sub_Dirs",
+                        "data": ["", "Ignore_Source_Sub_Dirs"]
+                     },
+                     {
+                        "label": "Include_Switches_Via_Spec",
+                        "data": ["", "Include_Switches_Via_Spec"]
+                     },
+                     {
+                        "label": "Inherit_Source_Path",
+                        "data": ["", "Inherit_Source_Path"]
+                     },
+                     {
+                        "label": "Interfaces",
+                        "data": ["", "Interfaces"]
+                     },
+                     {
+                        "label": "Languages",
+                        "data": ["", "Languages"]
+                     },
+                     {
+                        "label": "Leading_Library_Options",
+                        "data": ["", "Leading_Library_Options"]
+                     },
+                     {
+                        "label": "Library_Auto_Init_Supported",
+                        "data": ["", "Library_Auto_Init_Supported"]
+                     },
+                     {
+                        "label": "Library_Builder",
+                        "data": ["", "Library_Builder"]
+                     },
+                     {
+                        "label": "Library_Encapsulated_Options",
+                        "data": ["", "Library_Encapsulated_Options"]
+                     },
+                     {
+                        "label": "Library_Gcc",
+                        "data": ["", "Library_Gcc"]
+                     },
+                     {
+                        "label": "Library_Install_Name_Option",
+                        "data": ["", "Library_Install_Name_Option"]
+                     },
+                     {
+                        "label": "Library_Major_Minor_Id_Supported",
+                        "data": ["", "Library_Major_Minor_Id_Supported"]
+                     },
+                     {
+                        "label": "Library_Partial_Linker",
+                        "data": ["", "Library_Partial_Linker"]
+                     },
+                     {
+                        "label": "Library_Reference_Symbol_File",
+                        "data": ["", "Library_Reference_Symbol_File"]
+                     },
+                     {
+                        "label": "Library_Rpath_Options",
+                        "data": ["", "Library_Rpath_Options"]
+                     },
+                     {
+                        "label": "Library_Support",
+                        "data": ["", "Library_Support"]
+                     },
+                     {
+                        "label": "Library_Version_Switches",
+                        "data": ["", "Library_Version_Switches"]
+                     },
+                     {
+                        "label": "Locally_Removed_Files",
+                        "data": ["", "Locally_Removed_Files"]
+                     },
+                     {
+                        "label": "Main",
+                        "data": ["", "Main"]
+                     },
+                     {
+                        "label": "Name",
+                        "data": ["", "Name"]
+                     },
+                     {
+                        "label": "Object_Dir",
+                        "data": ["", "Object_Dir"]
+                     },
+                     {
+                        "label": "Object_Generated",
+                        "data": ["", "Object_Generated"]
+                     },
+                     {
+                        "label": "Objects_Linked",
+                        "data": ["", "Objects_Linked"]
+                     },
+                     {
+                        "label": "Object_Lister",
+                        "data": ["", "Object_Lister"]
+                     },
+                     {
+                        "label": "Object_Lister_Matcher",
+                        "data": ["", "Object_Lister_Matcher"]
+                     },
+                     {
+                        "label": "Origin_Project",
+                        "data": ["", "Origin_Project"]
+                     },
+                     {
+                        "label": "Only_Dirs_With_Sources",
+                        "data": ["", "Only_Dirs_With_Sources"]
+                     },
+                     {
+                        "label": "Project_Dir",
+                        "data": ["", "Project_Dir"]
+                     },
+                     {
+                        "label": "Required_Toolchain_Version",
+                        "data": ["", "Required_Toolchain_Version"]
+                     },
+                     {
+                        "label": "Roots",
+                        "data": ["", "Roots"]
+                     },
+                     {
+                        "label": "Run_Path_Option",
+                        "data": ["", "Run_Path_Option"]
+                     },
+                     {
+                        "label": "Run_Path_Origin",
+                        "data": ["", "Run_Path_Origin"]
+                     },
+                     {
+                        "label": "Runtime",
+                        "data": ["", "Runtime"]
+                     },
+                     {
+                        "label": "Runtime_Dir",
+                        "data": ["", "Runtime_Dir"]
+                     },
+                     {
+                        "label": "Runtime_Library_Dir",
+                        "data": ["", "Runtime_Library_Dir"]
+                     },
+                     {
+                        "label": "Runtime_Source_Dir",
+                        "data": ["", "Runtime_Source_Dir"]
+                     },
+                     {
+                        "label": "Runtime_Source_Dirs",
+                        "data": ["", "Runtime_Source_Dirs"]
+                     },
+                     {
+                        "label": "Separate_Run_Path_Options",
+                        "data": ["", "Separate_Run_Path_Options"]
+                     },
+                     {
+                        "label": "Shared_Library_Minimum_Switches",
+                        "data": ["", "Shared_Library_Minimum_Switches"]
+                     },
+                     {
+                        "label": "Shared_Library_Prefix",
+                        "data": ["", "Shared_Library_Prefix"]
+                     },
+                     {
+                        "label": "Shared_Library_Suffix",
+                        "data": ["", "Shared_Library_Suffix"]
+                     },
+                     {
+                        "label": "Source_Dirs",
+                        "data": ["", "Source_Dirs"]
+                     },
+                     {
+                        "label": "Source_Files",
+                        "data": ["", "Source_Files"]
+                     },
+                     {
+                        "label": "Source_List_File",
+                        "data": ["", "Source_List_File"]
+                     },
+                     {
+                        "label": "Symbolic_Link_Supported",
+                        "data": ["", "Symbolic_Link_Supported"]
+                     },
+                     {
+                        "label": "Target",
+                        "data": ["", "Target"]
+                     },
+                     {
+                        "label": "Toolchain_Version",
+                        "data": ["", "Toolchain_Version"]
+                     },
+                     {
+                        "label": "Toolchain_Name",
+                        "data": ["", "Toolchain_Name"]
+                     },
+                     {
+                        "label": "Toolchain_Description",
+                        "data": ["", "Toolchain_Description"]
+                     },
+                     {
+                        "label": "Toolchain_Path",
+                        "data": ["", "Toolchain_Path"]
+                     },
+                     {
+                        "label": "Warning_Message",
+                        "data": ["", "Warning_Message"]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 20,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 20,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 20,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Switches",
+                        "data": ["Emulator", "Switches"]
+                     },
+                     {
+                        "label": "Debug_Port",
+                        "data": ["Emulator", "Debug_Port"]
+                     },
+                     {
+                        "label": "Board",
+                        "data": ["Emulator", "Board"]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 23,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 23,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 23,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "V2"
+                     },
+                     {
+                        "label": "V3"
+                     },
+                     {
+                        "label": "V4"
+                     },
+                     {
+                        "label": "V5"
+                     },
+                     {
+                        "label": "Binder",
+                        "data": ["Binder"]
+                     },
+                     {
+                        "label": "Builder",
+                        "data": ["Builder"]
+                     },
+                     {
+                        "label": "Clean",
+                        "data": ["Clean"]
+                     },
+                     {
+                        "label": "Compiler",
+                        "data": ["Compiler"]
+                     },
+                     {
+                        "label": "Gnatls",
+                        "data": ["Gnatls"]
+                     },
+                     {
+                        "label": "Install",
+                        "data": ["Install"]
+                     },
+                     {
+                        "label": "Linker",
+                        "data": ["Linker"]
+                     },
+                     {
+                        "label": "Naming",
+                        "data": ["Naming"]
+                     },
+                     {
+                        "label": "Remote",
+                        "data": ["Remote"]
+                     },
+                     {
+                        "label": "Pretty_Printer",
+                        "data": ["Pretty_Printer"]
+                     },
+                     {
+                        "label": "Ide",
+                        "data": ["Ide"]
+                     },
+                     {
+                        "label": "Ant",
+                        "data": ["Ant"]
+                     },
+                     {
+                        "label": "Make",
+                        "data": ["Make"]
+                     },
+                     {
+                        "label": "Analyzer",
+                        "data": ["Analyzer"]
+                     },
+                     {
+                        "label": "Check",
+                        "data": ["Check"]
+                     },
+                     {
+                        "label": "Codepeer",
+                        "data": ["Codepeer"]
+                     },
+                     {
+                        "label": "Coverage",
+                        "data": ["Coverage"]
+                     },
+                     {
+                        "label": "Dsa",
+                        "data": ["Dsa"]
+                     },
+                     {
+                        "label": "Documentation",
+                        "data": ["Documentation"]
+                     },
+                     {
+                        "label": "Emulator",
+                        "data": ["Emulator"]
+                     },
+                     {
+                        "label": "Gnattest",
+                        "data": ["Gnattest"]
+                     },
+                     {
+                        "label": "Prove",
+                        "data": ["Prove"]
+                     },
+                     {
+                        "label": "Qgen",
+                        "data": ["Qgen"]
+                     },
+                     {
+                        "label": "Stack",
+                        "data": ["Stack"]
+                     },
+                     {
+                        "label": "Stub",
+                        "data": ["Stub"]
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Prj"
+                     },
+                     {
+                        "label": "Imported"
+                     },
+                     {
+                        "label": "Extended"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 24,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 24,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 24,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Default_Switches",
+                        "data": ["Compiler", "Default_Switches"]
+                     },
+                     {
+                        "label": "Driver",
+                        "data": ["Compiler", "Driver"]
+                     },
+                     {
+                        "label": "Required_Switches",
+                        "data": ["Compiler", "Required_Switches"]
+                     },
+                     {
+                        "label": "Switches",
+                        "data": ["Compiler", "Switches"]
+                     },
+                     {
+                        "label": "Config_Body_File_Name",
+                        "data": ["Compiler", "Config_Body_File_Name"]
+                     },
+                     {
+                        "label": "Config_Body_File_Name_Index",
+                        "data": ["Compiler", "Config_Body_File_Name_Index"]
+                     },
+                     {
+                        "label": "Config_Body_File_Name_Pattern",
+                        "data": ["Compiler", "Config_Body_File_Name_Pattern"]
+                     },
+                     {
+                        "label": "Config_File_Switches",
+                        "data": ["Compiler", "Config_File_Switches"]
+                     },
+                     {
+                        "label": "Config_File_Unique",
+                        "data": ["Compiler", "Config_File_Unique"]
+                     },
+                     {
+                        "label": "Config_Spec_File_Name",
+                        "data": ["Compiler", "Config_Spec_File_Name"]
+                     },
+                     {
+                        "label": "Config_Spec_File_Name_Index",
+                        "data": ["Compiler", "Config_Spec_File_Name_Index"]
+                     },
+                     {
+                        "label": "Config_Spec_File_Name_Pattern",
+                        "data": ["Compiler", "Config_Spec_File_Name_Pattern"]
+                     },
+                     {
+                        "label": "Dependency_Driver",
+                        "data": ["Compiler", "Dependency_Driver"]
+                     },
+                     {
+                        "label": "Dependency_Kind",
+                        "data": ["Compiler", "Dependency_Kind"]
+                     },
+                     {
+                        "label": "Dependency_Switches",
+                        "data": ["Compiler", "Dependency_Switches"]
+                     },
+                     {
+                        "label": "Include_Path",
+                        "data": ["Compiler", "Include_Path"]
+                     },
+                     {
+                        "label": "Include_Path_File",
+                        "data": ["Compiler", "Include_Path_File"]
+                     },
+                     {
+                        "label": "Include_Switches",
+                        "data": ["Compiler", "Include_Switches"]
+                     },
+                     {
+                        "label": "Language_Kind",
+                        "data": ["Compiler", "Language_Kind"]
+                     },
+                     {
+                        "label": "Leading_Required_Switches",
+                        "data": ["Compiler", "Leading_Required_Switches"]
+                     },
+                     {
+                        "label": "Local_Config_File",
+                        "data": ["Compiler", "Local_Config_File"]
+                     },
+                     {
+                        "label": "Local_Configuration_Pragmas",
+                        "data": ["Compiler", "Local_Configuration_Pragmas"]
+                     },
+                     {
+                        "label": "Mapping_Body_Suffix",
+                        "data": ["Compiler", "Mapping_Body_Suffix"]
+                     },
+                     {
+                        "label": "Mapping_File_Switches",
+                        "data": ["Compiler", "Mapping_File_Switches"]
+                     },
+                     {
+                        "label": "Mapping_Spec_Suffix",
+                        "data": ["Compiler", "Mapping_Spec_Suffix"]
+                     },
+                     {
+                        "label": "Max_Command_Line_Length",
+                        "data": ["Compiler", "Max_Command_Line_Length"]
+                     },
+                     {
+                        "label": "Multi_Unit_Object_Separator",
+                        "data": ["Compiler", "Multi_Unit_Object_Separator"]
+                     },
+                     {
+                        "label": "Multi_Unit_Switches",
+                        "data": ["Compiler", "Multi_Unit_Switches"]
+                     },
+                     {
+                        "label": "Object_File_Suffix",
+                        "data": ["Compiler", "Object_File_Suffix"]
+                     },
+                     {
+                        "label": "Object_File_Switches",
+                        "data": ["Compiler", "Object_File_Switches"]
+                     },
+                     {
+                        "label": "Object_Path_Switches",
+                        "data": ["Compiler", "Object_Path_Switches"]
+                     },
+                     {
+                        "label": "Path_Syntax",
+                        "data": ["Compiler", "Path_Syntax"]
+                     },
+                     {
+                        "label": "Pic_Option",
+                        "data": ["Compiler", "Pic_Option"]
+                     },
+                     {
+                        "label": "Response_File_Format",
+                        "data": ["Compiler", "Response_File_Format"]
+                     },
+                     {
+                        "label": "Response_File_Switches",
+                        "data": ["Compiler", "Response_File_Switches"]
+                     },
+                     {
+                        "label": "Source_File_Switches",
+                        "data": ["Compiler", "Source_File_Switches"]
+                     },
+                     {
+                        "label": "Trailing_Required_Switches",
+                        "data": ["Compiler", "Trailing_Required_Switches"]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 27,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 27,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 27,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "V2"
+                     },
+                     {
+                        "label": "V3"
+                     },
+                     {
+                        "label": "V4"
+                     },
+                     {
+                        "label": "V5"
+                     },
+                     {
+                        "label": "Binder",
+                        "data": ["Binder"]
+                     },
+                     {
+                        "label": "Builder",
+                        "data": ["Builder"]
+                     },
+                     {
+                        "label": "Clean",
+                        "data": ["Clean"]
+                     },
+                     {
+                        "label": "Compiler",
+                        "data": ["Compiler"]
+                     },
+                     {
+                        "label": "Gnatls",
+                        "data": ["Gnatls"]
+                     },
+                     {
+                        "label": "Install",
+                        "data": ["Install"]
+                     },
+                     {
+                        "label": "Linker",
+                        "data": ["Linker"]
+                     },
+                     {
+                        "label": "Naming",
+                        "data": ["Naming"]
+                     },
+                     {
+                        "label": "Remote",
+                        "data": ["Remote"]
+                     },
+                     {
+                        "label": "Pretty_Printer",
+                        "data": ["Pretty_Printer"]
+                     },
+                     {
+                        "label": "Ide",
+                        "data": ["Ide"]
+                     },
+                     {
+                        "label": "Ant",
+                        "data": ["Ant"]
+                     },
+                     {
+                        "label": "Make",
+                        "data": ["Make"]
+                     },
+                     {
+                        "label": "Analyzer",
+                        "data": ["Analyzer"]
+                     },
+                     {
+                        "label": "Check",
+                        "data": ["Check"]
+                     },
+                     {
+                        "label": "Codepeer",
+                        "data": ["Codepeer"]
+                     },
+                     {
+                        "label": "Coverage",
+                        "data": ["Coverage"]
+                     },
+                     {
+                        "label": "Dsa",
+                        "data": ["Dsa"]
+                     },
+                     {
+                        "label": "Documentation",
+                        "data": ["Documentation"]
+                     },
+                     {
+                        "label": "Emulator",
+                        "data": ["Emulator"]
+                     },
+                     {
+                        "label": "Gnattest",
+                        "data": ["Gnattest"]
+                     },
+                     {
+                        "label": "Prove",
+                        "data": ["Prove"]
+                     },
+                     {
+                        "label": "Qgen",
+                        "data": ["Qgen"]
+                     },
+                     {
+                        "label": "Stack",
+                        "data": ["Stack"]
+                     },
+                     {
+                        "label": "Stub",
+                        "data": ["Stub"]
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Prj"
+                     },
+                     {
+                        "label": "Imported"
+                     },
+                     {
+                        "label": "Extended"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 30,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 30,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 30,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "V2"
+                     },
+                     {
+                        "label": "V3"
+                     },
+                     {
+                        "label": "V4"
+                     },
+                     {
+                        "label": "V5"
+                     },
+                     {
+                        "label": "Binder",
+                        "data": ["Binder"]
+                     },
+                     {
+                        "label": "Builder",
+                        "data": ["Builder"]
+                     },
+                     {
+                        "label": "Clean",
+                        "data": ["Clean"]
+                     },
+                     {
+                        "label": "Compiler",
+                        "data": ["Compiler"]
+                     },
+                     {
+                        "label": "Gnatls",
+                        "data": ["Gnatls"]
+                     },
+                     {
+                        "label": "Install",
+                        "data": ["Install"]
+                     },
+                     {
+                        "label": "Linker",
+                        "data": ["Linker"]
+                     },
+                     {
+                        "label": "Naming",
+                        "data": ["Naming"]
+                     },
+                     {
+                        "label": "Remote",
+                        "data": ["Remote"]
+                     },
+                     {
+                        "label": "Pretty_Printer",
+                        "data": ["Pretty_Printer"]
+                     },
+                     {
+                        "label": "Ide",
+                        "data": ["Ide"]
+                     },
+                     {
+                        "label": "Ant",
+                        "data": ["Ant"]
+                     },
+                     {
+                        "label": "Make",
+                        "data": ["Make"]
+                     },
+                     {
+                        "label": "Analyzer",
+                        "data": ["Analyzer"]
+                     },
+                     {
+                        "label": "Check",
+                        "data": ["Check"]
+                     },
+                     {
+                        "label": "Codepeer",
+                        "data": ["Codepeer"]
+                     },
+                     {
+                        "label": "Coverage",
+                        "data": ["Coverage"]
+                     },
+                     {
+                        "label": "Dsa",
+                        "data": ["Dsa"]
+                     },
+                     {
+                        "label": "Documentation",
+                        "data": ["Documentation"]
+                     },
+                     {
+                        "label": "Emulator",
+                        "data": ["Emulator"]
+                     },
+                     {
+                        "label": "Gnattest",
+                        "data": ["Gnattest"]
+                     },
+                     {
+                        "label": "Prove",
+                        "data": ["Prove"]
+                     },
+                     {
+                        "label": "Qgen",
+                        "data": ["Qgen"]
+                     },
+                     {
+                        "label": "Stack",
+                        "data": ["Stack"]
+                     },
+                     {
+                        "label": "Stub",
+                        "data": ["Stub"]
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Prj"
+                     },
+                     {
+                        "label": "Imported"
+                     },
+                     {
+                        "label": "Extended"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 33,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 33,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 33,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "V2"
+                     },
+                     {
+                        "label": "V3"
+                     },
+                     {
+                        "label": "V4"
+                     },
+                     {
+                        "label": "V5"
+                     },
+                     {
+                        "label": "Binder",
+                        "data": ["Binder"]
+                     },
+                     {
+                        "label": "Builder",
+                        "data": ["Builder"]
+                     },
+                     {
+                        "label": "Clean",
+                        "data": ["Clean"]
+                     },
+                     {
+                        "label": "Compiler",
+                        "data": ["Compiler"]
+                     },
+                     {
+                        "label": "Gnatls",
+                        "data": ["Gnatls"]
+                     },
+                     {
+                        "label": "Install",
+                        "data": ["Install"]
+                     },
+                     {
+                        "label": "Linker",
+                        "data": ["Linker"]
+                     },
+                     {
+                        "label": "Naming",
+                        "data": ["Naming"]
+                     },
+                     {
+                        "label": "Remote",
+                        "data": ["Remote"]
+                     },
+                     {
+                        "label": "Pretty_Printer",
+                        "data": ["Pretty_Printer"]
+                     },
+                     {
+                        "label": "Ide",
+                        "data": ["Ide"]
+                     },
+                     {
+                        "label": "Ant",
+                        "data": ["Ant"]
+                     },
+                     {
+                        "label": "Make",
+                        "data": ["Make"]
+                     },
+                     {
+                        "label": "Analyzer",
+                        "data": ["Analyzer"]
+                     },
+                     {
+                        "label": "Check",
+                        "data": ["Check"]
+                     },
+                     {
+                        "label": "Codepeer",
+                        "data": ["Codepeer"]
+                     },
+                     {
+                        "label": "Coverage",
+                        "data": ["Coverage"]
+                     },
+                     {
+                        "label": "Dsa",
+                        "data": ["Dsa"]
+                     },
+                     {
+                        "label": "Documentation",
+                        "data": ["Documentation"]
+                     },
+                     {
+                        "label": "Emulator",
+                        "data": ["Emulator"]
+                     },
+                     {
+                        "label": "Gnattest",
+                        "data": ["Gnattest"]
+                     },
+                     {
+                        "label": "Prove",
+                        "data": ["Prove"]
+                     },
+                     {
+                        "label": "Qgen",
+                        "data": ["Qgen"]
+                     },
+                     {
+                        "label": "Stack",
+                        "data": ["Stack"]
+                     },
+                     {
+                        "label": "Stub",
+                        "data": ["Stub"]
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Prj"
+                     },
+                     {
+                        "label": "Imported"
+                     },
+                     {
+                        "label": "Extended"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 36,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 36,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 36,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "T1"
+                     },
+                     {
+                        "label": "Imported"
+                     },
+                     {
+                        "label": "Extended"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 37,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 37,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 37,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Imported_Type"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 41,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 41,
+                  "character": 0
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 41,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Extended_Type"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 44,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 44,
+                  "character": 1
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 44,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Extended"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 47,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 47,
+                  "character": 1
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 47,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Install",
+                        "data": ["Install"]
+                     },
+                     {
+                        "label": "Ide",
+                        "data": ["Ide"]
+                     },
+                     {
+                        "label": "Imported"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 50,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 50,
+                  "character": 1
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 50,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Pretty_Printer",
+                        "data": ["Pretty_Printer"]
+                     },
+                     {
+                        "label": "Prove",
+                        "data": ["Prove"]
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Prj"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 53,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 53,
+                  "character": 1
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 53,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Emulator",
+                        "data": ["Emulator"]
+                     },
+                     {
+                        "label": "Extended"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 56,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 56,
+                  "character": 1
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 56,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Install",
+                        "data": ["Install"]
+                     },
+                     {
+                        "label": "Ide",
+                        "data": ["Ide"]
+                     },
+                     {
+                        "label": "Imported"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 59,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 59,
+                  "character": 1
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 59,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Pretty_Printer",
+                        "data": ["Pretty_Printer"]
+                     },
+                     {
+                        "label": "Prove",
+                        "data": ["Prove"]
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Prj"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 62,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 62,
+                  "character": 1
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 62,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Name",
+                        "data": ["", "Name"]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 65,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}"
+               },
+               "position": {
+                  "line": 65,
+                  "character": 1
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 65,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Extended_Variable"
+                     },
+                     {
+                        "label": "Emulator",
+                        "data": ["Emulator"]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
 ]
