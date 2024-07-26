@@ -1,6 +1,8 @@
 --
 --  Copyright (C) 2024, AdaCore
 --
+--  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+--
 
 --  Consumer interface to process client->server messages created by the
 --  Server_Message_Factory.

@@ -1,9 +1,8 @@
 --
---  Copyright (C) 2022-2023, AdaCore
+--  Copyright (C) 2024, AdaCore
 --
---  SPDX-License-Identifier: Apache-2.0
+--  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 --
-
 package body LSP.Server_Responses.Errors is
 
    ---------------------------
