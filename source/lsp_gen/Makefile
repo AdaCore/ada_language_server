@@ -10,7 +10,7 @@ GEN_JSON_DIR = ./generated
 LSP_GEN_PRJ  = -P ../../gnat/lsp_gen.gpr
 DOC          = ../../doc
 TEMP_FILE    ?= /tmp/sources.ada
-LSP317_DIR   = ../lsp_3.17/generated
+LSP317_DIR   = ../../liblsp_3_17/source/generated
 LSP317_PRJ   = -P ../../gnat/lsp_3_17.gpr
 LSP_GEN      = ../../.obj/${SUPERPROJECT}/lsp_gen/lsp_gen-run
 

@@ -20,4 +20,10 @@ package LSP.Server_Requests.Tokens_Full is
       Value : in out LSP.Server_Request_Receivers.Server_Request_Receiver'
         Class);
 
+private
+
+   overriding function Method
+     (Self : Request) return VSS.Strings.Virtual_String is
+     ("textDocument/semanticTokens/full");
+
 end LSP.Server_Requests.Tokens_Full;

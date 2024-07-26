@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with "lsp";
+with "lsp_common";
 with "spawn_glib";
 
 project LSP_Client_Glib is
@@ -23,6 +24,6 @@ project LSP_Client_Glib is
    for Source_Dirs use ("../source/client");
    for Object_Dir use "../.obj/client_glib";
 
-   package Compiler renames LSP.Compiler;
+   package Compiler renames LSP_Common.Compiler;
 
 end LSP_Client_Glib;
