@@ -9,13 +9,15 @@ with LSP.Server_Messages;
 with LSP.Server_Request_Receivers;
 with LSP.Structures;
 
+with VSS.Strings;
+
 package LSP.Server_Requests is
    pragma Preelaborate;
 
    type Server_Request is
      abstract limited new LSP.Server_Messages.Server_Message with
    record
-      Id : LSP.Structures.Integer_Or_Virtual_String;
+      Id       : LSP.Structures.Integer_Or_Virtual_String;
 
       Canceled : Boolean := False
          with Atomic;
@@ -23,11 +25,14 @@ package LSP.Server_Requests is
       --  task
    end record;
 
+   function Method
+     (Self : Server_Request) return VSS.Strings.Virtual_String is abstract;
+   --  Returns name of the method.
+
    procedure Visit_Server_Receiver
      (Self  : Server_Request;
-      Value : in out LSP.Server_Request_Receivers
-        .Server_Request_Receiver'Class)
-   is abstract;
+      Value : in out
+        LSP.Server_Request_Receivers.Server_Request_Receiver'Class) is abstract;
 
    overriding procedure Visit_Server_Message_Visitor
      (Self    : Server_Request;
