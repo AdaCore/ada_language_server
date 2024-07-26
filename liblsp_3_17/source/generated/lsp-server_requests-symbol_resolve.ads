@@ -20,4 +20,10 @@ package LSP.Server_Requests.Symbol_Resolve is
       Value : in out LSP.Server_Request_Receivers.Server_Request_Receiver'
         Class);
 
+private
+
+   overriding function Method
+     (Self : Request) return VSS.Strings.Virtual_String is
+     ("workspaceSymbol/resolve");
+
 end LSP.Server_Requests.Symbol_Resolve;
