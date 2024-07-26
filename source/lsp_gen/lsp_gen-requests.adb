@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2023, AdaCore                     --
+--                     Copyright (C) 2022-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -196,9 +196,9 @@ package body LSP_Gen.Requests is
 
    end Write_Loggers;
 
-   ------------------------------
+   -------------------------
    -- Write_Request_Types --
-   ------------------------------
+   -------------------------
 
    procedure Write_Request_Types
      (Model : LSP_Gen.Meta_Models.Meta_Model;
@@ -252,6 +252,16 @@ package body LSP_Gen.Requests is
             Put (Name);
             Put_Line ("_Receiver'Class);");
             New_Line;
+
+            if From = From_Client then
+               Put_Line ("private");
+               New_Line;
+
+               Put_Line ("overriding function Method (Self : Request)");
+               Put_Line ("return VSS.Strings.Virtual_String is");
+               Put_Line ("(""" & J & """);");
+               New_Line;
+            end if;
 
             Put_Line ("end;");
             New_Line;
