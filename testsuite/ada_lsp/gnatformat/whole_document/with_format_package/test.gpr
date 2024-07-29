@@ -1,0 +1,8 @@
+project Test is
+   for Source_Dirs use (".");
+   for Object_Dir use "obj";
+   for Main use ("main.adb");
+   package Format is
+      for Indentation ("Ada") use "4";
+   end Format;
+end Test;

@@ -760,7 +760,9 @@ package body LSP.Ada_Contexts is
 
       Self.Reload;
       Update_Source_Files;
+
       Pretty_Printer_Setup;
+      Self.Format_Options := Gnatformat.Configuration.From_Project (Root);
    end Load_Project;
 
    ------------

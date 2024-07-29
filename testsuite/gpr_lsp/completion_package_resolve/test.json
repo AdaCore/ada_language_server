@@ -478,6 +478,12 @@
                 ]
               },
               {
+                "label": "Format",
+                "data": [
+                  "Format"
+                ]
+              },
+              {
                 "label": "Pretty_Printer",
                 "data": [
                   "Pretty_Printer"

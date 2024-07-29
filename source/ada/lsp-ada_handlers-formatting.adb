@@ -27,6 +27,9 @@ package body LSP.Ada_Handlers.Formatting is
    Formatting_Trace : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.FORMATTING", GNATCOLL.Traces.On);
 
+   Gnatformat_Trace : constant GNATCOLL.Traces.Trace_Handle :=
+     GNATCOLL.Traces.Create ("ALS.GNATFORMAT", GNATCOLL.Traces.Off);
+
    procedure Update_Pp_Formatting_Options
      (Pp_Options  : in out Utils.Command_Lines.Command_Line;
       LSP_Options : LSP.Structures.FormattingOptions);
@@ -48,36 +51,75 @@ package body LSP.Ada_Handlers.Formatting is
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
-      PP_Options : Utils.Command_Lines.Command_Line := Context.Get_PP_Options;
+      procedure Gnatpp_Format;
+
+      procedure Gnatformat_Format;
+
+      -------------------
+      -- Gnatpp_Format --
+      -------------------
+
+      procedure Gnatpp_Format
+      is
+         PP_Options : Utils.Command_Lines.Command_Line :=
+           Context.Get_PP_Options;
+
+      begin
+         --  Take into account the options set by the request only if the
+         --  corresponding GPR switches are not explicitly set.
+
+         Update_Pp_Formatting_Options
+           (Pp_Options => PP_Options, LSP_Options => Options);
+
+         Success := Document.Formatting
+           (Context  => Context,
+            Span     => Span,
+            Cmd      => PP_Options,
+            Edit     => Response,
+            Messages => Messages);
+
+         if not Success then
+            Error :=
+              (code    => LSP.Enumerations.InternalError,
+               message => Messages.Join (' '));
+            Messages.Clear;
+         end if;
+      end Gnatpp_Format;
+
+      -----------------------
+      -- Gnatformat_Format --
+      -----------------------
+
+      procedure Gnatformat_Format
+      is
+      begin
+         Success := True;
+         Response := Document.Format (Context);
+
+      exception
+         when E : others =>
+            Context.Tracer.Trace_Exception (E, "in GNATformat Format");
+            Success := False;
+            Error :=
+              (code    => LSP.Enumerations.InternalError,
+               message => "GNATformat failed to format source");
+      end Gnatformat_Format;
 
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
          Error   :=
-           (code => LSP.Enumerations.InternalError,
+           (code    => LSP.Enumerations.InternalError,
             message => "Incorrect code can't be formatted");
 
          return;
       end if;
 
-      --  Take into account the options set by the request only if the
-      --  corresponding GPR switches are not explicitly set.
+      if Gnatformat_Trace.Is_Active then
+         Gnatformat_Format;
 
-      Update_Pp_Formatting_Options
-        (Pp_Options => PP_Options, LSP_Options => Options);
-
-      Success := Document.Formatting
-        (Context  => Context,
-         Span     => Span,
-         Cmd      => PP_Options,
-         Edit     => Response,
-         Messages => Messages);
-
-      if not Success then
-         Error :=
-           (code    => LSP.Enumerations.InternalError,
-            message => Messages.Join (' '));
-         Messages.Clear;
+      else
+         Gnatpp_Format;
       end if;
    end Format;
 
@@ -94,8 +136,68 @@ package body LSP.Ada_Handlers.Formatting is
       Response : out LSP.Structures.TextEdit_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
-      PP_Options : Utils.Command_Lines.Command_Line := Context.Get_PP_Options;
-      Messages   : VSS.String_Vectors.Virtual_String_Vector;
+      procedure Gnatpp_Range_Format;
+
+      procedure Gnatformat_Range_Format;
+
+      -------------------------
+      -- Gnatpp_Range_Format --
+      -------------------------
+
+      procedure Gnatpp_Range_Format
+      is
+         PP_Options : Utils.Command_Lines.Command_Line :=
+           Context.Get_PP_Options;
+         Messages   : VSS.String_Vectors.Virtual_String_Vector;
+
+      begin
+         --  Take into account the options set by the request only if the
+         --  corresponding GPR switches are not explicitly set.
+
+         Update_Pp_Formatting_Options
+           (Pp_Options => PP_Options, LSP_Options => Options);
+
+         Success := Document.Range_Formatting
+           (Context    => Context,
+            Span       => Span,
+            PP_Options => PP_Options,
+            Edit       => Response,
+            Messages   => Messages);
+
+         if not Success then
+            Error :=
+              (code    => LSP.Enumerations.InternalError,
+               message => Messages.Join (' '));
+         end if;
+         if Document.Has_Diagnostics (Context) then
+            Success := False;
+            Error   :=
+              (code    => LSP.Enumerations.InternalError,
+               message => "Incorrect code can't be formatted");
+
+            return;
+         end if;
+      end Gnatpp_Range_Format;
+
+      ----------------------------
+      -- Gnatformat_Range_Format --
+      -----------------------------
+
+      procedure Gnatformat_Range_Format
+      is
+      begin
+         Success := True;
+         Response.Clear;
+         Response.Append (Document.Range_Format (Context, Span));
+
+      exception
+         when E : others =>
+            Context.Tracer.Trace_Exception (E, "in GNATformat Range_Format");
+            Success := False;
+            Error :=
+              (code    => LSP.Enumerations.InternalError,
+               message => "GNATformat failed to format source");
+      end Gnatformat_Range_Format;
 
    begin
       if Document.Has_Diagnostics (Context) then
@@ -107,23 +209,11 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      --  Take into account the options set by the request only if the
-      --  corresponding GPR switches are not explicitly set.
+      if Gnatformat_Trace.Is_Active then
+         Gnatformat_Range_Format;
 
-      Update_Pp_Formatting_Options
-        (Pp_Options => PP_Options, LSP_Options => Options);
-
-      Success := Document.Range_Formatting
-        (Context    => Context,
-         Span       => Span,
-         PP_Options => PP_Options,
-         Edit       => Response,
-         Messages   => Messages);
-
-      if not Success then
-         Error :=
-           (code    => LSP.Enumerations.InternalError,
-            message => Messages.Join (' '));
+      else
+         Gnatpp_Range_Format;
       end if;
    end Range_Format;
 

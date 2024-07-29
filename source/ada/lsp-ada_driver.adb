@@ -24,6 +24,7 @@ with GNAT.OS_Lib;
 with GNAT.Strings;
 
 pragma Warnings (Off, "is an internal GNAT unit");
+with Gnatformat.Configuration;
 with System.Soft_Links;
 with System.Secondary_Stack;
 
@@ -427,6 +428,8 @@ begin
 
    Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Error);
    --  Protect stdout from pollution by accidental Put_Line calls
+
+   Gnatformat.Configuration.Elaborate_GPR2;
 
    declare
       Allow_Incremental_Text_Changes : constant GNATCOLL.Traces.Trace_Handle

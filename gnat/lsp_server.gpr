@@ -11,6 +11,7 @@ with "lal_refactor.gpr";
 with "ada_libfswatch.gpr";
 with "libgnatdoc.gpr";
 with "spawn.gpr";
+with "gnatformat.gpr";
 
 with "lsp_3_17";
 with "lsp_common";
