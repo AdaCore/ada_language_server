@@ -1,0 +1,48 @@
+name = "gnatcoll"
+version = "24.0.0"
+description = "GNAT Components Collection - Core packages"
+website = "https://github.com/adacore/gnatcoll-core"
+authors = ["AdaCore"]
+licenses = "GPL-3.0-or-later WITH GCC-exception-3.1"
+maintainers = ["chouteau@adacore.com"]
+maintainers-logins = ["Fabien-Chouteau"]
+project-files = ["gnatcoll.gpr"]
+tags = ["gnatcoll", "json", "email", "refcount", "projects", "gpr", "vfs"]
+
+[configuration]
+disabled = true
+
+[environment.'case(os)'.windows.GPR_PROJECT_PATH]
+prepend = "${CRATE_ROOT}/core;${CRATE_ROOT}/projects;${CRATE_ROOT}/minimal"
+
+[environment.'case(os)'.linux.GPR_PROJECT_PATH]
+prepend = "${CRATE_ROOT}/core:${CRATE_ROOT}/projects:${CRATE_ROOT}/minimal"
+
+[environment.'case(os)'.macos.GPR_PROJECT_PATH]
+prepend = "${CRATE_ROOT}/core:${CRATE_ROOT}/projects:${CRATE_ROOT}/minimal"
+
+[environment.'case(os)'.macos.DYLD_LIBRARY_PATH]
+append = "${CRATE_ROOT}/projects/lib/gnatcoll_projects/relocatable:${CRATE_ROOT}/core/lib/gnatcoll_core/relocatable:${CRATE_ROOT}/minimal/lib/gnatcoll_core/relocatable"
+
+[environment.'case(os)'.windows.PATH]
+append = "${CRATE_ROOT}/projects/lib/gnatcoll_projects/relocatable;${CRATE_ROOT}/core/lib/gnatcoll_core/relocatable;${CRATE_ROOT}/minimal/lib/gnatcoll_core/relocatable"
+
+[gpr-externals]
+GNATCOLL_ATOMICS = ["intrinsic", "mutex"]
+GNATCOLL_BUILD_MODE = ["DEBUG", "PROD"]
+GNATCOLL_OS = ["windows", "unix", "osx"]
+LIBRARY_TYPE = ["static", "relocatable", "static-pic"]
+
+[gpr-set-externals."case(os)".linux]
+GNATCOLL_OS = "unix"
+[gpr-set-externals."case(os)".macos]
+GNATCOLL_OS = "osx"
+[gpr-set-externals."case(os)".windows]
+GNATCOLL_OS = "windows"
+
+[gpr-set-externals]
+GNATCOLL_VERSION = "24.0.0"
+GNATCOLL_BUILD_MODE = "PROD"
+
+[[depends-on]]
+libgpr = "~24.0.0"

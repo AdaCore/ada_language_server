@@ -100,9 +100,6 @@ testsuite/.als/inout.txt
 # GNAT Studio clangd options
 .clang-format
 
-# Subprojects
-subprojects/
-
 # Temporary testsuite's files and directories
 testsuite/ada_lsp/project_symlinks/link
 
