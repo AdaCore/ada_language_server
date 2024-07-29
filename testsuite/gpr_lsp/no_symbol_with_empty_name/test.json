@@ -39,7 +39,7 @@
                         "change": 1
                      },
                      "completionProvider": {
-                        "triggerCharacters": [" ", "."],
+                        "triggerCharacters": [" ", ".", "'"],
                         "resolveProvider": true
                      },
                      "hoverProvider": true,
