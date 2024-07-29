@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2023, AdaCore                     --
+--                     Copyright (C) 2022-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,16 +15,14 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Containers.Hashed_Maps;
+private with Ada.Containers.Hashed_Maps;
 
-with VSS.Strings.Hash;
-
-with LSP.Server_Message_Visitors;
+private with LSP.Server_Message_Visitors;
 with LSP.Server_Messages;
-with LSP.Server_Notification_Receivers;
-with LSP.Server_Notifications;
-with LSP.Server_Requests;
-with LSP.Structures;
+private with LSP.Server_Notification_Receivers;
+limited private with LSP.Server_Notifications;
+limited private with LSP.Server_Requests;
+private with LSP.Structures.Hashes;
 
 package LSP.Known_Requests is
 
@@ -61,22 +59,13 @@ private
      (Self  : in out Visitor;
       Value : LSP.Structures.CancelParams);
 
-   function Hash
-     (Value : LSP.Structures.Integer_Or_Virtual_String)
-      return Ada.Containers.Hash_Type is
-        (case Value.Is_Integer is
-            when True =>
-               Ada.Containers.Hash_Type'Mod (Value.Integer),
-            when False =>
-               VSS.Strings.Hash (Value.Virtual_String));
-
    type Request_Access is
      access all LSP.Server_Requests.Server_Request'Class;
 
    package Request_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => LSP.Structures.Integer_Or_Virtual_String,  --  id
       Element_Type    => Request_Access,
-      Hash            => Hash,
+      Hash            => LSP.Structures.Hashes.Hash,
       Equivalent_Keys => LSP.Structures."=",
       "="             => "=");
 

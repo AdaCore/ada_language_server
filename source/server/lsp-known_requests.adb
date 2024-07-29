@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2023, AdaCore                     --
+--                     Copyright (C) 2022-2024, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -16,6 +16,9 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Conversion;
+
+with LSP.Server_Notifications;
+with LSP.Server_Requests;
 
 package body LSP.Known_Requests is
 
