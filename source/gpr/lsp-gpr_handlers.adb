@@ -380,7 +380,7 @@ package body LSP.GPR_Handlers is
       Capabilities.declarationProvider := LSP.Constants.True;
       Capabilities.completionProvider :=
         (Is_Set => True,
-         Value  => (triggerCharacters => [" "],
+         Value  => (triggerCharacters => [" ", ".", "'"],
                     resolveProvider   => LSP.Constants.True,
                     others            => <>));
 
