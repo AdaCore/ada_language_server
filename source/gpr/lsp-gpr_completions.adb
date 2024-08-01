@@ -66,6 +66,9 @@ package body LSP.GPR_Completions is
       Response        : in out LSP.Structures.Completion_Result);
    --  Handle completion when cursor after "package" keyword or after a project
    --  reference.
+   --  If Unexisting_Only is returned, only the packages that have not been
+   --  defined in the given project file will be returned. Otherwise, only
+   --  the package that have been defined will be returned.
 
    procedure Fill_Type_Completion_Response
      (File     : LSP.GPR_Files.File_Access;
@@ -242,8 +245,9 @@ package body LSP.GPR_Completions is
       for Id of PRP.All_Packages loop
          declare
             Item : LSP.Structures.CompletionItem;
+            Exists_In_File : constant Boolean := File.In_Packages (Id);
          begin
-            if (not File.In_Packages (Id) or else not Unexisting_Only)
+            if (Unexisting_Only xor Exists_In_File)
               and then PRP.Is_Allowed_In (Id, Kind)
               and then VSS.Strings.Starts_With
                 (To_Lower (VSS.Strings.To_Virtual_String

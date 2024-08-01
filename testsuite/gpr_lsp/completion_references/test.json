@@ -96,7 +96,7 @@
                         "change": 1
                      },
                      "completionProvider": {
-                        "triggerCharacters": [" "],
+                        "triggerCharacters": [" ", ".", "'"],
                         "resolveProvider": true
                      },
                      "hoverProvider": true,
@@ -174,108 +174,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Format",
-                        "data": ["Format"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -325,108 +225,8 @@
                         "label": "Imported_Variable"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Format",
-                        "data": ["Format"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      }
                   ]
                }
@@ -496,256 +296,256 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "data": ["", "Archive_Builder"],
-                        "label": "Archive_Builder"
+                        "label": "Archive_Builder",
+                        "data": ["", "Archive_Builder"]
                      },
                      {
-                        "data": ["", "Archive_Builder_Append_Option"],
-                        "label": "Archive_Builder_Append_Option"
+                        "label": "Archive_Builder_Append_Option",
+                        "data": ["", "Archive_Builder_Append_Option"]
                      },
                      {
-                        "data": ["", "Archive_Indexer"],
-                        "label": "Archive_Indexer"
+                        "label": "Archive_Indexer",
+                        "data": ["", "Archive_Indexer"]
                      },
                      {
-                        "data": ["", "Archive_Suffix"],
-                        "label": "Archive_Suffix"
+                        "label": "Archive_Suffix",
+                        "data": ["", "Archive_Suffix"]
                      },
                      {
-                        "data": ["", "Canonical_Target"],
-                        "label": "Canonical_Target"
+                        "label": "Canonical_Target",
+                        "data": ["", "Canonical_Target"]
                      },
                      {
-                        "data": ["", "Create_Missing_Dirs"],
-                        "label": "Create_Missing_Dirs"
+                        "label": "Create_Missing_Dirs",
+                        "data": ["", "Create_Missing_Dirs"]
                      },
                      {
-                        "data": ["", "Config_Prj_File"],
-                        "label": "Config_Prj_File"
+                        "label": "Config_Prj_File",
+                        "data": ["", "Config_Prj_File"]
                      },
                      {
-                        "data": ["", "Default_Language"],
-                        "label": "Default_Language"
+                        "label": "Default_Language",
+                        "data": ["", "Default_Language"]
                      },
                      {
-                        "data": ["", "Excluded_Source_Files"],
-                        "label": "Excluded_Source_Files"
+                        "label": "Excluded_Source_Files",
+                        "data": ["", "Excluded_Source_Files"]
                      },
                      {
-                        "data": ["", "Excluded_Source_Dirs"],
-                        "label": "Excluded_Source_Dirs"
+                        "label": "Excluded_Source_Dirs",
+                        "data": ["", "Excluded_Source_Dirs"]
                      },
                      {
-                        "data": ["", "Excluded_Source_List_File"],
-                        "label": "Excluded_Source_List_File"
+                        "label": "Excluded_Source_List_File",
+                        "data": ["", "Excluded_Source_List_File"]
                      },
                      {
-                        "data": ["", "Exec_Dir"],
-                        "label": "Exec_Dir"
+                        "label": "Exec_Dir",
+                        "data": ["", "Exec_Dir"]
                      },
                      {
-                        "data": ["", "Externally_Built"],
-                        "label": "Externally_Built"
+                        "label": "Externally_Built",
+                        "data": ["", "Externally_Built"]
                      },
                      {
-                        "data": ["", "Ignore_Source_Sub_Dirs"],
-                        "label": "Ignore_Source_Sub_Dirs"
+                        "label": "Ignore_Source_Sub_Dirs",
+                        "data": ["", "Ignore_Source_Sub_Dirs"]
                      },
                      {
-                        "data": ["", "Inherit_Source_Path"],
-                        "label": "Inherit_Source_Path"
+                        "label": "Inherit_Source_Path",
+                        "data": ["", "Inherit_Source_Path"]
                      },
                      {
-                        "data": ["", "Interfaces"],
-                        "label": "Interfaces"
+                        "label": "Interfaces",
+                        "data": ["", "Interfaces"]
                      },
                      {
-                        "data": ["", "Languages"],
-                        "label": "Languages"
+                        "label": "Languages",
+                        "data": ["", "Languages"]
                      },
                      {
-                        "data": ["", "Leading_Library_Options"],
-                        "label": "Leading_Library_Options"
+                        "label": "Leading_Library_Options",
+                        "data": ["", "Leading_Library_Options"]
                      },
                      {
-                        "data": ["", "Library_Auto_Init_Supported"],
-                        "label": "Library_Auto_Init_Supported"
+                        "label": "Library_Auto_Init_Supported",
+                        "data": ["", "Library_Auto_Init_Supported"]
                      },
                      {
-                        "data": ["", "Library_Builder"],
-                        "label": "Library_Builder"
+                        "label": "Library_Builder",
+                        "data": ["", "Library_Builder"]
                      },
                      {
-                        "data": ["", "Library_Encapsulated_Options"],
-                        "label": "Library_Encapsulated_Options"
+                        "label": "Library_Encapsulated_Options",
+                        "data": ["", "Library_Encapsulated_Options"]
                      },
                      {
-                        "data": ["", "Library_Gcc"],
-                        "label": "Library_Gcc"
+                        "label": "Library_Gcc",
+                        "data": ["", "Library_Gcc"]
                      },
                      {
-                        "data": ["", "Library_Install_Name_Option"],
-                        "label": "Library_Install_Name_Option"
+                        "label": "Library_Install_Name_Option",
+                        "data": ["", "Library_Install_Name_Option"]
                      },
                      {
-                        "data": ["", "Library_Major_Minor_Id_Supported"],
-                        "label": "Library_Major_Minor_Id_Supported"
+                        "label": "Library_Major_Minor_Id_Supported",
+                        "data": ["", "Library_Major_Minor_Id_Supported"]
                      },
                      {
-                        "data": ["", "Library_Partial_Linker"],
-                        "label": "Library_Partial_Linker"
+                        "label": "Library_Partial_Linker",
+                        "data": ["", "Library_Partial_Linker"]
                      },
                      {
-                        "data": ["", "Library_Reference_Symbol_File"],
-                        "label": "Library_Reference_Symbol_File"
+                        "label": "Library_Reference_Symbol_File",
+                        "data": ["", "Library_Reference_Symbol_File"]
                      },
                      {
-                        "data": ["", "Library_Rpath_Options"],
-                        "label": "Library_Rpath_Options"
+                        "label": "Library_Rpath_Options",
+                        "data": ["", "Library_Rpath_Options"]
                      },
                      {
-                        "data": ["", "Library_Support"],
-                        "label": "Library_Support"
+                        "label": "Library_Support",
+                        "data": ["", "Library_Support"]
                      },
                      {
-                        "data": ["", "Library_Version_Switches"],
-                        "label": "Library_Version_Switches"
+                        "label": "Library_Version_Switches",
+                        "data": ["", "Library_Version_Switches"]
                      },
                      {
-                        "data": ["", "Locally_Removed_Files"],
-                        "label": "Locally_Removed_Files"
+                        "label": "Locally_Removed_Files",
+                        "data": ["", "Locally_Removed_Files"]
                      },
                      {
-                        "data": ["", "Main"],
-                        "label": "Main"
+                        "label": "Main",
+                        "data": ["", "Main"]
                      },
                      {
-                        "data": ["", "Name"],
-                        "label": "Name"
+                        "label": "Name",
+                        "data": ["", "Name"]
                      },
                      {
-                        "data": ["", "Object_Dir"],
-                        "label": "Object_Dir"
+                        "label": "Object_Dir",
+                        "data": ["", "Object_Dir"]
                      },
                      {
-                        "data": ["", "Object_Generated"],
-                        "label": "Object_Generated"
+                        "label": "Object_Generated",
+                        "data": ["", "Object_Generated"]
                      },
                      {
-                        "data": ["", "Objects_Linked"],
-                        "label": "Objects_Linked"
+                        "label": "Objects_Linked",
+                        "data": ["", "Objects_Linked"]
                      },
                      {
-                        "data": ["", "Object_Lister"],
-                        "label": "Object_Lister"
+                        "label": "Object_Lister",
+                        "data": ["", "Object_Lister"]
                      },
                      {
-                        "data": ["", "Object_Lister_Matcher"],
-                        "label": "Object_Lister_Matcher"
+                        "label": "Object_Lister_Matcher",
+                        "data": ["", "Object_Lister_Matcher"]
                      },
                      {
-                        "data": ["", "Origin_Project"],
-                        "label": "Origin_Project"
+                        "label": "Origin_Project",
+                        "data": ["", "Origin_Project"]
                      },
                      {
-                        "data": ["", "Only_Dirs_With_Sources"],
-                        "label": "Only_Dirs_With_Sources"
+                        "label": "Only_Dirs_With_Sources",
+                        "data": ["", "Only_Dirs_With_Sources"]
                      },
                      {
-                        "data": ["", "Project_Dir"],
-                        "label": "Project_Dir"
+                        "label": "Project_Dir",
+                        "data": ["", "Project_Dir"]
                      },
                      {
-                        "data": ["", "Required_Toolchain_Version"],
-                        "label": "Required_Toolchain_Version"
+                        "label": "Required_Toolchain_Version",
+                        "data": ["", "Required_Toolchain_Version"]
                      },
                      {
-                        "data": ["", "Roots"],
-                        "label": "Roots"
+                        "label": "Roots",
+                        "data": ["", "Roots"]
                      },
                      {
-                        "data": ["", "Run_Path_Option"],
-                        "label": "Run_Path_Option"
+                        "label": "Run_Path_Option",
+                        "data": ["", "Run_Path_Option"]
                      },
                      {
-                        "data": ["", "Run_Path_Origin"],
-                        "label": "Run_Path_Origin"
+                        "label": "Run_Path_Origin",
+                        "data": ["", "Run_Path_Origin"]
                      },
                      {
-                        "data": ["", "Runtime"],
-                        "label": "Runtime"
+                        "label": "Runtime",
+                        "data": ["", "Runtime"]
                      },
                      {
-                        "data": ["", "Runtime_Dir"],
-                        "label": "Runtime_Dir"
+                        "label": "Runtime_Dir",
+                        "data": ["", "Runtime_Dir"]
                      },
                      {
-                        "data": ["", "Runtime_Library_Dir"],
-                        "label": "Runtime_Library_Dir"
+                        "label": "Runtime_Library_Dir",
+                        "data": ["", "Runtime_Library_Dir"]
                      },
                      {
-                        "data": ["", "Runtime_Source_Dir"],
-                        "label": "Runtime_Source_Dir"
+                        "label": "Runtime_Source_Dir",
+                        "data": ["", "Runtime_Source_Dir"]
                      },
                      {
-                        "data": ["", "Runtime_Source_Dirs"],
-                        "label": "Runtime_Source_Dirs"
+                        "label": "Runtime_Source_Dirs",
+                        "data": ["", "Runtime_Source_Dirs"]
                      },
                      {
-                        "data": ["", "Separate_Run_Path_Options"],
-                        "label": "Separate_Run_Path_Options"
+                        "label": "Separate_Run_Path_Options",
+                        "data": ["", "Separate_Run_Path_Options"]
                      },
                      {
-                        "data": ["", "Shared_Library_Minimum_Switches"],
-                        "label": "Shared_Library_Minimum_Switches"
+                        "label": "Shared_Library_Minimum_Switches",
+                        "data": ["", "Shared_Library_Minimum_Switches"]
                      },
                      {
-                        "data": ["", "Shared_Library_Prefix"],
-                        "label": "Shared_Library_Prefix"
+                        "label": "Shared_Library_Prefix",
+                        "data": ["", "Shared_Library_Prefix"]
                      },
                      {
-                        "data": ["", "Shared_Library_Suffix"],
-                        "label": "Shared_Library_Suffix"
+                        "label": "Shared_Library_Suffix",
+                        "data": ["", "Shared_Library_Suffix"]
                      },
                      {
-                        "data": ["", "Source_Dirs"],
-                        "label": "Source_Dirs"
+                        "label": "Source_Dirs",
+                        "data": ["", "Source_Dirs"]
                      },
                      {
-                        "data": ["", "Source_Files"],
-                        "label": "Source_Files"
+                        "label": "Source_Files",
+                        "data": ["", "Source_Files"]
                      },
                      {
-                        "data": ["", "Source_List_File"],
-                        "label": "Source_List_File"
+                        "label": "Source_List_File",
+                        "data": ["", "Source_List_File"]
                      },
                      {
-                        "data": ["", "Symbolic_Link_Supported"],
-                        "label": "Symbolic_Link_Supported"
+                        "label": "Symbolic_Link_Supported",
+                        "data": ["", "Symbolic_Link_Supported"]
                      },
                      {
-                        "data": ["", "Target"],
-                        "label": "Target"
+                        "label": "Target",
+                        "data": ["", "Target"]
                      },
                      {
-                        "data": ["", "Toolchain_Version"],
-                        "label": "Toolchain_Version"
+                        "label": "Toolchain_Version",
+                        "data": ["", "Toolchain_Version"]
                      },
                      {
-                        "data": ["", "Toolchain_Name"],
-                        "label": "Toolchain_Name"
+                        "label": "Toolchain_Name",
+                        "data": ["", "Toolchain_Name"]
                      },
                      {
-                        "data": ["", "Toolchain_Description"],
-                        "label": "Toolchain_Description"
+                        "label": "Toolchain_Description",
+                        "data": ["", "Toolchain_Description"]
                      },
                      {
-                        "data": ["", "Toolchain_Path"],
-                        "label": "Toolchain_Path"
+                        "label": "Toolchain_Path",
+                        "data": ["", "Toolchain_Path"]
                      },
                      {
-                        "data": ["", "Warning_Message"],
-                        "label": "Warning_Message"
+                        "label": "Warning_Message",
+                        "data": ["", "Warning_Message"]
                      }
                   ]
                }
@@ -836,108 +636,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Format",
-                        "data": ["Format"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -984,156 +684,156 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "data": ["Compiler", "Default_Switches"],
-                        "label": "Default_Switches"
+                        "label": "Default_Switches",
+                        "data": ["Compiler", "Default_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Driver"],
-                        "label": "Driver"
+                        "label": "Driver",
+                        "data": ["Compiler", "Driver"]
                      },
                      {
-                        "data": ["Compiler", "Required_Switches"],
-                        "label": "Required_Switches"
+                        "label": "Required_Switches",
+                        "data": ["Compiler", "Required_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Switches"],
-                        "label": "Switches"
+                        "label": "Switches",
+                        "data": ["Compiler", "Switches"]
                      },
                      {
-                        "data": ["Compiler", "Config_Body_File_Name"],
-                        "label": "Config_Body_File_Name"
+                        "label": "Config_Body_File_Name",
+                        "data": ["Compiler", "Config_Body_File_Name"]
                      },
                      {
-                        "data": ["Compiler", "Config_Body_File_Name_Index"],
-                        "label": "Config_Body_File_Name_Index"
+                        "label": "Config_Body_File_Name_Index",
+                        "data": ["Compiler", "Config_Body_File_Name_Index"]
                      },
                      {
-                        "data": ["Compiler", "Config_Body_File_Name_Pattern"],
-                        "label": "Config_Body_File_Name_Pattern"
+                        "label": "Config_Body_File_Name_Pattern",
+                        "data": ["Compiler", "Config_Body_File_Name_Pattern"]
                      },
                      {
-                        "data": ["Compiler", "Config_File_Switches"],
-                        "label": "Config_File_Switches"
+                        "label": "Config_File_Switches",
+                        "data": ["Compiler", "Config_File_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Config_File_Unique"],
-                        "label": "Config_File_Unique"
+                        "label": "Config_File_Unique",
+                        "data": ["Compiler", "Config_File_Unique"]
                      },
                      {
-                        "data": ["Compiler", "Config_Spec_File_Name"],
-                        "label": "Config_Spec_File_Name"
+                        "label": "Config_Spec_File_Name",
+                        "data": ["Compiler", "Config_Spec_File_Name"]
                      },
                      {
-                        "data": ["Compiler", "Config_Spec_File_Name_Index"],
-                        "label": "Config_Spec_File_Name_Index"
+                        "label": "Config_Spec_File_Name_Index",
+                        "data": ["Compiler", "Config_Spec_File_Name_Index"]
                      },
                      {
-                        "data": ["Compiler", "Config_Spec_File_Name_Pattern"],
-                        "label": "Config_Spec_File_Name_Pattern"
+                        "label": "Config_Spec_File_Name_Pattern",
+                        "data": ["Compiler", "Config_Spec_File_Name_Pattern"]
                      },
                      {
-                        "data": ["Compiler", "Dependency_Driver"],
-                        "label": "Dependency_Driver"
+                        "label": "Dependency_Driver",
+                        "data": ["Compiler", "Dependency_Driver"]
                      },
                      {
-                        "data": ["Compiler", "Dependency_Kind"],
-                        "label": "Dependency_Kind"
+                        "label": "Dependency_Kind",
+                        "data": ["Compiler", "Dependency_Kind"]
                      },
                      {
-                        "data": ["Compiler", "Dependency_Switches"],
-                        "label": "Dependency_Switches"
+                        "label": "Dependency_Switches",
+                        "data": ["Compiler", "Dependency_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Include_Path"],
-                        "label": "Include_Path"
+                        "label": "Include_Path",
+                        "data": ["Compiler", "Include_Path"]
                      },
                      {
-                        "data": ["Compiler", "Include_Path_File"],
-                        "label": "Include_Path_File"
+                        "label": "Include_Path_File",
+                        "data": ["Compiler", "Include_Path_File"]
                      },
                      {
-                        "data": ["Compiler", "Include_Switches"],
-                        "label": "Include_Switches"
+                        "label": "Include_Switches",
+                        "data": ["Compiler", "Include_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Include_Switches_Via_Spec"],
-                        "label": "Include_Switches_Via_Spec"
+                        "label": "Include_Switches_Via_Spec",
+                        "data": ["Compiler", "Include_Switches_Via_Spec"]
                      },
                      {
-                        "data": ["Compiler", "Language_Kind"],
-                        "label": "Language_Kind"
+                        "label": "Language_Kind",
+                        "data": ["Compiler", "Language_Kind"]
                      },
                      {
-                        "data": ["Compiler", "Leading_Required_Switches"],
-                        "label": "Leading_Required_Switches"
+                        "label": "Leading_Required_Switches",
+                        "data": ["Compiler", "Leading_Required_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Local_Config_File"],
-                        "label": "Local_Config_File"
+                        "label": "Local_Config_File",
+                        "data": ["Compiler", "Local_Config_File"]
                      },
                      {
-                        "data": ["Compiler", "Local_Configuration_Pragmas"],
-                        "label": "Local_Configuration_Pragmas"
+                        "label": "Local_Configuration_Pragmas",
+                        "data": ["Compiler", "Local_Configuration_Pragmas"]
                      },
                      {
-                        "data": ["Compiler", "Mapping_Body_Suffix"],
-                        "label": "Mapping_Body_Suffix"
+                        "label": "Mapping_Body_Suffix",
+                        "data": ["Compiler", "Mapping_Body_Suffix"]
                      },
                      {
-                        "data": ["Compiler", "Mapping_File_Switches"],
-                        "label": "Mapping_File_Switches"
+                        "label": "Mapping_File_Switches",
+                        "data": ["Compiler", "Mapping_File_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Mapping_Spec_Suffix"],
-                        "label": "Mapping_Spec_Suffix"
+                        "label": "Mapping_Spec_Suffix",
+                        "data": ["Compiler", "Mapping_Spec_Suffix"]
                      },
                      {
-                        "data": ["Compiler", "Max_Command_Line_Length"],
-                        "label": "Max_Command_Line_Length"
+                        "label": "Max_Command_Line_Length",
+                        "data": ["Compiler", "Max_Command_Line_Length"]
                      },
                      {
-                        "data": ["Compiler", "Multi_Unit_Object_Separator"],
-                        "label": "Multi_Unit_Object_Separator"
+                        "label": "Multi_Unit_Object_Separator",
+                        "data": ["Compiler", "Multi_Unit_Object_Separator"]
                      },
                      {
-                        "data": ["Compiler", "Multi_Unit_Switches"],
-                        "label": "Multi_Unit_Switches"
+                        "label": "Multi_Unit_Switches",
+                        "data": ["Compiler", "Multi_Unit_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Object_File_Suffix"],
-                        "label": "Object_File_Suffix"
+                        "label": "Object_File_Suffix",
+                        "data": ["Compiler", "Object_File_Suffix"]
                      },
                      {
-                        "data": ["Compiler", "Object_File_Switches"],
-                        "label": "Object_File_Switches"
+                        "label": "Object_File_Switches",
+                        "data": ["Compiler", "Object_File_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Object_Path_Switches"],
-                        "label": "Object_Path_Switches"
+                        "label": "Object_Path_Switches",
+                        "data": ["Compiler", "Object_Path_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Path_Syntax"],
-                        "label": "Path_Syntax"
+                        "label": "Path_Syntax",
+                        "data": ["Compiler", "Path_Syntax"]
                      },
                      {
-                        "data": ["Compiler", "Pic_Option"],
-                        "label": "Pic_Option"
+                        "label": "Pic_Option",
+                        "data": ["Compiler", "Pic_Option"]
                      },
                      {
-                        "data": ["Compiler", "Response_File_Format"],
-                        "label": "Response_File_Format"
+                        "label": "Response_File_Format",
+                        "data": ["Compiler", "Response_File_Format"]
                      },
                      {
-                        "data": ["Compiler", "Response_File_Switches"],
-                        "label": "Response_File_Switches"
+                        "label": "Response_File_Switches",
+                        "data": ["Compiler", "Response_File_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Source_File_Switches"],
-                        "label": "Source_File_Switches"
+                        "label": "Source_File_Switches",
+                        "data": ["Compiler", "Source_File_Switches"]
                      },
                      {
-                        "data": ["Compiler", "Trailing_Required_Switches"],
-                        "label": "Trailing_Required_Switches"
+                        "label": "Trailing_Required_Switches",
+                        "data": ["Compiler", "Trailing_Required_Switches"]
                      }
                   ]
                }
@@ -1180,108 +880,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Format",
-                        "data": ["Format"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -1340,108 +940,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Format",
-                        "data": ["Format"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -1500,108 +1000,8 @@
                         "label": "V5"
                      },
                      {
-                        "label": "Binder",
-                        "data": ["Binder"]
-                     },
-                     {
-                        "label": "Builder",
-                        "data": ["Builder"]
-                     },
-                     {
-                        "label": "Clean",
-                        "data": ["Clean"]
-                     },
-                     {
-                        "label": "Compiler",
-                        "data": ["Compiler"]
-                     },
-                     {
-                        "label": "Gnatls",
-                        "data": ["Gnatls"]
-                     },
-                     {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Linker",
-                        "data": ["Linker"]
-                     },
-                     {
-                        "label": "Naming",
-                        "data": ["Naming"]
-                     },
-                     {
-                        "label": "Remote",
-                        "data": ["Remote"]
-                     },
-                     {
-                        "label": "Format",
-                        "data": ["Format"]
-                     },
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
-                        "label": "Ant",
-                        "data": ["Ant"]
-                     },
-                     {
-                        "label": "Make",
-                        "data": ["Make"]
-                     },
-                     {
-                        "label": "Analyzer",
-                        "data": ["Analyzer"]
-                     },
-                     {
-                        "label": "Check",
-                        "data": ["Check"]
-                     },
-                     {
-                        "label": "Codepeer",
-                        "data": ["Codepeer"]
-                     },
-                     {
-                        "label": "Coverage",
-                        "data": ["Coverage"]
-                     },
-                     {
-                        "label": "Dsa",
-                        "data": ["Dsa"]
-                     },
-                     {
-                        "label": "Documentation",
-                        "data": ["Documentation"]
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
-                        "label": "Gnattest",
-                        "data": ["Gnattest"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
-                     {
-                        "label": "Qgen",
-                        "data": ["Qgen"]
-                     },
-                     {
-                        "label": "Stack",
-                        "data": ["Stack"]
-                     },
-                     {
-                        "label": "Stub",
-                        "data": ["Stub"]
+                        "data": ["Compiler"],
+                        "label": "Compiler"
                      },
                      {
                         "label": "project"
@@ -1794,14 +1194,6 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
                         "label": "Imported"
                      }
                   ]
@@ -1836,14 +1228,6 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
                      {
                         "label": "project"
                      },
@@ -1883,10 +1267,6 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
-                     },
-                     {
                         "label": "Extended"
                      }
                   ]
@@ -1922,14 +1302,6 @@
                   "isIncomplete": false,
                   "items": [
                      {
-                        "label": "Install",
-                        "data": ["Install"]
-                     },
-                     {
-                        "label": "Ide",
-                        "data": ["Ide"]
-                     },
-                     {
                         "label": "Imported"
                      }
                   ]
@@ -1964,14 +1336,6 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
-                     {
-                        "label": "Pretty_Printer",
-                        "data": ["Pretty_Printer"]
-                     },
-                     {
-                        "label": "Prove",
-                        "data": ["Prove"]
-                     },
                      {
                         "label": "project"
                      },
@@ -2048,10 +1412,6 @@
                   "items": [
                      {
                         "label": "Extended_Variable"
-                     },
-                     {
-                        "label": "Emulator",
-                        "data": ["Emulator"]
                      }
                   ]
                }
