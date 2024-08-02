@@ -636,7 +636,7 @@ package body LSP.Clients is
          use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
 
          R  : aliased VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
-         JS : aliased LSP.JSON_Streams.JSON_Stream (False, R'Access);
+         JS : aliased LSP.JSON_Streams.JSON_Stream (False, R'Unchecked_Access);
 
       begin
          R.Set_Stream (Memory'Unchecked_Access);
