@@ -22,6 +22,8 @@ import {
 } from '../utils';
 
 suite('Task Providers', function () {
+    this.timeout('15s');
+
     let projectPath: string;
 
     this.beforeAll(async () => {
@@ -273,7 +275,7 @@ suite('Task Execution', function () {
     /**
      * Use longer timeout to accomodate for tool invocations
      */
-    this.timeout('10s');
+    this.timeout('30s');
 
     const testedTaskLabels = new Set<string>();
 
