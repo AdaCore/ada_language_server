@@ -729,8 +729,11 @@ package body LSP.Ada_Contexts is
       end Pretty_Printer_Setup;
 
    begin
+      --  Use the full path for the ID to avoid conflict when project are
+      --  sharing the same name. For example for GNATTest stubs.
       Self.Id := VSS.Strings.Conversions.To_Virtual_String
-                   (String (Root.Name));
+        (URIs.Conversions.From_File
+           (String (Root.Path_Name.Value)));
       Self.Tree := Tree.Reference;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
