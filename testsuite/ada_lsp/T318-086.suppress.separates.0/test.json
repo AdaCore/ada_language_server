@@ -204,7 +204,7 @@
                         "command": "als-suppress-separate",
                         "arguments": [
                            {
-                              "context": "Default",
+                              "context": "$URI{default.gpr}",
                               "where": {
                                  "textDocument": {
                                     "uri": "$URI{test.adb}"
@@ -233,7 +233,7 @@
                "command": "als-suppress-separate",
                "arguments": [
                   {
-                     "context": "Default",
+                     "context": "$URI{default.gpr}",
                      "where": {
                         "textDocument": {
                            "uri": "$URI{test.adb}"

@@ -186,7 +186,7 @@
                 "params": {
                     "command": "als-named-parameters",
                     "arguments": [{
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{src/main.adb}"

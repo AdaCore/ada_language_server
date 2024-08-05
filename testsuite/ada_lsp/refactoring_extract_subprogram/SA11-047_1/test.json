@@ -181,7 +181,7 @@
                                 "command": "als-refactor-extract-subprogram",
                                 "arguments": [
                                     {
-                                        "context_id": "Default",
+                                        "context_id": "$URI{default.gpr}",
                                         "section_to_extract_sloc": {
                                             "uri": "$URI{main.adb}",
                                             "range": {
@@ -208,7 +208,7 @@
                                 "command": "als-refactor-extract-subprogram",
                                 "arguments": [
                                     {
-                                        "context_id": "Default",
+                                        "context_id": "$URI{default.gpr}",
                                         "section_to_extract_sloc": {
                                             "uri": "$URI{main.adb}",
                                             "range": {
@@ -242,7 +242,7 @@
                     "command": "als-refactor-extract-subprogram",
                     "arguments": [
                         {
-                            "context_id": "Default",
+                            "context_id": "$URI{default.gpr}",
                             "section_to_extract_sloc": {
                                 "uri": "$URI{main.adb}",
                                 "range": {
