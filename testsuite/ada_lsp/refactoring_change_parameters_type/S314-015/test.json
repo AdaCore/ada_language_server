@@ -182,7 +182,7 @@
                                 "title": "",
                                 "command": "als-refactor-change_parameters_type",
                                 "arguments": [{
-                                     "context": "Default",
+                                     "context": "$URI{default.gpr}",
                                      "where": {
                                          "uri": "$URI{main.adb}",
                                          "range": {
@@ -218,7 +218,7 @@
                 "params": {
                     "command": "als-refactor-change_parameters_type",
                     "arguments": [{
-                         "context": "Default",
+                         "context": "$URI{default.gpr}",
                          "where": {
                              "uri": "$URI{main.adb}",
                              "range": {

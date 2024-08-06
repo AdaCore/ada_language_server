@@ -223,7 +223,7 @@
                         "command": "als-auto-import",
                         "arguments": [
                            {
-                              "context": "Default",
+                              "context": "$URI{default.gpr}",
                               "where": {
                                  "textDocument": {
                                     "uri": "$URI{foo.adb}"
@@ -254,7 +254,7 @@
                "command": "als-auto-import",
                "arguments": [
                   {
-                     "context": "Default",
+                     "context": "$URI{default.gpr}",
                      "where": {
                         "textDocument": {
                            "uri": "$URI{foo.adb}"
@@ -438,7 +438,7 @@
                         "command": "als-auto-import",
                         "arguments": [
                            {
-                              "context": "Default",
+                              "context": "$URI{default.gpr}",
                               "where": {
                                  "textDocument": {
                                     "uri": "$URI{foo.adb}"
@@ -469,7 +469,7 @@
                "command": "als-auto-import",
                "arguments": [
                   {
-                     "context": "Default",
+                     "context": "$URI{default.gpr}",
                      "where": {
                         "textDocument": {
                            "uri": "$URI{foo.adb}"

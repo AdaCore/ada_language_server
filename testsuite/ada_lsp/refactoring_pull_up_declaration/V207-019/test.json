@@ -181,7 +181,7 @@
                                 "title": "",
                                 "command": "als-refactor-pull_up_declaration",
                                 "arguments": [{
-                                     "context": "Default",
+                                     "context": "$URI{default.gpr}",
                                      "where": {
                                          "uri": "$URI{main.adb}",
                                          "range": {
@@ -212,7 +212,7 @@
                 "params": {
                     "command": "als-refactor-pull_up_declaration",
                     "arguments": [{
-                         "context": "Default",
+                         "context": "$URI{default.gpr}",
                          "where": {
                              "uri": "$URI{main.adb}",
                              "range": {

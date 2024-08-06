@@ -164,7 +164,7 @@
                         "command": {
                            "arguments": [
                               {
-                                 "context": "Default",
+                                 "context": "$URI{default.gpr}",
                                  "import": "Ada.Text_IO",
                                  "qualifier": "",
                                  "where": {

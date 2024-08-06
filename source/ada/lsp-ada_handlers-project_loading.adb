@@ -299,6 +299,8 @@ package body LSP.Ada_Handlers.Project_Loading is
             Root    => View,
             Charset => VSS.Strings.Conversions.To_UTF_8_String (Charset));
 
+         Self.Tracer.Trace ("Prepend Context Id: "
+                            & VSS.Strings.Conversions.To_UTF_8_String (C.Id));
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
