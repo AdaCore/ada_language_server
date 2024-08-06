@@ -43,6 +43,10 @@ package body LSP.Ada_Project_Loading is
      (Project : Project_Status_Type) return Boolean;
    --  Return True if Project has diagnostics
 
+   function Has_Pertinent_GPR2_Messages
+     (Project : Project_Status_Type) return Boolean;
+   --  Return True if GPR2_Messages has warnings or errors
+
    -------------------------
    -- Load_Status_Message --
    -------------------------
@@ -55,28 +59,31 @@ package body LSP.Ada_Project_Loading is
          when Valid_Project =>
             if Project.Project_Type = Single_Project_Found then
                return VSS.Strings.To_Virtual_String
-                   ("Unique project in root directory was found and "
-                    & "loaded, but it wasn't explicitly configured.");
+                 ("A unique project in the root directory was found"
+                  & " and loaded but it was not explicitly configured.");
             else
                return VSS.Strings.Empty_Virtual_String;
             end if;
          when No_Project =>
             return VSS.Strings.To_Virtual_String
-              ("No project found in root directory. "
-               & "Please create a project file and add it to the "
-               & "configuration.");
+              ("No project was found in the root directory."
+               & " Please create a GPR project file"
+               & " and add it to the configuration.");
          when Project_Not_Found =>
-            return VSS.Strings.To_Virtual_String
-              ("Configured project doesn't exist.");
+            return VSS.Strings.Conversions.To_Virtual_String
+              ("The configured project "
+               & URIs.Conversions.From_File
+                 (Project.Project_File.Display_Full_Name)
+               & " does not exist.");
          when Multiple_Projects =>
             return VSS.Strings.To_Virtual_String
-              ("No project was loaded, because more than one "
-               & "project file has been found in the root directory. "
-               & "Please change configuration to point a correct project "
-               & "file.");
+              ("No project was loaded because"
+               & " multiple project files were found in the root directory."
+               & " Please change the configuration"
+               & " to point to a single project file.");
          when Invalid_Project =>
             return VSS.Strings.To_Virtual_String
-              ("Project file has errors and can't be loaded.");
+              ("The project file has errors and could not be loaded.");
          when Warning_In_Project =>
             return VSS.Strings.Empty_Virtual_String;
       end case;
@@ -123,6 +130,9 @@ package body LSP.Ada_Project_Loading is
 
       procedure Append_GPR2_Diagnostics;
       --  Append the GPR2 messages to the given parent diagnostic, if any.
+
+      procedure Append_Runtime_Diagnostic;
+      --  Append a diagnostic if no runtime has been found for the project
 
       ---------------------------------------
       -- Create_Project_Loading_Diagnostic --
@@ -193,7 +203,7 @@ package body LSP.Ada_Project_Loading is
                   --  attached to the message is defined.
                   if File.Is_Defined and then File.Has_Value then
                      Parent_Diagnostic.relatedInformation.Append
-                       (LSP .Structures.DiagnosticRelatedInformation'
+                       (LSP.Structures.DiagnosticRelatedInformation'
                           (location => LSP.Structures.Location'
                                (uri     => LSP.Utils.To_URI (File),
                                 a_range => LSP.Utils.To_Range (Sloc),
@@ -220,6 +230,28 @@ package body LSP.Ada_Project_Loading is
          end loop;
       end Append_GPR2_Diagnostics;
 
+      -------------------------------
+      -- Append_Runtime_Diagnostic --
+      -------------------------------
+
+      procedure Append_Runtime_Diagnostic is
+      begin
+         if Project.Status not in No_Project .. Project_Not_Found
+           and then not Project.Has_Runtime
+         then
+            Parent_Diagnostic.relatedInformation.Append
+              (LSP.Structures.DiagnosticRelatedInformation'
+                 (location =>
+                      (uri     => "",
+                       a_range => (start  => (0, 0),
+                                   an_end => (0, 0)),
+                       others  => <>),
+                  message  => VSS.Strings.Conversions.To_Virtual_String
+                    ("The project was loaded, but no Ada runtime found. "
+                     & "Please check the installation of the Ada compiler.")));
+         end if;
+      end Append_Runtime_Diagnostic;
+
    begin
 
       if not Has_Diagnostics (Project) then
@@ -228,6 +260,7 @@ package body LSP.Ada_Project_Loading is
 
       Create_Project_Loading_Diagnostic;
       Append_GPR2_Diagnostics;
+      Append_Runtime_Diagnostic;
       Result.Append (Parent_Diagnostic);
       return Result;
    end Get_Diagnostics;
@@ -244,7 +277,7 @@ package body LSP.Ada_Project_Loading is
       return
         Old_Project.Status /= New_Project.Status
         or else (Old_Project.Project_Type /= New_Project.Project_Type
-                 and then not New_Project.GPR2_Messages.Is_Empty);
+                 and then Has_Pertinent_GPR2_Messages (New_Project));
    end Has_New_Diagnostics;
 
    ---------------------
@@ -264,9 +297,25 @@ package body LSP.Ada_Project_Loading is
             return True;
          when others =>
             return Project.Status /= Valid_Project
-              or else not Project.GPR2_Messages.Is_Empty;
+              or else Has_Pertinent_GPR2_Messages (Project);
       end case;
    end Has_Diagnostics;
+
+   ---------------------------------
+   -- Has_Pertinent_GPR2_Messages --
+   ---------------------------------
+
+   function Has_Pertinent_GPR2_Messages
+     (Project : Project_Status_Type) return Boolean is
+   begin
+      for Msg of Project.GPR2_Messages loop
+         if Msg.Level in GPR2.Message.Warning .. GPR2.Message.Error then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end Has_Pertinent_GPR2_Messages;
 
    ---------------------
    -- Set_Load_Status --
@@ -367,7 +416,8 @@ package body LSP.Ada_Project_Loading is
                    (Kind         => VSS.JSON.Streams.String_Value,
                     String_Value => "ada.projectFile");
             begin
-               Command.title := "Open settings for ada.projectFile";
+               Command.title :=
+                 "Open settings to set ada.projectFile to a valid project";
                Command.command := "workbench.action.openSettings";
                Command.arguments.Append (Arg);
 

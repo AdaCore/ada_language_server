@@ -50,7 +50,7 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "URI{foo_bar.gpr}"
+                     "projectFile": "$URI{foo_bar.gpr}"
                   }
                }
             }
@@ -86,7 +86,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "Configured project doesn't exist."
+                        "message": "The configured project $URI{foo_bar.gpr} does not exist."
                      }
                   ]
                }

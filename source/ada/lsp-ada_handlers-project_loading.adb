@@ -362,6 +362,8 @@ package body LSP.Ada_Handlers.Project_Loading is
          Self.Tracer.Trace
            ("The project set in the configuration doesn't exist: "
             & Project_File.Display_Full_Name);
+         LSP.Ada_Project_Loading.Set_Project_File
+           (Self.Project_Status, Project_File);
          LSP.Ada_Project_Loading.Set_Load_Status
            (Self.Project_Status,
             LSP.Ada_Project_Loading.Project_Not_Found);

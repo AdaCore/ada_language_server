@@ -92,7 +92,7 @@
                         },
                         "severity": 1,
                         "source": "project",
-                        "message": "No project was loaded, because more than one project file has been found in the root directory. Please change configuration to point a correct project file."
+                        "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
                      }
                   ]
                }
@@ -133,7 +133,7 @@
                               "character": 0
                            }
                         },
-                        "message": "No project was loaded, because more than one project file has been found in the root directory. Please change configuration to point a correct project file.",
+                        "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file.",
                         "severity": 1,
                         "source": "project"
                      }
@@ -178,7 +178,7 @@
                               "character": 0
                            }
                         },
-                        "message": "No project was loaded, because more than one project file has been found in the root directory. Please change configuration to point a correct project file.",
+                        "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file.",
                         "severity": 1,
                         "source": "project"
                      }
@@ -192,7 +192,7 @@
                "id": 13,
                "result": [
                   {
-                     "title": "Open settings for ada.projectFile",
+                     "title": "Open settings to set ada.projectFile to a valid project",
                      "kind": "quickfix",
                      "diagnostics": [
                         {
@@ -208,12 +208,12 @@
                            },
                            "severity": 1,
                            "source": "project",
-                           "message": "No project was loaded, because more than one project file has been found in the root directory. Please change configuration to point a correct project file."
+                           "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
                         }
                      ],
                      "isPreferred": true,
                      "command": {
-                        "title": "Open settings for ada.projectFile",
+                        "title": "Open settings to set ada.projectFile to a valid project",
                         "command": "workbench.action.openSettings",
                         "arguments": "ada.projectFile"
                      }
