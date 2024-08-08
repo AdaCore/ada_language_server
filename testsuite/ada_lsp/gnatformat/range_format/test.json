@@ -125,7 +125,7 @@
                            "character": 7
                         }
                      },
-                     "newText": "   procedure You_Say_Hello\n   is\n   begin\n      Ada.Text_Io.Put_Line (\"Hello\");\n   end;"
+                     "newText": "   procedure You_Say_Hello is\n   begin\n      Ada.Text_Io.Put_Line (\"Hello\");\n   end;"
                   }
                ]
             }
