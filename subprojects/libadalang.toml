@@ -1,0 +1,24 @@
+name = "libadalang"
+description = "Ada semantic analysis library"
+version = "24.0.0"
+
+authors = ["AdaCore"]
+maintainers = ["Pierre-Marie de Rodat <pmderodat@kawie.fr>", "chouteau@adacore.com"]
+maintainers-logins = ["pmderodat", "Fabien-Chouteau"]
+licenses = "Apache-2.0 WITH LLVM-exception"
+website = "https://github.com/AdaCore/libadalang"
+tags = ["libadalang", "static-analysis"]
+
+[environment]
+GPR_PROJECT_PATH.prepend = "${CRATE_ROOT}/build"
+
+[[actions]]
+type = "pre-build"
+command = ["bash", "-c", "-x", "source setenv.sh; pip install -r REQUIREMENTS.dev; python manage.py generate"]
+
+[[depends-on]]
+gnatcoll = "^24"
+gnatcoll_gmp = "^24"
+gnatcoll_iconv = "^24"
+libgpr2 = "^24"
+langkit_support = "^24"

@@ -1,0 +1,29 @@
+name = "markdown"
+description = "Markdown parser (draft)"
+long-description = "The markdown parser is an early stage of development. Just a few element is implemented and API will change in the future."
+version = "24.0.0"
+tags = ["markdown", "gfm", "commonmark"]
+
+authors = ["AdaCore"]
+maintainers = ["Max Reznik <reznik@adacore.com>"]
+maintainers-logins = ["reznikmm"]
+licenses = "Apache-2.0"
+
+project-files = ["gnat/markdown.gpr"]
+
+[[actions]]
+type = "post-fetch"
+command = [
+  "sed",
+  "-i.bak",
+  "-e",
+  '/-g/s/-g"/-g", "-Ofast"/',
+  "gnat/markdown.gpr"
+]
+
+[configuration]
+disabled = true
+
+[[depends-on]]
+vss = "~24.0.0"
+

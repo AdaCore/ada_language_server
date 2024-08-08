@@ -1,25 +1,19 @@
 on:
   push:
-    branches:
-      - edge
     tags:
       - 2*.*.*
+  workflow_dispatch:
+
 name: Build binaries
 env:
   DEFAULT_TAG: 24.0.999
-  AWS_DEFAULT_REGION: eu-west-1
 jobs:
   build:
     name: Build and deploy
     strategy:
       fail-fast: false
-      matrix: # Build debug and/or production
-        debug: ['']      # '' if production, 'debug' for debug
-        os: [macos-11, ubuntu-20.04, windows-latest]
-        cross: ['', aarch64]
-        exclude:
-          - os: windows-latest
-            cross: aarch64
+      matrix:
+        os: [macos-12, macos-14, ubuntu-20.04, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup Python
@@ -35,29 +29,6 @@ jobs:
           else
               echo "TAG=$DEFAULT_TAG" >> $GITHUB_ENV
           fi
-      - name: Install cross toolchain (Linux)
-        if: ${{ matrix.cross != '' && runner.os == 'Linux' }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
-          AWS_DEFAULT_REGION: eu-west-1
-        run: |
-            sudo apt install -y libc6-dev-arm64-cross linux-libc-dev-arm64-cross binutils-aarch64-linux-gnu
-            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2 . --sse=AES256
-            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 . --sse=AES256
-            sudo tar xjf ${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2  -C /
-            sudo tar xjf ${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 -C /
-      - name: Install cross toolchain (MacOS)
-        if: ${{ matrix.cross != '' && runner.os != 'Linux' }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
-          AWS_DEFAULT_REGION: eu-west-1
-        run: |
-            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2 . --sse=AES256
-            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 . --sse=AES256
-            sudo tar xjf ${{ matrix.cross }}-${{ runner.os }}-gcc-13.2.tar.bz2  --strip-components=3 -C /usr/local
-            sudo tar xjf ${{ matrix.cross }}-${{ runner.os }}-gmp-6.2.1.tar.bz2 --strip-components=3 -C /usr/local
       - name: Force Alire use preinstalled MSYS2
         shell: bash
         if: ${{ runner.os == 'Windows' }}
@@ -65,98 +36,65 @@ jobs:
           mkdir -p ~/.config/alire
           echo '[msys2]' >> ~/.config/alire/config.toml
           echo 'install_dir = "C:\\msys64"' >> ~/.config/alire/config.toml
-      - name: Install iconv and gmp (Windows only)
-        run: pacman --noconfirm -S mingw64/mingw-w64-x86_64-libiconv mingw64/mingw-w64-x86_64-gmp
-        if: ${{ runner.os == 'Windows' }}
-        shell: c:\msys64\usr\bin\bash.exe -l -e -o pipefail {0}
-        env:
-          MSYSTEM: MINGW64
       - name: Get als
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Get Spawn
-        uses: actions/checkout@v3
+      - name: Get GNAT toolchain with alire (AArch64)
+        if: ${{ matrix.os == 'macos-14' }}
+        run: |
+          # alire-project/setup-alire doesn't work for ARM64 Mac OS X for now.
+          # https://github.com/alire-project/setup-alire/pull/74
+          curl -L -O https://github.com/alire-project/alire/releases/download/nightly/alr-nightly-bin-aarch64-macos.zip
+          unzip alr-nightly-bin-aarch64-macos.zip
+          bin/alr index --reset-community
+          bin/alr toolchain --select gnat_native^14 gprbuild
+          echo $PWD/bin >> $GITHUB_PATH
+      - name: Get GNAT toolchain with alire (x86_64)
+        if: ${{ matrix.os != 'macos-14' }}
+        uses: alire-project/setup-alire@v3
         with:
-          repository: AdaCore/spawn
-          path: subprojects/spawn
-      - name: Get LAL_Tools
-        uses: actions/checkout@v3
-        with:
-          repository: AdaCore/libadalang-tools
-          path: subprojects/libadalang-tools
-      - name: Get Templates Parser
-        uses: actions/checkout@v3
-        with:
-          repository: AdaCore/templates-parser
-          path: subprojects/templates-parser
-      - name: Get GNATdoc
-        uses: actions/checkout@v3
-        with:
-          repository: AdaCore/gnatdoc
-          path: subprojects/gnatdoc
-          ref: edge
-      - name: Get LAL Refactor
-        uses: actions/checkout@v3
-        with:
-          repository: AdaCore/lal-refactor
-          path: subprojects/lal-refactor
-          ref: edge
-      - uses: actions/cache@v3
-        with:
-          path: ./cached_gnat
-          key: ${{ runner.os }}-alire-2023
-          restore-keys: ${{ runner.os }}-alire-2023
-      - name: Get GNAT toolchain with alire
-        uses: alire-project/setup-alire@v2
-        with:
-          toolchain: gnat_native^13 gprbuild^22
-          toolchain_dir: ./cached_gnat
+          toolchain: gnat_native^14 gprbuild
       - name: Build
         shell: bash
-        env:
-          AWS_ACCESS_KEY_ID: ${{secrets.GHA_CACHE_ACCESS_KEY_ID}}
-          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_CACHE_SECRET}}
         run: |
-          # This is to avoid locking .sh on win that prevents its updating
-          cp .github/workflows/build-binaries.sh .github/workflows/build-binaries.sh_
-          .github/workflows/build-binaries.sh_ "${{ matrix.debug }}" ${{ runner.os }} ${{ env.TAG }} "" "${{ matrix.cross }}"
+          alr settings --global --set dependencies.shared false
+          pip3 install e3-testsuite
+          scripts/build_als.sh all "$TAG"
       - name: Archive ALS binary
-        if: ${{ github.event_name == 'push' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: als-${{ runner.os }}-${{ matrix.debug }}${{ matrix.cross }}
+          name: als-${{ matrix.os }}
           # We know that only one of the following entries will match on a given
           # run, so we use globs here to try to avoid warnings on unmatched
           # entries
           path: |
             integration/vscode/ada/arm*
             integration/vscode/ada/x64*
-  package:
-    if: ${{ github.event_name == 'push' }}
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get als
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v3
-      - name: Pack vscode extension
+            commits.txt
+      - name: Upload release
+        shell: bash
+        if: ${{ env.TAG != env.DEFAULT_TAG }}
         run: |
-          if [[ ${GITHUB_REF##*/} = 2*.[0-9]*.[0-9]* ]]; then
-              TAG="${GITHUB_REF##*/}"
-              .github/workflows/release.sh ""      "${{ secrets.GITHUB_TOKEN }}" $TAG
-              # .github/workflows/release.sh "debug" "${{ secrets.GITHUB_TOKEN }}" $TAG
-          else
-              TAG="$DEFAULT_TAG"
-          fi
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          .github/workflows/pack-binaries.sh ""      "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
-          # .github/workflows/pack-binaries.sh "debug" "${{secrets.VSCE_TOKEN}}" "${{secrets.OPENVSX_TOKEN}}" $TAG
-      - name: Archive ALS vsix
-        uses: actions/upload-artifact@v3
+          .github/workflows/release.sh "${{ secrets.GITHUB_TOKEN }}" $TAG ""
+      - name: Package
+        shell: bash
+        run: |
+          .github/workflows/pack-binaries.sh "$TAG"
+      - name: Archive VSIX binary
+        uses: actions/upload-artifact@v4
         with:
-          name: als-vsix-${{ matrix.debug }}${{ env.TAG }}
-          path: '*.vsix'
+          name: vsix-${{ matrix.os }}
+          path: "*.vsix"
+      - name: Upload result to AWS
+        shell: bash
+        if: ${{ github.repository == 'AdaCore/ada_language_server' && startsWith(matrix.os, 'macos-') }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.GHA_PUBLISH_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.GHA_PUBLISH_SECRET}}
+          AWS_DEFAULT_REGION: eu-west-1
+        run: |
+          for FILE in *.vsix ; do
+            aws s3 cp ${FILE} s3://adacore-gha-tray-eu-west-1/vscode-extension/${TAG}/ --sse=AES256
+          done
+          aws s3 ls s3://adacore-gha-tray-eu-west-1/vscode-extension/${TAG}/

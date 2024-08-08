@@ -177,7 +177,7 @@
                                 "title": "",
                                 "command": "als-refactor-add-parameters",
                                 "arguments": [{
-                                    "context_id": "Default",
+                                    "context_id": "$URI{default.gpr}",
                                     "where": {
                                         "uri": "$URI{main.adb}",
                                         "range": {
@@ -261,7 +261,7 @@
                     "command": "als-refactor-add-parameters",
                     "arguments": [
                         {
-                            "context_id": "Default",
+                            "context_id": "$URI{default.gpr}",
                             "where": {
                                 "uri": "$URI{main.adb}",
                                 "range": {
@@ -356,7 +356,7 @@
                                 "command": "als-refactor-add-parameters",
                                 "arguments": [
                                     {
-                                        "context_id": "Default",
+                                        "context_id": "$URI{default.gpr}",
                                         "where": {
                                             "uri": "$URI{main.adb}",
                                             "range": {

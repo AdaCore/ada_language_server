@@ -194,7 +194,7 @@
                                 "command": "als-named-parameters",
                                 "arguments": [
                                     {
-                                        "context": "Default",
+                                        "context": "$URI{default.gpr}",
                                         "where": {
                                             "textDocument": {
                                                 "uri": "$URI{main.adb}"
@@ -222,7 +222,7 @@
                 "params": {
                     "arguments": [
                         {
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
@@ -282,7 +282,7 @@
                 "params": {
                     "arguments": [
                         {
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
@@ -342,7 +342,7 @@
                 "params": {
                     "arguments": [
                         {
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
@@ -402,7 +402,7 @@
                 "params": {
                     "arguments": [
                         {
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
@@ -462,7 +462,7 @@
                 "params": {
                     "arguments": [
                         {
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
@@ -522,7 +522,7 @@
                 "params": {
                     "arguments": [
                         {
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
@@ -582,7 +582,7 @@
                 "params": {
                     "arguments": [
                         {
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
@@ -642,7 +642,7 @@
                 "params": {
                     "arguments": [
                         {
-                            "context": "Default",
+                            "context": "$URI{default.gpr}",
                             "where": {
                                 "textDocument": {
                                     "uri": "$URI{main.adb}"
