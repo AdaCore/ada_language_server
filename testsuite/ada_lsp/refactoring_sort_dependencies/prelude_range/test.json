@@ -183,7 +183,7 @@
                         "command": "als-refactor-sort_dependencies",
                         "arguments": [
                            {
-                              "context": "Default",
+                              "context": "$URI{default.gpr}",
                               "where": {
                                  "uri": "$URI{main_package.ads}",
                                  "range": {
@@ -216,7 +216,7 @@
                "command": "als-refactor-sort_dependencies",
                "arguments": [
                   {
-                     "context": "Default",
+                     "context": "$URI{default.gpr}",
                      "where": {
                         "uri": "$URI{main_package.ads}",
                         "range": {

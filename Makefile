@@ -93,16 +93,27 @@ else
 		-gnatyN
 endif
 
+ifeq ($(ALIRE),True)
+	# When we use Alire to build ALS we expect BUILD_MODE and LIBRARY_TYPE
+	# is already set (see build_als.sh). OS is set in spawn crate TOML file.
+	# That's why we don't need FLAGS here.
+	COVERAGE_BUILD_FLAGS=
+	BUILD_FLAGS=
+endif
+
 all: coverage-instrument
-	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS)
-	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
-	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
+ifeq ($(ALIRE),True)
+	alr build -- -XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_FLAGS)
+else
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE)
+endif
+	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS)
+	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS)
 ifdef NODE
 	mkdir -p integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
-	cp -f $(ALS) integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
+	cp -v -f $(ALS) integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
 endif
 
 generate:

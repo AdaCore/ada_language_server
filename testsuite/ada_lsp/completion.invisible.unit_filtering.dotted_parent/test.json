@@ -139,7 +139,7 @@
                         "command": {
                            "arguments": [
                               {
-                                 "context": "Default",
+                                 "context": "$URI{default.gpr}",
                                  "import": "Foo",
                                  "qualifier": "",
                                  "where": {
@@ -168,7 +168,7 @@
                         "command": {
                            "arguments": [
                               {
-                                 "context": "Default",
+                                 "context": "$URI{default.gpr}",
                                  "import": "Foo.Child",
                                  "qualifier": "",
                                  "where": {

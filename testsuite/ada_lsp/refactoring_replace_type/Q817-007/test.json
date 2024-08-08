@@ -199,7 +199,7 @@
                         "command": "als-refactor-replace-type",
                         "arguments": [
                            {
-                              "context_id": "Default",
+                              "context_id": "$URI{default.gpr}",
                               "where": {
                                  "uri": "$URI{test.ads}",
                                  "range": {
@@ -233,7 +233,7 @@
                "command": "als-refactor-replace-type",
                "arguments": [
                   {
-                     "context_id": "Default",
+                     "context_id": "$URI{default.gpr}",
                      "where": {
                         "uri": "$URI{test.ads}",
                         "range": {

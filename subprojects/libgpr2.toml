@@ -1,0 +1,35 @@
+name = "libgpr2"
+version = "24.0.0"
+description = "Parser for GPR  Project File"
+authors = ["AdaCore"]
+licenses = "Apache-2.0 WITH LLVM-exception"
+maintainers = ["chouteau@adacore.com"]
+maintainers-logins = ["Fabien-Chouteau"]
+project-files = ["gpr2.gpr"]
+
+[configuration]
+disabled = true
+
+[gpr-externals]
+GPR2_BUILD = ["debug", "release", "release_checks", "gnatcov"]
+LIBRARY_TYPE = ["static", "relocatable", "static-pic"]
+
+[gpr-set-externals]
+GPR2_BUILD = "release"
+
+[[actions]]
+type = "post-fetch"
+command = ["bash", "-c", "-x", "[ -d gprconfig_kb ] || git clone https://github.com/AdaCore/gprconfig_kb.git"]
+
+[[actions]]
+type = "post-fetch"
+command = ["sed", "-i.bak", "-E", "-e", "s/\\b(X?)BUILD\\b/\\1GPR2_BUILD/g", "Makefile", "gpr2.gpr", "bindings/c/gpr2-c.gpr"]
+
+[[actions]]
+type = "pre-build"
+command = ["bash", "-c", "-x", "make setup build-lib-${LIBRARY_TYPE:-static} GPR2KBDIR=./gprconfig_kb/db"]
+
+[[depends-on]]
+gnatcoll = "~24.0.0"
+gnatcoll_iconv = "~24.0.0"
+gnatcoll_gmp = "~24.0.0"

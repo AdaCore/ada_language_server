@@ -1,0 +1,34 @@
+name = "libgpr"
+version = "24.0.0"
+description = "GNAT Project File Library"
+authors = ["AdaCore"]
+licenses = "GPL-3.0-or-later WITH GCC-exception-3.1"
+maintainers = ["chouteau@adacore.com"]
+maintainers-logins = ["Fabien-Chouteau"]
+project-files = ["gpr/gpr.gpr"]
+
+[configuration]
+disabled = true
+
+[gpr-externals]
+GPR_BUILD = ["debug", "production", "coverage", "profiling"]
+LIBRARY_TYPE = ["static", "relocatable", "static-pic"]
+
+[environment.'case(os)'.macos.DYLD_LIBRARY_PATH]
+append = "${CRATE_ROOT}/gpr/lib/production/relocatable"
+
+[environment.'case(os)'.windows.PATH]
+append = "${CRATE_ROOT}/gpr/lib/production/relocatable"
+
+[[actions]]
+type = "post-fetch"
+command = [
+  "sed",
+  "-i.bak",
+  '/type/s/UNIX/unix", "osx/;/when/s/UNIX/unix" | "osx/;s/UNIX/unix/',
+  "gpr/gpr.gpr"
+]
+
+[[depends-on]]
+gnat = "/=2020" # Does not build with GNAT Community 2020
+xmlada = "~24.0.0"
