@@ -220,10 +220,15 @@ export async function testTask(
                 setTerminalEnvironment(env);
                 const cp = spawnSync(cmdLine[0], cmdLine.slice(1), { cwd: cwd, env: env });
 
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                msg += `\nProcess ended with exit code ${cp.status} and output:\n`;
-                // msg += cp.stdout.toString() + cp.stderr.toString();
-                msg += cp.output.map((b) => (b != null ? b.toString() : '')).join('');
+                if (cp.status) {
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                    msg += `\nProcess ended with exit code ${cp.status} and output:\n`;
+                    // msg += cp.stdout.toString() + cp.stderr.toString();
+                    msg += cp.output?.map((b) => (b != null ? b.toString() : '')).join('');
+                } else {
+                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                    msg += `\nProcess ended with signal: ${cp.signal}`;
+                }
             } catch (error) {
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 msg += `\nEncountered an error: ${error}`;
