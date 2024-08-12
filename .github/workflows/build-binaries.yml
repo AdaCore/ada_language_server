@@ -40,21 +40,24 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Get GNAT toolchain with alire (AArch64)
-        if: ${{ matrix.os == 'macos-14' }}
+      - name: Get GNAT toolchain with alire
+        shell: bash
         run: |
           # alire-project/setup-alire doesn't work for ARM64 Mac OS X for now.
           # https://github.com/alire-project/setup-alire/pull/74
-          curl -L -O https://github.com/alire-project/alire/releases/download/nightly/alr-nightly-bin-aarch64-macos.zip
-          unzip alr-nightly-bin-aarch64-macos.zip
+          # Also it depends on `engineerd/configurator@v0.0.10` not approved by IT.
+          # https://github.com/alire-project/setup-alire/issues/75
+          # So we fetch Alire with curl then toolchain with Alire.
+          if [[ "$RUNNER_ARCH" == ARM64 ]] ; then
+            ZIP=nightly/alr-nightly-bin-aarch64-macos.zip
+          else
+            ZIP=v2.0.1/alr-2.0.1-bin-x86_64-${RUNNER_OS}.zip
+          fi
+          curl -L -O https://github.com/alire-project/alire/releases/download/$ZIP
+          unzip $(basename $ZIP)
           bin/alr index --reset-community
           bin/alr toolchain --select gnat_native^14 gprbuild
           echo $PWD/bin >> $GITHUB_PATH
-      - name: Get GNAT toolchain with alire (x86_64)
-        if: ${{ matrix.os != 'macos-14' }}
-        uses: alire-project/setup-alire@v3
-        with:
-          toolchain: gnat_native^14 gprbuild
       - name: Build
         shell: bash
         run: |
