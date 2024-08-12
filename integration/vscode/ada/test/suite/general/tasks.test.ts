@@ -17,6 +17,7 @@ import {
     closeAllEditors,
     getCmdLine,
     getCommandLines,
+    isCoreTask,
     isGNATSASTask,
     negate,
     runTaskAndGetResult,
@@ -47,7 +48,6 @@ ada: Build current project
 ada: Check current file
 ada: Compile current file
 ada: Generate documentation from the project
-ada: Create/update test skeletons for the project
 ada: Build main - src/main1.adb
 ada: Run main - src/main1.adb
 ada: Build and run main - src/main1.adb
@@ -57,7 +57,7 @@ ada: Build and run main - src/test.adb
 `.trim();
 
         const actualTaskList = tasks
-            .filter(negate(isGNATSASTask))
+            .filter(isCoreTask)
             .map((t) => `${t.source}: ${t.name}`)
             .join('\n');
         assert.strictEqual(actualTaskList, expectedTasksList);
@@ -70,7 +70,6 @@ ada: Build current project - gprbuild -P ${projectPath} -cargs:ada -gnatef
 ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
 ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
 ada: Generate documentation from the project - gnatdoc -P ${projectPath}
-ada: Create/update test skeletons for the project - gnattest -P ${projectPath}
 ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef
 ada: Run main - src/main1.adb - obj/main1exec${exe}
 ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb -cargs:ada -gnatef
@@ -81,7 +80,7 @@ ada: Run main - src/test.adb - obj/test${exe}
         /**
          * Exclude GNAT SAS tasks because they are tested in integration-testsuite.
          */
-        const actualCommandLines = await getCommandLines(prov, negate(isGNATSASTask));
+        const actualCommandLines = await getCommandLines(prov, isCoreTask);
         assert.equal(actualCommandLines, expectedCmdLines);
     });
 
@@ -283,9 +282,7 @@ suite('Task Execution', function () {
 
     this.beforeAll(async () => {
         await activate();
-        allProvidedTasks.push(
-            ...(await createAdaTaskProvider().provideTasks()).filter(negate(isGNATSASTask))
-        );
+        allProvidedTasks.push(...(await createAdaTaskProvider().provideTasks()).filter(isCoreTask));
     });
 
     this.beforeEach(async function () {
@@ -303,7 +300,6 @@ suite('Task Execution', function () {
     declTaskTest('ada: Build and run main - src/main1.adb');
     declTaskTest('ada: Build and run main - src/test.adb');
     declTaskTest('ada: Generate documentation from the project');
-    declTaskTest('ada: Create/update test skeletons for the project');
 
     /**
      * Check that the 'buildAndRunMain' task works fine with projects that

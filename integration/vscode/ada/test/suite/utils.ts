@@ -198,14 +198,14 @@ export function getCmdLine(exec: vscode.ShellExecution) {
  */
 export async function testTask(
     taskName: string,
-    testedTasks: Set<string>,
+    testedTasks?: Set<string>,
     allProvidedTasks?: vscode.Task[]
 ) {
     assert(vscode.workspace.workspaceFolders);
 
     const task = await findTaskByName(taskName, allProvidedTasks);
     assert(task);
-    testedTasks.add(getConventionalTaskLabel(task));
+    testedTasks?.add(getConventionalTaskLabel(task));
 
     const execStatus: number | undefined = await runTaskAndGetResult(task);
 
@@ -360,3 +360,25 @@ export function isGNATSASTask(t: vscode.Task): boolean {
 export function negate<T extends unknown[]>(predicate: (...args: T) => boolean) {
     return (...inputs: T) => !predicate(...inputs);
 }
+
+/**
+ * Utility function for creating a predicated that is the negation of another predicate.
+ */
+export function and<T extends unknown[]>(...predicates: ((...args: T) => boolean)[]) {
+    return (...inputs: T) => {
+        return predicates.reduce<boolean>((acc, cur) => acc && cur(...inputs), true);
+    };
+}
+
+/**
+ * Utility filter for selecting GNATtest tasks.
+ */
+export function isGNATTestTask(t: vscode.Task): boolean {
+    return t.name.includes('test skeleton');
+}
+
+/**
+ * Utility filter for selecting core tasks that are not related to other tools
+ * such as GNAT SAS or GNATtest.
+ */
+export const isCoreTask = and(negate(isGNATSASTask), negate(isGNATTestTask));
