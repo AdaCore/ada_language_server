@@ -185,7 +185,7 @@
                                     }
                                  }
                               },
-                              "message": "Unique project in root directory was found and loaded, but it wasn't explicitly configured."
+                              "message": "A unique project in the root directory was found and loaded but it was not explicitly configured."
                            }
                         ]
                      },

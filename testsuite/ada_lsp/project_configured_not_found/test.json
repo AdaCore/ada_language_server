@@ -1,0 +1,102 @@
+[
+    {
+        "comment": [
+            "This test checks a diagnostic is produced when the project ",
+            "file defined in the configuration doesn't exist."
+        ]
+    },  {
+        "start": {
+            "cmd": ["${ALS}"]
+        }
+    },  {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                    "processId": 1,
+                    "rootUri": "$URI{.}",
+                    "capabilities": {},
+                    "initializationOptions": {}
+                }
+            },
+            "wait":[{
+                "id": 0,
+                "result":{
+                    "capabilities":{
+                        "textDocumentSync": 2,
+                        "definitionProvider":true
+                    }
+                }
+            }]
+        }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{foo_bar.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Foo is\nbegin\n   null;\nend Foo;"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{foo.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": { "line": 0, "character": 0 },
+                           "end": { "line": 0, "character": 0 }
+                        },
+                        "severity": 1,
+                        "source": "project",
+                        "message": "The configured project $URI{foo_bar.gpr} does not exist."
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
