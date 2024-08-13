@@ -95,7 +95,7 @@
                                     }
                                  }
                               },
-                              "message": "Project file has errors and can't be loaded."
+                              "message": "The project file has errors and could not be loaded."
                            },
                            {
                               "location": {

@@ -26,6 +26,7 @@ libgpr2          = "^24.0.0"
 vss              = "^24.0.0"
 libadalang_tools = "^24.0.0"
 lal_refactor     = "25.0.0-20240625"
+gnatformat       = "25.0.0-20240625"
 gnatdoc          = "^24.0.0"
 spawn            = "^24.0.0"
 

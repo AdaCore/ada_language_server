@@ -18,31 +18,33 @@
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
-with GPR2.Path_Name;
-with GPR2.Project.View;
+with GPR2.Environment;
 with GPR2.Options;
 with GPR2.Containers;
+with GPR2.Context;
+with GPR2.Log;
+with GPR2.Path_Name;
 with GPR2.Project.Registry.Attribute;
 with GPR2.Project.Tree.View_Builder;
+with GPR2.Project.View;
 
 pragma Warnings (Off, "unit ""GPR2.Build.Source.Sets"" is not referenced");
 with GPR2.Build.Source.Sets;
 
 with Libadalang.Preprocessing;
-
-with VSS.Strings.Conversions;
-
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
+with LSP.Ada_Documents; use LSP.Ada_Documents;
 with LSP.Alire;
 with LSP.Ada_Handlers.File_Readers;
 with LSP.Ada_Indexing;
-with LSP.Enumerations;
-with LSP.Structures;
+with LSP.Ada_Project_Loading;
 with LSP.Utils;
 
 with URIs;
-with LSP.Ada_Documents; use LSP.Ada_Documents;
+
+with VSS.Strings;
+with VSS.Strings.Conversions;
 
 package body LSP.Ada_Handlers.Project_Loading is
 
@@ -52,10 +54,10 @@ package body LSP.Ada_Handlers.Project_Loading is
    --  Trace to enable/disable runtime indexing. Useful for the testsuite.
 
    procedure Load_Project_With_Alire
-     (Self               : in out Message_Handler'Class;
-      Project_File       : VSS.Strings.Virtual_String := "";
-      Context            : GPR2.Context.Object;
-      Charset            : VSS.Strings.Virtual_String);
+     (Self         : in out Message_Handler'Class;
+      Project_File : VSS.Strings.Virtual_String := "";
+      Context      : GPR2.Context.Object;
+      Charset      : VSS.Strings.Virtual_String);
    --  Core procedure to find project, search path, scenario and load the
    --  project.
    --
@@ -72,9 +74,20 @@ package body LSP.Ada_Handlers.Project_Loading is
    --
    --  If Alire succeed or no alire/crate then load project if provided.
 
+   procedure Load_Project
+     (Self         : in out Message_Handler'Class;
+      Project_Path : VSS.Strings.Virtual_String;
+      Context      : GPR2.Context.Object;
+      Environment  : GPR2.Environment.Object;
+      Charset      : VSS.Strings.Virtual_String;
+      Project_Type : LSP.Ada_Project_Loading.Project_Types);
+   --  Attempt to load the given project file, with the scenario provided.
+   --  This unloads all currently loaded project contexts. This factorizes code
+   --  between Load_Project_With_Alire and Ensure_Project_Loaded.
+
    procedure Load_Implicit_Project
      (Self   : in out Message_Handler'Class;
-      Status : Implicit_Project_Loaded);
+      Status : LSP.Ada_Project_Loading.Project_Status);
    --  Load the implicit project
 
    procedure Update_Project_Predefined_Sources
@@ -105,14 +118,34 @@ package body LSP.Ada_Handlers.Project_Loading is
       Self.Tracer.Trace_Text (Self.Client.Root);
 
       Load_Project_With_Alire
-        (Self                => Self,
-         Project_File        => VSS.Strings.Empty_Virtual_String,
-         Context             => Self.Configuration.Context,
-         Charset             => Self.Configuration.Charset);
+        (Self         => Self,
+         Project_File => VSS.Strings.Empty_Virtual_String,
+         Context      => Self.Configuration.Context,
+         Charset      => Self.Configuration.Charset);
 
       if not Self.Contexts.Is_Empty then
          --  Some project was found by alire and loaded. We are done!
          return;
+      elsif
+        not LSP.Ada_Project_Loading.Is_Project_Loaded (Self.Project_Status)
+      then
+         --  Create an empty context and don't load the implicit project
+         declare
+            use LSP.Ada_Context_Sets;
+            use LSP.Ada_Contexts;
+            C      : constant Context_Access := new Context (Self.Tracer);
+            Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
+              (Self'Unchecked_Access);
+         begin
+            C.Initialize
+              (File_Reader         => Reader,
+               Follow_Symlinks     => Self.Configuration.Follow_Symlinks,
+               Style               => Self.Configuration.Documentation_Style,
+               As_Fallback_Context => True);
+            Self.Contexts.Prepend (C);
+            --  Errors should be handled by the user
+            return;
+         end;
       end if;
 
       --  We don't have alire/crate.
@@ -141,20 +174,25 @@ package body LSP.Ada_Handlers.Project_Loading is
       if GPRs_Found = 0 then
          --  We have found zero .gpr files: load the implicit project
 
-         Load_Implicit_Project (Self, No_Project_Found);
+         LSP.Ada_Project_Loading.Set_Project_Type
+           (Self.Project_Status, LSP.Ada_Project_Loading.Implicit_Project);
+
+         Load_Implicit_Project
+           (Self, LSP.Ada_Project_Loading.No_Project);
       elsif GPRs_Found = 1 then
          --  We have found exactly one .gpr file: let's load it.
          Self.Tracer.Trace ("Loading:");
          Self.Tracer.Trace_Text (Project_File);
 
          Load_Project
-           (Self        => Self, Project_Path => Project_File,
-            Context     => Self.Configuration.Context,
-            Environment => GPR2.Environment.Process_Environment,
-            Charset     => "iso-8859-1",
-            Status      => Single_Project_Found);
+           (Self         => Self, Project_Path => Project_File,
+            Context      => Self.Configuration.Context,
+            Environment  => GPR2.Environment.Process_Environment,
+            Charset      => "iso-8859-1",
+            Project_Type => LSP.Ada_Project_Loading.Single_Project_Found);
       else
-         Load_Implicit_Project (Self, Multiple_Projects_Found);
+         Load_Implicit_Project
+           (Self, LSP.Ada_Project_Loading.Multiple_Projects);
       end if;
    end Ensure_Project_Loaded;
 
@@ -164,7 +202,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
    procedure Load_Implicit_Project
      (Self   : in out Message_Handler'Class;
-      Status : Implicit_Project_Loaded)
+      Status : LSP.Ada_Project_Loading.Project_Status)
    is
       use LSP.Ada_Context_Sets;
       use LSP.Ada_Contexts;
@@ -176,7 +214,9 @@ package body LSP.Ada_Handlers.Project_Loading is
    begin
       Self.Tracer.Trace ("Loading the implicit project");
 
-      Self.Project_Status.Load_Status := Status;
+      LSP.Ada_Project_Loading.Set_Project_Type
+        (Self.Project_Status, LSP.Ada_Project_Loading.Implicit_Project);
+      LSP.Ada_Project_Loading.Set_Load_Status (Self.Project_Status, Status);
       Release_Contexts_And_Project_Info (Self);
 
       C.Initialize
@@ -226,7 +266,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       Context      : GPR2.Context.Object;
       Environment  : GPR2.Environment.Object;
       Charset      : VSS.Strings.Virtual_String;
-      Status       : Load_Project_Status)
+      Project_Type : LSP.Ada_Project_Loading.Project_Types)
    is
       Project_File        : GNATCOLL.VFS.Virtual_File :=
         LSP.Utils.To_Virtual_File (Project_Path);
@@ -308,6 +348,9 @@ package body LSP.Ada_Handlers.Project_Loading is
       end Create_Context_For_Non_Aggregate;
 
    begin
+      LSP.Ada_Project_Loading.Set_Project_Type
+        (Self.Project_Status, Project_Type);
+
       --  The projectFile may be either an absolute path or a
       --  relative path; if so, we're assuming it's relative
       --  to Self.Root.
@@ -319,11 +362,20 @@ package body LSP.Ada_Handlers.Project_Loading is
                                             Project_File);
       end if;
 
+      if not Project_File.Is_Regular_File then
+         Self.Tracer.Trace
+           ("The project set in the configuration doesn't exist: "
+            & Project_File.Display_Full_Name);
+         LSP.Ada_Project_Loading.Set_Project_File
+           (Self.Project_Status, Project_File);
+         LSP.Ada_Project_Loading.Set_Load_Status
+           (Self.Project_Status,
+            LSP.Ada_Project_Loading.Project_Not_Found);
+         return;
+      end if;
+
       --  Unload the project tree and the project environment
       Release_Contexts_And_Project_Info (Self);
-
-      --  Now load the new project
-      Self.Project_Status.Load_Status := Status;
 
       declare
          Opts       : GPR2.Options.Object;
@@ -347,56 +399,61 @@ package body LSP.Ada_Handlers.Project_Loading is
          end if;
 
          if not Success then
-            Self.Project_Status.Load_Status := Invalid_Project_Configured;
+            LSP.Ada_Project_Loading.Set_Load_Status
+              (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
          end if;
 
          Self.Project_Tree.Update_Sources (Update_Log);
          if Update_Log.Has_Error then
-            Self.Project_Status.Load_Status := Invalid_Project_Configured;
+            LSP.Ada_Project_Loading.Set_Load_Status
+              (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
          end if;
 
          --  Retrieve the GPR2 error/warning messages right after loading the
          --  project.
 
-         --  Collect all messages coming from Load...
+         --  Merge all messages coming from Update_Sources with
+         --  all messages coming from Load...
          for C in Self.Project_Tree.Log_Messages.Iterate loop
-            Self.Project_Status.GPR2_Messages.Append (C.Element);
+            Update_Log.Append (C.Element);
          end loop;
 
-         --  ... and all messages coming from Update_Sources
-         for C in Update_Log.Iterate loop
-            Self.Project_Status.GPR2_Messages.Append (C.Element);
-         end loop;
+         --  Retrieve the GPR2 error/warning messages right after loading the
+         --  project.
+         LSP.Ada_Project_Loading.Set_GPR2_Messages
+           (Self.Project_Status, Update_Log);
 
       exception
          when E : others =>
             Self.Tracer.Trace_Exception (E);
-            Self.Project_Status.Load_Status := Invalid_Project_Configured;
+            LSP.Ada_Project_Loading.Set_Load_Status
+              (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
       end;
 
-      Self.Project_Status.Project_File := Project_File;
-
-      --  Trace all messages collected above
+      LSP.Ada_Project_Loading.Set_Project_File
+        (Self.Project_Status, Project_File);
       Self.Tracer.Trace ("GPR2 Log Messages:");
-      for Msg of Self.Project_Status.GPR2_Messages loop
+      for Msg of Self.Project_Tree.Log_Messages.all loop
          declare
-            Location : constant String := Msg.Sloc.Format (Full_Path_Name => True);
+            Location : constant String :=
+              Msg.Sloc.Format (Full_Path_Name => True);
             Message : constant String := Msg.Message;
          begin
             Self.Tracer.Trace (Location & " " & Message);
          end;
       end loop;
 
-      if Self.Project_Status.Load_Status /= Status
-        or else not Self.Project_Tree.Is_Defined
+      if not LSP.Ada_Project_Loading.Is_Project_Loaded (Self.Project_Status)
       then
          --  The project was invalid: fallback on loading the implicit project.
-         Load_Implicit_Project (Self, Invalid_Project_Configured);
+         Load_Implicit_Project
+           (Self, LSP.Ada_Project_Loading.Invalid_Project);
 
       else
-         --  No exception during Load, check if we have runtime
-         if not Self.Project_Tree.Has_Runtime_Project then
-            Self.Project_Status.Load_Status := No_Runtime_Found;
+         --  No exception during Load_Autoconf, check if we have runtime
+         if Self.Project_Tree.Has_Runtime_Project then
+            LSP.Ada_Project_Loading.Set_Has_Runtime
+              (Self.Project_Status, True);
          end if;
 
          Update_Project_Predefined_Sources (Self);
@@ -436,19 +493,18 @@ package body LSP.Ada_Handlers.Project_Loading is
    -----------------------------
 
    procedure Load_Project_With_Alire
-     (Self               : in out Message_Handler'Class;
-      Project_File       : VSS.Strings.Virtual_String := "";
-      Context            : GPR2.Context.Object;
-      Charset            : VSS.Strings.Virtual_String)
+     (Self         : in out Message_Handler'Class;
+      Project_File : VSS.Strings.Virtual_String := "";
+      Context      : GPR2.Context.Object;
+      Charset      : VSS.Strings.Virtual_String)
    is
 
-      Has_Alire   : Boolean;
-      Status      : Load_Project_Status;
-      Errors      : VSS.Strings.Virtual_String;
-      Project     : VSS.Strings.Virtual_String := Project_File;
-      UTF_8       : constant VSS.Strings.Virtual_String := "utf-8";
+      Has_Alire    : Boolean;
+      Errors       : VSS.Strings.Virtual_String;
+      Project      : VSS.Strings.Virtual_String := Project_File;
+      UTF_8        : constant VSS.Strings.Virtual_String := "utf-8";
 
-      Environment : GPR2.Environment.Object :=
+      Environment  : GPR2.Environment.Object :=
         GPR2.Environment.Process_Environment;
 
    begin
@@ -463,53 +519,48 @@ package body LSP.Ada_Handlers.Project_Loading is
                Has_Alire   => Has_Alire,
                Error       => Errors,
                Project     => Project);
-
-            Status := Alire_Project;
          end if;
 
          LSP.Alire.Setup_Alire_Env
-            (Root        => Self.Client.Root_Directory.Display_Full_Name,
+           (Root        => Self.Client.Root_Directory.Display_Full_Name,
             Has_Alire   => Has_Alire,
             Error       => Errors,
             Environment => Environment);
 
-         Status := Valid_Project_Configured;
+         if Has_Alire then
+            LSP.Ada_Project_Loading.Set_Project_Type
+              (Self.Project_Status, LSP.Ada_Project_Loading.Alire_Project);
 
-         if Has_Alire and then not Errors.Is_Empty then
+            if not Errors.Is_Empty then
 
-            --  Something wrong with alire. Report error. Don't load the
-            --  project. Fallback to implicit project.
-
-            declare
-               Error : LSP.Structures.ShowMessageParams;
-            begin
-               Error.a_type := LSP.Enumerations.Error;
-               Error.message := Errors;
-               Self.Sender.On_ShowMessage_Notification (Error);
+               --  Something wrong with alire. Report error and don't load the
+               --  project.
                Self.Tracer.Trace_Text (Errors);
 
-               Load_Implicit_Project (Self, Invalid_Project_Configured);
+               LSP.Ada_Project_Loading.Set_Load_Status
+                 (Self.Project_Status,
+                  LSP.Ada_Project_Loading.Invalid_Project);
+               return;
+            else
+
+               --  No errors means the project has been found
+               pragma Assert (not Project.Is_Empty);
+
+               Self.Tracer.Trace ("Project:");
+               Self.Tracer.Trace_Text (Project);
+
+               Load_Project
+                 (Self         => Self,
+                  Project_Path => Project,
+                  Context      => Context,
+                  Environment  => Environment,
+                  Charset      =>
+                    (if Charset.Is_Empty then UTF_8 else Charset),
+                  Project_Type => LSP.Ada_Project_Loading.Alire_Project);
+               --  Alire projects tend to use utf-8
 
                return;
-            end;
-         elsif Has_Alire then
-
-            --  No errors means the project has been found
-            pragma Assert (not Project.Is_Empty);
-
-            Self.Tracer.Trace ("Project:");
-            Self.Tracer.Trace_Text (Project);
-
-            Load_Project
-              (Self         => Self,
-               Project_Path => Project,
-               Context      => Context,
-               Environment  => Environment,
-               Charset      => (if Charset.Is_Empty then UTF_8 else Charset),
-               Status       => Status);
-            --  Alire projects tend to use utf-8
-
-            return;
+            end if;
          else
             Self.Tracer.Trace ("No alr in the PATH.");
          end if;
@@ -517,14 +568,13 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       --  There is no alire.toml or no alr, but we know the project, load it
       if not Project.Is_Empty then
-
          Load_Project
            (Self         => Self,
             Project_Path => Project,
             Context      => Context,
             Environment  => Environment,
             Charset      => Charset,
-            Status       => Valid_Project_Configured);
+            Project_Type => LSP.Ada_Project_Loading.Configured_Project);
       end if;
    end Load_Project_With_Alire;
 
@@ -621,7 +671,8 @@ package body LSP.Ada_Handlers.Project_Loading is
          for C in Self.Project_Tree.Log_Messages.Iterate loop
             Self.Tracer.Trace (C.Element.Format);
          end loop;
-         Self.Project_Status.Load_Status := Invalid_Project_Configured;
+         LSP.Ada_Project_Loading.Set_Load_Status
+           (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
       end if;
 
       Self.Project_Tree.Update_Sources;
@@ -629,7 +680,8 @@ package body LSP.Ada_Handlers.Project_Loading is
    exception
       when E : others =>
          Self.Tracer.Trace_Exception (E, "Reload_Implicit_Project_Dirs");
-         Self.Project_Status.Load_Status := Invalid_Project_Configured;
+         LSP.Ada_Project_Loading.Set_Load_Status
+           (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
    end Reload_Implicit_Project_Dirs;
 
    --------------------
