@@ -15,28 +15,19 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with VSS.Strings;
-with GPR2.Environment;
-with GPR2.Context;
-
-private
-
 package LSP.Ada_Handlers.Project_Loading is
 
-   procedure Load_Project
-     (Self         : in out Message_Handler'Class;
-      Project_Path : VSS.Strings.Virtual_String;
-      Context      : GPR2.Context.Object;
-      Environment  : GPR2.Environment.Object;
-      Charset      : VSS.Strings.Virtual_String;
-      Status       : Load_Project_Status);
-   --  Attempt to load the given project file, with the scenario provided.
-   --  This unloads all currently loaded project contexts. This factorizes code
-   --  between Load_Project_With_Alire and Ensure_Project_Loaded.
-
    procedure Ensure_Project_Loaded (Self : in out Message_Handler'Class);
+   --  Search and load a project from the current workspace.
+   --  The search will be done in this order:
+   --  1- search for an alire crate
+   --  2- if there is only one project then load it
+   --  3- load the implicit project and warn if there were multiple projects
+   --  Do nothing if a project has been loaded.
 
    procedure Reload_Project (Self : in out Message_Handler'CLass);
+   --  Reload the project set in the configuration or Load the project if
+   --  none is already yet.
 
    procedure Release_Contexts_And_Project_Info
      (Self : in out Message_Handler'Class);

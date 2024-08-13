@@ -169,7 +169,25 @@
                         },
                         "severity": 4,
                         "source": "project",
-                        "message": "Unique project in root directory was found and loaded, but it wasn't explicitly configured."
+                        "message": "Project Problems",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{default.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 }
+                              },
+                              "message": "A unique project in the root directory was found and loaded but it was not explicitly configured."
+                           }
+                        ]
                      },
                      {
                         "message": "Failed to execute the Add Parameter refactoring.",

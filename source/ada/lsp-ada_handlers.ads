@@ -25,7 +25,6 @@ with Ada.Exceptions;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
-with GPR2.Log;
 with GPR2.Project.Tree;
 
 with Libadalang.Analysis;
@@ -41,6 +40,7 @@ with LSP.Ada_Documents;
 with LSP.Ada_File_Sets;
 with LSP.Ada_Highlighters;
 with LSP.Ada_Job_Contexts;
+with LSP.Ada_Project_Loading;
 with LSP.Client_Message_Receivers;
 with LSP.Constants;
 with LSP.File_Monitors;
@@ -142,61 +142,7 @@ package LSP.Ada_Handlers is
    --  Remove the oldest logs in Dir
 
 private
-
-   type Load_Project_Status is
-     (Valid_Project_Configured,
-      Single_Project_Found,
-      Alire_Project,
-      No_Runtime_Found,
-      No_Project_Found,
-      Multiple_Projects_Found,
-      Invalid_Project_Configured);
-   --  Variants for state of the project loaded into the handler:
-   --
-   --  @value Valid_Project_Configured didChangeConfiguration provided a valid
-   --  project
-   --
-   --  @value Single_Project_Found no project in didChangeConfiguration, but
-   --  just one project in Root dir
-   --
-   --  @value Alire_Project no project in didChangeConfiguration, but Alire
-   --  knows what project to use
-   --
-   --  @value No_Runtime_Found project loaded, but no Ada runtime library was
-   --  found
-   --
-   --  @value No_Project_Found no project in didChangeConfiguration and no
-   --  project in Root dir
-   --
-   --  @value Multiple_Projects_Found no project in didChangeConfiguration and
-   --  several projects in Root dir
-   --
-   --  @value Invalid_Project_Configured didChangeConfiguration provided a
-   --  valid project
-
-   type Project_Status_Type is record
-      Project_File  : GNATCOLL.VFS.Virtual_File := GNATCOLL.VFS.No_File;
-      --  The project file we have attempted to load, successfully or not.
-
-      Load_Status   : Load_Project_Status := No_Project_Found;
-      --  Project loading status.
-
-      GPR2_Messages : GPR2.Log.Object := GPR2.Log.Undefined;
-      --  The warning/error messages emitted by GPR2 while loading the project.
-   end record;
-   --  Project loading status.
-
-   No_Project_Status : constant Project_Status_Type :=
-     Project_Status_Type'
-       (Project_File => GNATCOLL.VFS.No_File,
-        Load_Status  => No_Project_Found,
-        GPR2_Messages     => <>);
-
    type Project_Stamp is mod 2**32;
-
-   subtype Implicit_Project_Loaded is Load_Project_Status range
-     No_Project_Found .. Invalid_Project_Configured;
-   --  Project status when an implicit project loaded
 
    type Internal_Document_Access is access all LSP.Ada_Documents.Document;
 
@@ -271,7 +217,8 @@ private
       --  A cache for the predefined sources in the loaded project (typically,
       --  runtime files).
 
-      Project_Status : Project_Status_Type := No_Project_Status;
+      Project_Status : LSP.Ada_Project_Loading.Project_Status_Type :=
+        LSP.Ada_Project_Loading.No_Project_Status;
       --  Indicates whether a project has been successfully loaded and
       --  how. Stores GPR2 error/warning messages emitted while loading
       --  (or attempting to load) the project.

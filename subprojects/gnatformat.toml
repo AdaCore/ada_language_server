@@ -1,0 +1,24 @@
+name = "gnatformat"
+description = "An opinionated code formatter for the Ada language."
+version = "25.0.0-20240625"
+
+authors = ["AdaCore"]
+maintainers = ["João Azevedo <azevedo@adacore.com>"]
+maintainers-logins = ["joaopsazevedo"]
+licenses = "Apache-2.0 WITH LLVM-exception"
+website = "https://github.com/AdaCore/gnatformat"
+
+project-files = ["gnat/gnatformat.gpr"]
+
+[environment.'case(os)'.macos.DYLD_LIBRARY_PATH]
+append = "${CRATE_ROOT}/.libs/relocatable"
+
+[environment.'case(os)'.windows.PATH]
+append = "${CRATE_ROOT}/.libs/relocatable"
+
+[configuration]
+disabled = true
+
+[[depends-on]]
+libadalang = "^24"
+prettier_ada = "25.0.0-20240625"

@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------------
 
 with LSP.Ada_Contexts;
+with LSP.Ada_Project_Loading;
 with LSP.Diagnostic_Sources;
 
 package LSP.Ada_Handlers.Project_Diagnostics is
@@ -39,7 +40,7 @@ private
    type Diagnostic_Source
      (Handler : not null access LSP.Ada_Handlers.Message_Handler)
    is limited new LSP.Diagnostic_Sources.Diagnostic_Source with record
-      Last_Status : Load_Project_Status := No_Project_Found;
+      Last_Status : LSP.Ada_Project_Loading.Project_Status_Type;
    end record;
 
 end LSP.Ada_Handlers.Project_Diagnostics;

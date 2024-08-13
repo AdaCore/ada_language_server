@@ -39,6 +39,7 @@ project LSP_Server is
 
    for Object_Dir use "../.obj/server";
    for Main use ("lsp-ada_driver.adb");
+   --  Need C++ to use a linker compatible with libfswatch
    for Languages use ("Ada", "C++");
 
    package Naming is
