@@ -261,7 +261,7 @@ package body LSP.Ada_Configurations is
             Self.Context.Clear;
             for J in 1 .. Variables_Names.Length loop
                Self.Context.Insert
-                 (GPR2.Optional_Name_Type
+                 (GPR2.External_Name_Type
                     (VSS.Strings.Conversions.To_UTF_8_String
                          (Variables_Names (J))),
                   VSS.Strings.Conversions.To_UTF_8_String
