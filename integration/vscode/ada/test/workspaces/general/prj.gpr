@@ -1,4 +1,4 @@
-project Default is
+project Prj is
 
     Tools_Mains :=
      ("main1.adb",
@@ -20,7 +20,7 @@ project Default is
       -- This project contains intentionally invalid code which causes gnatdoc
       -- to fail when testing the corresponding vscode task. This gets the
       -- project skipped by gnatdoc for the purpose of testing.
-      for Excluded_Project_Files use ("default.gpr");
+      for Excluded_Project_Files use ("prj.gpr");
    end Documentation;
 
-end Default;
+end Prj;

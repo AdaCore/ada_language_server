@@ -5,6 +5,7 @@ import { assertEqualToFileContent, activate } from '../utils';
 
 import * as vscode from 'vscode';
 import { readFileSync, writeFileSync } from 'fs';
+import { basename } from 'path';
 
 suite('Extensions Test Suite', function () {
     // Make sure the extension is activated
@@ -14,8 +15,8 @@ suite('Extensions Test Suite', function () {
     test('Project File Response', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
             const result: string = await getProjectFile(adaExtState.adaClient);
-            const name = result.replace(/^.*[\\/]/, '');
-            assert.strictEqual(name, 'default.gpr');
+            const name = basename(result);
+            assert.strictEqual(name, 'prj.gpr');
         } else {
             throw new Error('No workspace folder found for the specified URI');
         }
