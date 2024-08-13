@@ -98,6 +98,6 @@ jobs:
           AWS_DEFAULT_REGION: eu-west-1
         run: |
           for FILE in *.vsix ; do
-            aws s3 cp ${FILE} s3://adacore-gha-tray-eu-west-1/vscode-extension/${TAG}/ --sse=AES256
+            aws s3 cp ${FILE} s3://als-publish-adacore-eu-west-1/vscode-extension/${TAG}/ --sse=AES256
           done
-          aws s3 ls s3://adacore-gha-tray-eu-west-1/vscode-extension/${TAG}/
+          aws s3 ls s3://als-publish-adacore-eu-west-1/vscode-extension/${TAG}/
