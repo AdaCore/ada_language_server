@@ -528,7 +528,10 @@ package body LSP.Ada_Completions.Parameters is
          return Res;
       end if;
 
-      if Aggr_Type.Kind in Ada_Type_Decl then
+      if Aggr_Type.Kind in Ada_Type_Decl
+        and then Aggr_Type.P_Is_Record_Type
+        --  P_Shapes can only be called on record types
+      then
          declare
             Base_Type  : constant Base_Type_Decl :=
               Aggr_Type.P_Base_Type (Origin => A);
