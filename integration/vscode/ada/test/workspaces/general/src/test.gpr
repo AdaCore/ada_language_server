@@ -1,0 +1,95 @@
+--
+--  Copyright (C) 2018-2024, AdaCore
+--
+--  SPDX-License-Identifier: Apache-2.0
+--
+
+with "gpr2.gpr";
+with "libadalang";
+with "lal_tools.gpr";
+with "lal_refactor.gpr";
+with "ada_libfswatch.gpr";
+with "libgnatdoc.gpr";
+with "spawn.gpr";
+
+with "lsp_3_17";
+with "lsp_common";
+
+project LSP_Server is
+
+   VERSION := external ("VERSION", "latest");
+
+   BUILD_DATE := external ("BUILD_DATE", "unknown");
+
+   type Library_Kind is ("static", "static-pic", "relocatable");
+   Library_Type : Library_Kind := external("ALS_LIBRARY_TYPE",
+                                  external("LIBRARY_TYPE", "relocatable"));
+
+   type OS_KIND is ("Windows_NT", "unix", "osx");
+   OS : OS_KIND := external("OS", "unix");
+
+   for Source_Dirs use
+     ("../source/server",
+      "../source/ada",
+      "../source/common",
+      "../source/gpr",
+      "../source/ada/generated",
+      "../source/memory");
+
+   for Object_Dir use "../.obj/server";
+   for Main use ("lsp-ada_driver.adb");
+   --  Need C++ to use a linker compatible with libfswatch
+   for Languages use ("Ada", "C++");
+
+   package Naming is
+      case LSP_Common.OS_API is
+         when "Windows_NT" =>
+            for Implementation ("LSP.Stdio_Streams.Initialize")
+              use "lsp-stdio_streams-init_windows.adb";
+
+         when others =>
+            for Implementation ("LSP.Stdio_Streams.Initialize")
+              use "lsp-stdio_streams-init_others.adb";
+
+      end case;
+   end Naming;
+
+   package Compiler is
+      for Default_Switches ("Ada") use
+        LSP_3_17.Compiler'Default_Switches ("Ada");
+      for Switches ("lsp-ada_driver.adb") use
+        LSP_3_17.Compiler'Default_Switches ("Ada")
+          & ("-gnateDVERSION=""" & VERSION & """",
+             "-gnateDBUILD_DATE=""" & BUILD_DATE & """");
+      for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
+      for Local_Configuration_Pragmas use "gnat.adc";
+   end Compiler;
+
+   package Linker is
+      case Library_Type is
+         when "static" | "static-pic" =>
+            case OS is
+               when "Windows_NT" =>
+                  for Switches ("Ada") use
+                    ("-static", "-static-libstdc++", "-static-libgcc",
+                     "-fstack-protector");
+                  --  Stack protector forces libssp.a linking for libgmp.a
+               when "osx" | "unix" =>
+                  --  On UNIX, we want to link libc dynamically: needed to find
+                  --  a recent version of iconv_open (and a recommended practice)
+                  for Switches ("Ada") use ("-static-libstdc++", "-static-libgcc");
+             end case;
+         when "relocatable" =>
+            null;
+      end case;
+   end Linker;
+
+   package Binder is
+      for Switches ("ada") use ("-E");
+   end Binder;
+
+   package Builder is
+      for Executable ("lsp-ada_driver") use "ada_language_server";
+   end Builder;
+
+end LSP_Server;

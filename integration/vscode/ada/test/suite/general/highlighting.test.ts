@@ -1,49 +1,41 @@
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { spawnSync } from 'child_process';
-import { existsSync, opendirSync, renameSync } from 'fs';
-import path, { basename, dirname } from 'path';
+import fs, { existsSync, lstatSync, opendirSync, readdirSync, renameSync } from 'fs';
+import path from 'path';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
 import { adaExtState } from '../../../src/extension';
 import { assertEqualToFileContent, update, activate } from '../utils';
 
-let adaFilePaths: string[] = [];
+const extensionRootPath = path.join(__dirname, '..', '..', '..', '..');
+const testWsPath = path.join(extensionRootPath, 'test', 'workspaces', 'general');
+const adaTestsPath = path.join(testWsPath, 'src', 'highlighting');
 
 suite('Highlighting', function () {
     this.beforeAll(async function () {
         await activate();
     });
 
-    const highlightingTestRoot = getDocUri('src/highlighting').fsPath;
-    adaFilePaths = [];
+    const adaTestPaths = [
+        'objects/objects.ads',
+        'unknown_imports/pkg.ads',
+        'hello/hello.adb',
+        'nesting/main.adb',
+        'invalid_ada/invalid.adb',
+        'types/types.ads',
+        'subprograms/subprograms.adb',
+        'pkgs-and-specs/pkgbodynospec.adb',
+        'pkgs-and-specs/pkgbodywithspec.ads',
+        'pkgs-and-specs/pkgbodywithspec.adb',
+        'lsp-ada_handlers/lsp-ada_handlers.adb',
+        'lsp-ada_handlers/lsp.ads',
+        'lsp-ada_handlers/lsp-ada_handlers.ads',
+    ];
 
-    function walk(dir: string) {
-        const openDir = opendirSync(dir);
-        try {
-            let child;
-            while ((child = openDir.readSync()) != null) {
-                const childPath = path.join(dir, child.name);
-                if (child.isDirectory()) {
-                    walk(childPath);
-                } else if (child.isFile()) {
-                    if (child.name.match(/\.ad[bs]$/)) {
-                        adaFilePaths.push(childPath);
-                    }
-                }
-            }
-        } finally {
-            openDir.closeSync();
-        }
-    }
+    for (const relPath of adaTestPaths) {
+        suite(relPath, function () {
+            const absPath = path.join(adaTestsPath, relPath);
 
-    walk(highlightingTestRoot);
-    assert.notStrictEqual(adaFilePaths, []);
-
-    for (const absPath of adaFilePaths) {
-        const testName = `${basename(dirname(absPath))}/${basename(absPath)}`;
-        const absFileUri = vscode.Uri.file(absPath);
-
-        suite(testName, function () {
             this.afterAll(async function () {
                 await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
             });
@@ -57,8 +49,20 @@ suite('Highlighting', function () {
             });
 
             test('semantic', async function () {
+                const absFileUri = vscode.Uri.file(absPath);
                 await testSemanticHighlighting(absFileUri);
             });
+        });
+    }
+
+    const gprTests = ['prj.gpr', 'src/test.gpr'];
+
+    for (const relPath of gprTests) {
+        const gprSyntaxPath = path.join(extensionRootPath, 'syntaxes', 'gpr.tmLanguage.json');
+
+        test(relPath, function () {
+            const gprPath = path.join(testWsPath, relPath);
+            testSyntax(gprSyntaxPath, gprPath, 'source.gpr');
         });
     }
 });
@@ -186,8 +190,6 @@ function getDocUri(p: string): vscode.Uri {
     }
 }
 
-const extensionRootPath = path.resolve(__dirname, '../../../../');
-
 /**
  * A type representing the two TextMate grammars available in the repository.
  * The values match directory names in the extension source directory. The
@@ -234,58 +236,63 @@ function testSyntaxHighlighting(absFilePath: string, syntax: Syntaxes) {
             );
         }
 
-        const cmd = [
-            // Use npx to avoid sensitivity to PATH env var. On Windows, the
-            // Node installation provides a 'npx' executable file which is a
-            // Bash script which doesn't work on Windows. Instead on Windows,
-            // the 'npx.cmd' file should be used.
-            process.platform == 'win32' ? 'npx.cmd' : 'npx',
-            'vscode-tmgrammar-snap',
-            // We pass a non-existing language configuration, otherwise the tool
-            // picks up the package.json file and always loads the grammar in
-            // use.
-            '--config',
-            'none',
-            // Show diffs on separate lines because color coding isn't visible
-            // in the VS Code debug console.
-            '--expandDiff',
-            '-g',
-            syntaxPath,
-            '-s',
-            'source.ada',
-            absFilePath,
-        ];
-
-        if (update()) {
-            cmd.push('--updateSnapshot');
-        }
-
-        const proc = spawnSync(cmd[0], cmd.slice(1), { cwd: workDirPath });
-
-        if (proc.error) {
-            // proc.error is set if we fail to spawn the child process
-            throw proc.error;
-        }
-
-        if (proc.status === null) {
-            const msg =
-                `Null return code for command: ${cmd.join(' ')}\n` +
-                String(proc.stdout) +
-                String(proc.stderr);
-            assert.fail(msg);
-        } else if (proc.status != 0) {
-            const msg =
-                `Return code ${proc.status.toString()} for command: cd ${workDirPath}; ${cmd.join(
-                    ' '
-                )}\n` +
-                String(proc.stdout) +
-                String(proc.stderr);
-            assert.fail(msg);
-        }
+        testSyntax(syntaxPath, absFilePath, 'source.ada');
     } finally {
         if (existsSync(workSnapPath)) {
             // Rename .snap --> .snap.<syntax>
             renameSync(workSnapPath, refSnapPath);
         }
+    }
+}
+
+function testSyntax(syntaxPath: string, absFilePath: string, languageId: string) {
+    const workDirPath = path.dirname(syntaxPath);
+    const cmd = [
+        // Use npx to avoid sensitivity to PATH env var. On Windows, the
+        // Node installation provides a 'npx' executable file which is a
+        // Bash script which doesn't work on Windows. Instead on Windows,
+        // the 'npx.cmd' file should be used.
+        process.platform == 'win32' ? 'npx.cmd' : 'npx',
+        'vscode-tmgrammar-snap',
+        // We pass a non-existing language configuration, otherwise the tool
+        // picks up the package.json file and always loads the grammar in
+        // use.
+        '--config',
+        'none',
+        // Show diffs on separate lines because color coding isn't visible
+        // in the VS Code debug console.
+        '--expandDiff',
+        '-g',
+        syntaxPath,
+        '-s',
+        languageId,
+        absFilePath,
+    ];
+
+    if (update()) {
+        cmd.push('--updateSnapshot');
+    }
+
+    const proc = spawnSync(cmd[0], cmd.slice(1), { cwd: workDirPath });
+
+    if (proc.error) {
+        // proc.error is set if we fail to spawn the child process
+        throw proc.error;
+    }
+
+    if (proc.status === null) {
+        const msg =
+            `Null return code for command: ${cmd.join(' ')}\n` +
+            String(proc.stdout) +
+            String(proc.stderr);
+        assert.fail(msg);
+    } else if (proc.status != 0) {
+        const msg =
+            `Return code ${proc.status.toString()} for command: cd ${workDirPath}; ${cmd.join(
+                ' '
+            )}\n` +
+            String(proc.stdout) +
+            String(proc.stderr);
+        assert.fail(msg);
     }
 }
