@@ -82,9 +82,16 @@ export async function activate(): Promise<void> {
  * provider that are based on a ShellExecution. The string includes the command
  * line of each task.
  */
-export async function getCommandLines(prov: SimpleTaskProvider) {
-    const tasks = await prov.provideTasks();
+export async function getCommandLines(
+    prov: SimpleTaskProvider,
+    filter?: (t: vscode.Task) => boolean
+) {
+    let tasks = await prov.provideTasks();
     assert(tasks);
+
+    if (filter) {
+        tasks = tasks.filter(filter);
+    }
 
     const actualCommandLines = (
         await Promise.all(
@@ -191,14 +198,14 @@ export function getCmdLine(exec: vscode.ShellExecution) {
  */
 export async function testTask(
     taskName: string,
-    testedTasks: Set<string>,
+    testedTasks?: Set<string>,
     allProvidedTasks?: vscode.Task[]
 ) {
     assert(vscode.workspace.workspaceFolders);
 
     const task = await findTaskByName(taskName, allProvidedTasks);
     assert(task);
-    testedTasks.add(getConventionalTaskLabel(task));
+    testedTasks?.add(getConventionalTaskLabel(task));
 
     const execStatus: number | undefined = await runTaskAndGetResult(task);
 
@@ -220,18 +227,24 @@ export async function testTask(
                 setTerminalEnvironment(env);
                 const cp = spawnSync(cmdLine[0], cmdLine.slice(1), { cwd: cwd, env: env });
 
-                if (cp.status) {
+                if (cp.status != null) {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     msg += `\nProcess ended with exit code ${cp.status} and output:\n`;
                     // msg += cp.stdout.toString() + cp.stderr.toString();
                     msg += cp.output?.map((b) => (b != null ? b.toString() : '')).join('');
-                } else {
+                } else if (cp.signal != null) {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     msg += `\nProcess ended with signal: ${cp.signal}`;
+                } else if (cp.error != undefined) {
+                    throw cp.error;
                 }
             } catch (error) {
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 msg += `\nEncountered an error: ${error}`;
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                if (`${error}`.includes('ENOENT')) {
+                    msg += '\nIt is likely that the executable is not on PATH';
+                }
             }
         }
 
@@ -333,3 +346,39 @@ export function rangeToStr(range: vscode.Range): string {
     // eslint-disable-next-line max-len
     return `${range.start.line}:${range.start.character} -> ${range.end.line}:${range.end.character}`;
 }
+
+/**
+ * Utility filter for selecting GNAT SAS tasks.
+ */
+export function isGNATSASTask(t: vscode.Task): boolean {
+    return t.name.includes('GNAT SAS');
+}
+
+/**
+ * Utility function for creating a predicated that is the negation of another predicate.
+ */
+export function negate<T extends unknown[]>(predicate: (...args: T) => boolean) {
+    return (...inputs: T) => !predicate(...inputs);
+}
+
+/**
+ * Utility function for creating a predicated that is the negation of another predicate.
+ */
+export function and<T extends unknown[]>(...predicates: ((...args: T) => boolean)[]) {
+    return (...inputs: T) => {
+        return predicates.reduce<boolean>((acc, cur) => acc && cur(...inputs), true);
+    };
+}
+
+/**
+ * Utility filter for selecting GNATtest tasks.
+ */
+export function isGNATTestTask(t: vscode.Task): boolean {
+    return t.name.includes('test skeleton');
+}
+
+/**
+ * Utility filter for selecting core tasks that are not related to other tools
+ * such as GNAT SAS or GNATtest.
+ */
+export const isCoreTask = and(negate(isGNATSASTask), negate(isGNATTestTask));
