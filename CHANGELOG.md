@@ -1,5 +1,12 @@
 # Release notes
 
+<!-- Do not change the title of this section. After a release create a new
+section below it for the last release. -->
+## \<next>
+
+* Migrate build infrastructure to ALIRE
+* Migrate VSIX publication infrastructure out of GitHub Actions
+
 ## 24.0.6 (2024-06-25)
 
 * Add Alire support for GPR language
