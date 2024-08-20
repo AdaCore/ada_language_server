@@ -28,9 +28,8 @@ git fetch --tags
 function release_notes() {
    echo "# Release notes"
 
-   git show --no-patch --format=%n "$TAG" |
-      sed -e '1,/Release notes/d'
-   echo ""
+   # Select the content of the first section of CHANGELOG.md
+   sed -n -e '/^## \\<next>/,/^##/p' <CHANGELOG.md | tail -n +2 | head -n -1
 
    COMMITS=commits.txt
 
