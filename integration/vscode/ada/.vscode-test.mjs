@@ -76,7 +76,7 @@ export default defineConfig(
                 // This may prevent running locally on Linux and having the test
                 // windows visible, but we consider this a minor use case for
                 // now. A workaround is to remove this line.
-                DISPLAY: ':99',
+                DISPLAY: process.env.DISPLAY ?? ':99',
             },
             launchArgs: [
                 // It's important to use the --user-data-dir=<path> form. The

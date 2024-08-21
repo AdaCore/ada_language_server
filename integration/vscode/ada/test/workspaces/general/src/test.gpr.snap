@@ -1,0 +1,776 @@
+>--
+#^^ source.gpr comment.line.double-dash.gpr
+>--  Copyright (C) 2018-2024, AdaCore
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr comment.line.double-dash.gpr
+>--
+#^^ source.gpr comment.line.double-dash.gpr
+>--  SPDX-License-Identifier: Apache-2.0
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr comment.line.double-dash.gpr
+>--
+#^^ source.gpr comment.line.double-dash.gpr
+>
+>with "gpr2.gpr";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#              ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#               ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>with "libadalang";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#                ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                 ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>with "lal_tools.gpr";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#                   ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                    ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>with "lal_refactor.gpr";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#                      ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                       ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>with "ada_libfswatch.gpr";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^^^^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#                        ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                         ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>with "libgnatdoc.gpr";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#                    ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>with "spawn.gpr";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#               ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>
+>with "lsp_3_17";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#              ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#               ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>with "lsp_common";
+#^^^^ source.gpr meta.clause.with.gpr keyword.gpr
+#    ^ source.gpr meta.clause.with.gpr
+#     ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#      ^^^^^^^^^^ source.gpr meta.clause.with.gpr string.quoted.double.gpr
+#                ^ source.gpr meta.clause.with.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                 ^ source.gpr meta.clause.with.gpr punctuation.gpr
+>
+>project LSP_Server is
+#^^^^^^^ source.gpr meta.project.gpr keyword.gpr
+#       ^ source.gpr meta.project.gpr
+#        ^^^^^^^^^^ source.gpr meta.project.gpr entity.name.project.gpr entity.name.gpr
+#                  ^ source.gpr meta.project.gpr
+#                   ^^ source.gpr meta.project.gpr keyword.gpr
+>
+>   VERSION := external ("VERSION", "latest");
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr variable.name.gpr entity.name.gpr
+#          ^ source.gpr meta.project.gpr meta.declaration.variable.gpr
+#           ^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr punctuation.gpr
+#             ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr
+#              ^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr variable.language.gpr
+#                      ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr
+#                       ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                        ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                         ^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                  ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr
+#                                   ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                    ^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                          ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                           ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                            ^ source.gpr meta.project.gpr meta.declaration.variable.gpr punctuation.gpr
+>
+>   BUILD_DATE := external ("BUILD_DATE", "unknown");
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr variable.name.gpr entity.name.gpr
+#             ^ source.gpr meta.project.gpr meta.declaration.variable.gpr
+#              ^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr punctuation.gpr
+#                ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr
+#                 ^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr variable.language.gpr
+#                         ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr
+#                          ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                           ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                            ^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                      ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                       ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                        ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr
+#                                         ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                          ^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                 ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                  ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                                   ^ source.gpr meta.project.gpr meta.declaration.variable.gpr punctuation.gpr
+>
+>   type Library_Kind is ("static", "static-pic", "relocatable");
+#^^^ source.gpr meta.project.gpr
+#   ^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr keyword.gpr
+#       ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#        ^^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr entity.name.type.gpr entity.name.gpr
+#                    ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#                     ^^ source.gpr meta.project.gpr meta.declaration.type.gpr keyword.gpr
+#                       ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#                        ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+#                         ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                          ^^^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr
+#                                ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+#                                  ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#                                   ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                    ^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr
+#                                              ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                               ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+#                                                ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#                                                 ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                  ^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr
+#                                                             ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                              ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+#                                                               ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+>   Library_Type : Library_Kind := external("ALS_LIBRARY_TYPE",
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr variable.name.gpr entity.name.gpr
+#               ^ source.gpr meta.project.gpr meta.declaration.variable.gpr
+#                ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.declaration.variable.type.gpr punctuation.gpr
+#                 ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.declaration.variable.type.gpr
+#                  ^^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.declaration.variable.type.gpr entity.name.type.gpr entity.name.gpr
+#                              ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.declaration.variable.type.gpr
+#                               ^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr punctuation.gpr
+#                                 ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr
+#                                  ^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr variable.language.gpr
+#                                          ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                           ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                            ^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                            ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                             ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+>                                  external("LIBRARY_TYPE", "relocatable"));
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr
+#                                  ^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr variable.language.gpr
+#                                          ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                           ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                            ^^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                        ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                         ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                                          ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr
+#                                                           ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                            ^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                                       ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                                        ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                                                         ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                                                          ^ source.gpr meta.project.gpr meta.declaration.variable.gpr punctuation.gpr
+>
+>   type OS_KIND is ("Windows_NT", "unix", "osx");
+#^^^ source.gpr meta.project.gpr
+#   ^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr keyword.gpr
+#       ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#        ^^^^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr entity.name.type.gpr entity.name.gpr
+#               ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#                ^^ source.gpr meta.project.gpr meta.declaration.type.gpr keyword.gpr
+#                  ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#                   ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+#                    ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr
+#                               ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+#                                 ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#                                  ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                   ^^^^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr
+#                                       ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                        ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+#                                         ^ source.gpr meta.project.gpr meta.declaration.type.gpr
+#                                          ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                           ^^^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr
+#                                              ^ source.gpr meta.project.gpr meta.declaration.type.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                               ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+#                                                ^ source.gpr meta.project.gpr meta.declaration.type.gpr punctuation.gpr
+>   OS : OS_KIND := external("OS", "unix");
+#^^^ source.gpr meta.project.gpr
+#   ^^ source.gpr meta.project.gpr meta.declaration.variable.gpr variable.name.gpr entity.name.gpr
+#     ^ source.gpr meta.project.gpr meta.declaration.variable.gpr
+#      ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.declaration.variable.type.gpr punctuation.gpr
+#       ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.declaration.variable.type.gpr
+#        ^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.declaration.variable.type.gpr entity.name.type.gpr entity.name.gpr
+#               ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.declaration.variable.type.gpr
+#                ^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr punctuation.gpr
+#                  ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr
+#                   ^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr variable.language.gpr
+#                           ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                            ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                             ^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                               ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                 ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr
+#                                  ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                   ^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                       ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                        ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                         ^ source.gpr meta.project.gpr meta.declaration.variable.gpr punctuation.gpr
+>
+>   for Source_Dirs use
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                  ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+>     ("../source/server",
+#^^^^^ source.gpr meta.project.gpr meta.attribute.gpr
+#     ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#       ^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                       ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                        ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+>      "../source/ada",
+#^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#       ^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                    ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+>      "../source/common",
+#^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#       ^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                       ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                        ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+>      "../source/gpr",
+#^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#       ^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                    ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+>      "../source/ada/generated",
+#^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#       ^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                              ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                               ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+>      "../source/memory");
+#^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#       ^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                       ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                        ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                         ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>
+>   for Object_Dir use "../.obj/server";
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                 ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                  ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#                     ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                      ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                       ^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                     ^ source.gpr meta.project.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                      ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>   for Main use ("lsp-ada_driver.adb");
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#           ^ source.gpr meta.project.gpr meta.attribute.gpr
+#            ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#               ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                 ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                  ^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                    ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                     ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                      ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>   --  Need C++ to use a linker compatible with libfswatch
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr comment.line.double-dash.gpr
+>   for Languages use ("Ada", "C++");
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                 ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#                    ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                     ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                      ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                       ^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                          ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                           ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                            ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr
+#                             ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                              ^^^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                 ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                  ^ source.gpr meta.project.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                   ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>
+>   package Naming is
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#          ^ source.gpr meta.project.gpr meta.package.gpr
+#           ^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#                 ^ source.gpr meta.project.gpr meta.package.gpr
+#                  ^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+>      case LSP_Common.OS_API is
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr
+#      ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr keyword.control.gpr
+#          ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr
+#           ^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr variable.name.gpr variable.name.gpr
+#                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr variable.name.gpr punctuation.gpr
+#                      ^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr variable.name.gpr variable.name.gpr
+#                            ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr
+#                             ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr keyword.control.gpr
+>         when "Windows_NT" =>
+#^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr
+#         ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#              ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#               ^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr
+#                         ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                          ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#                           ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+>            for Implementation ("LSP.Stdio_Streams.Initialize")
+#^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#            ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr keyword.gpr
+#               ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                ^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                              ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                                             ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                              ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+>              use "lsp-stdio_streams-init_windows.adb";
+#^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#              ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr keyword.gpr
+#                 ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                  ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                      ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr punctuation.gpr
+>
+>         when others =>
+#^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#         ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#              ^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+#                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#                     ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+>            for Implementation ("LSP.Stdio_Streams.Initialize")
+#^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#            ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr keyword.gpr
+#               ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                ^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                              ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                                             ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                              ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+>              use "lsp-stdio_streams-init_others.adb";
+#^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#              ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr keyword.gpr
+#                 ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                  ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr punctuation.gpr
+>
+>      end case;
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr keyword.control.gpr
+#         ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr
+#          ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr keyword.control.gpr
+#              ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr punctuation.gpr
+>   end Naming;
+#^^^ source.gpr meta.project.gpr meta.package.gpr
+#   ^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.package.gpr
+#       ^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr punctuation.gpr
+>
+>   package Compiler is
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#          ^ source.gpr meta.project.gpr meta.package.gpr
+#           ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#                   ^ source.gpr meta.project.gpr meta.package.gpr
+#                    ^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+>      for Default_Switches ("Ada") use
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr
+#      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#          ^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                          ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                            ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                             ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                                   ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+>        LSP_3_17.Compiler'Default_Switches ("Ada");
+#^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#        ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr variable.name.gpr variable.name.gpr
+#                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr variable.name.gpr punctuation.gpr
+#                 ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr variable.name.gpr variable.name.gpr
+#                         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr punctuation.gpr
+#                          ^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_name variable.name.gpr
+#                                          ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr
+#                                           ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index punctuation.gpr
+#                                            ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index string.quoted.double.gpr punctuation.definition.string.gpr
+#                                             ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index string.quoted.double.gpr
+#                                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index punctuation.gpr
+#                                                  ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr punctuation.gpr
+>      for Switches ("lsp-ada_driver.adb") use
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr
+#      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#          ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                  ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                    ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                       ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                        ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                                          ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+>        LSP_3_17.Compiler'Default_Switches ("Ada")
+#^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#        ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr variable.name.gpr variable.name.gpr
+#                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr variable.name.gpr punctuation.gpr
+#                 ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr variable.name.gpr variable.name.gpr
+#                         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr punctuation.gpr
+#                          ^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_name variable.name.gpr
+#                                          ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr
+#                                           ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index punctuation.gpr
+#                                            ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index string.quoted.double.gpr punctuation.definition.string.gpr
+#                                             ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index string.quoted.double.gpr
+#                                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.attribute_reference.gpr meta.attribute_reference.attribute_index punctuation.gpr
+>          & ("-gnateDVERSION=""" & VERSION & """",
+#^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#          ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr punctuation.gpr
+#           ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#            ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#              ^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                             ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                              ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                               ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                  ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                   ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr variable.name.gpr
+#                                          ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                           ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                            ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                             ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                              ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                               ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+>             "-gnateDBUILD_DATE=""" & BUILD_DATE & """");
+#^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#              ^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                  ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                   ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                      ^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr variable.name.gpr
+#                                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                                  ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                                   ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                      ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                       ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                                        ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr punctuation.gpr
+>      for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr
+#      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#          ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                  ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                    ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                  ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                                    ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#                                       ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                                        ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                          ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                            ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                             ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                              ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                               ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                   ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr
+#                                                      ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                       ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                              ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                               ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr punctuation.gpr
+>      for Local_Configuration_Pragmas use "gnat.adc";
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr
+#      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#          ^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                                      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#                                         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                                          ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                           ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                                   ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr punctuation.gpr
+>   end Compiler;
+#^^^ source.gpr meta.project.gpr meta.package.gpr
+#   ^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.package.gpr
+#       ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#               ^ source.gpr meta.project.gpr meta.package.gpr punctuation.gpr
+>
+>   package Linker is
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#          ^ source.gpr meta.project.gpr meta.package.gpr
+#           ^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#                 ^ source.gpr meta.project.gpr meta.package.gpr
+#                  ^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+>      case Library_Type is
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr
+#      ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr keyword.control.gpr
+#          ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr
+#           ^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr variable.name.gpr variable.name.gpr
+#                       ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr
+#                        ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr keyword.control.gpr
+>         when "static" | "static-pic" =>
+#^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr
+#         ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#              ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#               ^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr
+#                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                      ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#                       ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr punctuation.gpr
+#                        ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#                         ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                          ^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr
+#                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#                                      ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+>            case OS is
+#^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#            ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr keyword.control.gpr
+#                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr
+#                 ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr variable.name.gpr variable.name.gpr
+#                   ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr
+#                    ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr keyword.control.gpr
+>               when "Windows_NT" =>
+#^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr
+#               ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+#                   ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr
+#                               ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                                 ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+>                  for Switches ("Ada") use
+#^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                  ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr keyword.gpr
+#                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                      ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                              ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                     ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                                       ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr keyword.gpr
+>                    ("-static", "-static-libstdc++", "-static-libgcc",
+#^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                      ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                             ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                              ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                               ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                  ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                   ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr
+#                                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                      ^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+>                     "-fstack-protector");
+#^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr
+#                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                      ^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                       ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                        ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                         ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr punctuation.gpr
+>                  --  Stack protector forces libssp.a linking for libgmp.a
+#^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr comment.line.double-dash.gpr
+>               when "osx" | "unix" =>
+#^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#               ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+#                   ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr
+#                        ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                         ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                          ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr punctuation.gpr
+#                           ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                            ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                             ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr
+#                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                  ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                                   ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+>                  --  On UNIX, we want to link libc dynamically: needed to find
+#^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr comment.line.double-dash.gpr
+>                  --  a recent version of iconv_open (and a recommended practice)
+#^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr comment.line.double-dash.gpr
+>                  for Switches ("Ada") use ("-static-libstdc++", "-static-libgcc");
+#^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#                  ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr keyword.gpr
+#                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                      ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                              ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                     ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                                       ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr keyword.gpr
+#                                          ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr
+#                                           ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                            ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                             ^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                              ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                               ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                                                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr
+#                                                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                                  ^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                                                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                                                                  ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr meta.attribute.gpr punctuation.gpr
+>             end case;
+#^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr meta.case.when.gpr
+#             ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr keyword.control.gpr
+#                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr
+#                 ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr keyword.control.gpr
+#                     ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr meta.case.gpr punctuation.gpr
+>         when "relocatable" =>
+#^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#         ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#              ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#               ^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr
+#                          ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                           ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#                            ^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.control.gpr
+>            null;
+#^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#            ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr keyword.gpr
+#                ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+>      end case;
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr meta.case.when.gpr
+#      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr keyword.control.gpr
+#         ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr
+#          ^^^^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr keyword.control.gpr
+#              ^ source.gpr meta.project.gpr meta.package.gpr meta.case.gpr punctuation.gpr
+>   end Linker;
+#^^^ source.gpr meta.project.gpr meta.package.gpr
+#   ^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.package.gpr
+#       ^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr punctuation.gpr
+>
+>   package Binder is
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#          ^ source.gpr meta.project.gpr meta.package.gpr
+#           ^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#                 ^ source.gpr meta.project.gpr meta.package.gpr
+#                  ^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+>      for Switches ("ada") use ("-E");
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr
+#      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#          ^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                  ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                    ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                     ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr
+#                        ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                         ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                           ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#                              ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                               ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                 ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                   ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                    ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr meta.string_list.gpr punctuation.gpr
+#                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr punctuation.gpr
+>   end Binder;
+#^^^ source.gpr meta.project.gpr meta.package.gpr
+#   ^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.package.gpr
+#       ^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#             ^ source.gpr meta.project.gpr meta.package.gpr punctuation.gpr
+>
+>   package Builder is
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#          ^ source.gpr meta.project.gpr meta.package.gpr
+#           ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#                  ^ source.gpr meta.project.gpr meta.package.gpr
+#                   ^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+>      for Executable ("lsp-ada_driver") use "ada_language_server";
+#^^^^^^ source.gpr meta.project.gpr meta.package.gpr
+#      ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#         ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#          ^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                    ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                      ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                       ^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                     ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                      ^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                                        ^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr keyword.gpr
+#                                           ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr
+#                                            ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                             ^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr
+#                                                                ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                                 ^ source.gpr meta.project.gpr meta.package.gpr meta.attribute.gpr punctuation.gpr
+>   end Builder;
+#^^^ source.gpr meta.project.gpr meta.package.gpr
+#   ^^^ source.gpr meta.project.gpr meta.package.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.package.gpr
+#       ^^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
+#              ^ source.gpr meta.project.gpr meta.package.gpr punctuation.gpr
+>
+>end LSP_Server;
+#^^^ source.gpr meta.project.gpr keyword.gpr
+#   ^ source.gpr meta.project.gpr
+#    ^^^^^^^^^^ source.gpr meta.project.gpr entity.name.project.gpr
+#              ^ source.gpr meta.project.gpr punctuation.gpr
+>

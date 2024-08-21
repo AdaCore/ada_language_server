@@ -6,6 +6,13 @@ NODE_PLATFORM=$(node -e "console.log(process.platform)")
 NODE_ARCH=$(node -e "console.log(process.arch)")
 ext_dir=integration/vscode/ada
 
+function create_changelog() {
+   # Replace the \<next> section with the tag
+   sed -e "s/^## \\\\<next>$/## $TAG/" <CHANGELOG.md
+}
+
+create_changelog >"$ext_dir/CHANGELOG.md"
+
 (
    cd "$ext_dir"
 
