@@ -26,6 +26,15 @@ type = "post-fetch"
 command = ["sed", "-i.bak", "-E", "-e", "s/\\b(X?)BUILD\\b/\\1GPR2_BUILD/g", "Makefile", "gpr2.gpr", "bindings/c/gpr2-c.gpr"]
 
 [[actions]]
+type = "post-fetch"
+command = [
+  "sed",
+  "-i.bk2",
+  "-e", '''
+  /package Compiler/a for Switches ("gpr2-build-actions-post_bind.adb") use Compiler'Default_Switches ("Ada") & ("-O0");''',
+  "gpr2.gpr"]
+
+[[actions]]
 type = "pre-build"
 command = ["bash", "-c", "-x", "make setup build-lib-${LIBRARY_TYPE:-static} GPR2KBDIR=./gprconfig_kb/db"]
 
