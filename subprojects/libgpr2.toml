@@ -31,7 +31,8 @@ command = [
   "sed",
   "-i.bk2",
   "-e", '''
-  /package Compiler/a for Switches ("gpr2-build-actions-post_bind.adb") use Compiler'Default_Switches ("Ada") & ("-O0");''',
+  /package Compiler/a\
+   for Switches ("gpr2-build-actions-post_bind.adb") use Compiler'Default_Switches ("Ada") & ("-O0");''',
   "gpr2.gpr"]
 
 [[actions]]
