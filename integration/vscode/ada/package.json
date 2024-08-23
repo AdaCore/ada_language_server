@@ -840,44 +840,58 @@
         },
         "walkthroughs": [
             {
-                "id": "als-get-stated",
-                "title": "Ada in VS Code",
-                "description": "Introduction to Ada in VS Code support",
+                "id": "als-get-started",
+                "title": "Get Started with Ada & SPARK",
+                "description": "A brief introduction of Ada & SPARK support in VS Code",
                 "steps": [
                     {
-                        "id": "als-get-stated-welcome",
-                        "title": "Welcome to Ada extension!",
-                        "description": "This short walkthrough introduces the Ada extension.",
+                        "id": "als-get-started-install-toolchain",
+                        "title": "Install development tools",
+                        "description": "Install an Ada compiler to execute your source code.\n[Install a Compiler](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/ada#getting-additional-tools)",
                         "media": {
-                            "markdown": "media/welcome.md"
+                            "markdown": "media/toolchain.md"
                         }
                     },
                     {
-                        "id": "als-get-stated-setting",
-                        "title": "Set a project file",
-                        "description": "Set the active project file in the ``ada.projectFile`` setting.\n [Open Settings](command:workbench.action.openSettings)",
+                        "id": "als-get-started-open-workspace",
+                        "title": "Open a VS Code workspace",
+                        "description": "Create a new folder or use an existing one, and open it with VS Code.\n[Open Folder](command:vscode.openFolder)",
                         "media": {
-                            "markdown": "media/settings.md"
+                            "markdown": "media/empty.md"
+                        },
+                        "when": "workspaceFolderCount == 0"
+                    },
+                    {
+                        "id": "als-get-started-create-project",
+                        "title": "Create a project",
+                        "description": "If you don't already have a GPR project, create one!\n[Create a Hello World Project](command:toSide:ada.createHelloWorldProject)",
+                        "media": {
+                            "markdown": "media/project.md"
+                        }
+                    },
+                    {
+                        "id": "als-get-started-edit",
+                        "title": "Navigate and edit your code",
+                        "description": "Open an Ada source file to explore features.\n[Open an Ada Source File](command:workbench.action.quickOpen?%22.ad%22)",
+                        "media": {
+                            "markdown": "media/edit.md"
+                        }
+                    },
+                    {
+                        "id": "als-get-started-build",
+                        "title": "Build your project",
+                        "description": "Use automatically provided `ada` tasks to build your project.\n[Build Project](command:workbench.action.tasks.runTask)",
+                        "media": {
+                            "markdown": "media/build.md"
                         },
                         "completionEvents": [
-                            "onSettingChanged:ada.projectFile"
+                            "onCommand:workbench.action.tasks.runTask"
                         ]
                     },
                     {
-                        "id": "als-open-project-file",
-                        "title": "GPR project file support",
-                        "description": "Open the GPR project file you have specified in the ``ada.projectFile`` setting. Open the ``Outline`` view to see all the entities (packages, switches...) of your GPR file.",
-                        "media": {
-                            "markdown": "media/settings.md"
-                        },
-                        "completionEvents": [
-                            "onLanguage:gpr"
-                        ]
-                    },
-                    {
-                        "id": "als-get-stated-debug",
-                        "title": "Launch and debug",
-                        "description": "Use the pre-installed **C/C++** extension to debug Ada code.",
+                        "id": "als-get-started-debug",
+                        "title": "Launch and debug your application",
+                        "description": "Use automatically provided debug configurations.\n[Start Debugging](command:toSide:ada.walkthroughStartDebugging)",
                         "media": {
                             "markdown": "media/launch-debug.md"
                         },
@@ -886,9 +900,25 @@
                         ]
                     },
                     {
-                        "id": "als-get-stated-github",
-                        "title": "Report issues or contribute to the extension",
-                        "description": "This extension is an open source software. Feel free to [open an issue](https://github.com/AdaCore/ada_language_server/issues) or [contribute on GitHub](https://github.com/AdaCore/ada_language_server/pulls)!",
+                        "id": "als-get-started-settings",
+                        "title": "Configure settings",
+                        "description": "Configure your Ada development environment.\n[Open Ada & SPARK Settings](command:toSide:workbench.action.openWorkspaceSettings?%22%40ext%3Aadacore.ada%22)\n[Open Ada & SPARK Keyboard Shortcuts](command:toSide:workbench.action.openGlobalKeybindings?%22%40source%3Aextension%20Ada%20%26%20SPARK%22)",
+                        "media": {
+                            "markdown": "media/settings.md"
+                        }
+                    },
+                    {
+                        "id": "als-get-started-more-resources",
+                        "title": "Tutorials and Demos",
+                        "description": "",
+                        "media": {
+                            "markdown": "media/more-resources.md"
+                        }
+                    },
+                    {
+                        "id": "als-get-started-github",
+                        "title": "Report issues or make contributions",
+                        "description": "This extension is open source software. Feel free to [open an issue](https://github.com/AdaCore/ada_language_server/issues) or [contribute on GitHub](https://github.com/AdaCore/ada_language_server/pulls)!",
                         "media": {
                             "image": "media/github.jpg",
                             "altText": "Github snapshot"
