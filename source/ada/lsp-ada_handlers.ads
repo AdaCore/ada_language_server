@@ -436,7 +436,8 @@ private
 
    overriding function Project_Tree_Is_Aggregate (Self : Message_Handler)
      return Boolean is
-       (Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind);
+     (Self.Project_Tree_Is_Defined
+      and then Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind);
 
    overriding procedure Reload_Project (Self : in out Message_Handler);
 

@@ -132,13 +132,17 @@ package body LSP.Ada_Handlers.Other_File_Commands is
          begin
             --  First look in the closure of sources, then in the
             --  runtime project.
-            Unit := Handler.Project_Tree.Root_Project.Unit (F.Base_Name);
+            if Handler.Project_Tree.Is_Defined then
+               Unit := Handler.Project_Tree.Root_Project.Unit (F.Base_Name);
 
-            if not Unit.Is_Defined then
-               Unit := Handler.Project_Tree.Runtime_Project.Unit
-                 (F.Base_Name);
+               if not Unit.Is_Defined then
+                  Unit := Handler.Project_Tree.Runtime_Project.Unit
+                    (F.Base_Name);
+               end if;
+               return Unit;
+            else
+               return GPR2.Build.Compilation_Unit.Undefined;
             end if;
-            return Unit;
          end Unit_For_File;
 
       begin

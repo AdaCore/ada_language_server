@@ -170,19 +170,31 @@
                         "message": "Missing ';'"
                      },
                      {
-                        "message": "A unique project in the root directory was found and loaded but it was not explicitly configured.",
                         "range": {
-                           "end": {
-                              "character": 0,
-                              "line": 0
-                           },
-                           "start": {
-                              "character": 0,
-                              "line": 0
-                           }
+                           "start": { "line": 0, "character": 0 },
+                           "end": { "line": 0, "character": 0 }
                         },
                         "severity": 4,
-                        "source": "project"
+                        "source": "project",
+                        "message": "Project Problems",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{default.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 }
+                              },
+                              "message": "A unique project in the root directory was found and loaded but it was not explicitly configured."
+                          }
+                        ]
                      },
                      {
                         "message": "Failed to execute the Add Parameter refactoring.",

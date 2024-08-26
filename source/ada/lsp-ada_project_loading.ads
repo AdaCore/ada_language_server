@@ -48,7 +48,7 @@ package LSP.Ada_Project_Loading is
 
    type Project_Status is
      (Valid_Project,
-      Warning_In_Project,
+      Valid_Project_With_Warning,
       No_Project,
       Multiple_Projects,
       Invalid_Project,
@@ -57,7 +57,7 @@ package LSP.Ada_Project_Loading is
    --
    --  @value Valid_Project: the project is valid
    --
-   --  @value Warning_In_Project: warnings when loading the project
+   --  @value Valid_Project_With_Warning: warnings when loading the project
    --
    --  @value No_Project: no project found in Root dir
    --
@@ -82,9 +82,9 @@ package LSP.Ada_Project_Loading is
       Project_Type : Project_Types);
    --  Set the type of the project.
 
-   procedure Set_Has_Runtime
+   procedure Set_Missing_Ada_Runtime
      (Project      : in out Project_Status_Type;
-      Has_Runtime  : Boolean);
+      Value  : Boolean);
    --  Should be called when the runtime for Project is found
 
    procedure Set_GPR2_Messages
@@ -127,29 +127,29 @@ package LSP.Ada_Project_Loading is
 private
 
    type Project_Status_Type is record
-      Project_Type      : Project_Types := Not_Set;
+      Project_Type        : Project_Types := Not_Set;
       --  The type of loaded project
 
-      Status            : Project_Status := Valid_Project;
+      Status              : Project_Status := Valid_Project;
       --  Status of the loaded project
 
-      Project_File      : GNATCOLL.VFS.Virtual_File := GNATCOLL.VFS.No_File;
+      Project_File        : GNATCOLL.VFS.Virtual_File := GNATCOLL.VFS.No_File;
       --  The project file we have attempted to load, successfully or not.
 
-      Has_Runtime       : Boolean := False;
+      Missing_Ada_Runtime : Boolean := False;
       --  Were we able to find the runtime for the project
 
-      GPR2_Messages     : GPR2.Log.Object := GPR2.Log.Undefined;
+      GPR2_Messages       : GPR2.Log.Object := GPR2.Log.Undefined;
       --  The warning/error messages emitted by GPR2 while loading the project.
    end record;
 
    No_Project_Status : constant Project_Status_Type :=
      Project_Status_Type'
-       (Project_Type  => Not_Set,
-        Status        => Valid_Project,
-        Project_File  => GNATCOLL.VFS.No_File,
-        Has_Runtime   => False,
-        GPR2_Messages => <>);
+       (Project_Type        => Not_Set,
+        Status              => Valid_Project,
+        Project_File        => GNATCOLL.VFS.No_File,
+        Missing_Ada_Runtime => False,
+        GPR2_Messages       => <>);
 
    function Get_Load_Status
      (Project : Project_Status_Type) return Project_Status is (Project.Status);
