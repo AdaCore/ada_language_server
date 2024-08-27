@@ -110,7 +110,7 @@
                "id": 3,
                "result": [
                   {
-                     "newText": "procedure Main is\nbegin\n    null;\nend Main;",
+                     "newText": "procedure Main is\nbegin\n    null;\nend Main;\n",
                      "range": {
                         "start": {
                            "line": 0,
