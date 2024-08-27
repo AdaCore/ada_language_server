@@ -1,0 +1,177 @@
+[
+   {
+      "comment": [
+         "Load a project which doesn't exist and then load ",
+         "a valid project."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Main is\nbegin\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{no_project.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+           {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                       {
+                        "range": {
+                           "start": { "line": 0, "character": 0 },
+                           "end": { "line": 0, "character": 0 }
+                        },
+                        "severity": 1,
+                        "source": "ada.project",
+                        "message": "Project Problems",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 }
+                              },
+                              "message": "The configured project $URI{no_project.gpr} does not exist."
+                           }                     
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 2,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-project-file",
+                    "arguments": [{}]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": ""
+                }
+            ]
+        }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{not_visible_project/valid.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+           {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 3,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-project-file",
+                    "arguments": [{}]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": "$URI{not_visible_project/valid.gpr}"
+                }
+            ]
+        }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

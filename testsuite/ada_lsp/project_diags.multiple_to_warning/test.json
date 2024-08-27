@@ -1,9 +1,8 @@
 [
    {
       "comment": [
-         "Test the project diagnostics when we have several .gpr files in the ",
-         "root directory, without having set the 'ada.projectFile' setting.",
-         "It also checks that we propose a quickfix to set 'ada.projectFile'."
+         "Load a directory with multiple projects and then try to load ",
+         "a project with warnings"
       ]
    },
    {
@@ -22,18 +21,7 @@
                "capabilities": {}
             }
          },
-         "wait": [
-            {
-               "id": 1,
-               "result": {
-                  "capabilities": {
-                     "executeCommandProvider": {
-                        "commands": ["<HAS>", "als-refactor-add-parameters"]
-                     }
-                  }
-               }
-            }
-         ]
+         "wait": []
       }
    },
    {
@@ -58,19 +46,6 @@
                   "version": 1,
                   "text": "procedure Main is\nbegin\n   null;\nend Main;\n"
                }
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "workspace/executeCommand",
-            "params": {
-               "command": "als-source-dirs"
             }
          },
          "wait": [
@@ -113,96 +88,57 @@
       }
    },
    {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 6,
-            "method": "textDocument/codeAction",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{main.adb}"
-               },
-               "range": {
-                  "start": {
-                     "line": 0,
-                     "character": 0
-                  },
-                  "end": {
-                     "line": 0,
-                     "character": 0
-                  }
-               },
-               "context": {
-                  "diagnostics": [
-                       {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 1,
-                        "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
-                           }
-                        ]
-                     }
-                  ],
-                  "triggerKind": 2
-               }
-            }
-         },
-         "wait": []
-      }
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 2,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-project-file",
+                    "arguments": [{}]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": "$URI{default.gpr}"
+                }
+            ]
+        }
    },
    {
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 13,
-            "method": "textDocument/codeAction",
+            "method": "workspace/didChangeConfiguration",
             "params": {
-               "textDocument": {
-                  "uri": "$URI{main.adb}"
-               },
-               "range": {
-                  "start": {
-                     "line": 0,
-                     "character": 0
-                  },
-                  "end": {
-                     "line": 0,
-                     "character": 0
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{not_visible_project/project_with_warnings.gpr}"
                   }
-               },
-               "context": {
+               }
+            }
+         },
+         "wait": [
+           {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
                   "diagnostics": [
                        {
                         "range": {
                            "start": { "line": 0, "character": 0 },
                            "end": { "line": 0, "character": 0 }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "ada.project",
                         "message": "Project Problems",
                         "relatedInformation": [
                            {
                               "location": {
-                                 "uri": "",
+                                 "uri": "$URI{not_visible_project/project_with_warnings.gpr}",
                                  "range": {
                                     "start": {
                                        "line": 0,
@@ -214,33 +150,51 @@
                                     }
                                  }
                               },
-                              "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
+                              "message": "The project file was loaded but contains Warnings."
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{not_visible_project/project_with_warnings.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'project_with_warnings' expected"
                            }
                         ]
                      }
-                  ],
-                  "triggerKind": 2
+                  ]
                }
-            }
-         },
-         "wait": [
-            {
-               "id": 13,
-               "result": [
-                  {
-                     "title": "Open settings to set ada.projectFile to a valid project",
-                     "kind": "quickfix",
-                     "isPreferred": true,
-                     "command": {
-                        "title": "Open settings to set ada.projectFile to a valid project",
-                        "command": "workbench.action.openWorkspaceSettings",
-                        "arguments": ["ada.projectFile"]
-                     }
-                  }
-               ]
             }
          ]
       }
+   },
+   {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 3,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-project-file",
+                    "arguments": [{}]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": "$URI{not_visible_project/project_with_warnings.gpr}"
+                }
+            ]
+        }
    },
    {
       "stop": {
