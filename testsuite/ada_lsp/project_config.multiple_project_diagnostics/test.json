@@ -78,37 +78,38 @@
                "method": "textDocument/publishDiagnostics",
                "params": {
                   "uri": "$URI{main.adb}",
-                  "diagnostics": [          "range": {
-            "end": {
-              "character": 0,
-              "line": 0
-            },
-            "start": {
-              "character": 0,
-              "line": 0
-           }
-          },
-          "relatedInformation": [
-         {
-              "location": {
-                "range": {
-                  "end": {
-                    "character": 0,
-                    "line": 0
-                  },
-                  "start": {
-                    "character": 0,
-                    "line": 0
-                  }
-                },
-                "uri": ""
-              },
-              "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
+                  "diagnostics": [
+                       {
+                        "range": {
+                           "start": { "line": 0, "character": 0 },
+                           "end": { "line": 0, "character": 0 }
+                        },
+                        "severity": 1,
+                        "source": "ada.project",
+                        "message": "Project Problems",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 }
+                              },
+                              "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
+                           }
+                        ]
+                     }
+                  ]
+               }
             }
-          ],
-          "severity": 1,
-          "source": "project"
-        }
+         ]
       }
    },
    {
@@ -146,7 +147,7 @@
                         },
                         "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file.",
                         "severity": 1,
-                        "source": "project"
+                        "source": "ada.project"
                      }
                   ],
                   "triggerKind": 2
@@ -191,7 +192,7 @@
                         },
                         "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file.",
                         "severity": 1,
-                        "source": "project"
+                        "source": "ada.project"
                      }
                   ],
                   "triggerKind": 2
@@ -218,7 +219,7 @@
                               }
                            },
                            "severity": 1,
-                           "source": "project",
+                           "source": "ada.project",
                            "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
                         }
                      ],
