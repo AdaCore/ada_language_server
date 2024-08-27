@@ -169,7 +169,7 @@ package body LSP.Ada_Contexts is
       return LSP.Ada_File_Sets.File_Sets.Set is
    begin
       if Include_Externally_Built then
-         return Self.External_Source_Dirs;
+         return Self.Source_Dirs.Union (Self.External_Source_Dirs);
       else
          return Self.Source_Dirs;
       end if;
