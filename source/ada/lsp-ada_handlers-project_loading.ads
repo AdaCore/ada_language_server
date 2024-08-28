@@ -29,13 +29,8 @@ package LSP.Ada_Handlers.Project_Loading is
    --  Reload the project set in the configuration or Load the project if
    --  none is already yet.
 
-   procedure Release_Contexts_And_Project_Info
+   procedure Reload_Implicit_Project
      (Self : in out Message_Handler'Class);
-   --  Release the memory associated to project information in Self
-
-   procedure Reload_Implicit_Project_Dirs
-     (Self : in out Message_Handler'Class);
-   --  Reload as project source dirs the directories in
-   --  Self.Project_Dirs_Loaded.
+   --  Reload the implicit project
 
 end LSP.Ada_Handlers.Project_Loading;

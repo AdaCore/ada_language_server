@@ -2000,7 +2000,9 @@ package body LSP.Ada_Handlers is
             if not Self.Project_Dirs_Loaded.Contains (Dir) then
                --  We do need to add this directory
                Self.Project_Dirs_Loaded.Insert (Dir);
-               Project_Loading.Reload_Implicit_Project_Dirs (Self);
+
+               --  Reload the implicit project, to take into account the new dir
+               Project_Loading.Reload_Implicit_Project (Self);
             end if;
          end;
       end if;
