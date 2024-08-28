@@ -19,6 +19,7 @@ import {
     isFromWorkspace,
     workspaceTasksFirst,
 } from './taskProviders';
+import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
 
 /**
  * Identifier for a hidden command used for building and running a project main.
@@ -57,6 +58,12 @@ export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
 export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.createHelloWorldProject', createHelloWorldProject)
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.walkthroughStartDebugging', walkthroughStartDebugging)
+    );
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.subprogramBox', addSubprogramBoxCommand)

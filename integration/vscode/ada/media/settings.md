@@ -1,16 +1,5 @@
-# Configure the extension
+You can customize the Ada & SPARK experience to your liking in the [settings](command:toSide:workbench.action.openWorkspaceSettings?%22%40ext%3Aadacore.ada%22).
 
-☝ Make sure to configure the active `*.gpr` project file, otherwise
-the extension will use the first project file found in the root project
-folder.
+📖 More information about the available settings is available [here](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md).
 
-⚙ You can change settings per workspace or per user: generally we recommend to
-change the project file settings in the desired workspace, since project files
-are usually workspace-specific.
-
-📋 [List of Ada settings](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md)
-
-## ⌨ Find or change key shortcuts
-
-* `alt+O` to go from `.ads` to `.adb` and back
-* `alt+shift+B` to paste a "subprogram box"
+A number of [keyboard shortcuts](command:toSide:workbench.action.openGlobalKeybindings?%22%40source%3Aextension%20Ada%20%26%20SPARK%22) are also provided for quick actions.
