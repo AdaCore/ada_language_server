@@ -90,6 +90,15 @@ package body LSP.Ada_Handlers.Project_Loading is
       Status : LSP.Ada_Project_Loading.Project_Status);
    --  Load the implicit project
 
+   procedure Release_Contexts_And_Project_Info
+     (Self : in out Message_Handler'Class);
+   --  Release the memory associated to project information in Self
+
+   procedure Reload_Implicit_Project_Dirs
+     (Self : in out Message_Handler'Class);
+   --  Reload as project source dirs the directories in
+   --  Self.Project_Dirs_Loaded.
+
    procedure Update_Project_Predefined_Sources
      (Self : in out Message_Handler'Class);
    --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
@@ -628,7 +637,11 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       Self.Project_Tree.Unload;
       Self.Project_Predefined_Sources.Clear;
-      Self.Project_Dirs_Loaded.Clear;
+
+      --  Intentionally do not clear Project_Dirs_Loaded: these
+      --  are the directories that we load on-the-fly when are
+      --  working without a project: keep all of them in memory.
+      --  Self.Project_Dirs_Loaded.Clear;
 
       Self.Project_Stamp := @ + 1;
    end Release_Contexts_And_Project_Info;
@@ -648,6 +661,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       Opts    : GPR2.Options.Object;
       Success : Boolean;
    begin
+      Release_Contexts_And_Project_Info (Self);
       Self.Project_Tree.Unload;
 
       --  Load all the dirs
@@ -709,6 +723,16 @@ package body LSP.Ada_Handlers.Project_Loading is
             Self.Configuration.Charset);
       end if;
    end Reload_Project;
+
+   -----------------------------
+   -- Reload_Implicit_Project --
+   -----------------------------
+
+   procedure Reload_Implicit_Project
+     (Self : in out Message_Handler'Class) is
+   begin
+      Load_Implicit_Project (Self, Self.Project_Status.Get_Load_Status);
+   end Reload_Implicit_Project;
 
    ---------------------------------------
    -- Update_Project_Predefined_Sources --

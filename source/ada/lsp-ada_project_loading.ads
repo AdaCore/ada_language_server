@@ -73,6 +73,10 @@ package LSP.Ada_Project_Loading is
       Status  : Project_Status);
    --  Set the status of the project
 
+   function Get_Load_Status
+     (Project : Project_Status_Type) return Project_Status;
+   --  Return the status
+
    procedure Set_Project_Type
      (Project      : in out Project_Status_Type;
       Project_Type : Project_Types);
@@ -146,5 +150,8 @@ private
         Project_File  => GNATCOLL.VFS.No_File,
         Has_Runtime   => False,
         GPR2_Messages => <>);
+
+   function Get_Load_Status
+     (Project : Project_Status_Type) return Project_Status is (Project.Status);
 
 end LSP.Ada_Project_Loading;
