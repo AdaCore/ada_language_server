@@ -2,7 +2,7 @@ import assert from 'assert';
 import { existsSync } from 'fs';
 import { basename } from 'path';
 import * as vscode from 'vscode';
-import { SymbolKind } from 'vscode';
+import { SymbolKind, commands } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
 import { ExecuteCommandRequest } from 'vscode-languageclient';
 import { ExtensionState } from './ExtensionState';
@@ -11,6 +11,9 @@ import { adaExtState, logger, mainOutputChannel } from './extension';
 import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
 import {
     SimpleTaskDef,
+    TASK_PROVE_FILE_PLAIN_NAME,
+    TASK_PROVE_LINE_PLAIN_NAME,
+    TASK_PROVE_REGION_PLAIN_NAME,
     TASK_PROVE_SUPB_PLAIN_NAME,
     TASK_TYPE_SPARK,
     findBuildAndRunTask,
@@ -140,7 +143,39 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram)
     );
+
+    registerTaskWrappers(context);
 }
+
+/**
+ * The following commands are wrappers around VS Code tasks that allow setting
+ * key shortcuts to the wrapped tasks. Technically it is possible to set
+ * shortcuts directly on the `workbench.action.tasks.runTask` command with the
+ * target task as a command argument, however in several places the UI doesn't
+ * take into consideration the command argument, and thus it becomes impossible
+ * to distinguish the different tasks, and worse, our shortcut becomes
+ * displayed for the vanilla `Run Task` command.
+ *
+ * To avoid all that, we provide these commands as wrappers.
+ */
+function registerTaskWrappers(context: vscode.ExtensionContext) {
+    const sparkTaskWrappers: { [cmdId: string]: string } = {
+        'ada.spark.tasks.proveFile': `${TASK_TYPE_SPARK}: ${TASK_PROVE_FILE_PLAIN_NAME}`,
+        'ada.spark.tasks.proveSubprogram': `${TASK_TYPE_SPARK}: ${TASK_PROVE_SUPB_PLAIN_NAME}`,
+        // eslint-disable-next-line max-len
+        'ada.spark.tasks.proveSelectedRegion': `${TASK_TYPE_SPARK}: ${TASK_PROVE_REGION_PLAIN_NAME}`,
+        'ada.spark.tasks.proveLine': `${TASK_TYPE_SPARK}: ${TASK_PROVE_LINE_PLAIN_NAME}`,
+    };
+    for (const cmdId of Object.keys(sparkTaskWrappers)) {
+        const taskId = sparkTaskWrappers[cmdId];
+        context.subscriptions.push(
+            commands.registerCommand(cmdId, () =>
+                commands.executeCommand('workbench.action.tasks.runTask', taskId)
+            )
+        );
+    }
+}
+
 /**
  * Add a subprogram box above the subprogram enclosing the cursor's position, if any.
  *

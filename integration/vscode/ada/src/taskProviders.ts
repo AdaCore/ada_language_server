@@ -87,6 +87,9 @@ const TASK_CLEAN_PROJECT = {
 };
 
 export const TASK_PROVE_SUPB_PLAIN_NAME = 'Prove subprogram';
+export const TASK_PROVE_REGION_PLAIN_NAME = 'Prove selected region';
+export const TASK_PROVE_LINE_PLAIN_NAME = 'Prove line';
+export const TASK_PROVE_FILE_PLAIN_NAME = 'Prove file';
 
 /**
  * Predefined tasks offered by the extension. Both 'ada' and 'spark' tasks are
@@ -289,7 +292,7 @@ const predefinedTasks: PredefinedTask[] = [
         problemMatchers: DEFAULT_PROBLEM_MATCHER,
     },
     {
-        label: 'Prove file',
+        label: TASK_PROVE_FILE_PLAIN_NAME,
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
@@ -320,7 +323,7 @@ const predefinedTasks: PredefinedTask[] = [
         problemMatchers: DEFAULT_PROBLEM_MATCHER,
     },
     {
-        label: 'Prove selected region',
+        label: TASK_PROVE_REGION_PLAIN_NAME,
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
@@ -337,7 +340,7 @@ const predefinedTasks: PredefinedTask[] = [
         problemMatchers: DEFAULT_PROBLEM_MATCHER,
     },
     {
-        label: 'Prove line',
+        label: TASK_PROVE_LINE_PLAIN_NAME,
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
