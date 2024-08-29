@@ -885,7 +885,8 @@
                             "markdown": "media/build.md"
                         },
                         "completionEvents": [
-                            "onCommand:workbench.action.tasks.runTask"
+                            "onCommand:workbench.action.tasks.runTask",
+                            "onCommand:workbench.action.tasks.build"
                         ]
                     },
                     {
