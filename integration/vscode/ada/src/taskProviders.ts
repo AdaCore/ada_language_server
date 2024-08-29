@@ -453,10 +453,6 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 tDecl.problemMatchers
             );
 
-            if (tDecl.taskGroup) {
-                task.group = tDecl.taskGroup;
-            }
-
             /**
              * Ideally we would have liked to provide unresolved tasks and let
              * resolving only happen in the resolveTask method, but that's not
@@ -466,6 +462,13 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
             const resolvedTask = await this.resolveTask(task, token);
 
             if (resolvedTask) {
+                /**
+                 * Set other properties on the resolved task
+                 */
+                if (tDecl.taskGroup) {
+                    resolvedTask.group = tDecl.taskGroup;
+                }
+
                 result.push(resolvedTask);
             } else {
                 logger.error(`Failed to resolve task: ${JSON.stringify(task, undefined, 2)}`);
