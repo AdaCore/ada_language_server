@@ -75,6 +75,7 @@ with LSP.Ada_Handlers.Source_Dirs_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.Ada_Tokens_Full;
 with LSP.Ada_Tokens_Range;
+with LSP.Ada_Type_Hierarchy_Subtypes;
 with LSP.Ada_Type_Hierarchy_Supertypes;
 with LSP.Default_Message_Handlers;
 with LSP.GNATCOLL_Trace_Streams;
@@ -101,6 +102,7 @@ with LSP.Server_Requests.Hover;
 with LSP.Server_Requests.Initialize;
 with LSP.Server_Requests.PrepareTypeHierarchy;
 with LSP.Server_Requests.References;
+with LSP.Server_Requests.Subtypes;
 with LSP.Server_Requests.Supertypes;
 with LSP.Server_Requests.Tokens_Full;
 with LSP.Server_Requests.Tokens_Range;
@@ -245,6 +247,10 @@ procedure LSP.Ada_Driver is
 
    Ada_Prepare_Type_Hierarchy_Handler : aliased
      LSP.Ada_Prepare_Type_Hierarchy.Ada_Prepare_Type_Hierarchy_Handler
+       (Ada_Handler'Unchecked_Access);
+
+   Ada_Type_Hierarchy_Subtypes_Handler : aliased
+     LSP.Ada_Type_Hierarchy_Subtypes.Ada_Type_Hierarchy_Subtype_Handler
        (Ada_Handler'Unchecked_Access);
 
    Ada_Type_Hierarchy_Supertypes_Handler : aliased
@@ -545,6 +551,10 @@ begin
          Server.Register_Handler
            (LSP.Server_Requests.PrepareTypeHierarchy.Request'Tag,
             Ada_Prepare_Type_Hierarchy_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.Subtypes.Request'Tag,
+            Ada_Type_Hierarchy_Subtypes_Handler'Unchecked_Access);
 
          Server.Register_Handler
            (LSP.Server_Requests.Supertypes.Request'Tag,
