@@ -1,27 +1,18 @@
-# 🔨 Build a project
+If your project defines a `Main` entry point, you can launch or debug it as follows.
 
-Use "auto-detected tasks" (i.e: `gnat` tasks in the `Run Task` dialog) to
- * ⚙ Build the whole project
- * ✅ Check errors in the current file
- * 🔎 Launch `gnatprove` to verify your SPARK code, if any (you can find the tool [here](https://github.com/alire-project/GNAT-FSF-builds/releases))
+# 🚀 Launch
 
-## 🚀 Launch
+- The [`Tasks: Run Task`](command:toSide:workbench.action.tasks.runTask) command offers tasks called `ada: Run main - ...` and `ada: Build and run main - ...`. The former run the main executable while the latter conveniently builds the project and runs the executable at once.
+- A Run button is displayed right above the declaration of the main subprogram. It's a shortcut to the `ada: Build and run main - ...` task.
 
-Open a new terminal to launch your executable once it has been built.
+To provide command line argument to your executable, use the gear icon at the right-hand side of the task to customize arguments in the `tasks.json` file.
 
-## 🐞 Debug
+Alternatively, open a new terminal and launch the executable manually with the desired command line arguments.
 
-The [ms-vscode.cpptools](https://github.com/microsoft/vscode-cpptools) extension
-is automatically installed along with this extension, allowing to use its
-integration for GDB to debug Ada code.
+# 🐞 Debug
 
-The extension provides default debug configurations for all the mains of your
-project. You can debug the executable of your choice by opening the
-`Run and Debug` panel and then by clicking on the `Run and Debug` button.
-You can also run directly the `Debug: Start Debugging` command instead of using the UI. In some circumstances the UI may offer a selection of languages, in which case select `Ada`.
-The extension will then propose you to select the main you want to debug if your project contains several mains.
+Ada debugging leverages the integration of GDB through the [Microsoft C/C++](command:toSide:extension.open?%22ms-vscode.cpptools%22) VS Code extension.
 
-If you want to customize GDB's behavior or if you need to add custom arguments, you
-will have to create a `launch.json` file: this can be done through the
-`create a launch.json file` link button in the `Run and Debug` panel or directly via
-the `Debug: Add Configuration` command.
+You can start debugging by running the [`Debug: Start Debugging`](command:toSide:ada.walkthroughStartDebugging) command and selecting `Ada` if multiple languages are offered.
+
+If you would like to provide command line arguments to the debugged program or customize GDB's behavior, use the [`Debug: Add Configuration`](command:toSide:debug.addConfiguration) command to create a `launch.json` where you can customize these aspects.
