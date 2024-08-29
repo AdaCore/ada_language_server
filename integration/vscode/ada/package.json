@@ -880,7 +880,7 @@
                     {
                         "id": "als-get-started-build",
                         "title": "Build your project",
-                        "description": "Use automatically provided `ada` tasks to build your project.\n[Build Project](command:workbench.action.tasks.runTask)",
+                        "description": "Use automatically provided `ada` tasks to build your project.\n[Run Build Task](command:workbench.action.tasks.build)",
                         "media": {
                             "markdown": "media/build.md"
                         },
