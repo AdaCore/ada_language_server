@@ -776,6 +776,26 @@
                 "title": "Ada: Build and run last used main",
                 "icon": "$(run)",
                 "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.spark.tasks.proveFile",
+                "title": "spark: Prove file (task wrapper)",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "ada.spark.tasks.proveSubprogram",
+                "title": "spark: Prove subprogram (task wrapper)",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "ada.spark.tasks.proveSelectedRegion",
+                "title": "spark: Prove selected region (task wrapper)",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "ada.spark.tasks.proveLine",
+                "title": "spark: Prove line (task wrapper)",
+                "when": "editorLangId == ada && editorTextFocus"
             }
         ],
         "keybindings": [
@@ -790,26 +810,22 @@
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
-                "command": "workbench.action.tasks.runTask",
-                "args": "spark: Prove file",
+                "command": "ada.spark.tasks.proveFile",
                 "key": "meta+y meta+f",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
-                "command": "workbench.action.tasks.runTask",
-                "args": "spark: Prove subprogram",
+                "command": "ada.spark.tasks.proveSubprogram",
                 "key": "meta+y meta+s",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
-                "command": "workbench.action.tasks.runTask",
-                "args": "spark: Prove selected region",
+                "command": "ada.spark.tasks.proveSelectedRegion",
                 "key": "meta+y meta+r",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
-                "command": "workbench.action.tasks.runTask",
-                "args": "spark: Prove line",
+                "command": "ada.spark.tasks.proveLine",
                 "key": "meta+y meta+l",
                 "when": "editorLangId == ada && editorTextFocus"
             }
@@ -880,12 +896,13 @@
                     {
                         "id": "als-get-started-build",
                         "title": "Build your project",
-                        "description": "Use automatically provided `ada` tasks to build your project.\n[Build Project](command:workbench.action.tasks.runTask)",
+                        "description": "Use automatically provided `ada` tasks to build your project.\n[Run Build Task](command:workbench.action.tasks.build)",
                         "media": {
                             "markdown": "media/build.md"
                         },
                         "completionEvents": [
-                            "onCommand:workbench.action.tasks.runTask"
+                            "onCommand:workbench.action.tasks.runTask",
+                            "onCommand:workbench.action.tasks.build"
                         ]
                     },
                     {

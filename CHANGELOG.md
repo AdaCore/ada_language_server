@@ -4,8 +4,9 @@
 section below it for the last release. -->
 ## \<next>
 
-* Migrate build infrastructure to ALIRE
-* Migrate VSIX publication infrastructure out of GitHub Actions
+* Migrate the build infrastructure to ALIRE
+* Migrate the VSIX publication infrastructure out of GitHub Actions
+* Revamp the VS Code extension walkthrough
 
 ## 24.0.6 (2024-06-25)
 
