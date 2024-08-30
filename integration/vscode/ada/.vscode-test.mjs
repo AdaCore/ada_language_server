@@ -2,6 +2,10 @@ import { defineConfig } from '@vscode/test-cli';
 import { mkdtempSync } from 'fs';
 import * as os from 'os';
 import { join } from 'path';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ override: true });
+// console.log(process.env);
 
 let baseMochaOptions = {
     ui: 'tdd',
