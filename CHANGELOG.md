@@ -4,6 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
+* The implementation of type hierarchy requests
 * Migrate the build infrastructure to ALIRE
 * Migrate the VSIX publication infrastructure out of GitHub Actions
 * Revamp the VS Code extension walkthrough

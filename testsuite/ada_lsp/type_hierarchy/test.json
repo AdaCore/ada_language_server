@@ -1,0 +1,776 @@
+[
+   {
+      "comment": "This test checks type hierarchy requests"
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "textDocument": {
+                     "typeHierarchy": { "dynamicRegistration": true }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "typeHierarchyProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{base_types.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Base_Types is\n\n   type Abstract_Shape;\n\n   type Abstract_Shape is abstract tagged limited private;\n\n   type Int is range 1 .. 100;\n\n   type Private_Type is private;\n\n   type Limit is limited interface;\n\n   type Plain_1 is interface;\n   type Plain_2 is interface;\n\nprivate\n\n   type Abstract_Shape is abstract tagged limited null record;\n\n   type Private_Type is new Plain_1 and Plain_2 with null record;\n\nend Base_Types;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "textDocument/prepareTypeHierarchy",
+            "params": {
+               "textDocument": { "uri": "$URI{base_types.ads}" },
+               "position": { "line": 17, "character": 19 }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 13,
+               "result": [
+                  {
+                     "name": "Abstract_Shape",
+                     "kind": 5,
+                     "detail": "at base_types.ads (3:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 2, "character": 3 },
+                        "end": { "line": 2, "character": 23 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 2, "character": 8 },
+                        "end": { "line": 2, "character": 22 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "typeHierarchy/subtypes",
+            "params": {
+               "item": {
+                  "name": "Abstract_Shape",
+                  "kind": 5,
+                  "uri": "$URI{base_types.ads}",
+                  "range": {
+                     "start": { "line": 2, "character": 3 },
+                     "end": { "line": 2, "character": 23 }
+                  },
+                  "selectionRange": {
+                     "start": { "line": 2, "character": 8 },
+                     "end": { "line": 2, "character": 22 }
+                  },
+                  "detail": "at base_types.ads (3:9)"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 14,
+               "result": [
+                  {
+                     "name": "Cube",
+                     "kind": 5,
+                     "detail": "at base_types-ext.ads (8:9)",
+                     "uri": "$URI{base_types-ext.ads}",
+                     "range": {
+                        "start": { "line": 7, "character": 3 },
+                        "end": { "line": 9, "character": 14 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 7, "character": 8 },
+                        "end": { "line": 7, "character": 12 }
+                     }
+                  },
+                  {
+                     "name": "Abstract_Shape",
+                     "kind": 5,
+                     "detail": "at base_types.ads (3:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 2, "character": 3 },
+                        "end": { "line": 2, "character": 23 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 2, "character": 8 },
+                        "end": { "line": 2, "character": 22 }
+                     }
+                  },
+                  {
+                     "name": "Circle",
+                     "kind": 5,
+                     "detail": "at other.ads (9:9)",
+                     "uri": "$URI{other.ads}",
+                     "range": {
+                        "start": { "line": 8, "character": 3 },
+                        "end": { "line": 10, "character": 14 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 8, "character": 8 },
+                        "end": { "line": 8, "character": 14 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 18,
+            "method": "textDocument/prepareTypeHierarchy",
+            "params": {
+               "textDocument": { "uri": "$URI{base_types.ads}" },
+               "position": { "line": 19, "character": 15 }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 18,
+               "result": [
+                  {
+                     "name": "Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types.ads (9:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 8, "character": 3 },
+                        "end": { "line": 8, "character": 32 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 8, "character": 8 },
+                        "end": { "line": 8, "character": 20 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 19,
+            "method": "typeHierarchy/subtypes",
+            "params": {
+               "item": {
+                  "name": "Private_Type",
+                  "kind": 5,
+                  "uri": "$URI{base_types.ads}",
+                  "range": {
+                     "start": { "line": 8, "character": 3 },
+                     "end": { "line": 8, "character": 32 }
+                  },
+                  "selectionRange": {
+                     "start": { "line": 8, "character": 8 },
+                     "end": { "line": 8, "character": 20 }
+                  },
+                  "detail": "at base_types.ads (9:9)"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 19,
+               "result": [
+                  {
+                     "name": "New_Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types-ext.ads (4:9)",
+                     "uri": "$URI{base_types-ext.ads}",
+                     "range": {
+                        "start": { "line": 3, "character": 3 },
+                        "end": { "line": 3, "character": 62 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 3, "character": 8 },
+                        "end": { "line": 3, "character": 24 }
+                     }
+                  },
+                  {
+                     "name": "Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types.ads (9:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 8, "character": 3 },
+                        "end": { "line": 8, "character": 32 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 8, "character": 8 },
+                        "end": { "line": 8, "character": 20 }
+                     }
+                  },
+                  {
+                     "name": "New_Private_Type",
+                     "kind": 5,
+                     "detail": "at other.ads (5:9)",
+                     "uri": "$URI{other.ads}",
+                     "range": {
+                        "start": { "line": 4, "character": 3 },
+                        "end": { "line": 4, "character": 56 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 4, "character": 8 },
+                        "end": { "line": 4, "character": 24 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 23,
+            "method": "textDocument/prepareTypeHierarchy",
+            "params": {
+               "textDocument": { "uri": "$URI{base_types.ads}" },
+               "position": { "line": 6, "character": 9 }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 23,
+               "result": [
+                  {
+                     "name": "Int",
+                     "kind": 5,
+                     "detail": "at base_types.ads (7:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 6, "character": 3 },
+                        "end": { "line": 6, "character": 30 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 6, "character": 8 },
+                        "end": { "line": 6, "character": 11 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 24,
+            "method": "typeHierarchy/subtypes",
+            "params": {
+               "item": {
+                  "name": "Int",
+                  "kind": 5,
+                  "uri": "$URI{base_types.ads}",
+                  "range": {
+                     "start": { "line": 6, "character": 3 },
+                     "end": { "line": 6, "character": 30 }
+                  },
+                  "selectionRange": {
+                     "start": { "line": 6, "character": 8 },
+                     "end": { "line": 6, "character": 11 }
+                  },
+                  "detail": "at base_types.ads (7:9)"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 24,
+               "result": [
+                  {
+                     "name": "New_Int",
+                     "kind": 5,
+                     "detail": "at base_types-ext.ads (6:9)",
+                     "uri": "$URI{base_types-ext.ads}",
+                     "range": {
+                        "start": { "line": 5, "character": 3 },
+                        "end": { "line": 5, "character": 27 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 5, "character": 8 },
+                        "end": { "line": 5, "character": 15 }
+                     }
+                  },
+                  {
+                     "name": "New_Int",
+                     "kind": 5,
+                     "detail": "at other.ads (7:9)",
+                     "uri": "$URI{other.ads}",
+                     "range": {
+                        "start": { "line": 6, "character": 3 },
+                        "end": { "line": 6, "character": 38 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 6, "character": 8 },
+                        "end": { "line": 6, "character": 15 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 33,
+            "method": "textDocument/prepareTypeHierarchy",
+            "params": {
+               "textDocument": { "uri": "$URI{base_types.ads}" },
+               "position": { "line": 12, "character": 9 }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 33,
+               "result": [
+                  {
+                     "name": "Plain_1",
+                     "kind": 5,
+                     "detail": "at base_types.ads (13:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 12, "character": 3 },
+                        "end": { "line": 12, "character": 29 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 12, "character": 8 },
+                        "end": { "line": 12, "character": 15 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 34,
+            "method": "typeHierarchy/subtypes",
+            "params": {
+               "item": {
+                  "name": "Plain_1",
+                  "kind": 5,
+                  "uri": "$URI{base_types.ads}",
+                  "range": {
+                     "start": { "line": 12, "character": 3 },
+                     "end": { "line": 12, "character": 29 }
+                  },
+                  "selectionRange": {
+                     "start": { "line": 12, "character": 8 },
+                     "end": { "line": 12, "character": 15 }
+                  },
+                  "detail": "at base_types.ads (13:9)"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 34,
+               "result": [
+                  {
+                     "name": "Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types.ads (9:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 8, "character": 3 },
+                        "end": { "line": 8, "character": 32 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 8, "character": 8 },
+                        "end": { "line": 8, "character": 20 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 38,
+            "method": "textDocument/prepareTypeHierarchy",
+            "params": {
+               "textDocument": { "uri": "$URI{base_types.ads}" },
+               "position": { "line": 19, "character": 16 }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 38,
+               "result": [
+                  {
+                     "name": "Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types.ads (9:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 8, "character": 3 },
+                        "end": { "line": 8, "character": 32 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 8, "character": 8 },
+                        "end": { "line": 8, "character": 20 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 39,
+            "method": "typeHierarchy/subtypes",
+            "params": {
+               "item": {
+                  "name": "Private_Type",
+                  "kind": 5,
+                  "uri": "$URI{base_types.ads}",
+                  "range": {
+                     "start": { "line": 8, "character": 3 },
+                     "end": { "line": 8, "character": 32 }
+                  },
+                  "selectionRange": {
+                     "start": { "line": 8, "character": 8 },
+                     "end": { "line": 8, "character": 20 }
+                  },
+                  "detail": "at base_types.ads (9:9)"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 39,
+               "result": [
+                  {
+                     "name": "New_Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types-ext.ads (4:9)",
+                     "uri": "$URI{base_types-ext.ads}",
+                     "range": {
+                        "start": { "line": 3, "character": 3 },
+                        "end": { "line": 3, "character": 62 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 3, "character": 8 },
+                        "end": { "line": 3, "character": 24 }
+                     }
+                  },
+                  {
+                     "name": "Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types.ads (9:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 8, "character": 3 },
+                        "end": { "line": 8, "character": 32 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 8, "character": 8 },
+                        "end": { "line": 8, "character": 20 }
+                     }
+                  },
+                  {
+                     "name": "New_Private_Type",
+                     "kind": 5,
+                     "detail": "at other.ads (5:9)",
+                     "uri": "$URI{other.ads}",
+                     "range": {
+                        "start": { "line": 4, "character": 3 },
+                        "end": { "line": 4, "character": 56 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 4, "character": 8 },
+                        "end": { "line": 4, "character": 24 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 40,
+            "method": "textDocument/prepareTypeHierarchy",
+            "params": {
+               "textDocument": { "uri": "$URI{base_types.ads}" },
+               "position": { "line": 19, "character": 16 }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 40,
+               "result": [
+                  {
+                     "name": "Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types.ads (9:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 8, "character": 3 },
+                        "end": { "line": 8, "character": 32 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 8, "character": 8 },
+                        "end": { "line": 8, "character": 20 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 41,
+            "method": "typeHierarchy/supertypes",
+            "params": {
+               "item": {
+                  "name": "Private_Type",
+                  "kind": 5,
+                  "uri": "$URI{base_types.ads}",
+                  "range": {
+                     "start": { "line": 8, "character": 3 },
+                     "end": { "line": 8, "character": 32 }
+                  },
+                  "selectionRange": {
+                     "start": { "line": 8, "character": 8 },
+                     "end": { "line": 8, "character": 20 }
+                  },
+                  "detail": "at base_types.ads (9:9)"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 41,
+               "result": [
+                  {
+                     "name": "Plain_1",
+                     "kind": 5,
+                     "detail": "at base_types.ads (13:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 12, "character": 3 },
+                        "end": { "line": 12, "character": 29 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 12, "character": 8 },
+                        "end": { "line": 12, "character": 15 }
+                     }
+                  },
+                  {
+                     "name": "Plain_2",
+                     "kind": 5,
+                     "detail": "at base_types.ads (14:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 13, "character": 3 },
+                        "end": { "line": 13, "character": 29 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 13, "character": 8 },
+                        "end": { "line": 13, "character": 15 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 52,
+            "method": "textDocument/prepareTypeHierarchy",
+            "params": {
+               "textDocument": { "uri": "$URI{other.ads}" },
+               "position": { "line": 4, "character": 16 }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 52,
+               "result": [
+                  {
+                     "name": "New_Private_Type",
+                     "kind": 5,
+                     "detail": "at other.ads (5:9)",
+                     "uri": "$URI{other.ads}",
+                     "range": {
+                        "start": { "line": 4, "character": 3 },
+                        "end": { "line": 4, "character": 56 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 4, "character": 8 },
+                        "end": { "line": 4, "character": 24 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 54,
+            "method": "typeHierarchy/supertypes",
+            "params": {
+               "item": {
+                  "name": "New_Private_Type",
+                  "kind": 5,
+                  "uri": "$URI{other.ads}",
+                  "range": {
+                     "start": { "line": 4, "character": 3 },
+                     "end": { "line": 4, "character": 56 }
+                  },
+                  "selectionRange": {
+                     "start": { "line": 4, "character": 8 },
+                     "end": { "line": 4, "character": 24 }
+                  },
+                  "detail": "at other.ads (5:9)"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 54,
+               "result": [
+                  {
+                     "name": "Private_Type",
+                     "kind": 5,
+                     "detail": "at base_types.ads (9:9)",
+                     "uri": "$URI{base_types.ads}",
+                     "range": {
+                        "start": { "line": 8, "character": 3 },
+                        "end": { "line": 8, "character": 32 }
+                     },
+                     "selectionRange": {
+                        "start": { "line": 8, "character": 8 },
+                        "end": { "line": 8, "character": 20 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
