@@ -45,26 +45,6 @@
          "cwd": "${workspaceFolder}/integration/vscode/ada/",
          "runtimeExecutable": "npm",
          "runtimeArgs": ["run-script", "test"]
-      },
-      {
-         "name": "(gdb) Attach",
-         "type": "cppdbg",
-         "request": "attach",
-         "program": "${workspaceFolder}/integration/vscode/ada/x64/linux/ada_language_server",
-         "processId": "${command:pickProcess}",
-         "MIMode": "gdb",
-         "setupCommands": [
-            {
-               "description": "Enable pretty-printing for gdb",
-               "text": "-enable-pretty-printing",
-               "ignoreFailures": true
-            },
-            {
-               "description": "Set Disassembly Flavor to Intel",
-               "text": "-gdb-set disassembly-flavor intel",
-               "ignoreFailures": true
-            }
-         ]
       }
    ],
    "inputs": [
