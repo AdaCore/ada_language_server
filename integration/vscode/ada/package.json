@@ -986,6 +986,7 @@
         "@vscode/test-cli": "^0.0.10",
         "@vscode/test-electron": "^2.4.1",
         "@vscode/vsce": "2.21.1",
+        "dotenv": "^16.4.5",
         "esbuild-wasm": "0.17.11",
         "eslint": "8.36.0",
         "eslint-config-prettier": "8.7.0",
