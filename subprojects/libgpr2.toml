@@ -37,7 +37,7 @@ command = [
 
 [[actions]]
 type = "pre-build"
-command = ["bash", "-c", "-x", "make setup build-lib-${LIBRARY_TYPE:-static} GPR2KBDIR=./gprconfig_kb/db"]
+command = ["make", "setup", ".build/kb/gpr2-kb-embedded.ads", ".build/kb/gpr2-kb-embedded.adb", "GPR2KBDIR=./gprconfig_kb/db"]
 
 [[depends-on]]
 gnatcoll = "~24.0.0"

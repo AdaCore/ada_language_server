@@ -208,6 +208,10 @@ function strip_debug() {
       # system (or by XCode).
       dsymutil "$ALS"
       strip "$ALS"
+   elif [[ $NODE_ARCH_PLATFORM == "arm64/linux" ]]; then
+      aarch64-linux-gnu-objcopy --only-keep-debug ${ALS} ${ALS}.debug
+      aarch64-linux-gnu-objcopy --strip-all ${ALS}
+      aarch64-linux-gnu-objcopy --add-gnu-debuglink=${ALS}.debug ${ALS}
    else
       objcopy --only-keep-debug ${ALS} ${ALS}.debug
       objcopy --strip-all ${ALS}

@@ -37,7 +37,7 @@ TESTER=$(ROOTDIR)/.obj/tester/tester-run$(EXE)
 # Env variable to set for update VS Code test references
 MOCHA_ALS_UPDATE=
 
-GPRBUILD_EXTRA=
+GPRBUILD_EXTRA ?=
 GPRBUILD_FLAGS=-m -j$(PROCESSORS) $(GPRBUILD_EXTRA)
 GPRBUILD=gprbuild $(GPRBUILD_FLAGS) -XSUPERPROJECT=
 GPRCLEAN_EXTRA=
@@ -70,6 +70,7 @@ else
    # Code Ada extension.
    NODE_ARCH=$(shell node -e "console.log(process.arch)")
    NODE_PLATFORM=$(shell node -e "console.log(process.platform)")
+   NODE_ARCH_PLATFORM ?= $(NODE_ARCH)/$(NODE_PLATFORM)
 endif
 
 VSCE=npx vsce
@@ -112,8 +113,8 @@ endif
 	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
 	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS)
 ifdef NODE
-	mkdir -p integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
-	cp -v -f $(ALS) integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
+	mkdir -p integration/vscode/ada/$(NODE_ARCH_PLATFORM)
+	cp -v -f $(ALS) integration/vscode/ada/$(NODE_ARCH_PLATFORM)
 endif
 
 generate:
@@ -150,7 +151,7 @@ clean:
 	-$(GPRCLEAN) -P gnat/lsp_3_17.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/lsp_server.gpr $(LIBRARY_FLAGS)
 	-$(GPRCLEAN) -P gnat/tester.gpr $(LIBRARY_FLAGS)
-	-rm -rf integration/vscode/ada/$(NODE_ARCH)/$(NODE_PLATFORM)
+	-rm -rf integration/vscode/ada/$(NODE_ARCH_PLATFORM)
 
 vscode:
 ifneq ($(npm_config_offline),true)
