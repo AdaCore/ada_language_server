@@ -58,12 +58,34 @@ jobs:
           bin/alr index --reset-community
           bin/alr toolchain --select gnat_native^14 gprbuild
           echo $PWD/bin >> $GITHUB_PATH
+      - name: Get cross GNAT toolchain (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+            sudo apt install -y libc6-dev-arm64-cross linux-libc-dev-arm64-cross binutils-aarch64-linux-gnu
+            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/aarch64-Linux-gcc-14.2.tar.bz2 . --sse=AES256
+            aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/aarch64-Linux-gmp-6.2.1.tar.bz2 . --sse=AES256
+            sudo tar xjf aarch64-Linux-gcc-14.2.tar.bz2  -C /
+            sudo tar xjf aarch64-Linux-gmp-6.2.1.tar.bz2 -C /
       - name: Build
         shell: bash
         run: |
           alr settings --global --set dependencies.shared false
           pip3 install e3-testsuite
           scripts/build_als.sh all "$TAG"
+      - name: Build ALS with cross (Linux)
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          if alr exec -- gprconfig --show-targets | grep aarch64-linux; then
+            export GPRBUILD_EXTRA=--target=aarch64-linux
+            export NODE_ARCH_PLATFORM=arm64/linux
+            find . -name '*.ali' -delete
+            find . -name '*.[ao]' -delete
+            scripts/build_als.sh build_als   "$TAG" arm64/linux
+            scripts/build_als.sh strip_debug "$TAG" arm64/linux
+          else
+            echo "No AArch64 cross compiler found:"
+            alr exec -- gprconfig --show-targets || true
+          fi
       - name: Archive ALS binary
         uses: actions/upload-artifact@v4
         with:
@@ -80,6 +102,9 @@ jobs:
         if: ${{ env.TAG != env.DEFAULT_TAG }}
         run: |
           .github/workflows/release.sh "${{ secrets.GITHUB_TOKEN }}" $TAG ""
+          if [ -f integration/vscode/ada/arm64/linux/ada_language_server ] ; then
+            .github/workflows/release.sh "${{ secrets.GITHUB_TOKEN }}" $TAG arm64/linux
+          fi
       - name: Package
         shell: bash
         run: |
