@@ -423,6 +423,7 @@ package body LSP.Ada_Client_Capabilities is
          Result.implementationProvider          := LSP.Constants.True;
          Result.referencesProvider              := LSP.Constants.True;
          Result.typeDefinitionProvider          := LSP.Constants.True;
+         Result.typeHierarchyProvider           := LSP.Constants.True;
          Result.workspaceSymbolProvider         := LSP.Constants.True;
 
          Result.completionProvider :=
