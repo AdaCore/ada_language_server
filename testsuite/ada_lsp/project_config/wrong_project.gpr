@@ -1,4 +1,6 @@
 project Wrong_Project is
+   for Excluded_Source_Files use ("second.ads");
+
    package Naming is
       for Spec ("To_Be_Called") use "third.ads";
    end Naming;
