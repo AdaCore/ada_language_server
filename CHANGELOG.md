@@ -4,10 +4,13 @@
 section below it for the last release. -->
 ## \<next>
 
-* The implementation of type hierarchy requests
+* Implement type hierarchy requests
 * Migrate the build infrastructure to ALIRE
 * Migrate the VSIX publication infrastructure out of GitHub Actions
 * Revamp the VS Code extension walkthrough
+* Filter invisible completion items by unit prefix
+* Provide SPARK CodeLenses on subprograms when gnatprove is on PATH
+* Improve completion for GPR project files
 
 ## 24.0.6 (2024-06-25)
 
