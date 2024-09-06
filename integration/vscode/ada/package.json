@@ -879,7 +879,7 @@
                     },
                     {
                         "id": "als-get-started-create-project",
-                        "title": "Create a project",
+                        "title": "Setup a project",
                         "description": "If you don't already have a GPR project, create one!\n[Create a Hello World Project](command:toSide:ada.createHelloWorldProject)",
                         "media": {
                             "markdown": "media/project.md"
