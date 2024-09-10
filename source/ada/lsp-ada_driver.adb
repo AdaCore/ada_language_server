@@ -282,7 +282,7 @@ procedure LSP.Ada_Driver is
               then VSS.Standard_Paths.Writable_Location
                      (VSS.Standard_Paths.Home_Location)
               else ALS_Home)));
-   ALS_Dir                : constant Virtual_File := Home_Dir / ".als";
+   ALS_Dir                : Virtual_File := Home_Dir / ".als";
    Clean_ALS_Dir          : Boolean := False;
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
@@ -357,36 +357,57 @@ begin
    else
       --  No $HOME/.als directory: create one first
       if not ALS_Dir.Is_Directory then
-         Make_Dir (ALS_Dir);
-      end if;
-
-      Traces_File := Create_From_Dir
-         (Dir       => ALS_Dir,
-          Base_Name =>
-            (if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
-             "gpr_ls" else "ada_ls") & "_traces.cfg");
-
-      --  No default traces file found: create one
-      if not Traces_File.Is_Regular_File then
-         declare
-            W_Traces_File                : Writable_File;
-            Default_Traces_File_Contents : constant String :=
-            ">"
-            & (if VSS.Command_Line.Is_Specified (Language_GPR_Option)
-               then "gpr_ls" else "ada_ls")
-            & "_log.$T.log:buffer_size=0" & Ada.Characters.Latin_1.LF
-            & "ALS.MAIN=yes" & Ada.Characters.Latin_1.LF
-            & "ALS.IN=no" & Ada.Characters.Latin_1.LF
-            & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;
          begin
-            W_Traces_File := Traces_File.Write_File;
-            W_Traces_File.Write (Default_Traces_File_Contents);
-            W_Traces_File.Close;
+            Make_Dir (ALS_Dir);
+
+         exception
+            --  We have caught an exception when trying to create a default
+            --  traces file: warn the user
+            when GNATCOLL.VFS.VFS_Directory_Error =>
+               Ada.Text_IO.Put_Line
+                 (Ada.Text_IO.Standard_Error,
+                  "warning: Could not create default ALS log directory at '"
+                  & ALS_Dir.Display_Full_Name & "'"
+                  & Ada.Characters.Latin_1.LF
+                  & "Please make sure the parent directory is writable or "
+                  & "specify another parent directory via the ALS_HOME "
+                  & "environment variable.");
+               ALS_Dir := GNATCOLL.VFS.No_File;
          end;
       end if;
 
-      Clean_ALS_Dir := True;
+      --  If the ALS directory is valid, parse any existing trace file or
+      --  create a default one if needed.
+
+      if ALS_Dir.Is_Directory then
+         Traces_File := Create_From_Dir
+           (Dir       => ALS_Dir,
+            Base_Name =>
+              (if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
+                    "gpr_ls" else "ada_ls") & "_traces.cfg");
+
+         --  No default traces file found: create one if we can
+         if not Traces_File.Is_Regular_File and then ALS_Dir.Is_Writable then
+            declare
+               W_Traces_File                : Writable_File;
+               Default_Traces_File_Contents : constant String :=
+                 ">"
+                 & (if VSS.Command_Line.Is_Specified (Language_GPR_Option)
+                    then "gpr_ls" else "ada_ls")
+                 & "_log.$T.log:buffer_size=0" & Ada.Characters.Latin_1.LF
+                 & "ALS.MAIN=yes" & Ada.Characters.Latin_1.LF
+                 & "ALS.IN=no" & Ada.Characters.Latin_1.LF
+                 & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;
+            begin
+               W_Traces_File := Traces_File.Write_File;
+               W_Traces_File.Write (Default_Traces_File_Contents);
+               W_Traces_File.Close;
+            end;
+         end if;
+      end if;
+
       Parse_Config_File (Traces_File);
+      Clean_ALS_Dir := True;
    end if;
 
    --  Look for a config file, that contains the configuration for the server
