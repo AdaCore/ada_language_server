@@ -361,8 +361,8 @@ begin
             Make_Dir (ALS_Dir);
 
          exception
-            --  We have caught an exception when trying to create a default
-            --  traces file: warn the user
+            --  We have caught an exception when trying to create the .als
+            --  directory: warn the user.
             when GNATCOLL.VFS.VFS_Directory_Error =>
                Ada.Text_IO.Put_Line
                  (Ada.Text_IO.Standard_Error,
