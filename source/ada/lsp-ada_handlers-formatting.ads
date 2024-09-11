@@ -25,11 +25,14 @@ with LSP.Structures;
 
 private package LSP.Ada_Handlers.Formatting is
 
+   type Formatting_Provider is (Gnatformat, Gnatpp);
+
    procedure Format
      (Context  : LSP.Ada_Contexts.Context;
       Document : not null LSP.Ada_Documents.Document_Access;
       Span     : LSP.Structures.A_Range;
       Options  : LSP.Structures.FormattingOptions;
+      Provider : Formatting_Provider;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
@@ -41,6 +44,7 @@ private package LSP.Ada_Handlers.Formatting is
       Document : not null LSP.Ada_Documents.Document_Access;
       Span     : LSP.Structures.A_Range;
       Options  : LSP.Structures.FormattingOptions;
+      Provider : Formatting_Provider;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Error    : out LSP.Errors.ResponseError);

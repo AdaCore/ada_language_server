@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "Test formatting request with GNATformat"
-      ]
+      "comment": ["Test formatting request with GNATformat"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -59,7 +55,8 @@
                      "projectFile": "$URI{test.gpr}",
                      "scenarioVariables": {},
                      "enableDiagnostics": false,
-                     "defaultCharset": "ISO-8859-1"
+                     "defaultCharset": "ISO-8859-1",
+                     "useGnatformat": true
                   }
                }
             },
