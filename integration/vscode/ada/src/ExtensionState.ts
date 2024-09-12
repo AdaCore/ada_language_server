@@ -47,7 +47,7 @@ export class ExtensionState {
     /**
      * The following fields are caches for ALS requests or costly properties.
      */
-    cachedProjectFile: string | undefined;
+    cachedProjectUri: vscode.Uri | undefined;
     cachedObjectDir: string | undefined;
     cachedMains: string[] | undefined;
     cachedExecutables: string[] | undefined;
@@ -57,7 +57,7 @@ export class ExtensionState {
     private sparkTaskProvider?: SimpleTaskProvider;
 
     public clearALSCache() {
-        this.cachedProjectFile = undefined;
+        this.cachedProjectUri = undefined;
         this.cachedObjectDir = undefined;
         this.cachedMains = undefined;
         this.cachedExecutables = undefined;
@@ -184,16 +184,26 @@ export class ExtensionState {
     };
 
     /**
+     * @returns the URI of the main project file from the ALS
+     */
+    public async getProjectUri(): Promise<vscode.Uri | undefined> {
+        if (!this.cachedProjectUri) {
+            const strUri = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
+                command: 'als-project-file',
+            })) as string;
+            if (strUri != '') {
+                this.cachedProjectUri = vscode.Uri.parse(strUri, true);
+            }
+        }
+
+        return this.cachedProjectUri;
+    }
+
+    /**
      * @returns the full path of the main project file from the ALS
      */
     public async getProjectFile(): Promise<string> {
-        if (!this.cachedProjectFile) {
-            this.cachedProjectFile = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
-                command: 'als-project-file',
-            })) as string;
-        }
-
-        return this.cachedProjectFile;
+        return (await this.getProjectUri())?.fsPath ?? '';
     }
 
     /**

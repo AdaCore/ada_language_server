@@ -1,0 +1,5 @@
+project Valid is
+
+   for Source_Dirs use (".");
+
+end Valid;

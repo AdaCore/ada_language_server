@@ -1,0 +1,5 @@
+project Test is
+
+   for Foo use "Bar";
+
+end Test;

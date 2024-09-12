@@ -84,8 +84,9 @@ package body LSP.Ada_Project_Loading is
          when Invalid_Project =>
             return VSS.Strings.To_Virtual_String
               ("The project file has errors and could not be loaded.");
-         when Warning_In_Project =>
-            return VSS.Strings.Empty_Virtual_String;
+         when Valid_Project_With_Warning =>
+            return VSS.Strings.To_Virtual_String
+              ("The project file was loaded but contains Warnings.");
       end case;
    end Load_Status_Message;
 
@@ -99,12 +100,12 @@ package body LSP.Ada_Project_Loading is
    begin
       case Project.Status is
          when Valid_Project =>
-            if not Project.Has_Runtime then
+            if Project.Missing_Ada_Runtime then
                return LSP.Enumerations.Warning;
             else
                return LSP.Enumerations.Hint;
             end if;
-         when Warning_In_Project | No_Project =>
+         when Valid_Project_With_Warning | No_Project =>
             return LSP.Enumerations.Warning;
          when Multiple_Projects .. Project_Not_Found =>
             return LSP.Enumerations.Error;
@@ -124,6 +125,15 @@ package body LSP.Ada_Project_Loading is
       Result            : LSP.Structures.Diagnostic_Vector;
       Parent_Diagnostic : LSP.Structures.Diagnostic;
       GPR2_Messages     : GPR2.Log.Object renames Project.GPR2_Messages;
+      Project_File      : GNATCOLL.VFS.Virtual_File renames
+        Project.Project_File;
+      URI               : constant LSP.Structures.DocumentUri :=
+        (if Project_File.Is_Regular_File
+         then
+           (VSS.Strings.Conversions.To_Virtual_String
+                (URIs.Conversions.From_File
+                     (Project_File.Display_Full_Name)) with null record)
+         else "");
 
       procedure Create_Project_Loading_Diagnostic;
       --  Create a parent diagnostic for the project loading status.
@@ -145,37 +155,20 @@ package body LSP.Ada_Project_Loading is
       begin
          --  Initialize the parent diagnostic.
          Parent_Diagnostic.a_range := ((0, 0), (0, 0));
-         Parent_Diagnostic.source := "project";
+         Parent_Diagnostic.source := "ada.project";
          Parent_Diagnostic.severity :=
            (True, Load_Status_Severity (Project));
 
-         --  If we don't have any GPR2 messages, display the project loading
-         --  status message in the parent diagnostic directly.
-         --  Otherwise display a generic message in the parent amnd append it
-         --  to its children, along with the other GPR2 messages.
-         if GPR2_Messages.Is_Empty then
-            Parent_Diagnostic.message :=
-              Load_Status_Message (Project);
-         else
-            declare
-               Project_File : GNATCOLL.VFS.Virtual_File renames
-                 Project.Project_File;
-               URI          : constant LSP.Structures.DocumentUri :=
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (URIs.Conversions.From_File
-                         (Project_File.Display_Full_Name)) with null record);
-            begin
-               Parent_Diagnostic.message := "Project Problems";
-               Parent_Diagnostic.relatedInformation.Append
-                 (LSP.Structures.DiagnosticRelatedInformation'
-                    (location =>
-                         LSP.Structures.Location'
-                       (uri    => URI, a_range => Sloc,
-                        others => <>),
-                     message  =>
-                       Load_Status_Message (Project)));
-            end;
-         end if;
+         Parent_Diagnostic.message := "Project Problems";
+         Parent_Diagnostic.relatedInformation.Append
+           (LSP.Structures.DiagnosticRelatedInformation'
+              (location =>
+                   LSP.Structures.Location'
+                 (uri     => URI,
+                  a_range => Sloc,
+                  others  => <>),
+               message  =>
+                 Load_Status_Message (Project)));
       end Create_Project_Loading_Diagnostic;
 
       -----------------------------
@@ -237,12 +230,12 @@ package body LSP.Ada_Project_Loading is
       procedure Append_Runtime_Diagnostic is
       begin
          if Project.Status not in No_Project .. Project_Not_Found
-           and then not Project.Has_Runtime
+           and then Project.Missing_Ada_Runtime
          then
             Parent_Diagnostic.relatedInformation.Append
               (LSP.Structures.DiagnosticRelatedInformation'
                  (location =>
-                      (uri     => "",
+                      (uri     => URI,
                        a_range => (start  => (0, 0),
                                    an_end => (0, 0)),
                        others  => <>),
@@ -253,7 +246,6 @@ package body LSP.Ada_Project_Loading is
       end Append_Runtime_Diagnostic;
 
    begin
-
       if not Has_Diagnostics (Project) then
          return Result;
       end if;
@@ -272,12 +264,29 @@ package body LSP.Ada_Project_Loading is
    function Has_New_Diagnostics
      (Old_Project : Project_Status_Type;
       New_Project : Project_Status_Type)
-      return Boolean is
+      return Boolean
+   is
+      use type GNATCOLL.VFS.Virtual_File;
+      use type GPR2.Log.Object;
    begin
-      return
-        Old_Project.Status /= New_Project.Status
-        or else (Old_Project.Project_Type /= New_Project.Project_Type
-                 and then Has_Pertinent_GPR2_Messages (New_Project));
+      if Old_Project.Status /= New_Project.Status then
+         --  Different Status => emit diagnostics to remove the previous ones
+         return True;
+      end if;
+
+      if Old_Project.Project_Type = New_Project.Project_Type then
+         --  For the same project, let's check if we already send the same
+         --  diagnostics
+         return Old_Project.Project_File /= New_Project.Project_File
+           or else Old_Project.Missing_Ada_Runtime
+             /= New_Project.Missing_Ada_Runtime
+           or else (Has_Diagnostics (New_Project)
+                    and then
+                    Old_Project.GPR2_Messages /= New_Project.GPR2_Messages);
+      else
+         --  Clean the diagnostics of the old project
+         return True;
+      end if;
    end Has_New_Diagnostics;
 
    ---------------------
@@ -287,7 +296,7 @@ package body LSP.Ada_Project_Loading is
    function Has_Diagnostics
      (Project : Project_Status_Type) return Boolean is
    begin
-      if not Project.Has_Runtime then
+      if Project.Missing_Ada_Runtime then
          return True;
       end if;
 
@@ -308,13 +317,12 @@ package body LSP.Ada_Project_Loading is
    function Has_Pertinent_GPR2_Messages
      (Project : Project_Status_Type) return Boolean is
    begin
-      for Msg of Project.GPR2_Messages loop
-         if Msg.Level in GPR2.Message.Warning .. GPR2.Message.Error then
-            return True;
-         end if;
-      end loop;
-
-      return False;
+      return
+        Project.GPR2_Messages.Has_Element
+          (Information => False,
+           Warning     => True,
+           Error       => True,
+           Lint        => False);
    end Has_Pertinent_GPR2_Messages;
 
    ---------------------
@@ -339,16 +347,16 @@ package body LSP.Ada_Project_Loading is
       Project.Project_Type := Project_Type;
    end Set_Project_Type;
 
-   ---------------------
-   -- Set_Has_Runtime --
-   ---------------------
+   -----------------------------
+   -- Set_Missing_Ada_Runtime --
+   -----------------------------
 
-   procedure Set_Has_Runtime
-     (Project      : in out Project_Status_Type;
-      Has_Runtime  : Boolean) is
+   procedure Set_Missing_Ada_Runtime
+     (Project : in out Project_Status_Type;
+      Value   : Boolean) is
    begin
-      Project.Has_Runtime := Has_Runtime;
-   end Set_Has_Runtime;
+      Project.Missing_Ada_Runtime := Value;
+   end Set_Missing_Ada_Runtime;
 
    -----------------------
    -- Set_GPR2_Messages --
@@ -359,6 +367,25 @@ package body LSP.Ada_Project_Loading is
       GPR2_Messages : GPR2.Log.Object) is
    begin
       Project.GPR2_Messages := GPR2_Messages;
+
+      --  Special case for a Valid Project: check errors and then warnings
+      if Project.Status = Valid_Project then
+         if Project.GPR2_Messages.Has_Element
+           (Information => False,
+            Warning     => False,
+            Error       => True,
+            Lint        => False)
+         then
+            Project.Status := Invalid_Project;
+         elsif Project.GPR2_Messages.Has_Element
+           (Information => False,
+            Warning     => True,
+            Error       => False,
+            Lint        => False)
+         then
+            Project.Status := Valid_Project_With_Warning;
+         end if;
+      end if;
    end Set_GPR2_Messages;
 
    ----------------------
@@ -390,7 +417,7 @@ package body LSP.Ada_Project_Loading is
      (Project : Project_Status_Type) return Boolean is
    begin
       return Project.Status = Valid_Project
-        or else Project.Status = Warning_In_Project;
+        or else Project.Status = Valid_Project_With_Warning;
    end Is_Project_Loaded;
 
    ---------------------------------
@@ -418,8 +445,15 @@ package body LSP.Ada_Project_Loading is
             begin
                Command.title :=
                  "Open settings to set ada.projectFile to a valid project";
-               Command.command := "workbench.action.openSettings";
+               Command.command := "workbench.action.openWorkspaceSettings";
+               --  Arguments is an array and must include Start_Array/End_Array
+               Command.arguments.Append
+                 (VSS.JSON.Streams.JSON_Stream_Element'
+                    (Kind => VSS.JSON.Streams.Start_Array));
                Command.arguments.Append (Arg);
+               Command.arguments.Append
+                 (VSS.JSON.Streams.JSON_Stream_Element'
+                    (Kind => VSS.JSON.Streams.End_Array));
 
                Item :=
                  (title       => Command.title,
@@ -478,7 +512,7 @@ package body LSP.Ada_Project_Loading is
                  (LSP.Structures.Command_Or_CodeAction'
                     (Is_Command => False, CodeAction => Item));
             end;
-         when Invalid_Project | Warning_In_Project =>
+         when Invalid_Project | Valid_Project_With_Warning =>
             null;
       end case;
    end Project_Status_Code_Actions;

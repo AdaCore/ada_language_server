@@ -1,11 +1,10 @@
 import * as assert from 'assert';
 import { adaExtState } from '../../../src/extension';
-import { getProjectFile, getObjectDir } from '../../../src/helpers';
-import { assertEqualToFileContent, activate } from '../utils';
+import { getObjectDir } from '../../../src/helpers';
+import { activate, assertEqualToFileContent } from '../utils';
 
-import * as vscode from 'vscode';
 import { readFileSync, writeFileSync } from 'fs';
-import { basename } from 'path';
+import * as vscode from 'vscode';
 
 suite('Extensions Test Suite', function () {
     // Make sure the extension is activated
@@ -14,9 +13,14 @@ suite('Extensions Test Suite', function () {
     });
     test('Project File Response', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
-            const result: string = await getProjectFile(adaExtState.adaClient);
-            const name = basename(result);
-            assert.strictEqual(name, 'prj.gpr');
+            // Uri obtained from the ALS
+            const alsUri = await adaExtState.getProjectUri();
+            // Uri manually computed based on the loaded workspace
+            const wsUri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, 'prj.gpr');
+            // Ask for fsPath, it will resolve wsUri._fsPath
+            wsUri.fsPath != null
+            // Both should match
+            assert.deepStrictEqual(alsUri, wsUri);
         } else {
             throw new Error('No workspace folder found for the specified URI');
         }
