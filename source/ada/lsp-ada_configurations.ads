@@ -86,6 +86,8 @@ package LSP.Ada_Configurations is
    --  True if completion is allowed to insert automatically with-clauses for
    --  invisible symbols.
 
+   function Use_Gnatformat (Self : Configuration'Class) return Boolean;
+
    function Indent_Only (Self : Configuration'Class) return Boolean;
 
    function Follow_Symlinks (Self : Configuration'Class) return Boolean;
@@ -137,6 +139,7 @@ private
       Rename_In_Comments       : Boolean := False;
       Folding_Comments         : Boolean := True;
       Use_Completion_Snippets  : Boolean := True;
+      Use_Gnatformat           : Boolean := False;
       Indent_Only              : Boolean := True;
       Follow_Symlinks          : Boolean := True;
       Insert_With_Clauses      : Boolean := True;
@@ -201,6 +204,9 @@ private
 
    function Folding_Comments (Self : Configuration'Class) return Boolean is
      (Self.Folding_Comments);
+
+   function Use_Gnatformat (Self : Configuration'Class) return Boolean is
+     (Self.Use_Gnatformat);
 
    function Indent_Only (Self : Configuration'Class) return Boolean is
      (Self.Indent_Only);

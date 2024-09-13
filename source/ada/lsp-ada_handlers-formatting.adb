@@ -27,9 +27,6 @@ package body LSP.Ada_Handlers.Formatting is
    Formatting_Trace : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.FORMATTING", GNATCOLL.Traces.On);
 
-   Gnatformat_Trace : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.GNATFORMAT", GNATCOLL.Traces.Off);
-
    procedure Update_Pp_Formatting_Options
      (Pp_Options  : in out Utils.Command_Lines.Command_Line;
       LSP_Options : LSP.Structures.FormattingOptions);
@@ -46,6 +43,7 @@ package body LSP.Ada_Handlers.Formatting is
       Document : not null LSP.Ada_Documents.Document_Access;
       Span     : LSP.Structures.A_Range;
       Options  : LSP.Structures.FormattingOptions;
+      Provider : Formatting_Provider;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
@@ -115,12 +113,12 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      if Gnatformat_Trace.Is_Active then
-         Gnatformat_Format;
-
-      else
-         Gnatpp_Format;
-      end if;
+      case Provider is
+         when Gnatformat =>
+            Gnatformat_Format;
+         when Gnatpp =>
+            Gnatpp_Format;
+      end case;
    end Format;
 
    ------------------
@@ -132,6 +130,7 @@ package body LSP.Ada_Handlers.Formatting is
       Document : not null LSP.Ada_Documents.Document_Access;
       Span     : LSP.Structures.A_Range;
       Options  : LSP.Structures.FormattingOptions;
+      Provider : Formatting_Provider;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Error    : out LSP.Errors.ResponseError)
@@ -209,12 +208,12 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      if Gnatformat_Trace.Is_Active then
-         Gnatformat_Range_Format;
-
-      else
-         Gnatpp_Range_Format;
-      end if;
+      case Provider is
+         when Gnatformat =>
+            Gnatformat_Range_Format;
+         when Gnatpp =>
+            Gnatpp_Range_Format;
+      end case;
    end Range_Format;
 
    ----------------------------------

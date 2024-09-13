@@ -351,6 +351,11 @@ package body LSP.Ada_Configurations is
                Self.Indent_Only := JSON (Index + 2).Boolean_Value;
 
             end if;
+
+         elsif Name = "useGnatformat"
+           and then JSON (Index).Kind = Boolean_Value
+         then
+            Self.Use_Gnatformat := JSON (Index).Boolean_Value;
          end if;
 
          Skip_Value (JSON, Index);

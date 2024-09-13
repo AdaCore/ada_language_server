@@ -2269,14 +2269,18 @@ package body LSP.Ada_Handlers is
 
    begin
       LSP.Ada_Handlers.Formatting.Format
-        (Context.all,
-         Document,
-         LSP.Constants.Empty,
-         Value.options,
-         Success,
-         Response,
-         Messages,
-         Error);
+        (Context  => Context.all,
+         Document => Document,
+         Span     => LSP.Constants.Empty,
+         Options  => Value.options,
+         Provider =>
+           (if Self.Configuration.Use_Gnatformat
+            then LSP.Ada_Handlers.Formatting.Gnatformat
+            else LSP.Ada_Handlers.Formatting.Gnatpp),
+         Success  => Success,
+         Response => Response,
+         Messages => Messages,
+         Error    => Error);
 
       if Success then
          Self.Sender.On_Formatting_Response (Id, Response);
@@ -2732,13 +2736,17 @@ package body LSP.Ada_Handlers is
 
          begin
             LSP.Ada_Handlers.Formatting.Range_Format
-              (Context.all,
-               Document,
-               Previous_NWNC_Token_Span,
-               Value.options,
-               Success,
-               Response,
-               Error);
+              (Context  => Context.all,
+               Document => Document,
+               Span     => Previous_NWNC_Token_Span,
+               Options  => Value.options,
+               Provider =>
+                 (if Self.Configuration.Use_Gnatformat
+                  then LSP.Ada_Handlers.Formatting.Gnatformat
+                  else LSP.Ada_Handlers.Formatting.Gnatpp),
+               Success  => Success,
+               Response => Response,
+               Error    => Error);
 
             if Success then
                --  Result contains the Range_Format result.
@@ -2970,24 +2978,32 @@ package body LSP.Ada_Handlers is
    begin
       if LSP.Ada_Configurations.Partial_GNATPP then
          LSP.Ada_Handlers.Formatting.Range_Format
-           (Context.all,
-            Document,
-            Value.a_range,
-            Value.options,
-            Success,
-            Response,
-            Error);
+           (Context  => Context.all,
+            Document => Document,
+            Span     => Value.a_range,
+            Options  => Value.options,
+            Provider =>
+              (if Self.Configuration.Use_Gnatformat
+               then LSP.Ada_Handlers.Formatting.Gnatformat
+               else LSP.Ada_Handlers.Formatting.Gnatpp),
+            Success  => Success,
+            Response => Response,
+            Error    => Error);
 
       else
          LSP.Ada_Handlers.Formatting.Format
-           (Context.all,
-            Document,
-            Value.a_range,
-            Value.options,
-            Success,
-            Response,
-            Messages,
-            Error);
+           (Context  => Context.all,
+            Document => Document,
+            Span     => Value.a_range,
+            Options  => Value.options,
+            Provider =>
+              (if Self.Configuration.Use_Gnatformat
+               then LSP.Ada_Handlers.Formatting.Gnatformat
+               else LSP.Ada_Handlers.Formatting.Gnatpp),
+            Success  => Success,
+            Response => Response,
+            Messages => Messages,
+            Error    => Error);
       end if;
 
       if Success then

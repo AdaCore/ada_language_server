@@ -323,6 +323,12 @@
                 "title": "Formatting",
                 "order": 1,
                 "properties": {
+                    "ada.useGnatformat": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": true,
+                        "markdownDescription": "Enable GNATformat as the formatting provider for Ada source files."
+                    },
                     "ada.onTypeFormatting.indentOnly": {
                         "scope": "window",
                         "type": "boolean",

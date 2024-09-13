@@ -1,9 +1,7 @@
 [
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -63,7 +61,8 @@
                      "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
                      "enableDiagnostics": true,
                      "useCompletionSnippets": false,
-                     "renameInComments": false
+                     "renameInComments": false,
+                     "useGnatformat": true
                   }
                }
             }
