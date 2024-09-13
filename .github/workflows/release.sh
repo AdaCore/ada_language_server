@@ -19,28 +19,11 @@ else
    NAME=${NODE_ARCH_PLATFORM%/*}-${NODE_ARCH_PLATFORM#*/}
 fi
 
-# For tags `actions/checkout@v2` action fetches a tag's commit, but
-# not the tag annotation itself. Let's refetch the tag from origin.
-# This makes `git show --no-patch --format=%n $TAG` work again.
-git tag --delete "$TAG"
-git fetch --tags
-
 function release_notes() {
    echo "# Release notes"
 
    # Select the content of the first section of CHANGELOG.md
-   sed -n -e '/^## \\<next>/,/^##/p' <CHANGELOG.md | tail -n +2 | head -n -1
-
-   COMMITS=commits.txt
-
-   if [ -f "$COMMITS" ]; then
-      {
-         echo "# Dependency commits"
-         echo ""
-         cat "$COMMITS"
-         echo ""
-      }
-   fi
+   sed -n -e '/^## \\<next>/,/^##/p' CHANGELOG.md | sed -e '1d;$d'
 }
 
 release_notes >release_notes.md
@@ -69,7 +52,7 @@ upload_url=$(curl \
 echo "upload_url=$upload_url"
 
 FILE=$NAME.tar.gz
-tar czvf "$FILE" "integration/vscode/ada/$NODE_ARCH_PLATFORM" commits.txt
+tar czvf "$FILE" "integration/vscode/ada/$NODE_ARCH_PLATFORM"
 
 # Upload $FILE as an asset to the release
 curl \

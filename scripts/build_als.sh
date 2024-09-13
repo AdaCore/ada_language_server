@@ -32,7 +32,6 @@ vss
 
 # Pins repo names (crate name by default)
 
-repo_adasat=AdaSAT
 repo_gnatcoll=gnatcoll-core
 repo_lal_refactor=lal-refactor
 repo_langkit_support=langkit
@@ -72,21 +71,23 @@ function install_index() {
 
 # Clone dependencies
 function pin_crates() {
-   echo "$(git rev-parse HEAD) ada_language_server" >commits.txt
-
    for crate in $PINS; do
       repo_var=repo_$crate
       branch_var=branch_$crate
 
       repo=${!repo_var}
       branch=${!branch_var}
+      commit=""
+
+      if [ -f deps.txt ]; then
+         commit=$(grep "^${repo:-$crate}=" deps.txt | sed -e 's/.*=//')
+      fi
 
       URL="https://github.com/AdaCore/${repo:-$crate}.git"
-      GIT="git clone --depth=1"
-      [ -d "subprojects/$crate" ] ||
-         $GIT -b "${branch:-master}" "$URL" "subprojects/$crate"
-      commit=$(git -C "subprojects/$crate" rev-parse HEAD)
-      echo "$commit $crate" >>commits.txt
+      if [ ! -d "subprojects/$crate" ]; then
+         git clone "$URL" "subprojects/$crate"
+         git -C "subprojects/$crate" checkout "${commit:-${branch:-master}}"
+      fi
       cp -v "subprojects/$crate".toml "subprojects/$crate/alire.toml"
       alr --force --non-interactive pin "$crate" "--use=$PWD/subprojects/$crate"
    done
