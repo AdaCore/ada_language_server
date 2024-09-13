@@ -131,7 +131,7 @@
                   "contents": [
                      {
                         "language": "gpr",
-                        "value": "type My_Type is (\"a\", \"b\");\r"
+                        "value": "type My_Type is (\"a\", \"b\");\n"
                      },
                      "prj.gpr:6:09",
                      {
@@ -202,7 +202,7 @@
                   "contents": [
                      {
                         "language": "gpr",
-                        "value": "type My_Type is (\"a\", \"b\");\r"
+                        "value": "type My_Type is (\"a\", \"b\");\n"
                      },
                      "prj.gpr:6:09",
                      {
