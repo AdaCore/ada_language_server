@@ -215,7 +215,7 @@ package body LSP.GPR_Documentation is
                                     Declaration_Text.Prepend
                                       (VSS.Strings.Conversions.To_Virtual_String
                                          (GPR2.Project.Typ.Image (Typ)
-                                          & Ada.Characters.Latin_1.CR));
+                                          & Ada.Characters.Latin_1.LF));
                                  end if;
                               end;
                            end if;
@@ -232,7 +232,7 @@ package body LSP.GPR_Documentation is
                            Declaration_Text.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (GPR2.Project.Attribute.Image (Attribute)
-                                 & Ada.Characters.Latin_1.CR));
+                                 & Ada.Characters.Latin_1.LF));
                            Location_Text.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (GPR2.Source_Reference.Format
@@ -253,7 +253,7 @@ package body LSP.GPR_Documentation is
                            Declaration_Text.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (GPR2.Project.Typ.Image (Typ)
-                                 & Ada.Characters.Latin_1.CR));
+                                 & Ada.Characters.Latin_1.LF));
                            Location_Text.Append
                              (VSS.Strings.Conversions.To_Virtual_String
                                 (GPR2.Source_Reference.Format
