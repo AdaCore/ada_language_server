@@ -22,10 +22,10 @@ prepend = "${CRATE_ROOT}/core:${CRATE_ROOT}/projects:${CRATE_ROOT}/minimal"
 prepend = "${CRATE_ROOT}/core:${CRATE_ROOT}/projects:${CRATE_ROOT}/minimal"
 
 [environment.'case(os)'.macos.DYLD_LIBRARY_PATH]
-append = "${CRATE_ROOT}/projects/lib/gnatcoll_projects/relocatable:${CRATE_ROOT}/core/lib/gnatcoll_core/relocatable:${CRATE_ROOT}/minimal/lib/gnatcoll_core/relocatable"
+append = "${CRATE_ROOT}/projects/lib/gnatcoll_projects/relocatable:${CRATE_ROOT}/core/lib/gnatcoll_core/relocatable:${CRATE_ROOT}/minimal/lib/gnatcoll_core/relocatable:${CRATE_ROOT}/lib/gnatcoll_projects/relocatable:${CRATE_ROOT}/lib/gnatcoll_core/relocatable"
 
 [environment.'case(os)'.windows.PATH]
-append = "${CRATE_ROOT}/projects/lib/gnatcoll_projects/relocatable;${CRATE_ROOT}/core/lib/gnatcoll_core/relocatable;${CRATE_ROOT}/minimal/lib/gnatcoll_core/relocatable"
+append = "${CRATE_ROOT}/projects/lib/gnatcoll_projects/relocatable;${CRATE_ROOT}/core/lib/gnatcoll_core/relocatable;${CRATE_ROOT}/minimal/lib/gnatcoll_core/relocatable;${CRATE_ROOT}/lib/gnatcoll_projects/relocatable;${CRATE_ROOT}/lib/gnatcoll_core/relocatable"
 
 [gpr-externals]
 GNATCOLL_ATOMICS = ["intrinsic", "mutex"]
