@@ -45,11 +45,11 @@ export type ReplaceTypeCommandArgs = {
  */
 export const alsReplaceTypeCommandExecutor = async (
     client: LanguageClient,
-    args: ReplaceTypeCommandArgs
+    args: ReplaceTypeCommandArgs,
 ): Promise<boolean> => {
     // If the server command attributes changed, some of args fields might be undefined
     if (args.newType === undefined) {
-        return Promise.reject('Invalid als-refactor-replace_type');
+        return Promise.reject(new Error('Invalid als-refactor-replace_type'));
     }
 
     // Create an input box with the messages adjusted according to if we require a full parameter

@@ -56,7 +56,7 @@ suite('CodeLens', function () {
                         !cl.command.command.toLowerCase().includes('run') &&
                         !cl.command.command.toLowerCase().includes('debug')
                     );
-                })
+                }),
             );
         }
     });
@@ -71,7 +71,7 @@ suite('CodeLens', function () {
         const textEditor = await showTextDocument(...srcRelPath);
         const symbols = await commands.executeCommand<DocumentSymbol[]>(
             'vscode.executeDocumentSymbolProvider',
-            textEditor.document.uri
+            textEditor.document.uri,
         );
         assert(getSymbols(symbols, [SymbolKind.Function]).length > 0);
 
@@ -82,7 +82,7 @@ suite('CodeLens', function () {
              */
             assert(
                 !codeLensesToString(codelenses).toLowerCase().includes('prove'),
-                `CodeLense for SPARK was unexpectedly provided:\n${codeLensesToString(codelenses)}`
+                `CodeLense for SPARK was unexpectedly provided:\n${codeLensesToString(codelenses)}`,
             );
         }
     });

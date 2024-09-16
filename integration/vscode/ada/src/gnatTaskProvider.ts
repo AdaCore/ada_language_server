@@ -64,6 +64,7 @@ export type AdaTaskKinds = (typeof adaTaskKinds)[number];
 
 // The following pair of declarations allow creating a set of string values both
 // as an iterable (constant) array, and as a union type.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const sparkTaskKinds = [
     'cleanProjectForProof',
     'examineProject',
@@ -237,7 +238,7 @@ export class GnatTaskProvider implements vscode.TaskProvider<vscode.Task> {
                     msg,
                     GnatTaskProvider.gnatType,
                     this.obsoleteWarningExecution,
-                    DEFAULT_PROBLEM_MATCHER
+                    DEFAULT_PROBLEM_MATCHER,
                 ),
             ];
         } else {
@@ -255,7 +256,7 @@ export class GnatTaskProvider implements vscode.TaskProvider<vscode.Task> {
     resolveTask(
         task: vscode.Task,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _token: vscode.CancellationToken
+        _token: vscode.CancellationToken,
     ): vscode.ProviderResult<vscode.Task> {
         /**
          * Here we resolve 'gnat' tasks still defined in User workspaces. We
@@ -268,7 +269,7 @@ export class GnatTaskProvider implements vscode.TaskProvider<vscode.Task> {
             task.name,
             GnatTaskProvider.gnatType,
             this.obsoleteWarningExecution,
-            DEFAULT_PROBLEM_MATCHER
+            DEFAULT_PROBLEM_MATCHER,
         );
     }
 }
@@ -298,7 +299,7 @@ export async function getTasks(): Promise<vscode.Task[]> {
                 await getProjectArgs(),
                 getScenarioArgs(),
                 await extraArgsFromTask,
-                getDiagnosticArgs()
+                getDiagnosticArgs(),
             );
             const shell = new vscode.ShellExecution(cmd[0], cmd.slice(1));
             const task = new vscode.Task(
@@ -307,7 +308,7 @@ export async function getTasks(): Promise<vscode.Task[]> {
                 title,
                 'gnat',
                 shell,
-                '$ada'
+                '$ada',
             );
             task.group = vscode.TaskGroup.Build;
             result.push(task);
@@ -334,7 +335,7 @@ export const getDiagnosticArgs = (): string[] => {
 };
 export function getScenarioArgs() {
     const vars: string[][] = Object.entries(
-        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
     );
     const fold = (args: string[], item: string[]): string[] => {
         const option = '-X' + item[0] + '=' + item[1];
@@ -353,6 +354,6 @@ export async function alire(): Promise<string[]> {
             : // if alire.toml found, search for `alr`
               commandExists('alr')
                   .then(() => ['alr', 'exec', '--'])
-                  .catch(() => [])
+                  .catch(() => []),
     );
 }
