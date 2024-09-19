@@ -9088,58 +9088,6 @@
 			"documentation": "Provider options for a [DocumentLinkRequest](#DocumentLinkRequest)."
 		},
 		{
-			"name": "FormattingOptions",
-			"properties": [
-				{
-					"name": "tabSize",
-					"type": {
-						"kind": "base",
-						"name": "uinteger"
-					},
-					"documentation": "Size of a tab in spaces."
-				},
-				{
-					"name": "insertSpaces",
-					"type": {
-						"kind": "base",
-						"name": "boolean"
-					},
-					"documentation": "Prefer spaces over tabs."
-				},
-				{
-					"name": "trimTrailingWhitespace",
-					"type": {
-						"kind": "base",
-						"name": "boolean"
-					},
-					"optional": true,
-					"documentation": "Trim trailing whitespace on a line.\n\n@since 3.15.0",
-					"since": "3.15.0"
-				},
-				{
-					"name": "insertFinalNewline",
-					"type": {
-						"kind": "base",
-						"name": "boolean"
-					},
-					"optional": true,
-					"documentation": "Insert a newline character at the end of the file if one does not exist.\n\n@since 3.15.0",
-					"since": "3.15.0"
-				},
-				{
-					"name": "trimFinalNewlines",
-					"type": {
-						"kind": "base",
-						"name": "boolean"
-					},
-					"optional": true,
-					"documentation": "Trim all newlines after the final newline at the end of the file.\n\n@since 3.15.0",
-					"since": "3.15.0"
-				}
-			],
-			"documentation": "Value-object describing what options formatting should use."
-		},
-		{
 			"name": "DocumentFormattingOptions",
 			"properties": [],
 			"mixins": [

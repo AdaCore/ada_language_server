@@ -196,7 +196,8 @@ package LSP.Ada_Documents is
    function Range_Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
-      Span    : LSP.Structures.A_Range)
+      Span    : LSP.Structures.A_Range;
+      Options : LSP.Structures.FormattingOptions)
       return LSP.Structures.TextEdit;
    --  Format part of Self defined by Span with formatting options based on
    --  Context.
