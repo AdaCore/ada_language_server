@@ -89,6 +89,8 @@ export function createClient(
             // Notify the server about file changes to Ada files contain in the workspace
             fileEvents: vscode.workspace.createFileSystemWatcher(pattern),
         },
+        // Include the ada.* settings in the initialize request sent to the server
+        initializationOptions: () => ({ ada: vscode.workspace.getConfiguration('ada') }),
     };
     // Create the language client
     return new LanguageClient(id, name, serverOptions, clientOptions);
