@@ -314,7 +314,7 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
-            args: ['${command:ada.gprProjectArgs}', '-j0', '-cargs', '-gnatef'],
+            args: ['${command:ada.gprProjectArgs}', '-cargs', '-gnatef'],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
@@ -323,14 +323,7 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
-            args: [
-                '${command:ada.gprProjectArgs}',
-                '-j0',
-                '-u',
-                '${fileBasename}',
-                '-cargs',
-                '-gnatef',
-            ],
+            args: ['${command:ada.gprProjectArgs}', '-u', '${fileBasename}', '-cargs', '-gnatef'],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
@@ -341,7 +334,6 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnatprove',
             args: [
                 '${command:ada.gprProjectArgs}',
-                '-j0',
                 '${command:ada.spark.limitSubpArg}',
                 '-cargs',
                 '-gnatef',
@@ -356,7 +348,6 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnatprove',
             args: [
                 '${command:ada.gprProjectArgs}',
-                '-j0',
                 '-u',
                 '${fileBasename}',
                 '${command:ada.spark.limitRegionArg}',

@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
+/* eslint-disable @typescript-eslint/only-throw-error */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,22 +14,19 @@
  */
 
 import {
+    Disposable,
+    QuickInput,
+    QuickInputButton,
+    QuickInputButtons,
     QuickPickItem,
     window,
-    Disposable,
-    CancellationToken,
-    QuickInputButton,
-    QuickInput,
-    ExtensionContext,
-    QuickInputButtons,
-    Uri,
 } from 'vscode';
 
 // -------------------------------------------------------
 // Helper code that wraps the API for the multi-step case.
 // -------------------------------------------------------
 
-class InputFlowAction {
+export class InputFlowAction {
     static back = new InputFlowAction();
     static cancel = new InputFlowAction();
     static resume = new InputFlowAction();
@@ -37,11 +39,13 @@ interface QuickPickParameters<T extends QuickPickItem> {
     step: number;
     totalSteps: number;
     items: T[];
-    activeItem?: T;
+    canSelectMany?: boolean;
+    activeItems?: T | T[];
+    selectedItems?: T | T[];
     ignoreFocusOut?: boolean;
     placeholder: string;
     buttons?: QuickInputButton[];
-    shouldResume: () => Thenable<boolean>;
+    shouldResume?: () => Thenable<boolean>;
 }
 
 interface InputBoxParameters {
@@ -50,15 +54,15 @@ interface InputBoxParameters {
     totalSteps: number;
     value: string;
     prompt: string;
-    validate: (value: string) => Promise<string | undefined>;
+    validate: (value: string) => string | undefined | Promise<string | undefined>;
     buttons?: QuickInputButton[];
     ignoreFocusOut?: boolean;
     placeholder?: string;
-    shouldResume: () => Thenable<boolean>;
+    shouldResume?: () => Thenable<boolean>;
 }
 
-class MultiStepInput {
-    static async run<T>(start: InputStep) {
+export class MultiStepInput {
+    static async run(start: InputStep) {
         const input = new MultiStepInput();
         return input.stepThrough(start);
     }
@@ -66,31 +70,35 @@ class MultiStepInput {
     private current?: QuickInput;
     private steps: InputStep[] = [];
 
-    private async stepThrough<T>(start: InputStep) {
-        let step: InputStep | void = start;
-        while (step) {
-            this.steps.push(step);
-            if (this.current) {
-                this.current.enabled = false;
-                this.current.busy = true;
-            }
-            try {
-                step = await step(this);
-            } catch (err) {
-                if (err === InputFlowAction.back) {
-                    this.steps.pop();
-                    step = this.steps.pop();
-                } else if (err === InputFlowAction.resume) {
-                    step = this.steps.pop();
-                } else if (err === InputFlowAction.cancel) {
-                    step = undefined;
-                } else {
-                    throw err;
+    private async stepThrough(start: InputStep) {
+        try {
+            let step: InputStep | void = start;
+            while (step) {
+                this.steps.push(step);
+                if (this.current) {
+                    this.current.enabled = false;
+                    this.current.busy = true;
+                }
+                try {
+                    step = await step(this);
+                } catch (err) {
+                    if (err === InputFlowAction.back) {
+                        this.steps.pop();
+                        step = this.steps.pop();
+                    } else if (err === InputFlowAction.resume) {
+                        step = this.steps.pop();
+                    } else if (err === InputFlowAction.cancel) {
+                        step = undefined;
+                        throw err;
+                    } else {
+                        throw err;
+                    }
                 }
             }
-        }
-        if (this.current) {
-            this.current.dispose();
+        } finally {
+            if (this.current) {
+                this.current.dispose();
+            }
         }
     }
 
@@ -99,56 +107,83 @@ class MultiStepInput {
         step,
         totalSteps,
         items,
-        activeItem,
+        canSelectMany,
+        activeItems,
+        selectedItems,
         ignoreFocusOut,
         placeholder,
         buttons,
         shouldResume,
-    }: P) {
+    }: P): Promise<
+        | (P extends { canSelectMany: boolean } ? T[] : T)
+        | (P extends { buttons: (infer I)[] } ? I : never)
+    > {
         const disposables: Disposable[] = [];
         try {
-            return await new Promise<T | (P extends { buttons: (infer I)[] } ? I : never)>(
-                (resolve, reject) => {
-                    const input = window.createQuickPick<T>();
-                    input.title = title;
-                    input.step = step;
-                    input.totalSteps = totalSteps;
-                    input.ignoreFocusOut = ignoreFocusOut ?? false;
-                    input.placeholder = placeholder;
-                    input.items = items;
-                    if (activeItem) {
-                        input.activeItems = [activeItem];
+            return await new Promise<
+                | (P extends { canSelectMany: boolean } ? T[] : T)
+                | (P extends { buttons: (infer I)[] } ? I : never)
+            >((resolve, reject) => {
+                const input = window.createQuickPick<T>();
+                input.title = title;
+                input.step = step;
+                input.totalSteps = totalSteps;
+                input.ignoreFocusOut = ignoreFocusOut ?? false;
+                input.placeholder = placeholder;
+                input.items = items;
+                input.canSelectMany = canSelectMany ?? false;
+                if (activeItems) {
+                    if (activeItems instanceof Array) {
+                        input.activeItems = activeItems;
+                    } else {
+                        input.activeItems = [activeItems];
                     }
-                    input.buttons = [
-                        ...(this.steps.length > 1 ? [QuickInputButtons.Back] : []),
-                        ...(buttons || []),
-                    ];
-                    disposables.push(
-                        input.onDidTriggerButton((item) => {
-                            if (item === QuickInputButtons.Back) {
-                                reject(InputFlowAction.back);
-                            } else {
-                                resolve(<any>item);
-                            }
-                        }),
-                        input.onDidChangeSelection((items) => resolve(items[0])),
-                        input.onDidHide(() => {
-                            (async () => {
-                                reject(
-                                    shouldResume && (await shouldResume())
-                                        ? InputFlowAction.resume
-                                        : InputFlowAction.cancel,
-                                );
-                            })().catch(reject);
-                        }),
-                    );
-                    if (this.current) {
-                        this.current.dispose();
+                }
+                if (selectedItems) {
+                    if (selectedItems instanceof Array) {
+                        input.selectedItems = selectedItems;
+                    } else {
+                        input.selectedItems = [selectedItems];
                     }
-                    this.current = input;
-                    this.current.show();
-                },
-            );
+                }
+                input.buttons = [
+                    ...(this.steps.length > 1 ? [QuickInputButtons.Back] : []),
+                    ...(buttons || []),
+                ];
+                disposables.push(
+                    input.onDidTriggerButton((item) => {
+                        if (item === QuickInputButtons.Back) {
+                            reject(InputFlowAction.back);
+                        } else {
+                            resolve(<any>item);
+                        }
+                    }),
+                    input.onDidChangeSelection((items) => {
+                        if (!canSelectMany) {
+                            resolve(<any>items[0]);
+                        }
+                    }),
+                    input.onDidAccept(() => {
+                        if (canSelectMany) {
+                            resolve(<any>input.selectedItems.concat());
+                        }
+                    }),
+                    input.onDidHide(() => {
+                        (async () => {
+                            reject(
+                                shouldResume && (await shouldResume())
+                                    ? InputFlowAction.resume
+                                    : InputFlowAction.cancel,
+                            );
+                        })().catch(reject);
+                    }),
+                );
+                if (this.current) {
+                    this.current.dispose();
+                }
+                this.current = input;
+                this.current.show();
+            });
         } finally {
             disposables.forEach((d) => d.dispose());
         }

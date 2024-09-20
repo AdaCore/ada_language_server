@@ -6,9 +6,12 @@ import { SymbolKind, commands } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
 import { ExecuteCommandRequest } from 'vscode-languageclient';
 import { ALSSourceDirDescription, ExtensionState } from './ExtensionState';
+import { startVisualize } from './alsVisualizer';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
+import { loadGnatCoverageReport } from './gnattest';
 import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
+import { askSPARKOptions } from './sparkOptionsPicker';
 import {
     DEFAULT_PROBLEM_MATCHERS,
     SimpleTaskDef,
@@ -18,19 +21,17 @@ import {
     TASK_PROVE_SUPB_PLAIN_NAME,
     TASK_TYPE_SPARK,
     findBuildAndRunTask,
-    getTasksWithPrefix,
-    getConventionalTaskLabel,
-    isFromWorkspace,
-    workspaceTasksFirst,
     getBuildAndRunTaskName,
-    getRunGNATemulatorTaskName,
     getBuildTaskName,
+    getConventionalTaskLabel,
+    getRunGNATemulatorTaskName,
+    getTasksWithPrefix,
+    isFromWorkspace,
     runTaskAndGetResult,
+    workspaceTasksFirst,
 } from './taskProviders';
-import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
-import { loadGnatCoverageReport } from './gnattest';
-import { startVisualize } from './alsVisualizer';
 import { Hierarchy } from './visualizerTypes';
+import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
 
 /**
  * Identifier for a hidden command used for building and running a project main.
@@ -1051,11 +1052,16 @@ async function sparkProveSubprogram(
     uri: vscode.Uri,
     range: vscode.Range,
 ): Promise<vscode.TaskExecution> {
+    const [tasks, cliArgs] = await Promise.all([
+        vscode.tasks.fetchTasks({ type: TASK_TYPE_SPARK }),
+        askSPARKOptions(),
+    ]);
+
     /**
      * Get the 'Prove subprogram' task. Prioritize workspace tasks so that User
      * customization of the task takes precedence.
      */
-    const task = (await vscode.tasks.fetchTasks({ type: TASK_TYPE_SPARK }))
+    const task = tasks
         .sort(workspaceTasksFirst)
         .find(
             (t) =>
@@ -1098,6 +1104,11 @@ async function sparkProveSubprogram(
          * with the same name in the task history.
          */
         newTask.name = `${task.name} - ${fileBasename}:${range.start.line + 1}`;
+
+        /**
+         * Add the options chosen by the User
+         */
+        taskDef.args.splice(regionArgIdx + 1, 0, ...cliArgs);
     } else {
         throw Error(
             `Task '${getConventionalTaskLabel(task)}' is missing a '${regionArg}' argument`,
