@@ -1,4 +1,3 @@
 project Default is
    for Main use ("foo.adb");
-   for Runtime ("Ada") use "./rts-empty";
 end Default;
