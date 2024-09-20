@@ -244,6 +244,11 @@ package body LSP.Ada_Configurations is
          then
             Set (Self.Project_File, JSON (Index).String_Value);
 
+         elsif Name = "projectDiagnostics"
+           and then JSON (Index).Kind = Boolean_Value
+         then
+            Self.Project_Diagnostics_Enabled := JSON (Index).Boolean_Value;
+
          elsif Name = "scenarioVariables"
            and then JSON (Index).Kind = Start_Object
          then

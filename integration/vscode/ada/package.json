@@ -297,6 +297,12 @@
                         },
                         "order": 1
                     },
+                    "ada.projectDiagnostics": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Controls whether or not the Ada Language Server should emit project diagnostics into the VS Code Problems view.\n\nNote: this setting is ignored if `ada.enableDiagnostics` is disabled and a workspace reload is necessary to refresh the diagnostics after modifying this setting."
+                    },
                     "ada.defaultCharset": {
                         "scope": "window",
                         "type": "string",

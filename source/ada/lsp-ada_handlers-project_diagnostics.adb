@@ -15,11 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.Traces; use GNATCOLL.Traces;
-
 package body LSP.Ada_Handlers.Project_Diagnostics is
-
-   Me : constant Trace_Handle := Create ("ALS.PROJECT.DIAGNOSTICS", On);
 
    --------------------
    -- Get_Diagnostic --
@@ -30,7 +26,7 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector) is
    begin
-      if Me.Active then
+      if Self.Handler.Configuration.Project_Diagnostics_Enabled then
          Self.Last_Status := Self.Handler.Project_Status;
 
          Self.Handler.Tracer.Trace ("Diag: " & Self.Last_Status'Image);
@@ -54,7 +50,7 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
    is
       pragma Unreferenced (Context);
    begin
-      if Me.Active then
+      if Self.Handler.Configuration.Project_Diagnostics_Enabled then
          return LSP.Ada_Project_Loading.Has_New_Diagnostics
            (Self.Last_Status,
             Self.Handler.Project_Status);
