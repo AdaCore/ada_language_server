@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+## 25.0.20240915
+
 * Implement type hierarchy requests
 * Migrate the build infrastructure to ALIRE
 * Migrate the VSIX publication infrastructure out of GitHub Actions
