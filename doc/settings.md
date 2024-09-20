@@ -59,6 +59,7 @@ Ada Language Server understands these settings:
 * [relocateBuildTree](#relocatebuildtree)
 * [rootDir](#rootdir)
 * [enableDiagnostics](#enablediagnostics)
+* [projectDiagnostics](#projectdiagnostics)
 * [enableIndexing](#enableindexing)
 * [renameInComments](#renameincomments)
 * [namedNotationThreshold](#namednotationthreshold)
@@ -137,6 +138,16 @@ for more details about the corresponding gprbuild switch.
 
 You can explicitly deactivate the emission of diagnostics, via the
 `enableDiagnostics` key. By default, diagnostics are enabled.
+The value is a boolean.
+
+```javascript
+    'enableDiagnostics': false
+```
+
+## projectDiagnostics
+
+This setting needs `enableDiagnostics` enabled and can be disabled to remove
+project related diagnotics.
 The value is a boolean.
 
 ```javascript

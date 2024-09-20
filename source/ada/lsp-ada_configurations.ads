@@ -69,6 +69,10 @@ package LSP.Ada_Configurations is
    function Diagnostics_Enabled (Self : Configuration'Class) return Boolean;
    --  Whether to publish diagnostics
 
+   function Project_Diagnostics_Enabled
+     (Self : Configuration'Class) return Boolean;
+   --  Whether to publish project related diagnostics
+
    function Indexing_Enabled (Self : Configuration'Class) return Boolean;
    --  Whether to index sources in the background. This should be True
    --  for normal use, and can be disabled for debug or testing purposes.
@@ -128,21 +132,22 @@ private
    use type VSS.Strings.Virtual_String;
 
    type Configuration is tagged record
-      Project_File             : VSS.Strings.Virtual_String;
-      Charset                  : VSS.Strings.Virtual_String;
-      Relocate_Build_Tree      : VSS.Strings.Virtual_String;
-      Relocate_Root            : VSS.Strings.Virtual_String;
-      Named_Notation_Threshold : Natural := 3;
-      Log_Threshold            : Natural := 10;
-      Diagnostics_Enabled      : Boolean := True;
-      Indexing_Enabled         : Boolean := True;
-      Rename_In_Comments       : Boolean := False;
-      Folding_Comments         : Boolean := True;
-      Use_Completion_Snippets  : Boolean := True;
-      Use_Gnatformat           : Boolean := False;
-      Indent_Only              : Boolean := True;
-      Follow_Symlinks          : Boolean := True;
-      Insert_With_Clauses      : Boolean := True;
+      Project_File                : VSS.Strings.Virtual_String;
+      Charset                     : VSS.Strings.Virtual_String;
+      Relocate_Build_Tree         : VSS.Strings.Virtual_String;
+      Relocate_Root               : VSS.Strings.Virtual_String;
+      Named_Notation_Threshold    : Natural := 3;
+      Log_Threshold               : Natural := 10;
+      Diagnostics_Enabled         : Boolean := True;
+      Project_Diagnostics_Enabled : Boolean := True;
+      Indexing_Enabled            : Boolean := True;
+      Rename_In_Comments          : Boolean := False;
+      Folding_Comments            : Boolean := True;
+      Use_Completion_Snippets     : Boolean := True;
+      Use_Gnatformat              : Boolean := False;
+      Indent_Only                 : Boolean := True;
+      Follow_Symlinks             : Boolean := True;
+      Insert_With_Clauses         : Boolean := True;
 
       Documentation_Style      : GNATdoc.Comments.Options.Documentation_Style
         := GNATdoc.Comments.Options.GNAT;
@@ -175,6 +180,10 @@ private
 
    function Diagnostics_Enabled (Self : Configuration'Class) return Boolean is
       (Self.Diagnostics_Enabled);
+
+   function Project_Diagnostics_Enabled
+     (Self : Configuration'Class)
+      return Boolean is (Self.Project_Diagnostics_Enabled);
 
    function Indexing_Enabled (Self : Configuration'Class) return Boolean is
       (Self.Indexing_Enabled);
