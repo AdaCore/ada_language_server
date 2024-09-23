@@ -121,7 +121,7 @@ ada: Run main - src/test.adb - obj/test${exe}
         const testAdbUri = vscode.Uri.joinPath(
             vscode.workspace.workspaceFolders[0].uri,
             'src',
-            'test.adb'
+            'test.adb',
         );
 
         /**
@@ -134,7 +134,7 @@ ada: Run main - src/test.adb - obj/test${exe}
             (await getEnclosingSymbol(vscode.window.activeTextEditor, [vscode.SymbolKind.Function]))
                 ?.range,
             // The expected range is that of the inner-most subprogram P3
-            new vscode.Range(13, 9, 18, 16)
+            new vscode.Range(13, 9, 18, 16),
         );
         assert.equal(getSelectedRegion(vscode.window.activeTextEditor), '18:18');
 
@@ -185,7 +185,7 @@ ada: Run main - src/test.adb - obj/test${exe}
             assert(resolved.execution);
             assert(
                 isFromWorkspace(resolved),
-                'Build task does not come from workspace. Source is: ' + resolved.source
+                'Build task does not come from workspace. Source is: ' + resolved.source,
             );
 
             const exec = buildTask.execution as vscode.ShellExecution;
@@ -215,7 +215,7 @@ ada: Run main - src/test.adb - obj/test${exe}
             obsoleteTaskDef,
             vscode.TaskScope.Workspace,
             'Obsolete Task',
-            'Workspace'
+            'Workspace',
         );
 
         const prov = createAdaTaskProvider();
@@ -259,7 +259,7 @@ ada: Run main - src/test.adb - obj/test${exe}
                 t,
                 vscode.TaskScope.Workspace,
                 'Invalid Task',
-                'Workspace'
+                'Workspace',
             );
 
             /**
@@ -353,7 +353,7 @@ suite('Task Execution', function () {
                 .getConfiguration()
                 .update(
                     'ada.projectFile',
-                    initialProjectFile === '' ? undefined : initialProjectFile
+                    initialProjectFile === '' ? undefined : initialProjectFile,
                 );
         }
     });
@@ -428,7 +428,7 @@ async function openSrcFile() {
     const testAdbUri = vscode.Uri.joinPath(
         vscode.workspace.workspaceFolders[0].uri,
         'src',
-        'test.adb'
+        'test.adb',
     );
 
     await vscode.window.showTextDocument(testAdbUri);

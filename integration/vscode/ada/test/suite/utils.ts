@@ -84,7 +84,7 @@ export async function activate(): Promise<void> {
  */
 export async function getCommandLines(
     prov: SimpleTaskProvider,
-    filter?: (t: vscode.Task) => boolean
+    filter?: (t: vscode.Task) => boolean,
 ) {
     let tasks = await prov.provideTasks();
     assert(tasks);
@@ -97,7 +97,7 @@ export async function getCommandLines(
         await Promise.all(
             tasks.map(async (t) => {
                 return { task: t, execution: (await prov.resolveTask(t))?.execution };
-            })
+            }),
         )
     )
         .filter(function ({ execution }) {
@@ -147,7 +147,7 @@ export async function runTaskAndGetResult(task: vscode.Task): Promise<number | u
              */
             if (!started) {
                 const msg = `The task '${getConventionalTaskLabel(
-                    task
+                    task,
                 )}' was not started, likely due to an error.\n`;
                 reject(Error(msg));
             }
@@ -160,7 +160,7 @@ export async function runTaskAndGetResult(task: vscode.Task): Promise<number | u
             msg += await vscode.tasks.fetchTasks({ type: task.definition.type }).then(
                 (list) => list.map(getConventionalTaskLabel).join('\n'),
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                (reason) => `fetchTasks promise was rejected: ${reason}`
+                (reason) => `fetchTasks promise was rejected: ${reason}`,
             );
 
             reason.message += '\n' + msg;
@@ -201,7 +201,7 @@ export function getCmdLine(exec: vscode.ShellExecution): string {
 export async function testTask(
     taskName: string,
     testedTasks?: Set<string>,
-    allProvidedTasks?: vscode.Task[]
+    allProvidedTasks?: vscode.Task[],
 ) {
     assert(vscode.workspace.workspaceFolders);
 
@@ -319,11 +319,11 @@ export function simplifyCodelenses(cls: CodeLens[]) {
                        */
                       workspace.asRelativePath(a.fsPath).split(path.sep).join(path.posix.sep)
                     : a instanceof vscode.Range
-                    ? /**
-                       * Represent Ranges as a string
-                       */
-                      rangeToStr(a)
-                    : a
+                      ? /**
+                         * Represent Ranges as a string
+                         */
+                        rangeToStr(a)
+                      : a,
             ),
         },
     }));
