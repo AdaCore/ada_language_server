@@ -120,6 +120,7 @@ package body LSP.Ada_Project_Loading is
      (Project : Project_Status_Type)
       return LSP.Structures.Diagnostic_Vector
    is
+      use GNATCOLL.VFS;
       use LSP.Structures;
 
       Result            : LSP.Structures.Diagnostic_Vector;
@@ -127,13 +128,16 @@ package body LSP.Ada_Project_Loading is
       GPR2_Messages     : GPR2.Log.Object renames Project.GPR2_Messages;
       Project_File      : GNATCOLL.VFS.Virtual_File renames
         Project.Project_File;
-      URI               : constant LSP.Structures.DocumentUri :=
-        (if Project_File.Is_Regular_File
+      Project_URI       : constant LSP.Structures.DocumentUri :=
+        (if Project_File /= No_File
          then
            (VSS.Strings.Conversions.To_Virtual_String
                 (URIs.Conversions.From_File
                      (Project_File.Display_Full_Name)) with null record)
          else "");
+      Backup_Sloc      : constant LSP.Structures.A_Range :=
+           (start  => (0, 0),
+            an_end => (0, 0));
 
       procedure Create_Project_Loading_Diagnostic;
       --  Create a parent diagnostic for the project loading status.
@@ -149,9 +153,6 @@ package body LSP.Ada_Project_Loading is
       ---------------------------------------
 
       procedure Create_Project_Loading_Diagnostic is
-         Sloc : constant LSP.Structures.A_Range :=
-           (start  => (0, 0),
-            an_end => (0, 0));
       begin
          --  Initialize the parent diagnostic.
          Parent_Diagnostic.a_range := ((0, 0), (0, 0));
@@ -164,8 +165,8 @@ package body LSP.Ada_Project_Loading is
            (LSP.Structures.DiagnosticRelatedInformation'
               (location =>
                    LSP.Structures.Location'
-                 (uri     => URI,
-                  a_range => Sloc,
+                 (uri     => Project_URI,
+                  a_range => Backup_Sloc,
                   others  => <>),
                message  =>
                  Load_Status_Message (Project)));
@@ -185,8 +186,7 @@ package body LSP.Ada_Project_Loading is
                   Sloc : constant GPR2.Source_Reference.Object :=
                     GPR2.Message.Sloc (Msg);
                   File : constant GPR2.Path_Name.Object :=
-                    (if Sloc.Is_Defined and then Sloc.Has_Source_Reference
-                     then
+                    (if Sloc.Is_Defined then
                         GPR2.Path_Name.Create_File
                        (GPR2.Filename_Type (Sloc.Filename))
                      else
@@ -235,9 +235,8 @@ package body LSP.Ada_Project_Loading is
             Parent_Diagnostic.relatedInformation.Append
               (LSP.Structures.DiagnosticRelatedInformation'
                  (location =>
-                      (uri     => URI,
-                       a_range => (start  => (0, 0),
-                                   an_end => (0, 0)),
+                      (uri     => Project_URI,
+                       a_range => Backup_Sloc,
                        others  => <>),
                   message  => VSS.Strings.Conversions.To_Virtual_String
                     ("The project was loaded, but no Ada runtime found. "

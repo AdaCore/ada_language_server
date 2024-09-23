@@ -90,7 +90,7 @@
                         "relatedInformation": [
                            {
                               "location": {
-                                 "uri": "",
+                                 "uri": "$URI{foo_bar.gpr}",
                                  "range": {
                                     "start": {
                                        "line": 0,
