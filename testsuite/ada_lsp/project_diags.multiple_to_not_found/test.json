@@ -138,7 +138,7 @@
                         "relatedInformation": [
                            {
                               "location": {
-                                 "uri": "",
+                                 "uri": "$URI{no_project.gpr}",
                                  "range": {
                                     "start": {
                                        "line": 0,

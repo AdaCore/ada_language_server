@@ -614,7 +614,7 @@ package body LSP.Utils is
            (line      => Natural (Sloc.Line) - 1,
             character => Natural  (Sloc.Column) - 1))
       else
-        (start => (1, 1), an_end => (1, 1)));
+        (start => (0, 0), an_end => (0, 0)));
 
    ------------
    -- To_URI --
