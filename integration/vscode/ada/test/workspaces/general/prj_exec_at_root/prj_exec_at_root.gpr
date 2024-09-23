@@ -1,11 +1,17 @@
-project Default_Without_Obj_Dir is
+project Prj_Exec_At_Root is
 
     Tools_Mains :=
      ("main1.adb",
       "test.adb");
 
     for Source_Dirs use ("../src/**");
+    for Object_Dir use "obj";
     for Main use Tools_Mains;
+
+    --  Use this to produce the executable at the root of the workspace to test
+    --  that the run main task will prepend './' to make it executable by the
+    --  underlying shell.
+    for Exec_Dir use "..";
 
     package Builder is
       for Executable ("main1.adb") use "main1exec";
@@ -15,4 +21,4 @@ project Default_Without_Obj_Dir is
       for Default_Switches ("Ada") use ("-g", "-O0");
    end Compiler;
 
-end Default_Without_Obj_Dir;
+end Prj_Exec_At_Root;

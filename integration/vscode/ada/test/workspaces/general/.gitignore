@@ -3,3 +3,7 @@
 
 # Generated when testing gnatsas tasks
 /report.sarif
+
+# Executables produced at the root of the workspace
+/main1exec
+/main1exec.exe
