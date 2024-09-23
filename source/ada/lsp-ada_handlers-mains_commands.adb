@@ -15,11 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Containers.Indefinite_Vectors;
 with GPR2.Project.View;
 
 with VSS.JSON.Streams;
 
 package body LSP.Ada_Handlers.Mains_Commands is
+
+   package Main_Vectors is
+     new Ada.Containers.Indefinite_Vectors (Positive, String);
 
    ------------
    -- Create --
@@ -54,8 +58,8 @@ package body LSP.Ada_Handlers.Mains_Commands is
          Response.Value.Append (Item);
       end Append;
 
-      Value   : VSS.Strings.Virtual_String;
-      Element : GPR2.Project.View.Object;
+      Element    : GPR2.Project.View.Object;
+      Main_Paths : Main_Vectors.Vector;
    begin
       Response := (Is_Null => False, Value => <>);
       Append ((Kind => VSS.JSON.Streams.Start_Array));
@@ -65,13 +69,24 @@ package body LSP.Ada_Handlers.Mains_Commands is
 
          if Element.Has_Mains then
             for Main of Element.Mains loop
-               Value := VSS.Strings.Conversions.To_Virtual_String
-                 (String (Main.Source.Value));
-
-               Append ((VSS.JSON.Streams.String_Value, Value));
+               declare
+                  Main_Path : constant String := String (Main.Source.Value);
+               begin
+                  --  Avoid duplicates coming from GPR2
+                  --  Workaround for eng/ide/gpr-issues#417
+                  if not Main_Paths.Contains (Main_Path) then
+                     Main_Paths.Append (Main_Path);
+                  end if;
+               end;
             end loop;
          end if;
       end if;
+
+      for Main_Path of Main_Paths loop
+         Append
+           ((VSS.JSON.Streams.String_Value,
+            VSS.Strings.Conversions.To_Virtual_String (Main_Path)));
+      end loop;
 
       Append ((Kind => VSS.JSON.Streams.End_Array));
    end Execute;
