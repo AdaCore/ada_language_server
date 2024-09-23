@@ -395,7 +395,8 @@ begin
                  ">"
                  & (if VSS.Command_Line.Is_Specified (Language_GPR_Option)
                     then "gpr_ls" else "ada_ls")
-                 & "_log.$T.log:buffer_size=0" & Ada.Characters.Latin_1.LF
+                 & "_log.$T.log:buffer_size=0:buffer_size=0"
+                 & Ada.Characters.Latin_1.LF
                  & "ALS.MAIN=yes" & Ada.Characters.Latin_1.LF
                  & "ALS.IN=no" & Ada.Characters.Latin_1.LF
                  & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;

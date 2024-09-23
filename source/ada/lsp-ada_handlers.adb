@@ -237,7 +237,9 @@ package body LSP.Ada_Handlers is
       --  Browse the log files in reverse timestamp order
       for F of reverse Files.all loop
          --  Filter out files like traces.cfg
-         if GNATCOLL.Utils.Ends_With (+F.Base_Name, ".log") then
+         if GNATCOLL.Utils.Ends_With (+F.Base_Name, ".log")
+           or else GNATCOLL.Utils.Ends_With (+F.Base_Name, ".txt")
+         then
             Cpt := Cpt + 1;
             --  Delete the old logs
             if Cpt > Self.Configuration.Log_Threshold then
