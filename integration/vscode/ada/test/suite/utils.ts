@@ -175,17 +175,19 @@ export async function runTaskAndGetResult(task: vscode.Task): Promise<number | u
  * @param exec - a ShellExecution
  * @returns the command line of the ShellExecution as a string
  */
-export function getCmdLine(exec: vscode.ShellExecution) {
-    return [exec.command]
-        .concat(exec.args)
-        .map((s) => {
-            if (typeof s == 'object') {
-                return s.value;
-            } else {
-                return s;
-            }
-        })
-        .join(' ');
+export function getCmdLine(exec: vscode.ShellExecution): string {
+    return exec.command
+        ? [exec.command]
+              .concat(exec.args)
+              .map((s) => {
+                  if (typeof s == 'object') {
+                      return s.value;
+                  } else {
+                      return s;
+                  }
+              })
+              .join(' ')
+        : (exec.commandLine ?? '');
 }
 
 /**

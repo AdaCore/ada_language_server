@@ -16,7 +16,7 @@
 ----------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { basename } from 'path';
+import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import { CMD_GPR_PROJECT_ARGS } from './commands';
 import { adaExtState, logger } from './extension';
@@ -406,11 +406,19 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                         taskGroup: vscode.TaskGroup.Build,
                     };
 
+                    let execPath = main.execRelPath();
+                    /**
+                     * If the exec is directly at the root of the workspace,
+                     * prepend ./ to make it possible for shells to execute it.
+                     */
+                    if (!execPath.includes(path.sep)) {
+                        execPath = './' + execPath;
+                    }
                     const runTask: PredefinedTask = {
                         label: getRunTaskPlainName(main),
                         taskDef: {
                             type: this.taskType,
-                            command: main.execRelPath(),
+                            command: execPath,
                             args: [],
                         },
                     };

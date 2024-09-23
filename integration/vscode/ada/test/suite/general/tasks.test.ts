@@ -303,27 +303,46 @@ suite('Task Execution', function () {
 
     /**
      * Check that the 'buildAndRunMain' task works fine with projects that
-     * do not explicitly define an object directory.
+     * produce the executable at the root of the workspace. In that case it is
+     * necessary to use a leading `./` for the shell to be able to spawn the
+     * executable.
      */
-    test('Build and run main task without object directory', async () => {
+    test('Build and run main task when exec at workspace root', async () => {
         // Load a custom project that does not define any object dir by
         // changing the 'ada.projectFile' setting.
         const initialProjectFile = vscode.workspace.getConfiguration().get('ada.projectFile');
         try {
             await vscode.workspace
                 .getConfiguration()
-                .update(
-                    'ada.projectFile',
-                    'default_without_obj_dir' + path.sep + 'default_without_obj_dir.gpr'
-                );
+                .update('ada.projectFile', 'prj_exec_at_root' + path.sep + 'prj_exec_at_root.gpr');
+
             /**
              * Wait a bit until the ALS loads the new project
              */
             await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            /**
+             * Check that the task command starts with ./
+             */
+            const runTask = (await vscode.tasks.fetchTasks({ type: 'ada' })).find((t) =>
+                t.name.includes('Run main'),
+            );
+            assert(runTask?.execution instanceof vscode.ShellExecution);
+            const cmdLine = getCmdLine(runTask.execution);
+            assert(
+                cmdLine.startsWith('.' + path.sep),
+                `Task command doesn't start with './': ${cmdLine}`,
+            );
+
+            /**
+             * Check that the build and run task work.
+             */
+            await testTask('Build main - src/main1.adb', testedTaskLabels, allProvidedTasks);
+            await testTask('Run main - src/main1.adb', testedTaskLabels, allProvidedTasks);
             await testTask(
                 'Build and run main - src/main1.adb',
                 testedTaskLabels,
-                allProvidedTasks
+                allProvidedTasks,
             );
         } finally {
             // Reset the 'ada.projectFile' setting. If the previous value was
