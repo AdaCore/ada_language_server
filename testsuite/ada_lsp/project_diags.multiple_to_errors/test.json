@@ -61,25 +61,7 @@
                         },
                         "severity": 1,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
-                           }
-                        ]
+                        "message": "No project was loaded because multiple project files were found in the root directory. Please change the configuration to point to a single project file."
                      }
                   ]
                }
@@ -134,24 +116,8 @@
                         },
                         "severity": 1,
                         "source": "ada.project",
-                        "message": "Project Problems",
+                        "message": "The project file has errors and could not be loaded.",
                         "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "$URI{a.gpr}",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "The project file has errors and could not be loaded."
-                           },
                            {
                               "location": {
                                  "uri": "$URI{a.gpr}",

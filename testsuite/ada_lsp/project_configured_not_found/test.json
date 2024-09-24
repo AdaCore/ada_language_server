@@ -86,24 +86,8 @@
                         },
                         "severity": 1,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "$URI{foo_bar.gpr}",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "The configured project $URI{foo_bar.gpr} does not exist."
-                     }   ]}
+                        "message": "The configured project $URI{foo_bar.gpr} does not exist."
+                     }
                   ]
                }
             }
