@@ -60,7 +60,7 @@ package body LSP.Ada_Handlers.Object_Dir_Commands is
       if Handler.Project_Tree.Is_Defined then
          Element := Handler.Project_Tree.Root_Project;
          Value := VSS.Strings.Conversions.To_Virtual_String
-           (Element.Object_Directory.Value);
+           (String (Element.Object_Directory.Value));
       end if;
 
       Response := (Is_Null => False, Value => <>);

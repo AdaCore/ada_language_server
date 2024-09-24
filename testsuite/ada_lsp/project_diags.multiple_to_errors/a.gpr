@@ -1,0 +1,3 @@
+project A is
+   for Bla use "Foo";
+end A;

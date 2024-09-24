@@ -244,6 +244,11 @@ package body LSP.Ada_Configurations is
          then
             Set (Self.Project_File, JSON (Index).String_Value);
 
+         elsif Name = "projectDiagnostics"
+           and then JSON (Index).Kind = Boolean_Value
+         then
+            Self.Project_Diagnostics_Enabled := JSON (Index).Boolean_Value;
+
          elsif Name = "scenarioVariables"
            and then JSON (Index).Kind = Start_Object
          then
@@ -261,7 +266,7 @@ package body LSP.Ada_Configurations is
             Self.Context.Clear;
             for J in 1 .. Variables_Names.Length loop
                Self.Context.Insert
-                 (GPR2.Optional_Name_Type
+                 (GPR2.External_Name_Type
                     (VSS.Strings.Conversions.To_UTF_8_String
                          (Variables_Names (J))),
                   VSS.Strings.Conversions.To_UTF_8_String
@@ -351,6 +356,11 @@ package body LSP.Ada_Configurations is
                Self.Indent_Only := JSON (Index + 2).Boolean_Value;
 
             end if;
+
+         elsif Name = "useGnatformat"
+           and then JSON (Index).Kind = Boolean_Value
+         then
+            Self.Use_Gnatformat := JSON (Index).Boolean_Value;
          end if;
 
          Skip_Value (JSON, Index);

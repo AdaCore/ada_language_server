@@ -61,3 +61,9 @@ in `initialize` response.
 Log lalpp output if `yes`.
 
     ALS.LAL_PP_OUTPUT_ON_FORMATTING=yes
+
+## `ALS.GNATFORMAT` (default no)
+
+Use GNATformat as format provider.
+
+    ALS.GNATFORMAT=yes

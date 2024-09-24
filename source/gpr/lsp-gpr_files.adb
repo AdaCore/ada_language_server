@@ -648,7 +648,7 @@ package body LSP.GPR_Files is
            (Context  => Gpr_Parser.Analysis.Create_Context
               ("UTF-8",
                GPR2.File_Readers.Convert (File.File_Provider.Get_File_Reader)),
-            Filename => File.Path.Value);
+            Filename => String (File.Path.Value));
          if Gpr_Parser.Analysis.Root (File.Unit).Is_Null
            or else Gpr_Parser.Analysis.Has_Diagnostics (File.Unit)
          then
@@ -657,7 +657,7 @@ package body LSP.GPR_Files is
                  ("Windows-1252",
                   GPR2.File_Readers.Convert
                     (File.File_Provider.Get_File_Reader)),
-               Filename => File.Path.Value);
+               Filename => String (File.Path.Value));
          end if;
       end Load;
 

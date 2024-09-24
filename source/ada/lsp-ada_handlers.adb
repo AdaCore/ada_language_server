@@ -1879,12 +1879,7 @@ package body LSP.Ada_Handlers is
       Self.Log_Method_In ("On_DidCreateFiles_Notification");
 
       --  New sources were created on this project, so recompute its view
-
-      if Self.Project_Tree.Are_Sources_Loaded then
-         --  Update_Sources can't be called when the sources are already loaded
-         Self.Project_Tree.Invalidate_Sources;
-      end if;
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Clear_Sources;
 
       --  For each created file of Value.files:
       --  - find the contexts that contains its directory
@@ -1934,12 +1929,7 @@ package body LSP.Ada_Handlers is
       Self.Log_Method_In ("On_DidDeleteFiles_Notification");
 
       --  Some project sources were deleted, so recompute its view
-
-      if Self.Project_Tree.Are_Sources_Loaded then
-         --  Update_Sources can't be called when the sources are already loaded
-         Self.Project_Tree.Invalidate_Sources;
-      end if;
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Clear_Sources;
 
       --  For each delete file of Value.files:
       --  - find the contexts that contains it
@@ -2012,7 +2002,9 @@ package body LSP.Ada_Handlers is
             if not Self.Project_Dirs_Loaded.Contains (Dir) then
                --  We do need to add this directory
                Self.Project_Dirs_Loaded.Insert (Dir);
-               Project_Loading.Reload_Implicit_Project_Dirs (Self);
+
+               --  Reload the implicit project, to take into account the new dir
+               Project_Loading.Reload_Implicit_Project (Self);
             end if;
          end;
       end if;
@@ -2054,12 +2046,7 @@ package body LSP.Ada_Handlers is
       Self.Log_Method_In ("On_DidRenameFiles_Notification");
 
       --  Some project sources were renamed, so recompute its view
-
-      if Self.Project_Tree.Are_Sources_Loaded then
-         --  Update_Sources can't be called when the sources are already loaded
-         Self.Project_Tree.Invalidate_Sources;
-      end if;
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+      Self.Project_Tree.Clear_Sources;
 
       --  For each oldUri of Value.files:
       --  - map it to a list of context that contains it
@@ -2284,14 +2271,18 @@ package body LSP.Ada_Handlers is
 
    begin
       LSP.Ada_Handlers.Formatting.Format
-        (Context.all,
-         Document,
-         LSP.Constants.Empty,
-         Value.options,
-         Success,
-         Response,
-         Messages,
-         Error);
+        (Context  => Context.all,
+         Document => Document,
+         Span     => LSP.Constants.Empty,
+         Options  => Value.options,
+         Provider =>
+           (if Self.Configuration.Use_Gnatformat
+            then LSP.Ada_Handlers.Formatting.Gnatformat
+            else LSP.Ada_Handlers.Formatting.Gnatpp),
+         Success  => Success,
+         Response => Response,
+         Messages => Messages,
+         Error    => Error);
 
       if Success then
          Self.Sender.On_Formatting_Response (Id, Response);
@@ -2747,13 +2738,17 @@ package body LSP.Ada_Handlers is
 
          begin
             LSP.Ada_Handlers.Formatting.Range_Format
-              (Context.all,
-               Document,
-               Previous_NWNC_Token_Span,
-               Value.options,
-               Success,
-               Response,
-               Error);
+              (Context  => Context.all,
+               Document => Document,
+               Span     => Previous_NWNC_Token_Span,
+               Options  => Value.options,
+               Provider =>
+                 (if Self.Configuration.Use_Gnatformat
+                  then LSP.Ada_Handlers.Formatting.Gnatformat
+                  else LSP.Ada_Handlers.Formatting.Gnatpp),
+               Success  => Success,
+               Response => Response,
+               Error    => Error);
 
             if Success then
                --  Result contains the Range_Format result.
@@ -2985,24 +2980,32 @@ package body LSP.Ada_Handlers is
    begin
       if LSP.Ada_Configurations.Partial_GNATPP then
          LSP.Ada_Handlers.Formatting.Range_Format
-           (Context.all,
-            Document,
-            Value.a_range,
-            Value.options,
-            Success,
-            Response,
-            Error);
+           (Context  => Context.all,
+            Document => Document,
+            Span     => Value.a_range,
+            Options  => Value.options,
+            Provider =>
+              (if Self.Configuration.Use_Gnatformat
+               then LSP.Ada_Handlers.Formatting.Gnatformat
+               else LSP.Ada_Handlers.Formatting.Gnatpp),
+            Success  => Success,
+            Response => Response,
+            Error    => Error);
 
       else
          LSP.Ada_Handlers.Formatting.Format
-           (Context.all,
-            Document,
-            Value.a_range,
-            Value.options,
-            Success,
-            Response,
-            Messages,
-            Error);
+           (Context  => Context.all,
+            Document => Document,
+            Span     => Value.a_range,
+            Options  => Value.options,
+            Provider =>
+              (if Self.Configuration.Use_Gnatformat
+               then LSP.Ada_Handlers.Formatting.Gnatformat
+               else LSP.Ada_Handlers.Formatting.Gnatpp),
+            Success  => Success,
+            Response => Response,
+            Messages => Messages,
+            Error    => Error);
       end if;
 
       if Success then

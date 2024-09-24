@@ -23,6 +23,8 @@ with GNATCOLL.VFS;
 
 with GNATdoc.Comments.Options;
 
+with Gnatformat.Configuration;
+
 with GPR2.Project.Tree;
 with GPR2.Project.View;
 
@@ -177,6 +179,10 @@ package LSP.Ada_Contexts is
      Utils.Command_Lines.Command_Line;
    --  Return the command line for the Pretty Printer
 
+   function Get_Format_Options
+     (Self : Context) return Gnatformat.Configuration.Format_Options_Type;
+   --  Return the formatting options for Gnatformat
+
    function Get_Documentation_Style (Self : Context) return
      GNATdoc.Comments.Options.Documentation_Style;
    --  Get the documentation style used for this context.
@@ -293,10 +299,9 @@ private
       --  Indicate that this is a "fallback" context, ie the context
       --  holding any file, in the case no valid project was loaded.
 
-      Tree           : access GPR2.Project.Tree.Object;
+      Tree           : GPR2.Project.Tree.Object;
       --  The loaded project tree: we need to keep a reference to this
       --  in order to figure out which files are Ada and which are not.
-      --  Do not deallocate: this is owned by the Message_Handler.
 
       Source_Files   : LSP.Ada_File_Sets.Indexed_File_Set;
       --  Cache for the list of Ada source files in the loaded project tree.
@@ -314,6 +319,8 @@ private
       PP_Options : Utils.Command_Lines.Command_Line
                     (Pp.Command_Lines.Descriptor'Access);
       --  Object to keep gnatpp options
+
+      Format_Options : Gnatformat.Configuration.Format_Options_Type;
 
       Style : GNATdoc.Comments.Options.Documentation_Style :=
         GNATdoc.Comments.Options.GNAT;
@@ -339,6 +346,11 @@ private
 
    function Get_PP_Options (Self : Context) return
      Utils.Command_Lines.Command_Line is (Self.PP_Options);
+
+   function Get_Format_Options
+     (Self : Context)
+      return Gnatformat.Configuration.Format_Options_Type
+   is (Self.Format_Options);
 
    function Get_Documentation_Style (Self : Context) return
      GNATdoc.Comments.Options.Documentation_Style is (Self.Style);

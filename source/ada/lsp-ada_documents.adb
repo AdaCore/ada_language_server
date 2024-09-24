@@ -20,6 +20,8 @@ with Ada.Tags;
 with GNAT.Strings;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
+with Gnatformat.Configuration;
+with Gnatformat.Formatting;
 
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
@@ -48,6 +50,7 @@ with LSP.Ada_Id_Iterators;
 with LSP.Enumerations;
 with LSP.Formatters.File_Names;
 with LSP.Formatters.Texts;
+with LSP.GNATFormat_Utils;
 with LSP.Predicates;
 with LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
@@ -612,6 +615,28 @@ package body LSP.Ada_Documents is
 
          return False;
    end Formatting;
+
+   ------------
+   -- Format --
+   ------------
+
+   function Format
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context)
+      return LSP.Structures.TextEdit_Vector
+   is
+      Result : LSP.Structures.TextEdit_Vector;
+
+      Formatted_Document : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.Conversions.To_Virtual_String
+          (Gnatformat.Formatting.Format (Self.Unit (Context),
+           Context.Get_Format_Options));
+
+   begin
+      Self.Diff (New_Text => Formatted_Document, Edit => Result);
+
+      return Result;
+   end Format;
 
    --------------------
    -- Get_Any_Symbol --
@@ -1210,6 +1235,46 @@ package body LSP.Ada_Documents is
          Self.Tracer.Trace_Exception (E, "in Range_Formatting");
          return False;
    end Range_Formatting;
+
+   ------------------
+   -- Range_Format --
+   ------------------
+
+   function Range_Format
+     (Self    : Document;
+      Context : LSP.Ada_Contexts.Context;
+      Span    : LSP.Structures.A_Range;
+      Options : LSP.Structures.FormattingOptions)
+      return LSP.Structures.TextEdit
+   is
+      use type LSP.Structures.A_Range;
+      use Gnatformat.Configuration;
+
+      Full_Options : Format_Options_Type := Context.Get_Format_Options;
+   begin
+      if Span = LSP.Text_Documents.Empty_Range then
+         return (LSP.Constants.Empty, VSS.Strings.Empty_Virtual_String);
+      end if;
+
+      --  Combine the project options with the ones from the request
+      Full_Options.Overwrite
+        (LSP.GNATFormat_Utils.Get_Format_Option (Options));
+
+      declare
+         Range_Formatted_Document :
+           constant Gnatformat.Formatting.Formatted_Edits :=
+             Gnatformat.Formatting.Range_Format
+               (Self.Unit (Context),
+                Self.To_Source_Location_Range (Span),
+                Full_Options);
+
+      begin
+         return
+           (Self.To_A_Range (Range_Formatted_Document.Edit.Location),
+            VSS.Strings.Conversions.To_Virtual_String
+              (Range_Formatted_Document.Edit.Text));
+      end;
+   end Range_Format;
 
    ------------------------
    -- Reset_Symbol_Cache --
