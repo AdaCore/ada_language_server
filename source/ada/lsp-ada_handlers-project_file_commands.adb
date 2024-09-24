@@ -17,6 +17,8 @@
 
 with GPR2.Project.View;
 
+with URIs;
+
 with VSS.JSON.Streams;
 
 package body LSP.Ada_Handlers.Project_File_Commands is
@@ -60,7 +62,7 @@ package body LSP.Ada_Handlers.Project_File_Commands is
       if Handler.Project_Tree.Is_Defined then
          Element := Handler.Project_Tree.Root_Project;
          Value := VSS.Strings.Conversions.To_Virtual_String
-           (Element.Path_Name.Value);
+           (URIs.Conversions.From_File (String (Element.Path_Name.Value)));
       end if;
 
       Response := (Is_Null => False, Value => <>);

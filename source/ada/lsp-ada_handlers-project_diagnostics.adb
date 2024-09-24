@@ -26,15 +26,17 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector) is
    begin
-      Self.Last_Status := Self.Handler.Project_Status;
+      if Self.Handler.Configuration.Project_Diagnostics_Enabled then
+         Self.Last_Status := Self.Handler.Project_Status;
 
-      Self.Handler.Tracer.Trace ("Diag: " & Self.Last_Status'Image);
-      --  If we have a valid project return immediately: we want to display
-      --  diagnostics only if there is an issue to solve or a potential
-      --  enhancement.
+         Self.Handler.Tracer.Trace ("Diag: " & Self.Last_Status'Image);
+         --  If we have a valid project return immediately: we want to display
+         --  diagnostics only if there is an issue to solve or a potential
+         --  enhancement.
 
-      Errors.Append_Vector
-        (LSP.Ada_Project_Loading.Get_Diagnostics (Self.Last_Status));
+         Errors.Append_Vector
+           (LSP.Ada_Project_Loading.Get_Diagnostics (Self.Last_Status));
+      end if;
    end Get_Diagnostic;
 
    ------------------------
@@ -48,9 +50,13 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
    is
       pragma Unreferenced (Context);
    begin
-      return LSP.Ada_Project_Loading.Has_New_Diagnostics
-        (Self.Last_Status,
-         Self.Handler.Project_Status);
+      if Self.Handler.Configuration.Project_Diagnostics_Enabled then
+         return LSP.Ada_Project_Loading.Has_New_Diagnostics
+           (Self.Last_Status,
+            Self.Handler.Project_Status);
+      else
+         return False;
+      end if;
    end Has_New_Diagnostic;
 
 end LSP.Ada_Handlers.Project_Diagnostics;

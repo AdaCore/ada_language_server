@@ -8,7 +8,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -25,7 +27,9 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": ["rename"]
+                        "resourceOperations": [
+                           "rename"
+                        ]
                      }
                   },
                   "textDocument": {
@@ -34,9 +38,15 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": false,
-                           "documentationFormat": ["plaintext", "markdown"],
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
                            "resolveSupport": {
-                              "properties": ["detail", "documentation"]
+                              "properties": [
+                                 "detail",
+                                 "documentation"
+                              ]
                            }
                         }
                      }
@@ -50,7 +60,10 @@
                "result": {
                   "capabilities": {
                      "executeCommandProvider": {
-                        "commands": ["<HAS>", "als-refactor-add-parameters"]
+                        "commands": [
+                           "<HAS>",
+                           "als-refactor-add-parameters"
+                        ]
                      }
                   }
                }
@@ -158,17 +171,11 @@
                      },
                      {
                         "range": {
-                           "start": {
-                              "line": 0,
-                              "character": 0
-                           },
-                           "end": {
-                              "line": 0,
-                              "character": 0
-                           }
+                           "start": { "line": 0, "character": 0 },
+                           "end": { "line": 0, "character": 0 }
                         },
                         "severity": 4,
-                        "source": "project",
+                        "source": "ada.project",
                         "message": "Project Problems",
                         "relatedInformation": [
                            {
@@ -186,10 +193,11 @@
                                  }
                               },
                               "message": "A unique project in the root directory was found and loaded but it was not explicitly configured."
-                           }
+                          }
                         ]
                      },
                      {
+                        "message": "Failed to execute the Add Parameter refactoring.",
                         "range": {
                            "start": {
                               "line": 12,
@@ -200,13 +208,9 @@
                               "character": 16
                            }
                         },
-                        "severity": 1,
-                        "source": "Ada",
-                        "message": "Failed to execute the Add Parameter refactoring.",
                         "relatedInformation": [
                            {
                               "location": {
-                                 "uri": "$URI{test.ads}",
                                  "range": {
                                     "start": {
                                        "line": 12,
@@ -216,21 +220,25 @@
                                        "line": 14,
                                        "character": 16
                                     }
-                                 }
+                                 },
+                                 "uri": "$URI{test.ads}"
                               },
                               "message": "Can't change the controlling parameter of a primitive"
                            }
-                        ]
+                        ],
+                        "severity": 1,
+                        "source": "Ada"
                      }
                   ]
                }
             },
             {
-               "id": 8,
                "error": {
                   "code": -32001,
                   "message": "Failed to execute the Add Parameter refactoring."
-               }
+               },
+               "id": 8,
+               "jsonrpc": "2.0"
             }
          ]
       }

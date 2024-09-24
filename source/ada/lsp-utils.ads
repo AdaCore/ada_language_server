@@ -133,7 +133,7 @@ package LSP.Utils is
 
    function To_Virtual_String
      (Path : GPR2.Path_Name.Object) return VSS.Strings.Virtual_String is
-     (VSS.Strings.Conversions.To_Virtual_String (Path.Value));
+     (VSS.Strings.Conversions.To_Virtual_String (String (Path.Value)));
    --  Cast GPR2.Path_Name.Object to Virtual_String
 
 end LSP.Utils;

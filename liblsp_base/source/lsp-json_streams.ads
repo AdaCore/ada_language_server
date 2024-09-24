@@ -29,9 +29,11 @@ with VSS.Text_Streams;
 package LSP.JSON_Streams is
 --   pragma Elaborate_Body;
 
+   type JSON_Reader is access all VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class;
+
    type JSON_Stream
      (Is_Server_Side : Boolean := False;
-      R : access VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class := null)
+      R              : JSON_Reader := null)
        is limited new Ada.Streams.Root_Stream_Type with private;
    --  Stream implemented over JSON document
    --
@@ -106,7 +108,7 @@ private
 
    type JSON_Stream
      (Is_Server_Side : Boolean := False;
-      R : access VSS.JSON.Pull_Readers.JSON_Pull_Reader'Class := null)
+      R              : JSON_Reader := null)
    is limited new Ada.Streams.Root_Stream_Type with
    record
       W : Write_Stream;

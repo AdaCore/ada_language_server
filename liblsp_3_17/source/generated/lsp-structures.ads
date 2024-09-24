@@ -4884,6 +4884,13 @@ package LSP.Structures is
       --
       --  @since 3.15.0
 
+      gnatFormatMaxSize : Natural_Optional;
+      --  Maximum line width for gnatformat
+
+      gnatFormatContinuationLineIndent : Natural_Optional;
+      --  Continuation Line Indentation size (defaults to indentation-1) for
+      --  gnatformat
+
    end record;
    --  Value-object describing what options formatting should use.
 

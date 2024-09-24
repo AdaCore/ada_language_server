@@ -1,0 +1,204 @@
+[
+   {
+      "comment": [
+         "Load a valid project and then load another valid project."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Main is\nbegin\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": [
+           {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                       {
+                        "range": {
+                           "start": { "line": 0, "character": 0 },
+                           "end": { "line": 0, "character": 0 }
+                        },
+                        "severity": 4,
+                        "source": "ada.project",
+                        "message": "Project Problems",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 0
+                                    }
+                                 }
+                              },
+                              "message": "A unique project in the root directory was found and loaded but it was not explicitly configured."
+                           }                     
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 2,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-project-file",
+                    "arguments": [{}]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": "$URI{test.gpr}"
+                }
+            ]
+        }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{test.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 3,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-project-file",
+                    "arguments": [{}]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": "$URI{test.gpr}"
+                }
+            ]
+        }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{not_visible_project/valid.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+           {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 4,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-project-file",
+                    "arguments": [{}]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": "$URI{not_visible_project/valid.gpr}"
+                }
+            ]
+        }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

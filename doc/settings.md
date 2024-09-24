@@ -16,7 +16,8 @@ prefixing each setting name with `ada.`, e.g.
    "ada.scenarioVariables": {
        "LIBRARY_TYPE": "static"
    },
-   "ada.onTypeFormatting.indentOnly": true
+   "ada.onTypeFormatting.indentOnly": true,
+   "useGnatformat": true
 }
 ```
 
@@ -58,6 +59,7 @@ Ada Language Server understands these settings:
 * [relocateBuildTree](#relocatebuildtree)
 * [rootDir](#rootdir)
 * [enableDiagnostics](#enablediagnostics)
+* [projectDiagnostics](#projectdiagnostics)
 * [enableIndexing](#enableindexing)
 * [renameInComments](#renameincomments)
 * [namedNotationThreshold](#namednotationthreshold)
@@ -67,6 +69,7 @@ Ada Language Server understands these settings:
 * [followSymlinks](#followsymlinks)
 * [documentationStyle](#documentationstyle)
 * [onTypeFormatting.indentOnly](#ontypeformattingindentonly)
+* [useGnatformat](#usegnatformat)
 
 ----
 
@@ -135,6 +138,16 @@ for more details about the corresponding gprbuild switch.
 
 You can explicitly deactivate the emission of diagnostics, via the
 `enableDiagnostics` key. By default, diagnostics are enabled.
+The value is a boolean.
+
+```javascript
+    'enableDiagnostics': false
+```
+
+## projectDiagnostics
+
+This setting needs `enableDiagnostics` enabled and can be disabled to remove
+project related diagnotics.
 The value is a boolean.
 
 ```javascript
@@ -275,3 +288,9 @@ An equivalent setting `gpr.trace.server` exists for tracing the communcation bet
 This option controls if the `textDocument/onTypeFormatting` request only indents a new line, or if
 it additionally tries to format the previous node. By default, this option is enabled, that is,
 `textDocument/onTypeFormatting` only indents new lines.
+
+## useGnatformat
+
+This option controls the formatting provider for the `textDocument/formatting`,
+`textDocument/rangeFormatting` and `textDocument/onTypeFormatting` request. By default, this option
+is enabled and ALS uses GNATformat as its formatting provider. If disabled, GNATpp is used instead.

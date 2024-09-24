@@ -8716,6 +8716,8 @@ package LSP.Messages is
       trimTrailingWhitespace: Optional_Boolean;
       insertFinalNewline: Optional_Boolean;
       trimFinalNewlines: Optional_Boolean;
+      gnatFormatMaxSize : Optional_uinteger;
+      gnatFormatContinuationLineIndent : Optional_uinteger;
       --  [key: string]: boolean | number | string; ???
    end record;
    procedure Read_FormattingOptions

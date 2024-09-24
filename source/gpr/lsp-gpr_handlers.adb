@@ -302,7 +302,6 @@ package body LSP.GPR_Handlers is
          Documentation_Text : VSS.Strings.Virtual_String;
          Location_Text      : VSS.Strings.Virtual_String;
       begin
-
          LSP.GPR_Documentation.Get_Tooltip_Text
            (Self               => File,
             URI                => Value.textDocument.uri,
@@ -669,7 +668,7 @@ package body LSP.GPR_Handlers is
                  (E,
                   VSS.Strings.Conversions.To_Virtual_String
                     ("On_DidChangeConfiguration_Notification for " &
-                       Document.File.Value));
+                       String (Document.File.Value)));
 
          end;
       end loop;

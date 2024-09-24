@@ -18,8 +18,10 @@
 with Ada.Exceptions;
 
 with GPR2.Message;
+with GPR2.Options;
 with GPR2.Project.View;
 with GPR2.Source_Reference;
+with GPR2.Project.Typ.Set;
 
 with VSS.Strings.Conversions;
 
@@ -31,7 +33,7 @@ package body LSP.GPR_Documents is
 
    procedure Cleanup (Self : in out Document) is
    begin
-      Self.Tree.Unload (True);
+      Self.Tree.Unload;
    end Cleanup;
 
    ----------------
@@ -121,10 +123,11 @@ package body LSP.GPR_Documents is
    ----------------
 
    function Has_Errors
-     (Self    : Document)
+     (Self : Document)
       return Boolean is
    begin
-      return Self.Tree.Log_Messages.Has_Error;
+      return Self.Tree.Log_Messages.Has_Error
+        or else not Self.Tree.Root_Project.Is_Defined;
    end Has_Errors;
 
    ----------------
@@ -182,17 +185,50 @@ package body LSP.GPR_Documents is
       --  Unload it to clean log.
       Self.Tree.Unload;
 
-      Self.Tree.Load_Autoconf
-        (Filename          => Self.File,
-         Context           => Configuration.Context,
-         Build_Path        => Configuration.Build_Path (Self.File),
-         File_Reader       => Self.File_Provider.Get_File_Reader,
-         Environment       => LSP.GPR_Files.Environment);
+      declare
+         Opts       : GPR2.Options.Object;
+         Success    : Boolean;
+         Update_Log : GPR2.Log.Object;
+      begin
+         Opts.Add_Switch (GPR2.Options.P, String (Self.File.Value));
+
+         Success := Self.Tree.Load
+            (Opts,
+             With_Runtime     => True,
+             Absent_Dir_Error => GPR2.No_Error,
+             File_Reader      => Self.File_Provider.Get_File_Reader,
+             Environment      => LSP.GPR_Files.Environment);
+
+         if Success then
+            Self.Tree.Update_Sources (Update_Log);
+            if Update_Log.Has_Error then
+               Self.Has_Messages := True;
+            else
+               Success := Self.Tree.Set_Context (Configuration.Context);
+            end if;
+         end if;
+
+         if not Success then
+            Self.Has_Messages := True;
+         end if;
+
+         --  Collect all messages coming from Load...
+         for C in Self.Tree.Log_Messages.Iterate loop
+            Self.Tracer.Trace (C.Element.Format);
+            Self.Messages.Append (C.Element);
+         end loop;
+
+         --  ... and all messages coming from Update_Sources
+         for C in Update_Log.Iterate loop
+            Self.Tracer.Trace (C.Element.Format);
+            Self.Messages.Append (C.Element);
+         end loop;
+      end;
 
       Update_Diagnostics;
 
    exception
-      when GPR2.Project_Error | GPR2.Processing_Error =>
+      when GPR2.Project_Error =>
 
          Update_Diagnostics;
 
@@ -264,7 +300,7 @@ package body LSP.GPR_Documents is
 
    begin
       if LSP.GPR_Files.References.Is_Variable_Reference (Reference)
-        and then not Self.Tree.Log_Messages.Has_Error
+        and then not Self.Has_Errors
       then
          declare
             File : constant LSP.GPR_Files.File_Access :=
@@ -337,7 +373,7 @@ package body LSP.GPR_Documents is
 
    begin
       if LSP.GPR_Files.References.Is_Attribute_Reference (Reference)
-        and then not Self.Tree.Log_Messages.Has_Error
+        and then not Self.Has_Errors
       then
          declare
             File : constant LSP.GPR_Files.File_Access :=
@@ -398,7 +434,11 @@ package body LSP.GPR_Documents is
 
       begin
          if View.Has_Types (Name) then
-            return View.Typ (Name);
+            declare
+               Set : constant GPR2.Project.Typ.Set.Object := View.Types;
+            begin
+               return Set (Name);
+            end;
          else
             return GPR2.Project.Typ.Undefined;
          end if;
@@ -406,7 +446,7 @@ package body LSP.GPR_Documents is
 
    begin
       if LSP.GPR_Files.References.Is_Type_Reference (Reference)
-        and then not Self.Tree.Log_Messages.Has_Error
+        and then not Self.Has_Errors
       then
          declare
             File : constant LSP.GPR_Files.File_Access :=

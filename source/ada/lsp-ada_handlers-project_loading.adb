@@ -18,14 +18,19 @@
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with GPR2;
 with GPR2.Environment;
+with GPR2.Options;
 with GPR2.Containers;
 with GPR2.Context;
+with GPR2.Log;
 with GPR2.Path_Name;
 with GPR2.Project.Registry.Attribute;
-with GPR2.Project.Source.Set;
 with GPR2.Project.Tree.View_Builder;
 with GPR2.Project.View;
+
+pragma Warnings (Off, "unit ""GPR2.Build.Source.Sets"" is not referenced");
+with GPR2.Build.Source.Sets;
 
 with Libadalang.Preprocessing;
 with LSP.Ada_Contexts;
@@ -86,14 +91,55 @@ package body LSP.Ada_Handlers.Project_Loading is
       Status : LSP.Ada_Project_Loading.Project_Status);
    --  Load the implicit project
 
+   procedure Release_Contexts_And_Project_Info
+     (Self : in out Message_Handler'Class);
+   --  Release the memory associated to project information in Self
+
+   procedure Reload_Implicit_Project_Dirs
+     (Self : in out Message_Handler'Class);
+   --  Reload as project source dirs the directories in
+   --  Self.Project_Dirs_Loaded.
+
    procedure Update_Project_Predefined_Sources
      (Self : in out Message_Handler'Class);
    --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
 
    procedure Mark_Source_Files_For_Indexing
      (Self : in out Message_Handler'Class);
-   --  Mark all sources in all projects for indexing. This factorizes code
-   --  between Load_Project and Load_Implicit_Project.
+   --  Mark all sources in all projects for indexing and refresh the
+   --  diagnostics for the opened files.
+   --  This factorizes code between Load_Project and Load_Implicit_Project.
+
+   procedure Create_Empty_Context_If_Needed
+     (Self : in out Message_Handler'Class);
+   --  In case the project was not loaded and we don't want to rely on
+   --  the implicit project: create an empty context.
+
+   ------------------------------------
+   -- Create_Empty_Context_If_Needed --
+   ------------------------------------
+
+   procedure Create_Empty_Context_If_Needed
+     (Self : in out Message_Handler'Class)
+   is
+      use LSP.Ada_Context_Sets;
+      use LSP.Ada_Contexts;
+   begin
+      if Self.Contexts.Is_Empty then
+         declare
+            C      : constant Context_Access := new Context (Self.Tracer);
+            Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
+              (Self'Unchecked_Access);
+         begin
+            C.Initialize
+              (File_Reader         => Reader,
+               Follow_Symlinks     => Self.Configuration.Follow_Symlinks,
+               Style               => Self.Configuration.Documentation_Style,
+               As_Fallback_Context => True);
+            Self.Contexts.Prepend (C);
+         end;
+      end if;
+   end Create_Empty_Context_If_Needed;
 
    ---------------------------
    -- Ensure_Project_Loaded --
@@ -125,23 +171,9 @@ package body LSP.Ada_Handlers.Project_Loading is
       elsif
         not LSP.Ada_Project_Loading.Is_Project_Loaded (Self.Project_Status)
       then
-         --  Create an empty context and don't load the implicit project
-         declare
-            use LSP.Ada_Context_Sets;
-            use LSP.Ada_Contexts;
-            C      : constant Context_Access := new Context (Self.Tracer);
-            Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
-              (Self'Unchecked_Access);
-         begin
-            C.Initialize
-              (File_Reader         => Reader,
-               Follow_Symlinks     => Self.Configuration.Follow_Symlinks,
-               Style               => Self.Configuration.Documentation_Style,
-               As_Fallback_Context => True);
-            Self.Contexts.Prepend (C);
-            --  Errors should be handled by the user
-            return;
-         end;
+         Create_Empty_Context_If_Needed (Self);
+         --  Errors should be handled by the user
+         return;
       end if;
 
       --  We don't have alire/crate.
@@ -208,7 +240,8 @@ package body LSP.Ada_Handlers.Project_Loading is
       Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
         (Self'Unchecked_Access);
    begin
-      Self.Tracer.Trace ("Loading the implicit project");
+      Self.Tracer.Trace
+        ("Loading the implicit project because " & Status'Image);
 
       LSP.Ada_Project_Loading.Set_Project_Type
         (Self.Project_Status, LSP.Ada_Project_Loading.Implicit_Project);
@@ -264,12 +297,16 @@ package body LSP.Ada_Handlers.Project_Loading is
       Charset      : VSS.Strings.Virtual_String;
       Project_Type : LSP.Ada_Project_Loading.Project_Types)
    is
-      Project_File        : GNATCOLL.VFS.Virtual_File :=
+      Project_File : GNATCOLL.VFS.Virtual_File :=
         LSP.Utils.To_Virtual_File (Project_Path);
+      Update_Log   : GPR2.Log.Object;
 
       procedure Create_Context_For_Non_Aggregate
         (View : GPR2.Project.View.Object);
       --  Create a new context for the given project view.
+
+      procedure Retrieve_Diagnostics;
+      --  Retrieve the project diagnostics and log them.
 
       --------------------------------------
       -- Create_Context_For_Non_Aggregate --
@@ -343,10 +380,40 @@ package body LSP.Ada_Handlers.Project_Loading is
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
-   begin
-      LSP.Ada_Project_Loading.Set_Project_Type
-        (Self.Project_Status, Project_Type);
+      --------------------------
+      -- Retrieve_Diagnostics --
+      --------------------------
 
+      procedure Retrieve_Diagnostics is
+      begin
+         --  Retrieve the GPR2 error/warning messages right after loading the
+         --  project.
+
+         --  Merge all messages coming from Update_Sources with
+         --  all messages coming from Load...
+         for C in Self.Project_Tree.Log_Messages.Iterate loop
+            Update_Log.Append (C.Element);
+         end loop;
+
+         --  Log the messages
+         Self.Tracer.Trace ("GPR2 Log Messages:");
+         for Msg of Update_Log loop
+            declare
+               Location : constant String :=
+                 Msg.Sloc.Format (Full_Path_Name => True);
+               Message : constant String := Msg.Message;
+            begin
+               Self.Tracer.Trace (Location & " " & Message);
+            end;
+         end loop;
+
+         --  Retrieve the GPR2 error/warning messages right after loading the
+         --  project.
+         LSP.Ada_Project_Loading.Set_GPR2_Messages
+           (Self.Project_Status, Update_Log);
+      end Retrieve_Diagnostics;
+
+   begin
       --  The projectFile may be either an absolute path or a
       --  relative path; if so, we're assuming it's relative
       --  to Self.Root.
@@ -358,35 +425,58 @@ package body LSP.Ada_Handlers.Project_Loading is
                                             Project_File);
       end if;
 
+      --  Unload the project tree and the project environment
+      Release_Contexts_And_Project_Info (Self);
+      LSP.Ada_Project_Loading.Set_Project_Type
+        (Self.Project_Status, Project_Type);
+      LSP.Ada_Project_Loading.Set_Project_File
+        (Self.Project_Status, Project_File);
+
       if not Project_File.Is_Regular_File then
          Self.Tracer.Trace
            ("The project set in the configuration doesn't exist: "
             & Project_File.Display_Full_Name);
-         LSP.Ada_Project_Loading.Set_Project_File
-           (Self.Project_Status, Project_File);
          LSP.Ada_Project_Loading.Set_Load_Status
            (Self.Project_Status,
             LSP.Ada_Project_Loading.Project_Not_Found);
+         Create_Empty_Context_If_Needed (Self);
+         Mark_Source_Files_For_Indexing (Self);
          return;
       end if;
 
-      --  Unload the project tree and the project environment
-      Release_Contexts_And_Project_Info (Self);
+      --  Set Valid Status for now, it can be overwritten in case of errors
+      LSP.Ada_Project_Loading.Set_Load_Status
+        (Self.Project_Status,
+         LSP.Ada_Project_Loading.Valid_Project);
 
+      declare
+         Opts    : GPR2.Options.Object;
+         Success : Boolean;
       begin
-         Self.Project_Tree.Load_Autoconf
-           (Filename    => GPR2.Path_Name.Create (Project_File),
-            Context     => Context,
-            Build_Path  => LSP.Ada_Configurations.Build_Path
-              (Self.Configuration, GPR2.Path_Name.Create (Project_File)),
-            Environment => Environment);
+         --  Do not print any gpr messages on the standard output
+         GPR2.Project.Tree.Verbosity := GPR2.Project.Tree.Quiet;
 
-         if Self.Project_Tree.Are_Sources_Loaded then
-            --  Update_Sources can't be called when the sources are already
-            --  loaded
-            Self.Project_Tree.Invalidate_Sources;
+         --  Load the project
+         Opts.Add_Switch (GPR2.Options.P, Project_File.Display_Full_Name);
+
+         Success := Self.Project_Tree.Load
+            (Opts,
+             With_Runtime     => True,
+             Absent_Dir_Error => GPR2.No_Error,
+             Environment      => Environment);
+
+         if Success then
+            Success := Self.Project_Tree.Set_Context (Context);
          end if;
-         Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+         if not Success then
+            LSP.Ada_Project_Loading.Set_Load_Status
+              (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
+         end if;
+
+         if Self.Project_Tree.Is_Defined then
+            Self.Project_Tree.Update_Sources (Update_Log);
+         end if;
 
       exception
          when E : others =>
@@ -395,35 +485,26 @@ package body LSP.Ada_Handlers.Project_Loading is
               (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
       end;
 
-      --  Retrieve the GPR2 error/warning messages right after loading the
-      --  project.
-      LSP.Ada_Project_Loading.Set_GPR2_Messages
-        (Self.Project_Status, Self.Project_Tree.Log_Messages.all);
-      LSP.Ada_Project_Loading.Set_Project_File
-        (Self.Project_Status, Project_File);
-      Self.Tracer.Trace ("GPR2 Log Messages:");
-      for Msg of Self.Project_Tree.Log_Messages.all loop
-         declare
-            Location : constant String :=
-              Msg.Sloc.Format (Full_Path_Name => True);
-            Message : constant String := Msg.Message;
-         begin
-            Self.Tracer.Trace (Location & " " & Message);
-         end;
-      end loop;
+      Retrieve_Diagnostics;
 
       if not LSP.Ada_Project_Loading.Is_Project_Loaded (Self.Project_Status)
       then
-         --  The project was invalid: fallback on loading the implicit project.
-         Load_Implicit_Project
-           (Self, LSP.Ada_Project_Loading.Invalid_Project);
-
+         --  Don't fallback on the implicit project
+         Create_Empty_Context_If_Needed (Self);
       else
-         --  No exception during Load_Autoconf, check if we have runtime
-         if Self.Project_Tree.Has_Runtime_Project then
-            LSP.Ada_Project_Loading.Set_Has_Runtime
-              (Self.Project_Status, True);
-         end if;
+         --  No exception during Load_Autoconf, check if we have the runtime
+         declare
+            Root : constant GPR2.Project.View.Object :=
+              Self.Project_Tree.Root_Project;
+         begin
+            --  Only check runtime issues for Ada
+            LSP.Ada_Project_Loading.Set_Missing_Ada_Runtime
+              (Project => Self.Project_Status,
+               Value   =>
+                 (not Root.Is_Defined
+                  or else Root.Language_Ids.Contains (GPR2.Ada_Language))
+               and then not Self.Project_Tree.Has_Runtime_Project);
+         end;
 
          Update_Project_Predefined_Sources (Self);
 
@@ -437,23 +518,11 @@ package body LSP.Ada_Handlers.Project_Loading is
          end if;
       end if;
 
-      --  Reindex all open documents immediately after project reload, so
-      --  that navigation from editors is accurate.
-      for Document of Self.Open_Documents loop
-         for Context of Self.Contexts_For_URI (Document.URI) loop
-            Context.Index_Document (Document.all);
-         end loop;
-
-         Self.Publish_Diagnostics
-           (LSP.Ada_Documents.Document_Access (Document));
-      end loop;
-
       --  We have successfully loaded a real project: monitor the filesystem
       --  for any changes on the sources of the project
       Self.File_Monitor.Monitor_Directories
         (Self.Contexts.All_Source_Directories);
 
-      --  Reindex the files from disk in the background after a project reload
       Mark_Source_Files_For_Indexing (Self);
    end Load_Project;
 
@@ -557,6 +626,18 @@ package body LSP.Ada_Handlers.Project_Loading is
       Files : LSP.Ada_Indexing.File_Sets.Set;
 
    begin
+      for Document of Self.Open_Documents loop
+         --  Reindex all open documents immediately after project reload,
+         --  so that navigation from editors is accurate.
+         for Context of Self.Contexts_For_URI (Document.URI) loop
+            Context.Index_Document (Document.all);
+         end loop;
+
+         --  Refresh the diagnostics
+         Self.Publish_Diagnostics
+           (LSP.Ada_Documents.Document_Access (Document));
+      end loop;
+
       --  Mark all the project's source files
       for C of Self.Contexts.Each_Context loop
          for F in C.List_Files loop
@@ -597,7 +678,11 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       Self.Project_Tree.Unload;
       Self.Project_Predefined_Sources.Clear;
-      Self.Project_Dirs_Loaded.Clear;
+
+      --  Intentionally do not clear Project_Dirs_Loaded: these
+      --  are the directories that we load on-the-fly when are
+      --  working without a project: keep all of them in memory.
+      --  Self.Project_Dirs_Loaded.Clear;
 
       Self.Project_Stamp := @ + 1;
    end Release_Contexts_And_Project_Info;
@@ -610,36 +695,48 @@ package body LSP.Ada_Handlers.Project_Loading is
      (Self : in out Message_Handler'Class)
    is
       Project : GPR2.Project.Tree.View_Builder.Object :=
-                   GPR2.Project.Tree.View_Builder.Create
-                     (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
-                      Name        => "default");
+                  GPR2.Project.Tree.View_Builder.Create
+                    (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
+                     Name        => "default");
       Values  : GPR2.Containers.Value_List;
+      Opts    : GPR2.Options.Object;
+      Success : Boolean;
    begin
+      Release_Contexts_And_Project_Info (Self);
+      Self.Project_Tree.Unload;
+
+      --  Load all the dirs
+
       for Dir of Self.Project_Dirs_Loaded loop
          Values.Append (Dir.Display_Full_Name);
       end loop;
 
       Project.Set_Attribute
-        (GPR2.Project.Registry.Attribute.Source_Dirs, Values);
+        (GPR2.Project.Registry.Attribute.Source_Dirs,
+        Values);
 
-      --  Load_Autoconf is assuming loading unloaded tree.
+      --  First we load the fallback project
+      Success := Self.Project_Tree.Load_Virtual_View
+         (Project,
+          Opts,
+          With_Runtime     => True,
+          Absent_Dir_Error => GPR2.No_Error);
 
-      Self.Project_Tree.Unload;
-
-      GPR2.Project.Tree.View_Builder.Load_Autoconf
-        (Self    => Self.Project_Tree,
-         Project => Project,
-         Context => GPR2.Context.Empty);
-
-      if Self.Project_Tree.Are_Sources_Loaded then
-         --  Update_Sources can't be called when the sources are already loaded
-         Self.Project_Tree.Invalidate_Sources;
+      if not Success then
+         for C in Self.Project_Tree.Log_Messages.Iterate loop
+            Self.Tracer.Trace (C.Element.Format);
+         end loop;
+         LSP.Ada_Project_Loading.Set_Load_Status
+           (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
       end if;
-      Self.Project_Tree.Update_Sources (With_Runtime => True);
+
+      Self.Project_Tree.Update_Sources;
 
    exception
       when E : others =>
          Self.Tracer.Trace_Exception (E, "Reload_Implicit_Project_Dirs");
+         LSP.Ada_Project_Loading.Set_Load_Status
+           (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
    end Reload_Implicit_Project_Dirs;
 
    --------------------
@@ -650,6 +747,8 @@ package body LSP.Ada_Handlers.Project_Loading is
       Project_File : VSS.Strings.Virtual_String :=
         Self.Configuration.Project_File;
    begin
+      Self.Project_Status := LSP.Ada_Project_Loading.No_Project_Status;
+
       if Project_File.Starts_With ("file://") then
          Project_File := VSS.Strings.Conversions.To_Virtual_String
            (URIs.Conversions.To_File
@@ -668,6 +767,16 @@ package body LSP.Ada_Handlers.Project_Loading is
       end if;
    end Reload_Project;
 
+   -----------------------------
+   -- Reload_Implicit_Project --
+   -----------------------------
+
+   procedure Reload_Implicit_Project
+     (Self : in out Message_Handler'Class) is
+   begin
+      Load_Implicit_Project (Self, Self.Project_Status.Get_Load_Status);
+   end Reload_Implicit_Project;
+
    ---------------------------------------
    -- Update_Project_Predefined_Sources --
    ---------------------------------------
@@ -676,7 +785,7 @@ package body LSP.Ada_Handlers.Project_Loading is
      (Self : in out Message_Handler'Class)
    is
       use GPR2;
-      use GPR2.Project.Source.Set;
+      use GPR2.Build.Source.Sets;
    begin
       Self.Project_Predefined_Sources.Clear;
 

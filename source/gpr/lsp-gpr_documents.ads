@@ -103,7 +103,8 @@ package LSP.GPR_Documents is
    function Has_Errors
      (Self : Document)
       return Boolean;
-   --  Returns True when errors found during document parsing.
+   --  Returns True when errors found during document parsing or if
+   --  the tree could not be parsed properly (no defined root project).
 
    -----------------------
    -- Document_Provider --

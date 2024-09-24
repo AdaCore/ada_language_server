@@ -352,10 +352,6 @@
                         "data": ["", "Ignore_Source_Sub_Dirs"]
                      },
                      {
-                        "label": "Include_Switches_Via_Spec",
-                        "data": ["", "Include_Switches_Via_Spec"]
-                     },
-                     {
                         "label": "Inherit_Source_Path",
                         "data": ["", "Inherit_Source_Path"]
                      },
@@ -758,6 +754,10 @@
                      {
                         "label": "Include_Switches",
                         "data": ["Compiler", "Include_Switches"]
+                     },
+                     {
+                        "label": "Include_Switches_Via_Spec",
+                        "data": ["Compiler", "Include_Switches_Via_Spec"]
                      },
                      {
                         "label": "Language_Kind",

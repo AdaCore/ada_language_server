@@ -7609,6 +7609,15 @@ package body LSP.Outputs is
          Handler.Key_Name ("trimFinalNewlines");
          Handler.Boolean_Value (Value.trimFinalNewlines.Value);
       end if;
+      if Value.gnatFormatMaxSize.Is_Set then
+         Handler.Key_Name ("gnatFormatMaxSize");
+         Handler.Integer_Value (Integer'Pos (Value.gnatFormatMaxSize.Value));
+      end if;
+      if Value.gnatFormatContinuationLineIndent.Is_Set then
+         Handler.Key_Name ("gnatFormatContinuationLineIndent");
+         Handler.Integer_Value
+           (Integer'Pos (Value.gnatFormatContinuationLineIndent.Value));
+      end if;
       Handler.End_Object;
    end Write_FormattingOptions;
 

@@ -1,0 +1,9 @@
+project Prj1 is
+for Source_Dirs use ("src");
+package Compiler is
+for Switches ("Ada") use ();
+end Compiler;
+package IDE is
+for Artifacts_Dir use "";
+end IDE;
+end Prj1;
