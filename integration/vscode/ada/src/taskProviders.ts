@@ -16,7 +16,7 @@
 ----------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { basename } from 'path';
+import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import { CMD_GPR_PROJECT_ARGS } from './commands';
 import { adaExtState, logger } from './extension';
@@ -366,7 +366,10 @@ const predefinedTasks: PredefinedTask[] = [
  * both 'ada' and 'spark' tasks.
  */
 export class SimpleTaskProvider implements vscode.TaskProvider {
-    constructor(public taskType: string, private taskDecls: PredefinedTask[]) {}
+    constructor(
+        public taskType: string,
+        private taskDecls: PredefinedTask[],
+    ) {}
 
     async provideTasks(token?: vscode.CancellationToken): Promise<vscode.Task[]> {
         if (token?.isCancellationRequested) {
@@ -406,11 +409,19 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                         taskGroup: vscode.TaskGroup.Build,
                     };
 
+                    let execPath = main.execRelPath();
+                    /**
+                     * If the exec is directly at the root of the workspace,
+                     * prepend ./ to make it possible for shells to execute it.
+                     */
+                    if (!execPath.includes(path.sep)) {
+                        execPath = './' + execPath;
+                    }
                     const runTask: PredefinedTask = {
                         label: getRunTaskPlainName(main),
                         taskDef: {
                             type: this.taskType,
-                            command: main.execRelPath(),
+                            command: execPath,
                             args: [],
                         },
                     };
@@ -425,7 +436,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                     };
 
                     return [buildTask, runTask, buildAndRunTask];
-                })
+                }),
             );
         }
 
@@ -453,7 +464,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 tDecl.label,
                 tDecl.taskDef.type,
                 undefined,
-                tDecl.problemMatchers
+                tDecl.problemMatchers,
             );
 
             /**
@@ -483,7 +494,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
 
     async resolveTask(
         task: vscode.Task,
-        token?: vscode.CancellationToken
+        token?: vscode.CancellationToken,
     ): Promise<vscode.Task | undefined> {
         /**
          * Note that this method is never called for tasks created by the
@@ -525,9 +536,8 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
              */
             const args = taskDef.args ?? [];
             try {
-                const evaluatedArgs: (string | vscode.ShellQuotedString)[] = await evaluateArgs(
-                    args
-                );
+                const evaluatedArgs: (string | vscode.ShellQuotedString)[] =
+                    await evaluateArgs(args);
                 execution = new vscode.ShellExecution(taskDef.command, evaluatedArgs);
             } catch (err) {
                 let msg = 'Error while evaluating task arguments.';
@@ -547,7 +557,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
             task.name,
             task.source,
             execution,
-            task.problemMatchers
+            task.problemMatchers,
         );
     }
 
@@ -622,12 +632,12 @@ async function useAlire() {
  */
 async function evaluateArgs(args: (string | vscode.ShellQuotedString)[]) {
     const commandRegex = new RegExp(
-        `^\\\${command:\\s*((${TASK_TYPE_ADA}|${TASK_TYPE_SPARK})\\.[^}]*)\\s*}$`
+        `^\\\${command:\\s*((${TASK_TYPE_ADA}|${TASK_TYPE_SPARK})\\.[^}]*)\\s*}$`,
     );
     const evaluatedArgs: (string | vscode.ShellQuotedString)[] = (
         await Promise.all(
             args.flatMap(async function (
-                a: string | vscode.ShellQuotedString
+                a: string | vscode.ShellQuotedString,
             ): Promise<(string | vscode.ShellQuotedString)[]> {
                 if (typeof a == 'string') {
                     /**
@@ -667,7 +677,7 @@ async function evaluateArgs(args: (string | vscode.ShellQuotedString)[]) {
                 }
 
                 return [a];
-            })
+            }),
         )
     ).flat();
     return evaluatedArgs;
@@ -742,14 +752,14 @@ export function getBuildAndRunTaskName(main?: AdaMain) {
 export function createSparkTaskProvider(): SimpleTaskProvider {
     return new SimpleTaskProvider(
         TASK_TYPE_SPARK,
-        predefinedTasks.filter((v) => v.taskDef.type == TASK_TYPE_SPARK)
+        predefinedTasks.filter((v) => v.taskDef.type == TASK_TYPE_SPARK),
     );
 }
 
 export function createAdaTaskProvider(): SimpleTaskProvider {
     return new SimpleTaskProvider(
         TASK_TYPE_ADA,
-        predefinedTasks.filter((v) => v.taskDef.type == TASK_TYPE_ADA)
+        predefinedTasks.filter((v) => v.taskDef.type == TASK_TYPE_ADA),
     );
 }
 
@@ -849,7 +859,7 @@ abstract class SequentialExecution extends vscode.CustomExecution {
                                 } finally {
                                     closeEmitter.fire(2);
                                 }
-                            }
+                            },
                         );
                 },
                 close() {
@@ -883,7 +893,7 @@ abstract class SequentialExecution extends vscode.CustomExecution {
  */
 export async function findTaskByName(
     taskName: string,
-    tasks?: vscode.Task[]
+    tasks?: vscode.Task[],
 ): Promise<vscode.Task> {
     if (!tasks) {
         tasks = (
@@ -921,7 +931,10 @@ export async function findTaskByName(
  * of the tasks to run are given at construction.
  */
 class SequentialExecutionByName extends SequentialExecution {
-    constructor(private taskName: string, private taskNames: string[]) {
+    constructor(
+        private taskName: string,
+        private taskNames: string[],
+    ) {
         super();
     }
 
@@ -941,7 +954,7 @@ class SequentialExecutionByName extends SequentialExecution {
  */
 function runTaskSequence(
     tasks: vscode.Task[],
-    writeEmitter: vscode.EventEmitter<string>
+    writeEmitter: vscode.EventEmitter<string>,
 ): Promise<number> {
     let p = new Promise<number>((resolve) => resolve(0));
     for (const t of tasks) {
@@ -996,7 +1009,7 @@ export async function getBuildAndRunTasks(): Promise<vscode.Task[]> {
             .filter((t) => getConventionalTaskLabel(t).startsWith(getBuildAndRunTaskName()))
 
             // Return workspace-defined tasks first
-            .sort(workspaceTasksFirst)
+            .sort(workspaceTasksFirst),
     );
 }
 
@@ -1004,7 +1017,7 @@ export async function findBuildAndRunTask(adaMain: AdaMain): Promise<vscode.Task
     return (await getBuildAndRunTasks()).find(
         // Tasks defined in tasks.json will have a leading 'ada: ' while the
         // ones auto-generated by the extension don't. We want to match both.
-        (t) => getConventionalTaskLabel(t) == getBuildAndRunTaskName(adaMain)
+        (t) => getConventionalTaskLabel(t) == getBuildAndRunTaskName(adaMain),
     );
 }
 
@@ -1039,7 +1052,7 @@ export async function getBuildMainTasks() {
         tasks
             .filter((t) => getConventionalTaskLabel(t).startsWith(getBuildTaskName()))
             // Return workspace-defined tasks first
-            .sort(workspaceTasksFirst)
+            .sort(workspaceTasksFirst),
     );
 }
 
@@ -1047,7 +1060,7 @@ export async function findBuildMainTask(adaMain: AdaMain): Promise<vscode.Task |
     return (await getBuildMainTasks()).find(
         // Tasks defined in tasks.json will have a leading 'ada: ' while the
         // ones auto-generated by the extension don't. We want to match both.
-        (t) => getConventionalTaskLabel(t) == getBuildTaskName(adaMain)
+        (t) => getConventionalTaskLabel(t) == getBuildTaskName(adaMain),
     );
 }
 
