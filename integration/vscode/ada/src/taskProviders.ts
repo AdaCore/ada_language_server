@@ -409,19 +409,25 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                         taskGroup: vscode.TaskGroup.Build,
                     };
 
-                    let execPath = main.execRelPath();
+                    let execRelPath = main.execRelPath();
                     /**
-                     * If the exec is directly at the root of the workspace,
-                     * prepend ./ to make it possible for shells to execute it.
+                     * Always prepend ./ to the relative path. When the path
+                     * only has one component, ./ is necessary for the shell to
+                     * spawn the executable. We choose to always prepend ./ for
+                     * consistency.
+                     *
+                     * We can't use path.join() because it calls
+                     * path.normalize() which removes ./
+                     *
+                     * We use path.normalize() to make sure the path uses
+                     * platform-specific separators.
                      */
-                    if (!execPath.includes(path.sep)) {
-                        execPath = './' + execPath;
-                    }
+                    execRelPath = '.' + path.sep + path.normalize(execRelPath);
                     const runTask: PredefinedTask = {
                         label: getRunTaskPlainName(main),
                         taskDef: {
                             type: this.taskType,
-                            command: execPath,
+                            command: execRelPath,
                             args: [],
                         },
                     };
