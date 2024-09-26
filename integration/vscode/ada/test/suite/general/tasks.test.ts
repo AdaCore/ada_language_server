@@ -71,9 +71,9 @@ ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileB
 ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
 ada: Generate documentation from the project - gnatdoc -P ${projectPath}
 ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef
-ada: Run main - src/main1.adb - obj/main1exec${exe}
+ada: Run main - src/main1.adb - .${path.sep}obj${path.sep}main1exec${exe}
 ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb -cargs:ada -gnatef
-ada: Run main - src/test.adb - obj/test${exe}
+ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 `.trim();
 
         const prov = createAdaTaskProvider();
