@@ -1963,8 +1963,7 @@ package body LSP.Ada_Handlers is
       --  Handle the case where we're loading the implicit project: do
       --  we need to add the directory in which the document is open?
 
-      if LSP.Ada_Project_Loading.Is_Implicit_Fallback (Self.Project_Status)
-      then
+      if Self.Project_Status.Is_Implicit_Fallback then
          declare
             Dir : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI).Dir;
          begin
@@ -2497,6 +2496,28 @@ package body LSP.Ada_Handlers is
              (Self'Unchecked_Access);
       end if;
 
+      --  If settings were given in initializationOptions, parse and apply them.
+      if not Value.initializationOptions.Is_Empty then
+         Self.Tracer.Trace ("Processing initializationOptions from initialize request");
+         declare
+            Reload : Boolean;
+         begin
+            --  The expected structure is this:
+            --     "initializationOptions": {
+            --        "ada": {
+            --           "projectFile": "...",
+            --           "scenarioVariables": ...,
+            --           ...
+            --        }
+            --     }
+            Self.Configuration.Read_JSON (Value.initializationOptions, Reload);
+
+            --  We don't load the project here because we can't send progress
+            --  notifications to the client before receiving the 'initialized'
+            --  notification. See On_Initialized_Notification.
+         end;
+      end if;
+
       Self.Sender.On_Initialize_Response (Id, Response);
 
       Log_Info.a_type := LSP.Enumerations.Log;
@@ -2504,6 +2525,42 @@ package body LSP.Ada_Handlers is
       Log_Info.message.Append (Self.Tracer.Location);
       Self.Sender.On_LogMessage_Notification (Log_Info);
    end On_Initialize_Request;
+
+   ---------------------------------
+   -- On_Initialized_Notification --
+   ---------------------------------
+
+   overriding procedure On_Initialized_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.InitializedParams) is
+   begin
+      --  The client is notifying us that it has initialized. If a project was
+      --  provided with the initialize request, we can load it and start
+      --  communicating with the client.
+      --
+      --  We only perform loading in case ada.projectFile was provided with the
+      --  initialize request. That's because some clients don't provide
+      --  settings in the initialize request, and instead send a
+      --  onDidChangeConfiguration notification immediately after
+      --  initialization. In this scenario, loading a project unconditionally
+      --  here would result in automatically searching for a project (unique
+      --  project at the root, or implicit fallback) and loading it, only to
+      --  load another project shortly after, upon receiving
+      --  onDidChangeConfiguration. To avoid the first useless load, we only
+      --  load a project here if it was specified in the initialize request.
+      --
+      --  Moreover, there is an impact on legacy tests. The prior project
+      --  loading policy was to wait for the first onDidChangeConfiguration
+      --  notification to obtain settings and load a project. Many existing
+      --  tests do not set the project in the initialize request and don't
+      --  expect messages pertaining to project loading after the initialize
+      --  request.  If we were to always load the project here, tests would
+      --  receive different messages and potentially fail. So the conditional
+      --  project loading here is backwards compatible with existing tests.
+      if not Self.Configuration.Project_File.Is_Empty then
+         LSP.Ada_Handlers.Project_Loading.Ensure_Project_Loaded (Self);
+      end if;
+   end On_Initialized_Notification;
 
    ---------------------------------
    -- On_OnTypeFormatting_Request --
