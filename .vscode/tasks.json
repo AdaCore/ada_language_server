@@ -25,6 +25,14 @@
          "label": "npm: watch - integration/vscode/ada",
          "detail": "node ./node_modules/typescript/bin/tsc -watch",
          "isBackground": true
+      },
+      {
+         "type": "ada",
+         "command": "make",
+         "args": ["GPRBUILD_CARGS=-cargs:ada -gnatef"],
+         "problemMatcher": ["$ada"],
+         "group": "build",
+         "label": "ada: Build current project"
       }
    ]
 }
