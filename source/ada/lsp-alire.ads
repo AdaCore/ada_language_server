@@ -26,9 +26,16 @@ with VSS.Strings;
 private
 package LSP.Alire is
 
-   function Alire_Active
+   function Is_Alire_Crate
      (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean;
-   --  True if 'alire.toml' exists at 'Client' root & $ALIRE variable is True
+   --  True if 'alire.toml' exists at 'Client' root
+
+   function Should_Setup_Alire_Env
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean;
+   --  True if 'alire.toml' exists at 'Client' root, and if there isn't an
+   --  environment variable ALIRE = "True". The latter variable indicates that
+   --  we are in a context where the Alire environment has already been
+   --  set up.
 
    procedure Determine_Alire_Project
      (Root        : String;

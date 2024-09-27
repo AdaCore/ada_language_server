@@ -586,7 +586,7 @@ package body LSP.Ada_Handlers.Project_Loading is
         GPR2.Environment.Process_Environment;
 
    begin
-      if LSP.Alire.Alire_Active (Self.Client) then
+      if LSP.Alire.Is_Alire_Crate (Self.Client) then
          Tracer.Trace ("The workspace is an Alire crate");
 
          if Project.Is_Empty then
@@ -607,13 +607,19 @@ package body LSP.Ada_Handlers.Project_Loading is
               ("Project is already known '" & Project & "'. Not querying Alire.");
          end if;
 
-         Tracer.Trace ("Setting environment from 'alr printenv'");
+         if LSP.Alire.Should_Setup_Alire_Env (Self.Client) then
+            Tracer.Trace ("Setting environment from 'alr printenv'");
 
-         LSP.Alire.Setup_Alire_Env
-           (Root        => Self.Client.Root_Directory.Display_Full_Name,
-            Has_Alire   => Has_Alire,
-            Error       => Errors,
-            Environment => Environment);
+            LSP.Alire.Setup_Alire_Env
+            (Root        => Self.Client.Root_Directory.Display_Full_Name,
+               Has_Alire   => Has_Alire,
+               Error       => Errors,
+               Environment => Environment);
+
+            if not Errors.Is_Empty then
+               Tracer.Trace_Text ("Encountered errors with Alire:" & LF & Errors);
+            end if;
+         end if;
 
          if not Errors.Is_Empty then
             Tracer.Trace_Text ("Encountered errors with Alire:" & LF & Errors);
