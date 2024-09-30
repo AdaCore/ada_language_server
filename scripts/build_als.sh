@@ -71,6 +71,15 @@ function install_index() {
 
 # Clone dependencies
 function pin_crates() {
+   # Many dependencies are not yet available as Alire crates in the community
+   # index.  To work around that we have defined crates for those projects at
+   # subprojects/*.toml. For each project, we check out its repository and
+   # place the corresponding .toml file at the root. This includes the crate
+   # file for the ALS itself.
+
+   # Place the ALS toml at the root
+   cp -v "subprojects/als.toml" "$PWD/alire.toml"
+
    for crate in $PINS; do
       repo_var=repo_$crate
       branch_var=branch_$crate
