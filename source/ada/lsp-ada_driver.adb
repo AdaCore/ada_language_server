@@ -25,6 +25,7 @@ with GNAT.Strings;
 
 pragma Warnings (Off, "is an internal GNAT unit");
 with Gnatformat.Configuration;
+with LSP.Ada_Handlers.Open_ALS_Log_File_Commands;
 with System.Soft_Links;
 with System.Secondary_Stack;
 
@@ -178,6 +179,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Project_Reload_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Open_Project_File_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Open_ALS_Log_File_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Show_Dependencies_Commands.Command'Tag);
       LSP.Ada_Commands.Register
