@@ -56,6 +56,7 @@ with LSP.Ada_Handlers.Mains_Commands;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Object_Dir_Commands;
 with LSP.Ada_Handlers.Other_File_Commands;
+with LSP.Ada_Handlers.Open_Project_File_Commands;
 with LSP.Ada_Handlers.Project_File_Commands;
 with LSP.Ada_Handlers.Project_Reload_Commands;
 with LSP.Ada_Handlers.Refactor.Add_Parameter;
@@ -175,6 +176,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Suspend_Executions.Suspend_Execution'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Project_Reload_Commands.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Open_Project_File_Commands.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Show_Dependencies_Commands.Command'Tag);
       LSP.Ada_Commands.Register

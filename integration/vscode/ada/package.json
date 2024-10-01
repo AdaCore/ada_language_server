@@ -754,6 +754,10 @@
                 "icon": "$(refresh)"
             },
             {
+                "command": "als-open-project-file",
+                "title": "Ada: Edit current project file"
+            },
+            {
                 "command": "ada.subprogramBox",
                 "title": "Ada: Add subprogram box"
             },
