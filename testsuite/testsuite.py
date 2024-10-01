@@ -3,14 +3,13 @@
 import datetime
 import logging
 import os
-
+import sys
 from distutils.spawn import find_executable
-from e3.testsuite import Testsuite
-from e3.testsuite.driver.diff import DiffTestDriver
 
 from drivers.basic import JsonTestDriver
-from drivers.shell import ShellTestDriver
 from drivers.gnatcov import GNATcov
+from drivers.shell import ShellTestDriver
+from e3.testsuite import Testsuite
 
 VALGRIND_OPTIONS = [
         "--quiet",                   # only print errors
@@ -113,3 +112,7 @@ min_diff: on the fly computed diff of the different values
     @property
     def default_driver(self):
         return 'ada_lsp'
+
+
+if __name__ == "__main__":
+    sys.exit(ALSTestsuite().testsuite_main())

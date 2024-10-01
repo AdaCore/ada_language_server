@@ -37,6 +37,7 @@ TESTER=$(ROOTDIR)/.obj/tester/tester-run$(EXE)
 # Env variable to set for update VS Code test references
 MOCHA_ALS_UPDATE=
 
+GPRBUILD_CARGS ?=
 GPRBUILD_EXTRA ?=
 GPRBUILD_FLAGS=-m -j$(PROCESSORS) $(GPRBUILD_EXTRA)
 GPRBUILD=gprbuild $(GPRBUILD_FLAGS) -XSUPERPROJECT=
@@ -107,11 +108,11 @@ ifeq ($(ALIRE),True)
 	alr build -- -XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_FLAGS)
 else
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
-		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE)
+		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_CARGS)
 endif
-	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS)
-	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS)
-	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS)
+	$(GPRBUILD) -P gnat/lsp_3_17.gpr -p $(COVERAGE_BUILD_FLAGS) $(GPRBUILD_CARGS)
+	$(GPRBUILD) -P gnat/tester.gpr -p $(BUILD_FLAGS) $(GPRBUILD_CARGS)
+	$(GPRBUILD) -P gnat/lsp_client.gpr -p $(COVERAGE_BUILD_FLAGS) $(GPRBUILD_CARGS)
 ifdef NODE
 	mkdir -p integration/vscode/ada/$(NODE_ARCH_PLATFORM)
 	cp -v -f $(ALS) integration/vscode/ada/$(NODE_ARCH_PLATFORM)
