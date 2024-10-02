@@ -1,0 +1,125 @@
+[
+   {
+      "comment": [
+         "This test exercises the als-open-project-file command of the ALS"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "comment": ["First we initialize the ALS without a project file"],
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}"
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": ""
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-open-project-file",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 1,
+                  "message": "Ada: No GPR project file is loaded."
+               }
+            },
+            {
+               "id": 5,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "not_visible/prj.gpr"
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-open-project-file",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "method": "window/showDocument",
+               "params": {
+                  "uri": "$URI{not_visible/prj.gpr}",
+                  "takeFocus": true
+               }
+            },
+            {
+               "id": 6,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
