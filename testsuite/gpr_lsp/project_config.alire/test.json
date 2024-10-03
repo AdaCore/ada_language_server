@@ -55,7 +55,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "with \"config/hello_config.gpr\";project Hello is end Hello;",
+                  "text": "with \"config/hello_config.gpr\";\nproject Hello is\n for Source_Dirs use (\"src\");\nend Hello;",
                   "version": 0,
                   "uri": "$URI{hello.gpr}",
                   "languageId": "Gpr"
