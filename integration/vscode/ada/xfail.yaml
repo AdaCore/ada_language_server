@@ -6,3 +6,4 @@
 #
 #   "Task-Execution-gnatsas-analyze-report": "Some reason"
 #   "Task-Execution-gnatdoc": "Some other reason"
+"Task-Execution.ada-Generate-documentation-from-the-project": "gnatdoc bug eng/ide/gnatdoc#88"
