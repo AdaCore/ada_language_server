@@ -321,10 +321,12 @@ package body LSP.Predefined_Completion is
             return;
       end case;
 
-      Item := Filtered_Items.First_Element;
+      if not Filtered_Items.Is_Empty then
+         Item := Filtered_Items.First_Element;
 
-      Declaration_Text := Item.detail;
-      Documentation_Text := Item.documentation.Value.Virtual_String;
+         Declaration_Text := Item.detail;
+         Documentation_Text := Item.documentation.Value.Virtual_String;
+      end if;
    end Get_Tooltip_Text;
 
 end LSP.Predefined_Completion;
