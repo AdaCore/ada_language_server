@@ -398,13 +398,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          --  Log the messages
          Self.Tracer.Trace ("GPR2 Log Messages:");
          for Msg of Update_Log loop
-            declare
-               Location : constant String :=
-                 Msg.Sloc.Format (Full_Path_Name => True);
-               Message : constant String := Msg.Message;
-            begin
-               Self.Tracer.Trace (Location & " " & Message);
-            end;
+            Self.Tracer.Trace (Msg.Format);
          end loop;
 
          --  Retrieve the GPR2 error/warning messages right after loading the
