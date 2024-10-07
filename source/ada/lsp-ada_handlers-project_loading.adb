@@ -410,9 +410,6 @@ package body LSP.Ada_Handlers.Project_Loading is
       --------------------------
 
       procedure Retrieve_Diagnostics is
-         Messages : GPR2.Log.Object :=
-                      GPR2_Reporter
-                        (Self.Project_Tree.Reporter.Element.all).Log;
       begin
          --  Retrieve the GPR2 error/warning messages right after loading the
          --  project and updating the sources.
