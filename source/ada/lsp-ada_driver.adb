@@ -121,6 +121,48 @@ procedure LSP.Ada_Driver is
    procedure Register_Commands;
    --  Register all known commands
 
+   procedure Remove_Old_Log_files
+     (Dir                 : GNATCOLL.VFS.Virtual_File;
+      Prefix              : String;
+      Max_Nb_Of_Log_Files : Integer);
+   --  Remove old log files with the given prefix in the given log
+   --  directory when it exceeds the number specified in Max_Nb_Of_Log_Files.
+
+      --------------------------
+      -- Remove_Old_Log_files --
+      --------------------------
+
+   procedure Remove_Old_Log_files
+     (Dir                 : GNATCOLL.VFS.Virtual_File;
+      Prefix              : String;
+      Max_Nb_Of_Log_Files : Integer)
+   is
+      Files   : File_Array_Access := Read_Dir (Dir, Files_Only);
+      Success : Boolean;
+      Counted : Natural := 0;
+      Traces_File_Suffix : constant String := ".cfg";
+   begin
+      Sort (Files.all);
+
+      --  Browse the log files in reverse timestamp order
+      for J in reverse Files'Range loop
+         if GNATCOLL.Utils.Starts_With (+Files (J).Base_Name, Prefix)
+           and then not GNATCOLL.Utils.Ends_With
+             (+Files (J).Base_Name, Traces_File_Suffix)
+         then
+            Counted := Counted + 1;
+
+            --  When we've counted all the files we wanted to keep, delete
+            --  the older ones.
+            if Counted > Max_Nb_Of_Log_Files then
+               Delete (Files (J), Success);
+            end if;
+         end if;
+      end loop;
+
+      Unchecked_Free (Files);
+   end Remove_Old_Log_files;
+
    -----------------------
    -- Register_Commands --
    -----------------------
@@ -317,6 +359,9 @@ procedure LSP.Ada_Driver is
       Long_Name   => "version",
       Description => "Display the program version");
 
+   Ada_Log_File_Prefix    : constant String := "ada_ls";
+   GPR_Log_File_Prefix    : constant String := "gpr_ls";
+
    Config_File            : Virtual_File;
 
    Memory_Monitor_Enabled : Boolean;
@@ -384,8 +429,8 @@ begin
          Traces_File := Create_From_Dir
            (Dir       => ALS_Dir,
             Base_Name =>
-              (if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
-                    "gpr_ls" else "ada_ls") & "_traces.cfg");
+              +(if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
+               GPR_Log_File_Prefix else Ada_Log_File_Prefix) & "_traces.cfg");
 
          --  No default traces file found: create one if we can
          if not Traces_File.Is_Regular_File and then ALS_Dir.Is_Writable then
@@ -394,7 +439,7 @@ begin
                Default_Traces_File_Contents : constant String :=
                  ">"
                  & (if VSS.Command_Line.Is_Specified (Language_GPR_Option)
-                    then "gpr_ls" else "ada_ls")
+                    then GPR_Log_File_Prefix else Ada_Log_File_Prefix)
                  & "_log.$T.log:buffer_size=0:buffer_size=0"
                  & Ada.Characters.Latin_1.LF
                  & "ALS.MAIN=yes" & Ada.Characters.Latin_1.LF
@@ -616,8 +661,16 @@ begin
    end if;
 
    Server.Finalize;
+
    if Clean_ALS_Dir then
-      Ada_Handler.Clean_Logs (ALS_Dir);
+      --  Remove the logs produced for the GPR language if the '--language-gpr'
+      --  option has been specified. Otherwise remove the Ada language logs.
+      Remove_Old_Log_files
+        (Dir                 => ALS_Dir,
+         Prefix              =>
+           (if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
+            GPR_Log_File_Prefix else Ada_Log_File_Prefix),
+         Max_Nb_Of_Log_Files => Ada_Handler.Get_Configuration.Log_Threshold);
    end if;
 
    --  Clean secondary stack up
