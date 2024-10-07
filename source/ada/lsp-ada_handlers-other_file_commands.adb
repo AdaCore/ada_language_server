@@ -15,6 +15,8 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GPR2.Build.Unit_Info;
+with GPR2.Project.View;
 with VSS.JSON.Streams;
 
 with GNATCOLL.VFS; use GNATCOLL.VFS;
@@ -126,20 +128,27 @@ package body LSP.Ada_Handlers.Other_File_Commands is
          -- Unit_For_File --
          -------------------
 
-         function Unit_For_File return GPR2.Build.Compilation_Unit.Object
-         is
-            Unit : GPR2.Build.Compilation_Unit.Object;
+         function Unit_For_File return GPR2.Build.Compilation_Unit.Object is
          begin
-            --  First look in the closure of sources, then in the
-            --  runtime project.
+            --  Check in the root project's closure for a visible source
+            --  corresponding to this file.
+            --  Not that the root's project closure includes the runtime.
             if Handler.Project_Tree.Is_Defined then
-               Unit := Handler.Project_Tree.Root_Project.Unit (F.Base_Name);
+               declare
+                  View      : constant GPR2.Project.View.Object :=
+                    Handler.Project_Tree.Root_Project;
+                  Unit_Info : constant GPR2.Build.Unit_Info.Object :=
+                    View.Visible_Source (F.Simple_Name).Unit;
+                  Unit      : GPR2.Build.Compilation_Unit.Object :=
+                    GPR2.Build.Compilation_Unit.Undefined;
+               begin
+                  if Unit_Info.Is_Defined then
+                     Unit := View.Namespace_Roots.First_Element.Unit
+                       (Unit_Info.Name);
+                  end if;
 
-               if not Unit.Is_Defined then
-                  Unit := Handler.Project_Tree.Runtime_Project.Unit
-                    (F.Base_Name);
-               end if;
-               return Unit;
+                  return Unit;
+               end;
             else
                return GPR2.Build.Compilation_Unit.Undefined;
             end if;
