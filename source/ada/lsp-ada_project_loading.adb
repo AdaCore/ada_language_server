@@ -371,15 +371,8 @@ package body LSP.Ada_Project_Loading is
       if Project.Status = Valid_Project then
          if Project.GPR2_Messages.Has_Element
            (Information => False,
-            Warning     => False,
-            Error       => True,
-            Lint        => False)
-         then
-            Project.Status := Invalid_Project;
-         elsif Project.GPR2_Messages.Has_Element
-           (Information => False,
             Warning     => True,
-            Error       => False,
+            Error       => True,
             Lint        => False)
          then
             Project.Status := Valid_Project_With_Warning;
