@@ -132,15 +132,6 @@ package LSP.Ada_Handlers is
    --  If the document is not opened, then it returns a
    --  OptionalVersionedTextDocumentIdentifier with a null version.
 
-   -----------------
-   -- Log Manager --
-   -----------------
-
-   procedure Clean_Logs
-     (Self : access Message_Handler'Class;
-      Dir  : GNATCOLL.VFS.Virtual_File);
-   --  Remove the oldest logs in Dir
-
 private
    type Project_Stamp is mod 2**32;
 
