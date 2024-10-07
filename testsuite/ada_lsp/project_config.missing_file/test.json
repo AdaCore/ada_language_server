@@ -95,7 +95,7 @@
                                     }
                                  }
                               },
-                              "message": "The project file has errors and could not be loaded."
+                              "message": "The project file was loaded but contains Warnings."
                            },
                            {
                               "location": {
