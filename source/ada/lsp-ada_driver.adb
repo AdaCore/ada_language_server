@@ -226,11 +226,14 @@ procedure LSP.Ada_Driver is
            Command'Tag);
    end Register_Commands;
 
-   Server_Trace : constant Trace_Handle := Create ("ALS.MAIN", From_Config);
+   Server_Trace : constant LSP.GNATCOLL_Tracers.Tracer :=
+     LSP.GNATCOLL_Tracers.Create ("ALS.MAIN", From_Config);
    --  Main trace for the LSP.
 
-   In_Trace  : constant Trace_Handle := Create ("ALS.IN", Off);
-   Out_Trace : constant Trace_Handle := Create ("ALS.OUT", Off);
+   In_Trace  : constant LSP.GNATCOLL_Tracers.Tracer :=
+     LSP.GNATCOLL_Tracers.Create ("ALS.IN", Off);
+   Out_Trace : constant LSP.GNATCOLL_Tracers.Tracer :=
+     LSP.GNATCOLL_Tracers.Create ("ALS.OUT", Off);
    --  Traces that logs all input & output. For debugging purposes.
    Tracer    : aliased LSP.GNATCOLL_Tracers.Server_Tracer;
 
@@ -496,8 +499,8 @@ begin
       end;
    end if;
 
-   In_Stream.Initialize (Server_Trace);
-   Out_Stream.Initialize (Server_Trace);
+   In_Stream.Initialize (Trace_Handle (Server_Trace));
+   Out_Stream.Initialize (Trace_Handle (Server_Trace));
 
    Tracer.Initialize (Server_Trace, In_Trace, Out_Trace);
    Tracer.Trace ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");
@@ -558,7 +561,7 @@ begin
 
          --  Load predefined completion items
          LSP.Predefined_Completion.Load_Predefined_Completion_Db
-           (Server_Trace);
+           (Trace_Handle (Server_Trace));
 
          Ada_Fence_Message_Handler.Initialize
            (Handler  => Ada_Handler'Unchecked_Access,
