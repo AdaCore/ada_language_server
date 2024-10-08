@@ -46,6 +46,17 @@ verbose: full output from server
 min_diff: on the fly computed diff of the different values
 """,
         )
+        parser.add_argument(
+            "--debug",
+            action="store_true",
+            help="Start a test in debug mode where it waits until <Enter> is typed on"
+            " the console before proceeding. This leaves time to attach a debugger to"
+            " the ada_language_server process. The test runner prints the PID of the"
+            " process on stdout but this is masked by the testsuite. So the PID must be"
+            " obtained in a different way. In VS Code, a list of processes is offered"
+            " and you can select the ada_language_server process that is under the"
+            " .obj/ directory.",
+        )
 
     def lookup_program(self, *args):
         """
