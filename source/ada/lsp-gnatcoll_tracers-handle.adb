@@ -18,5 +18,5 @@
 function LSP.GNATCOLL_Tracers.Handle
   (Self : LSP.Tracers.Tracer'Class) return GNATCOLL.Traces.Trace_Handle is
 begin
-   return Tracer (Self).Server_Trace;
+   return Server_Tracer (Self).Server_Trace;
 end LSP.GNATCOLL_Tracers.Handle;

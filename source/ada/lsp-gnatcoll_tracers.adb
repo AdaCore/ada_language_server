@@ -29,7 +29,7 @@ package body LSP.GNATCOLL_Tracers is
    ----------------
 
    procedure Initialize
-     (Self         : in out Tracer'Class;
+     (Self         : in out Server_Tracer'Class;
       Server_Trace : GNATCOLL.Traces.Trace_Handle;
       In_Trace     : GNATCOLL.Traces.Trace_Handle;
       Out_Trace    : GNATCOLL.Traces.Trace_Handle) is
@@ -44,7 +44,7 @@ package body LSP.GNATCOLL_Tracers is
    --------------
 
    overriding function Location
-     (Self : Tracer) return VSS.Strings.Virtual_String is
+     (Self : Server_Tracer) return VSS.Strings.Virtual_String is
    begin
       return VSS.Strings.Conversions.To_Virtual_String
         (Self.Server_Trace.Get_Stream_File.Display_Full_Name);
@@ -54,7 +54,7 @@ package body LSP.GNATCOLL_Tracers is
    -- Trace --
    -----------
 
-   overriding procedure Trace (Self : in out Tracer; Text : String) is
+   overriding procedure Trace (Self : in out Server_Tracer; Text : String) is
    begin
       Self.Server_Trace.Trace (Text);
    end Trace;
@@ -64,7 +64,7 @@ package body LSP.GNATCOLL_Tracers is
    -----------
 
    overriding procedure Trace
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector)
    is
       Aux  : Ada.Strings.Unbounded.String_Access :=
@@ -80,7 +80,7 @@ package body LSP.GNATCOLL_Tracers is
    ---------------------
 
    overriding procedure Trace_Exception
-     (Self    : in out Tracer;
+     (Self    : in out Server_Tracer;
       Error   : Ada.Exceptions.Exception_Occurrence;
       Message : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String)
@@ -100,7 +100,7 @@ package body LSP.GNATCOLL_Tracers is
    -----------------
 
    overriding procedure Trace_Input
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector)
    is
       Aux  : Ada.Strings.Unbounded.String_Access;
@@ -118,7 +118,7 @@ package body LSP.GNATCOLL_Tracers is
    ------------------
 
    overriding procedure Trace_Output
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector)
    is
       Aux  : Ada.Strings.Unbounded.String_Access;
@@ -136,7 +136,7 @@ package body LSP.GNATCOLL_Tracers is
    ----------------
 
    overriding procedure Trace_Text
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Strings.Virtual_String'Class) is
    begin
       Self.Server_Trace.Trace (VSS.Strings.Conversions.To_UTF_8_String (Text));

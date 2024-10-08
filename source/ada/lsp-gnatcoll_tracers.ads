@@ -25,11 +25,11 @@ with LSP.Tracers;
 
 package LSP.GNATCOLL_Tracers is
 
-   type Tracer is limited new LSP.Tracers.Tracer with private;
+   type Server_Tracer is limited new LSP.Tracers.Tracer with private;
    --  Implementation of abstract tracer interface over GNATCOLL.Traces
 
    procedure Initialize
-     (Self         : in out Tracer'Class;
+     (Self         : in out Server_Tracer'Class;
       Server_Trace : GNATCOLL.Traces.Trace_Handle;
       In_Trace     : GNATCOLL.Traces.Trace_Handle;
       Out_Trace    : GNATCOLL.Traces.Trace_Handle);
@@ -38,37 +38,37 @@ package LSP.GNATCOLL_Tracers is
    --  debugging purposes.
 
    overriding procedure Trace
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : String);
 
    overriding procedure Trace_Text
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Strings.Virtual_String'Class);
 
    overriding procedure Trace_Exception
-     (Self    : in out Tracer;
+     (Self    : in out Server_Tracer;
       Error   : Ada.Exceptions.Exception_Occurrence;
       Message : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String);
 
    overriding procedure Trace
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector);
 
    overriding procedure Trace_Input
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector);
 
    overriding procedure Trace_Output
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector);
 
    overriding function Location
-     (Self : Tracer) return VSS.Strings.Virtual_String;
+     (Self : Server_Tracer) return VSS.Strings.Virtual_String;
 
 private
 
-   type Tracer is limited new LSP.Tracers.Tracer with record
+   type Server_Tracer is limited new LSP.Tracers.Tracer with record
       Server_Trace    : GNATCOLL.Traces.Trace_Handle;
       In_Trace        : GNATCOLL.Traces.Trace_Handle;
       Out_Trace       : GNATCOLL.Traces.Trace_Handle;

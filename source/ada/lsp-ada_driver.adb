@@ -232,7 +232,7 @@ procedure LSP.Ada_Driver is
    In_Trace  : constant Trace_Handle := Create ("ALS.IN", Off);
    Out_Trace : constant Trace_Handle := Create ("ALS.OUT", Off);
    --  Traces that logs all input & output. For debugging purposes.
-   Tracer    : aliased LSP.GNATCOLL_Tracers.Tracer;
+   Tracer    : aliased LSP.GNATCOLL_Tracers.Server_Tracer;
 
    In_Stream  : aliased LSP.GNATCOLL_Trace_Streams.Output_Text_Stream;
    --  Output stream for logging input messages into the trace
