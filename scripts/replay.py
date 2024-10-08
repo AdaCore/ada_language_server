@@ -8,6 +8,7 @@ Usage: replay.py --log-file <path_to_log_file> --output-file <output_file>
 """
 
 import argparse
+import os
 from json_transformations import python_to_protocol_string, traces_to_test
 
 
@@ -39,6 +40,6 @@ for x in test:
 # Print on stdout if no output file has been specified
 if output_file:
     with open(output_file, "w") as file:
-        file.write(result + "\r")
+        file.write(result + os.linesep)
 else:
-    print(result + "\r")
+    print(result + os.linesep)

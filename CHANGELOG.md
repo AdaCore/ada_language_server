@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+* Create commands for opening the project file and the log file
+
 ## 25.0.20240915
 
 * Implement type hierarchy requests

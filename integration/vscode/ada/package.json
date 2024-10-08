@@ -754,6 +754,14 @@
                 "icon": "$(refresh)"
             },
             {
+                "command": "als-open-project-file",
+                "title": "Ada: Edit current project file"
+            },
+            {
+                "command": "als-open-log-file",
+                "title": "Ada: Open Ada Language Server log file"
+            },
+            {
                 "command": "ada.subprogramBox",
                 "title": "Ada: Add subprogram box"
             },
