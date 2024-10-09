@@ -23,6 +23,18 @@ include:
       anod-args: run test_als_$ACI_TRACK
       image: systemgtk
 
+  # Testing of the ALS with coverage
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
+    inputs:
+      job-name: als-cov
+      anod-args: run test_als_cov_$ACI_TRACK
+      image: systemgtk
+      # This job needs to rebuild ALS in coverage mode, so it doesn't need to
+      # depend on the build job. The following will get it to run in parallel
+      # with the build job.
+      needs: []
+      stage: build
+
   # Testing of the VSCode extension
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
     inputs:
@@ -57,3 +69,104 @@ include:
         - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
           when: manual
           allow_failure: true
+
+als-cov:
+  after_script:
+    # Source the env prepared by generic_anod_ci
+    - cat /tmp/ci_env.sh
+    - . /tmp/ci_env.sh
+
+    - ALS_BUILD_SPACE=$(anod info test als $ACI_TRACK_QUALIFIER -Q coverage --show working_dir)
+    - RESULTS_DIR=$ALS_BUILD_SPACE/results/new
+
+    # Include Anod logs
+    - cp -rv $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
+
+    # Include coverage report
+    - mkdir -v $CI_PROJECT_DIR/coverage
+
+      # save coverage results
+    - cp -v $RESULTS_DIR/coverage-cobertura/cobertura.xml $CI_PROJECT_DIR/coverage
+    - cp -vr $RESULTS_DIR/coverage-dhtml $CI_PROJECT_DIR/coverage/dhtml
+
+    # export to gitlab pages
+    - |
+      if [[ $CI_PIPELINE_SOURCE = "merge_request_event" ]]; then
+        target_subdir=MRs/$CI_MERGE_REQUEST_IID
+      else
+        target_subdir=$CI_COMMIT_BRANCH
+      fi
+
+    - target_subdir=$target_subdir/ada-coverage
+    - publish-pages $CI_PROJECT_DIR/coverage/dhtml/ --target-subdir $target_subdir --expires 30
+    - >
+      echo "Coverage report: https://pages.gitlab.adacore-it.com/$CI_PROJECT_PATH/$target_subdir/index.html"
+
+    # display coverage stats for global reporting
+    - echo_coverage_stats --coverage-file $RESULTS_DIR/coverage-xml/index.xml
+  coverage: '/^Stmt Coverage:\s+(\d+\.\d+\%) \(\d+ \/ \d+\)$/'
+  artifacts:
+    when: always #  Upload on errors too
+    reports:
+      junit: xunit-*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura.xml
+    paths:
+      - anod-logs/
+      # Also archive the report file for debugging the CI integration
+      - coverage/cobertura.xml
+
+vscode-extension:
+  after_script:
+    # Source the env prepared by generic_anod_ci
+    - cat /tmp/ci_env.sh
+    - . /tmp/ci_env.sh
+
+    - VSCODE_BUILD_SPACE=$(anod info test vscode-extension -Q coverage $ACI_TRACK_QUALIFIER --show working_dir)
+
+    # Include Anod logs
+    - cp -rv $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
+
+    # Copy coverage reports
+    - cp -rv $VSCODE_BUILD_SPACE/test/integration/vscode/ada/coverage $CI_PROJECT_DIR
+
+    # export to gitlab pages
+    - |
+      if [[ $CI_PIPELINE_SOURCE = "merge_request_event" ]]; then
+        target_subdir=MRs/$CI_MERGE_REQUEST_IID
+      else
+        target_subdir=$CI_COMMIT_BRANCH
+      fi
+    - target_subdir=$target_subdir/ts-coverage
+    - publish-pages $CI_PROJECT_DIR/coverage/ --target-subdir $target_subdir --expires 30
+    - >
+      echo "Coverage report: https://pages.gitlab.adacore-it.com/$CI_PROJECT_PATH/$target_subdir/index.html"
+
+    # Compute coverage percentage
+    - line_rate=$(cat $CI_PROJECT_DIR/coverage/cobertura-coverage.xml | grep -o 'line-rate="\([^"]\+\)"' | head -1 | grep -o '[0-9.]\+')
+    - line_perc=$(python -c "print($line_rate * 100)")
+    - >
+      echo "Line Coverage: $line_perc"
+
+    # The Cobertura report coming from the VS Code test infra has a <source>
+    # element specifying the root path of all sources.
+    #
+    # This needs to be replaced with the CI_PROJECT_DIR in order for GitLab to
+    # understand it.
+    #
+    # In this sed command we use '|' instead of '/' as a separator for the 's'
+    # command to avoid interpreting path separators in the pattern and
+    # replacement.
+    - sed -e "s|$VSCODE_BUILD_SPACE/test|$CI_PROJECT_DIR|" -i $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
+  coverage: '/^Line Coverage:\s+(\d+\.\d+)$/'
+  artifacts:
+    when: always #  Upload on errors too
+    reports:
+      junit: xunit-*.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - anod-logs/
+      - coverage/cobertura-coverage.xml
