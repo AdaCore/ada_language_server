@@ -24,15 +24,89 @@ with VSS.Strings.Conversions;
 
 package body LSP.GNATCOLL_Tracers is
 
+   function Tracer_Factory return GNATCOLL.Traces.Logger;
+
+   --------------------
+   -- Tracer_Factory --
+   --------------------
+
+   function Tracer_Factory return GNATCOLL.Traces.Logger
+   is (new Tracer_Record);
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create
+     (Trace_Name : String;
+      Default   : GNATCOLL.Traces.Default_Activation_Status
+         := GNATCOLL.Traces.From_Config)
+      return Tracer is
+   begin
+      return Tracer (GNATCOLL.Traces.Create (Trace_Name, Default, Factory => Tracer_Factory'Access));
+   end Create;
+
+   ----------------
+   -- Trace_Text --
+   ----------------
+
+   procedure Trace_Text
+     (Self : in out Tracer_Record;
+      Text : VSS.Strings.Virtual_String'Class) is
+   begin
+      if Self.Is_Active then
+         Self.Trace (VSS.Strings.Conversions.To_UTF_8_String (Text));
+      end if;
+   end Trace_Text;
+
+   ---------------------
+   -- Trace_Exception --
+   ---------------------
+
+   procedure Trace_Exception
+     (Self    : in out Tracer_Record;
+      Error   : Ada.Exceptions.Exception_Occurrence;
+      Message : VSS.Strings.Virtual_String :=
+        VSS.Strings.Empty_Virtual_String) is
+   begin
+      if Self.Is_Active then
+         Self.Trace_Text
+         (if Message.Is_Empty then "Exception:" else Message);
+
+         Self.Trace
+         (Ada.Exceptions.Exception_Information (Error));
+
+         Self.Trace (GNAT.Traceback.Symbolic.Symbolic_Traceback (Error));
+      end if;
+   end Trace_Exception;
+
+   -----------
+   -- Trace --
+   -----------
+
+   procedure Trace
+     (Self : in out Tracer_Record;
+      Text : VSS.Stream_Element_Vectors.Stream_Element_Vector)
+   is
+      Aux  : Ada.Strings.Unbounded.String_Access;
+   begin
+      if Self.Is_Active then
+         Aux := new String'(VSS.Stream_Element_Vectors.Conversions
+            .Unchecked_To_String (Text));
+         Self.Trace (Aux.all);
+         Ada.Strings.Unbounded.Free (Aux);
+      end if;
+   end Trace;
+
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize
-     (Self         : in out Tracer'Class;
-      Server_Trace : GNATCOLL.Traces.Trace_Handle;
-      In_Trace     : GNATCOLL.Traces.Trace_Handle;
-      Out_Trace    : GNATCOLL.Traces.Trace_Handle) is
+     (Self         : in out Server_Tracer'Class;
+      Server_Trace : Tracer;
+      In_Trace     : Tracer;
+      Out_Trace    : Tracer) is
    begin
       Self.Server_Trace := Server_Trace;
       Self.In_Trace := In_Trace;
@@ -44,7 +118,7 @@ package body LSP.GNATCOLL_Tracers is
    --------------
 
    overriding function Location
-     (Self : Tracer) return VSS.Strings.Virtual_String is
+     (Self : Server_Tracer) return VSS.Strings.Virtual_String is
    begin
       return VSS.Strings.Conversions.To_Virtual_String
         (Self.Server_Trace.Get_Stream_File.Display_Full_Name);
@@ -54,7 +128,7 @@ package body LSP.GNATCOLL_Tracers is
    -- Trace --
    -----------
 
-   overriding procedure Trace (Self : in out Tracer; Text : String) is
+   overriding procedure Trace (Self : in out Server_Tracer; Text : String) is
    begin
       Self.Server_Trace.Trace (Text);
    end Trace;
@@ -64,15 +138,11 @@ package body LSP.GNATCOLL_Tracers is
    -----------
 
    overriding procedure Trace
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector)
    is
-      Aux  : Ada.Strings.Unbounded.String_Access :=
-        new String'(VSS.Stream_Element_Vectors.Conversions
-                    .Unchecked_To_String (Text));
    begin
-      Self.Server_Trace.Trace (Aux.all);
-      Ada.Strings.Unbounded.Free (Aux);
+      Self.Server_Trace.Trace (Text);
    end Trace;
 
    ---------------------
@@ -80,19 +150,13 @@ package body LSP.GNATCOLL_Tracers is
    ---------------------
 
    overriding procedure Trace_Exception
-     (Self    : in out Tracer;
+     (Self    : in out Server_Tracer;
       Error   : Ada.Exceptions.Exception_Occurrence;
       Message : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String)
    is
    begin
-      Self.Trace_Text
-        (if Message.Is_Empty then "Exception:" else Message);
-
-      Self.Trace
-        (Ada.Exceptions.Exception_Information (Error));
-
-      Self.Trace (GNAT.Traceback.Symbolic.Symbolic_Traceback (Error));
+      Self.Server_Trace.Trace_Exception (Error, Message);
    end Trace_Exception;
 
    -----------------
@@ -100,17 +164,11 @@ package body LSP.GNATCOLL_Tracers is
    -----------------
 
    overriding procedure Trace_Input
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector)
    is
-      Aux  : Ada.Strings.Unbounded.String_Access;
    begin
-      if Self.In_Trace.Is_Active then
-         Aux := new String'(VSS.Stream_Element_Vectors.Conversions
-                            .Unchecked_To_String (Text));
-         Self.In_Trace.Trace (Aux.all);
-         Ada.Strings.Unbounded.Free (Aux);
-      end if;
+      Self.In_Trace.Trace (Text);
    end Trace_Input;
 
    ------------------
@@ -118,17 +176,11 @@ package body LSP.GNATCOLL_Tracers is
    ------------------
 
    overriding procedure Trace_Output
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Stream_Element_Vectors.Stream_Element_Vector)
    is
-      Aux  : Ada.Strings.Unbounded.String_Access;
    begin
-      if Self.Out_Trace.Is_Active then
-         Aux := new String'(VSS.Stream_Element_Vectors.Conversions
-                            .Unchecked_To_String (Text));
-         Self.Out_Trace.Trace (Aux.all);
-         Ada.Strings.Unbounded.Free (Aux);
-      end if;
+      Self.Out_Trace.Trace (Text);
    end Trace_Output;
 
    ----------------
@@ -136,10 +188,10 @@ package body LSP.GNATCOLL_Tracers is
    ----------------
 
    overriding procedure Trace_Text
-     (Self : in out Tracer;
+     (Self : in out Server_Tracer;
       Text : VSS.Strings.Virtual_String'Class) is
    begin
-      Self.Server_Trace.Trace (VSS.Strings.Conversions.To_UTF_8_String (Text));
+      Self.Server_Trace.Trace_Text (Text);
    end Trace_Text;
 
 end LSP.GNATCOLL_Tracers;
