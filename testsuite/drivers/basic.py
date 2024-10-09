@@ -30,6 +30,10 @@ class JsonTestDriver(ALSTestDriver):
             cmd = [self.env.tester_run, json]
             if self.env.options.format:
                 cmd.append("--format=%s" % self.env.options.format)
+
+            if self.env.main_options.debug:
+                cmd.append("--debug")
+
             process = self.run_and_log(
                 cmd,
                 cwd=wd,
