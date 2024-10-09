@@ -1,0 +1,157 @@
+[
+   {
+      "comment": [
+         "This test checks that the textDocument/hover request works fine ",
+         "on implicit projects (i.e: when there is no .gpr file in the root directory)"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {}
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Ada.Streams;\npackage Aaa is\n\nend Aaa;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/hover",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 0,
+                  "character": 12
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": {
+                  "contents": [
+                     "<HAS>",
+                     {
+                        "language": "ada",
+                        "value": "package Ada.Streams"
+                     },
+                     "at a-stream.ads (36:1)"
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
