@@ -97,6 +97,11 @@ package LSP.Ada_Project_Loading is
       Project_File : GNATCOLL.VFS.Virtual_File);
    --  Set the file we are trying to load
 
+   function Get_Project_File
+     (Project      : in out Project_Status_Type)
+   return GNATCOLL.VFS.Virtual_File;
+   --  Get the project file that was loaded (or attempted)
+
    function Is_Implicit_Fallback
      (Project : Project_Status_Type) return Boolean;
    --  Return True if the implicit project has been loaded

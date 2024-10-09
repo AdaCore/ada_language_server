@@ -1,0 +1,66 @@
+[
+   {
+      "comment": [
+         "This test exercises the als-open-log-file command of the ALS"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}"
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-open-log-file",
+               "arguments": []
+            }
+         },
+         "wait": [
+            {
+               "method": "window/showDocument",
+               "params": {
+                  "uri": "<ANY>",
+                  "takeFocus": true
+               }
+            },
+            {
+               "id": 6,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

@@ -394,6 +394,17 @@ package body LSP.Ada_Project_Loading is
       Project.Project_File := Project_File;
    end Set_Project_File;
 
+   ----------------------
+   -- Get_Project_File --
+   ----------------------
+
+   function Get_Project_File
+     (Project      : in out Project_Status_Type)
+   return GNATCOLL.VFS.Virtual_File is
+   begin
+      return Project.Project_File;
+   end Get_Project_File;
+
    --------------------------
    -- Is_Implicit_Fallback --
    --------------------------

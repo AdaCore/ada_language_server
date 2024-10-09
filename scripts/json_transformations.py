@@ -37,7 +37,7 @@ def traces_to_test(inout_file, project_root=None, input_only=False):
         in_re = re.compile(b' *([^{]*) ({.*})')
         for line in f.readlines():
             m = in_re.match(line)
-            if m:
+            if m and m.group(1) in (b"[ALS.IN]", b"[ALS.OUT]"):
                 is_input = m.group(1) == b"[ALS.IN]"
                 cleaned = m.group(2)
                 if project_root:
