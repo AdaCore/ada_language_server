@@ -15,8 +15,10 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.Traces;
+
 function LSP.GNATCOLL_Tracers.Handle
   (Self : LSP.Tracers.Tracer'Class) return GNATCOLL.Traces.Trace_Handle is
 begin
-   return Tracer (Self).Server_Trace;
+   return GNATCOLL.Traces.Trace_Handle (Server_Tracer (Self).Server_Trace);
 end LSP.GNATCOLL_Tracers.Handle;
