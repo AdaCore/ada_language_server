@@ -118,6 +118,7 @@ package body LSP.Ada_Documents is
       Completions_Count        : Natural)
       return LSP.Structures.CompletionItem
    is
+      use Libadalang.Common;
 
       package Weight_Formatters renames VSS.Strings.Formatters.Integers;
 
@@ -307,9 +308,13 @@ package body LSP.Ada_Documents is
          Item.label.Append (" (invisible)");
          Item.filterText := Label;
 
-         --  If the corresponding setting is enabled, append a command to
+         --  If the corresponding setting is enabled, and if we
+         --  are not completing within a with-clause, append a command to
          --  insert the missing with-clause/qualifier.
-         if Handler.Get_Configuration.Insert_With_Clauses then
+         if Handler.Get_Configuration.Insert_With_Clauses
+           and then not (for some Parent of Node.Parents
+                         => Parent.Kind = Ada_With_Clause)
+         then
             Append_Auto_Import_Command;
          end if;
       end if;
