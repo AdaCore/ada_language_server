@@ -4,6 +4,8 @@ from typing import Any
 import json
 import os
 
+import traceback
+
 current_id = 0
 
 
@@ -97,6 +99,51 @@ class LSPResponse(object):
 
         if not contains(self.from_dict, expected_dict):
             raise AssertionError(f"Response does not contain {expected_dict}")
+
+    def _line_info(self) -> str:
+        """Return the line number and file name of the caller of the parent."""
+        # Use traceback to get the previous frame
+        (filename, line_number, fn_name, _) = traceback.extract_stack()[-3]
+        splits = filename.split(os.path.sep)
+        test_name = splits[-2].replace("__", os.path.sep)
+        dir_and_file = os.path.join("testsuite", test_name, splits[-1])
+        message = f"At {dir_and_file}:{line_number} in {fn_name}:\n"
+        return message
+
+    def assertLocationsList(self, expected: list[(str, int)]):
+        """ Compare the response to an expected list of locations.
+            The expected list is a list of tuples (file base name, line number),
+            with line_number being 1-based.
+        """
+        if not isinstance(self.from_dict, list):
+            raise AssertionError("The response does not contain a list")
+
+        # Extract the locations from the response
+        locations = []
+        for item in self.from_dict:
+            filename = ""
+            line = -1
+            if "uri" in item and "range" in item:
+                # This is a location in the style returned by "prepareCallHierarchy"
+                filename = os.path.basename(item["uri"])
+                line = item["range"]["start"]["line"] + 1
+                locations.append((filename, line))
+            elif "from" in item and "uri" in item["from"] and "range" in item["from"]:
+                # This is a location in the style returned by "incomingCalls"
+                filename = os.path.basename(item["from"]["uri"])
+                line = item["from"]["range"]["start"]["line"] + 1
+                locations.append((filename, line))
+
+        # Compare the locations to the expected list
+        if locations != expected:
+            message = self._line_info()
+            message += "Expected locations:\n"
+            for loc in expected:
+                message += f"   {loc[0]}:{loc[1]}\n"
+            message += "Received locations:\n"
+            for loc in locations:
+                message += f"   {loc[0]}:{loc[1]}\n"
+            raise AssertionError(message)
 
 
 def URI(filename: str) -> str:

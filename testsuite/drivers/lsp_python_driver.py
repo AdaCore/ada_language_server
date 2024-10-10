@@ -172,7 +172,9 @@ def run_simple_test(test_function, working_dir) -> list[str]:
     except Exception as e:
         lsp.shutdown()
         errors = [str(e)]
-        errors.append(traceback.format_exc())
+        # If the exception is an AssertionError, no need for the traceback
+        if not isinstance(e, AssertionError):
+            errors.append(traceback.format_exc())
         return lsp.errors + errors
 
 

@@ -176,3 +176,42 @@ def didOpen_from_disk(filename: str, language: str = "ada"):
         },
         False,
     )
+
+def prepareCallHierarchy(filename: str, line: int, character: int):
+    """Craft a textDocument/prepareCallHierarchy request.
+       line and character are specified in 1-based coordinates.
+    """
+    return LSPMessage(
+        {
+            "method": "textDocument/prepareCallHierarchy",
+            "params": {
+                "textDocument": {"uri": URI(filename)},
+                "position": {"line": line - 1, "character": character - 1},
+            },
+        }
+    )
+
+def incomingCalls(filename: str, line: int, character: int):
+    """Craft a callHierarchy/incomingCalls request.
+       line and character are specified in 1-based coordinates.
+    """
+    return LSPMessage(
+        {
+            "method": "callHierarchy/incomingCalls",
+            "params": {
+                "item": {
+                    "name": "",
+                    "kind": 12,
+                    "uri": URI(filename),
+                    "range": {
+                        "start": {"line": line - 1, "character": character - 1},
+                        "end": {"line": line - 1, "character": character - 1},
+                    },
+                    "selectionRange": {
+                        "start": {"line": line - 1, "character": character - 1},
+                        "end": {"line": line - 1, "character": character - 1},
+                    },
+                }
+            },
+        }
+    )
