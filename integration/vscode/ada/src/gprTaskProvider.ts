@@ -47,7 +47,6 @@ export class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
         this.client = client;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async provideTasks(): Promise<vscode.Task[] | undefined> {
         if (GprTaskProvider.DEPRECATED) {
             // We return a single dummy task to convey an obsoletion message to Users.
@@ -63,7 +62,7 @@ export class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
                     msg,
                     GprTaskProvider.gprTaskType,
                     this.obsoleteWarningExecution,
-                    DEFAULT_PROBLEM_MATCHER
+                    DEFAULT_PROBLEM_MATCHER,
                 ),
             ];
         } else {
@@ -73,7 +72,7 @@ export class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
                 this.glsTasks = getBuildTasks(project_file, mains);
                 const execs: string[] = await getExecutables(this.client);
                 this.glsTasks = this.glsTasks.concat(
-                    getBuildAndRunTasks(project_file, mains, execs)
+                    getBuildAndRunTasks(project_file, mains, execs),
                 );
             }
         }
@@ -92,7 +91,7 @@ export class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
             task.name,
             GprTaskProvider.gprTaskType,
             this.obsoleteWarningExecution,
-            DEFAULT_PROBLEM_MATCHER
+            DEFAULT_PROBLEM_MATCHER,
         );
     }
 }
@@ -109,7 +108,7 @@ export class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
 function getBuildAndRunTasks(
     projectFile: string,
     mainFiles: string[],
-    execs: string[]
+    execs: string[],
 ): vscode.Task[] {
     const result: vscode.Task[] = [];
     //  build current project file
@@ -130,7 +129,7 @@ function getBuildAndRunTasks(
             'Build And Run Main: ' + filename,
             'gpr',
             shell,
-            '$gpr'
+            '$gpr',
         );
         task.group = vscode.TaskGroup.Build;
         result.push(task);
@@ -165,7 +164,7 @@ function getBuildTasks(projectFile: string, mainFiles: string[]): vscode.Task[] 
             'Build Main: ' + filename,
             'gpr',
             shell,
-            '$gpr'
+            '$gpr',
         );
         task.group = vscode.TaskGroup.Build;
         result.push(task);
@@ -182,7 +181,7 @@ function getBuildTasks(projectFile: string, mainFiles: string[]): vscode.Task[] 
  */
 function getMainBuildArgs(projectFile?: string, mainFile?: string): string[] {
     const vars: string[][] = Object.entries(
-        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
     );
     const fold = (args: string[], item: string[]): string[] => {
         const option = '-X' + item[0] + '=' + item[1];
@@ -191,7 +190,7 @@ function getMainBuildArgs(projectFile?: string, mainFile?: string): string[] {
     //  for each scenarioVariables put `-Xname=value` option
     const args = vars.reduce(fold, []).concat(
         //  append projectFile is any
-        projectFile ? [projectFile] : []
+        projectFile ? [projectFile] : [],
     );
     // append the file to build
     args.push(mainFile ? mainFile : '');

@@ -37,7 +37,7 @@ export interface AdaConfig extends vscode.DebugConfiguration {
 export const adaDynamicDebugConfigProvider = {
     async provideDebugConfigurations(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _folder?: vscode.WorkspaceFolder
+        _folder?: vscode.WorkspaceFolder,
     ): Promise<AdaConfig[]> {
         const mains = await getAdaMains();
         const configs: AdaConfig[] = mains.flatMap((m) => {
@@ -56,7 +56,7 @@ export const adaDynamicDebugConfigProvider = {
             void vscode.window.showWarningMessage(msg, {
                 modal: true,
             });
-            return Promise.reject(msg);
+            return Promise.reject(new Error(msg));
         }
         return configs;
     },
@@ -72,7 +72,7 @@ export function initializeDebugging(ctx: vscode.ExtensionContext): {
     providerInitial: AdaInitialDebugConfigProvider;
     providerDynamic: {
         provideDebugConfigurations(
-            _folder?: vscode.WorkspaceFolder | undefined
+            _folder?: vscode.WorkspaceFolder | undefined,
         ): Promise<vscode.DebugConfiguration[]>;
     };
 } {
@@ -105,8 +105,8 @@ export function initializeDebugging(ctx: vscode.ExtensionContext): {
             // The 'Dynamic' trigger type only works if the package.json lists
             // "onDebugDynamicConfigurations:ada" as part of the
             // activationEvents.
-            vscode.DebugConfigurationProviderTriggerKind.Dynamic
-        )
+            vscode.DebugConfigurationProviderTriggerKind.Dynamic,
+        ),
     );
 
     return { providerInitial: providerInitial, providerDynamic: adaDynamicDebugConfigProvider };
@@ -207,7 +207,7 @@ export function initializeConfig(main: AdaMain, name?: string): AdaConfig {
 export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationProvider {
     async provideDebugConfigurations(
         folder: vscode.WorkspaceFolder | undefined,
-        _token?: vscode.CancellationToken | undefined
+        _token?: vscode.CancellationToken | undefined,
     ): Promise<vscode.DebugConfiguration[]> {
         // This method is called when no launch.json exists. The provider
         // should return a set of configurations to initialize the launch.json
@@ -215,7 +215,7 @@ export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationP
         const configs: vscode.DebugConfiguration[] = [];
 
         if (_token?.isCancellationRequested) {
-            return Promise.reject('Cancelled');
+            return Promise.reject(new Error('Cancelled'));
         }
 
         if (folder != undefined) {
@@ -229,7 +229,7 @@ export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationP
                 {
                     placeHolder: 'Select a launch configuration to create in the launch.json file',
                 },
-                _token
+                _token,
             );
 
             if (selectedProgram == generateAll) {
@@ -239,14 +239,14 @@ export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationP
                         .map((item) => {
                             assert('conf' in item);
                             return item.conf;
-                        })
+                        }),
                 );
             } else if (selectedProgram) {
                 assert('conf' in selectedProgram);
                 assert(selectedProgram.conf);
                 configs.push(selectedProgram.conf);
             } else {
-                return Promise.reject('Cancelled');
+                return Promise.reject(new Error('Cancelled'));
             }
         }
 
@@ -256,7 +256,7 @@ export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationP
     async resolveDebugConfiguration(
         _folder: vscode.WorkspaceFolder | undefined,
         debugConfiguration: vscode.DebugConfiguration,
-        _token?: vscode.CancellationToken | undefined
+        _token?: vscode.CancellationToken | undefined,
     ): Promise<vscode.DebugConfiguration | undefined> {
         // This method is called when a debug session is being started. The
         // debug configuration either comes from the launch.json file, or from
@@ -361,7 +361,7 @@ async function assertProjectHasMains(mains?: AdaMain[]) {
     if (mains.length == 0) {
         const msg =
             `The Ada project '${await getProjectFile(
-                adaExtState.adaClient
+                adaExtState.adaClient,
             )}' does not define a 'Main' attribute. ` + 'Debugging is not possible without it.';
 
         // Display a warning message
@@ -370,7 +370,7 @@ async function assertProjectHasMains(mains?: AdaMain[]) {
         // When this function is called through the command
         // ada.getOrAskForProgram, the following message is also displayed in a
         // dialog message.
-        return Promise.reject(msg);
+        return Promise.reject(new Error(msg));
     }
 
     return undefined;
@@ -439,7 +439,7 @@ export async function getOrAskForProgram(mains?: AdaMain[]): Promise<AdaMain | u
  */
 async function getAdaMainForSourceFile(
     srcPath: string,
-    mains?: AdaMain[]
+    mains?: AdaMain[],
 ): Promise<AdaMain | undefined> {
     mains = mains ?? (await getAdaMains());
 

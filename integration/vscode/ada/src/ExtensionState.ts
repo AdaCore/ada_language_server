@@ -33,7 +33,7 @@ export class ExtensionState {
     public readonly context: vscode.ExtensionContext;
     public readonly dynamicDebugConfigProvider: {
         provideDebugConfigurations(
-            _folder?: vscode.WorkspaceFolder | undefined
+            _folder?: vscode.WorkspaceFolder | undefined,
         ): Promise<vscode.DebugConfiguration[]>;
     };
     public readonly initialDebugConfigProvider: AdaInitialDebugConfigProvider;
@@ -71,14 +71,14 @@ export class ExtensionState {
             'gpr',
             'GPR Language Server',
             ['--language-gpr'],
-            '**/.{gpr}'
+            '**/.{gpr}',
         );
         this.adaClient = createClient(
             context,
             'ada',
             'Ada Language Server',
             [],
-            '**/.{adb,ads,adc,ada}'
+            '**/.{adb,ads,adc,ada}',
         );
         this.taskDisposables = [];
         const result = initializeDebugging(this.context);
@@ -91,7 +91,7 @@ export class ExtensionState {
         await Promise.all([this.gprClient.start(), this.adaClient.start()]);
         this.registerTaskDisposables();
         this.context.subscriptions.push(
-            vscode.languages.registerCodeLensProvider('ada', this.codelensProvider)
+            vscode.languages.registerCodeLensProvider('ada', this.codelensProvider),
         );
     };
 
@@ -111,7 +111,7 @@ export class ExtensionState {
             vscode.tasks.registerTaskProvider(GnatTaskProvider.gnatType, new GnatTaskProvider()),
             vscode.tasks.registerTaskProvider(
                 GprTaskProvider.gprTaskType,
-                new GprTaskProvider(this.adaClient)
+                new GprTaskProvider(this.adaClient),
             ),
             vscode.tasks.registerTaskProvider(TASK_TYPE_ADA, this.adaTaskProvider),
             vscode.tasks.registerTaskProvider(TASK_TYPE_SPARK, this.sparkTaskProvider),
@@ -147,7 +147,7 @@ export class ExtensionState {
             to be reloaded in order for the Ada Language Server to take the
             new environment into account.
             Do you want to reload the VS Code window?`,
-            'Reload Window'
+            'Reload Window',
         );
 
         // Reload the VS Code window if the user selected 'Yes'
@@ -298,7 +298,7 @@ async function openSARIFViewerIfNeeded(task: vscode.Task) {
             if (cwd && sarifExtAPI) {
                 const cwdURI = vscode.Uri.file(cwd);
                 const outputFilePathArgRaw = args.find((arg) =>
-                    getArgValue(arg).includes('.sarif')
+                    getArgValue(arg).includes('.sarif'),
                 );
 
                 if (outputFilePathArgRaw) {

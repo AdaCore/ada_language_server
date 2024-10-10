@@ -21,7 +21,7 @@ import * as vscode from 'vscode';
 import { CancellationError, CancellationToken, DocumentSymbol, SymbolKind } from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import winston from 'winston';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import { existsSync } from 'fs';
 import { EXTENSION_NAME, adaExtState, logger, mainOutputChannel } from './extension';
 
@@ -71,14 +71,14 @@ export function substituteVariables(str: string, recursive = false): string {
     str = str.replace(/\${relativeFile}/g, relativeFilePath);
     str = str.replace(
         /\${relativeFileDirname}/g,
-        relativeFilePath.substr(0, relativeFilePath.lastIndexOf(path.sep))
+        relativeFilePath.substr(0, relativeFilePath.lastIndexOf(path.sep)),
     );
     str = str.replace(/\${fileBasename}/g, parsedPath.base);
     str = str.replace(/\${fileBasenameNoExtension}/g, parsedPath.name);
     str = str.replace(/\${fileExtname}/g, parsedPath.ext);
     str = str.replace(
         /\${fileDirname}/g,
-        parsedPath.dir.substr(parsedPath.dir.lastIndexOf(path.sep) + 1)
+        parsedPath.dir.substr(parsedPath.dir.lastIndexOf(path.sep) + 1),
     );
     str = str.replace(/\${cwd}/g, parsedPath.dir);
     str = str.replace(/\${pathSeparator}/g, path.sep);
@@ -88,18 +88,16 @@ export function substituteVariables(str: string, recursive = false): string {
         str = str.replace(
             /\${selectedText}/g,
             activeEditor.document.getText(
-                new vscode.Range(activeEditor.selection.start, activeEditor.selection.end)
-            )
+                new vscode.Range(activeEditor.selection.start, activeEditor.selection.end),
+            ),
         );
     }
 
     str = str.replace(/\${env:(.*?)}/g, function (variable) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return process.env[variable.match(/\${env:(.*?)}/)![1]] || '';
     });
 
     str = str.replace(/\${config:(.*?)}/g, function (variable) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return vscode.workspace.getConfiguration().get(variable.match(/\${config:(.*?)}/)![1], '');
     });
 
@@ -107,7 +105,7 @@ export function substituteVariables(str: string, recursive = false): string {
         recursive &&
         str.match(
             // eslint-disable-next-line max-len
-            /\${(workspaceFolder|workspaceFolderBasename|fileWorkspaceFolder|relativeFile|fileBasename|fileBasenameNoExtension|fileExtname|fileDirname|cwd|pathSeparator|lineNumber|selectedText|env:(.*?)|config:(.*?))}/
+            /\${(workspaceFolder|workspaceFolderBasename|fileWorkspaceFolder|relativeFile|fileBasename|fileBasenameNoExtension|fileExtname|fileDirname|cwd|pathSeparator|lineNumber|selectedText|env:(.*?)|config:(.*?))}/,
         )
     ) {
         str = substituteVariables(str, recursive);
@@ -154,7 +152,7 @@ export function getEvaluatedTerminalEnv() {
                 // in the JSON settings configuration (e.g: "PATH": "${workspaceFolder}/obj")
                 custom_env[var_name] =
                     custom_env[var_name]?.replace(/(\$\{.*\})/, (substring) =>
-                        substituteVariables(substring, false)
+                        substituteVariables(substring, false),
                     ) ?? null;
             }
         }
@@ -181,7 +179,7 @@ export function getArgValue(a: string | vscode.ShellQuotedString): string {
  */
 export function setTerminalEnvironment(
     targetEnv: NodeJS.ProcessEnv,
-    custom_env?: { [name: string]: string | null }
+    custom_env?: { [name: string]: string | null },
 ) {
     if (custom_env == undefined) {
         // Retrieve the user's custom environment variables if specified in their
@@ -243,7 +241,7 @@ export function assertSupportedEnvironments(mainChannel: winston.Logger) {
     }
 
     logger.debug(
-        `Asserted compatibility with runtime environment: ${process.arch}, ${process.platform}`
+        `Asserted compatibility with runtime environment: ${process.arch}, ${process.platform}`,
     );
 }
 
@@ -321,7 +319,7 @@ export async function getAdaMains(): Promise<AdaMain[]> {
         execs.length == mains.length,
         `The ALS returned mains.length = ${mains.length} and ` +
             `execs.length = ${execs.length}` +
-            `when they should be equal`
+            `when they should be equal`,
     );
 
     const result: AdaMain[] = [];
@@ -395,12 +393,12 @@ export async function findAdaMain(mainPath: string): Promise<AdaMain | undefined
         const adaMain = projectMains.find(
             (val) =>
                 val.mainRelPath().toLowerCase() == lc_main ||
-                val.mainFullPath.toLowerCase() == lc_main
+                val.mainFullPath.toLowerCase() == lc_main,
         );
         return adaMain;
     } else {
         const adaMain = projectMains.find(
-            (val) => val.mainRelPath() == mainPath || val.mainFullPath == mainPath
+            (val) => val.mainRelPath() == mainPath || val.mainFullPath == mainPath,
         );
         return adaMain;
     }
@@ -425,7 +423,7 @@ export function getSymbols(
     rootSymbols: DocumentSymbol[],
     symbolKinds: SymbolKind[],
     recurseInto: SymbolKind[] = [SymbolKind.Module, SymbolKind.Package, SymbolKind.Function],
-    token?: CancellationToken
+    token?: CancellationToken,
 ): DocumentSymbol[] {
     const reduce = (acc: DocumentSymbol[], cur: DocumentSymbol) => {
         if (token?.isCancellationRequested) {
@@ -494,7 +492,7 @@ export function which(execName: string) {
                * On Windows use a default list of extensions in case PATHEXT is
                * not set.
                */
-              env.PATHEXT?.split(path.delimiter) ?? ['.exe', '.cmd', '.bat']
+              (env.PATHEXT?.split(path.delimiter) ?? ['.exe', '.cmd', '.bat'])
             : [''];
 
     const exePath: string | undefined = paths
@@ -513,7 +511,7 @@ export function which(execName: string) {
  */
 export async function showErrorMessageWithOpenLogButton(
     msg: string,
-    options?: vscode.MessageOptions
+    options?: vscode.MessageOptions,
 ) {
     const answer = await vscode.window.showErrorMessage<vscode.MessageItem>(msg, options ?? {}, {
         title: `Open ${EXTENSION_NAME} Extension Log`,

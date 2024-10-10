@@ -18,11 +18,11 @@ export class AdaCodeLensProvider implements CodeLensProvider {
     onDidChangeCodeLenses?: Event<void> | undefined;
     provideCodeLenses(
         document: TextDocument,
-        token?: CancellationToken
+        token?: CancellationToken,
     ): ProviderResult<CodeLens[]> {
         const symbols = commands.executeCommand<DocumentSymbol[]>(
             'vscode.executeDocumentSymbolProvider',
-            document.uri
+            document.uri,
         );
 
         /**
@@ -34,7 +34,7 @@ export class AdaCodeLensProvider implements CodeLensProvider {
                     (m) =>
                         // Here we go through the Uri class to benefit from the normalization
                         // of path casing on Windows. See Uri.fsPath documentation.
-                        Uri.file(m).fsPath == document.uri.fsPath
+                        Uri.file(m).fsPath == document.uri.fsPath,
                 )
             ) {
                 // It's a main file, so let's offer Run and Debug actions on the main subprogram

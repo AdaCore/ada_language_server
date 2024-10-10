@@ -81,7 +81,7 @@ export class AdaSyntaxCheckProvider {
         client: LanguageClient,
         rules: AdaGrammarRule[],
         diagnotic?: string,
-        canBeEmpty = false
+        canBeEmpty = false,
     ) {
         this.client = client;
         this.rules = rules.map((rule) => rule.toString());
@@ -123,10 +123,10 @@ export class AdaSyntaxCheckProvider {
             if (Object.keys(response).length === 0) {
                 resolve(undefined);
             } else if (Object.keys(response).length > 1) {
-                reject('Invalid response from $/alsCheckSyntax request');
+                reject(new Error('Invalid response from $/alsCheckSyntax request'));
             } else {
                 if (typeof response.diagnostic !== 'string') {
-                    reject('Invalid response from $/alsCheckSyntax request');
+                    reject(new Error('Invalid response from $/alsCheckSyntax request'));
                 }
                 resolve(this.diagnostic ? this.diagnostic : response.diagnostic);
             }

@@ -90,7 +90,7 @@ suite('Dbg Cfgs', function () {
 
     test('GDB path is set in offered config', async () => {
         const firstConfig = (await adaDynamicDebugConfigProvider.provideDebugConfigurations()).at(
-            0
+            0,
         ) as AdaConfig;
 
         assert.notEqual(firstConfig.miDebuggerPath, undefined);
@@ -132,7 +132,7 @@ All of the above - Create all of the above configurations in the launch.json fil
             quickpick
                 .map((e) => `${e.label}${e.description ? ' - ' + e.description : ''}`)
                 .join('\n'),
-            expected.trim()
+            expected.trim(),
         );
 
         const actualConfigs = quickpick

@@ -36,8 +36,6 @@ import {
  */
 import * as meta from '../package.json';
 
-// eslint-disable-next-line max-len
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 export const EXTENSION_NAME: string = meta.displayName;
 
 const ADA_CONTEXT = 'ADA_PROJECT_CONTEXT';
@@ -72,7 +70,7 @@ export const logger: winston.Logger = winston.createLogger({
         // Include a stack trace for logged Error objects
         format.errors({ stack: true }),
         // Perform printf-style %s,%d replacements
-        format.splat()
+        format.splat(),
     ),
 });
 
@@ -149,7 +147,7 @@ async function activateExtension(context: vscode.ExtensionContext) {
 
     // Subscribe to the didChangeConfiguration event
     context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged)
+        vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged),
     );
 
     const alsMiddleware: Middleware = {
@@ -185,9 +183,7 @@ function setUpLogging(context: vscode.ExtensionContext) {
      * used both for logging to the output channel and to the console.
      */
     const printfFormatter = format.printf((info) => {
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         return `${info.timestamp} [${info.label}] ${info.level.toUpperCase()} ${info.message} ${
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             info.stack ?? ''
         }`;
     });
@@ -205,7 +201,7 @@ function setUpLogging(context: vscode.ExtensionContext) {
         new VSCodeOutputChannelTransport(mainOutputChannel, {
             format: printfFormatter,
             level: 'info',
-        })
+        }),
     );
 
     /**
@@ -220,7 +216,7 @@ function setUpLogging(context: vscode.ExtensionContext) {
             if (e.affectsConfiguration('ada.trace.server')) {
                 updateLogLevel();
             }
-        })
+        }),
     );
 
     if (startedInDebugMode()) {
@@ -231,10 +227,10 @@ function setUpLogging(context: vscode.ExtensionContext) {
                 format: format.combine(
                     printfFormatter,
                     // Colorization must be applied after the finalizing printf formatter
-                    format.colorize({ all: true })
+                    format.colorize({ all: true }),
                 ),
                 level: 'debug',
-            })
+            }),
         );
     }
 

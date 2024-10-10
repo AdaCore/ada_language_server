@@ -28,7 +28,7 @@ export async function createHelloWorldProject() {
       for Switches ("Ada") use ("-g", "-O0");
    end Compiler;
 end Hello_World;
-`
+`,
         );
         await createFile(
             mainUri,
@@ -39,7 +39,7 @@ procedure Hello_World is
 begin
     Ada.Text_IO.Put_Line (Msg);
 end Hello_World;
-`
+`,
         );
 
         /**
@@ -56,7 +56,7 @@ end Hello_World;
         await vscode.window.showTextDocument(mainUri, { preserveFocus: true, preview: false });
     } else {
         void vscode.window.showErrorMessage(
-            'You must open a workspace folder before creating the Ada Hello World project'
+            'You must open a workspace folder before creating the Ada Hello World project',
         );
     }
 }
@@ -67,7 +67,7 @@ async function createFile(uri: vscode.Uri, content: string) {
         // First we check that the file doesn't exist.
         await fs.stat(uri);
         const msg = `The file ${vscode.workspace.asRelativePath(
-            uri
+            uri,
         )} already exists. Retry in an empty workspace.`;
         void vscode.window.showErrorMessage(msg);
         throw Error(msg);
@@ -112,7 +112,7 @@ export async function walkthroughStartDebugging() {
              * desired breakpoint.
              */
             await vscode.commands.executeCommand(
-                'workbench.debug.viewlet.action.removeAllBreakpoints'
+                'workbench.debug.viewlet.action.removeAllBreakpoints',
             );
             await vscode.commands.executeCommand('editor.debug.action.toggleBreakpoint');
         }
@@ -120,7 +120,7 @@ export async function walkthroughStartDebugging() {
         await vscode.commands.executeCommand('workbench.action.debug.start');
     } else {
         void vscode.window.showInformationMessage(
-            'You must open a workspace folder before using this command'
+            'You must open a workspace folder before using this command',
         );
     }
 }

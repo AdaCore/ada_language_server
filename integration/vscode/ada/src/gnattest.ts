@@ -106,7 +106,7 @@ let watcher: vscode.FileSystemWatcher;
 export function initializeTesting(context: vscode.ExtensionContext): vscode.TestController {
     controller = vscode.tests.createTestController(
         'gnattest-test-controller',
-        'GNATtest Test Controller'
+        'GNATtest Test Controller',
     );
     context.subscriptions.push(controller);
 
@@ -244,7 +244,7 @@ function addTestedItem(parentTestItem: vscode.TestItem, tested: Tested) {
     const testedSubprogramName = tested['@_name'];
     const pos = new vscode.Position(
         parseInt(tested['@_line']) - 1,
-        parseInt(tested['@_column']) - 1
+        parseInt(tested['@_column']) - 1,
     );
     const range = new vscode.Range(pos, pos);
 
@@ -257,7 +257,7 @@ function addTestedItem(parentTestItem: vscode.TestItem, tested: Tested) {
         const testedItem = controller.createTestItem(
             testItemId,
             `Tests for subprogram ${testedSubprogramName}`,
-            parentTestItem.uri
+            parentTestItem.uri,
         );
         testedItem.range = range;
 
@@ -386,7 +386,7 @@ export function pathIsReadable(p: string): boolean {
         }
         fs.accessSync(p, fs.constants.R_OK);
         return true;
-    } catch (err) {
+    } catch {
         return false;
     }
 }
@@ -402,7 +402,7 @@ export function pathIsReadable(p: string): boolean {
 export async function resolveHandler(
     item: TestItem | undefined,
     recursive = false,
-    token?: CancellationToken
+    token?: CancellationToken,
 ) {
     if (!item) {
         if (!watcher) {
@@ -460,7 +460,7 @@ function configureTestExecution(controller: vscode.TestController) {
     testRunProfile = controller.createRunProfile(
         'GNATtest',
         vscode.TestRunProfileKind.Run,
-        runHandler
+        runHandler,
     );
 }
 
@@ -687,7 +687,7 @@ async function handleRunAll(request: vscode.TestRunRequest, token?: Cancellation
  */
 function getBuildErrorMessage() {
     const md = new vscode.MarkdownString(
-        'Failed to build the test driver, [view output](command:testing.showMostRecentOutput)'
+        'Failed to build the test driver, [view output](command:testing.showMostRecentOutput)',
     );
     md.isTrusted = true;
     return md;
@@ -730,7 +730,7 @@ export function determineTestOutcome(
     test: vscode.TestItem,
     driverOutput: string,
     run: vscode.TestRun,
-    duration?: number
+    duration?: number,
 ) {
     const escapedTestId = escapeRegExp(test.id);
     const passRE = new RegExp(`^${escapedTestId}(:\\d*)?: info: corresponding test PASSED$`, 'gm');
@@ -746,9 +746,9 @@ export function determineTestOutcome(
             new vscode.TestMessage(
                 `Could not determine the outcome of the test from the ` +
                     `test driver output. Check the output of the test ` +
-                    `run for the test id: ${test.id}`
+                    `run for the test id: ${test.id}`,
             ),
-            duration
+            duration,
         );
     } else if (passMatches.length > 0 && failureMatches.length == 0) {
         if (passMatches.length == 1) {
@@ -759,10 +759,10 @@ export function determineTestOutcome(
                 [
                     new vscode.TestMessage(
                         'Detected multiple pass messages for this test, ' +
-                            'this could indicate an error in the test run.'
+                            'this could indicate an error in the test run.',
                     ),
                 ].concat(passMatches.map((m) => new vscode.TestMessage(m[0]))),
-                duration
+                duration,
             );
         }
     } else if (passMatches.length == 0 && failureMatches.length > 0) {
@@ -774,10 +774,10 @@ export function determineTestOutcome(
                 [
                     new vscode.TestMessage(
                         'Detected multiple error messages for this test, ' +
-                            'this could indicate an error in the test run.'
+                            'this could indicate an error in the test run.',
                     ),
                 ].concat(failureMatches.map((m) => new vscode.TestMessage(m[0]))),
-                duration
+                duration,
             );
         }
     } else if (passMatches.length > 0 && failureMatches.length > 0) {
@@ -786,12 +786,12 @@ export function determineTestOutcome(
             [
                 new vscode.TestMessage(
                     'Detected both pass and fail messages for this test, ' +
-                        'this probably indicates an error in the test run.'
+                        'this probably indicates an error in the test run.',
                 ),
             ]
                 .concat(passMatches.map((m) => new vscode.TestMessage(m[0])))
                 .concat(failureMatches.map((m) => new vscode.TestMessage(m[0]))),
-            duration
+            duration,
         );
     }
 }
@@ -804,7 +804,7 @@ export function determineTestOutcome(
  */
 export function collectLeafsFromCollection(
     items: vscode.TestItemCollection,
-    token?: CancellationToken
+    token?: CancellationToken,
 ): vscode.TestItem[] {
     const res: vscode.TestItem[] = [];
     items.forEach((i) => {
