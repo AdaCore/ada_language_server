@@ -7,11 +7,13 @@ import argparse
 import json
 import threading
 import queue
+import os
 import time
 import sys
 
-from lsp_ada_requests import initialize
-from lsp_types import LSPMessage, LSPResponse
+from drivers.lsp_ada_requests import initialize, initialized, didChangeConfiguration
+from drivers.lsp_types import LSPMessage, LSPResponse
+import traceback
 
 # This is a class that allows writing tests in a "test.py" file.
 # When the execution is complete, a file "/tmp/replay.txt" is written that
@@ -45,7 +47,9 @@ from lsp_types import LSPMessage, LSPResponse
 
 class LSP(object):
 
-    def __init__(self, cl: list = ["ada_language_server"]):
+    def __init__(
+        self, cl: str | list[str] = "ada_language_server", working_dir: str = "."
+    ):
         """Launch an LSP server and provide a way to send messages to it.
         cl is the command line to launch the LSP server.
         """
@@ -57,6 +61,7 @@ class LSP(object):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            cwd=working_dir,
         )
 
         # Launch a task that will receive messages from the LSP server
@@ -67,15 +72,11 @@ class LSP(object):
         # The queue receiving the messages from the reading task
         self.queue = queue.Queue()
 
+        # Error messages encountered
+        self.errors = []
+
         # A list of bytes containing everything we sent to the server
         self.replay = []
-
-        # Set a global trap - in case of exception, shut down the server
-        def shutdown_on_exception(exctype, value, tb):
-            self.shutdown()
-            sys.__excepthook__(exctype, value, tb)
-
-        sys.excepthook = shutdown_on_exception
 
     def receive_task(self):
         """Receive messages from the LSP server."""
@@ -133,6 +134,10 @@ class LSP(object):
                 }
             )
 
+    def error(self, message):
+        """Log an error message."""
+        self.errors.append(message)
+
     def debug_here(self):
         """Insert a debug point in the test."""
         print("## Debug point reached. Attach with:", file=sys.stderr)
@@ -151,6 +156,33 @@ class LSP(object):
         with open("/tmp/replay.txt", "wb") as f:
             for message in self.replay:
                 f.write(message)
+
+
+def run_simple_test(test_function, working_dir) -> list[str]:
+    """Run a test function, catch exceptions and return any errors found."""
+    try:
+        program = os.environ.get("ALS", "ada_language_server")
+        lsp = LSP(program, working_dir)
+        response = lsp.send(initialize())
+        lsp.send(initialized())
+        lsp.send(didChangeConfiguration())
+        test_function(lsp, working_dir)
+        lsp.shutdown()
+        return lsp.errors
+    except Exception as e:
+        lsp.shutdown()
+        errors = [str(e)]
+        errors.append(traceback.format_exc())
+        return lsp.errors + errors
+
+
+# Make run_simple_test available as a decorator
+def simple_test(test_function):
+    def wrapper(working_dir):
+        return run_simple_test(test_function, working_dir)
+
+    wrapper.simple_test = True
+    return wrapper
 
 
 def main():

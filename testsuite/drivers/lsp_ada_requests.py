@@ -2,7 +2,7 @@
    LSP requests for testing purposes for the Ada language server in Ada mode.
 """
 
-from lsp_types import LSPMessage, URI
+from drivers.lsp_types import LSPMessage, URI
 
 # TODO: use a library such as pytest-lsp to support most requests
 
