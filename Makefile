@@ -166,9 +166,15 @@ endif
 	@echo Now run:
 	@echo code --extensionDevelopmentPath=`pwd`/integration/vscode/ada/ `pwd`
 
+ifeq ($(COVERAGE),)
+  NPM_TEST_ARGS?=
+else
+  NPM_TEST_ARGS?=-- --coverage --coverage-reporter text-summary --coverage-reporter html --coverage-reporter cobertura --label 0
+endif
+
 vscode-test:
 	# Run the VS Code integration testsuite.
-	cd integration/vscode/ada; MOCHA_ALS_UPDATE=$(MOCHA_ALS_UPDATE) LD_LIBRARY_PATH= npm run test
+	cd integration/vscode/ada; MOCHA_ALS_UPDATE=$(MOCHA_ALS_UPDATE) LD_LIBRARY_PATH= npm run test $(NPM_TEST_ARGS)
 
 vscode-package:
 	cd integration/vscode/ada; LD_LIBRARY_PATH= $(VSCE) package

@@ -32,6 +32,12 @@ class ALSTestsuite(Testsuite):
             " that contains all SID files.",
         )
         parser.add_argument(
+            "--gnatcov-source-root",
+            help="If provided, this will be used as the --source-root gnatcov"
+            " CLI argument for producing a Cobertura report with"
+            " relative source paths.",
+        )
+        parser.add_argument(
             "--valgrind_memcheck",
             action="store_true",
             help="Runs the Ada Language Server under valgrind, in memory"
