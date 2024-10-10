@@ -15,7 +15,14 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with LSP.GNATCOLL_Tracers;
 package body LSP.Ada_Handlers.Project_Diagnostics is
+
+   Tracer : constant LSP.GNATCOLL_Tracers.Tracer :=
+      LSP.GNATCOLL_Tracers.Create ("ALS.PROJECT.DIAGNOSTICS");
+   --  We do not activate this trace by default because it is too noisy to
+   --  repeat the information every time diagnostics are published for every
+   --  file.
 
    --------------------
    -- Get_Diagnostic --
@@ -29,7 +36,8 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
       if Self.Handler.Configuration.Project_Diagnostics_Enabled then
          Self.Last_Status := Self.Handler.Project_Status;
 
-         Self.Handler.Tracer.Trace ("Diag: " & Self.Last_Status'Image);
+         Tracer.Trace ("Project loading status: " & Self.Last_Status'Image);
+
          --  If we have a valid project return immediately: we want to display
          --  diagnostics only if there is an issue to solve or a potential
          --  enhancement.

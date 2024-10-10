@@ -12,13 +12,13 @@ from drivers.shell import ShellTestDriver
 from e3.testsuite import Testsuite
 
 VALGRIND_OPTIONS = [
-        "--quiet",                   # only print errors
-        "--tool=memcheck",           # the standard tool
-        "--leak-check=full",         # report memory leaks
-        # "--num-callers=100",       # more frames in call stacks
-        # "--gen-suppressions=all",  # use this to generate suppression entries
-        "--suppressions={base}/testsuite/leaks.supp",  # the suppressions file
-        ]
+    "--quiet",  # only print errors
+    "--tool=memcheck",  # the standard tool
+    "--leak-check=full",  # report memory leaks
+    # "--num-callers=100",       # more frames in call stacks
+    # "--gen-suppressions=all",  # use this to generate suppression entries
+    "--suppressions={base}/testsuite/leaks.supp",  # the suppressions file
+]
 
 
 class ALSTestsuite(Testsuite):
@@ -27,13 +27,16 @@ class ALSTestsuite(Testsuite):
         parser.add_argument(
             "--gnatcov",
             help="If provided, compute the source code coverage of testcases"
-                 " on ALS. This requires GNATcoverage working with"
-                 " instrumentation. The argument passed must be a directory"
-                 " that contains all SID files.")
+            " on ALS. This requires GNATcoverage working with"
+            " instrumentation. The argument passed must be a directory"
+            " that contains all SID files.",
+        )
         parser.add_argument(
-            "--valgrind_memcheck", action="store_true",
+            "--valgrind_memcheck",
+            action="store_true",
             help="Runs the Ada Language Server under valgrind, in memory"
-                 " check mode. This requires valgrind on the PATH.")
+            " check mode. This requires valgrind on the PATH.",
+        )
         parser.add_argument(
             "--format",
             help="""[diff | recent | verbose | min_diff]
@@ -41,7 +44,19 @@ diff: on the fly computed diff using a pseudo json format (default)
 recent: recent output from server
 verbose: full output from server
 min_diff: on the fly computed diff of the different values
-""")
+""",
+        )
+        parser.add_argument(
+            "--debug",
+            action="store_true",
+            help="Start a test in debug mode where it waits until <Enter> is typed on"
+            " the console before proceeding. This leaves time to attach a debugger to"
+            " the ada_language_server process. The test runner prints the PID of the"
+            " process on stdout but this is masked by the testsuite. So the PID must be"
+            " obtained in a different way. In VS Code, a list of processes is offered"
+            " and you can select the ada_language_server process that is under the"
+            " .obj/ directory.",
+        )
 
     def lookup_program(self, *args):
         """
@@ -50,11 +65,11 @@ min_diff: on the fly computed diff of the different values
         `find_executable` for its base name.
         """
         # If the given location points to an existing file, return it
-        path = os.path.join(self.env.repo_base, '.obj', *args)
+        path = os.path.join(self.env.repo_base, ".obj", *args)
         if os.path.isfile(path):
             return path
-        elif os.path.isfile(path + '.exe'):
-            return path + '.exe'
+        elif os.path.isfile(path + ".exe"):
+            return path + ".exe"
 
         # Otherwise, look for the requested program name in the PATH.
         #
@@ -62,42 +77,41 @@ min_diff: on the fly computed diff of the different values
         # ".exe" suffix for the tester-run program to be able to spawn ALS.
         result = find_executable(os.path.basename(path))
         if result is None:
-            raise RuntimeError('Could not find executable for {}'
-                               .format(os.path.basename(path)))
-        return (result[:-len('.exe')]
-                if result.endswith('.exe') else
-                result)
+            raise RuntimeError(
+                "Could not find executable for {}".format(os.path.basename(path))
+            )
+        return result[: -len(".exe")] if result.endswith(".exe") else result
 
     def set_up(self):
         # Root directory for the "ada_language_server" repository
-        self.env.repo_base = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), '..'))
+        self.env.repo_base = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..")
+        )
 
         self.env.wait_factor = 1
 
         # Absolute paths to programs that test drivers can use
         if self.env.options.valgrind_memcheck:
-            self.env.als = os.path.join(self.env.repo_base, 'testsuite',
-                                        'valgrind_wrapper.sh')
+            self.env.als = os.path.join(
+                self.env.repo_base, "testsuite", "valgrind_wrapper.sh"
+            )
             self.env.wait_factor = 40  # valgrind is slow
         else:
-            self.env.als = self.lookup_program('server', 'ada_language_server')
+            self.env.als = self.lookup_program("server", "ada_language_server")
 
-        self.env.als_home = os.path.join(self.env.repo_base, 'testsuite')
-        self.env.tester_run = self.lookup_program('tester', 'tester-run')
+        self.env.als_home = os.path.join(self.env.repo_base, "testsuite")
+        self.env.tester_run = self.lookup_program("tester", "tester-run")
 
         # If code coverage is requested, initialize our helper and build
         # instrumented programs.
-        self.env.gnatcov = (GNATcov(self)
-                            if self.env.options.gnatcov else
-                            None)
+        self.env.gnatcov = GNATcov(self) if self.env.options.gnatcov else None
 
         self.start_time = datetime.datetime.now()
 
     def tear_down(self):
         self.stop_time = datetime.datetime.now()
         elapsed = self.stop_time - self.start_time
-        logging.info('Elapsed time: {}'.format(elapsed))
+        logging.info("Elapsed time: {}".format(elapsed))
 
         if self.env.gnatcov:
             self.env.gnatcov.report()
@@ -106,12 +120,11 @@ min_diff: on the fly computed diff of the different values
 
     @property
     def test_driver_map(self):
-        return {'ada_lsp': JsonTestDriver,
-                'shell': ShellTestDriver}
+        return {"ada_lsp": JsonTestDriver, "shell": ShellTestDriver}
 
     @property
     def default_driver(self):
-        return 'ada_lsp'
+        return "ada_lsp"
 
 
 if __name__ == "__main__":
