@@ -51,7 +51,7 @@ class JsonTestDriver(ALSTestDriver):
                     errors = obj(wd)
 
             if len(errors) > 0:
-                self.result.out = "\n".join(errors)
+                self.result.log = "\n".join(errors)
                 status = TestStatus.FAIL
 
             self.result.set_status(status)
