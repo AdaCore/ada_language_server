@@ -64,6 +64,8 @@ import traceback
 #        # and the initialize/initialized/didChangeConfiguration requests
 #        # have been sent by the framework.
 
+RLIMIT_SECONDS = 10.0
+
 
 class LSP(object):
 
@@ -90,6 +92,10 @@ class LSP(object):
             env=env,
         )
 
+        # Kill the server when we reach this time
+        self.kill_me_at = time.time() + RLIMIT_SECONDS * (
+            1 + os.environ.get("ALS_WAIT_FACTOR", 0))
+
         # This contains either None or a timestamp. If a timestamp,
         # then the process should be killed after 2 seconds after this.
         self.license_to_kill = None
@@ -102,11 +108,32 @@ class LSP(object):
         self.task = threading.Thread(target=self.receive_task)
         self.task.start()
 
+        self.k_task = threading.Thread(target=self.kill_task)
+        self.k_task.start()
+
         # Error messages encountered
         self.errors = []
 
         # A list of bytes containing everything we sent to the server
         self.replay = []
+
+    def kill_task(self):
+        while True:
+            time.sleep(0.2)
+            now = time.time()
+
+            # If we have reached the time limit, kill the process
+            if now > self.kill_me_at:
+                self.errors.append("rlimit time limit reached")
+                self.process.kill()
+                break
+
+            # If we have received a license to kill, check if it is time
+            # to kill the process!
+            if self.license_to_kill is not None:
+                if now - self.license_to_kill > 2.0:
+                    self.process.kill()
+                    break
 
     def receive_task(self):
         """Receive messages from the LSP server."""
@@ -133,12 +160,7 @@ class LSP(object):
             if self.process.poll() is not None:
                 break
 
-            # If we have received a license to kill, check if it is time
-            # to kill the process!
-            if self.license_to_kill is not None:
-                if time.time() - self.license_to_kill > 2.0:
-                    self.process.kill()
-                    break
+            time.sleep(0.01)
 
     def send(
         self, message: LSPMessage, expect_response=True, timeout: float = 2.0
@@ -191,7 +213,6 @@ class LSP(object):
         self.process.stdin.close()
         # Set the license to kill
         self.license_to_kill = time.time()
-        self.process.wait()
 
         # Write a "replay.txt" replay file
         with open("/tmp/replay.txt", "wb") as f:
@@ -229,7 +250,7 @@ def run_simple_test(test_function, working_dir) -> list[str]:
         lsp.shutdown()
         errors = [str(e)]
         # If the exception is an AssertionError, no need for the traceback
-        if not isinstance(e, AssertionError):
+        if not isinstance(e, ResponseAssertionError):
             errors.append(traceback.format_exc())
         return lsp.errors + errors
 
