@@ -12,5 +12,14 @@ class ShellTestDriver(ALSTestDriver):
         # This takes care of failing the test in case the return code is
         # non-zero
         check_call(
-            self, [self.working_dir("test.sh"), self.env.repo_base], parse_shebang=True
+            self,
+            [self.working_dir("test.sh"), self.env.repo_base],
+            parse_shebang=True,
+            env={
+                "ALS": self.env.als,
+                "ALS_HOME": self.env.als_home,
+            },
+            # The following makes the child process inherit the parent process's
+            # environment, in addition to the above environment.
+            ignore_environ=False,
         )
