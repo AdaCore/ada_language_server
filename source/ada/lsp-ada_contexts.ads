@@ -285,6 +285,15 @@ package LSP.Ada_Contexts is
    --  itself, then the attribute is looked up in the project extended by
    --  Project (if any).
 
+   function Project_Attribute_Value
+     (View         : GPR2.Project.View.Object;
+      Attribute    : GPR2.Q_Attribute_Id;
+      Index        : String := "";
+      Default      : String := "";
+      Use_Extended : Boolean := False) return String;
+   --  Same as above, but computing the value from the given view instead
+   --  of the context's root project.
+
 private
 
    type Context (Tracer : not null LSP.Tracers.Tracer_Access) is tagged limited

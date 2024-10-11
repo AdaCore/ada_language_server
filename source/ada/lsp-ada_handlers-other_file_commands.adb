@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.Utils;
 with GPR2;                 use GPR2;
 with GPR2.Build.Source;
 with GPR2.Build.Unit_Info;
@@ -190,15 +191,54 @@ package body LSP.Ada_Handlers.Other_File_Commands is
          Unit       : constant GPR2.Build.Compilation_Unit.Object := Unit_For_File;
          Other_File : Virtual_File;
       begin
-         if not Unit.Is_Defined then
-            Success := False;
-            Error_Msg :=
-              VSS.Strings.Conversions.To_Virtual_String
-                ("Could not find other file for '"
-                 & File.Display_Base_Name
-                 & "': this file is not visible from the current project.");
+         Success := True;
 
-            return No_File;
+         --  The unit is defined for the loaded project: fallback to a simple
+         --  heuristic which tries to deduce the other file from the queried
+         --  file, switching the specification/implementation extensions at
+         --  the end of the filename.
+         --  If the computed other file's URI does not exist, the client will
+         --  simply not open it, which is ok.
+
+         if not Unit.Is_Defined then
+            declare
+               Impl_Suffix_Attr_Id   : constant GPR2.Q_Optional_Attribute_Id :=
+                 ((Pack => GPR2."+" ("Naming"),
+                   Attr => GPR2."+" ("Implementation_Suffix")));
+               Spec_Suffix_Attr_Id   : constant GPR2.Q_Optional_Attribute_Id :=
+                 ((Pack => GPR2."+" ("Naming"),
+                   Attr => GPR2."+" ("Specification_Suffix")));
+               Spec_Ext              : constant String :=
+                 LSP.Ada_Contexts.Project_Attribute_Value
+                   (View         => Handler.Project_Tree.Root_Project,
+                    Attribute    => Spec_Suffix_Attr_Id,
+                    Index        => "ada",
+                    Default      => ".ads",
+                    Use_Extended => True);
+               Impl_Ext              : constant String :=
+                 LSP.Ada_Contexts.Project_Attribute_Value
+                   (View         => Handler.Project_Tree.Root_Project,
+                    Attribute    => Impl_Suffix_Attr_Id,
+                    Index        => "ada",
+                    Default      => ".adb",
+                    Use_Extended => True);
+            begin
+               if GNATCOLL.Utils.Ends_With
+                 (File.Display_Full_Name, Impl_Ext)
+               then
+                  return GNATCOLL.VFS.Create
+                    (Full_Filename => +GNATCOLL.Utils.Replace
+                       (S           => File.Display_Full_Name,
+                        Pattern     => Impl_Ext,
+                        Replacement => Spec_Ext));
+               else
+                  return GNATCOLL.VFS.Create
+                    (Full_Filename => +GNATCOLL.Utils.Replace
+                       (S           => File.Display_Full_Name,
+                        Pattern     => Spec_Ext,
+                        Replacement => Impl_Ext));
+               end if;
+            end;
          else
             Other_File := Other_File_From_Unit (Unit => Unit);
 
@@ -209,8 +249,6 @@ package body LSP.Ada_Handlers.Other_File_Commands is
                    ("Could not find other file for '"
                     & File.Display_Base_Name
                     & "': the unit has no other part.");
-            else
-               Success := True;
             end if;
 
             return Other_File;
@@ -219,13 +257,15 @@ package body LSP.Ada_Handlers.Other_File_Commands is
 
       Success    : Boolean;
       Error_Msg  : VSS.Strings.Virtual_String;
-      Other_File : constant Virtual_File := Get_Other_File (Success, Error_Msg);
+      Other_File : constant Virtual_File :=
+        Get_Other_File (Success, Error_Msg);
    begin
       if not Success then
          Error :=
            (Is_Set => True,
             Value  =>
-              (code => LSP.Enumerations.InternalError, message => Error_Msg));
+              (code    => LSP.Enumerations.InternalError,
+               message => Error_Msg));
          return;
       end if;
 
