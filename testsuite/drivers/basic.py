@@ -29,8 +29,6 @@ class JsonTestDriver(ALSTestDriver):
         # The working directory
         wd = self.test_env["working_dir"]
 
-        output = ""
-
         status = TestStatus.PASS
 
         # If there is a "test.py", evaluate it

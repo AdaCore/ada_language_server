@@ -9,6 +9,11 @@ import traceback
 current_id = 0
 
 
+class ResponseAssertionError(Exception):
+    """An exception that we manage - to avoid printing long traceback."""
+    pass
+
+
 class LSPMessage(object):
     """Represents a message to be sent to an LSP server."""
 
@@ -72,12 +77,12 @@ class LSPResponse(object):
         value = self.from_dict
         for f in fields:
             if f not in value:
-                raise AssertionError(
+                raise ResponseAssertionError(
                     self._line_info() + f"Field {field} not found"
                 )
             value = value.get(f)
         if value != expected:
-            raise AssertionError(
+            raise ResponseAssertionError(
                 self._line_info() + f"{field} is #{value}#, expected #{expected}#"
             )
 
@@ -104,7 +109,7 @@ class LSPResponse(object):
             return True
 
         if not contains(self.from_dict, expected_dict):
-            raise AssertionError(f"Response does not contain {expected_dict}")
+            raise ResponseAssertionError(f"Response does not contain {expected_dict}")
 
     def _line_info(self) -> str:
         """Return the line number and file name of the caller of the parent."""
@@ -149,7 +154,7 @@ class LSPResponse(object):
             message += "Received locations:\n"
             for loc in locations:
                 message += f"   {loc[0]}:{loc[1]}\n"
-            raise AssertionError(message)
+            raise ResponseAssertionError(message)
 
 
 def URI(filename: str) -> str:

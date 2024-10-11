@@ -7,7 +7,6 @@ from drivers.lsp_ada_requests import (
     initialized,
     didChangeConfiguration,
 )
-from drivers.lsp_types import LSPMessage, URI
 import os
 
 
