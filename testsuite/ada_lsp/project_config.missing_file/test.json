@@ -77,26 +77,10 @@
                            "start": { "line": 0, "character": 0 },
                            "end": { "line": 0, "character": 0 }
                         },
-                        "severity": 1,
+                        "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
+                        "message": "The project file was loaded but contains warnings.",
                         "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "$URI{prj1.gpr}",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "The project file was loaded but contains Warnings."
-                           },
                            {
                               "location": {
                                  "uri": "$URI{prj1.gpr}",

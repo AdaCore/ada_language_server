@@ -61,25 +61,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                           }
-                        ]
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
                      }
                   ]
                }
@@ -134,25 +116,7 @@
                         },
                         "severity": 1,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "$URI{no_project.gpr}",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "The configured project $URI{no_project.gpr} does not exist."
-                           }                     
-                        ]
+                        "message": "The configured project $URI{no_project.gpr} does not exist."
                      }
                   ]
                }

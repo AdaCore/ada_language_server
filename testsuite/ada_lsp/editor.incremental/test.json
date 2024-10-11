@@ -418,24 +418,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message":  "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                     }  ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -484,24 +467,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message":  "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      }  ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -563,24 +529,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message":  "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      }  ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -629,24 +578,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message":  "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      }  ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -721,24 +653,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message":  "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      }  ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -787,24 +702,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message":  "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      } ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -879,24 +777,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      }   ]}
+                        "message":  "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -945,24 +826,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      }  ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -1037,24 +901,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      }   ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -1103,24 +950,7 @@
                         },
                         "severity": 2,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."
-                      }   ]}
+                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
                   ]
                },
                "method": "textDocument/publishDiagnostics"
