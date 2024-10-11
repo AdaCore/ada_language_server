@@ -48,11 +48,11 @@ export type ChangeParametersTypeCommandArgs = {
  */
 export const alsChangeParametersTypeCommandExecutor = async (
     client: LanguageClient,
-    args: ChangeParametersTypeCommandArgs
+    args: ChangeParametersTypeCommandArgs,
 ): Promise<boolean> => {
     // If the server command attributes changed, some of args fields might be undefined
     if (args.newParametersType === undefined || args.syntaxRules === undefined) {
-        return Promise.reject('Invalid als-refactor-change_parameters_type');
+        return Promise.reject(new Error('Invalid als-refactor-change_parameters_type'));
     }
 
     const prompt = 'Insert the new parameter type';

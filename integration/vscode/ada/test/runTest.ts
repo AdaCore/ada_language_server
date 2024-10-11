@@ -19,14 +19,14 @@ async function main() {
         //  Passed to --extensionTestsPath
         const extensionTestsPath = path.resolve(
             extensionDevelopmentPath,
-            `out/test/suite/${testsuite}`
+            `out/test/suite/${testsuite}`,
         );
 
         // The workspace that will be opened in VSCode
         // Passed as an argument
         const testWorkspace = path.resolve(
             extensionDevelopmentPath,
-            `test/workspaces/${testsuite}`
+            `test/workspaces/${testsuite}`,
         );
 
         await new Promise<void>((resolve) => {

@@ -976,8 +976,8 @@ function runTaskSequence(
 
                     writeEmitter.fire(`Executing task: ${getConventionalTaskLabel(t)}\r\n`);
                     vscode.tasks.executeTask(t).then(undefined, (reason) => {
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                         writeEmitter.fire(`Could not execute task: ${reason}\r\n`);
+                        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
                         reject(reason);
                     });
                 });

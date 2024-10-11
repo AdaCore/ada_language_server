@@ -9,7 +9,7 @@ export function createClient(
     id: string,
     name: string,
     extra: string[],
-    pattern: string
+    pattern: string,
 ) {
     let serverExecPath: string;
 
@@ -21,12 +21,12 @@ export function createClient(
             logErrorAndThrow(
                 `The Ada language server given in the ALS environment ` +
                     `variable does not exist: ${serverExecPath}`,
-                logger
+                logger,
             );
         }
     } else {
         serverExecPath = context.asAbsolutePath(
-            `${process.arch}/${process.platform}/ada_language_server`
+            `${process.arch}/${process.platform}/ada_language_server`,
         );
 
         if (process.arch == 'arm64' && process.platform == 'darwin') {
@@ -35,7 +35,7 @@ export function createClient(
             if (!existsSync(serverExecPath)) {
                 // The arm64 executable doesn't exist. Try x86.
                 const alternateExecPath = context.asAbsolutePath(
-                    `x64/${process.platform}/ada_language_server`
+                    `x64/${process.platform}/ada_language_server`,
                 );
                 if (existsSync(alternateExecPath)) {
                     // The x86 executable exists, use that instead.
@@ -53,7 +53,7 @@ export function createClient(
                     `language server for your architecture (${process.arch}) ` +
                     `and platform (${process.platform}) ` +
                     `at the expected location: ${serverExecPath}`,
-                logger
+                logger,
             );
         }
     }

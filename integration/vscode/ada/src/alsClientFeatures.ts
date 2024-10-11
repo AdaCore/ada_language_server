@@ -38,10 +38,8 @@ export class ALSClientFeatures implements StaticFeature {
      */
     fillInitializeParams?: ((params: InitializeParams) => void) | undefined = (
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _params: InitializeParams
-    ) => {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-    };
+        _params: InitializeParams,
+    ) => {};
 
     /**
      * Extend capabilities.experimental with an userInputProvider boolean that determines
@@ -73,10 +71,8 @@ export class ALSClientFeatures implements StaticFeature {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
         _capabilities: ServerCapabilities<any>,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        _documentSelector: DocumentSelector | undefined
-    ): void {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-    }
+        _documentSelector: DocumentSelector | undefined,
+    ): void {}
 
     /**
      * Returns the state the feature is in.
@@ -88,16 +84,12 @@ export class ALSClientFeatures implements StaticFeature {
     /**
      * Unused since there are no necessary actions when disposing an object of this class
      */
-    dispose(): void {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-    }
+    dispose(): void {}
 
     /**
      * Called when the client is stopped or re-started to clear this feature.
      * Usually a feature un-registers listeners registered hooked up with the
      * VS Code extension host.
      */
-    clear(): void {
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-    }
+    clear(): void {}
 }

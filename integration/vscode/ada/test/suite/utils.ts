@@ -159,13 +159,14 @@ export async function runTaskAndGetResult(task: vscode.Task): Promise<number | u
             let msg = 'The current list of tasks is:\n';
             msg += await vscode.tasks.fetchTasks({ type: task.definition.type }).then(
                 (list) => list.map(getConventionalTaskLabel).join('\n'),
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+
                 (reason) => `fetchTasks promise was rejected: ${reason}`,
             );
 
             reason.message += '\n' + msg;
         }
 
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
         return Promise.reject(reason);
     });
 }
@@ -230,12 +231,10 @@ export async function testTask(
                 const cp = spawnSync(cmdLine[0], cmdLine.slice(1), { cwd: cwd, env: env });
 
                 if (cp.status != null) {
-                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     msg += `\nProcess ended with exit code ${cp.status} and output:\n`;
                     // msg += cp.stdout.toString() + cp.stderr.toString();
                     msg += cp.output?.map((b) => (b != null ? b.toString() : '')).join('');
                 } else if (cp.signal != null) {
-                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     msg += `\nProcess ended with signal: ${cp.signal}`;
                 } else if (cp.error != undefined) {
                     throw cp.error;

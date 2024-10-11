@@ -62,34 +62,34 @@ export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.createHelloWorldProject', createHelloWorldProject)
+        vscode.commands.registerCommand('ada.createHelloWorldProject', createHelloWorldProject),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.walkthroughStartDebugging', walkthroughStartDebugging)
+        vscode.commands.registerCommand('ada.walkthroughStartDebugging', walkthroughStartDebugging),
     );
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.subprogramBox', addSubprogramBoxCommand)
+        vscode.commands.registerCommand('ada.subprogramBox', addSubprogramBoxCommand),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.showExtensionOutput', () => mainOutputChannel.show())
+        vscode.commands.registerCommand('ada.showExtensionOutput', () => mainOutputChannel.show()),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.showAdaLSOutput', () =>
-            clients.adaClient.outputChannel.show()
-        )
+            clients.adaClient.outputChannel.show(),
+        ),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.showGprLSOutput', () =>
-            clients.gprClient.outputChannel.show()
-        )
+            clients.gprClient.outputChannel.show(),
+        ),
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.buildAndRunMainLast', buildAndRunMainLast)
+        vscode.commands.registerCommand('ada.buildAndRunMainLast', buildAndRunMainLast),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.buildAndRunMainAsk', buildAndRunMainAsk)
+        vscode.commands.registerCommand('ada.buildAndRunMainAsk', buildAndRunMainAsk),
     );
 
     // This is a hidden command that gets called in the default debug
@@ -100,21 +100,20 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand('ada.getOrAskForProgram', async () => {
             const p = await getOrAskForProgram();
             return p?.execRelPath();
-        })
+        }),
     );
 
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'ada.addMissingDirsToWorkspace',
             async (
-                // eslint-disable-next-line @typescript-eslint/no-inferrable-types
                 atStartup: boolean = false,
-                // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-                displayYesNoPopup: boolean = true
+
+                displayYesNoPopup: boolean = true,
             ) => {
                 await checkSrcDirectories(atStartup, displayYesNoPopup);
-            }
-        )
+            },
+        ),
     );
 
     /**
@@ -122,26 +121,26 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
      * exposed through the command palette but are called from CodeLenses.
      */
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_BUILD_AND_RUN_MAIN, buildAndRunSpecifiedMain)
+        vscode.commands.registerCommand(CMD_BUILD_AND_RUN_MAIN, buildAndRunSpecifiedMain),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_BUILD_AND_DEBUG_MAIN, buildAndDebugSpecifiedMain)
+        vscode.commands.registerCommand(CMD_BUILD_AND_DEBUG_MAIN, buildAndDebugSpecifiedMain),
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, gprProjectArgs)
+        vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, gprProjectArgs),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_GET_PROJECT_FILE, getProjectFromConfigOrALS)
+        vscode.commands.registerCommand(CMD_GET_PROJECT_FILE, getProjectFromConfigOrALS),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_SPARK_LIMIT_SUBP_ARG, sparkLimitSubpArg)
+        vscode.commands.registerCommand(CMD_SPARK_LIMIT_SUBP_ARG, sparkLimitSubpArg),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_SPARK_LIMIT_REGION_ARG, sparkLimitRegionArg)
+        vscode.commands.registerCommand(CMD_SPARK_LIMIT_REGION_ARG, sparkLimitRegionArg),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram)
+        vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram),
     );
 
     registerTaskWrappers(context);
@@ -170,8 +169,8 @@ function registerTaskWrappers(context: vscode.ExtensionContext) {
         const taskId = sparkTaskWrappers[cmdId];
         context.subscriptions.push(
             commands.registerCommand(cmdId, () =>
-                commands.executeCommand('workbench.action.tasks.runTask', taskId)
-            )
+                commands.executeCommand('workbench.action.tasks.runTask', taskId),
+            ),
         );
     }
 }
@@ -383,7 +382,7 @@ async function buildAndRunMainAsk() {
                         }
                         resolve(undefined);
                         qp.hide();
-                    })
+                    }),
                 );
 
                 // Show the quick picker
@@ -406,7 +405,7 @@ async function buildAndRunMainAsk() {
         }
     } else {
         void vscode.window.showWarningMessage(
-            `There are no Mains defined in the workspace project ${await getProjectFileRelPath()}`
+            `There are no Mains defined in the workspace project ${await getProjectFileRelPath()}`,
         );
         return undefined;
     }
@@ -460,7 +459,7 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
             ExecuteCommandRequest.type,
             {
                 command: 'als-source-dirs',
-            }
+            },
         )) as ALSSourceDirDescription[];
 
         const isSubdirectory = (dir: string, parent: string) => {
@@ -488,7 +487,7 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
                 !workspaceFolders.some(
                     (workspaceFolder) =>
                         workspaceFolder.uri.path == sourceDirPath ||
-                        isSubdirectory(sourceDirPath, workspaceFolder.uri.path)
+                        isSubdirectory(sourceDirPath, workspaceFolder.uri.path),
                 )
             ) {
                 workspaceDirsToAdd.push({
@@ -515,7 +514,7 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
                     .showInformationMessage(
                         'Some project source directories are not \
                     listed in your workspace: do you want to add them?',
-                        ...buttons
+                        ...buttons,
                     )
                     .then((answer) => {
                         if (answer !== 'Yes') {
@@ -524,7 +523,7 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
                             if (answer === "Don't Show Again") {
                                 void adaExtState.context.workspaceState.update(
                                     doNotShowAgainKey,
-                                    true
+                                    true,
                                 );
                             }
                         }
@@ -537,13 +536,13 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
                         ? vscode.workspace.workspaceFolders.length
                         : 0,
                     null,
-                    ...workspaceDirsToAdd
+                    ...workspaceDirsToAdd,
                 );
             }
         } else if (!atStartup) {
             void vscode.window.showInformationMessage(
                 "All the project's source directories are already \
-                available in the current workspace."
+                available in the current workspace.",
             );
         }
     }
@@ -567,14 +566,14 @@ async function buildAndRunSpecifiedMain(main: vscode.Uri): Promise<void> {
             void vscode.window.showErrorMessage(
                 `Could not find the 'Build and Run' task for the project main ` +
                     `${adaMain.mainRelPath()}`,
-                { modal: true }
+                { modal: true },
             );
         }
     } else {
         void vscode.window.showErrorMessage(
             `The document ${vscode.workspace.asRelativePath(main)} does not match ` +
                 `any of the Mains of the project ${await getProjectFileRelPath()}`,
-            { modal: true }
+            { modal: true },
         );
     }
 }
@@ -621,7 +620,7 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
             const dynamicConfigs =
                 await adaExtState.dynamicDebugConfigProvider.provideDebugConfigurations();
             logger.debug(
-                `Dynamic debug configurations:\n${JSON.stringify(dynamicConfigs, null, 2)}`
+                `Dynamic debug configurations:\n${JSON.stringify(dynamicConfigs, null, 2)}`,
             );
             matchingConfig = dynamicConfigs.find((cfg) => isMatchingConfig(cfg, configToMatch));
         }
@@ -631,7 +630,7 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
             const success = await vscode.debug.startDebugging(wsFolder, matchingConfig);
             if (!success) {
                 void vscode.window.showErrorMessage(
-                    `Failed to start debug configuration: ${matchingConfig.name}`
+                    `Failed to start debug configuration: ${matchingConfig.name}`,
                 );
             }
         } else {
@@ -639,14 +638,14 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
             void vscode.window.showErrorMessage(
                 `Could not find a debug configuration for the project main ` +
                     `${adaMain.mainRelPath()}`,
-                { modal: true }
+                { modal: true },
             );
         }
     } else {
         void vscode.window.showErrorMessage(
             `The document ${vscode.workspace.asRelativePath(main)} does not match ` +
                 `any of the Mains of the project ${await getProjectFileRelPath()}`,
-            { modal: true }
+            { modal: true },
         );
     }
 }
@@ -657,10 +656,10 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
  */
 export async function gprProjectArgs(): Promise<string[]> {
     const vars: string[][] = Object.entries(
-        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? []
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
     );
     return ['-P', await getProjectFromConfigOrALS()].concat(
-        vars.map(([key, value]) => `-X${key}=${value}`)
+        vars.map(([key, value]) => `-X${key}=${value}`),
     );
 }
 
@@ -704,7 +703,7 @@ export async function sparkLimitSubpArg(): Promise<string[]> {
                  */
                 return [`--limit-subp=\${fileBasename}:\${lineNumber}`];
             }
-        }
+        },
     );
 }
 
@@ -762,7 +761,7 @@ export const getSelectedRegion = (editor: vscode.TextEditor | undefined): string
 
 export async function getEnclosingSymbol(
     editor: vscode.TextEditor | undefined,
-    kinds: vscode.SymbolKind[]
+    kinds: vscode.SymbolKind[],
 ): Promise<vscode.DocumentSymbol | null> {
     if (editor && editor.document.languageId == 'ada') {
         const line = editor.selection.active.line;
@@ -770,7 +769,7 @@ export async function getEnclosingSymbol(
         // First get all symbols for current file
         const symbols: vscode.DocumentSymbol[] = await vscode.commands.executeCommand(
             'vscode.executeDocumentSymbolProvider',
-            editor.document.uri
+            editor.document.uri,
         );
 
         // Then filter them according to the specified kinds
@@ -781,13 +780,13 @@ export async function getEnclosingSymbol(
 
         // Finally select from the filtered symbols the smallest one containing the current line
         const scopeSymbols = filtered_symbols.filter(
-            (sym) => line >= sym.range.start.line && line <= sym.range.end.line
+            (sym) => line >= sym.range.start.line && line <= sym.range.end.line,
         );
 
         if (scopeSymbols.length > 0) {
             scopeSymbols.sort(
                 (a, b) =>
-                    a.range.end.line - a.range.start.line - (b.range.end.line - b.range.start.line)
+                    a.range.end.line - a.range.start.line - (b.range.end.line - b.range.start.line),
             );
 
             return scopeSymbols[0];
@@ -811,7 +810,7 @@ export async function getEnclosingSymbol(
  */
 async function sparkProveSubprogram(
     uri: vscode.Uri,
-    range: vscode.Range
+    range: vscode.Range,
 ): Promise<vscode.TaskExecution> {
     /**
      * Get the 'Prove subprogram' task. Prioritize workspace tasks so that User
@@ -821,7 +820,7 @@ async function sparkProveSubprogram(
         .sort(workspaceTasksFirst)
         .find(
             (t) =>
-                getConventionalTaskLabel(t) == `${TASK_TYPE_SPARK}: ${TASK_PROVE_SUPB_PLAIN_NAME}`
+                getConventionalTaskLabel(t) == `${TASK_TYPE_SPARK}: ${TASK_PROVE_SUPB_PLAIN_NAME}`,
         );
     assert(task);
 
@@ -834,7 +833,7 @@ async function sparkProveSubprogram(
         task.name,
         task.source,
         undefined,
-        task.problemMatchers
+        task.problemMatchers,
     );
 
     /**
@@ -855,7 +854,7 @@ async function sparkProveSubprogram(
         newTask.name = `${task.name} - ${fileBasename}:${range.start.line + 1}`;
     } else {
         throw Error(
-            `Task '${getConventionalTaskLabel(task)}' is missing a '${regionArg}' argument`
+            `Task '${getConventionalTaskLabel(task)}' is missing a '${regionArg}' argument`,
         );
     }
 

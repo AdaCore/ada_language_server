@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import assert from 'assert';
 import * as vscode from 'vscode';
 import { spawnSync } from 'child_process';
-import fs, { existsSync, lstatSync, opendirSync, readdirSync, renameSync } from 'fs';
+import { existsSync, renameSync } from 'fs';
 import path from 'path';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
 import { adaExtState } from '../../../src/extension';
@@ -98,7 +99,7 @@ async function testSemanticHighlighting(docUri: vscode.Uri) {
     };
     const semanticTokens = await adaExtState.adaClient.sendRequest(
         SemanticTokensRequest.type,
-        request
+        request,
     );
     const data = semanticTokens?.data || [];
     type TokenInfo = {
@@ -164,10 +165,10 @@ async function testSemanticHighlighting(docUri: vscode.Uri) {
                 `line ${(t.line + 1).toString().padStart(3)}: column ${(t.column + 1)
                     .toString()
                     .padStart(2)} - ${t.endColumn.toString().padStart(2)}: ${t.tokenType.padEnd(
-                    maxTypeLen
+                    maxTypeLen,
                 )}${(t.modifiers.length > 0 ? ' [' + t.modifiers.join(', ') + ']' : '').padEnd(
-                    maxModifierLen
-                )} : ${t.text}`
+                    maxModifierLen,
+                )} : ${t.text}`,
         )
         .join('\n');
 
@@ -232,7 +233,7 @@ function testSyntaxHighlighting(absFilePath: string, syntax: Syntaxes) {
             // snapshot.
             throw Error(
                 `Could not find reference snapshot: ${refSnapPath}\n` +
-                    'Re-run testsuite in update mode to create a snapshot.'
+                    'Re-run testsuite in update mode to create a snapshot.',
             );
         }
 
@@ -289,7 +290,7 @@ function testSyntax(syntaxPath: string, absFilePath: string, languageId: string)
     } else if (proc.status != 0) {
         const msg =
             `Return code ${proc.status.toString()} for command: cd ${workDirPath}; ${cmd.join(
-                ' '
+                ' ',
             )}\n` +
             String(proc.stdout) +
             String(proc.stderr);

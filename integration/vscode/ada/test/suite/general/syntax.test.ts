@@ -12,7 +12,7 @@ suite('Syntax Check Test Suite', function () {
         async function testRule(
             rule: AdaGrammarRule,
             false_statement: string,
-            true_statement: string
+            true_statement: string,
         ) {
             const syntaxProvider = new AdaSyntaxCheckProvider(adaExtState.adaClient, [rule]);
             let result = await syntaxProvider.sendCheckSyntaxRequest(true_statement);

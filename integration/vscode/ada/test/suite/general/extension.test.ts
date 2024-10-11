@@ -18,7 +18,8 @@ suite('Extensions Test Suite', function () {
             // Uri manually computed based on the loaded workspace
             const wsUri = vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, 'prj.gpr');
             // Ask for fsPath, it will resolve wsUri._fsPath
-            wsUri.fsPath != null
+            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+            wsUri.fsPath != null;
             // Both should match
             assert.deepStrictEqual(alsUri, wsUri);
         } else {

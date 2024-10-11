@@ -2,6 +2,7 @@ import glob
 import logging
 import os.path
 import shutil
+from pathlib import Path
 
 from e3.os.process import Run, quote_arg
 
@@ -33,6 +34,10 @@ class GNATcov(object):
         self.temp_dir = os.path.join(testsuite.env.working_dir, 'gnatcov')
         self.traces_dir = os.path.join(self.temp_dir, 'traces')
         self.output_dir = testsuite.output_dir
+
+        self.source_root = testsuite.env.options.gnatcov_source_root
+        """Path of the root of the repository. This will be used with GNATcoverage
+        reporting to produce a Cobertura report with relative paths."""
 
         self.ensure_clean_dir(self.temp_dir)
         os.mkdir(self.traces_dir)
@@ -85,7 +90,7 @@ class GNATcov(object):
 
         return kwargs
 
-    def report(self, formats=['dhtml', 'xcov']):
+    def report(self, formats=['dhtml', 'xcov', 'cobertura', 'xml']):
         """Generate coverage reports for all given output formats."""
 
         # Get the list of all SID files
@@ -114,9 +119,15 @@ class GNATcov(object):
         for fmt in formats:
             report_dir = os.path.join(self.output_dir, 'coverage-' + fmt)
             self.ensure_clean_dir(report_dir)
-            self.checked_run([
+            cmd = [
                 'gnatcov', 'coverage',
                 '--annotate', fmt,
                 '--level', self.covlevel,
                 '--output-dir', report_dir,
-                '--checkpoint', ckpt_file])
+                '--checkpoint', ckpt_file]
+
+            if fmt == 'cobertura' and self.source_root:
+                cmd += ['--source-root', self.source_root]
+
+            logging.info(" ".join(cmd))
+            self.checked_run(cmd)

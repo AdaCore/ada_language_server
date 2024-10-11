@@ -49,8 +49,7 @@ type CommandExecutor = (
     command: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: any[],
-    next: ExecuteCommandSignature
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    next: ExecuteCommandSignature,
 ) => Promise<ExecuteCommandSignature | undefined>;
 
 /**
@@ -64,30 +63,30 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
         command: string,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         args: any[],
-        next: ExecuteCommandSignature
+        next: ExecuteCommandSignature,
     ): Promise<ExecuteCommandSignature | undefined> => {
         if (command === 'als-refactor-add-parameters') {
             const proceedWithExecution = await alsAddParameterCommandExecutor(
                 client,
-                args[0] as AddParameterCommandArgs
+                args[0] as AddParameterCommandArgs,
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
         } else if (command === 'als-refactor-change_parameters_type') {
             const proceedWithExecution = await alsChangeParametersTypeCommandExecutor(
                 client,
-                args[0] as ChangeParametersTypeCommandArgs
+                args[0] as ChangeParametersTypeCommandArgs,
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
         } else if (command === 'als-refactor-change_parameters_default_value') {
             const proceedWithExecution = await alsChangeParametersDefaultValueCommandExecutor(
                 client,
-                args[0] as ChangeParametersDefaultValueCommandArgs
+                args[0] as ChangeParametersDefaultValueCommandArgs,
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
         } else if (command === 'als-refactor-replace-type') {
             const proceedWithExecution = await alsReplaceTypeCommandExecutor(
                 client,
-                args[0] as ReplaceTypeCommandArgs
+                args[0] as ReplaceTypeCommandArgs,
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
         }

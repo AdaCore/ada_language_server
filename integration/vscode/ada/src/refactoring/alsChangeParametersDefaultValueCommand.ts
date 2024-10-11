@@ -45,11 +45,11 @@ export type ChangeParametersDefaultValueCommandArgs = {
  */
 export const alsChangeParametersDefaultValueCommandExecutor = async (
     client: LanguageClient,
-    args: ChangeParametersDefaultValueCommandArgs
+    args: ChangeParametersDefaultValueCommandArgs,
 ): Promise<boolean> => {
     // If the server command attributes changed, some of args fields might be undefined
     if (args.newParametersDefaultValue === undefined) {
-        return Promise.reject('Invalid als-refactor-change_parameters_default_value');
+        return Promise.reject(new Error('Invalid als-refactor-change_parameters_default_value'));
     }
 
     // Create an input box with the messages adjusted according to if we require a full parameter

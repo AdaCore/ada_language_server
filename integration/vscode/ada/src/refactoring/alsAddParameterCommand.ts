@@ -49,13 +49,16 @@ export type AddParameterCommandArgs = {
  */
 export const alsAddParameterCommandExecutor = async (
     client: LanguageClient,
-    args: AddParameterCommandArgs
+    args: AddParameterCommandArgs,
 ): Promise<boolean> => {
     // If the server command attributes changed, some of args fields might be undefined
 
     if (args.requiresFullSpecification === undefined || args.newParameter === undefined) {
         return Promise.reject(
-            'Invalid als-refactor-add-parameters command: missing "requiresFullSpecification" field'
+            new Error(
+                `Invalid als-refactor-add-parameters command:
+ missing "requiresFullSpecification" field`,
+            ),
         );
     }
 

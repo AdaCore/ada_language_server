@@ -11,11 +11,18 @@ def test_als_(qualifier={}):
         anod_test("als")
 
 
+def test_als_cov_(qualifier={}):
+    with defaults(qualifier=qualifier | {"coverage": True}):
+        # We don't install 'als' because in coverage mode, 'als' can't be installed and
+        # has to be built instead.
+        anod_test("als")
+
+
 def test_vscode_extension_(qualifier={}):
     with defaults(qualifier=qualifier):
         # Install the component built in the preceding CI build job
         anod_install("vscode-extension")
-        anod_test("vscode-extension")
+        anod_test("vscode-extension", qualifier=qualifier | {"coverage": True})
 
 
 def build_test_gs_(qualifier={}):
@@ -37,6 +44,10 @@ def build_edge():
 
 def test_als_edge():
     test_als_(edge_qualifier)
+
+
+def test_als_cov_edge():
+    test_als_cov_(edge_qualifier)
 
 
 def test_vscode_extension_edge():
