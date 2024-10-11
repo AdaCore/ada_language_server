@@ -71,9 +71,15 @@ class LSPResponse(object):
         fields = field.split(".")
         value = self.from_dict
         for f in fields:
+            if f not in value:
+                raise AssertionError(
+                    self._line_info() + f"Field {field} not found"
+                )
             value = value.get(f)
         if value != expected:
-            raise AssertionError(f"{field} is #{value}#, expected #{expected}#")
+            raise AssertionError(
+                self._line_info() + f"{field} is #{value}#, expected #{expected}#"
+            )
 
     def assertContains(self, expected_dict):
         """Assert that the response contains the expected dictionary."""
@@ -111,9 +117,9 @@ class LSPResponse(object):
         return message
 
     def assertLocationsList(self, expected: list[(str, int)]):
-        """ Compare the response to an expected list of locations.
-            The expected list is a list of tuples (file base name, line number),
-            with line_number being 1-based.
+        """Compare the response to an expected list of locations.
+        The expected list is a list of tuples (file base name, line number),
+        with line_number being 1-based.
         """
         if not isinstance(self.from_dict, list):
             raise AssertionError("The response does not contain a list")

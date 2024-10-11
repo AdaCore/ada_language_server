@@ -42,10 +42,14 @@ class JsonTestDriver(ALSTestDriver):
             spec.loader.exec_module(module)
 
             # Look for functions with the decorator @simple_test and run them
-            errors = [f"no function with @simple_test found in {python_file}"]
+            errors = [
+                f"no function with @simple_test or @complex_test found in {python_file}"
+            ]
 
             for _, obj in inspect.getmembers(module):
-                if inspect.isfunction(obj) and hasattr(obj, "simple_test"):
+                if inspect.isfunction(obj) and (
+                    hasattr(obj, "simple_test") or hasattr(obj, "complex_test")
+                ):
                     errors = obj(wd)
 
             if len(errors) > 0:

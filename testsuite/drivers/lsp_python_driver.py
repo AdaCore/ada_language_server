@@ -22,27 +22,46 @@ import traceback
 # If the test.py prints anything on stdout, this will be considered an error in the test.
 # You can add prints on stderr to help debugging, and the test will not fail.
 #
-# Example test.py:
+# Example test.py with a full test:
 #
 #    from lsp_python_driver import LSP
-#    from lsp_ada_requests import initialize
+#    from lsp_ada_requests import initialize, initialized, didChangeConfiguration
 #
-#    # Initialize the LSP server
-#    lsp = LSP()
+#    @complex_test
+#    def test_some_functionality(working_dir) -> list[str] | None:
+#        # Figure out the program to run
+#        program = os.environ.get("ALS", "ada_language_server")
+#        # Initialize the LSP server
+#        lsp = LSP(program, working_dir)
 #
-#    # Insert a debug point at any place with this:
-#    lsp.debug_here()
+#        # Send the initialize request, the initialized notification and the didChangeConfiguration notification
+#        _ = lsp.send(initialize())
+#        lsp.send(initialized())
+#        lsp.send(didChangeConfiguration())
 #
-#    # Send a request and check the response
-#    result = lsp.send(initialize())
+#        # Insert here whatever you want to test
+#        # For example, you can send a didOpen notification:
+#        # lsp.send(didOpen_from_disk("main.adb"))
 #
-#    # Inspect the response in various ways: here we check the value of one field...
-#    result.assertField("capabilities.callHierarchyProvider", True)
-#    # ... and here we check that the response contains a specific dictionary
-#    result.assertContains({"capabilities": {"callHierarchyProvider": True}})
+#        # Note: you can insert a debug point at any place with this:
+#        lsp.debug_here()
 #
-#    # Shut down the LSP server at the end
-#    lsp.shutdown()
+#        # Shut down the LSP server at the end
+#        lsp.shutdown()
+#
+# The example above is a complex test which has a lot of boilerplate
+# to start the LSP server, send the initialize request, etc.
+# If you have a simple test that doesn't need all this boilerplate,
+# you can use the simple_test decorator instead:
+#
+#    from lsp_python_driver import LSP, simple_test
+#
+#    @simple_test
+#    def test_some_functionality(lsp, working_dir):
+#        # Insert here whatever you want to test
+#        # That's it! the LSP server is started and shut down for you,
+#        # and the initialize/initialized/didChangeConfiguration requests
+#        # have been sent by the framework.
 
 
 class LSP(object):
@@ -158,12 +177,26 @@ class LSP(object):
                 f.write(message)
 
 
+def run_complex_test(test_function, working_dir) -> list[str]:
+    """Run a test function, catch exceptions and return any errors found."""
+    try:
+        errors = test_function(working_dir)
+        if errors is None:
+            return []
+        return errors
+    except Exception as e:
+        errors = [str(e)]
+        # If the exception is an AssertionError, no need for the traceback
+        if not isinstance(e, AssertionError):
+            errors.append(traceback.format_exc())
+        return errors
+
 def run_simple_test(test_function, working_dir) -> list[str]:
     """Run a test function, catch exceptions and return any errors found."""
     try:
         program = os.environ.get("ALS", "ada_language_server")
         lsp = LSP(program, working_dir)
-        response = lsp.send(initialize())
+        _ = lsp.send(initialize())
         lsp.send(initialized())
         lsp.send(didChangeConfiguration())
         test_function(lsp, working_dir)
@@ -184,6 +217,14 @@ def simple_test(test_function):
         return run_simple_test(test_function, working_dir)
 
     wrapper.simple_test = True
+    return wrapper
+
+# Make run_complex_test available as a decorator
+def complex_test(test_function):
+    def wrapper(working_dir):
+        return run_complex_test(test_function, working_dir)
+
+    wrapper.complex_test = True
     return wrapper
 
 
