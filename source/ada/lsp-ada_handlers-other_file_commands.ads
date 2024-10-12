@@ -25,10 +25,6 @@ package LSP.Ada_Handlers.Other_File_Commands is
 
    type Command is new LSP.Ada_Commands.Command with private;
 
-   procedure Initialize
-     (Self : in out Command'Class;
-      URI  : LSP.Structures.DocumentUri);
-
 private
 
    type Command is new LSP.Ada_Commands.Command with record
