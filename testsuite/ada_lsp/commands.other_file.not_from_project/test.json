@@ -1,8 +1,8 @@
 [
    {
       "comment": [
-         "Check that the 'als-other-file' command displays proper error messages ",
-         "when failing."
+         "This test checks that 'als-other-file' is able to compute the other file",
+         "of Ada files that do not belong to the project, using its fallback mechanism"
       ]
    },
    {
@@ -41,6 +41,16 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration",
             "params": {
                "settings": {
@@ -69,71 +79,43 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "sw1",
-            "method": "workspace/executeCommand",
+            "method": "textDocument/didOpen",
             "params": {
-               "command": "als-other-file",
-               "arguments": [
-                  {
-                     "uri": "$URI{src/a.ads}"
-                  }
-               ]
+               "textDocument": {
+                  "uri": "$URI{not_a_source.ada_spec}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Not_A_Source is\n   procedure Do_Nothing;\nend Not_A_Source;\n"
+               }
             }
          },
-         "wait": [
-            {
-               "error": {
-                  "code": -32603,
-                  "message": "Could not find other file for 'a.ads': the unit has no other part."
-               },
-               "id": "sw1",
-               "jsonrpc": "2.0"
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "sw2",
-            "method": "workspace/executeCommand",
-            "params": {
-               "command": "als-other-file",
-               "arguments": [
-                  {
-                     "uri": "$URI{main.adb}"
-                  }
-               ]
-            }
-         },
-         "wait": [
-            {
-               "error": {
-                  "code": -32603,
-                  "message": "Could not find other file for 'main.adb': the unit has no other part."
-               },
-               "id": "sw2",
-               "jsonrpc": "2.0"
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "shutdown",
-            "method": "shutdown",
-            "params": null
-         },
-         "wait": [{ "id": "shutdown", "result": null }]
-      }
-   },
-   {
-      "send": {
-         "request": { "jsonrpc": "2.0", "method": "exit" },
          "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-other-file",
+               "arguments": [
+                  {
+                     "uri": "$URI{not_a_source.adb}"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "window/showDocument",
+               "params": {
+                  "uri": "$URI{not_a_source.ada_spec}",
+                  "takeFocus": true
+               }
+            }
+         ]
       }
    },
    {
