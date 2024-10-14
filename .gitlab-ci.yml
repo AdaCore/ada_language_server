@@ -71,6 +71,8 @@ include:
           allow_failure: true
 
 als-cov:
+  variables:
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
   after_script:
     # Source the env prepared by generic_anod_ci
     - cat /tmp/ci_env.sh
@@ -87,7 +89,10 @@ als-cov:
 
       # save coverage results
     - cp -v $RESULTS_DIR/coverage-cobertura/cobertura.xml $CI_PROJECT_DIR/coverage
-    - cp -vr $RESULTS_DIR/coverage-dhtml $CI_PROJECT_DIR/coverage/dhtml
+    - cp -r $RESULTS_DIR/coverage-dhtml $CI_PROJECT_DIR/coverage/dhtml
+
+    # display coverage stats for global reporting
+    - echo_coverage_stats --coverage-file $RESULTS_DIR/coverage-xml/index.xml
 
     # export to gitlab pages
     - |
@@ -101,9 +106,6 @@ als-cov:
     - publish-pages $CI_PROJECT_DIR/coverage/dhtml/ --target-subdir $target_subdir --expires 30
     - >
       echo "Coverage report: https://pages.gitlab.adacore-it.com/$CI_PROJECT_PATH/$target_subdir/index.html"
-
-    # display coverage stats for global reporting
-    - echo_coverage_stats --coverage-file $RESULTS_DIR/coverage-xml/index.xml
   coverage: '/^Stmt Coverage:\s+(\d+\.\d+\%) \(\d+ \/ \d+\)$/'
   artifacts:
     when: always #  Upload on errors too
@@ -129,7 +131,7 @@ vscode-extension:
     - cp -rv $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
 
     # Copy coverage reports
-    - cp -rv $VSCODE_BUILD_SPACE/test/integration/vscode/ada/coverage $CI_PROJECT_DIR
+    - cp -r $VSCODE_BUILD_SPACE/test/integration/vscode/ada/coverage $CI_PROJECT_DIR
 
     # export to gitlab pages
     - |
