@@ -96,7 +96,10 @@ with LSP.Server_Notifications.DidChange;
 with LSP.Server_Notifications.DidChangeConfiguration;
 with LSP.Server_Notifications.DidChangeWorkspaceFolders;
 with LSP.Server_Notifications.DidClose;
+with LSP.Server_Notifications.DidCreateFiles;
+with LSP.Server_Notifications.DidDeleteFiles;
 with LSP.Server_Notifications.DidOpen;
+with LSP.Server_Notifications.DidRenameFiles;
 with LSP.Server_Notifications.Exits;
 with LSP.Server_Requests.Declaration;
 with LSP.Server_Requests.Definition;
@@ -624,6 +627,18 @@ begin
 
          Server.Register_Handler
            (LSP.Server_Notifications.DidClose.Notification'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.DidCreateFiles.Notification'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.DidRenameFiles.Notification'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.DidDeleteFiles.Notification'Tag,
             Ada_Fence_Message_Handler'Unchecked_Access);
 
          Server.Register_Handler

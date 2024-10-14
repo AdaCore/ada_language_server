@@ -1848,42 +1848,9 @@ package body LSP.Ada_Handlers is
    begin
       Self.Log_Method_In ("On_DidCreateFiles_Notification");
 
-      --  New sources were created on this project, so recompute its view
-      Self.Project_Tree.Clear_Sources;
-
-      --  For each created file of Value.files:
-      --  - find the contexts that contains its directory
-      --  - add it to those contexts
-      --  - index it on those contexts
-
-      for File of Value.files loop
-         declare
-            use VSS.Strings.Conversions;
-
-            Created_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (To_DocumentUri (File.uri));
-
-            function Has_Dir
-              (Context : LSP.Ada_Contexts.Context)
-                  return Boolean
-            is (Context.List_Source_Directories.Contains
-                (Created_File.Dir));
-            --  Return True if Old_File is a source of the project held by
-            --  Context.
-
-         begin
-            for Context of Self.Contexts.Each_Context
-              (Has_Dir'Unrestricted_Access)
-            loop
-               Context.Include_File (Created_File);
-               Context.Index_File (Created_File);
-
-               Self.Tracer.Trace
-                 ("Included " & Created_File.Display_Base_Name
-                  & " in context " & To_UTF_8_String (Context.Id));
-            end loop;
-         end;
-      end loop;
+      --  LAL Contexts are not handling source updates so we need a full reload
+      --  to avoid caching issues.
+      Self.Reload_Project;
 
       Self.Log_Method_Out ("On_DidCreateFiles_Notification");
    end On_DidCreateFiles_Notification;
@@ -1898,34 +1865,9 @@ package body LSP.Ada_Handlers is
    begin
       Self.Log_Method_In ("On_DidDeleteFiles_Notification");
 
-      --  Some project sources were deleted, so recompute its view
-      Self.Project_Tree.Clear_Sources;
-
-      --  For each delete file of Value.files:
-      --  - find the contexts that contains it
-      --  - remove it from those contexts
-      --  - re-index it on those contexts so that an empty unit is reparsed
-
-      for File of Value.files loop
-         declare
-            Deleted_URI : constant LSP.Structures.DocumentUri :=
-              To_DocumentUri (File.uri);
-
-            Deleted_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (Deleted_URI);
-
-         begin
-            for Context of Self.Contexts_For_File (Deleted_File) loop
-               Context.Exclude_File (Deleted_File);
-               Context.Index_File (Deleted_File);
-
-               Self.Tracer.Trace
-                 ("Excluded " & Deleted_File.Display_Base_Name
-                  & " from context "
-                  & VSS.Strings.Conversions.To_UTF_8_String (Context.Id));
-            end loop;
-         end;
-      end loop;
+      --  LAL Contexts are not handling source updates so we need a full reload
+      --  to avoid caching issues.
+      Self.Reload_Project;
 
       Self.Log_Method_Out ("On_DidDeleteFiles_Notification");
    end On_DidDeleteFiles_Notification;
@@ -1995,100 +1937,13 @@ package body LSP.Ada_Handlers is
 
    overriding procedure On_DidRenameFiles_Notification
      (Self  : in out Message_Handler;
-      Value : LSP.Structures.RenameFilesParams)
-   is
-      use LSP.Ada_Context_Sets;
-
-      package URI_Contexts_Maps is new
-        Ada.Containers.Hashed_Maps
-          (Key_Type        => LSP.Structures.DocumentUri,
-           Element_Type    => Context_Lists.List,
-           Hash            => LSP.Structures.Get_Hash,
-           Equivalent_Keys => LSP.Structures."=",
-           "="             => Context_Lists."=");
-
-      subtype URI_Contexts_Map is URI_Contexts_Maps.Map;
-
-      URIs_Contexts : URI_Contexts_Map;
-
+      Value : LSP.Structures.RenameFilesParams) is
    begin
       Self.Log_Method_In ("On_DidRenameFiles_Notification");
 
-      --  Some project sources were renamed, so recompute its view
-      Self.Project_Tree.Clear_Sources;
-
-      --  For each oldUri of Value.files:
-      --  - map it to a list of context that contains it
-      --  - remove it from those contexts
-      --  - re-index it on those contexts so that an empty unit is reparsed
-
-      for File_Rename of Value.files loop
-         declare
-            use VSS.Strings.Conversions;
-
-            Old_URI : constant LSP.Structures.DocumentUri :=
-              To_DocumentUri (File_Rename.oldUri);
-
-            Old_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (Old_URI);
-
-            URI_Contexts : Context_Lists.List;
-
-         begin
-            for Context of Self.Contexts_For_File (Old_File) loop
-               URI_Contexts.Append (Context);
-               Context.Exclude_File (Old_File);
-               Context.Index_File (Old_File);
-
-               Self.Tracer.Trace
-                 ("Excluded " & Old_File.Display_Full_Name
-                  & " from context " & To_UTF_8_String (Context.Id));
-            end loop;
-
-            URIs_Contexts.Insert (Old_URI, URI_Contexts);
-         end;
-      end loop;
-
-      --  For each (oldUri, newUri) tuple:
-      --  - add newUri to all contexts that contained oldUri
-      --  - index the newUri (using the appriate method depending if
-      --    (there's an open document of not)
-
-      for File_Rename of Value.files loop
-         declare
-            use VSS.Strings.Conversions;
-            use type LSP.Ada_Documents.Document_Access;
-
-            New_URI : constant LSP.Structures.DocumentUri :=
-              To_DocumentUri (File_Rename.newUri);
-
-            Old_URI : constant LSP.Structures.DocumentUri :=
-              To_DocumentUri (File_Rename.oldUri);
-
-            New_File : constant GNATCOLL.VFS.Virtual_File :=
-              Self.To_File (New_URI);
-
-            Document : constant LSP.Ada_Documents.Document_Access :=
-              Get_Open_Document (Self, New_URI);
-
-            Is_Document_Open : constant Boolean := Document /= null;
-
-         begin
-            for Context of URIs_Contexts (Old_URI) loop
-               Context.Include_File (New_File);
-
-               if Is_Document_Open then
-                  Context.Index_Document (Document.all);
-               else
-                  Context.Index_File (New_File);
-               end if;
-
-               Self.Tracer.Trace
-                 ("Included " & New_File.Display_Base_Name & " in context "
-                  & To_UTF_8_String (Context.Id));
-            end loop;
-         end;
-      end loop;
+      --  LAL Contexts are not handling source updates so we need a full reload
+      --  to avoid caching issues.
+      Self.Reload_Project;
 
       Self.Log_Method_Out ("On_DidRenameFiles_Notification");
    end On_DidRenameFiles_Notification;
