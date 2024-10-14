@@ -1,0 +1,126 @@
+[
+   {
+      "comment": [
+         "This test checks that 'als-other-file' is able to compute the other file",
+         "of Ada files that do not belong to the project, using its fallback mechanism"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-other-file"]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "UTF-8"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{not_a_source.ada_spec}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Not_A_Source is\n   procedure Do_Nothing;\nend Not_A_Source;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-other-file",
+               "arguments": [
+                  {
+                     "uri": "$URI{not_a_source.adb}"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "window/showDocument",
+               "params": {
+                  "uri": "$URI{not_a_source.ada_spec}",
+                  "takeFocus": true
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

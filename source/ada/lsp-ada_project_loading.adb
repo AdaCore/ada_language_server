@@ -86,7 +86,7 @@ package body LSP.Ada_Project_Loading is
               ("The project file has errors and could not be loaded.");
          when Valid_Project_With_Warning =>
             return VSS.Strings.To_Virtual_String
-              ("The project file was loaded but contains Warnings.");
+              ("The project file was loaded but contains warnings.");
       end case;
    end Load_Status_Message;
 
@@ -159,17 +159,7 @@ package body LSP.Ada_Project_Loading is
          Parent_Diagnostic.source := "ada.project";
          Parent_Diagnostic.severity :=
            (True, Load_Status_Severity (Project));
-
-         Parent_Diagnostic.message := "Project Problems";
-         Parent_Diagnostic.relatedInformation.Append
-           (LSP.Structures.DiagnosticRelatedInformation'
-              (location =>
-                   LSP.Structures.Location'
-                 (uri     => Project_URI,
-                  a_range => Backup_Sloc,
-                  others  => <>),
-               message  =>
-                 Load_Status_Message (Project)));
+         Parent_Diagnostic.message := Load_Status_Message (Project);
       end Create_Project_Loading_Diagnostic;
 
       -----------------------------
@@ -178,7 +168,6 @@ package body LSP.Ada_Project_Loading is
 
       procedure Append_GPR2_Diagnostics is
          use GPR2.Message;
-         use LSP.Enumerations;
       begin
          for Msg of GPR2_Messages loop
             if Msg.Level in GPR2.Message.Warning .. GPR2.Message.Error then
@@ -206,19 +195,6 @@ package body LSP.Ada_Project_Loading is
                                (Msg.Message)));
                   end if;
                end;
-
-               --  If we have one error in the GPR2 messages, the parent
-               --  diagnostic's severity should be "error" too, otherwise
-               --  "warning".
-               if Msg.Level = GPR2.Message.Error then
-                  Parent_Diagnostic.severity :=
-                    (True, LSP.Enumerations.Error);
-               elsif Parent_Diagnostic.severity.Value /=
-                 LSP.Enumerations.Error
-               then
-                  Parent_Diagnostic.severity :=
-                    (True, LSP.Enumerations.Warning);
-               end if;
             end if;
          end loop;
       end Append_GPR2_Diagnostics;

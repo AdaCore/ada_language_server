@@ -909,8 +909,26 @@ package body LSP.Ada_Contexts is
       Attribute    : GPR2.Q_Attribute_Id;
       Index        : String := "";
       Default      : String := "";
-      Use_Extended : Boolean := False) return String
-   is
+      Use_Extended : Boolean := False) return String is
+   begin
+      return Project_Attribute_Value
+        (View         => Self.Tree.Root_Project,
+         Attribute    => Attribute,
+         Index        => Index,
+         Default      => Default,
+         Use_Extended => Use_Extended);
+   end Project_Attribute_Value;
+
+   -----------------------------
+   -- Project_Attribute_Value --
+   -----------------------------
+
+   function Project_Attribute_Value
+     (View         : GPR2.Project.View.Object;
+      Attribute    : GPR2.Q_Attribute_Id;
+      Index        : String := "";
+      Default      : String := "";
+      Use_Extended : Boolean := False) return String is
       Attribute_Index : constant GPR2.Project.Attribute_Index.Object :=
         (if Index = ""
          then GPR2.Project.Attribute_Index.Undefined
@@ -919,19 +937,19 @@ package body LSP.Ada_Contexts is
       Attribute_Value : GPR2.Project.Attribute.Object;
 
    begin
-      if Self.Tree.Root_Project.Check_Attribute
+      if View.Check_Attribute
         (Name   => Attribute,
          Index  => Attribute_Index,
          Result => Attribute_Value)
       then
          return Attribute_Value.Value.Text;
-      elsif Use_Extended and then Self.Tree.Root_Project.Is_Extending then
-            --  Look at Extended project list as attribute not found in
-            --  Root_Project and Use_Extended requested.
+      elsif Use_Extended and then View.Is_Extending then
+         --  Look at Extended project list as attribute not found in
+         --  Root_Project and Use_Extended requested.
 
          declare
             Extended_Root : GPR2.Project.View.Object :=
-              Self.Tree.Root_Project.Extended_Root;
+              View.Extended_Root;
          begin
             while Extended_Root.Is_Defined loop
                if Extended_Root.Check_Attribute

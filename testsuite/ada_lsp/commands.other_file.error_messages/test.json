@@ -1,0 +1,144 @@
+[
+   {
+      "comment": [
+         "Check that the 'als-other-file' command displays proper error messages ",
+         "when failing."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-other-file"]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "scenarioVariables": {},
+                     "enableDiagnostics": false,
+                     "defaultCharset": "UTF-8"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw1",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-other-file",
+               "arguments": [
+                  {
+                     "uri": "$URI{src/a.ads}"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "error": {
+                  "code": -32603,
+                  "message": "Could not find other file for 'a.ads': the unit has no other part."
+               },
+               "id": "sw1",
+               "jsonrpc": "2.0"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw2",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-other-file",
+               "arguments": [
+                  {
+                     "uri": "$URI{main.adb}"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "error": {
+                  "code": -32603,
+                  "message": "Could not find other file for 'main.adb': the unit has no other part."
+               },
+               "id": "sw2",
+               "jsonrpc": "2.0"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

@@ -61,25 +61,7 @@
                         },
                         "severity": 4,
                         "source": "ada.project",
-                        "message": "Project Problems",
-                        "relatedInformation": [
-                           {
-                              "location": {
-                                 "uri": "$URI{test.gpr}",
-                                 "range": {
-                                    "start": {
-                                       "line": 0,
-                                       "character": 0
-                                    },
-                                    "end": {
-                                       "line": 0,
-                                       "character": 0
-                                    }
-                                 }
-                              },
-                              "message": "A unique project in the root directory was found and loaded but it was not explicitly configured."
-                           }                     
-                        ]
+                        "message": "A unique project in the root directory was found and loaded but it was not explicitly configured."
                      }
                   ]
                }
