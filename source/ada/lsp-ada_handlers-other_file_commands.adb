@@ -202,26 +202,32 @@ package body LSP.Ada_Handlers.Other_File_Commands is
 
          if not Unit.Is_Defined then
             declare
-               Impl_Suffix_Attr_Id   : constant GPR2.Q_Optional_Attribute_Id :=
+               Impl_Suffix_Attr_Id : constant GPR2.Q_Optional_Attribute_Id :=
                  ((Pack => GPR2."+" ("Naming"),
                    Attr => GPR2."+" ("Implementation_Suffix")));
-               Spec_Suffix_Attr_Id   : constant GPR2.Q_Optional_Attribute_Id :=
+               Spec_Suffix_Attr_Id : constant GPR2.Q_Optional_Attribute_Id :=
                  ((Pack => GPR2."+" ("Naming"),
                    Attr => GPR2."+" ("Specification_Suffix")));
-               Spec_Ext              : constant String :=
-                 LSP.Ada_Contexts.Project_Attribute_Value
-                   (View         => Handler.Project_Tree.Root_Project,
-                    Attribute    => Spec_Suffix_Attr_Id,
-                    Index        => "ada",
-                    Default      => ".ads",
-                    Use_Extended => True);
-               Impl_Ext              : constant String :=
-                 LSP.Ada_Contexts.Project_Attribute_Value
-                   (View         => Handler.Project_Tree.Root_Project,
-                    Attribute    => Impl_Suffix_Attr_Id,
-                    Index        => "ada",
-                    Default      => ".adb",
-                    Use_Extended => True);
+               Spec_Ext            : constant String :=
+                 (if Handler.Project_Tree.Is_Defined
+                  then
+                    LSP.Ada_Contexts.Project_Attribute_Value
+                      (View         => Handler.Project_Tree.Root_Project,
+                       Attribute    => Spec_Suffix_Attr_Id,
+                       Index        => "ada",
+                       Default      => ".ads",
+                       Use_Extended => True)
+                  else ".ads");
+               Impl_Ext            : constant String :=
+                 (if Handler.Project_Tree.Is_Defined
+                  then
+                    LSP.Ada_Contexts.Project_Attribute_Value
+                      (View         => Handler.Project_Tree.Root_Project,
+                       Attribute    => Impl_Suffix_Attr_Id,
+                       Index        => "ada",
+                       Default      => ".adb",
+                       Use_Extended => True)
+                  else ".adb");
             begin
                if GNATCOLL.Utils.Ends_With
                  (File.Display_Full_Name, Impl_Ext)
@@ -284,17 +290,5 @@ package body LSP.Ada_Handlers.Other_File_Commands is
          Handler.Sender.On_ShowDocument_Request (New_Id, Message);
       end;
    end Execute;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (Self : in out Command'Class;
-      URI  : LSP.Structures.DocumentUri)
-   is
-   begin
-      Self.URI := URI;
-   end Initialize;
 
 end LSP.Ada_Handlers.Other_File_Commands;
