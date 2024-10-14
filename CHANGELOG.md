@@ -4,6 +4,15 @@
 section below it for the last release. -->
 ## \<next>
 
+* Fix the removal of old log files in the `~/.als` directory
+* Fix the `Ada: Go to other file` command for child packages
+* Fix various project loading issues after significant changes in the GPR2 project loading API
+  * Make sure all project issues are emitted as diagnostics
+  * Avoid lingering diagnostics from earlier failed loading attempts
+  * Treat a subclass of non-critical project issues as non-blocking for the ALS
+  * Add a setting `ada.projectDiagnostics` to control whether the ALS should emit project diagnostics
+* Fix the `ada: Run main` task when the main executable is at the workspace root
+
 ## 25.0.20240915
 
 * Implement type hierarchy requests
