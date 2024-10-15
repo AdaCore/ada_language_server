@@ -1,0 +1,6 @@
+project prj is
+   package Check is
+      for Default_Switches ("ada") use ("-j8");
+      for Switches ("ada") use ("-k");
+   end Check;
+end prj;
