@@ -1,5 +1,6 @@
 import glob
 import os
+import sys
 
 from e3.testsuite.result import TestStatus
 
@@ -41,6 +42,7 @@ class JsonTestDriver(ALSTestDriver):
                     "ALS": self.env.als,
                     "ALS_HOME": self.env.als_home,
                     "ALS_WAIT_FACTOR": str(self.env.wait_factor),
+                    "PYTHON": sys.executable
                 },
                 ignore_environ=False,
             )
