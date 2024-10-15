@@ -111,15 +111,18 @@ package body LSP.Ada_Handlers.Other_File_Commands is
 
          function Other_File_From_Unit
            (Unit : GPR2.Build.Compilation_Unit.Object)
-           return GNATCOLL.VFS.Virtual_File;
+            return GNATCOLL.VFS.Virtual_File;
          --  Return the other file, knowing that the original file was
          --  related to Unit.
          --  Return No_File if no other file has been found
          --  (e.g: when querying the other file of a package that has only a
          --  a specification file).
 
-         function Unit_For_File return GPR2.Build.Compilation_Unit.Object;
-         --  Return the Unit object corresponding to File
+         function Unit_For_File
+           (Is_Multi_Unit : out Boolean)
+            return GPR2.Build.Compilation_Unit.Object;
+         --  Return the Unit object corresponding to File.
+         --  Set Is_Multi_Unit to True if File is a multi-unit file.
 
          --------------------------
          -- Other_File_From_Unit --
@@ -127,15 +130,18 @@ package body LSP.Ada_Handlers.Other_File_Commands is
 
          function Other_File_From_Unit
            (Unit : GPR2.Build.Compilation_Unit.Object)
-           return GNATCOLL.VFS.Virtual_File
+            return GNATCOLL.VFS.Virtual_File
          is
             Spec_File : Virtual_File;
             Body_File : Virtual_File;
          begin
-            Spec_File := (if Unit.Has_Part (S_Spec) then
-               Unit.Spec.Source.Virtual_File else No_File);
-            Body_File := (if Unit.Has_Part (S_Body) then
-               Unit.Main_Body.Source.Virtual_File else No_File);
+            Spec_File :=
+              (if Unit.Has_Part (S_Spec) then Unit.Spec.Source.Virtual_File
+               else No_File);
+            Body_File :=
+              (if Unit.Has_Part (S_Body)
+               then Unit.Main_Body.Source.Virtual_File
+               else No_File);
 
             if File = Spec_File then
                return Body_File;
@@ -149,7 +155,8 @@ package body LSP.Ada_Handlers.Other_File_Commands is
          -------------------
 
          function Unit_For_File
-           return GPR2.Build.Compilation_Unit.Object is
+           (Is_Multi_Unit : out Boolean)
+            return GPR2.Build.Compilation_Unit.Object is
          begin
             --  Check in the root project's closure for a visible source
             --  corresponding to this file.
@@ -163,17 +170,27 @@ package body LSP.Ada_Handlers.Other_File_Commands is
                   Unit           : GPR2.Build.Compilation_Unit.Object :=
                     GPR2.Build.Compilation_Unit.Undefined;
                begin
+                  Is_Multi_Unit := False;
+
                   --  The source is not visible from the root project (e.g:
                   --  when  querying the other file of an Ada file that
                   --  does not belong to the loaded project).
-                  if not Visible_Source.Is_Defined then
+                  if not Visible_Source.Is_Defined
+                    or else not Visible_Source.Has_Units
+                  then
                      return GPR2.Build.Compilation_Unit.Undefined;
                   end if;
 
                   declare
+                     Index     : constant GPR2.Unit_Index :=
+                       (if Visible_Source.Has_Unit_At (GPR2.No_Index)
+                        then GPR2.No_Index
+                        else GPR2.Multi_Unit_Index'First);
                      Unit_Info : constant GPR2.Build.Unit_Info.Object :=
-                       Visible_Source.Unit;
+                       Visible_Source.Unit (Index => Index);
                   begin
+                     Is_Multi_Unit := Index /= GPR2.No_Index;
+
                      if Unit_Info.Is_Defined then
                         Unit :=
                           View.Namespace_Roots.First_Element.Unit
@@ -188,8 +205,10 @@ package body LSP.Ada_Handlers.Other_File_Commands is
             end if;
          end Unit_For_File;
 
-         Unit       : constant GPR2.Build.Compilation_Unit.Object := Unit_For_File;
-         Other_File : Virtual_File;
+         Is_Multi_Unit : Boolean;
+         Unit          : constant GPR2.Build.Compilation_Unit.Object :=
+           Unit_For_File (Is_Multi_Unit => Is_Multi_Unit);
+         Other_File    : Virtual_File;
       begin
          Success := True;
 
@@ -229,23 +248,26 @@ package body LSP.Ada_Handlers.Other_File_Commands is
                        Use_Extended => True)
                   else ".adb");
             begin
-               if GNATCOLL.Utils.Ends_With
-                 (File.Display_Full_Name, Impl_Ext)
+               if GNATCOLL.Utils.Ends_With (File.Display_Full_Name, Impl_Ext)
                then
-                  return GNATCOLL.VFS.Create
-                    (Full_Filename => +GNATCOLL.Utils.Replace
-                       (S           => File.Display_Full_Name,
-                        Pattern     => Impl_Ext,
-                        Replacement => Spec_Ext));
+                  return
+                    GNATCOLL.VFS.Create
+                      (Full_Filename =>
+                         +GNATCOLL.Utils.Replace
+                            (S           => File.Display_Full_Name,
+                             Pattern     => Impl_Ext,
+                             Replacement => Spec_Ext));
                else
-                  return GNATCOLL.VFS.Create
-                    (Full_Filename => +GNATCOLL.Utils.Replace
-                       (S           => File.Display_Full_Name,
-                        Pattern     => Spec_Ext,
-                        Replacement => Impl_Ext));
+                  return
+                    GNATCOLL.VFS.Create
+                      (Full_Filename =>
+                         +GNATCOLL.Utils.Replace
+                            (S           => File.Display_Full_Name,
+                             Pattern     => Spec_Ext,
+                             Replacement => Impl_Ext));
                end if;
             end;
-         else
+         elsif not Is_Multi_Unit then
             Other_File := Other_File_From_Unit (Unit => Unit);
 
             if Other_File = No_File then
@@ -258,6 +280,16 @@ package body LSP.Ada_Handlers.Other_File_Commands is
             end if;
 
             return Other_File;
+         else
+            Success := False;
+            Error_Msg :=
+              VSS.Strings.Conversions.To_Virtual_String
+                ("Could not find other file for '"
+                 & File.Display_Base_Name
+                 & "': this is a multi-unit file, containing both "
+                 & "the package's specification and its body.");
+
+            return GNATCOLL.VFS.No_File;
          end if;
       end Get_Other_File;
 
