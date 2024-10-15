@@ -1,0 +1,6 @@
+--  Include a project that does not exist so that
+--  it fails to load in the ALS.
+with "unexisting";
+
+project Default is
+end Default;
