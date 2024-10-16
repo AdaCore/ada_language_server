@@ -10,6 +10,7 @@ import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigPr
 import { adaExtState, logger, mainOutputChannel } from './extension';
 import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
 import {
+    DEFAULT_PROBLEM_MATCHER,
     SimpleTaskDef,
     TASK_PROVE_FILE_PLAIN_NAME,
     TASK_PROVE_LINE_PLAIN_NAME,
@@ -833,7 +834,14 @@ async function sparkProveSubprogram(
         task.name,
         task.source,
         undefined,
-        task.problemMatchers,
+        /**
+         * In some cases the task returned by the API has an empty list of
+         * problem matchers despite being configured with problem matchers in
+         * tasks.json. In that case use the default problem matcher to avoid an
+         * empty problem matcher list which would hide problems from the
+         * Problems view.
+         */
+        task.problemMatchers.length > 0 ? task.problemMatchers : [DEFAULT_PROBLEM_MATCHER],
     );
 
     /**
