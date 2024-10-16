@@ -2,12 +2,13 @@
    LSP requests for testing purposes for the Ada language server in Ada mode.
 """
 
+import os
 from drivers.lsp_types import LSPMessage, URI
 
 # TODO: use a library such as pytest-lsp to support most requests
 
 
-def initialize(pid=12345, workspacefolder="."):
+def initialize(workspacefolder="."):
     """This mimics what vs code sends at the moment"""
     return LSPMessage(
         {
@@ -116,7 +117,7 @@ def initialize(pid=12345, workspacefolder="."):
                         "workspaceFolders": True,
                     },
                 },
-                "processId": pid,
+                "processId": os.getpid(),
                 "trace": "off",
                 "workspaceFolders": [
                     {"name": "ada_language_server", "uri": workspacefolder}
