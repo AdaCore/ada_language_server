@@ -858,7 +858,19 @@
                 },
                 {
                     "command": "ada.subprogramBox",
-                    "when": "ADA_PROJECT_CONTEXT"
+                    "when": "editorLangId == ada"
+                }
+            ],
+            "editor/context": [
+                {
+                    "command": "ada.otherFile",
+                    "group": "ada",
+                    "when": "editorLangId == ada"
+                },
+                {
+                    "command": "ada.subprogramBox",
+                    "group": "ada",
+                    "when": "editorLangId == ada"
                 }
             ],
             "editor/title/run": [
