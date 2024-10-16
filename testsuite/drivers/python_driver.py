@@ -1,4 +1,3 @@
-import glob
 import os
 
 from e3.testsuite.result import TestStatus
@@ -11,7 +10,7 @@ import importlib.util
 from drivers.lsp_python_driver import run_simple_test
 
 
-class JsonTestDriver(ALSTestDriver):
+class PythonTestDriver(ALSTestDriver):
     """Each test should have:
     - a test.yaml containing
           title: '<test name>'
@@ -54,34 +53,3 @@ class JsonTestDriver(ALSTestDriver):
 
             self.result.set_status(status)
             self.push_result()
-
-            # Stop processing, do not look for .json files
-            return
-
-        for json in glob.glob(os.path.join(wd, "*.json")):
-            cmd = [self.env.tester_run, json]
-            if self.env.options.format:
-                cmd.append("--format=%s" % self.env.options.format)
-
-            if self.env.main_options.debug:
-                cmd.append("--debug")
-
-            process = self.run_and_log(
-                cmd,
-                cwd=wd,
-                env={
-                    "ALS": self.env.als,
-                    "ALS_HOME": self.env.als_home,
-                    "ALS_WAIT_FACTOR": str(self.env.wait_factor),
-                    "PYTHON": sys.executable
-                },
-                ignore_environ=False,
-            )
-
-            if process.status:
-                # Nonzero status?
-                status = TestStatus.FAIL
-                break
-
-        self.result.set_status(status)
-        self.push_result()
