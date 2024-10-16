@@ -295,13 +295,12 @@ def run_simple_test(test_function, working_dir) -> list[str]:
         lsp.send(initialized())
         lsp.send(didChangeConfiguration())
         test_function(lsp, working_dir)
-        lsp.shutdown()
-        return lsp.errors
     except Exception as e:
         lsp.errors += [str(e)]
         # If the exception is an AssertionError, no need for the traceback
         if not isinstance(e, ResponseAssertionError):
             lsp.errors.append(traceback.format_exc())
+    finally:
         lsp.shutdown()
         return lsp.errors
 
