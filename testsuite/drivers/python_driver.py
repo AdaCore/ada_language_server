@@ -7,13 +7,14 @@ from drivers import ALSTestDriver
 import inspect
 import importlib.util
 
-from drivers.lsp_python_driver import run_simple_test
+from drivers.lsp_python_driver import set_debug_mode, set_wait_factor
 
 
 class PythonTestDriver(ALSTestDriver):
     """Each test should have:
     - a test.yaml containing
           title: '<test name>'
+          driver: python
 
     - a number of test drivers, in .json files.
     """
@@ -27,6 +28,16 @@ class PythonTestDriver(ALSTestDriver):
         wd = self.test_env["working_dir"]
 
         status = TestStatus.PASS
+
+        os.environ["ALS"] = self.env.als
+        os.environ["ALS_HOME"] = self.env.als_home
+
+        if self.env.main_options.debug:
+            set_debug_mode(True)
+
+        if self.env.wait_factor:
+            set_wait_factor(self.env.wait_factor)
+
 
         # If there is a "test.py", evaluate it
         if os.path.exists(os.path.join(wd, "test.py")):

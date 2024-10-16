@@ -29,36 +29,16 @@ class JsonTestDriver(ALSTestDriver):
 
         status = TestStatus.PASS
 
-        # If there is a "test.py", evaluate it
-        if os.path.exists(os.path.join(wd, "test.py")):
-            # Load test.py as a module
-            python_file = os.path.join(wd, "test.py")
-            spec = importlib.util.spec_from_file_location("module.name", python_file)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-
-            # Look for functions with the decorator @simple_test and run them
-            errors = [
-                f"no function with @simple_test or @complex_test found in {python_file}"
-            ]
-
-            for _, obj in inspect.getmembers(module):
-                if inspect.isfunction(obj) and (
-                    hasattr(obj, "simple_test") or hasattr(obj, "complex_test")
-                ):
-                    errors = obj(wd)
-
-            if len(errors) > 0:
-                self.result.log = "\n".join(errors)
-                status = TestStatus.FAIL
-
-            self.result.set_status(status)
+        # Safety check, make sure we're not inavertently using the wrong
+        # driver.
+        json_files = glob.glob(os.path.join(wd, "*.json"))
+        if not json_files:
+            self.result.out = "No JSON files found in %s" % wd
+            self.result.set_status(TestStatus.FAIL)
             self.push_result()
-
-            # Stop processing, do not look for .json files
             return
 
-        for json in glob.glob(os.path.join(wd, "*.json")):
+        for json in json_files:
             cmd = [self.env.tester_run, json]
             if self.env.options.format:
                 cmd.append("--format=%s" % self.env.options.format)

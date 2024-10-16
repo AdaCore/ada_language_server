@@ -64,14 +64,34 @@ import traceback
 #        # and the initialize/initialized/didChangeConfiguration requests
 #        # have been sent by the framework.
 
-RLIMIT_SECONDS = 10.0
+
+# Global configuration options
+# Time limit for the test globally
+RLIMIT_SECONDS = 60.0
+# Timeout for a response to a request
+RESPONSE_TIMEOUT = 2.0
+DEBUG_MODE = False
+
+
+def set_debug_mode(mode : bool = True):
+    """Set the debug mode."""
+    global DEBUG_MODE
+    DEBUG_MODE = mode
+
+
+def set_wait_factor(factor : float):
+    """Set the wait factor."""
+    global RLIMIT_SECONDS
+    global RESPONSE_TIMEOUT
+    RLIMIT_SECONDS = RLIMIT_SECONDS * factor
+    RESPONSE_TIMEOUT = RESPONSE_TIMEOUT * factor
 
 
 class LSP(object):
 
     def __init__(
         self,
-        cl: str | list[str] = "ada_language_server",
+        cl: str | list[str] | None = "ada_language_server",
         working_dir: str = ".",
         env: dict | None = None
     ):
@@ -82,6 +102,10 @@ class LSP(object):
 
         if env is not None:
             env = os.environ.copy() | env
+
+        if cl is None:
+            cl = os.environ.get("ALS", "ada_language_server")
+
         # Launch the lsp server, with pipes ready for input/output
         self.process = subprocess.Popen(
             cl,
@@ -106,10 +130,7 @@ class LSP(object):
         # Launch a task that will receive messages from the LSP server
         # and store them in a queue
         self.task = threading.Thread(target=self.receive_task)
-        self.task.start()
-
         self.k_task = threading.Thread(target=self.kill_task)
-        self.k_task.start()
 
         # Error messages encountered
         self.errors = []
@@ -117,21 +138,32 @@ class LSP(object):
         # A list of bytes containing everything we sent to the server
         self.replay = []
 
+        # Start the tasks after all the attributes have been declared
+        self.task.start()
+        self.k_task.start()
+
+        # If we are in debug mode, insert a debug point
+        if DEBUG_MODE:
+            self.debug_here()
+
+
     def kill_task(self):
         while True:
             time.sleep(0.2)
             now = time.time()
 
-            # If we have reached the time limit, kill the process
-            if now > self.kill_me_at:
-                self.errors.append("rlimit time limit reached")
-                self.process.kill()
-                break
+            # If we have reached the time limit, kill the process,
+            # unless we are debugging.
+            if not DEBUG_MODE:
+                if now > self.kill_me_at:
+                    self.errors.append("rlimit time limit reached")
+                    self.process.kill()
+                    break
 
             # If we have received a license to kill, check if it is time
             # to kill the process!
             if self.license_to_kill is not None:
-                if now - self.license_to_kill > 2.0:
+                if now - self.license_to_kill > RESPONSE_TIMEOUT:
                     self.process.kill()
                     break
 
@@ -163,7 +195,7 @@ class LSP(object):
             time.sleep(0.01)
 
     def send(
-        self, message: LSPMessage, expect_response=True, timeout: float = 2.0
+        self, message: LSPMessage, expect_response=True
     ) -> LSPResponse | None:
         """Send a message to the LSP server.
         If expect_response is True, wait for a response for at most timeout seconds.
@@ -178,7 +210,7 @@ class LSP(object):
         start_time = time.time()
 
         if expect_response:
-            while time.time() - start_time <= timeout:
+            while time.time() - start_time <= RESPONSE_TIMEOUT:
                 # Check if there is something in the queue
                 if self.queue.empty():
                     time.sleep(0.1)
@@ -190,7 +222,7 @@ class LSP(object):
             return LSPResponse(
                 {
                     "error": f"response to {message.id} ({message.method})"
-                    " not received in {timeout} seconds"
+                    f" not received in {RESPONSE_TIMEOUT} seconds"
                 }
             )
 
@@ -201,7 +233,7 @@ class LSP(object):
     def debug_here(self):
         """Insert a debug point in the test."""
         print("## Debug point reached. Attach with:", file=sys.stderr)
-        print(f"    gdb --pid={self.process.pid}", file=sys.stderr)
+        print(f"    gdb -p {self.process.pid}", file=sys.stderr)
         print("", file=sys.stderr)
         print("## Press Enter to continue", file=sys.stderr)
         input()

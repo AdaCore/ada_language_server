@@ -78,7 +78,7 @@ class LSPResponse(object):
         for f in fields:
             if f not in value:
                 raise ResponseAssertionError(
-                    self._line_info() + f"Field {field} not found"
+                    self._line_info() + f"Field {field} not found in {value}"
                 )
             value = value.get(f)
         if value != expected:
