@@ -98,7 +98,7 @@ package body Tester.Tests is
    function Find_Matching_Request
      (Request      : GNATCOLL.JSON.JSON_Value;
       Search_Array : GNATCOLL.JSON.JSON_Array;
-      Request_ID   : out Integer)
+      Request_ID   : out Unbounded_String)
       return GNATCOLL.JSON.JSON_Value;
    --  Search for the matching Request in Search_Array. Return JSON_Null if
    --  Request was not matched.
@@ -930,9 +930,9 @@ package body Tester.Tests is
             for J in 1 .. GNATCOLL.JSON.Length (R) loop
                --  For each request, try to find the request with the same ID
                declare
-                  Expected    : constant GNATCOLL.JSON.JSON_Value :=
+                  Expected         : constant GNATCOLL.JSON.JSON_Value :=
                     GNATCOLL.JSON.Get (R, J);
-                  Expected_ID : Integer;
+                  Expected_ID      : Unbounded_String;
                   Matching_Request : constant GNATCOLL.JSON.JSON_Value :=
                     Find_Matching_Request
                       (Request      => Expected,
@@ -947,11 +947,11 @@ package body Tester.Tests is
                         Minimal => Minimal,
                         Result  => Result);
                   else
-                     if Expected_ID /= -1 then
+                     if Expected_ID = Null_Unbounded_String then
                         --  Alert the user we failed to find the request
                         Result.Append
                           ("Failed to find result for request:"
-                           & Expected_ID'Image);
+                           & Expected_ID);
                         Result.Append (Ada.Characters.Latin_1.LF);
                         Result.Append
                           ("Either the result was never received or the id "
@@ -982,26 +982,44 @@ package body Tester.Tests is
    function Find_Matching_Request
      (Request      : GNATCOLL.JSON.JSON_Value;
       Search_Array : GNATCOLL.JSON.JSON_Array;
-      Request_ID   : out Integer)
+      Request_ID   : out Unbounded_String)
       return GNATCOLL.JSON.JSON_Value
    is
-      function Get_ID (Value : GNATCOLL.JSON.JSON_Value) return Integer;
+      function Get_ID
+        (Value : GNATCOLL.JSON.JSON_Value) return Unbounded_String;
 
       ------------
       -- Get_ID --
       ------------
 
-      function Get_ID (Value : GNATCOLL.JSON.JSON_Value) return Integer is
+      function Get_ID
+        (Value : GNATCOLL.JSON.JSON_Value) return Unbounded_String is
       begin
          if Value.Kind = JSON_Object_Type and then Value.Has_Field ("id") then
-            return Value.Get ("id");
+            declare
+               ID : constant GNATCOLL.JSON.JSON_Value := Value.Get ("id");
+            begin
+               if ID.Kind = JSON_Int_Type then
+                  declare
+                     ID_Value : constant Integer := Value.Get ("id");
+                  begin
+                     return To_Unbounded_String (ID_Value'Image);
+                  end;
+               elsif ID.Kind = JSON_String_Type then
+                  declare
+                     ID_Value : constant String := Value.Get ("id");
+                  begin
+                     return To_Unbounded_String (ID_Value);
+                  end;
+               end if;
+            end;
          end if;
-         return -1;
+         return Null_Unbounded_String;
       end Get_ID;
 
    begin
       Request_ID := Get_ID (Request);
-      if Request_ID = -1 then
+      if Request_ID = Null_Unbounded_String then
          --  No ID, so left was not a request object
          return GNATCOLL.JSON.JSON_Null;
       end if;
