@@ -1,14 +1,10 @@
 import glob
 import os
+import sys
 
 from e3.testsuite.result import TestStatus
 
 from drivers import ALSTestDriver
-
-import inspect
-import importlib.util
-
-from drivers.lsp_python_driver import run_simple_test
 
 
 class JsonTestDriver(ALSTestDriver):
@@ -53,7 +49,7 @@ class JsonTestDriver(ALSTestDriver):
                     "ALS": self.env.als,
                     "ALS_HOME": self.env.als_home,
                     "ALS_WAIT_FACTOR": str(self.env.wait_factor),
-                    "PYTHON": sys.executable
+                    "PYTHON": sys.executable,
                 },
                 ignore_environ=False,
             )
