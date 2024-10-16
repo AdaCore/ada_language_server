@@ -116,6 +116,8 @@ class LSP(object):
             env=env,
         )
 
+        self.wd = working_dir
+
         # Kill the server when we reach this time
         self.kill_me_at = time.time() + RLIMIT_SECONDS * (
             1 + os.environ.get("ALS_WAIT_FACTOR", 0))
@@ -177,6 +179,9 @@ class LSP(object):
             if not header.startswith("Content-Length:"):
                 continue
             length = int(header[len("Content-Length:"):])
+
+            # TODO: Add support for "Content-Type" header
+
             # Read the JSON message
             # (adding +2 to account of \r\n)
             content = self.process.stdout.read(length + 2).decode("utf-8")
@@ -246,8 +251,22 @@ class LSP(object):
         # Set the license to kill
         self.license_to_kill = time.time()
 
+        if not self.errors:
+            return
+
+        # If errors were found, capture a replay file.
+        # Compute the replay dir based on this file
+        replay_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "replays"
+        )
+        # Create the directory if it doesn't exist
+        os.makedirs(replay_dir, exist_ok=True)
+        replay_file = os.path.join(replay_dir, os.path.basename(self.wd) + "_replay.txt")
+        self.errors.append(f"Replay file written to {replay_file}")
+
         # Write a "replay.txt" replay file
-        with open("/tmp/replay.txt", "wb") as f:
+        with open(replay_file, "wb") as f:
             for message in self.replay:
                 f.write(message)
 
@@ -279,12 +298,12 @@ def run_simple_test(test_function, working_dir) -> list[str]:
         lsp.shutdown()
         return lsp.errors
     except Exception as e:
-        lsp.shutdown()
-        errors = [str(e)]
+        lsp.errors += [str(e)]
         # If the exception is an AssertionError, no need for the traceback
         if not isinstance(e, ResponseAssertionError):
-            errors.append(traceback.format_exc())
-        return lsp.errors + errors
+            lsp.errors.append(traceback.format_exc())
+        lsp.shutdown()
+        return lsp.errors
 
 
 # Make run_simple_test available as a decorator
