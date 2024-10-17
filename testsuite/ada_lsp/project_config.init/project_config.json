@@ -45,6 +45,16 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
             "id": 2,
             "method": "workspace/executeCommand",
             "params": {

@@ -190,6 +190,8 @@ package body LSP.Ada_Handlers.Project_Loading is
             Tracer.Trace
               ("'alr' is not available on PATH, cannot determine project from Alire."
                & " Falling back to other methods for finding a project file.");
+            --  TODO consider reporting this situation to the client as a
+            --  diagnostic instead of just a log trace
          elsif not Alire_Errors.Is_Empty then
             Tracer.Trace_Text ("Encountered errors: " & Alire_Errors);
          else
@@ -200,6 +202,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       --  If still haven't found a project, try to find a unique project at the root
       if Project_File.Is_Empty then
+         Tracer.Trace ("Looking for a unique project at the root");
          declare
             Files : GNATCOLL.VFS.File_Array_Access :=
                Self.Client.Root_Directory.Read_Dir (GNATCOLL.VFS.Files_Only);
@@ -209,7 +212,7 @@ package body LSP.Ada_Handlers.Project_Loading is
                if X.Has_Suffix (".gpr") then
                   GPRs_Found := GPRs_Found + 1;
                   exit when GPRs_Found > 1;
-                  Found := X; -- LSP.Utils.To_Virtual_String (X);
+                  Found := X;
                end if;
             end loop;
 
@@ -220,6 +223,10 @@ package body LSP.Ada_Handlers.Project_Loading is
 
                --  Report how we found the project
                Self.Project_Status.Set_Project_Type (LSP.Ada_Project_Loading.Single_Project_Found);
+
+               Tracer.Trace_Text ("Found unique project: " & Project_File);
+            else
+               Tracer.Trace ("Found " & GPRs_Found'Image & " projects at the root");
             end if;
          end;
       end if;
