@@ -2,9 +2,8 @@ import glob
 import os
 import sys
 
-from e3.testsuite.result import TestStatus
-
 from drivers import ALSTestDriver
+from e3.testsuite.driver.classic import TestAbortWithFailure
 
 
 class JsonTestDriver(ALSTestDriver):
@@ -15,24 +14,15 @@ class JsonTestDriver(ALSTestDriver):
     - a number of test drivers, in .json files.
     """
 
-    def run(self, previous_values, slot):
-        # Check whether the test should be skipped
-        if self.should_skip():
-            return False
-
+    def run(self):
         # The working directory
         wd = self.test_env["working_dir"]
-
-        status = TestStatus.PASS
 
         # Safety check, make sure we're not inavertently using the wrong
         # driver.
         json_files = glob.glob(os.path.join(wd, "*.json"))
         if not json_files:
-            self.result.out = "No JSON files found in %s" % wd
-            self.result.set_status(TestStatus.FAIL)
-            self.push_result()
-            return
+            raise TestAbortWithFailure("No JSON files found in %s" % wd)
 
         for json in json_files:
             cmd = [self.env.tester_run, json]
@@ -42,7 +32,7 @@ class JsonTestDriver(ALSTestDriver):
             if self.env.main_options.debug:
                 cmd.append("--debug")
 
-            process = self.run_and_log(
+            self.shell(
                 cmd,
                 cwd=wd,
                 env={
@@ -53,11 +43,3 @@ class JsonTestDriver(ALSTestDriver):
                 },
                 ignore_environ=False,
             )
-
-            if process.status:
-                # Nonzero status?
-                status = TestStatus.FAIL
-                break
-
-        self.result.set_status(status)
-        self.push_result()

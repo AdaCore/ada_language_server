@@ -1,9 +1,13 @@
 """test that callHierarchy/incomingCalls works for dispatching calls"""
 
-from drivers.lsp_python_driver import simple_test
-from drivers.lsp_ada_requests import didOpen_from_disk, prepareCallHierarchy, incomingCalls
-from drivers.lsp_types import LSPMessage, URI
 import os
+
+from drivers.lsp_ada_requests import (
+    didOpen_from_disk,
+    incomingCalls,
+    prepareCallHierarchy,
+)
+from drivers.lsp_python_driver import simple_test
 
 
 @simple_test
@@ -19,7 +23,7 @@ def test_called_by(lsp, wd):
     response = lsp.send(prepareCallHierarchy(main_adb, 7, 4))
 
     # Expect these locations
-    response.assertLocationsList([("root.ads",5)])
+    response.assertLocationsList([("root.ads", 5)])
 
     # Now send the callHierarchy/incomingCalls request
     response = lsp.send(incomingCalls(root_ads, 5, 14))
