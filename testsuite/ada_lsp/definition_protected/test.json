@@ -1,0 +1,263 @@
+[
+   {
+      "comment": [
+         "Test goto defintion on an entry in a protected type."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{show_protected_objects_entries.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Ada.Text_IO; use Ada.Text_IO;\n\nprocedure Show_Protected_Objects_Entries is\n\n   protected Obj is\n      procedure Set (V : Integer);\n      entry Get (V : out Integer);\n   private\n      Local  : Integer;\n      Is_Set : Boolean := False;\n   end Obj;\n\n   protected body Obj is\n      procedure Set (V : Integer) is\n      begin\n         Local := V;\n         Is_Set := True;\n      end Set;\n\n      entry Get (V : out Integer)\n        when Is_Set is\n         --  Entry is blocked until the\n         --  condition is true. The barrier\n         --  is evaluated at call of entries\n         --  and at exits of procedures and\n         --  entries. The calling task sleeps\n         --  until the barrier is released.\n      begin\n         V := Local;\n         Is_Set := False;\n      end Get;\n   end Obj;\n\n   N : Integer := 0;\n\n   task T is\n      entry Seize;\n   end T;\n\n   task body T is\n   begin\n\n      accept Seize;\n      Put_Line\n        (\"Task T will delay for 4 seconds...\");\n      delay 4.0;\n\n      accept Seize;\n      Put_Line\n        (\"Task T will set Obj...\");\n      Obj.Set (5);\n\n      accept Seize;\n      Put_Line\n        (\"Task T has just set Obj...\");\n   end T;\nbegin\n   Put_Line\n     (\"Main application will get Obj...\");\n   Obj.Get (N);\n\n   Put_Line\n     (\"Main application has retrieved Obj...\");\n   Put_Line\n     (\"Number is: \" & Integer'Image (N));\n\nend Show_Protected_Objects_Entries;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{show_protected_objects_entries.adb}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 12
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": {
+                  "uri": "$URI{show_protected_objects_entries.adb}",
+                  "range": {
+                     "start": {
+                        "line": 19,
+                        "character": 12
+                     },
+                     "end": {
+                        "line": 19,
+                        "character": 15
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{show_protected_objects_entries.adb}"
+               },
+               "position": {
+                  "line": 19,
+                  "character": 12
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 9,
+               "result": {
+                  "uri": "$URI{show_protected_objects_entries.adb}",
+                  "range": {
+                     "start": {
+                        "line": 6,
+                        "character": 12
+                     },
+                     "end": {
+                        "line": 6,
+                        "character": 15
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{show_protected_objects_entries.adb}"
+               },
+               "position": {
+                  "line": 36,
+                  "character": 12
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 12,
+               "result": [
+                  {
+                     "uri": "$URI{show_protected_objects_entries.adb}",
+                     "range": {
+                        "start": {
+                           "line": 42,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 42,
+                           "character": 18
+                        }
+                     }
+                  },
+                  {
+                     "uri": "$URI{show_protected_objects_entries.adb}",
+                     "range": {
+                        "start": {
+                           "line": 47,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 47,
+                           "character": 18
+                        }
+                     }
+                  },
+                  {
+                     "uri": "$URI{show_protected_objects_entries.adb}",
+                     "range": {
+                        "start": {
+                           "line": 52,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 52,
+                           "character": 18
+                        }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 18,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{show_protected_objects_entries.adb}"
+               },
+               "position": {
+                  "line": 47,
+                  "character": 13
+               },
+               "alsDisplayMethodAncestryOnNavigation": "Usage_And_Abstract_Only"
+            }
+         },
+         "wait": [
+            {
+               "id": 18,
+               "result": {
+                  "uri": "$URI{show_protected_objects_entries.adb}",
+                  "range": {
+                     "start": {
+                        "line": 36,
+                        "character": 12
+                     },
+                     "end": {
+                        "line": 36,
+                        "character": 17
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{show_protected_objects_entries.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 21,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 21,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
