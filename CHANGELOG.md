@@ -5,6 +5,9 @@ section below it for the last release. -->
 ## \<next>
 
 * Create commands for opening the project file and the log file
+
+## 25.0.20241014
+
 * Fix the removal of old log files in the `~/.als` directory
 * Fix the `Ada: Go to other file` command for child packages
 * Fix various project loading issues after significant changes in the GPR2 project loading API
