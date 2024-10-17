@@ -1,0 +1,3 @@
+title: 'scenario_variables'
+control:
+  - [XFAIL, "True", "bug in loading projects with scenario variables eng/ide/ada_language_server#1479"]
