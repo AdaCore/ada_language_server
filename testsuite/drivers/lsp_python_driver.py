@@ -120,7 +120,7 @@ class LSP(object):
 
         # Kill the server when we reach this time
         self.kill_me_at = time.time() + int(
-            RLIMIT_SECONDS * os.environ.get("ALS_WAIT_FACTOR", 1.0)
+            RLIMIT_SECONDS * float(os.environ.get("ALS_WAIT_FACTOR", "1.0"))
         )
 
         # This contains either None or a timestamp. If a timestamp,
