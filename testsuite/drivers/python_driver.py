@@ -1,13 +1,10 @@
+import importlib.util
+import inspect
 import os
 
-from e3.testsuite.result import TestStatus
-
 from drivers import ALSTestDriver
-
-import inspect
-import importlib.util
-
 from drivers.lsp_python_driver import set_debug_mode, set_wait_factor
+from e3.testsuite.driver.classic import TestAbortWithFailure
 
 
 class PythonTestDriver(ALSTestDriver):
@@ -19,15 +16,9 @@ class PythonTestDriver(ALSTestDriver):
     - a number of test drivers, in .json files.
     """
 
-    def run(self, previous_values, slot):
-        # Check whether the test should be skipped
-        if self.should_skip():
-            return False
-
+    def run(self):
         # The working directory
         wd = self.test_env["working_dir"]
-
-        status = TestStatus.PASS
 
         os.environ["ALS"] = self.env.als
         os.environ["ALS_HOME"] = self.env.als_home
@@ -37,7 +28,6 @@ class PythonTestDriver(ALSTestDriver):
 
         if self.env.wait_factor:
             set_wait_factor(self.env.wait_factor)
-
 
         # If there is a "test.py", evaluate it
         if os.path.exists(os.path.join(wd, "test.py")):
@@ -59,8 +49,7 @@ class PythonTestDriver(ALSTestDriver):
                     errors = obj(wd)
 
             if len(errors) > 0:
-                self.result.log = "\n".join(errors)
-                status = TestStatus.FAIL
-
-            self.result.set_status(status)
-            self.push_result()
+                self.result.log += "\n".join(errors)
+                raise TestAbortWithFailure("Test returned errors")
+        else:
+            raise TestAbortWithFailure("No test.py found in %s" % wd)

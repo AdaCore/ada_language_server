@@ -3,5 +3,5 @@
 driver: shell
 title: 'settings_docs'
 # Test only on Linux, since it depends on `bash` and `diff`
-skip:
+control:
     - ['SKIP', 'env.build.os.name != "linux"']
