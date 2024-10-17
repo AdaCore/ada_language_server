@@ -18,6 +18,7 @@
 with Ada.Characters.Latin_1;
 with Ada.Strings.Unbounded;
 with Ada.Strings.UTF_Encoding;
+with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
@@ -3157,8 +3158,35 @@ package body LSP.Ada_Handlers is
    begin
       Value.Visit_Server_Receiver (Self);
    exception
+      when E : Libadalang.Common.Property_Error =>
+         --  Many LAL queries can raise Property_Error because sources can be
+         --  inconsistent while they're being edited. We don't want those
+         --  errors to be visible because they would create a lot of noise in
+         --  the UX. But we still want to get a chance to investigate them when
+         --  they indicate real problems, so we log them to the trace file.
+         Self.Tracer.Trace_Exception
+           (E,
+            VSS.Strings.Conversions.To_Virtual_String
+              ("Exception while handling " & Ada.Tags.Expanded_Name (Value'Tag)));
+
       when E : others =>
-         Self.Tracer.Trace_Exception (E, "On_Server_Notification");
+         --  Errors other than Property_Error indicate real problems to
+         --  investigate. But in the current state of the project these occur
+         --  often and can create a lot of noise to the User.
+         --
+         --  So we choose not to report them to the User and only log them in
+         --  the trace file for investigation when the problem is visible to
+         --  the User by other means.
+         --
+         --  TODO consider sending errors to the client in testing campaigns to
+         --  capture more issues
+         --  TODO when the ALS is more stable and fewer errors occur, consider
+         --  sending these errors through the LSP window/logMessage
+         --  notification
+         Self.Tracer.Trace_Exception
+           (E,
+            VSS.Strings.Conversions.To_Virtual_String
+              ("Exception while handling " & Ada.Tags.Expanded_Name (Value'Tag)));
    end On_Server_Notification;
 
    -----------------------
@@ -3193,7 +3221,18 @@ package body LSP.Ada_Handlers is
       end if;
 
    exception
-      when Libadalang.Common.Property_Error =>
+      when E : Libadalang.Common.Property_Error =>
+         --  Many LAL queries can raise Property_Error because sources can be
+         --  inconsistent while they're being edited. We don't want those
+         --  errors to be visible because they would create a lot of noise in
+         --  the UX. But we still want to get a chance to investigate them when
+         --  they indicate real problems, so we log them to the trace file.
+         Self.Tracer.Trace_Exception
+           (E,
+            VSS.Strings.Conversions.To_Virtual_String
+              ("Exception while handling " & Ada.Tags.Expanded_Name (Value'Tag)));
+
+         --  Send an empty response to the client to mask the error.
          declare
             R : LSP.Ada_Empty_Handlers.Empty_Message_Handler (Self.Sender);
          begin
@@ -3202,13 +3241,18 @@ package body LSP.Ada_Handlers is
 
       when E : others =>
          declare
+            Msg_Prefix : constant String := "Exception while handling "
+               & Ada.Tags.Expanded_Name (Value'Tag);
             Message : constant VSS.Strings.Virtual_String :=
               VSS.Strings.Conversions.To_Virtual_String
-                ("Exception: " & Ada.Exceptions.Exception_Information (E));
+                (Msg_Prefix & Ada.Characters.Latin_1.LF
+                 & Ada.Exceptions.Exception_Information (E));
 
          begin
-            Self.Tracer.Trace_Exception (E, "On_Server_Request");
+            Self.Tracer.Trace_Exception
+              (E, VSS.Strings.Conversions.To_Virtual_String (Msg_Prefix));
 
+            --  Send an error response to the client.
             Self.Sender.On_Error_Response
               (Value.Id,
                (code    => LSP.Enumerations.InternalError,
