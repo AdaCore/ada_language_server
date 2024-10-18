@@ -8,7 +8,7 @@ from drivers.lsp_types import LSPMessage, URI
 # TODO: use a library such as pytest-lsp to support most requests
 
 
-def initialize(workspacefolder="."):
+def initialize(workspacefolder=URI(".")):
     """This mimics what vs code sends at the moment"""
     return LSPMessage(
         {
