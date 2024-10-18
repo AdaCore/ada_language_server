@@ -170,23 +170,28 @@ package body LSP.Ada_Project_Loading is
          use GPR2.Message;
       begin
          for Msg of GPR2_Messages loop
-            if Msg.Level in GPR2.Message.Warning .. GPR2.Message.Error then
+            --  Display a diagnostic only if we are dealing with an error or
+            --  a warning, with a non-empty message attacged to it.
+            if Msg.Level in GPR2.Message.Warning .. GPR2.Message.Error
+              and then Msg.Message /= ""
+            then
                declare
                   Sloc : constant GPR2.Source_Reference.Object :=
                     GPR2.Message.Sloc (Msg);
                   File : constant GPR2.Path_Name.Object :=
-                    (if Sloc.Is_Defined then
-                        GPR2.Path_Name.Create_File
-                       (GPR2.Filename_Type (Sloc.Filename))
-                     else
-                        GPR2.Path_Name.Undefined);
+                    (if Sloc.Is_Defined
+                     then
+                       GPR2.Path_Name.Create_File
+                         (GPR2.Filename_Type (Sloc.Filename))
+                     else GPR2.Path_Name.Undefined);
                begin
                   --  Display a diagnostic for GPR2 messages only if the file
                   --  attached to the message is defined.
                   if File.Is_Defined and then File.Has_Value then
                      Parent_Diagnostic.relatedInformation.Append
                        (LSP.Structures.DiagnosticRelatedInformation'
-                          (location => LSP.Structures.Location'
+                          (location =>
+                             LSP.Structures.Location'
                                (uri     => LSP.Utils.To_URI (File),
                                 a_range => LSP.Utils.To_Range (Sloc),
                                 others  => <>),
