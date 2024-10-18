@@ -164,9 +164,11 @@ JSON file preprocessing
 -----------------------
 
 Before execution Tester does some text substitution in each string literal.
- * Each substring `${NAME}` is replaced by an environment variable with
+* Each substring `${NAME}` is replaced by an environment variable with
 given NAME. The `DIR` environment variable points to test's directory.
 
- * Each substring `$URI{x}` is replaced by corresponding URI `file:///test_dir/x`.
-where `x` should be path relative to the directory where `.json` file is located.
+* Each substring `$URI{x}` is replaced by corresponding URI `file:///test_dir/x`.
+where `x` should be a path relative to the directory where the `.json` file is located.
 
+* Each substring `$FILE{x}` is replaced by corresponding file path `/test_dir/x`.
+where `x` should be a path relative to the directory where the `.json` file is located.
