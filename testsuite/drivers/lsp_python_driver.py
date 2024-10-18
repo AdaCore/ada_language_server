@@ -73,13 +73,13 @@ RESPONSE_TIMEOUT = 2.0
 DEBUG_MODE = False
 
 
-def set_debug_mode(mode : bool = True):
+def set_debug_mode(mode: bool = True):
     """Set the debug mode."""
     global DEBUG_MODE
     DEBUG_MODE = mode
 
 
-def set_wait_factor(factor : float):
+def set_wait_factor(factor: float):
     """Set the wait factor."""
     global RLIMIT_SECONDS
     global RESPONSE_TIMEOUT
@@ -93,7 +93,7 @@ class LSP(object):
         self,
         cl: str | list[str] | None = "ada_language_server",
         working_dir: str = ".",
-        env: dict | None = None
+        env: dict | None = None,
     ):
         """Launch an LSP server and provide a way to send messages to it.
         cl is the command line to launch the LSP server.
@@ -119,8 +119,9 @@ class LSP(object):
         self.wd = working_dir
 
         # Kill the server when we reach this time
-        self.kill_me_at = time.time() + RLIMIT_SECONDS * (
-            1 + os.environ.get("ALS_WAIT_FACTOR", 0))
+        self.kill_me_at = time.time() + int(
+            RLIMIT_SECONDS * os.environ.get("ALS_WAIT_FACTOR", 1.0)
+        )
 
         # This contains either None or a timestamp. If a timestamp,
         # then the process should be killed after 2 seconds after this.
@@ -147,7 +148,6 @@ class LSP(object):
         # If we are in debug mode, insert a debug point
         if DEBUG_MODE:
             self.debug_here()
-
 
     def kill_task(self):
         while True:
@@ -178,7 +178,7 @@ class LSP(object):
                 break
             if not header.startswith("Content-Length:"):
                 continue
-            length = int(header[len("Content-Length:"):])
+            length = int(header[len("Content-Length:") :])
 
             # TODO: Add support for "Content-Type" header
 
@@ -199,9 +199,7 @@ class LSP(object):
 
             time.sleep(0.01)
 
-    def send(
-        self, message: LSPMessage, expect_response=True
-    ) -> LSPResponse | None:
+    def send(self, message: LSPMessage, expect_response=True) -> LSPResponse | None:
         """Send a message to the LSP server.
         If expect_response is True, wait for a response for at most timeout seconds.
         Return the response if any, or None if no response
@@ -257,12 +255,13 @@ class LSP(object):
         # If errors were found, capture a replay file.
         # Compute the replay dir based on this file
         replay_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "replays"
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "replays"
         )
         # Create the directory if it doesn't exist
         os.makedirs(replay_dir, exist_ok=True)
-        replay_file = os.path.join(replay_dir, os.path.basename(self.wd) + "_replay.txt")
+        replay_file = os.path.join(
+            replay_dir, os.path.basename(self.wd) + "_replay.txt"
+        )
         self.errors.append(f"Replay file written to {replay_file}")
 
         # Write a "replay.txt" replay file
