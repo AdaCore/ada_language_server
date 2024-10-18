@@ -9,6 +9,7 @@ from distutils.spawn import find_executable
 from drivers.basic import JsonTestDriver
 from drivers.gnatcov import GNATcov
 from drivers.shell import ShellTestDriver
+from drivers.python_driver import PythonTestDriver
 from e3.testsuite import Testsuite
 
 VALGRIND_OPTIONS = [
@@ -126,7 +127,7 @@ min_diff: on the fly computed diff of the different values
 
     @property
     def test_driver_map(self):
-        return {"ada_lsp": JsonTestDriver, "shell": ShellTestDriver}
+        return {"ada_lsp": JsonTestDriver, "shell": ShellTestDriver, "python": PythonTestDriver}
 
     @property
     def default_driver(self):

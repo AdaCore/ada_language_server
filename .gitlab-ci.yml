@@ -27,7 +27,7 @@ include:
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
     inputs:
       job-name: als-cov
-      anod-args: run test_als_cov_$ACI_TRACK
+      anod-args: run test_als_cov_$ACI_TRACK --latest
       image: systemgtk
       # This job needs to rebuild ALS in coverage mode, so it doesn't need to
       # depend on the build job. The following will get it to run in parallel
