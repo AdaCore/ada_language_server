@@ -1,0 +1,157 @@
+[
+   {
+      "comment": [
+         "This test checks that we do not append any 'auto-import' command to invisible ",
+         "completion items when completing inside with-clauses (e.g: when typing 'with Ada.Text'"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "insertWithClauses": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with B;\n\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Do_N\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 0,
+                  "character": 6
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 13,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "package Bar",
+                        "documentation": "at bar.ads (1:1)",
+                        "filterText": "Bar",
+                        "insertText": "Bar",
+                        "kind": 9,
+                        "label": "Bar (invisible)",
+                        "sortText": "~100&00003Bar"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
