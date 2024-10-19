@@ -1,0 +1,3 @@
+project Default is
+   for Main use ("main_1.adb", "main_2.adb");
+end Default;

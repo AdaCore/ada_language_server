@@ -41,7 +41,7 @@ private
 
    overriding function Priority (Self : Command)
      return LSP.Server_Jobs.Job_Priority
-       is (LSP.Server_Jobs.Low);
+       is (LSP.Server_Jobs.Immediate);
 
    for Command'External_Tag use "als-mains";
 
