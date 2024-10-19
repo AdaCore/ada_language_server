@@ -171,7 +171,7 @@ package body LSP.Ada_Project_Loading is
       begin
          for Msg of GPR2_Messages loop
             --  Display a diagnostic only if we are dealing with an error or
-            --  a warning, with a non-empty message attacged to it.
+            --  a warning, with a non-empty message attached to it.
             if Msg.Level in GPR2.Message.Warning .. GPR2.Message.Error
               and then Msg.Message /= ""
             then
