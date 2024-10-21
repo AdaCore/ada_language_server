@@ -14,7 +14,7 @@ GPR_PROJECT_PATH.prepend = "${CRATE_ROOT}/build"
 
 [[actions]]
 type = "pre-build"
-command = ["bash", "-c", "-x", "source setenv.sh; pip install -r REQUIREMENTS.dev; python manage.py generate"]
+command = ["bash", "-c", "-x", "source setenv.sh; pip install -rrequirements-{github,pypi}.txt && python manage.py generate"]
 
 [[depends-on]]
 gnatcoll = "^24"
