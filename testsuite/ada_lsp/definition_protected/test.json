@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "Test goto defintion on an entry in a protected type."
+         "Test textDocument/definition on protected type's entry."
       ]
    },
    {
