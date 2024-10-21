@@ -127,7 +127,7 @@ class LSPResponse(object):
         with line_number being 1-based.
         """
         if not isinstance(self.from_dict, list):
-            raise AssertionError("The response does not contain a list")
+            raise AssertionError(f"Expected a list, but received: {self.from_dict}")
 
         # Extract the locations from the response
         locations = []
@@ -161,5 +161,10 @@ def URI(filename: str) -> str:
     """Return a URI for the given filename."""
     # Get the absolute path for filename
     abs_path = os.path.abspath(filename)
+    # Replace the backslashes by slashes
+    abs_path = abs_path.replace("\\", "/")
+    # Replace "C:" by "/C%3A" for Windows paths
+    if abs_path[1] == ":":
+        abs_path = "/" + abs_path[0] + "%3A" + abs_path[2:]
     # Convert it to a URI
     return "file://" + abs_path
