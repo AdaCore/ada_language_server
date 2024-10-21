@@ -460,8 +460,8 @@ begin
                  & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;
             begin
                W_Traces_File := Traces_File.Write_File;
-               W_Traces_File.Write (Default_Traces_File_Contents);
-               W_Traces_File.Close;
+               Write (W_Traces_File, Default_Traces_File_Contents);
+               Close (W_Traces_File);
             end;
          end if;
       end if;

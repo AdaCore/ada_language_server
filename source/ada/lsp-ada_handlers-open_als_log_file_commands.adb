@@ -45,15 +45,18 @@ package body LSP.Ada_Handlers.Open_ALS_Log_File_Commands is
    is
       pragma Unreferenced (Response);
 
-      Log_File_Path : constant LSP.Structures.Virtual_String := Handler.Tracer.Location;
-   begin
+      Log_File_Path : constant LSP.Structures.Virtual_String :=
+        Handler.Tracer.Location;
+
       Message : constant LSP.Structures.ShowDocumentParams :=
         (uri       => (Log_File_Path with null record),
          takeFocus => LSP.Constants.True,
          others    => <>);
 
       New_Id : constant LSP.Structures.Integer_Or_Virtual_String :=
-      Handler.Server.Allocate_Request_Id;
+        Handler.Server.Allocate_Request_Id;
+
+   begin
       Handler.Sender.On_ShowDocument_Request (New_Id, Message);
    end Execute;
 
