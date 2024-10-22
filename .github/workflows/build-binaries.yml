@@ -43,20 +43,16 @@ jobs:
       - name: Get GNAT toolchain with alire
         shell: bash
         run: |
-          # alire-project/setup-alire doesn't work for ARM64 Mac OS X for now.
-          # https://github.com/alire-project/setup-alire/pull/74
-          # Also it depends on `engineerd/configurator@v0.0.10` not approved by IT.
-          # https://github.com/alire-project/setup-alire/issues/75
-          # So we fetch Alire with curl then toolchain with Alire.
+          # alire-project/setup-alire works for ARM64 Mac OS X now. Shall we use it?
           if [[ "$RUNNER_ARCH" == ARM64 ]] ; then
-            ZIP=nightly/alr-nightly-bin-aarch64-macos.zip
+            ZIP=v2.0.2/alr-2.0.2-bin-aarch64-${RUNNER_OS}.zip
           else
-            ZIP=v2.0.1/alr-2.0.1-bin-x86_64-${RUNNER_OS}.zip
+            ZIP=v2.0.2/alr-2.0.2-bin-x86_64-${RUNNER_OS}.zip
           fi
           curl -L -O https://github.com/alire-project/alire/releases/download/$ZIP
           unzip $(basename $ZIP)
           bin/alr index --reset-community
-          bin/alr toolchain --select gnat_native^14 gprbuild
+          bin/alr toolchain --select gnat_native gprbuild
           echo $PWD/bin >> $GITHUB_PATH
       - name: Get cross GNAT toolchain (Linux)
         if: ${{ runner.os == 'Linux' }}
