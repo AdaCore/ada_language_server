@@ -48,20 +48,22 @@ package body LSP.Ada_Handlers.Open_Project_File_Commands is
       pragma Unreferenced (Response);
 
       Project_File : constant Virtual_File :=
-         Handler.Project_Status.Get_Project_File;
+        LSP.Ada_Project_Loading.Get_Project_File (Handler.Project_Status);
+
+      URI : constant LSP.Structures.DocumentUri :=
+        (if Project_File.Is_Regular_File
+         then Handler.To_URI (Project_File.Display_Full_Name)
+         else "");
+
+      Message : constant LSP.Structures.ShowDocumentParams :=
+        (uri       => (VSS.Strings.Virtual_String (URI) with null record),
+         takeFocus => LSP.Constants.True,
+         others    => <>);
+
    begin
       if Project_File.Is_Regular_File then
-         URI : constant LSP.Structures.DocumentUri :=
-            Handler.To_URI (Project_File.Display_Full_Name);
-
-         Message : constant LSP.Structures.ShowDocumentParams :=
-         (uri       => (VSS.Strings.Virtual_String (URI) with null record),
-            takeFocus => LSP.Constants.True,
-            others    => <>);
-
-         New_Id : constant LSP.Structures.Integer_Or_Virtual_String :=
-         Handler.Server.Allocate_Request_Id;
-         Handler.Sender.On_ShowDocument_Request (New_Id, Message);
+         Handler.Sender.On_ShowDocument_Request
+           (Handler.Server.Allocate_Request_Id, Message);
       else
          Handler.Sender.On_ShowMessage_Notification (
             (LSP.Enumerations.Error,

@@ -230,6 +230,10 @@ procedure LSP.Ada_Driver is
      LSP.GNATCOLL_Tracers.Create ("ALS.MAIN", From_Config);
    --  Main trace for the LSP.
 
+   Server_Logger_Trace : constant LSP.GNATCOLL_Tracers.Tracer :=
+     LSP.GNATCOLL_Tracers.Create ("ALS.MAIN.LOGGER", Off);
+   --  Trace that logs all the requests/responses parameters.
+
    In_Trace  : constant LSP.GNATCOLL_Tracers.Tracer :=
      LSP.GNATCOLL_Tracers.Create ("ALS.IN", Off);
    Out_Trace : constant LSP.GNATCOLL_Tracers.Tracer :=
@@ -456,8 +460,8 @@ begin
                  & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;
             begin
                W_Traces_File := Traces_File.Write_File;
-               W_Traces_File.Write (Default_Traces_File_Contents);
-               W_Traces_File.Close;
+               Write (W_Traces_File, Default_Traces_File_Contents);
+               Close (W_Traces_File);
             end;
          end if;
       end if;
@@ -499,8 +503,8 @@ begin
       end;
    end if;
 
-   In_Stream.Initialize (Trace_Handle (Server_Trace));
-   Out_Stream.Initialize (Trace_Handle (Server_Trace));
+   In_Stream.Initialize (Trace_Handle (Server_Logger_Trace));
+   Out_Stream.Initialize (Trace_Handle (Server_Logger_Trace));
 
    Tracer.Initialize (Server_Trace, In_Trace, Out_Trace);
    Tracer.Trace ("ALS version: " & $VERSION & " (" & $BUILD_DATE & ")");

@@ -14,9 +14,9 @@ if [[ -z "$NODE_ARCH_PLATFORM" ]]; then
    NODE_PLATFORM=$(node -e "console.log(process.platform)")
    NODE_ARCH=$(node -e "console.log(process.arch)")
    NODE_ARCH_PLATFORM=$NODE_ARCH/$NODE_PLATFORM
-   NAME=$NODE_ARCH-$NODE_PLATFORM
+   NAME=als-$TAG-$NODE_PLATFORM-$NODE_ARCH
 else
-   NAME=${NODE_ARCH_PLATFORM%/*}-${NODE_ARCH_PLATFORM#*/}
+   NAME=als-$TAG-${NODE_ARCH_PLATFORM#*/}-${NODE_ARCH_PLATFORM%/*}
 fi
 
 function release_notes() {
