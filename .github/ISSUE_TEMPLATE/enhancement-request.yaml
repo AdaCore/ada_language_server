@@ -1,7 +1,7 @@
 name: Enhancement Request
 description: Suggest an idea for the Ada Language Server or the Ada & SPARK VS Code extension.
 title: "[Enhancement]: "
-labels: ["bug"]
+labels: ["enhancement"]
 body:
 - type: markdown
   attributes:
