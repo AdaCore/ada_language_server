@@ -136,7 +136,7 @@ The `ada_language_server` relies on [Libadalang](https://github.com/AdaCore/liba
 Most of this computation is done while indexing which will create an internal cache.
 The expected memory size of this cache is around 300Mb per 100k lines of Ada code.
 Furthermore, 450Mb are necessary for the runtime.
-Please note that some Ada structures like generics and tagged types might 
+Please note that some Ada structures like generics and tagged types might
 increase the memory usage. This is also the case when using aggregate projects.
 These measures were taken using both Resident Set Size and [Valgrind massif](https://valgrind.org/docs/manual/ms-manual.html) on Ubuntu 22.04LTS.
 
@@ -496,20 +496,20 @@ Ada Language Server. In order to use it with minimal effort, follow these steps:
 * Install the ada language server and make sure it's in your $PATH.
 * Use your favorite Neovim plugin manager to add the default set of [LSP
   configuration files](https://github.com/neovim/nvim-lspconfig) to Neovim.
-* Enable the Ada Language Server by adding `:lua require('lspconfig').als.setup{}` to
-  your init.vim.
+* Add `require('lspconfig').ada_ls.setup{}` to your init.lua in order to enable
+  the Ada Language Server.
 
 If you would rather not have the ada language server in your path, you can give
 the lsp client an absolute path to the ALS executable:
 
 ```lua
-require('lspconfig').als.setup{ cmd = "/path/to/als/executable" }
+require('lspconfig').ada_ls.setup{ cmd = "/path/to/als/executable" }
 ```
 
 Configuring the language server's settings can be achieved like this:
 
 ```lua
-require('nvim_lsp').als.setup{
+require('lspconfig').ada_ls.setup{
   settings = {
     ada = {
       projectFile = "project.gpr";
