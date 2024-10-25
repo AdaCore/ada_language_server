@@ -35,6 +35,7 @@ pragma Warnings (Off, "unit ""GPR2.Build.Source.Sets"" is not referenced");
 with GPR2.Build.Source.Sets;
 
 with Libadalang.Preprocessing;
+with Libadalang.Project_Provider;
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Documents; use LSP.Ada_Documents;
@@ -349,9 +350,23 @@ package body LSP.Ada_Handlers.Project_Loading is
       end if;
 
       Reload_Implicit_Project_Dirs (Self);
-      C.Load_Project (Self.Project_Tree,
-                      Self.Project_Tree.Root_Project,
-                      "iso-8859-1");
+
+      --  Create a basic GPR2_Provider_And_Projects containing only the
+      --  implicit project and load it.
+      declare
+         Provider : Libadalang.Project_Provider.GPR2_Provider_And_Projects :=
+           (Provider =>
+              Libadalang.Project_Provider.Create_Project_Unit_Provider
+                (Tree    => Self.Project_Tree,
+                 Project => Self.Project_Tree.Root_Project),
+            Projects => <>);
+      begin
+         Provider.Projects.Append (Self.Project_Tree.Root_Project);
+         C.Load_Project
+           (Provider => Provider,
+            Tree     => Self.Project_Tree,
+            Charset  => "iso-8859-1");
+      end;
 
       Update_Project_Predefined_Sources (Self);
 
@@ -373,6 +388,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       Environment     : GPR2.Environment.Object;
       Charset         : VSS.Strings.Virtual_String)
    is
+      use Libadalang.Project_Provider;
       use type VSS.Strings.Virtual_String;
       use type GNATCOLL.VFS.Virtual_File;
 
@@ -384,8 +400,11 @@ package body LSP.Ada_Handlers.Project_Loading is
       Root            : GNATCOLL.VFS.Virtual_File;
 
       procedure Create_Context_For_Non_Aggregate
-        (View : GPR2.Project.View.Object);
+        (View     : GPR2.Project.View.Object;
+         Provider : GPR2_Provider_And_Projects);
       --  Create a new context for the given project view.
+      --  It will use the same LAL provider (Provider.Provider) for the all the
+      --  subprojects (Provider.Projects)
 
       procedure Log_GPR2_Diagnostics;
       --  Log the GPR2 messages
@@ -395,7 +414,8 @@ package body LSP.Ada_Handlers.Project_Loading is
       --------------------------------------
 
       procedure Create_Context_For_Non_Aggregate
-        (View : GPR2.Project.View.Object)
+        (View     : GPR2.Project.View.Object;
+         Provider : GPR2_Provider_And_Projects)
       is
          use LSP.Ada_Context_Sets;
          use LSP.Ada_Contexts;
@@ -453,12 +473,12 @@ package body LSP.Ada_Handlers.Project_Loading is
             Follow_Symlinks => Self.Configuration.Follow_Symlinks);
 
          C.Load_Project
-           (Tree    => Self.Project_Tree,
-            Root    => View,
-            Charset => VSS.Strings.Conversions.To_UTF_8_String (Charset));
+           (Provider => Provider,
+            Tree     => Self.Project_Tree,
+            Charset  => VSS.Strings.Conversions.To_UTF_8_String (Charset));
 
          Tracer.Trace ("Prepend Context Id: "
-                            & VSS.Strings.Conversions.To_UTF_8_String (C.Id));
+                       & VSS.Strings.Conversions.To_UTF_8_String (C.Id));
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
@@ -599,12 +619,33 @@ package body LSP.Ada_Handlers.Project_Loading is
          Update_Project_Predefined_Sources (Self);
 
          if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
-            for View of Self.Project_Tree.Root_Project.Aggregated loop
-               Create_Context_For_Non_Aggregate (View);
-            end loop;
+            --  For aggregated root project, use LAL to create sets of
+            --  aggregated projects and sub-projects which can coexist in
+            --  the same LAL provider. This is more memory efficient.
+            declare
+               Providers : GPR2_Provider_And_Projects_Array_Access :=
+                 Create_Project_Unit_Providers (Self.Project_Tree);
+            begin
+               for Provider of Providers.all loop
+                  Create_Context_For_Non_Aggregate
+                    (View     => Self.Project_Tree.Root_Project,
+                     Provider => Provider);
+               end loop;
+               Free (Providers);
+            end;
          else
-            Create_Context_For_Non_Aggregate
-              (Self.Project_Tree.Root_Project);
+            declare
+               Provider : GPR2_Provider_And_Projects :=
+                 (Provider => Create_Project_Unit_Provider
+                    (Tree    => Self.Project_Tree,
+                     Project => Self.Project_Tree.Root_Project),
+                  Projects => <>);
+            begin
+               Provider.Projects.Append (Self.Project_Tree.Root_Project);
+               Create_Context_For_Non_Aggregate
+                 (View     => Self.Project_Tree.Root_Project,
+                  Provider => Provider);
+            end;
          end if;
       end if;
 
@@ -680,17 +721,16 @@ package body LSP.Ada_Handlers.Project_Loading is
          end loop;
       end loop;
 
-      if Runtime_Indexing.Is_Active then
+      --  Avoid indexing the runtime in case of aggregate projects:
+      --  runtime files are present in all contexts, indexing them
+      --  in all contexts would cost too much memory
+      if Runtime_Indexing.Is_Active
+        and then Self.Project_Tree.Is_Defined
+        and then Self.Project_Tree.Root_Project.Kind not in GPR2.Aggregate_Kind
+      then
          --  Mark all the predefined sources too (runtime)
          for F in Self.Project_Predefined_Sources.Iterate loop
-            declare
-               File : GNATCOLL.VFS.Virtual_File
-                 renames LSP.Ada_File_Sets.File_Sets.Element (F);
-            begin
-               for Context of Self.Contexts.Each_Context loop
-                  Files.Include (File);
-               end loop;
-            end;
+            Files.Include (LSP.Ada_File_Sets.File_Sets.Element (F));
          end loop;
       end if;
 

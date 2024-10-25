@@ -1,0 +1,612 @@
+[
+   {
+      "comment": [
+         "test 'completion' in a basic aggregate project ",
+         "especially the invisible symbols from the runtime"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"]
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "agg.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+           {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                  "token": "<ANY>",
+                  "value": {
+                    "kind": "end"
+                  }
+                }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{q/main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with common_pack;\nprocedure Main is\nbegin\n   Fo\nend;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p/main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with common_pack;\nprocedure Main is\nbegin\n   Fo\nend;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{q/main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 5
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 8,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "Foo (invisible)",
+                        "kind": 3,
+                        "sortText": "~100&00000Foo",
+                        "filterText": "Foo",
+                        "insertText": "Foo",
+                        "command": {
+                           "title": "",
+                           "command": "als-auto-import",
+                           "arguments": [
+                              {
+                                 "context": "$URI{q/q.gpr}",
+                                 "where": {
+                                    "textDocument": {
+                                       "uri": "$URI{q/main.adb}"
+                                    },
+                                    "position": {
+                                       "line": 3,
+                                       "character": 5
+                                    }
+                                 },
+                                 "import": "common_pack",
+                                 "qualifier": "common_pack"
+                              }
+                           ]
+                        },
+                        "documentation": "at common_pack.ads (2:4)"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Foo (invisible)",
+               "kind": 3,
+               "sortText": "~100&00000Foo",
+               "filterText": "Foo",
+               "insertText": "Foo",
+               "additionalTextEdits": [],
+               "command": {
+                  "title": "",
+                  "command": "als-auto-import",
+                  "arguments": [
+                     {
+                        "context": "$URI{q/q.gpr}",
+                        "import": "common_pack",
+                        "qualifier": "common_pack",
+                        "where": {
+                           "position": {
+                              "character": 5,
+                              "line": 3
+                           },
+                           "textDocument": {
+                              "uri": "$URI{q/main.adb}"
+                           }
+                        }
+                     }
+                  ]
+               },
+               "documentation": "at common_pack.ads (2:4)"
+            }
+         },
+         "wait": [
+            {
+               "id": 9,
+               "result": {
+                  "label": "Foo (invisible)",
+                  "kind": 3,
+                  "documentation": "at common_pack.ads (2:4)",
+                  "sortText": "~100&00000Foo",
+                  "filterText": "Foo",
+                  "insertText": "Foo",
+                  "command": {
+                     "title": "",
+                     "command": "als-auto-import",
+                     "arguments": [
+                        {
+                           "context": "$URI{q/q.gpr}",
+                           "import": "common_pack",
+                           "qualifier": "common_pack",
+                           "where": {
+                              "position": {
+                                 "character": 5,
+                                 "line": 3
+                              },
+                              "textDocument": {
+                                 "uri": "$URI{q/main.adb}"
+                              }
+                           }
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 16,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p/main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 5
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 16,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "Foo (invisible)",
+                        "kind": 3,
+                        "sortText": "~100&00000Foo",
+                        "filterText": "Foo",
+                        "insertText": "Foo",
+                        "command": {
+                           "title": "",
+                           "command": "als-auto-import",
+                           "arguments": [
+                              {
+                                 "context": "$URI{p/p.gpr}",
+                                 "where": {
+                                    "textDocument": {
+                                       "uri": "$URI{p/main.adb}"
+                                    },
+                                    "position": {
+                                       "line": 3,
+                                       "character": 5
+                                    }
+                                 },
+                                 "import": "common_pack",
+                                 "qualifier": "common_pack"
+                              }
+                           ]
+                        },
+                        "documentation": "at common_pack.ads (2:4)"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 17,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Foo (invisible)",
+               "kind": 3,
+               "sortText": "~100&00000Foo",
+               "filterText": "Foo",
+               "insertText": "Foo",
+               "additionalTextEdits": [],
+               "command": {
+                  "title": "",
+                  "command": "als-auto-import",
+                  "arguments": [
+                     {
+                        "context": "$URI{p/p.gpr}",
+                        "import": "common_pack",
+                        "qualifier": "common_pack",
+                        "where": {
+                           "position": {
+                              "character": 5,
+                              "line": 3
+                           },
+                           "textDocument": {
+                              "uri": "$URI{p/main.adb}"
+                           }
+                        }
+                     }
+                  ]
+               },
+               "data": {
+                  "range": {
+                     "end": {
+                        "character": 17,
+                        "line": 1
+                     },
+                     "start": {
+                        "character": 3,
+                        "line": 1
+                     }
+                  },
+                  "uri": "$URI{common/common_pack.ads}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 17,
+               "result": {
+                  "label": "Foo (invisible)",
+                  "kind": 3,
+                  "documentation": "at common_pack.ads (2:4)",
+                  "sortText": "~100&00000Foo",
+                  "filterText": "Foo",
+                  "insertText": "Foo",
+                  "command": {
+                     "title": "",
+                     "command": "als-auto-import",
+                     "arguments": [
+                        {
+                           "context": "$URI{p/p.gpr}",
+                           "import": "common_pack",
+                           "qualifier": "common_pack",
+                           "where": {
+                              "position": {
+                                 "character": 5,
+                                 "line": 3
+                              },
+                              "textDocument": {
+                                 "uri": "$URI{p/main.adb}"
+                              }
+                           }
+                        }
+                     ]
+                  },
+                  "documentation": "at common_pack.ads (2:4)"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p/main.adb}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 3,
+                           "character": 5
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 5
+                        }
+                     },
+                     "text": ";\n   Put_Li"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 38,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p/main.adb}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 9
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 38,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "Put_Line (invisible)",
+                        "kind": 3,
+                        "sortText": "~100&00001Put_Line",
+                        "filterText": "Put_Line",
+                        "insertText": "Put_Line",
+                        "command": {
+                           "title": "",
+                           "command": "als-auto-import",
+                           "arguments": [
+                              {
+                                 "context": "$URI{p/p.gpr}",
+                                 "where": {
+                                    "textDocument": {
+                                       "uri": "$URI{p/main.adb}"
+                                    },
+                                    "position": {
+                                       "line": 4,
+                                       "character": 9
+                                    }
+                                 },
+                                 "import": "Ada.Strings.Unbounded.Text_IO",
+                                 "qualifier": "Ada.Strings.Unbounded.Text_IO"
+                              }
+                           ]
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 43,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Put_Line (invisible)",
+               "kind": 3,
+               "sortText": "~100&00000Put_Line",
+               "filterText": "Put_Line",
+               "insertText": "Put_Line",
+               "additionalTextEdits": [],
+               "command": {
+                  "title": "",
+                  "command": "als-auto-import",
+                  "arguments": [
+                     {
+                        "context": "$URI{p/p.gpr}",
+                        "import": "Ada.Strings.Unbounded.Text_IO",
+                        "qualifier": "Ada.Strings.Unbounded.Text_IO",
+                        "where": {
+                           "position": {
+                              "character": 9,
+                              "line": 4
+                           },
+                           "textDocument": {
+                              "uri": "$URI{p/main.adb}"
+                           }
+                        }
+                     }
+                  ]
+               },
+               "documentation": "at a-suteio.ads (55:4)"
+            }
+         },
+         "wait": [
+            {
+               "id": 43,
+               "result": {
+                  "label": "Put_Line (invisible)",
+                  "kind": 3,
+                  "documentation": "at a-suteio.ads (55:4)",                  "sortText": "~100&00000Put_Line",
+                  "filterText": "Put_Line",
+                  "insertText": "Put_Line",
+                  "command": {
+                     "title": "",
+                     "command": "als-auto-import",
+                     "arguments": [
+                        {
+                           "context": "$URI{p/p.gpr}",
+                           "import": "Ada.Strings.Unbounded.Text_IO",
+                           "qualifier": "Ada.Strings.Unbounded.Text_IO",
+                           "where": {
+                              "position": {
+                                 "character": 9,
+                                 "line": 4
+                              },
+                              "textDocument": {
+                                 "uri": "$URI{p/main.adb}"
+                              }
+                           }
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{p/main.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{q/main.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 53,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 53,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
