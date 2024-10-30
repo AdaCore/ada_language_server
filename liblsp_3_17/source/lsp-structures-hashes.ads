@@ -12,10 +12,20 @@ package LSP.Structures.Hashes is
      (Item : LSP.Structures.Integer_Or_Virtual_String)
       return Ada.Containers.Hash_Type;
 
+   function Hash
+     (Item : LSP.Structures.ProgressToken) return Ada.Containers.Hash_Type;
+
 private
 
    function Hash
      (Item : LSP.Structures.Integer_Or_Virtual_String)
+      return Ada.Containers.Hash_Type is
+        (case Item.Is_Integer is
+            when True  => Ada.Containers.Hash_Type'Mod (Item.Integer),
+            when False => VSS.Strings.Hash (Item.Virtual_String));
+
+   function Hash
+     (Item : LSP.Structures.ProgressToken)
       return Ada.Containers.Hash_Type is
         (case Item.Is_Integer is
             when True  => Ada.Containers.Hash_Type'Mod (Item.Integer),
