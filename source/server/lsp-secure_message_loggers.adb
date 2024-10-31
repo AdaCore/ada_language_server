@@ -175,6 +175,28 @@ package body LSP.Secure_Message_Loggers is
       Self.Output.New_Line (Ok);
    end On_FoldingRange_Response;
 
+   -------------------------------
+   -- On_IncomingCalls_Response --
+   -------------------------------
+
+   overriding procedure On_IncomingCalls_Response
+     (Self  : in out Client_Response_Logger;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyIncomingCall_Vector_Or_Null)
+   is
+      Ok : Boolean := True;
+   begin
+      --  Hide response, because it could be lengthly and expose names
+      Self.Output.Put ("'callHierarchy/incomingCalls'", Ok);
+      Self.Put_Id (Id, Ok);
+      Self.Output.Put (" result : len=", Ok);
+
+      Self.Output.Put
+        (VSS.Strings.To_Virtual_String (Value.Length'Wide_Wide_Image), Ok);
+
+      Self.Output.New_Line (Ok);
+   end On_IncomingCalls_Response;
+
    ----------------------------
    -- On_References_Response --
    ----------------------------
