@@ -80,6 +80,11 @@ package LSP.Secure_Message_Loggers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.Symbol_Result);
 
+   overriding procedure On_IncomingCalls_Response
+     (Self  : in out Client_Response_Logger;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.CallHierarchyIncomingCall_Vector_Or_Null);
+
    type Server_Notification_Logger is
      new LSP.Server_Notification_Loggers.Server_Notification_Logger
        with null record;
