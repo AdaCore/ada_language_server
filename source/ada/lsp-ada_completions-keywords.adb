@@ -46,6 +46,7 @@ package body LSP.Ada_Completions.Keywords is
    begin
       if Filter.Is_End_Label or else
         Filter.Is_Numeric_Literal or else
+        Node.Is_Null or else
         not Libadalang.Common.Is_Trivia (Prev)
       then
          --  Propose keyword completion if we are not within an end label
