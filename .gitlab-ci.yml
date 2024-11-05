@@ -33,7 +33,7 @@ include:
       # depend on the build job. The following will get it to run in parallel
       # with the build job.
       needs: []
-      stage: build
+      stage: test
 
   # Testing of the VSCode extension
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
