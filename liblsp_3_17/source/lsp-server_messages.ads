@@ -12,10 +12,6 @@ package LSP.Server_Messages is
    type Server_Message is abstract tagged limited null record;
    --  Base class of messages send by a client to a server
 
-   function Assigned (Self : access Server_Message'Class) return Boolean
-     is (Self /= null);
-   --  Check if the argument is not null
-
    type Server_Message_Access is access all Server_Message'Class;
 
    procedure Visit_Server_Message_Visitor
