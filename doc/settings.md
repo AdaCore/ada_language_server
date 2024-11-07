@@ -1,55 +1,79 @@
 # Ada Language Server configuration
 
-The ALS reads initial configuration from the `initializationOptions`
-property of the `initialize` request (if any) and then updates
-the configuration with each `workspace/didChangeConfiguration`
-notification.
+## Configuration Sources
+
+The ALS can be given configuration settings in the following ways:
+
+1. The `--config CONFIG_FILE` command line option, if specified.
+
+2. The `initializationOptions` property of the `initialize` request, if specified.
+
+3. In `workspace/didChangeConfiguration` LSP notifications.
+
+4. In the User, Remote or Workspace settings of Visual Studio Code, where each setting name is prefixed with `ada.`.
+
+If given, the configuration file must be a JSON file with the following structure:
+
+```json
+{
+    "projectFile": "...",
+    "scenarioVariables": { ... },
+    ...
+}
+```
+
+If specified in the `initialize` request, settings should be wrapped into an `ada` JSON object in the `initializationOptions` property as follows:
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+        "initializationOptions": {
+            "ada": {
+                "projectFile": "right_project.gpr",
+                "scenarioVariables": { ... },
+                ...
+            }
+        },
+        ...
+    }
+}
+```
+
+Similarly, settings passed in `workspace/didChangeConfiguration` notifications should also be wrapped into an `ada` JSON object:
+
+```json
+{
+    "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+        "settings": {
+            "ada": {
+                "projectFile": "right_project.gpr"
+            }
+        }
+    }
+}
+```
 
 In the context of Visual Studio Code, configuration settings can be set in the
-workspace `settings.json` file or the [multi-root workspace
+User, Remote or Workspace `settings.json` file or the [multi-root workspace
 file](https://code.visualstudio.com/docs/editor/multi-root-workspaces) by
 prefixing each setting name with `ada.`, e.g.
 
 ```json
 {
-   "ada.projectFile": "right_project.gpr",
-   "ada.scenarioVariables": {
-       "LIBRARY_TYPE": "static"
-   },
-   "ada.onTypeFormatting.indentOnly": true,
-   "useGnatformat": true
+    "ada.projectFile": "right_project.gpr",
+    "ada.scenarioVariables": {
+        "LIBRARY_TYPE": "static"
+    },
+    "ada.onTypeFormatting.indentOnly": true,
+    "ada.useGnatformat": true
 }
 ```
 
-At the protocol level, any setting in `workspace/didChangeConfiguration` should
-be inside an `ada` JSON object, while there is no such wrapping object
-for `initializationOptions`. On the protocol level messages look like:
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 123,
-    "method": "initialize",
-    "params": {
-        "initializationOptions": {
-            "projectFile": "right_project.gpr"
-        },
-        ...
-    }
-}
-
-{
-    "jsonrpc": "2.0",
-    "method": "workspace/didChangeConfiguration",
-    "params": {
-       "settings": {
-          "ada": {
-             "projectFile": "right_project.gpr"
-          }
-       }
-    }
-}
-```
+## Settings
 
 Ada Language Server understands these settings:
 
@@ -73,7 +97,7 @@ Ada Language Server understands these settings:
 
 ----
 
-## projectFile
+### projectFile
 
 You can configure the GNAT Project File via the `projectFile` key.
 The setting has a string value, that points to the `.gpr` file.
@@ -86,7 +110,7 @@ root folder, then ALS will use it.
     'projectFile': 'gnat/lsp_server.gpr'
 ```
 
-## scenarioVariables
+### scenarioVariables
 
 You can configure scenario variables via the `scenarioVariables` key.
 The setting has an object value. Keys in this object correspond to
@@ -98,7 +122,7 @@ scenario variables names and string values to variables values.
     }
 ```
 
-## defaultCharset
+### defaultCharset
 
 You can set the character set to use when the server has to use when reading
 files from disk by specifying an `defaultCharset` key. The default is
@@ -108,7 +132,7 @@ files from disk by specifying an `defaultCharset` key. The default is
     'defaultCharset': 'UTF-8'
 ```
 
-## relocateBuildTree
+### relocateBuildTree
 
 With this option it is possible to achieve out-of-tree build. That is,
 real object, library or exec directories are relocated to the current
@@ -121,7 +145,7 @@ for more details about the corresponding gprbuild switch.
     'relocateBuildTree': '/home/user/project/build/'
 ```
 
-## rootDir
+### rootDir
 
 This option is to be used with relocateBuildTree above and cannot be
 specified alone. This option specifies the root directory for artifacts
@@ -134,7 +158,7 @@ for more details about the corresponding gprbuild switch.
     'relocateBuildTree': '/home/user/project/'
 ```
 
-## enableDiagnostics
+### enableDiagnostics
 
 You can explicitly deactivate the emission of diagnostics, via the
 `enableDiagnostics` key. By default, diagnostics are enabled.
@@ -144,7 +168,7 @@ The value is a boolean.
     'enableDiagnostics': false
 ```
 
-## projectDiagnostics
+### projectDiagnostics
 
 This setting needs `enableDiagnostics` enabled and can be disabled to remove
 project related diagnotics.
@@ -154,7 +178,7 @@ The value is a boolean.
     'enableDiagnostics': false
 ```
 
-## enableIndexing
+### enableIndexing
 
 By default, the server indexes the source files after loading a project,
 to speed up subsequent requests. This behavior can be controlled
@@ -165,7 +189,7 @@ The value is a boolean.
     'enableIndexing': false
 ```
 
-## renameInComments
+### renameInComments
 
 The language server is able to edit Ada comments while executing
 `textDocument/rename` request. To enable this just set
@@ -176,7 +200,7 @@ The value is a boolean.
     'renameInComments': false
 ```
 
-## useCompletionSnippets
+### useCompletionSnippets
 
 Whether we should use snippets in completion results. Snippets can be
 returned in case of subprogram calls for instance, with placeholders
@@ -187,7 +211,7 @@ The value is a boolean.
     'useCompletionSnippets': true
 ```
 
-## insertWithClauses
+### insertWithClauses
 
 Whether we should automatically insert missing with-clauses when
 accepting completion for invisible symbols.
@@ -196,7 +220,7 @@ accepting completion for invisible symbols.
     'insertWithClauses': true
 ```
 
-## displayMethodAncestryOnNavigation
+### displayMethodAncestryOnNavigation
 
 This setting controls the policy for displaying overriding and overridden
 subprograms on navigation requests such as `textDocument/definition`,
@@ -216,7 +240,7 @@ The different policies are:
     'displayMethodAncestryOnNavigation': 'always'
 ```
 
-## namedNotationThreshold
+### namedNotationThreshold
 
 This setting defines the number of parameters/components at which point named
 notation is used for subprogram/aggregate completion snippets.
@@ -226,7 +250,7 @@ The value is a number. The default value is `3`.
     'namedNotationThreshold': 2
 ```
 
-## foldComments
+### foldComments
 
 When this setting is `true` the server sends blocks information for comments which can be used for folding comment blocks.
 The value is a boolean. The default is `true`.
@@ -235,7 +259,7 @@ The value is a boolean. The default is `true`.
     'foldComments': false
 ```
 
-## followSymlinks
+### followSymlinks
 
 When this setting is `false` the server doesn't do any attempts to normalize file names sent by a client.
 This means that symlinks stay unresolved and character case is unchanged (on case insensitive file systems).
@@ -246,7 +270,7 @@ The value is a boolean. The default is `true`.
     'followSymlinks': false
 ```
 
-## documentationStyle
+### documentationStyle
 
 The language server supports different styles to document entities in the source
 code. This setting controls primary documentation style of entities. When
@@ -267,7 +291,7 @@ For more information about documentation styles see GNATdoc User's Manual.
     'documentationStyle': 'gnat'
 ```
 
-## trace.server
+### trace.server
 
 This option controls the tracing of the communication between VS Code and the Ada
 language server. It causes the client to trace each message sent and received
@@ -283,13 +307,13 @@ On the server side this option does not trigger any additional logging.
 
 An equivalent setting `gpr.trace.server` exists for tracing the communcation between VS Code and the GPR language server.
 
-## onTypeFormatting.indentOnly
+### onTypeFormatting.indentOnly
 
 This option controls if the `textDocument/onTypeFormatting` request only indents a new line, or if
 it additionally tries to format the previous node. By default, this option is enabled, that is,
 `textDocument/onTypeFormatting` only indents new lines.
 
-## useGnatformat
+### useGnatformat
 
 This option controls the formatting provider for the `textDocument/formatting`,
 `textDocument/rangeFormatting` and `textDocument/onTypeFormatting` request. By default, this option
