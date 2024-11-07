@@ -817,6 +817,7 @@ package body LSP.Servers is
 
    task body Processing_Task_Type is
 
+      use type LSP.Server_Messages.Server_Message_Access;
       Input_Queue : Input_Message_Queues.Queue renames Server.Input_Queue;
 
       procedure Process_Message (Message : in out Server_Message_Access);
@@ -846,7 +847,7 @@ package body LSP.Servers is
                   --  job if any.
                   Server.Scheduler.Process_Job (Server.all, Waste);
 
-                  if Waste.Assigned then
+                  if Waste /= null then
                      Server.Destroy_Queue.Enqueue (Waste);
                   end if;
 
@@ -869,11 +870,11 @@ package body LSP.Servers is
       begin
          Server.Scheduler.Create_Job (Message, Waste);
 
-         if Waste.Assigned then
+         if Waste /= null then
             Server.Destroy_Queue.Enqueue (Waste);
          end if;
 
-         if Message.Assigned then
+         if Message /= null then
             --  Scheduler wasn't able to process message, destroy it
             Server.Destroy_Queue.Enqueue (Message);
          end if;
@@ -881,7 +882,7 @@ package body LSP.Servers is
          loop
             Server.Scheduler.Process_High_Priority_Job (Server.all, Waste);
 
-            exit when not Waste.Assigned;
+            exit when Waste = null;
 
             Server.Destroy_Queue.Enqueue (Waste);
          end loop;
@@ -919,7 +920,7 @@ package body LSP.Servers is
                   Continue := False;
                end select;
 
-               if Request.Assigned then
+               if Request /= null then
                   Process_Message (Request);
                end if;
             end loop;
@@ -930,7 +931,7 @@ package body LSP.Servers is
 
          Execute_Jobs (Server.Look_Ahead);
 
-         if not Server.Look_Ahead.Assigned then
+         if Server.Look_Ahead = null then
             --  there is no jobs any more, just wait for input messages
 
             select
@@ -961,7 +962,7 @@ package body LSP.Servers is
          end;
       end loop;
 
-      if Server.Look_Ahead.Assigned then
+      if Server.Look_Ahead /= null then
          Free (Server.Look_Ahead);
       end if;
 
