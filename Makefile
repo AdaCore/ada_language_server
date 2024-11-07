@@ -107,6 +107,9 @@ all: coverage-instrument
 ifeq ($(ALIRE),True)
 	alr build -- -XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_FLAGS)
 else
+	# We depends on our own overwritten s-memory.adb, this file is not recompiled
+	# when the version of GNAT was changed thus force its compilation
+	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_CARGS)
 endif
