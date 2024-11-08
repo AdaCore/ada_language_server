@@ -276,7 +276,7 @@
         },
         "project": {
             "name": "meta.project.gpr",
-            "begin": "(?i)\\b(?:(abstract|aggregate|library)\\s+)?(project)\\s+((?:\\w|\\d|_)+)\\b",
+            "begin": "(?i)\\b(?:(abstract|aggregate|library|standard)\\s+)?(project)\\s+((?:\\w|\\d|_)+)\\b",
             "end": "(?i)\\b(end)\\s+(\\3)\\s*(;)",
             "beginCaptures": {
                 "1": { "name": "keyword.gpr" },
@@ -304,7 +304,8 @@
                         { "include": "#comment" },
                         { "include": "#attribute" },
                         { "include": "#type" },
-                        { "include": "#variable" }
+                        { "include": "#variable" },
+                        { "include": "#case_construction" }
                     ]
                 },
                 {
