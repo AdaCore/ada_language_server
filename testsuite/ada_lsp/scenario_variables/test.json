@@ -1,0 +1,125 @@
+[
+   {
+      "comment": [
+         "This test uses ada.scenarioVariables and checks that the project is loaded without diagnostics."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}"
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkg.ads}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "package Pkg is\n   pragma Pure;\nend Pkg;"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{pkg.ads}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 1,
+                        "source": "ada.project",
+                        "message": "The project file has errors and could not be loaded.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{prj.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 1,
+                                       "character": 20
+                                    },
+                                    "end": {
+                                       "line": 1,
+                                       "character": 20
+                                    }
+                                 }
+                              },
+                              "message": "undefined external reference \"VAR\""
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {
+                        "Var": "value"
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{pkg.ads}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
