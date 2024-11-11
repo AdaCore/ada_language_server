@@ -56,7 +56,7 @@ suite('Highlighting', function () {
         });
     }
 
-    const gprTests = ['prj.gpr', 'src/test.gpr'];
+    const gprTests = ['prj.gpr', 'src/test.gpr', 'src/ada_libfswatch.gpr'];
 
     for (const relPath of gprTests) {
         const gprSyntaxPath = path.join(extensionRootPath, 'syntaxes', 'gpr.tmLanguage.json');
