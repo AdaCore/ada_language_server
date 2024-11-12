@@ -834,18 +834,49 @@ package body LSP.Ada_Handlers.Project_Loading is
      (Self : in out Message_Handler'Class)
    is
       use GPR2;
-      use GPR2.Build.Source.Sets;
+
+      procedure For_All_Part_Action
+        (Kind     : Unit_Kind;
+         View     : GPR2.Project.View.Object;
+         Path     : Path_Name.Object;
+         Index    : Unit_Index;
+         Sep_Name : Optional_Name_Type);
+
+      -------------------------
+      -- For_All_Part_Action --
+      -------------------------
+
+      procedure For_All_Part_Action
+        (Kind     : Unit_Kind;
+         View     : GPR2.Project.View.Object;
+         Path     : Path_Name.Object;
+         Index    : Unit_Index;
+         Sep_Name : Optional_Name_Type)
+      is
+         pragma Unreferenced (Kind);
+         pragma Unreferenced (View);
+         pragma Unreferenced (Index);
+         pragma Unreferenced (Sep_Name);
+      begin
+         Self.Project_Predefined_Sources.Include (Path.Virtual_File);
+      end For_All_Part_Action;
    begin
       Self.Project_Predefined_Sources.Clear;
 
       if Self.Project_Tree.Is_Defined
         and then Self.Project_Tree.Has_Runtime_Project
       then
-         for Source of Self.Project_Tree.Runtime_Project.Sources loop
-            if Source.Language = GPR2.Ada_Language then
-               Self.Project_Predefined_Sources.Include
-                 (Source.Path_Name.Virtual_File);
-            end if;
+         --  Note that the following loop differs rather subtly from iterating
+         --  over the units in the runtime view: user projects are allowed to
+         --  override units from the runtime, and when they do the overridden
+         --  units should be ignored. We would incorrectly consider them if we
+         --  just iterated over the units of the runtime view.
+         for P of Self.Project_Tree.Namespace_Root_Projects loop
+            for Unit of P.Units (With_Externally_Built => True) loop
+               if Unit.Owning_View.Is_Runtime then
+                  Unit.For_All_Part (For_All_Part_Action'Access);
+               end if;
+            end loop;
          end loop;
       end if;
    end Update_Project_Predefined_Sources;
