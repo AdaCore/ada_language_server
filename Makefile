@@ -107,6 +107,10 @@ all: coverage-instrument
 ifeq ($(ALIRE),True)
 	alr build -- -XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_FLAGS)
 else
+	# We have our own s-memory.adb which overwrites the default System.Memory implementation
+        # For unclear reasons, this file is not recompiled when the version of GNAT was changed
+        # and we get link errors. As a workaround, we force its recompilation explicitly here.
+	$(GPRBUILD) -d -ws -c -u -P gnat/lsp_server.gpr -p $(BUILD_FLAGS) s-memory.adb
 	$(GPRBUILD) -P gnat/lsp_server.gpr -p $(COVERAGE_BUILD_FLAGS) \
 		-XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_CARGS)
 endif
