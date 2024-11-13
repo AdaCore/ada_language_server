@@ -5,6 +5,17 @@ section below it for the last release. -->
 ## \<next>
 
 * Create commands for opening the project file and the log file
+* Add editor contextual menus for some Ada commands
+* Avoid exception in tooltips on unknown predefined entities
+* Fix "Go to other file" command for child packages, no project is loaded, etc
+* Display error messages when "Go to other file" command fails
+* Add fallback mechanism for "Go to other file" command
+* ALS now ignores any error in the project file and uses the project file even if it has errors
+* Avoid 'auto-import' command when completing with-clauses
+* Replace "Project Problem" diagnostic by the project status message
+* Avoid running the Prove codelens with no problem matchers
+* Fix Goto Definition for entry in Protected Types
+* Avoid `PRECONDITION_FAILURE` on editing an empty file
 
 ## 25.0.20241014
 
