@@ -886,6 +886,12 @@
                 }
             ]
         },
+        "configurationDefaults": {
+            "[ada]": {
+                "editor.tabSize": 3,
+                "editor.detectIndentation": false
+            }
+        },
         "walkthroughs": [
             {
                 "id": "als-get-started",
