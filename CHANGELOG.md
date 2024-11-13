@@ -5,6 +5,13 @@ section below it for the last release. -->
 ## \<next>
 
 * Create commands for opening the project file and the log file
+* Add editor contextual menus for some Ada commands
+* Avoid 'auto-import' command when completing with-clauses
+* Replace "Project Problem" diagnostic by the project status message
+* Avoid running the Prove codelens with no problem matchers
+* Fix Goto Definition for entry in Protected Types
+* Avoid `PRECONDITION_FAILURE` on editing an empty file
+* Avoid occurrences of `STALE_REFERENCE_ERROR` in Libadalang
 
 ## 25.0.20241014
 
