@@ -2,15 +2,19 @@
 
 ## Configuration Sources
 
-The ALS can be given configuration settings in the following ways:
+The ALS loads configuration settings from different sources in the following order:
 
-1. The `--config CONFIG_FILE` command line option, if specified.
+1. The file `$XDG_CONFIG_HOME/als/config.json`, if it exists.
 
-2. The `initializationOptions` property of the `initialize` request, if specified.
+1. The file `.als.json` in the directory where ALS is spawned, if it exists.
 
-3. In `workspace/didChangeConfiguration` LSP notifications.
+   This is the prefered location to store project-specific settings that are tracked in version control and shared among developers.
 
-4. In the User, Remote or Workspace settings of Visual Studio Code, where each setting name is prefixed with `ada.`.
+1. The `--config CONFIG_FILE` file, if specified in the command line.
+
+1. The `initializationOptions` property of the `initialize` request, if specified.
+
+1. In `workspace/didChangeConfiguration` LSP notifications, if specified.
 
 If given, the configuration file must be a JSON file with the following structure:
 
@@ -57,6 +61,8 @@ Similarly, settings passed in `workspace/didChangeConfiguration` notifications s
 }
 ```
 
+## Visual Studio Code
+
 In the context of Visual Studio Code, configuration settings can be set in the
 User, Remote or Workspace `settings.json` file or the [multi-root workspace
 file](https://code.visualstudio.com/docs/editor/multi-root-workspaces) by
@@ -72,6 +78,8 @@ prefixing each setting name with `ada.`, e.g.
     "ada.useGnatformat": true
 }
 ```
+
+These settings are sent to the ALS in the LSP `initialize` request, and then in `workspace/didChangeConfiguration` notifications if they get updated.
 
 ## Settings
 
