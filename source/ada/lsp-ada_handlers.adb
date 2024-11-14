@@ -23,7 +23,9 @@ with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
 
+with LSP.Env;
 with VSS.Characters.Latin;
+with VSS.Strings;
 with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;

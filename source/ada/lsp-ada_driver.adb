@@ -33,7 +33,6 @@ with System.Secondary_Stack;
 
 with VSS.Application;
 with VSS.Command_Line;
-with VSS.Standard_Paths;
 with VSS.Strings.Conversions;
 
 with GNATCOLL.JSON;
@@ -83,6 +82,7 @@ with LSP.Ada_Tokens_Range;
 with LSP.Ada_Type_Hierarchy_Subtypes;
 with LSP.Ada_Type_Hierarchy_Supertypes;
 with LSP.Default_Message_Handlers;
+with LSP.Env;
 with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
 with LSP.GPR_Handlers;
@@ -330,20 +330,7 @@ procedure LSP.Ada_Driver is
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
    pragma Unreferenced (Fuzzing_Activated);
 
-   ALS_Home               : constant VSS.Strings.Virtual_String :=
-     VSS.Application.System_Environment.Value ("ALS_HOME");
-   GPR_Path               : constant VSS.Strings.Virtual_String :=
-     VSS.Application.System_Environment.Value ("GPR_PROJECT_PATH");
-   Path                   : constant VSS.Strings.Virtual_String :=
-     VSS.Application.System_Environment.Value ("PATH");
-   Home_Dir               : constant Virtual_File :=
-     Create_From_UTF8
-       (VSS.Strings.Conversions.To_UTF_8_String
-          ((if ALS_Home.Is_Empty
-              then VSS.Standard_Paths.Writable_Location
-                     (VSS.Standard_Paths.Home_Location)
-              else ALS_Home)));
-   ALS_Dir                : Virtual_File := Home_Dir / ".als";
+   ALS_Log_Dir                : Virtual_File := LSP.Env.ALS_Log_Dir;
    Clean_ALS_Dir          : Boolean := False;
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
@@ -549,9 +536,9 @@ begin
    Tracer.Trace ("Initializing server ...");
 
    Tracer.Trace
-     ("GPR PATH: " & VSS.Strings.Conversions.To_UTF_8_String (GPR_Path));
+     ("GPR PATH: " & VSS.Strings.Conversions.To_UTF_8_String (LSP.Env.GPR_Path));
    Tracer.Trace
-     ("PATH: " & VSS.Strings.Conversions.To_UTF_8_String (Path));
+     ("PATH: " & VSS.Strings.Conversions.To_UTF_8_String (LSP.Env.Path));
 
    --  Log any exception that occured while parsing the user's traces
    --  configuration file.
@@ -737,7 +724,7 @@ begin
       --  Remove the logs produced for the GPR language if the '--language-gpr'
       --  option has been specified. Otherwise remove the Ada language logs.
       Remove_Old_Log_files
-        (Dir                 => ALS_Dir,
+        (Dir                 => ALS_Log_Dir,
          Prefix              =>
            (if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
             GPR_Log_File_Prefix else Ada_Log_File_Prefix),
