@@ -3051,6 +3051,14 @@ package body LSP.Ada_Handlers is
             VSS.Strings.Conversions.To_Virtual_String
               ("Exception while handling " & Ada.Tags.Expanded_Name (Value'Tag)));
 
+      if LSP.Env.Testing then
+         Self.Sender.On_LogMessage_Notification
+           ((LSP.Enumerations.Error,
+               VSS.Strings.Conversions.To_Virtual_String
+                 ("Exception while handling "
+                  & Ada.Tags.Expanded_Name (Value'Tag))));
+      end if;
+
       when E : others =>
          --  Errors other than Property_Error indicate real problems to
          --  investigate. But in the current state of the project these occur
@@ -3069,6 +3077,15 @@ package body LSP.Ada_Handlers is
            (E,
             VSS.Strings.Conversions.To_Virtual_String
               ("Exception while handling " & Ada.Tags.Expanded_Name (Value'Tag)));
+
+      if LSP.Env.Testing then
+         Self.Sender.On_LogMessage_Notification
+           ((LSP.Enumerations.Error,
+               VSS.Strings.Conversions.To_Virtual_String
+                 ("Exception while handling "
+                  & Ada.Tags.Expanded_Name (Value'Tag))));
+      end if;
+
    end On_Server_Notification;
 
    -----------------------
@@ -3121,6 +3138,14 @@ package body LSP.Ada_Handlers is
             Value.Visit_Server_Receiver (R);
          end;
 
+         if LSP.Env.Testing then
+            Self.Sender.On_LogMessage_Notification
+            ((LSP.Enumerations.Error,
+                  VSS.Strings.Conversions.To_Virtual_String
+                  ("Exception while handling "
+                     & Ada.Tags.Expanded_Name (Value'Tag))));
+         end if;
+
       when E : others =>
          declare
             Msg_Prefix : constant String := "Exception while handling "
@@ -3141,6 +3166,14 @@ package body LSP.Ada_Handlers is
                 message => Message));
 
          end;
+
+         if LSP.Env.Testing then
+            Self.Sender.On_LogMessage_Notification
+            ((LSP.Enumerations.Error,
+                  VSS.Strings.Conversions.To_Virtual_String
+                  ("Exception while handling "
+                     & Ada.Tags.Expanded_Name (Value'Tag))));
+         end if;
    end On_Server_Request;
 
    -------------------------

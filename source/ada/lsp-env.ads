@@ -25,6 +25,10 @@ with VSS.Application;
 package LSP.Env is
    use type GNATCOLL.VFS.Virtual_File;
 
+   Testing : constant Boolean :=
+      VSS.Application.System_Environment.Contains ("ALS_TESTING");
+   --  Constant set to True when ALS is running within a testsuite.
+
    Home : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("HOME");
    --  Value of the HOME environment variable
