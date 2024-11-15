@@ -190,6 +190,7 @@ package body LSP.Servers is
         (Line   : String;
          Length : in out Ada.Streams.Stream_Element_Count);
       --  If given Line is "Content-Length:" header then read Length from it.
+      --  Other headers such as "Content-Type:" are ignored.
 
       procedure Parse_JSON
         (Vector : VSS.Stream_Element_Vectors.Stream_Element_Vector);
@@ -251,8 +252,11 @@ package body LSP.Servers is
                Line (Index) := Char;
 
                if Index > 1 and then Line (Index - 1 .. Index) = New_Line then
+                  --  Reached the end of a line. Let's see what we read.
+
                   if Empty then
-                     --  Put any unprocessed bytes back into Vector and exit
+                     --  An empty line indicates the end of the headers section.
+                     --  Put any unprocessed bytes back into the Vector and exit.
                      Vector.Set_Capacity (Last - J);
 
                      for Byte of Buffer (J + 1 .. Last) loop
@@ -260,10 +264,15 @@ package body LSP.Servers is
                      end loop;
 
                      return;
-                  end if;
 
-                  Empty := True;
-                  Parse_Line (Line (1 .. Index - 2), Length);
+                  else
+                     --  We have a non-empty header line. Let's parse it.
+                     Parse_Line (Line (1 .. Index - 2), Length);
+
+                     --  Prepare to read the next line.
+                     Empty := True;
+                     Index := 0;
+                  end if;
                end if;
             end loop;
 
