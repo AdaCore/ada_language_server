@@ -37,6 +37,7 @@ from lsprotocol.types import (
     CallHierarchyPrepareParams,
     ClientCapabilities,
     DidOpenTextDocumentParams,
+    ExecuteCommandParams,
     InitializeParams,
     MessageType,
     Position,
@@ -382,6 +383,8 @@ def test(
                     )
                 )
 
+            LOG.info("Running test function: %s", func.__name__)
+
             # Run the test
             await func(client)
 
@@ -723,3 +726,10 @@ def debugHere(lsp: LanguageClient, msg: str | None = None):
     print("", file=sys.stderr)
     print("## Press Enter to continue", file=sys.stderr)
     input()
+
+
+def getCurrentProject() -> ExecuteCommandParams:
+    """Craft a request for the "als-project-file" command which queries for the
+    currently loaded project.
+    """
+    return ExecuteCommandParams("als-project-file")
