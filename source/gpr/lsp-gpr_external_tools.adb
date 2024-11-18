@@ -1123,7 +1123,7 @@ package body LSP.GPR_External_Tools is
            "'--steps', '--timeout', '--memlimit', '--proof', '--prover', " &
            "'--level', '--mode', '--counterexamples', '--no-inlining', " &
            "'--no-loop-unrolling'",
-         Index_Type            => PRA.No_Index,
+         Index_Type            => PRA.String_Index,
          Value                 => List,
          Value_Case_Sensitive  => True);
 
@@ -1132,7 +1132,7 @@ package body LSP.GPR_External_Tools is
          Attribute_Name        => +"Switches",
          Description           => "This deprecated attribute is the same as " &
            "Proof_Switches (""Ada"").",
-         Index_Type            => PRA.No_Index,
+         Index_Type            => PRA.String_Index,
          Value                 => List,
          Value_Case_Sensitive  => True);
 
