@@ -9,16 +9,39 @@ import os
 import signal
 import sys
 from pathlib import Path
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, Sequence
+import urllib.parse
+
+import lsprotocol.converters
+import lsprotocol.types
+import urllib
+
+import pytest_lsp
 
 from drivers import ALSTestDriver
-from drivers.lsp_types import URI
 from e3.testsuite.driver.classic import ProcessResult, TestAbortWithFailure
 from e3.testsuite.result import TestStatus
-from lsprotocol.types import ClientCapabilities, InitializeParams
-from pytest_lsp import ClientServerConfig, LanguageClient
+from lsprotocol.types import (
+    CallHierarchyIncomingCall,
+    CallHierarchyIncomingCallsParams,
+    CallHierarchyItem,
+    CallHierarchyPrepareParams,
+    ClientCapabilities,
+    DidOpenTextDocumentParams,
+    InitializeParams,
+    Position,
+    Range,
+    SymbolKind,
+    TextDocumentIdentifier,
+    TextDocumentItem,
+    WorkDoneProgressEnd,
+)
 
 logger = logging.getLogger(__name__)
+
+# Expose aliases of these pytest-lsp classes
+LanguageClient = pytest_lsp.LanguageClient
+ClientServerConfig = pytest_lsp.ClientServerConfig
 
 
 class PyLSP(ALSTestDriver):
@@ -69,7 +92,13 @@ def log_lsp_logs(client: LanguageClient):
 
 
 def log_lsp_diagnostics(client: LanguageClient):
-    logging.info("### Diagnostics ###\n%s", json.dumps(client.diagnostics))
+    logging.info(
+        "### Diagnostics ###\n%s",
+        json.dumps(
+            lsprotocol.converters.get_converter().unstructure(client.diagnostics),
+            indent=2,
+        ),
+    )
 
 
 # Recording is active by default, and can be deactivated with ALS_TEST_RECORD=0. This
@@ -214,12 +243,6 @@ def run_test_file(test_py_path: str):
         sys.exit(1)
 
 
-def assertEqual(actual, expected) -> None:
-    if actual != expected:
-        msg = f"### Actual ###\n{actual}\n### Expected ###\n{expected}"
-        raise AssertionError(msg)
-
-
 class CLIArgs(argparse.Namespace):
     verbose: int = 0
     devtools_port: int = 8765
@@ -252,3 +275,96 @@ if __name__ == "__main__":
         logging.getLogger("asyncio").setLevel(logging.ERROR)
 
     run_test_file(args.test_py_path)
+
+
+def callHierarchyPrepareParams(main_adb_uri, line_one_based, char_one_based):
+    return CallHierarchyPrepareParams(
+        TextDocumentIdentifier(main_adb_uri),
+        Position(line_one_based - 1, char_one_based - 1),
+    )
+
+
+def callHierarchyIncomingCallsParams(main_adb_uri, line_one_based, char_one_based):
+    pos = Position(line_one_based - 1, char_one_based - 1)
+    range = Range(pos, pos)
+    param = CallHierarchyIncomingCallsParams(
+        item=CallHierarchyItem(
+            name="",
+            kind=SymbolKind.Function,
+            uri=main_adb_uri,
+            range=range,
+            selection_range=range,
+        )
+    )
+
+    return param
+
+
+def didOpenTextDocumentParams(
+    src_path: Path | str,
+) -> tuple[DidOpenTextDocumentParams, str]:
+    src_uri = URI(src_path)
+    return (
+        DidOpenTextDocumentParams(
+            TextDocumentItem(src_uri, "ada", 0, Path(src_path).read_text())
+        ),
+        src_uri,
+    )
+
+
+def URI(src_path: Path | str) -> str:
+    src_abs = Path(src_path).resolve()
+    src_uri = f"file://{urllib.parse.quote(str(src_abs))}"
+    return src_uri
+
+
+def assertEqual(actual, expected) -> None:
+    if actual != expected:
+        msg = f"### Actual ###\n{actual}\n### Expected ###\n{expected}"
+        raise AssertionError(msg)
+
+
+def assertLocationsList(
+    actual: Sequence[CallHierarchyItem | CallHierarchyIncomingCall],
+    expected: list[tuple[str, int]],
+) -> None:
+    actual_locations = []
+    for item in actual:
+        if isinstance(item, CallHierarchyIncomingCall):
+            item = item.from_
+
+        basename = os.path.basename(item.uri)
+        line = item.range.start.line + 1
+        actual_locations.append((basename, line))
+
+    def to_str(item: tuple[str, int]):
+        return f"   {item[0]}:{item[1]}"
+
+    assertEqual(
+        "\n".join(map(to_str, actual_locations)),
+        "\n".join(map(to_str, expected)),
+    )
+
+
+async def awaitIndexingEnd(lsp: LanguageClient):
+    indexing_progress = None
+    while indexing_progress is None:
+        await asyncio.sleep(0.2)
+        logging.info(
+            "Awaiting indexing progress - lsp.progress_reports = %s",
+            lsp.progress_reports,
+        )
+        indexing_progress = next(
+            (prog for prog in lsp.progress_reports if "indexing" in str(prog)),
+            None,
+        )
+
+    logging.info("Received indexing progress token")
+
+    last_progress = lsp.progress_reports[indexing_progress][-1]
+    while not isinstance(last_progress, WorkDoneProgressEnd):
+        await asyncio.sleep(0.2)
+        logging.info("Waiting for indexing end - last_progress = %s", last_progress)
+        last_progress = lsp.progress_reports[indexing_progress][-1]
+
+    logging.info("Received indexing end message")
