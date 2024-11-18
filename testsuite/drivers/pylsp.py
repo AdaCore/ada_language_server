@@ -97,9 +97,10 @@ async def start_lsp_client(
     config: ClientServerConfig,
 ) -> tuple[LanguageClient, asyncio.subprocess.Process | None]:
     devtools = None
-    if record_messages:
+    if record_messages and not args.devtools_external:
         logging.info("Starting lsp-devtools to record messages")
-        logging.info("The replay file is: %s", replay.resolve())
+        logging.info("The JSON replay file is: %s", replay_devtools.resolve())
+        logging.info("The replay file for debugging is: %s", replay.resolve())
         # Start an instance of lsp-devtools to record the exchanges
         devtools = await asyncio.create_subprocess_exec(
             "lsp-devtools",
@@ -222,6 +223,7 @@ def assertEqual(actual, expected) -> None:
 class CLIArgs(argparse.Namespace):
     verbose: int = 0
     devtools_port: int = 8765
+    devtools_external: bool = False
 
 
 args = CLIArgs()
@@ -231,12 +233,13 @@ if __name__ == "__main__":
     p.add_argument("test_py_path")
     p.add_argument("--verbose", "-v", action="count", default=CLIArgs.verbose)
     p.add_argument("--devtools-port", type=int, default=CLIArgs.devtools_port)
+    p.add_argument("--devtools-external", action="store_true")
 
     p.parse_args(namespace=args)
 
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
-        format="%(asctime)s %(levelname)-8s %(message)s",
+        format="%(asctime)s %(name)-20s %(levelname)-8s %(message)s",
         datefmt="%H:%M:%S",
     )
 
