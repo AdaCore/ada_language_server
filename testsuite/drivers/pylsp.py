@@ -6,17 +6,19 @@ import inspect
 import json
 import logging
 import os
+import signal
 import sys
 from pathlib import Path
 from typing import Awaitable, Callable
 
 from drivers import ALSTestDriver
-from e3.testsuite.driver.classic import TestAbortWithFailure, ProcessResult
+from drivers.lsp_types import URI
+from e3.testsuite.driver.classic import ProcessResult, TestAbortWithFailure
 from e3.testsuite.result import TestStatus
 from lsprotocol.types import ClientCapabilities, InitializeParams
 from pytest_lsp import ClientServerConfig, LanguageClient
 
-from drivers.lsp_types import URI
+logger = logging.getLogger(__name__)
 
 
 class PyLSP(ALSTestDriver):
@@ -70,15 +72,78 @@ def log_lsp_diagnostics(client: LanguageClient):
     logging.info("### Diagnostics ###\n%s", json.dumps(client.diagnostics))
 
 
+# Recording is active by default, and can be deactivated with ALS_TEST_RECORD=0. This
+# could be useful in production where recording replay files is not needed.
+record_messages = os.environ.get("ALS_TEST_RECORD", "1") != "0"
+replay_devtools = Path("replay-devtools.txt")
+replay = Path("replay.txt")
+
+
+def process_replay(input: Path, output: Path) -> None:
+    """lsp-devtools records the JSON part of messages, but not the lower-layer message
+    headers. Replaying directly with ALS requires the headers, so this function
+    processes the replay file to re-write it with headers.
+    """
+    with input.open() as in_fp:
+        with output.open("wb") as out_fp:
+            for line in in_fp:
+                line = line.strip()
+                out_fp.write(
+                    f"Content-Length:{len(line)}\r\n\r\n{line}".encode("utf-8")
+                )
+
+
+async def start_lsp_client(
+    config: ClientServerConfig,
+) -> tuple[LanguageClient, asyncio.subprocess.Process | None]:
+    devtools = None
+    if record_messages:
+        logging.info("Starting lsp-devtools to record messages")
+        logging.info("The replay file is: %s", replay.resolve())
+        # Start an instance of lsp-devtools to record the exchanges
+        devtools = await asyncio.create_subprocess_exec(
+            "lsp-devtools",
+            "record",
+            "--port",
+            str(args.devtools_port),
+            "--to-file",
+            str(replay_devtools),
+            # Only record messages emitted by the client because the goal of the
+            # replay file is to be used directly as input to the ALS for
+            # debugging
+            "--message-source",
+            "client",
+            # I was hoping that the following CLI args would help record raw
+            # messages in the replay file, but they seem to have no effect. I'm
+            # including them here to record the fact that they have been
+            # considered and deemed useless.
+            # "--capture-raw-output",
+            # "--capture-rpc-output",
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+    client: LanguageClient = await config.start(
+        devtools=str(args.devtools_port) if record_messages else None,
+    )  # type: ignore
+
+    return client, devtools
+
+
 def simple_test(cmd: list[str] | None = None) -> Callable:
 
-    async def async_wrapper(func: Callable[..., Awaitable[object]]):
+    async def async_wrapper(func: Callable[..., Awaitable[object]]) -> None:
         als = os.environ.get("ALS", "ada_language_server")
         command = cmd or [als]
         config = ClientServerConfig(command)
-        client: LanguageClient = await config.start()  # type: ignore
-        assert client
+        client: LanguageClient | None = None
+
+        devtools = None
         try:
+            client, devtools = await start_lsp_client(config)
+            assert client
+
             await client.initialize_session(
                 params=InitializeParams(
                     ClientCapabilities(),
@@ -89,9 +154,28 @@ def simple_test(cmd: list[str] | None = None) -> Callable:
             )
             await func(client)
         finally:
-            log_lsp_logs(client)
-            log_lsp_diagnostics(client)
-            await client.shutdown_session()
+            try:
+                if client:
+                    log_lsp_logs(client)
+                    log_lsp_diagnostics(client)
+                    await client.shutdown_session()
+            finally:
+                if devtools:
+                    try:
+                        devtools.send_signal(signal.SIGINT)
+                        # If we need these outputs in the future, here is how we get
+                        # them:
+                        # stdout, stderr = await devtools.communicate()
+                        status = await devtools.wait()
+                        logging.info(
+                            "lsp-devtools exit code: %d",
+                            # "\nout:\n%s\nerr:\n%s",
+                            status,
+                            # stdout,
+                            # stderr,
+                        )
+                    finally:
+                        process_replay(replay_devtools, replay)
 
     def wrapper(func):
         def inner_wrapper():
@@ -135,12 +219,20 @@ def assertEqual(actual, expected) -> None:
         raise AssertionError(msg)
 
 
+class CLIArgs(argparse.Namespace):
+    verbose: int = 0
+    devtools_port: int = 8765
+
+
+args = CLIArgs()
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("test_py_path")
-    p.add_argument("--verbose", "-v", action="count", default=0)
+    p.add_argument("--verbose", "-v", action="count", default=CLIArgs.verbose)
+    p.add_argument("--devtools-port", type=int, default=CLIArgs.devtools_port)
 
-    args = p.parse_args()
+    p.parse_args(namespace=args)
 
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
