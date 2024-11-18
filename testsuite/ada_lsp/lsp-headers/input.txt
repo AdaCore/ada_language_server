@@ -1,0 +1,13 @@
+Content-Length: 203
+Content-Type: application/vscode-jsonrpc; charset=utf-8
+
+{"id": "686ae293-f1c7-44ea-a8bc-0e5b0b9ad1ae", "params": {"capabilities": {}, "processId": 1779748, "rootPath": null, "rootUri": null, "workspaceFolders": null}, "method": "initialize", "jsonrpc": "2.0"}Content-Length: 57
+Content-Type: application/vscode-jsonrpc; charset=utf-8
+
+{"params": {}, "method": "initialized", "jsonrpc": "2.0"}Content-Length: 86
+Content-Type: application/vscode-jsonrpc; charset=utf-8
+
+{"id": "14c8655c-65b3-4a5e-9269-5f9b13bef6b4", "method": "shutdown", "jsonrpc": "2.0"}Content-Length: 36
+Content-Type: application/vscode-jsonrpc; charset=utf-8
+
+{"method": "exit", "jsonrpc": "2.0"}
