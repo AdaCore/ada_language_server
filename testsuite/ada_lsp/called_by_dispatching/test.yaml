@@ -1,2 +1,3 @@
-title: 'called_by_dispatching'
-driver: python
+# If the title is the same as the directory name, it can be ommited.
+# title: 'called_by_dispatching'
+driver: pylsp

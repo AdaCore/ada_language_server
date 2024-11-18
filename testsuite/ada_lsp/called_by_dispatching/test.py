@@ -1,32 +1,37 @@
 """test that callHierarchy/incomingCalls works for dispatching calls"""
 
-import os
-
-from drivers.lsp_ada_requests import (
-    didOpen_from_disk,
-    incomingCalls,
-    prepareCallHierarchy,
+from drivers.pylsp import (
+    URI,
+    assertLocationsList,
+    callHierarchyIncomingCallsParams,
+    callHierarchyPrepareParams,
+    didOpenTextDocumentParams,
+    simple_test,
+    LanguageClient,
 )
-from drivers.lsp_python_driver import simple_test
 
 
-@simple_test
-def test_called_by(lsp, wd):
+@simple_test()
+async def test_called_by(lsp: LanguageClient):
     # Send a didOpen for main.adb
-    main_adb = os.path.join(wd, "main.adb")
-    root_ads = os.path.join(wd, "root.ads")
-    p_adb = os.path.join(wd, "p.adb")
-
-    lsp.send(didOpen_from_disk(main_adb))
+    open_params, main_adb_uri = didOpenTextDocumentParams("main.adb")
+    root_ads_uri = URI("root.ads")
+    lsp.text_document_did_open(open_params)
 
     # Send a textDocument/prepareCallHierarchy request
-    response = lsp.send(prepareCallHierarchy(main_adb, 7, 4))
+    result1 = await lsp.text_document_prepare_call_hierarchy_async(
+        callHierarchyPrepareParams(main_adb_uri, 7, 4)
+    )
+    assert result1
 
     # Expect these locations
-    response.assertLocationsList([("root.ads", 5)])
+    assertLocationsList(result1, [("root.ads", 5)])
 
     # Now send the callHierarchy/incomingCalls request
-    response = lsp.send(incomingCalls(root_ads, 5, 14))
+    result2 = await lsp.call_hierarchy_incoming_calls_async(
+        callHierarchyIncomingCallsParams(root_ads_uri, 5, 14)
+    )
+    assert result2
 
     # Expect these locations
-    response.assertLocationsList([("main.adb", 3)])
+    assertLocationsList(result2, [("main.adb", 3)])
