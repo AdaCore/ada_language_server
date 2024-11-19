@@ -7,11 +7,11 @@ from drivers.pylsp import (
     callHierarchyIncomingCallsParams,
     callHierarchyPrepareParams,
     didOpenTextDocumentParams,
-    simple_test,
+    test,
 )
 
 
-@simple_test()
+@test()
 async def test_called_by(lsp: LanguageClient):
     # Send a didOpen for main.adb
     open_params, main_adb_uri = didOpenTextDocumentParams("main.adb")

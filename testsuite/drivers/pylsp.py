@@ -212,45 +212,68 @@ class ALSClientServerConfig(pytest_lsp.ClientServerConfig):
         return cmd
 
 
-def simple_test(cmd: list[str] | None = None) -> Callable:
+def test(
+    config: ALSClientServerConfig | None = None,
+    initialize: bool = True,
+    shutdown: bool = True,
+) -> Callable:
     """A decorator to mark a function as a test entry point. The function must receive a
     single parameter of type LanguageClient.
 
-    The decorator takes care of sending the 'initialize' and 'initialized' messages such
-    that the server is ready to receive other requests implementing a test.
+    The decorator creates the LanguageClient object and passes it to the test function.
 
-    The decorator also takes care of sending 'shutdown' and 'exit' messages at the end
-    of a test.
+    `config` can be specified to overwrite the default configuration which gets the ALS
+    executable from the `ALS` env variable and calls it with no arguments.
+
+    If `initialize=True` (the default), the decorator takes care of sending the
+    'initialize' and 'initialized' messages such that the test function can focus only
+    on the testing concern.
+
+    If `shutdown=True` (the default), the decorator also takes care of sending
+    'shutdown' and 'exit' messages at the end of a test.
+
+    `initialize=False` and/or `shutdown=False` may be used to write advanced tests that
+    need control over when these requests get sent.
+
+    :param config: a custom configuration object allowing to customize the ALS command
+    line or its environment.
+    :param initialize: whether the LSP initialization sequence should be performed
+    before calling the test function.
+    :param shutdown: whether the LSP shutdown sequence should be performed after the end
+    of the test function.
     """
 
     async def async_wrapper(
         func: Callable[[LanguageClient], Awaitable[object]]
     ) -> None:
         als = os.environ.get("ALS", "ada_language_server")
-        command = cmd or [als]
-        config = ALSClientServerConfig(command)
+        command = [als]
+        conf = config or ALSClientServerConfig(command)
         client: LanguageClient | None = None
 
         devtools = None
         try:
-            client, devtools = await start_lsp_client(config)
+            client, devtools = await start_lsp_client(conf)
             assert client
 
-            await client.initialize_session(
-                params=InitializeParams(
-                    ClientCapabilities(),
-                    # ALS doesn't support the newer workspaceFolders property so we have
-                    # to use the older rootURI property.
-                    root_uri=URI(os.getcwd()),
+            if initialize:
+                await client.initialize_session(
+                    params=InitializeParams(
+                        ClientCapabilities(),
+                        # ALS doesn't support the newer workspaceFolders property so we
+                        # have to use the older rootURI property.
+                        root_uri=URI(os.getcwd()),
+                    )
                 )
-            )
+
             await func(client)
         finally:
             try:
                 if client:
                     log_lsp_logs(client)
                     log_lsp_diagnostics(client)
-                    await client.shutdown_session()
+                    if shutdown:
+                        await client.shutdown_session()
             finally:
                 if devtools:
                     try:
@@ -267,16 +290,17 @@ def simple_test(cmd: list[str] | None = None) -> Callable:
                             # stderr,
                         )
                     finally:
-                        process_replay(_replay_devtools, _replay)
+                        if _replay_devtools.exists():
+                            process_replay(_replay_devtools, _replay)
 
     def wrapper(func: Callable[[LanguageClient], Awaitable[object]]):
         def inner_wrapper():
             asyncio.run(async_wrapper(func))
 
-        setattr(inner_wrapper, simple_test.__name__, True)
+        setattr(inner_wrapper, test.__name__, True)
         return inner_wrapper
 
-    setattr(wrapper, simple_test.__name__, True)
+    setattr(wrapper, test.__name__, True)
     return wrapper
 
 
@@ -296,7 +320,7 @@ def run_test_file(test_py_path: str):
     test_functions = [
         obj
         for _, obj in inspect.getmembers(module)
-        if inspect.isfunction(obj) and hasattr(obj, simple_test.__name__)
+        if inspect.isfunction(obj) and hasattr(obj, test.__name__)
     ]
     if test_functions:
         for obj in test_functions:
