@@ -1,0 +1,6 @@
+project prj is
+   package Prove is
+      for Proof_Switches ("ada") use ("--report=all");
+      for Switches ("ada") use ("--timeout=10");
+   end Prove;
+end prj;

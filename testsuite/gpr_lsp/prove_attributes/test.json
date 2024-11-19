@@ -1,0 +1,139 @@
+[
+   {
+      "comment": [
+         "Test attribute checking for the Prove package"
+      ]
+   }, 
+   {
+      "start": {
+          "cmd": ["${ALS}", "--language-gpr"]
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+               }, 
+               "rootUri": "$URI{.}"
+            }, 
+            "id": 1, 
+            "method": "initialize"
+         }, 
+         "wait": [{
+            "id": 1,
+            "result": {
+              "capabilities": {
+                "textDocumentSync": {
+                  "openClose": true,
+                  "change": 1
+                  }
+                }
+              }
+            }]
+         }
+      }, 
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "method": "initialized"
+         }, 
+         "wait": []
+      }
+   }, 
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project prj is\n   package Prove is\n      for Proof_Switches (\"ada\") use (\"--report=all\");\n      for Switches (\"ada\") use (\"--timeout=10\");\n   end Prove;\nend prj;", 
+                  "version": 0, 
+                  "uri": "$URI{prj.gpr}", 
+                  "languageId": "Gpr"
+               }
+            }, 
+            "jsonrpc": "2.0", 
+            "method": "textDocument/didOpen"
+         }, 
+         "wait": [{
+            "method": "textDocument/publishDiagnostics",
+            "params": {
+              "uri": "$URI{prj.gpr}",
+              "diagnostics": []
+            }
+         }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{prj.gpr}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 25
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 32
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+          "wait": [{
+            "method": "textDocument/publishDiagnostics",
+            "params": {
+              "uri": "$URI{prj.gpr}",
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 2,
+                      "character": 6
+                    },
+                    "end": {
+                      "line": 2,
+                      "character": 6
+                    }
+                  },
+                  "severity": 1,
+                  "message": "full associative array expression requires simple attribute reference"
+                }
+              ]
+            }
+         }]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0", 
+            "id": 7, 
+            "method": "shutdown"
+         }, 
+         "wait": [
+            {
+               "id": 7, 
+               "result": null
+            }
+         ]
+      }
+   }, 
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
