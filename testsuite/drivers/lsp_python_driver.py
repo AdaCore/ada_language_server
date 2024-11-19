@@ -128,7 +128,7 @@ class LSP(object):
         self.license_to_kill = None
 
         # The queue receiving the messages from the reading task
-        self.queue = queue.Queue()
+        self.queue: queue.Queue[LSPResponse] = queue.Queue()
 
         # Launch a task that will receive messages from the LSP server
         # and store them in a queue
@@ -136,10 +136,10 @@ class LSP(object):
         self.k_task = threading.Thread(target=self.kill_task)
 
         # Error messages encountered
-        self.errors = []
+        self.errors: list[str] = []
 
         # A list of bytes containing everything we sent to the server
-        self.replay = []
+        self.replay: list[bytes] = []
 
         # Start the tasks after all the attributes have been declared
         self.task.start()
@@ -207,6 +207,7 @@ class LSP(object):
         encoded = message.encode()
         self.replay.append(encoded)
 
+        assert self.process.stdin
         self.process.stdin.write(encoded)
         self.process.stdin.flush()
 
@@ -228,6 +229,8 @@ class LSP(object):
                     f" not received in {RESPONSE_TIMEOUT} seconds"
                 }
             )
+
+        return None
 
     def error(self, message):
         """Log an error message."""
@@ -301,7 +304,8 @@ def run_simple_test(test_function, working_dir) -> list[str]:
             lsp.errors.append(traceback.format_exc())
     finally:
         lsp.shutdown()
-        return lsp.errors
+
+    return lsp.errors
 
 
 # Make run_simple_test available as a decorator

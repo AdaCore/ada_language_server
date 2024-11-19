@@ -119,13 +119,13 @@ _replay_devtools = Path("replay-devtools.txt")
 _replay = Path("replay.txt")
 
 
-def process_replay(input: Path, output: Path) -> None:
+def process_replay(in_path: Path, out_path: Path) -> None:
     """lsp-devtools records the JSON part of messages, but not the lower-layer message
     headers. Replaying directly with ALS requires the headers, so this function
     processes the replay file to re-write it with headers.
     """
-    with input.open() as in_fp:
-        with output.open("wb") as out_fp:
+    with in_path.open() as in_fp:
+        with out_path.open("wb") as out_fp:
             for line in in_fp:
                 line = line.strip()
                 out_fp.write(
@@ -393,14 +393,14 @@ def callHierarchyIncomingCallsParams(
     src_uri: str, line_one_based: int, char_one_based: int
 ) -> CallHierarchyIncomingCallsParams:
     """Shortcut for creating a CallHierarchyIncomingCallsParams object."""
-    range = RangeZero(line_one_based, char_one_based)
+    rng = RangeZero(line_one_based, char_one_based)
     param = CallHierarchyIncomingCallsParams(
         item=CallHierarchyItem(
             name="",
             kind=SymbolKind.Function,
             uri=src_uri,
-            range=range,
-            selection_range=range,
+            range=rng,
+            selection_range=rng,
         )
     )
 
