@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        types: [file]
+        files: \.(py|anod|plan)$
+        additional_dependencies:
+          - flake8-bugbear
+          - flake8-builtins
+          - flake8-comprehensions
+          # - flake8-docstrings
+          # - flake8-rst-docstrings
+  - repo: https://github.com/ambv/black
+    rev: 24.2.0
+    hooks:
+      - id: black
+        types_or: [file]
+        files: \.(py|plan)$
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        files: '\.py$'
+        # exclude: "^tests/.+$"
+        additional_dependencies:
+          - --extra-index-url
+          - https://gitlab.adacore-it.com/api/v4/projects/it%2Fpackage-registry/packages/pypi/simple
+          - pytest-lsp
