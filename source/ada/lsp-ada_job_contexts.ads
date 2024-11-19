@@ -28,6 +28,8 @@ with Libadalang.Common;
 
 with Laltools.Common;
 
+with LSP.Enumerations;
+with VSS.String_Vectors;
 with VSS.Strings;
 
 with LSP.Ada_Client_Capabilities;
@@ -70,6 +72,15 @@ package LSP.Ada_Job_Contexts is
 
    procedure Increment_Project_Timestamp (Self : in out Ada_Job_Context)
      is abstract;
+
+   procedure Send_Messages
+     (Self     : Ada_Job_Context;
+      Show     : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+      Severity : LSP.Enumerations.MessageType;
+      File     : GNATCOLL.VFS.Virtual_File) is abstract;
+   --  Send Messages of Severity to the client using LogMessages.
+   --  If Show is True then also send showMessages.
 
    function Project_Tree_Is_Defined
      (Self : Ada_Job_Context) return Boolean is abstract;

@@ -35,6 +35,7 @@ with LSP.Text_Documents.Langkit_Documents;
 with LSP.Utils;
 
 with Gpr_Parser.Common;
+with VSS.String_Vectors;
 
 package body LSP.GPR_Handlers is
 
@@ -682,9 +683,16 @@ package body LSP.GPR_Handlers is
 
    overriding procedure On_DidChangeConfiguration_Notification
      (Self  : in out Message_Handler;
-      Value : LSP.Structures.DidChangeConfigurationParams) is
+      Value : LSP.Structures.DidChangeConfigurationParams)
+   is
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
    begin
-      Self.Configuration.Read_JSON (Value.settings);
+      Self.Configuration.Read_JSON (Value.settings, Messages);
+      for Message of Messages loop
+         Self.Sender.On_LogMessage_Notification
+           ((LSP.Enumerations.Warning, Message));
+         Self.Tracer.Trace_Text (Message);
+      end loop;
 
       for Document of Self.Open_Documents loop
          begin
@@ -693,7 +701,6 @@ package body LSP.GPR_Handlers is
               (Client         => Self.Client,
                Configuration  => Self.Configuration,
                Update_Sources => True);
-
          exception
             when E : others =>
                Self.Tracer.Trace_Exception
