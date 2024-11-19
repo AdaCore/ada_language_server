@@ -27,6 +27,7 @@ from lsprotocol.types import (
     ClientCapabilities,
     DidOpenTextDocumentParams,
     InitializeParams,
+    MessageType,
     Position,
     Range,
     SymbolKind,
@@ -216,6 +217,7 @@ def test(
     config: ALSClientServerConfig | None = None,
     initialize: bool = True,
     shutdown: bool = True,
+    assert_no_lsp_errors: bool = True,
 ) -> Callable:
     """A decorator to mark a function as a test entry point. The function must receive a
     single parameter of type LanguageClient.
@@ -241,6 +243,8 @@ def test(
     before calling the test function.
     :param shutdown: whether the LSP shutdown sequence should be performed after the end
     of the test function.
+    :param assert_no_lsp_errors: automatically assert that no LSP log message of level
+    error were received after the end of the test function.
     """
 
     async def async_wrapper(
@@ -266,7 +270,12 @@ def test(
                     )
                 )
 
+            # Run the test
             await func(client)
+
+            if assert_no_lsp_errors:
+                # Assert the absence of Error LSP log messages
+                assertNoLSPErrors(client)
         finally:
             try:
                 if client:
@@ -456,7 +465,7 @@ def URI(src_path: Path | str) -> str:
 def assertEqual(actual: Any, expected: Any) -> None:
     """Raise an AssertionError if actual != expected."""
     if actual != expected:
-        msg = f"### Actual ###\n{actual}\n### Expected ###\n{expected}"
+        msg = f"\n### Actual ###\n{actual}\n### Expected ###\n{expected}"
         raise AssertionError(msg)
 
 
@@ -509,3 +518,13 @@ async def awaitIndexingEnd(lsp: LanguageClient):
         last_progress = lsp.progress_reports[indexing_progress][-1]
 
     logging.info("Received indexing end message")
+
+
+def assertNoLSPErrors(lsp: LanguageClient):
+    """Assert that no Error-level log messages have been received by the LSP client so
+    far.
+    """
+    errors = [m for m in lsp.log_messages if m.type == MessageType.Error]
+    if errors:
+        msg = "\n### Found LSP Errors ###\n" + to_str(errors)
+        raise AssertionError(msg)
