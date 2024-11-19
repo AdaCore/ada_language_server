@@ -56,8 +56,6 @@ The Ada & SPARK tools are available to the community through different channels:
 * [ALIRE](https://alire.ada.dev/): The Ada LIbrary Repository provides the means to install compiler [toolchains](https://alire.ada.dev/docs/#toolchain-management).
 The `gnatprove` crate provides GNATprove.
 Both tools are available for Linux, Windows and macOS.
-* On Linux distributions you can use your package manager to install [GCC](https://gcc.gnu.org/) which includes the GNAT Ada compiler.
-You also need to install the `gprbuild` package.
 * On Windows with [msys2](https://www.msys2.org/) you can install the `gcc` and `gprbuild` packages.
 * On macOS you can find GCC releases including GNAT for Intel and Apple silicon at [this project on GitHub](https://github.com/simonjwright/distributing-gcc/releases) courtesy of Simon Wright.
 
