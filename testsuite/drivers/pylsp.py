@@ -8,16 +8,14 @@ import logging
 import os
 import signal
 import sys
-from pathlib import Path
-from typing import Awaitable, Callable, Sequence
+import urllib
 import urllib.parse
+from pathlib import Path
+from typing import Any, Awaitable, Callable, Sequence
 
 import lsprotocol.converters
 import lsprotocol.types
-import urllib
-
 import pytest_lsp
-
 from drivers import ALSTestDriver
 from e3.testsuite.driver.classic import ProcessResult, TestAbortWithFailure
 from e3.testsuite.result import TestStatus
@@ -37,14 +35,21 @@ from lsprotocol.types import (
     WorkDoneProgressEnd,
 )
 
-logger = logging.getLogger(__name__)
-
 # Expose aliases of these pytest-lsp classes
 LanguageClient = pytest_lsp.LanguageClient
 ClientServerConfig = pytest_lsp.ClientServerConfig
 
 
 class PyLSP(ALSTestDriver):
+    """This is test driver leverages the pytest-lsp API to provide a LanguageClient
+    object able to send and receive messages to the ALS through a typed API.
+
+    The test is implemented in a test.py file where functions implementing tests have to
+    be annotated with @simple_test().
+
+    The test is run by spawning a dedicated Python subprocess in order to avoid
+    lingering file handles after a test is done.
+    """
 
     def run(self) -> None:
         wd = Path(self.working_dir())
@@ -56,22 +61,27 @@ class PyLSP(ALSTestDriver):
 
             cmd = [
                 sys.executable,
+                # Running the test is handled by this same file pylsp.py, invoked as a
+                # main entry point
                 __file__,
                 str(python_file),
             ]
 
             for _ in range(0, self.env.main_options.verbose):  # type: ignore
-                # Transfer -v arguments to the Python test
+                # Transfer -v arguments to the Python test driver to reflect verbosity
                 cmd += ["-v"]
 
+            # Spawn a child Python process to run the test, to avoid lingering file
+            # handles which can create issues on Windows when the test work dir is
+            # cleaned up after execution.
             p: ProcessResult = self.shell(
                 cmd,
-                # Start the test process directly in the test work dir
+                # Start the test process directly in the test work dir. This way tests
+                # can simply assume that the current dir is the test work dir.
                 cwd=str(wd),
                 env={
                     "ALS": self.env.als,
                     "ALS_HOME": self.env.als_home,
-                    "ALS_WAIT_FACTOR": str(self.env.wait_factor),
                     "PYTHONPATH": os.path.dirname(os.path.dirname(__file__)),
                 },
                 ignore_environ=False,
@@ -86,26 +96,28 @@ class PyLSP(ALSTestDriver):
 
 
 def log_lsp_logs(client: LanguageClient):
-    logging.info(
-        "### LSP Log Message ###\n%s", "\n".join(map(str, client.log_messages))
-    )
+    """Log all log messages received through LSP onto the Python 'logging' module."""
+    logging.info("### LSP Log Message ###\n%s", to_str(client.log_messages))
 
 
 def log_lsp_diagnostics(client: LanguageClient):
-    logging.info(
-        "### Diagnostics ###\n%s",
-        json.dumps(
-            lsprotocol.converters.get_converter().unstructure(client.diagnostics),
-            indent=2,
-        ),
+    """Log all diagnostics received through LSP."""
+    logging.info("### Diagnostics ###\n%s", to_str(client.diagnostics))
+
+
+def to_str(lsp_value: Any) -> str:
+    """Serialize a typed object from the lsprotocol API (e.g. list[Diagnostic]) into a
+    JSON string."""
+    return json.dumps(
+        lsprotocol.converters.get_converter().unstructure(lsp_value), indent=2
     )
 
 
 # Recording is active by default, and can be deactivated with ALS_TEST_RECORD=0. This
 # could be useful in production where recording replay files is not needed.
-record_messages = os.environ.get("ALS_TEST_RECORD", "1") != "0"
-replay_devtools = Path("replay-devtools.txt")
-replay = Path("replay.txt")
+_record_messages = os.environ.get("ALS_TEST_RECORD", "1") != "0"
+_replay_devtools = Path("replay-devtools.txt")
+_replay = Path("replay.txt")
 
 
 def process_replay(input: Path, output: Path) -> None:
@@ -125,11 +137,22 @@ def process_replay(input: Path, output: Path) -> None:
 async def start_lsp_client(
     config: ClientServerConfig,
 ) -> tuple[LanguageClient, asyncio.subprocess.Process | None]:
+    """Start ALS and connect it to a LanguageClient object that provides all
+    communication with the ALS through a typed API exposing all LSP requests and
+    notifications.
+
+    If message recording is enabled, this function also starts a lsp-devtools process
+    which intercepts exchanges between the client and the server and saves them to a
+    file.
+
+    Both the LSP client and the lsp-devtools process are returned because it is the
+    responsibility of the caller to terminate both of them in a 'finally' block.
+    """
     devtools = None
-    if record_messages and not args.devtools_external:
+    if _record_messages and not args.devtools_external:
         logging.info("Starting lsp-devtools to record messages")
-        logging.info("The JSON replay file is: %s", replay_devtools.resolve())
-        logging.info("The replay file for debugging is: %s", replay.resolve())
+        logging.info("The JSON replay file is: %s", _replay_devtools.resolve())
+        logging.info("The replay file for debugging is: %s", _replay.resolve())
         # Start an instance of lsp-devtools to record the exchanges
         devtools = await asyncio.create_subprocess_exec(
             "lsp-devtools",
@@ -137,7 +160,7 @@ async def start_lsp_client(
             "--port",
             str(args.devtools_port),
             "--to-file",
-            str(replay_devtools),
+            str(_replay_devtools),
             # Only record messages emitted by the client because the goal of the
             # replay file is to be used directly as input to the ALS for
             # debugging
@@ -155,15 +178,26 @@ async def start_lsp_client(
         )
 
     client: LanguageClient = await config.start(
-        devtools=str(args.devtools_port) if record_messages else None,
+        devtools=str(args.devtools_port) if _record_messages else None,
     )  # type: ignore
 
     return client, devtools
 
 
 def simple_test(cmd: list[str] | None = None) -> Callable:
+    """A decorator to mark a function as a test entry point. The function must receive a
+    single parameter of type LanguageClient.
 
-    async def async_wrapper(func: Callable[..., Awaitable[object]]) -> None:
+    The decorator takes care of sending the 'initialize' and 'initialized' messages such
+    that the server is ready to receive other requests implementing a test.
+
+    The decorator also takes care of sending 'shutdown' and 'exit' messages at the end
+    of a test.
+    """
+
+    async def async_wrapper(
+        func: Callable[[LanguageClient], Awaitable[object]]
+    ) -> None:
         als = os.environ.get("ALS", "ada_language_server")
         command = cmd or [als]
         config = ClientServerConfig(command)
@@ -205,9 +239,9 @@ def simple_test(cmd: list[str] | None = None) -> Callable:
                             # stderr,
                         )
                     finally:
-                        process_replay(replay_devtools, replay)
+                        process_replay(_replay_devtools, _replay)
 
-    def wrapper(func):
+    def wrapper(func: Callable[[LanguageClient], Awaitable[object]]):
         def inner_wrapper():
             asyncio.run(async_wrapper(func))
 
@@ -219,6 +253,9 @@ def simple_test(cmd: list[str] | None = None) -> Callable:
 
 
 def run_test_file(test_py_path: str):
+    """This function loads the given Python file and iterates over functions declared
+    with the 'simple_test' decorator and runs them.
+    """
     # Load test.py as a module
     logging.debug("Loading test file: %s", test_py_path)
     spec = importlib.util.spec_from_file_location("module.name", test_py_path)
@@ -244,6 +281,10 @@ def run_test_file(test_py_path: str):
 
 
 class CLIArgs(argparse.Namespace):
+    """A class to represent CLI arguments of this file when it is ran as a main entry
+    point.
+    """
+
     verbose: int = 0
     devtools_port: int = 8765
     devtools_external: bool = False
@@ -254,44 +295,82 @@ args = CLIArgs()
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("test_py_path")
-    p.add_argument("--verbose", "-v", action="count", default=CLIArgs.verbose)
-    p.add_argument("--devtools-port", type=int, default=CLIArgs.devtools_port)
-    p.add_argument("--devtools-external", action="store_true")
+    p.add_argument(
+        "--verbose",
+        "-v",
+        action="count",
+        default=CLIArgs.verbose,
+        help="Increase verbosity of console logging (can be given multiple times).",
+    )
+    p.add_argument(
+        "--devtools-port",
+        type=int,
+        default=CLIArgs.devtools_port,
+        help="Specify the port to use for lsp-devtools (default: %(default)s)",
+    )
+    p.add_argument(
+        "--devtools-external",
+        action="store_true",
+        help="Don't spawn lsp-devtools internally for message saving. Instead,"
+        " connect to a lsp-devtools spawned externally by the developer"
+        " for inspection.",
+    )
 
     p.parse_args(namespace=args)
 
     logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.INFO,
+        level=logging.DEBUG if args.verbose > 0 else logging.INFO,
         format="%(asctime)s %(name)-20s %(levelname)-8s %(message)s",
         datefmt="%H:%M:%S",
     )
 
     if args.verbose < 2:
         # For low verbosity levels, inhibit the following noisy loggers
-        logging.getLogger("pygls.protocol.json_rpc").setLevel(logging.ERROR)
-        logging.getLogger("pygls.feature_manager").setLevel(logging.ERROR)
-        logging.getLogger("pygls.client").setLevel(logging.ERROR)
-        logging.getLogger("pytest_lsp.client").setLevel(logging.ERROR)
-        logging.getLogger("asyncio").setLevel(logging.ERROR)
+        for logger in (
+            "pygls.protocol.json_rpc",
+            "pygls.feature_manager",
+            "pygls.client",
+            "pytest_lsp.client",
+            "asyncio",
+        ):
+            logging.getLogger(logger).setLevel(logging.ERROR)
 
     run_test_file(args.test_py_path)
 
 
-def callHierarchyPrepareParams(main_adb_uri, line_one_based, char_one_based):
+def callHierarchyPrepareParams(
+    src_uri: str, line_one_based: int, char_one_based: int
+) -> CallHierarchyPrepareParams:
+    """Shortcut for creating a CallHierarchyPrepareParams object."""
     return CallHierarchyPrepareParams(
-        TextDocumentIdentifier(main_adb_uri),
-        Position(line_one_based - 1, char_one_based - 1),
+        TextDocumentIdentifier(src_uri),
+        Pos(line_one_based, char_one_based),
     )
 
 
-def callHierarchyIncomingCallsParams(main_adb_uri, line_one_based, char_one_based):
-    pos = Position(line_one_based - 1, char_one_based - 1)
-    range = Range(pos, pos)
+def Pos(line_one_based: int, char_one_based: int):
+    """Shortcut for creating a Position object with ONE-BASED locations."""
+    return Position(line_one_based - 1, char_one_based - 1)
+
+
+def RangeZero(line_one_based: int, char_one_based: int):
+    """Shortcut for creating a Range that starts and ends at the same location given
+    with ONE-BASED integers.
+    """
+    pos = Pos(line_one_based, char_one_based)
+    return Range(pos, pos)
+
+
+def callHierarchyIncomingCallsParams(
+    src_uri: str, line_one_based: int, char_one_based: int
+) -> CallHierarchyIncomingCallsParams:
+    """Shortcut for creating a CallHierarchyIncomingCallsParams object."""
+    range = RangeZero(line_one_based, char_one_based)
     param = CallHierarchyIncomingCallsParams(
         item=CallHierarchyItem(
             name="",
             kind=SymbolKind.Function,
-            uri=main_adb_uri,
+            uri=src_uri,
             range=range,
             selection_range=range,
         )
@@ -303,6 +382,9 @@ def callHierarchyIncomingCallsParams(main_adb_uri, line_one_based, char_one_base
 def didOpenTextDocumentParams(
     src_path: Path | str,
 ) -> tuple[DidOpenTextDocumentParams, str]:
+    """Create a DidOpenTextDocumentParams for the given file path. The URI of that file
+    is also returned for convenience.
+    """
     src_uri = URI(src_path)
     return (
         DidOpenTextDocumentParams(
@@ -313,12 +395,14 @@ def didOpenTextDocumentParams(
 
 
 def URI(src_path: Path | str) -> str:
+    """Create a URI for the given file path."""
     src_abs = Path(src_path).resolve()
     src_uri = f"file://{urllib.parse.quote(str(src_abs))}"
     return src_uri
 
 
-def assertEqual(actual, expected) -> None:
+def assertEqual(actual: Any, expected: Any) -> None:
+    """Raise an AssertionError if actual != expected."""
     if actual != expected:
         msg = f"### Actual ###\n{actual}\n### Expected ###\n{expected}"
         raise AssertionError(msg)
@@ -328,6 +412,10 @@ def assertLocationsList(
     actual: Sequence[CallHierarchyItem | CallHierarchyIncomingCall],
     expected: list[tuple[str, int]],
 ) -> None:
+    """Assert the content of a list of results from a CallHierarchy or
+    CallHierarchyIncomingCall request. Expected results are given as a list of
+    (<basename>, <line-one-based>) tuples.
+    """
     actual_locations = []
     for item in actual:
         if isinstance(item, CallHierarchyIncomingCall):
@@ -347,6 +435,7 @@ def assertLocationsList(
 
 
 async def awaitIndexingEnd(lsp: LanguageClient):
+    """Wait until the ALS finishes indexing."""
     indexing_progress = None
     while indexing_progress is None:
         await asyncio.sleep(0.2)

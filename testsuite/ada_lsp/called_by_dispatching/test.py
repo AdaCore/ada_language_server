@@ -2,12 +2,12 @@
 
 from drivers.pylsp import (
     URI,
+    LanguageClient,
     assertLocationsList,
     callHierarchyIncomingCallsParams,
     callHierarchyPrepareParams,
     didOpenTextDocumentParams,
     simple_test,
-    LanguageClient,
 )
 
 
