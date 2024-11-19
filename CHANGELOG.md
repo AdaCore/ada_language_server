@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+## 26.0.202411173
+
 * Create commands for opening the project file and the log file
 * Add editor contextual menus for some Ada commands
 * Avoid 'auto-import' command when completing with-clauses
