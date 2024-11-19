@@ -37,7 +37,6 @@ from lsprotocol.types import (
 
 # Expose aliases of these pytest-lsp classes
 LanguageClient = pytest_lsp.LanguageClient
-ClientServerConfig = pytest_lsp.ClientServerConfig
 
 
 class PyLSP(ALSTestDriver):
@@ -135,7 +134,7 @@ def process_replay(input: Path, output: Path) -> None:
 
 
 async def start_lsp_client(
-    config: ClientServerConfig,
+    config: pytest_lsp.ClientServerConfig,
 ) -> tuple[LanguageClient, asyncio.subprocess.Process | None]:
     """Start ALS and connect it to a LanguageClient object that provides all
     communication with the ALS through a typed API exposing all LSP requests and
@@ -184,6 +183,35 @@ async def start_lsp_client(
     return client, devtools
 
 
+ALS_USE_LSP_DEVTOOLS_WRAPPER = (
+    os.environ.get("ALS_USE_LSP_DEVTOOLS_WRAPPER", "1") != "0"
+)
+
+
+class ALSClientServerConfig(pytest_lsp.ClientServerConfig):
+
+    def _get_devtools_command(self, server: str) -> list[str]:
+        """We override this method to use our own lsp-devtools entry point for the
+        recording of messages in a replay file.
+
+        The purpose of our wrapper is to catch the CancelledError exception which occurs
+        systematically in the nominal termination of the lsp-devtools agent. These
+        exceptions appear even in successful tests and cause confusion, hence using this
+        wrapper to mask them.
+        """
+        cmd = super()._get_devtools_command(server)
+
+        if ALS_USE_LSP_DEVTOOLS_WRAPPER:
+            # Remove the original lsp-devtools entry point
+            cmd.pop(0)
+
+            # Replace it with our own wrapper
+            wrapper = Path(__file__).parent / "lsp-devtools-wrapper.py"
+            cmd = [sys.executable, str(wrapper)] + cmd
+
+        return cmd
+
+
 def simple_test(cmd: list[str] | None = None) -> Callable:
     """A decorator to mark a function as a test entry point. The function must receive a
     single parameter of type LanguageClient.
@@ -200,7 +228,7 @@ def simple_test(cmd: list[str] | None = None) -> Callable:
     ) -> None:
         als = os.environ.get("ALS", "ada_language_server")
         command = cmd or [als]
-        config = ClientServerConfig(command)
+        config = ALSClientServerConfig(command)
         client: LanguageClient | None = None
 
         devtools = None
@@ -232,7 +260,7 @@ def simple_test(cmd: list[str] | None = None) -> Callable:
                         # stdout, stderr = await devtools.communicate()
                         status = await devtools.wait()
                         logging.info(
-                            "lsp-devtools exit code: %d",
+                            "'lsp-devtools record' exit code: %d",
                             # "\nout:\n%s\nerr:\n%s",
                             status,
                             # stdout,
