@@ -298,6 +298,10 @@ def test(
                             # stdout,
                             # stderr,
                         )
+                    except ProcessLookupError:
+                        # The devtools process already ended because it detected the
+                        # shutdown procedure
+                        pass
                     finally:
                         if _replay_devtools.exists():
                             process_replay(_replay_devtools, _replay)
