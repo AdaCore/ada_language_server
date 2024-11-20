@@ -72,20 +72,6 @@ Without it, auto-completion and navigation will work only on the sources visible
 
 When running VS Code locally, you can provide these environment variables by exporting them in a terminal, and starting VS Code from that same terminal with the `code` command.
 
-Alternatively, you can set environment variables through the VS Code Workspace or User setting `terminal.integrated.env.[linux|windows|osx]` depending on your platform.
-For example:
-
-```json
-{
-  "terminal.integrated.env.linux": {
-    "PATH": "/path/to/my/gnat/installation/bin:${env:PATH}",
-    "GPR_PROJECT_PATH": "/path/to/some-lib-1:/path/to/some-lib-2"
-  }
-}
-```
-
-Note that after changes to this VS Code setting, you must run the `Developer: Reload Window` command to apply the changes.
-
 ## Settings
 
 This extension can be configured with a set of `ada.*` settings documented [here](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md).
@@ -97,7 +83,20 @@ If no project is provided and if your workspace contains a single project file a
 
 The Ada extension can be used on a remote workspace over SSH thanks to the [Visual Studio Code Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) extension, however there are known pitfalls regarding the environment setup.
 
-The recommended method for environment setup in a remote configuration is to set the `terminal.integrated.env.*` settings as described in the [Environment Setup](#environment-setup) section.
+The recommended method for environment setup in a remote configuration is to set the `terminal.integrated.env.*` settings. You can set environment variables through the VS Code Workspace or User setting `terminal.integrated.env.[linux|windows|osx]` depending on your platform.
+For example:
+
+```json
+{
+  "terminal.integrated.env.linux": {
+    "PATH": "/path/to/my/gnat/installation/bin:${env:PATH}",
+    "GPR_PROJECT_PATH": "/path/to/some-lib-1:/path/to/some-lib-2"
+  }
+}
+```
+
+Note that after changing this VS Code setting, the extension will display a popup asking you to reload the current window to take the environment changes into account. You can still run the `Developer: Reload Window` command manually to apply the changes later on.
+
 In addition to Workspace and User settings, the Remote settings file can also be used to set the `terminal.integrated.env.*` settings, with standard precedence rules applying between the different setting scopes.
 With this method, changes to the environment can be applied simply with the `Developer: Reload Window` command.
 
