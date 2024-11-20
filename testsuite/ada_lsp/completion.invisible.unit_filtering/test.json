@@ -120,7 +120,7 @@
                },
                "position": {
                   "line": 7,
-                  "character": 10
+                  "character": 7
                },
                "context": {
                   "triggerKind": 1
@@ -144,7 +144,7 @@
                                  "qualifier": "",
                                  "where": {
                                     "position": {
-                                       "character": 8,
+                                       "character": 7,
                                        "line": 7
                                     },
                                     "textDocument": {
@@ -173,7 +173,7 @@
                                  "qualifier": "",
                                  "where": {
                                     "position": {
-                                       "character": 8,
+                                       "character": 7,
                                        "line": 7
                                     },
                                     "textDocument": {
