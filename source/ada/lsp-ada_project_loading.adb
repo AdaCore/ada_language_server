@@ -299,10 +299,10 @@ package body LSP.Ada_Project_Loading is
    begin
       return
         Project.GPR2_Messages.Has_Element
-          (Information => False,
-           Warning     => True,
-           Error       => True,
-           Lint        => False);
+          (Hint    => False,
+           Warning => True,
+           Error   => True,
+           Lint    => False);
    end Has_Pertinent_GPR2_Messages;
 
    ---------------------
@@ -348,13 +348,16 @@ package body LSP.Ada_Project_Loading is
    begin
       Project.GPR2_Messages := GPR2_Messages;
 
-      --  Special case for a Valid Project: check errors and then warnings
+      --  Special case for a Valid Project: check errors and warnings
+      --  note that errors when the project is valid are considered as
+      --  non-blocking for the IDE, so just change the status to
+      --  Valid_Project_With_Warning.
       if Project.Status = Valid_Project then
          if Project.GPR2_Messages.Has_Element
-           (Information => False,
-            Warning     => True,
-            Error       => True,
-            Lint        => False)
+           (Hint    => False,
+            Warning => True,
+            Error   => True,
+            Lint    => False)
          then
             Project.Status := Valid_Project_With_Warning;
          end if;
