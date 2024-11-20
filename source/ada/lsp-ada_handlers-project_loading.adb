@@ -24,12 +24,10 @@ with GPR2.Options;
 with GPR2.Containers;
 with GPR2.Context;
 with GPR2.Log;
-with GPR2.Message;
 with GPR2.Path_Name;
 with GPR2.Project.Registry.Attribute;
 with GPR2.Project.Tree.View_Builder;
 with GPR2.Project.View;
-with GPR2.Reporter;
 
 pragma Warnings (Off, "unit ""GPR2.Build.Source.Sets"" is not referenced");
 with GPR2.Build.Source.Sets;
@@ -61,18 +59,6 @@ package body LSP.Ada_Handlers.Project_Loading is
      GNATCOLL.Traces.Create ("ALS.RUNTIME_INDEXING",
                              GNATCOLL.Traces.On);
    --  Trace to enable/disable runtime indexing. Useful for the testsuite.
-
-   type GPR2_Reporter is new GPR2.Reporter.Object with record
-      Log : GPR2.Log.Object;
-   end record;
-
-   overriding procedure Internal_Report
-     (Self : in out GPR2_Reporter;
-      Msg  : GPR2.Message.Object);
-
-   overriding function Verbosity
-     (Self : GPR2_Reporter) return GPR2.Reporter.Verbosity_Level
-   is (GPR2.Reporter.Regular);
 
    procedure Load_Project_With_Alire
      (Self         : in out Message_Handler'Class;
@@ -245,17 +231,6 @@ package body LSP.Ada_Handlers.Project_Loading is
       end if;
    end Ensure_Project_Loaded;
 
-   ---------------------
-   -- Internal_Report --
-   ---------------------
-
-   overriding procedure Internal_Report
-     (Self : in out GPR2_Reporter;
-      Msg  : GPR2.Message.Object) is
-   begin
-      Self.Log.Append (Msg);
-   end Internal_Report;
-
    ---------------------------
    -- Load_Implicit_Project --
    ---------------------------
@@ -333,12 +308,16 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       Project_File : GNATCOLL.VFS.Virtual_File :=
         LSP.Utils.To_Virtual_File (Project_Path);
+      Update_Log   : GPR2.Log.Object;
 
       procedure Create_Context_For_Non_Aggregate
         (View : GPR2.Project.View.Object);
       --  Create a new context for the given project view.
 
-      procedure Log_GPR2_Diagnostics;
+      procedure Retrieve_Diagnostics;
+      --  Retrieve the project diagnostics and log them.
+
+      procedure Log_GPR2_Diagnostics (Log : GPR2.Log.Object);
       --  Log the GPR2 messages
 
       --------------------------------------
@@ -414,12 +393,31 @@ package body LSP.Ada_Handlers.Project_Loading is
       end Create_Context_For_Non_Aggregate;
 
       --------------------------
+      -- Retrieve_Diagnostics --
+      --------------------------
+
+      procedure Retrieve_Diagnostics is
+      begin
+         --  Retrieve the GPR2 error/warning messages right after loading the
+         --  project.
+
+         --  Merge all messages coming from Update_Sources with
+         --  all messages coming from Load...
+         for C in Self.Project_Tree.Log_Messages.Iterate loop
+            Update_Log.Append (C.Element);
+         end loop;
+
+         --  Retrieve the GPR2 error/warning messages right after loading the
+         --  project.
+         LSP.Ada_Project_Loading.Set_GPR2_Messages
+           (Self.Project_Status, Update_Log);
+      end Retrieve_Diagnostics;
+
+      --------------------------
       -- Log_GPR2_Diagnostics --
       --------------------------
 
-      procedure Log_GPR2_Diagnostics is
-         Log : constant GPR2.Log.Object'Class :=
-            GPR2_Reporter (Self.Project_Tree.Reporter.Element.all).Log;
+      procedure Log_GPR2_Diagnostics (Log : GPR2.Log.Object) is
       begin
          Tracer.Increase_Indent;
          if Log.Is_Empty then
@@ -475,45 +473,41 @@ package body LSP.Ada_Handlers.Project_Loading is
          LSP.Ada_Project_Loading.Valid_Project);
 
       declare
-         Opts     : GPR2.Options.Object;
-         Success  : Boolean;
-
-         Reporter : GPR2_Reporter;
-         --  This reporter object is passed to the GPR2 Load function, but it
-         --  does not get populated. To obtain the messages, one has to access
-         --  Self.Project_Tree.Reporter.
+         Opts    : GPR2.Options.Object;
+         Success : Boolean;
       begin
+         --  Do not print any gpr messages on the standard output
+         GPR2.Project.Tree.Verbosity := GPR2.Project.Tree.Quiet;
+
          --  Load the project
          Opts.Add_Switch (GPR2.Options.P, Project_File.Display_Full_Name);
-         Opts.Add_Context (Context);
 
          Tracer.Trace ("Loading project with GPR2");
 
          Success := Self.Project_Tree.Load
-           (Opts,
-            Reporter         => Reporter,
-            With_Runtime     => True,
-            Absent_Dir_Error => GPR2.No_Error,
-            Environment      => Environment);
+            (Opts,
+             With_Runtime     => True,
+             Absent_Dir_Error => GPR2.No_Error,
+             Environment      => Environment);
 
          Tracer.Trace ("GPR2 messages after load:");
-         Log_GPR2_Diagnostics;
+         Log_GPR2_Diagnostics (Self.Project_Tree.Log_Messages.all);
+
+         if Success then
+            Success := Self.Project_Tree.Set_Context (Context);
+         end if;
 
          if not Success then
             LSP.Ada_Project_Loading.Set_Load_Status
               (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
          end if;
 
-         if Success then
+         if Self.Project_Tree.Is_Defined then
             Tracer.Trace ("Updating project sources");
-            Self.Project_Tree.Update_Sources;
+            Self.Project_Tree.Update_Sources (Update_Log);
             Tracer.Trace ("GPR2 messages after updating sources:");
-            Log_GPR2_Diagnostics;
+            Log_GPR2_Diagnostics (Update_Log);
          end if;
-
-         LSP.Ada_Project_Loading.Set_GPR2_Messages
-           (Self.Project_Status,
-            GPR2_Reporter (Self.Project_Tree.Reporter.Element.all).Log);
 
       exception
          when E : others =>
@@ -521,6 +515,8 @@ package body LSP.Ada_Handlers.Project_Loading is
             LSP.Ada_Project_Loading.Set_Load_Status
               (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
       end;
+
+      Retrieve_Diagnostics;
 
       if not LSP.Ada_Project_Loading.Is_Project_Loaded (Self.Project_Status)
       then
