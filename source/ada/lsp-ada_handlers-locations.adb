@@ -370,7 +370,7 @@ package body LSP.Ada_Handlers.Locations is
         (start  => (line      => Positive (Sloc.Start_Line) - 1,
                     character => 0),
          an_end => (line      => Positive (Sloc.End_Line) - 1,
-                    character => 0));
+                          character => 0));
    begin
       declare
          use type Langkit_Support.Slocs.Column_Number;

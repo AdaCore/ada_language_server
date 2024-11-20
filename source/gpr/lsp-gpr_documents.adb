@@ -19,26 +19,13 @@ with Ada.Exceptions;
 
 with GPR2.Message;
 with GPR2.Options;
-with GPR2.Project.Typ.Set;
 with GPR2.Project.View;
-with GPR2.Reporter;
 with GPR2.Source_Reference;
+with GPR2.Project.Typ.Set;
 
 with VSS.Strings.Conversions;
 
 package body LSP.GPR_Documents is
-
-   type GPR_Reporter is new GPR2.Reporter.Object with record
-      Log : GPR2.Log.Object;
-   end record;
-
-   overriding procedure Internal_Report
-     (Self : in out GPR_Reporter;
-      Msg  : GPR2.Message.Object);
-
-   overriding function Verbosity
-     (Self : GPR_Reporter) return GPR2.Reporter.Verbosity_Level
-   is (GPR2.Reporter.Regular);
 
    -------------
    -- Cleanup --
@@ -84,8 +71,9 @@ package body LSP.GPR_Documents is
       if Changed then
 
          --  for error & warning messages
-         for Message of Self.Messages loop
+         for C in Self.Tree.Log_Messages.Iterate (False) loop
             declare
+               Message  : constant GPR2.Message.Object := C.Element;
                File     : constant GPR2.Path_Name.Object :=
                             (if Message.Sloc.Is_Defined and then
                                 Message.Sloc.Has_Source_Reference
@@ -138,8 +126,8 @@ package body LSP.GPR_Documents is
      (Self : Document)
       return Boolean is
    begin
-      return not Self.Tree.Root_Project.Is_Defined
-        or else Self.Messages.Has_Error;
+      return Self.Tree.Log_Messages.Has_Error
+        or else not Self.Tree.Root_Project.Is_Defined;
    end Has_Errors;
 
    ----------------
@@ -159,18 +147,6 @@ package body LSP.GPR_Documents is
       Self.File_Provider := Provider;
    end Initialize;
 
-   ---------------------
-   -- Internal_Report --
-   ---------------------
-
-   overriding procedure Internal_Report
-     (Self : in out GPR_Reporter;
-      Msg  : GPR2.Message.Object)
-   is
-   begin
-      Self.Log.Append (Msg);
-   end Internal_Report;
-
    ----------
    -- Load --
    ----------
@@ -189,15 +165,16 @@ package body LSP.GPR_Documents is
 
       procedure Update_Diagnostics is
          New_Messages : constant GPR2.Log.Object :=
-                          GPR_Reporter (Self.Tree.Reporter.Element.all).Log;
+                          Self.Tree.Log_Messages.all;
       begin
          if New_Messages /= Self.Messages then
             Self.Messages := New_Messages;
             Self.Errors_Changed := True;
-            Self.Has_Messages := not New_Messages.Is_Empty;
 
-            for Msg of New_Messages loop
-               Self.Tracer.Trace (Msg.Format);
+            Self.Has_Messages := False;
+            for C in Self.Tree.Log_Messages.Iterate (False) loop
+               Self.Has_Messages := True;
+               return;
             end loop;
          end if;
       end Update_Diagnostics;
@@ -211,32 +188,55 @@ package body LSP.GPR_Documents is
       declare
          Opts       : GPR2.Options.Object;
          Success    : Boolean;
-         Reporter   : GPR_Reporter;
+         Update_Log : GPR2.Log.Object;
       begin
          Opts.Add_Switch (GPR2.Options.P, String (Self.File.Value));
-         Opts.Add_Context (Configuration.Context);
 
          Success := Self.Tree.Load
-           (Opts,
-            Reporter         => Reporter,
-            With_Runtime     => True,
-            Absent_Dir_Error => GPR2.No_Error,
-            File_Reader      => Self.File_Provider.Get_File_Reader,
-            Environment      => LSP.GPR_Files.Environment);
+            (Opts,
+             With_Runtime     => True,
+             Absent_Dir_Error => GPR2.No_Error,
+             File_Reader      => Self.File_Provider.Get_File_Reader,
+             Environment      => LSP.GPR_Files.Environment);
 
          if Success then
-            Self.Tree.Update_Sources;
+            Self.Tree.Update_Sources (Update_Log);
+            if Update_Log.Has_Error then
+               Self.Has_Messages := True;
+            else
+               Success := Self.Tree.Set_Context (Configuration.Context);
+            end if;
          end if;
 
-         Update_Diagnostics;
+         if not Success then
+            Self.Has_Messages := True;
+         end if;
+
+         --  Collect all messages coming from Load...
+         for C in Self.Tree.Log_Messages.Iterate loop
+            Self.Tracer.Trace (C.Element.Format);
+            Self.Messages.Append (C.Element);
+         end loop;
+
+         --  ... and all messages coming from Update_Sources
+         for C in Update_Log.Iterate loop
+            Self.Tracer.Trace (C.Element.Format);
+            Self.Messages.Append (C.Element);
+         end loop;
       end;
 
+      Update_Diagnostics;
+
    exception
+      when GPR2.Project_Error =>
+
+         Update_Diagnostics;
+
       when E : others =>
 
          Self.Tracer.Trace_Exception (E);
-         Update_Diagnostics;
-         Self.Messages.Append
+
+         Self.Tree.Log_Messages.Append
            (GPR2.Message.Create
               (Level   => GPR2.Message.Error,
                Message => "GPR parser unexpected " &
@@ -246,6 +246,7 @@ package body LSP.GPR_Documents is
                   Line     => 1,
                   Column   => 1)));
 
+         Update_Diagnostics;
    end Load;
 
    -----------------------------
