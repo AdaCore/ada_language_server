@@ -1,2 +1,2 @@
-#! /usr/bin/bash
+#!/usr/bin/env bash
 $ALS <input.txt
