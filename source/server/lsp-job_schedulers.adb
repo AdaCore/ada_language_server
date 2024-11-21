@@ -37,11 +37,9 @@ package body LSP.Job_Schedulers is
    procedure Complete_Last_Fence_Job
      (Self  : in out Job_Scheduler'Class;
       Next  : LSP.Server_Messages.Server_Message_Access;
-      Waste : out LSP.Server_Messages.Server_Message_Access)
-   is
-      use type LSP.Server_Jobs.Server_Job_Access;
+      Waste : out LSP.Server_Messages.Server_Message_Access) is
    begin
-      if Self.Done /= null then
+      if Self.Done.Assigned then
          Self.Done.Complete (Next);
          Waste := Self.Done.Message;
          Free (Self.Done);
@@ -57,7 +55,6 @@ package body LSP.Job_Schedulers is
       Message : in out LSP.Server_Messages.Server_Message_Access;
       Waste   : out LSP.Server_Messages.Server_Message_Access)
    is
-      use type LSP.Server_Jobs.Server_Job_Access;
       Cursor : constant Handler_Maps.Cursor :=
         Self.Handlers.Find (Message'Tag);
 
@@ -68,7 +65,7 @@ package body LSP.Job_Schedulers is
          Self.Complete_Last_Fence_Job (Message, Waste);
          Job := Handler_Maps.Element (Cursor).Create_Job (Message);
 
-         if Job /= null then
+         if Job.Assigned then
             Message := null;
             Self.Enqueue (Job);
          end if;
@@ -94,11 +91,9 @@ package body LSP.Job_Schedulers is
    -- Has_Jobs --
    --------------
 
-   function Has_Jobs (Self : Job_Scheduler'Class) return Boolean
-   is
-      use type LSP.Server_Jobs.Server_Job_Access;
+   function Has_Jobs (Self : Job_Scheduler'Class) return Boolean is
    begin
-      return Self.Blocker /= null or else
+      return Self.Blocker.Assigned or else
         (for some List of Self.Jobs => not List.Is_Empty);
    end Has_Jobs;
 
@@ -126,15 +121,13 @@ package body LSP.Job_Schedulers is
    is
       use all type LSP.Server_Jobs.Job_Priority;
       use all type LSP.Server_Jobs.Execution_Status;
-      use type LSP.Server_Jobs.Server_Job_Access;
-      use type LSP.Server_Messages.Server_Message_Access;
 
       Job : LSP.Server_Jobs.Server_Job_Access renames Self.Blocker;
       Status : LSP.Server_Jobs.Execution_Status := Continue;
    begin
       Waste := null;
 
-      if Job = null then
+      if not Job.Assigned then
          return;
       end if;
 
@@ -145,7 +138,7 @@ package body LSP.Job_Schedulers is
          loop
             Self.Process_Job (Client, Waste, From => Low);
 
-            if Waste /= null then
+            if Waste.Assigned then
                return;
             end if;
          end loop;
@@ -175,12 +168,11 @@ package body LSP.Job_Schedulers is
       Waste  : out LSP.Server_Messages.Server_Message_Access;
       From   : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Lowest)
    is
-      use type LSP.Server_Messages.Server_Message_Access;
       Status : LSP.Server_Jobs.Execution_Status;
    begin
       Self.Complete_Last_Fence_Job (null, Waste);
 
-      if Waste = null then
+      if not Waste.Assigned then
          for List of reverse Self.Jobs (From .. LSP.Server_Jobs.High)
            when not List.Is_Empty
          loop

@@ -1,5 +1,1 @@
-with "config/hello_config.gpr";
-
-project Hello is
-   for Source_Dirs use ("src");
-end Hello;
+with "config/hello_config.gpr";project Hello is for Source_Dirs use ("src"); end Hello;
