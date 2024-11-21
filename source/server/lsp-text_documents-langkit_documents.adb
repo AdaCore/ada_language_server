@@ -22,7 +22,8 @@ package body LSP.Text_Documents.Langkit_Documents is
 
    function To_LSP_Column
      (Line_Text : VSS.Strings.Virtual_String;
-      Column    : Langkit_Support.Slocs.Column_Number) return Natural;
+      Column    : Langkit_Support.Slocs.Column_Number;
+      At_Start  : Boolean := True) return Natural;
 
    use type Langkit_Support.Slocs.Line_Number;
 
@@ -86,7 +87,7 @@ package body LSP.Text_Documents.Langkit_Documents is
        an_end =>
          (line      => To_LSP_Line (A_Range.End_Line),
           character => To_LSP_Column
-            (Self.Line (A_Range.End_Line), A_Range.End_Column)));
+            (Self.Line (A_Range.End_Line), A_Range.End_Column, False)));
 
    function To_A_Range
      (Start_Line_Text : VSS.Strings.Virtual_String;
@@ -100,7 +101,7 @@ package body LSP.Text_Documents.Langkit_Documents is
        an_end =>
          (line      => To_LSP_Line (A_Range.End_Line),
           character => To_LSP_Column
-            (End_Line_Text, A_Range.End_Column)));
+            (End_Line_Text, A_Range.End_Column, False)));
 
    ---------------------
    -- To_LSP_Position --
@@ -111,8 +112,9 @@ package body LSP.Text_Documents.Langkit_Documents is
       Sloc : Langkit_Support.Slocs.Source_Location)
       return LSP.Structures.Position
    is
-     (line      => To_LSP_Line (Sloc.Line),
-      character => To_LSP_Column (Self.Line (Sloc.Line), Sloc.Column));
+     (line => To_LSP_Line (Sloc.Line),
+      character => To_LSP_Column
+        (Self.Line (Sloc.Line), Sloc.Column, False));
 
    -------------------
    -- To_LSP_Column --
@@ -120,21 +122,26 @@ package body LSP.Text_Documents.Langkit_Documents is
 
    function To_LSP_Column
      (Line_Text : VSS.Strings.Virtual_String;
-      Column    : Langkit_Support.Slocs.Column_Number) return Natural
+      Column    : Langkit_Support.Slocs.Column_Number;
+      At_Start  : Boolean := True) return Natural
    is
       Iterator : VSS.Strings.Character_Iterators.Character_Iterator :=
                    Line_Text.At_First_Character;
       Success  : Boolean with Unreferenced;
    begin
-      --  Iterating forward through the line, initial iterator points to the
-      --  first characters, thus "starts" from the second one (to improve
-      --  performance).
+      --  Iterating forward through the line, initial
+      --  iterator points to the first characters, thus "starts" from the
+      --  second one.
 
       for J in 2 .. Column loop
          Success := Iterator.Forward;
       end loop;
 
-      return Natural (Iterator.First_UTF16_Offset);
+      if At_Start then
+         return Natural (Iterator.First_UTF16_Offset);
+      else
+         return Natural (Iterator.Last_UTF16_Offset);
+      end if;
    end To_LSP_Column;
 
    ----------------------
