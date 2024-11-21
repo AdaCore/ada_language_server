@@ -81,6 +81,8 @@ include:
           allow_failure: true
 
 als-cov:
+  before_script:
+    - eval $(refresh-ci-fragments topic/smarter-target-branch)
   variables:
     RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
   after_script:
@@ -128,6 +130,8 @@ als-cov:
       - coverage/cobertura.xml
 
 vscode-extension:
+  before_script:
+    - eval $(refresh-ci-fragments topic/smarter-target-branch)
   after_script:
     # Source the env prepared by generic_anod_ci
     - cat /tmp/ci_env.sh
@@ -178,3 +182,19 @@ vscode-extension:
     paths:
       - anod-logs/
       - coverage/cobertura-coverage.xml
+
+build:
+  before_script:
+    - eval $(refresh-ci-fragments topic/smarter-target-branch)
+
+als:
+  before_script:
+    - eval $(refresh-ci-fragments topic/smarter-target-branch)
+
+integration-testsuite:
+  before_script:
+    - eval $(refresh-ci-fragments topic/smarter-target-branch)
+
+gs:
+  before_script:
+    - eval $(refresh-ci-fragments topic/smarter-target-branch)
