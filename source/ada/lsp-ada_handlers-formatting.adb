@@ -34,6 +34,14 @@ package body LSP.Ada_Handlers.Formatting is
    --  Options that are explicitly specified in the .gpr file take precedence
    --  over LSP options.
 
+   GNATformat_Exception_Found_Msg : constant VSS.Strings.Virtual_String :=
+     "GNATformat: exception raised when parsing source code";
+   --  Error message when an exception is raised in GNATformat.
+
+   Incorrect_Code_Msg : constant VSS.Strings.Virtual_String :=
+     "Syntactically invalid code can't be formatted";
+   --  Error message sent when trying to format invalid code.
+
    ------------
    -- Format --
    ------------
@@ -49,6 +57,11 @@ package body LSP.Ada_Handlers.Formatting is
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
+      use VSS.Strings;
+
+      Provider_Msg_Prefix : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.Conversions.To_Virtual_String (Provider'Img & ": ");
+
       procedure Gnatpp_Format;
 
       procedure Gnatformat_Format;
@@ -57,8 +70,7 @@ package body LSP.Ada_Handlers.Formatting is
       -- Gnatpp_Format --
       -------------------
 
-      procedure Gnatpp_Format
-      is
+      procedure Gnatpp_Format is
          PP_Options : Utils.Command_Lines.Command_Line :=
            Context.Get_PP_Options;
 
@@ -69,16 +81,18 @@ package body LSP.Ada_Handlers.Formatting is
          Update_Pp_Formatting_Options
            (Pp_Options => PP_Options, LSP_Options => Options);
 
-         Success := Document.Formatting
-           (Context  => Context,
-            Span     => Span,
-            Cmd      => PP_Options,
-            Edit     => Response,
-            Messages => Messages);
+         Success :=
+           Document.Formatting
+             (Context  => Context,
+              Span     => Span,
+              Cmd      => PP_Options,
+              Edit     => Response,
+              Messages => Messages);
 
          if not Success then
             Error :=
-              (code    => LSP.Enumerations.InternalError,
+              (code    =>
+                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
                message => Messages.Join (' '));
             Messages.Clear;
          end if;
@@ -88,27 +102,27 @@ package body LSP.Ada_Handlers.Formatting is
       -- Gnatformat_Format --
       -----------------------
 
-      procedure Gnatformat_Format
-      is
+      procedure Gnatformat_Format is
       begin
          Success := True;
          Response := Document.Format (Context);
 
       exception
          when E : others =>
-            Context.Tracer.Trace_Exception (E, "in GNATformat Format");
+            Context.Tracer.Trace_Exception (E, GNATformat_Exception_Found_Msg);
             Success := False;
             Error :=
-              (code    => LSP.Enumerations.InternalError,
-               message => "GNATformat failed to format source");
+              (code    =>
+                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+               message => GNATformat_Exception_Found_Msg);
       end Gnatformat_Format;
 
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
-         Error   :=
-           (code    => LSP.Enumerations.InternalError,
-            message => "Incorrect code can't be formatted");
+         Error :=
+           (code    => LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+            message => Provider_Msg_Prefix & Incorrect_Code_Msg);
 
          return;
       end if;
@@ -116,6 +130,7 @@ package body LSP.Ada_Handlers.Formatting is
       case Provider is
          when Gnatformat =>
             Gnatformat_Format;
+
          when Gnatpp =>
             Gnatpp_Format;
       end case;
@@ -135,6 +150,11 @@ package body LSP.Ada_Handlers.Formatting is
       Response : out LSP.Structures.TextEdit_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
+      use VSS.Strings;
+
+      Provider_Msg_Prefix : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.Conversions.To_Virtual_String (Provider'Img & ": ");
+
       procedure Gnatpp_Range_Format;
 
       procedure Gnatformat_Range_Format;
@@ -143,8 +163,7 @@ package body LSP.Ada_Handlers.Formatting is
       -- Gnatpp_Range_Format --
       -------------------------
 
-      procedure Gnatpp_Range_Format
-      is
+      procedure Gnatpp_Range_Format is
          PP_Options : Utils.Command_Lines.Command_Line :=
            Context.Get_PP_Options;
          Messages   : VSS.String_Vectors.Virtual_String_Vector;
@@ -156,23 +175,26 @@ package body LSP.Ada_Handlers.Formatting is
          Update_Pp_Formatting_Options
            (Pp_Options => PP_Options, LSP_Options => Options);
 
-         Success := Document.Range_Formatting
-           (Context    => Context,
-            Span       => Span,
-            PP_Options => PP_Options,
-            Edit       => Response,
-            Messages   => Messages);
+         Success :=
+           Document.Range_Formatting
+             (Context    => Context,
+              Span       => Span,
+              PP_Options => PP_Options,
+              Edit       => Response,
+              Messages   => Messages);
 
          if not Success then
             Error :=
-              (code    => LSP.Enumerations.InternalError,
+              (code    =>
+                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
                message => Messages.Join (' '));
          end if;
          if Document.Has_Diagnostics (Context) then
             Success := False;
-            Error   :=
-              (code    => LSP.Enumerations.InternalError,
-               message => "Incorrect code can't be formatted");
+            Error :=
+              (code    =>
+                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+               message => Provider_Msg_Prefix & Incorrect_Code_Msg);
 
             return;
          end if;
@@ -182,8 +204,7 @@ package body LSP.Ada_Handlers.Formatting is
       -- Gnatformat_Range_Format --
       -----------------------------
 
-      procedure Gnatformat_Range_Format
-      is
+      procedure Gnatformat_Range_Format is
       begin
          Success := True;
          Response.Clear;
@@ -192,19 +213,21 @@ package body LSP.Ada_Handlers.Formatting is
 
       exception
          when E : others =>
-            Context.Tracer.Trace_Exception (E, "in GNATformat Range_Format");
+            Context.Tracer.Trace_Exception (E, GNATformat_Exception_Found_Msg);
             Success := False;
             Error :=
-              (code    => LSP.Enumerations.InternalError,
-               message => "GNATformat failed to format source");
+              (code    =>
+                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+               message => GNATformat_Exception_Found_Msg);
       end Gnatformat_Range_Format;
 
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
-         Error   :=
-           (code    => LSP.Enumerations.InternalError,
-            message => "Syntactically incorrect code can't be formatted");
+         Error :=
+           (code    =>
+              LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+            message => Provider_Msg_Prefix & Incorrect_Code_Msg);
 
          return;
       end if;
@@ -212,6 +235,7 @@ package body LSP.Ada_Handlers.Formatting is
       case Provider is
          when Gnatformat =>
             Gnatformat_Range_Format;
+
          when Gnatpp =>
             Gnatpp_Range_Format;
       end case;
@@ -238,32 +262,34 @@ package body LSP.Ada_Handlers.Formatting is
       --  If it's not the case, use the LSP options.
 
       if not Pp.Command_Lines.Pp_Nat_Switches.Explicit
-        (Pp_Options, Pp.Command_Lines.Indentation)
+               (Pp_Options, Pp.Command_Lines.Indentation)
       then
          Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
-           (Pp_Options,
-            Pp.Command_Lines.Indentation,
-            LSP_Options.tabSize);
+           (Pp_Options, Pp.Command_Lines.Indentation, LSP_Options.tabSize);
 
       elsif Pp_Indentation /= LSP_Options.tabSize then
          Formatting_Trace.Trace
            ("Project file defines an indentation "
-            & "of" & Pp_Indentation'Img & ", while LSP defines an "
-            & "indentation of" & LSP_Options.tabSize'Img & ".");
+            & "of"
+            & Pp_Indentation'Img
+            & ", while LSP defines an "
+            & "indentation of"
+            & LSP_Options.tabSize'Img
+            & ".");
       end if;
 
       if not Pp.Command_Lines.Pp_Flag_Switches.Explicit
-        (Pp_Options, Pp.Command_Lines.No_Tab)
+               (Pp_Options, Pp.Command_Lines.No_Tab)
       then
          Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
-           (Pp_Options,
-            Pp.Command_Lines.No_Tab,
-            LSP_Options.insertSpaces);
+           (Pp_Options, Pp.Command_Lines.No_Tab, LSP_Options.insertSpaces);
 
       elsif Pp_No_Tab /= LSP_Options.insertSpaces then
          Formatting_Trace.Trace
-           ("Project file no tab policy is set to " & Pp_No_Tab'Img
-            & ", while LSP is set to " & LSP_Options.insertSpaces'Img);
+           ("Project file no tab policy is set to "
+            & Pp_No_Tab'Img
+            & ", while LSP is set to "
+            & LSP_Options.insertSpaces'Img);
       end if;
    end Update_Pp_Formatting_Options;
 

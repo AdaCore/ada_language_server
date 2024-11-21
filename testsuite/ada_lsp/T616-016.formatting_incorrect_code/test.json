@@ -109,8 +109,8 @@
             {
                "id": 3,
                "error": {
-                     "code": -32603,
-                     "message": "Incorrect code can't be formatted"
+                  "code": -32803,
+                  "message": "GNATPP: Syntactically invalid code can't be formatted"
                }
             }
          ]
