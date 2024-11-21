@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "test automatically generated"
-      ]
+      "comment": ["test automatically generated"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -110,8 +106,8 @@
                      },
                      "at foo.adb (3:4)",
                      {
-                       "language": "ada",
-                       "value": "  Alignment => (8)"
+                        "language": "ada",
+                        "value": "  Alignment => (8)"
                      }
                   ]
                }
@@ -149,7 +145,6 @@
                         "language": "ada",
                         "value": "  Alignment => (8)"
                      }
-
                   ]
                }
             }
@@ -178,10 +173,10 @@
                "result": {
                   "contents": [
                      {
-                        "value": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
-                        "language": "ada"
+                        "language": "ada",
+                        "value": "type Integer is range -16#8000_0000# .. 16#7fff_ffff#;"
                      },
-                     "at __standard (4:3)"
+                     "at __standard (6:4)"
                   ]
                }
             }

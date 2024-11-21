@@ -76,9 +76,6 @@ package LSP.Server_Jobs is
      return LSP.Server_Messages.Server_Message_Access is abstract;
    --  Message to be destroyed when the job is done
 
-   function Assigned (Self : access Server_Job'Class) return Boolean is
-      (Self /= null);
-
    type Server_Job_Access is access all Server_Job'Class;
 
 end LSP.Server_Jobs;
