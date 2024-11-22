@@ -213,6 +213,9 @@ class ALSClientServerConfig(pytest_lsp.ClientServerConfig):
         return cmd
 
 
+WRAPPER_ATTRIBUTE = "__wrapper"
+
+
 def test(
     config: ALSClientServerConfig | None = None,
     initialize: bool = True,
@@ -310,10 +313,9 @@ def test(
         def inner_wrapper():
             asyncio.run(async_wrapper(func))
 
-        setattr(inner_wrapper, test.__name__, True)
+        setattr(inner_wrapper, WRAPPER_ATTRIBUTE, test)
         return inner_wrapper
 
-    setattr(wrapper, test.__name__, True)
     return wrapper
 
 
@@ -333,14 +335,14 @@ def run_test_file(test_py_path: str):
     test_functions = [
         obj
         for _, obj in inspect.getmembers(module)
-        if inspect.isfunction(obj) and hasattr(obj, test.__name__)
+        if inspect.isfunction(obj) and getattr(obj, WRAPPER_ATTRIBUTE, None) == test
     ]
     if test_functions:
         for obj in test_functions:
             obj()
     else:
         logging.critical(
-            "No functions with @simple_test or @complex_test found in %s", test_py_path
+            f"No functions with @{__name__}.{test.__name__}() decorator found in {test_py_path}"
         )
         sys.exit(1)
 
@@ -353,11 +355,13 @@ class CLIArgs(argparse.Namespace):
     verbose: int = 0
     devtools_port: int = 8765
     devtools_external: bool = False
+    debug: bool = False
 
 
 args = CLIArgs()
 
-if __name__ == "__main__":
+
+def main():
     p = argparse.ArgumentParser()
     p.add_argument("test_py_path")
     p.add_argument(
