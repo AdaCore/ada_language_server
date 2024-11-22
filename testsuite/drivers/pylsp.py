@@ -289,6 +289,9 @@ def test(
             client, devtools = await start_lsp_client(conf)
             assert client
 
+            if args.debug:
+                debugHere(client, "## We're about to start the test. Attach with:")
+
             if initialize:
                 await client.initialize_session(
                     params=InitializeParams(
@@ -623,7 +626,7 @@ class TestInfraError(Exception):
         self.print_backtrace = print_backtrace
 
 
-def debugHere(lsp: LanguageClient):
+def debugHere(lsp: LanguageClient, msg: str | None = None):
     if not args.debug:
         raise TestInfraError(
             "Test must be run with --debug to use debugHere()", print_backtrace=False
@@ -651,7 +654,9 @@ def debugHere(lsp: LanguageClient):
 
         server = next((p for p in children if "ada_language_server" in p.name()))
 
-    print("## Debug point reached. Attach with:", file=sys.stderr)
+    if not msg:
+        msg = "## Debug point reached. Attach with:"
+    print(msg, file=sys.stderr)
     print(f"    gdb -p {server.pid}", file=sys.stderr)
     print("", file=sys.stderr)
     print("## Press Enter to continue", file=sys.stderr)
