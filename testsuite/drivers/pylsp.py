@@ -7,7 +7,6 @@ import json
 import logging
 import os
 import shlex
-import signal
 import sys
 import urllib
 import urllib.parse
@@ -316,7 +315,7 @@ def test(
             finally:
                 if devtools:
                     try:
-                        devtools.send_signal(signal.SIGINT)
+                        devtools.kill()
                         # If we need these outputs in the future, here is how we get
                         # them:
                         # stdout, stderr = await devtools.communicate()
@@ -527,7 +526,23 @@ def didOpenTextDocumentParams(
 def URI(src_path: Path | str) -> str:
     """Create a URI for the given file path."""
     src_abs = Path(src_path).resolve()
-    src_uri = f"file://{urllib.parse.quote(str(src_abs))}"
+
+    # Replace backslashs with forward slashes to avoid too much quoting in URIs
+    src_abs_str = str(src_abs).replace("\\", "/")
+
+    quoted = urllib.parse.quote(src_abs_str)
+
+    if not quoted.startswith("/"):
+        # Make sure the path starts with /, even on Windows
+        #
+        # TODO look for documentation that explains this
+        quoted = "/" + quoted
+
+    src_uri = f"file://{quoted}"
+
+    if args.verbose >= 2:
+        LOG.debug("Converted %s to URI: %s", src_path, src_uri)
+
     return src_uri
 
 
@@ -618,10 +633,10 @@ def debugHere(lsp: LanguageClient):
         raise TestInfraError("Server object is null. Cannot determine PID to debug.")
 
     server = psutil.Process(lsp._server.pid)
-    LOG.debug("Server process PID: %d", server.pid)
+    LOG.debug("Server process PID: %d, Name: %s", server.pid, server.name())
 
     # The server can either be the ALS process, or the lsp-devtools process wrapping it
-    if server.name() == "ada_language_server":
+    if "ada_language_server" in server.name():
         LOG.debug("Server process is ALS")
         pass
     else:
@@ -634,7 +649,7 @@ def debugHere(lsp: LanguageClient):
             children_info = "\n".join(f"   {p.pid}: {p.name()}" for p in children)
             LOG.debug("Children processes:\n%s", children_info)
 
-        server = next((p for p in children if p.name() == "ada_language_server"))
+        server = next((p for p in children if "ada_language_server" in p.name()))
 
     print("## Debug point reached. Attach with:", file=sys.stderr)
     print(f"    gdb -p {server.pid}", file=sys.stderr)
