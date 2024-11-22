@@ -15,8 +15,10 @@ from typing import Any, Awaitable, Callable, Sequence
 
 import lsprotocol.converters
 import lsprotocol.types
+import psutil
 import pytest_lsp
 from drivers import ALSTestDriver
+from e3.os.process import Run, command_line_image
 from e3.testsuite.driver.classic import ProcessResult, TestAbortWithFailure
 from e3.testsuite.result import TestStatus
 from lsprotocol.types import (
@@ -61,11 +63,15 @@ class PyLSP(ALSTestDriver):
             # Load test.py as a module
             python_file = wd / "test.py"
 
+            pylsp_wrapper = Path(__file__).parent / "pylsp-runner.py"
             cmd = [
                 sys.executable,
-                # Running the test is handled by this same file pylsp.py, invoked as a
-                # main entry point
-                __file__,
+                # The main entry point is implemented in a different file so that all
+                # Python code imports the same pylsp module and shares its state. If the
+                # main entry point was implemented in this same file, then it would
+                # exist in 2 copies: one as the module "__main__", and one as the module
+                # "drivers.pylsp".
+                str(pylsp_wrapper),
                 str(python_file),
             ]
 
@@ -76,22 +82,40 @@ class PyLSP(ALSTestDriver):
             # Spawn a child Python process to run the test, to avoid lingering file
             # handles which can create issues on Windows when the test work dir is
             # cleaned up after execution.
-            p: ProcessResult = self.shell(
-                cmd,
-                # Start the test process directly in the test work dir. This way tests
-                # can simply assume that the current dir is the test work dir.
-                cwd=str(wd),
-                env={
-                    "ALS": self.env.als,
-                    "ALS_HOME": self.env.als_home,
-                    "PYTHONPATH": os.path.dirname(os.path.dirname(__file__)),
-                },
-                ignore_environ=False,
-                timeout=15,  # seconds
-            )
+            env = {
+                "ALS": self.env.als,
+                "ALS_HOME": self.env.als_home,
+                "PYTHONPATH": os.path.dirname(os.path.dirname(__file__)),
+            }
 
-            if self.env.main_options.verbose:  # type: ignore
-                print(p.out)
+            assert self.env.main_options
+            if self.env.main_options.debug:
+                cmd.append("--debug")
+
+                LOG.info(f"Run: cd {wd}; {command_line_image(cmd)}")
+                r = Run(
+                    cmd,
+                    cwd=str(wd),
+                    env=env,
+                    ignore_environ=False,
+                    output=None,
+                )
+                if r.status != 0:
+                    raise TestAbortWithFailure("non-zero status code")
+            else:
+                p: ProcessResult = self.shell(
+                    cmd,
+                    # Start the test process directly in the test work dir. This way
+                    # tests can simply assume that the current dir is the test work dir.
+                    cwd=str(wd),
+                    env=env,
+                    ignore_environ=False,
+                    timeout=15,  # seconds
+                    stdin=None,
+                )
+
+                if self.env.main_options.verbose:  # type: ignore
+                    print(p.out)
 
         else:
             raise TestAbortWithFailure(TestStatus.ERROR, "No test.py found in test dir")
@@ -344,7 +368,8 @@ def run_test_file(test_py_path: str):
             obj()
     else:
         LOG.critical(
-            f"No functions with @{__name__}.{test.__name__}() decorator found in {test_py_path}"
+            f"No functions with @{__name__}.{test.__name__}()"
+            " decorator found in {test_py_path}"
         )
         sys.exit(1)
 
@@ -385,6 +410,12 @@ def main():
         help="Don't spawn lsp-devtools internally for message saving. Instead,"
         " connect to a lsp-devtools spawned externally by the developer"
         " for inspection.",
+    )
+    p.add_argument(
+        "--debug",
+        action="store_true",
+        help="Run a test in debug mode where stdin and stdout"
+        " are not piped to allow for interactions.",
     )
 
     p.parse_args(namespace=args)
@@ -538,3 +569,40 @@ def assertNoLSPErrors(lsp: LanguageClient):
     if errors:
         msg = "\n### Found LSP Errors ###\n" + to_str(errors)
         raise AssertionError(msg)
+
+
+class TestInfraError(Exception):
+    pass
+
+
+def debugHere(lsp: LanguageClient):
+    if not args.debug:
+        raise TestInfraError("Test must be run with --debug to use debugHere()")
+
+    if lsp._server is None:
+        raise TestInfraError("Server object is null. Cannot determine PID to debug.")
+
+    server = psutil.Process(lsp._server.pid)
+    LOG.debug("Server process PID: %d", server.pid)
+
+    # The server can either be the ALS process, or the lsp-devtools process wrapping it
+    if server.name() == "ada_language_server":
+        LOG.debug("Server process is ALS")
+        pass
+    else:
+        LOG.debug("Server process is not ALS. Let's find ALS.")
+        # Find the child process of lsp-devtools that is the ALS
+        children = server.children(True)
+
+        if LOG.getEffectiveLevel() <= logging.DEBUG:
+            # Only compute this in verbose mode to avoid the overhead
+            children_info = "\n".join(f"   {p.pid}: {p.name()}" for p in children)
+            LOG.debug("Children processes:\n%s", children_info)
+
+        server = next((p for p in children if p.name() == "ada_language_server"))
+
+    print("## Debug point reached. Attach with:", file=sys.stderr)
+    print(f"    gdb -p {server.pid}", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("## Press Enter to continue", file=sys.stderr)
+    input()

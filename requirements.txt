@@ -1,2 +1,4 @@
 pytest-lsp
 lsp-devtools
+psutil
+types-psutil
