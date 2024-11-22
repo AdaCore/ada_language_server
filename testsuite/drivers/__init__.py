@@ -15,6 +15,16 @@ class ALSTestDriver(ClassicTestDriver):
     """Abstract class to share some common facilities."""
 
     @property
+    def working_dir_cleanup_enabled(self):
+        # By default cleanup of the working dir is performed for successful tests
+        # because there is no need to investigate them. We inhibit that in verbose mode
+        # to allow investigating successful tests.
+        if self.env.main_options.verbose > 0 or self.env.main_options.debug:
+            return False
+        else:
+            return super().working_dir_cleanup_enabled
+
+    @property
     def test_control_creator(self) -> TestControlCreator:
         eval_env = {
             "env": self.env,

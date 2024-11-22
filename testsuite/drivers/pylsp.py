@@ -6,6 +6,7 @@ import inspect
 import json
 import logging
 import os
+import shlex
 import signal
 import sys
 import urllib
@@ -334,6 +335,20 @@ def test(
                     finally:
                         if _replay_devtools.exists():
                             process_replay(_replay_devtools, _replay)
+                            msg = "You can replay this test in a debugger using:\n\n"
+                            msg += (
+                                f"    gdb {conf.server_command[0]}"
+                                " --cd={shlex.quote(os.getcwd())}"
+                            )
+                            if len(conf.server_command) > 1:
+                                msg += " -- " + " ".join(
+                                    shlex.quote(arg) for arg in conf.server_command[1:]
+                                )
+                            msg += "\n"
+                            msg += f"    (gdb) run < {_replay.absolute()}"
+                            msg += "\n"
+
+                            LOG.info(msg)
 
     def wrapper(func: Callable[[LanguageClient], Awaitable[object]]):
         def inner_wrapper():
