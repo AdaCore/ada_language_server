@@ -39,6 +39,8 @@ from lsprotocol.types import (
 # Expose aliases of these pytest-lsp classes
 LanguageClient = pytest_lsp.LanguageClient
 
+LOG = logging.getLogger(__name__)
+
 
 class PyLSP(ALSTestDriver):
     """This is test driver leverages the pytest-lsp API to provide a LanguageClient
@@ -97,12 +99,12 @@ class PyLSP(ALSTestDriver):
 
 def log_lsp_logs(client: LanguageClient):
     """Log all log messages received through LSP onto the Python 'logging' module."""
-    logging.info("### LSP Log Message ###\n%s", to_str(client.log_messages))
+    LOG.info("### LSP Log Message ###\n%s", to_str(client.log_messages))
 
 
 def log_lsp_diagnostics(client: LanguageClient):
     """Log all diagnostics received through LSP."""
-    logging.info("### Diagnostics ###\n%s", to_str(client.diagnostics))
+    LOG.info("### Diagnostics ###\n%s", to_str(client.diagnostics))
 
 
 def to_str(lsp_value: Any) -> str:
@@ -150,9 +152,9 @@ async def start_lsp_client(
     """
     devtools = None
     if _record_messages and not args.devtools_external:
-        logging.info("Starting lsp-devtools to record messages")
-        logging.info("The JSON replay file is: %s", _replay_devtools.resolve())
-        logging.info("The replay file for debugging is: %s", _replay.resolve())
+        LOG.info("Starting lsp-devtools to record messages")
+        LOG.info("The JSON replay file is: %s", _replay_devtools.resolve())
+        LOG.info("The replay file for debugging is: %s", _replay.resolve())
         # Start an instance of lsp-devtools to record the exchanges
         devtools = await asyncio.create_subprocess_exec(
             "lsp-devtools",
@@ -294,7 +296,7 @@ def test(
                         # them:
                         # stdout, stderr = await devtools.communicate()
                         status = await devtools.wait()
-                        logging.info(
+                        LOG.info(
                             "'lsp-devtools record' exit code: %d",
                             # "\nout:\n%s\nerr:\n%s",
                             status,
@@ -324,7 +326,7 @@ def run_test_file(test_py_path: str):
     with the 'simple_test' decorator and runs them.
     """
     # Load test.py as a module
-    logging.debug("Loading test file: %s", test_py_path)
+    LOG.debug("Loading test file: %s", test_py_path)
     spec = importlib.util.spec_from_file_location("module.name", test_py_path)
     assert spec
     module = importlib.util.module_from_spec(spec)
@@ -341,7 +343,7 @@ def run_test_file(test_py_path: str):
         for obj in test_functions:
             obj()
     else:
-        logging.critical(
+        LOG.critical(
             f"No functions with @{__name__}.{test.__name__}() decorator found in {test_py_path}"
         )
         sys.exit(1)
@@ -508,7 +510,7 @@ async def awaitIndexingEnd(lsp: LanguageClient):
     indexing_progress = None
     while indexing_progress is None:
         await asyncio.sleep(0.2)
-        logging.info(
+        LOG.info(
             "Awaiting indexing progress - lsp.progress_reports = %s",
             lsp.progress_reports,
         )
@@ -517,15 +519,15 @@ async def awaitIndexingEnd(lsp: LanguageClient):
             None,
         )
 
-    logging.info("Received indexing progress token")
+    LOG.info("Received indexing progress token")
 
     last_progress = lsp.progress_reports[indexing_progress][-1]
     while not isinstance(last_progress, WorkDoneProgressEnd):
         await asyncio.sleep(0.2)
-        logging.info("Waiting for indexing end - last_progress = %s", last_progress)
+        LOG.info("Waiting for indexing end - last_progress = %s", last_progress)
         last_progress = lsp.progress_reports[indexing_progress][-1]
 
-    logging.info("Received indexing end message")
+    LOG.info("Received indexing end message")
 
 
 def assertNoLSPErrors(lsp: LanguageClient):
