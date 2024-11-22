@@ -404,6 +404,19 @@ args = CLIArgs()
 
 
 def main():
+    try:
+        do_main()
+    except TestInfraError as ex:
+        if ex.print_backtrace:
+            # Simply re-raise to obtain the standard Python backtrace
+            raise
+        else:
+            # Just print the exception message and exit with a non-zero code
+            LOG.critical("%s", ex)
+            sys.exit(1)
+
+
+def do_main():
     p = argparse.ArgumentParser()
     p.add_argument("test_py_path")
     p.add_argument(
@@ -587,12 +600,19 @@ def assertNoLSPErrors(lsp: LanguageClient):
 
 
 class TestInfraError(Exception):
-    pass
+
+    def __init__(
+        self, msg: str | None = None, print_backtrace: bool = True, *args: object
+    ) -> None:
+        super().__init__(msg, *args)
+        self.print_backtrace = print_backtrace
 
 
 def debugHere(lsp: LanguageClient):
     if not args.debug:
-        raise TestInfraError("Test must be run with --debug to use debugHere()")
+        raise TestInfraError(
+            "Test must be run with --debug to use debugHere()", print_backtrace=False
+        )
 
     if lsp._server is None:
         raise TestInfraError("Server object is null. Cannot determine PID to debug.")
