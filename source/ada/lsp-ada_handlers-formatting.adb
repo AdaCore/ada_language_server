@@ -189,15 +189,6 @@ package body LSP.Ada_Handlers.Formatting is
                  LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
                message => Messages.Join (' '));
          end if;
-         if Document.Has_Diagnostics (Context) then
-            Success := False;
-            Error :=
-              (code    =>
-                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
-               message => Provider_Msg_Prefix & Incorrect_Code_Msg);
-
-            return;
-         end if;
       end Gnatpp_Range_Format;
 
       ----------------------------

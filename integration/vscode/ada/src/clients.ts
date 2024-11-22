@@ -11,8 +11,8 @@ import { logErrorAndThrow, setTerminalEnvironment } from './helpers';
 
 class AdaLanguageClient extends LanguageClient {
     /**
-     * Override this function to avoid diplaying popup notifications on LSP errors when
-     * the 'showNotificationsOnErrors' setting is disabld.
+     * Override this function to avoid displaying popup notifications on LSP errors when
+     * the 'showNotificationsOnErrors' setting is disabled.
      */
     override handleFailedRequest<T>(
         type: MessageSignature,
