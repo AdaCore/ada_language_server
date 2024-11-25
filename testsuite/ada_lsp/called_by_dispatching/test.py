@@ -2,7 +2,7 @@
 
 from drivers.pylsp import (
     URI,
-    LanguageClient,
+    ALSLanguageClient,
     assertLocationsList,
     callHierarchyIncomingCallsParams,
     callHierarchyPrepareParams,
@@ -12,7 +12,7 @@ from drivers.pylsp import (
 
 
 @test()
-async def test_called_by(lsp: LanguageClient):
+async def test_called_by(lsp: ALSLanguageClient):
     # Send a didOpen for main.adb
     open_params, main_adb_uri = didOpenTextDocumentParams("main.adb")
     root_ads_uri = URI("root.ads")

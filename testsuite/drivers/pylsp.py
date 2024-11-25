@@ -11,12 +11,22 @@ import sys
 import urllib
 import urllib.parse
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Sequence
+from typing import Any, Awaitable, Callable, Sequence, Type
+import warnings
 
+import attrs
 import lsprotocol.converters
 import lsprotocol.types
 import psutil
-import pytest_lsp
+from lsprotocol import types
+from pygls.client import JsonRPCClient
+from pygls.protocol import default_converter
+from pytest_lsp import (
+    ClientServerConfig,
+    LanguageClient,
+    LanguageClientProtocol,
+    LspSpecificationWarning,
+)
 from drivers import ALSTestDriver
 from e3.os.process import Run, command_line_image
 from e3.testsuite.driver.classic import ProcessResult, TestAbortWithFailure
@@ -38,10 +48,8 @@ from lsprotocol.types import (
     WorkDoneProgressEnd,
 )
 
-# Expose aliases of these pytest-lsp classes
-LanguageClient = pytest_lsp.LanguageClient
-
 LOG = logging.getLogger(__name__)
+logger = LOG
 
 
 class PyLSP(ALSTestDriver):
@@ -141,102 +149,172 @@ def to_str(lsp_value: Any) -> str:
 
 # Recording is active by default, and can be deactivated with ALS_TEST_RECORD=0. This
 # could be useful in production where recording replay files is not needed.
-_record_messages = os.environ.get("ALS_TEST_RECORD", "1") != "0"
-_replay_devtools = Path("replay-devtools.txt")
+ALS_TEST_RECORD = os.environ.get("ALS_TEST_RECORD", "1") != "0"
 _replay = Path("replay.txt")
 
 
-def process_replay(in_path: Path, out_path: Path) -> None:
-    """lsp-devtools records the JSON part of messages, but not the lower-layer message
-    headers. Replaying directly with ALS requires the headers, so this function
-    processes the replay file to re-write it with headers.
+class RecordingTransportWrapper(asyncio.Transport):
+    """This class wraps an asyncio.Transport object to intercept written data and save
+    it to a replay file.
     """
-    with in_path.open() as in_fp:
-        with out_path.open("wb") as out_fp:
-            for line in in_fp:
-                line = line.strip()
-                out_fp.write(
-                    f"Content-Length:{len(line)}\r\n\r\n{line}".encode("utf-8")
-                )
+
+    def __init__(self, wrapped: asyncio.Transport, replay: Path) -> None:
+        self.wrapped = wrapped
+        # Do not use buffering so that data is written to the replay file immediately
+        self.replay_fp = replay.open("wb", buffering=0)
+
+    def __del__(self):
+        # Close the replay file at destruction of this object
+        self.replay_fp.close()
+        super().__del__()
+
+    def __getattr__(self, attr):
+        """This is a classical way of wrapping some attributes, but not others."""
+        if attr in self.__dict__:
+            # If the requested attribute is overriden in this object, use it
+            return getattr(self, attr)
+        else:
+            # Otherwise use the attribute of the wrapped object
+            return getattr(self.wrapped, attr)
+
+    def write(self, data: bytes | bytearray | memoryview) -> None:
+        # Write the data to the replay file
+        self.replay_fp.write(data)
+        # Pass on the data to the wrapped object
+        return self.wrapped.write(data)
 
 
-async def start_lsp_client(
-    config: pytest_lsp.ClientServerConfig,
-) -> tuple[LanguageClient, asyncio.subprocess.Process | None]:
-    """Start ALS and connect it to a LanguageClient object that provides all
-    communication with the ALS through a typed API exposing all LSP requests and
-    notifications.
+class ALSLanguageClientProtocol(LanguageClientProtocol):
 
-    If message recording is enabled, this function also starts a lsp-devtools process
-    which intercepts exchanges between the client and the server and saves them to a
-    file.
+    def connection_made(self, transport: asyncio.Transport):  # type: ignore
 
-    Both the LSP client and the lsp-devtools process are returned because it is the
-    responsibility of the caller to terminate both of them in a 'finally' block.
+        if ALS_TEST_RECORD:
+            # If recording is active, use a transport wrapper. Otherwise use the
+            # original transport object.
+            LOG.info("Replay file: %s", _replay.absolute())
+            transport = RecordingTransportWrapper(transport, _replay)
+
+        return super().connection_made(transport)
+
+
+class ALSLanguageClient(LanguageClient):
+    """This class provides methods to communicate with a language server."""
+
+    def __init__(
+        self,
+        *args,
+        configuration: lsprotocol.types.Dict[str, Any] | None = None,
+        **kwargs,
+    ):
+        if "protocol_cls" not in kwargs:
+            kwargs["protocol_cls"] = ALSLanguageClientProtocol
+
+        super().__init__(*args, configuration=configuration, **kwargs)
+
+
+def als_client_factory() -> ALSLanguageClient:
+    """This function is an ugly copy-paste of pytest_lsp.make_test_lsp_client. It is
+    necessary in order to override some aspects of the pytest_lsp.LanguageClient class,
+    whilst making the other useful feature registrations that the original function
+    makes.
+
+    The aspect to override is the protocol class where we want to intervene to record
+    messages to a replay file.
+
+    I opened an issue to improve the situation so that the duplication can be avoided in
+    the future:
+    https://github.com/swyddfa/lsp-devtools/issues/195
     """
-    devtools = None
-    if _record_messages and not args.devtools_external:
-        LOG.info("Starting lsp-devtools to record messages")
-        LOG.info("The JSON replay file is: %s", _replay_devtools.resolve())
-        LOG.info("The replay file for debugging is: %s", _replay.resolve())
-        # Start an instance of lsp-devtools to record the exchanges
-        devtools = await asyncio.create_subprocess_exec(
-            "lsp-devtools",
-            "record",
-            "--port",
-            str(args.devtools_port),
-            "--to-file",
-            str(_replay_devtools),
-            # Only record messages emitted by the client because the goal of the
-            # replay file is to be used directly as input to the ALS for
-            # debugging
-            "--message-source",
-            "client",
-            # I was hoping that the following CLI args would help record raw
-            # messages in the replay file, but they seem to have no effect. I'm
-            # including them here to record the fact that they have been
-            # considered and deemed useless.
-            # "--capture-raw-output",
-            # "--capture-rpc-output",
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
 
-    client: LanguageClient = await config.start(
-        devtools=str(args.devtools_port) if _record_messages else None,
-    )  # type: ignore
+    # Instantiate the object from our own ALSLanguageClient class
+    client = ALSLanguageClient(
+        converter_factory=default_converter,
+    )
 
-    return client, devtools
+    # The rest of the function is identical to the original, but we have to replace the
+    # type of the client with our own in order for dynamic parameter matching to work.
+
+    @client.feature(types.WORKSPACE_CONFIGURATION)
+    def configuration(client: ALSLanguageClient, params: types.ConfigurationParams):
+        return [
+            client.get_configuration(section=item.section, scope_uri=item.scope_uri)
+            for item in params.items
+        ]
+
+    @client.feature(types.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS)
+    def publish_diagnostics(
+        client: ALSLanguageClient, params: types.PublishDiagnosticsParams
+    ):
+        client.diagnostics[params.uri] = params.diagnostics
+
+    @client.feature(types.WINDOW_WORK_DONE_PROGRESS_CREATE)
+    def create_work_done_progress(
+        client: ALSLanguageClient, params: types.WorkDoneProgressCreateParams
+    ):
+        if params.token in client.progress_reports:
+            # TODO: Send an error reponse to the client - might require changes
+            #       to pygls...
+            warnings.warn(
+                f"Duplicate progress token: {params.token!r}",
+                LspSpecificationWarning,
+                stacklevel=2,
+            )
+
+        client.progress_reports.setdefault(params.token, [])
+
+    @client.feature(types.PROGRESS)
+    def progress(client: ALSLanguageClient, params: types.ProgressParams):
+        if params.token not in client.progress_reports:
+            warnings.warn(
+                f"Unknown progress token: {params.token!r}",
+                LspSpecificationWarning,
+                stacklevel=2,
+            )
+
+        if not params.value:
+            return
+
+        if (kind := params.value.get("kind", None)) == "begin":
+            type_: Type[Any] = types.WorkDoneProgressBegin
+        elif kind == "report":
+            type_ = types.WorkDoneProgressReport
+        elif kind == "end":
+            type_ = types.WorkDoneProgressEnd
+        else:
+            raise TypeError(f"Unknown progress kind: {kind!r}")
+
+        value = client.protocol._converter.structure(params.value, type_)
+        client.progress_reports.setdefault(params.token, []).append(value)
+
+    @client.feature(types.WINDOW_LOG_MESSAGE)
+    def log_message(client: ALSLanguageClient, params: types.LogMessageParams):
+        client.log_messages.append(params)
+
+        levels = [logger.error, logger.warning, logger.info, logger.debug]
+        levels[params.type.value - 1](params.message)
+
+    @client.feature(types.WINDOW_SHOW_MESSAGE)
+    def show_message(client: ALSLanguageClient, params):
+        client.messages.append(params)
+
+    @client.feature(types.WINDOW_SHOW_DOCUMENT)
+    def show_document(
+        client: ALSLanguageClient, params: types.ShowDocumentParams
+    ) -> types.ShowDocumentResult:
+        client.shown_documents.append(params)
+        return types.ShowDocumentResult(success=True)
+
+    return client
 
 
-ALS_USE_LSP_DEVTOOLS_WRAPPER = (
-    os.environ.get("ALS_USE_LSP_DEVTOOLS_WRAPPER", "1") != "0"
-)
+@attrs.define
+class ALSClientServerConfig(ClientServerConfig):
 
-
-class ALSClientServerConfig(pytest_lsp.ClientServerConfig):
-
-    def _get_devtools_command(self, server: str) -> list[str]:
-        """We override this method to use our own lsp-devtools entry point for the
-        recording of messages in a replay file.
-
-        The purpose of our wrapper is to catch the CancelledError exception which occurs
-        systematically in the nominal termination of the lsp-devtools agent. These
-        exceptions appear even in successful tests and cause confusion, hence using this
-        wrapper to mask them.
-        """
-        cmd = super()._get_devtools_command(server)
-
-        if ALS_USE_LSP_DEVTOOLS_WRAPPER:
-            # Remove the original lsp-devtools entry point
-            cmd.pop(0)
-
-            # Replace it with our own wrapper
-            wrapper = Path(__file__).parent / "lsp-devtools-wrapper.py"
-            cmd = [sys.executable, str(wrapper)] + cmd
-
-        return cmd
+    # Override the default client factory to our own which support recording a replay
+    # file
+    client_factory: Callable[[], JsonRPCClient] = attrs.field(
+        default=als_client_factory,
+    )
 
 
 WRAPPER_ATTRIBUTE = "__wrapper"
@@ -277,16 +355,15 @@ def test(
     """
 
     async def async_wrapper(
-        func: Callable[[LanguageClient], Awaitable[object]]
+        func: Callable[[ALSLanguageClient], Awaitable[object]]
     ) -> None:
         als = os.environ.get("ALS", "ada_language_server")
         command = [als]
         conf = config or ALSClientServerConfig(command)
-        client: LanguageClient | None = None
+        client: ALSLanguageClient | None = None
 
-        devtools = None
         try:
-            client, devtools = await start_lsp_client(conf)
+            client = await conf.start()  # type: ignore
             assert client
 
             if args.debug:
@@ -316,43 +393,23 @@ def test(
                     if shutdown:
                         await client.shutdown_session()
             finally:
-                if devtools:
-                    try:
-                        devtools.kill()
-                        # If we need these outputs in the future, here is how we get
-                        # them:
-                        # stdout, stderr = await devtools.communicate()
-                        status = await devtools.wait()
-                        LOG.info(
-                            "'lsp-devtools record' exit code: %d",
-                            # "\nout:\n%s\nerr:\n%s",
-                            status,
-                            # stdout,
-                            # stderr,
+                if _replay.exists():
+                    msg = "You can replay this test in a debugger using:\n\n"
+                    msg += (
+                        f"    gdb {shlex.quote(conf.server_command[0])}"
+                        f" --cd={shlex.quote(os.getcwd())}"
+                    )
+                    if len(conf.server_command) > 1:
+                        msg += " -- " + " ".join(
+                            shlex.quote(arg) for arg in conf.server_command[1:]
                         )
-                    except ProcessLookupError:
-                        # The devtools process already ended because it detected the
-                        # shutdown procedure
-                        pass
-                    finally:
-                        if _replay_devtools.exists():
-                            process_replay(_replay_devtools, _replay)
-                            msg = "You can replay this test in a debugger using:\n\n"
-                            msg += (
-                                f"    gdb {conf.server_command[0]}"
-                                " --cd={shlex.quote(os.getcwd())}"
-                            )
-                            if len(conf.server_command) > 1:
-                                msg += " -- " + " ".join(
-                                    shlex.quote(arg) for arg in conf.server_command[1:]
-                                )
-                            msg += "\n"
-                            msg += f"    (gdb) run < {_replay.absolute()}"
-                            msg += "\n"
+                    msg += "\n"
+                    msg += f"    (gdb) run < {_replay.absolute()}"
+                    msg += "\n"
 
-                            LOG.info(msg)
+                    LOG.info(msg)
 
-    def wrapper(func: Callable[[LanguageClient], Awaitable[object]]):
+    def wrapper(func: Callable[[ALSLanguageClient], Awaitable[object]]):
         def inner_wrapper():
             asyncio.run(async_wrapper(func))
 
