@@ -49,8 +49,6 @@ include:
       # Here we would like to use --latest as to reduce issues from unavailable
       # components, but we can't because it breaks the transfer of built
       # components between jobs using anod-copy-components.
-      #
-      # See https://gitlab.adacore-it.com/eng/ide/ada_language_server/-/merge_requests/1611#note_610445
       anod-args: run test_integration_testsuite
       image: systemgtk
       cpus: 4
