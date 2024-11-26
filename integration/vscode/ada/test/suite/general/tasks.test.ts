@@ -354,7 +354,7 @@ suite('Task Execution', function () {
                 .getConfiguration()
                 .update(
                     'ada.projectFile',
-                    initialProjectFile === '' ? undefined : initialProjectFile,
+                    initialProjectFile === null ? undefined : initialProjectFile,
                 );
         }
     });

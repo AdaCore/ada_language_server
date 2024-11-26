@@ -21,7 +21,7 @@ suite('Extensions Test Suite', function () {
             // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             wsUri.fsPath != null;
             // Both should match
-            assert.deepStrictEqual(alsUri, wsUri);
+            assert.deepStrictEqual(alsUri?.fsPath, wsUri.fsPath);
         } else {
             throw new Error('No workspace folder found for the specified URI');
         }
