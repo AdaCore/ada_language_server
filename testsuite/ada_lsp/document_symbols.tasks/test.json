@@ -1,0 +1,370 @@
+[
+   {
+      "comment": [
+         "Test documentSymbols on a procedure using tasks."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"]
+                        }
+                     },
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/documentSymbol",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{hello.adb}"
+               },
+               "query": ""
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": [
+                  {
+                     "name": "With clauses",
+                     "kind": 3,
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 34
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 0,
+                           "character": 18
+                        },
+                        "end": {
+                           "line": 0,
+                           "character": 34
+                        }
+                     },
+                     "children": [
+                        {
+                           "name": "Ada.Text_IO",
+                           "kind": 3,
+                           "range": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 5
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 16
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 0,
+                                 "character": 5
+                              },
+                              "end": {
+                                 "line": 0,
+                                 "character": 16
+                              }
+                           },
+                           "alsIsDeclaration": false
+                        }
+                     ],
+                     "alsIsDeclaration": false
+                  },
+                  {
+                     "name": "Hello",
+                     "kind": 12,
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 45,
+                           "character": 10
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 2,
+                           "character": 10
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 15
+                        }
+                     },
+                     "children": [
+                        {
+                           "name": "Monitor_Task",
+                           "kind": 5,
+                           "range": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 7,
+                                 "character": 20
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 25
+                              }
+                           },
+                           "children": [
+                              {
+                                 "name": "Start",
+                                 "kind": 12,
+                                 "range": {
+                                    "start": {
+                                       "line": 5,
+                                       "character": 6
+                                    },
+                                    "end": {
+                                       "line": 5,
+                                       "character": 46
+                                    }
+                                 },
+                                 "selectionRange": {
+                                    "start": {
+                                       "line": 5,
+                                       "character": 12
+                                    },
+                                    "end": {
+                                       "line": 5,
+                                       "character": 17
+                                    }
+                                 },
+                                 "alsIsDeclaration": true,
+                                 "alsIsAdaProcedure": true,
+                                 "alsVisibility": 1
+                              },
+                              {
+                                 "name": "Stop",
+                                 "kind": 12,
+                                 "range": {
+                                    "start": {
+                                       "line": 6,
+                                       "character": 6
+                                    },
+                                    "end": {
+                                       "line": 6,
+                                       "character": 17
+                                    }
+                                 },
+                                 "selectionRange": {
+                                    "start": {
+                                       "line": 6,
+                                       "character": 12
+                                    },
+                                    "end": {
+                                       "line": 6,
+                                       "character": 16
+                                    }
+                                 },
+                                 "alsIsDeclaration": true,
+                                 "alsIsAdaProcedure": true,
+                                 "alsVisibility": 1
+                              }
+                           ],
+                           "alsIsDeclaration": true,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Monitor_Task",
+                           "kind": 2,
+                           "range": {
+                              "start": {
+                                 "line": 13,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 38,
+                                 "character": 20
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 13,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 13,
+                                 "character": 25
+                              }
+                           },
+                           "alsIsDeclaration": false,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "T",
+                           "kind": 13,
+                           "range": {
+                              "start": {
+                                 "line": 40,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 40,
+                                 "character": 20
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 40,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 40,
+                                 "character": 4
+                              }
+                           },
+                           "alsIsDeclaration": false,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        }
+                     ],
+                     "alsIsDeclaration": false,
+                     "alsIsAdaProcedure": true,
+                     "alsVisibility": 1
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{hello.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 10,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

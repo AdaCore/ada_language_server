@@ -1,0 +1,415 @@
+[
+   {
+      "comment": [
+         "Test documentSymbols on generic packages."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"]
+                        }
+                     },
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     },
+                     "documentSymbolProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "generic\n   type T is private;\npackage Pack is\n\n   procedure Set (E : T);\n   procedure Reset;\n   function Get return T;\n   function Is_Valid return Boolean;\n\n   Invalid_Element : exception;\n\nprivate\n   Value : T;\n   Valid : Boolean := False;\nend Pack;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "textDocument/documentSymbol",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               },
+               "query": ""
+            }
+         },
+         "wait": [
+            {
+               "id": 9,
+               "result": [
+                  {
+                     "name": "Pack",
+                     "kind": 4,
+                     "range": {
+                        "start": {
+                           "line": 0,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 14,
+                           "character": 9
+                        }
+                     },
+                     "selectionRange": {
+                        "start": {
+                           "line": 2,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 12
+                        }
+                     },
+                     "children": [
+                        {
+                           "name": "T",
+                           "kind": 5,
+                           "range": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 1,
+                                 "character": 21
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 1,
+                                 "character": 8
+                              },
+                              "end": {
+                                 "line": 1,
+                                 "character": 9
+                              }
+                           },
+                           "alsIsDeclaration": false,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Set",
+                           "detail": "(E : in T)",
+                           "kind": 12,
+                           "range": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 25
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 16
+                              }
+                           },
+                           "alsIsDeclaration": true,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Reset",
+                           "kind": 12,
+                           "range": {
+                              "start": {
+                                 "line": 5,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 5,
+                                 "character": 19
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 5,
+                                 "character": 13
+                              },
+                              "end": {
+                                 "line": 5,
+                                 "character": 18
+                              }
+                           },
+                           "alsIsDeclaration": true,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Get",
+                           "detail": " return T",
+                           "kind": 12,
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 25
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 12
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 15
+                              }
+                           },
+                           "alsIsDeclaration": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Is_Valid",
+                           "detail": " return Boolean",
+                           "kind": 12,
+                           "range": {
+                              "start": {
+                                 "line": 7,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 7,
+                                 "character": 36
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 7,
+                                 "character": 12
+                              },
+                              "end": {
+                                 "line": 7,
+                                 "character": 20
+                              }
+                           },
+                           "alsIsDeclaration": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Invalid_Element",
+                           "kind": 15,
+                           "range": {
+                              "start": {
+                                 "line": 9,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 9,
+                                 "character": 31
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 9,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 9,
+                                 "character": 18
+                              }
+                           },
+                           "alsIsDeclaration": false,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 1
+                        },
+                        {
+                           "name": "Value",
+                           "kind": 13,
+                           "range": {
+                              "start": {
+                                 "line": 12,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 12,
+                                 "character": 13
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 12,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 12,
+                                 "character": 8
+                              }
+                           },
+                           "alsIsDeclaration": false,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 3
+                        },
+                        {
+                           "name": "Valid",
+                           "kind": 13,
+                           "range": {
+                              "start": {
+                                 "line": 13,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 13,
+                                 "character": 28
+                              }
+                           },
+                           "selectionRange": {
+                              "start": {
+                                 "line": 13,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 13,
+                                 "character": 8
+                              }
+                           },
+                           "alsIsDeclaration": false,
+                           "alsIsAdaProcedure": true,
+                           "alsVisibility": 3
+                        }
+                     ],
+                     "alsIsDeclaration": true,
+                     "alsIsAdaProcedure": true,
+                     "alsVisibility": 1
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pack.ads}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 10,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
