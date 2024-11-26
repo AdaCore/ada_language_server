@@ -11,7 +11,7 @@ class ShellTestDriver(ALSTestDriver):
 
         # This takes care of failing the test in case the return code is
         # non-zero
-        check_call(
+        p = check_call(
             self,
             [self.working_dir("test.sh"), self.env.repo_base],
             parse_shebang=True,
@@ -24,3 +24,7 @@ class ShellTestDriver(ALSTestDriver):
             ignore_environ=False,
             timeout=15,  # seconds
         )
+
+        assert self.env.main_options
+        if self.env.main_options.verbose:
+            print(p.out)
