@@ -474,6 +474,12 @@
                 }
             }
         ],
+        "jsonValidation": [
+            {
+                "fileMatch": ".als.json",
+                "url": "./schemas/als-settings-schema.json"
+            }
+        ],
         "problemMatchers": [
             {
                 "name": "ada",
