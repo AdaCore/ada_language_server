@@ -5,10 +5,10 @@ from e3.testsuite.process import check_call
 class ShellTestDriver(ALSTestDriver):
     """
     Run the test.sh test program.
-
     """
 
-    def run(self):
+    def run(self) -> None:
+
         # This takes care of failing the test in case the return code is
         # non-zero
         check_call(
@@ -22,4 +22,5 @@ class ShellTestDriver(ALSTestDriver):
             # The following makes the child process inherit the parent process's
             # environment, in addition to the above environment.
             ignore_environ=False,
+            timeout=15,  # seconds
         )
