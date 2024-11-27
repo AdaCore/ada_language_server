@@ -17,7 +17,6 @@ import warnings
 import attrs
 import lsprotocol.converters
 import lsprotocol.types
-import psutil
 from lsprotocol import types
 from pygls.client import JsonRPCClient
 from pygls.protocol import default_converter
@@ -684,6 +683,8 @@ class TestInfraError(Exception):
 
 
 def debugHere(lsp: LanguageClient, msg: str | None = None):
+    import psutil
+
     if not args.debug:
         raise TestInfraError(
             "Test must be run with --debug to use debugHere()", print_backtrace=False

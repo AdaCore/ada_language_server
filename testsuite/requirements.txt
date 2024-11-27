@@ -1,3 +1,0 @@
-pytest-lsp
-psutil
-types-psutil
