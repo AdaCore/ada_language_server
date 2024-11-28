@@ -35,7 +35,7 @@ if (process.env['MOCHA_GREP']) {
     baseMochaOptions.grep = process.env['MOCHA_GREP'];
 }
 
-const testsuites = ['general', 'workspace_missing_dirs'];
+const testsuites = ['general', 'workspace_missing_dirs', 'dot-als-json'];
 
 export default defineConfig(
     testsuites.map((suiteName) => {
