@@ -1111,10 +1111,10 @@ package body Tester.Tests is
             Add_Unchanged ("", New_Line => True);
             Add_To_Result
               (Data   => Write (L, False),
-               Prefix => Expected_Prefix);
+               Prefix => Added_Prefix);
             Add_To_Result
               (Data   => Write (R, False),
-               Prefix => Added_Prefix);
+               Prefix => Expected_Prefix);
          else
             Add_Unchanged (Write (L, False));
          end if;
