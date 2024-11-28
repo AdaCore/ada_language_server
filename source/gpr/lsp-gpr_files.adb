@@ -1696,7 +1696,7 @@ package body LSP.GPR_Files is
    begin
       Env := GPR2.Environment.Process_Environment;
 
-      if LSP.Alire.Alire_Active (Client) then
+      if LSP.Alire.Should_Setup_Alire_Env (Client) then
          declare
             Has_Alire : Boolean;
             Error     : VSS.Strings.Virtual_String;

@@ -18,19 +18,32 @@
 package LSP.Ada_Handlers.Project_Loading is
 
    procedure Ensure_Project_Loaded (Self : in out Message_Handler'Class);
-   --  Search and load a project from the current workspace.
-   --  The search will be done in this order:
-   --  1- search for an alire crate
-   --  2- if there is only one project then load it
-   --  3- load the implicit project and warn if there were multiple projects
-   --  Do nothing if a project has been loaded.
+   --  If a project is already loaded, do nothing.
+   --
+   --  If a project is not already loaded, search and load a project from the
+   --  current workspace.
+   --
+   --  The search for a project file will be done in this order:
+   --
+   --  1. if ada.projectFile is specified, use it.
+   --  2. else if the project is an Alire crate
+   --     1. if 'alr' is available on PATH, use Alire to determine the project
+   --     2. else continue with the rest of the search
+   --  3. else if there is a unique project at the root of the workspace, use it
+   --  4. else if there are multiple projects at the root, warn about it and
+   --     load the implicit project
+   --  5. else load the implicit project
 
    procedure Reload_Project (Self : in out Message_Handler'CLass);
-   --  Reload the project set in the configuration or Load the project if
-   --  none is already yet.
+   --  Clear the current project context and call Ensure_Project_Loaded to
+   --  reload a project.
 
    procedure Reload_Implicit_Project
      (Self : in out Message_Handler'Class);
-   --  Reload the implicit project
+   --  Reload the implicit project. This is called when the server receives a
+   --  onDidOpen notification and the directory containing the opened file is
+   --  not part of the implicit project. In that case the notification handler
+   --  adds the containing directory to Self.Project_Dirs_Loaded and calls this
+   --  subprogram to reload the implicit project.
 
 end LSP.Ada_Handlers.Project_Loading;

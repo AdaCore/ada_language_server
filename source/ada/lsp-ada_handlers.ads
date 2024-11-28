@@ -293,6 +293,10 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentRangeFormattingParams);
 
+   overriding procedure On_Initialized_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.InitializedParams);
+
    overriding procedure On_DidChangeWatchedFiles_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeWatchedFilesParams);

@@ -349,20 +349,30 @@ package body LSP.Alire is
       end loop;
    end Standard_Output_Available;
 
-   ------------------
-   -- Alire_Active --
-   ------------------
+   --------------------
+   -- Is_Alire_Crate --
+   --------------------
 
-   function Alire_Active
-     (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean is
+   function Is_Alire_Crate
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean
+   is
       Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
                       (if Client.Root.Is_Empty then GNATCOLL.VFS.No_File
                        else Client.Root_Directory.Create_From_Dir
                          ("alire.toml"));
-
    begin
-      return Alire_TOML.Is_Regular_File
+      return Alire_TOML.Is_Regular_File;
+   end Is_Alire_Crate;
+
+   ----------------------------
+   -- Should_Setup_Alire_Env --
+   ----------------------------
+
+   function Should_Setup_Alire_Env
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean is
+   begin
+      return Is_Alire_Crate (Client)
         and Spawn.Environments.System_Environment.Value ("ALIRE") /= "True";
-   end Alire_Active;
+   end Should_Setup_Alire_Env;
 
 end LSP.Alire;

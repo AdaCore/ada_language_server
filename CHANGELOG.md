@@ -14,6 +14,8 @@ section below it for the last release. -->
 * Fix Goto Definition for entry in Protected Types
 * Avoid `PRECONDITION_FAILURE` on editing an empty file
 * Avoid occurrences of `STALE_REFERENCE_ERROR` in Libadalang
+* Restore the usage of `initializationOptions` from the `initialize` request to
+  receive initial settings
 
 ## 25.0.20241014
 
