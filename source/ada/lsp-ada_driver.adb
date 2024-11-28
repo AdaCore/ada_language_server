@@ -18,8 +18,10 @@
 --  This is driver to run LSP server for Ada language.
 
 with Ada.Characters.Latin_1;
+with Ada.Exceptions;          use Ada.Exceptions;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
+with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;
 with GNAT.Strings;
 
@@ -378,6 +380,16 @@ procedure LSP.Ada_Driver is
    Config_File            : Virtual_File;
 
    Memory_Monitor_Enabled : Boolean;
+
+   Exception_When_Parsing_Traces : Exception_Occurrence_Access;
+   --  Used to save any exception that might occur when parsing non-valid
+   --  traces configuration files.
+
+   procedure Free is new
+     Ada.Unchecked_Deallocation
+       (Exception_Occurrence,
+        Exception_Occurrence_Access);
+
 begin
    --  Handle the command line
 
@@ -395,80 +407,102 @@ begin
       GNAT.OS_Lib.OS_Exit (0);
    end if;
 
-   --  Look for a traces file, in this order:
-   --     - passed on the command line via --tracefile,
-   --     - in a .gnatdebug file locally
-   --     - in "traces.cfg" in the ALS home directory
-   if VSS.Command_Line.Is_Specified (Trace_File_Option) then
-      Traces_File := Create_From_UTF8
-         (VSS.Strings.Conversions.To_UTF_8_String
-            (VSS.Command_Line.Value (Trace_File_Option)));
-      if not Traces_File.Is_Regular_File then
-         Ada.Text_IO.Put_Line ("Could not find the specified traces file");
-         GNAT.OS_Lib.OS_Exit (1);
-      end if;
+   declare
+      Default_Traces_File_Contents : constant String :=
+        ">"
+        & (if VSS.Command_Line.Is_Specified (Language_GPR_Option)
+           then GPR_Log_File_Prefix
+           else Ada_Log_File_Prefix)
+        & "_log.$T.log:buffer_size=0:buffer_size=0"
+        & Ada.Characters.Latin_1.LF
+        & "ALS.MAIN=yes"
+        & Ada.Characters.Latin_1.LF
+        & "ALS.IN=no"
+        & Ada.Characters.Latin_1.LF
+        & "ALS.OUT=no"
+        & Ada.Characters.Latin_1.LF;
+   begin
+      --  Look for a traces file, in this order:
+      --     - passed on the command line via --tracefile,
+      --     - in a .gnatdebug file locally
+      --     - in "traces.cfg" in the ALS home directory
+      if VSS.Command_Line.Is_Specified (Trace_File_Option) then
+         Traces_File :=
+           Create_From_UTF8
+             (VSS.Strings.Conversions.To_UTF_8_String
+                (VSS.Command_Line.Value (Trace_File_Option)));
+         if not Traces_File.Is_Regular_File then
+            Ada.Text_IO.Put_Line ("Could not find the specified traces file");
+            GNAT.OS_Lib.OS_Exit (1);
+         end if;
 
-      Parse_Config_File (Traces_File);
-
-   elsif GNATdebug.Is_Regular_File then
-      Parse_Config_File (GNATdebug);
-
-   else
-      --  No $HOME/.als directory: create one first
-      if not ALS_Dir.Is_Directory then
-         begin
-            Make_Dir (ALS_Dir);
-
-         exception
-            --  We have caught an exception when trying to create the .als
-            --  directory: warn the user.
-            when GNATCOLL.VFS.VFS_Directory_Error =>
-               Ada.Text_IO.Put_Line
-                 (Ada.Text_IO.Standard_Error,
-                  "warning: Could not create default ALS log directory at '"
-                  & ALS_Dir.Display_Full_Name & "'"
-                  & Ada.Characters.Latin_1.LF
-                  & "Please make sure the parent directory is writable or "
-                  & "specify another parent directory via the ALS_HOME "
-                  & "environment variable.");
-               ALS_Dir := GNATCOLL.VFS.No_File;
-         end;
-      end if;
-
-      --  If the ALS directory is valid, parse any existing trace file or
-      --  create a default one if needed.
-
-      if ALS_Dir.Is_Directory then
-         Traces_File := Create_From_Dir
-           (Dir       => ALS_Dir,
-            Base_Name =>
-              +(if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
-               GPR_Log_File_Prefix else Ada_Log_File_Prefix) & "_traces.cfg");
-
-         --  No default traces file found: create one if we can
-         if not Traces_File.Is_Regular_File and then ALS_Dir.Is_Writable then
-            declare
-               W_Traces_File                : Writable_File;
-               Default_Traces_File_Contents : constant String :=
-                 ">"
-                 & (if VSS.Command_Line.Is_Specified (Language_GPR_Option)
-                    then GPR_Log_File_Prefix else Ada_Log_File_Prefix)
-                 & "_log.$T.log:buffer_size=0:buffer_size=0"
-                 & Ada.Characters.Latin_1.LF
-                 & "ALS.MAIN=yes" & Ada.Characters.Latin_1.LF
-                 & "ALS.IN=no" & Ada.Characters.Latin_1.LF
-                 & "ALS.OUT=no" & Ada.Characters.Latin_1.LF;
+      elsif GNATdebug.Is_Regular_File then
+         Traces_File := GNATdebug;
+      else
+         --  No $HOME/.als directory: create one first
+         if not ALS_Dir.Is_Directory then
             begin
-               W_Traces_File := Traces_File.Write_File;
-               Write (W_Traces_File, Default_Traces_File_Contents);
-               Close (W_Traces_File);
+               Make_Dir (ALS_Dir);
+
+            exception
+               --  We have caught an exception when trying to create the .als
+               --  directory: warn the user.
+               when GNATCOLL.VFS.VFS_Directory_Error =>
+                  Ada.Text_IO.Put_Line
+                    (Ada.Text_IO.Standard_Error,
+                     "warning: Could not create default ALS log directory at '"
+                     & ALS_Dir.Display_Full_Name
+                     & "'"
+                     & Ada.Characters.Latin_1.LF
+                     & "Please make sure the parent directory is writable or "
+                     & "specify another parent directory via the ALS_HOME "
+                     & "environment variable.");
+                  ALS_Dir := GNATCOLL.VFS.No_File;
             end;
          end if;
+
+         --  If the ALS directory is valid, parse any existing trace file or
+         --  create a default one if needed.
+
+         if ALS_Dir.Is_Directory then
+            Traces_File :=
+              Create_From_Dir
+                (Dir       => ALS_Dir,
+                 Base_Name =>
+                   +(if VSS.Command_Line.Is_Specified (Language_GPR_Option)
+                     then GPR_Log_File_Prefix
+                     else Ada_Log_File_Prefix)
+                   & "_traces.cfg");
+
+            --  No default traces file found: create one if we can
+            if not Traces_File.Is_Regular_File and then ALS_Dir.Is_Writable
+            then
+               declare
+                  W_Traces_File : Writable_File;
+               begin
+                  W_Traces_File := Traces_File.Write_File;
+                  Write (W_Traces_File, Default_Traces_File_Contents);
+                  Close (W_Traces_File);
+               end;
+            end if;
+         end if;
+
+         Clean_ALS_Dir := True;
       end if;
 
-      Parse_Config_File (Traces_File);
-      Clean_ALS_Dir := True;
-   end if;
+      --  Parse the traces config file. Fallback to the default traces' configuration
+      --  if we fail to parse the user's traces config file.
+      --  In fallback mode, the logs will be produced in the ALS's current directory:
+      --  user can still access them easily via the 'als-open-log-file' command.
+      begin
+         Parse_Config_File (Traces_File);
+      exception
+         when E : Constraint_Error =>
+            Exception_When_Parsing_Traces :=
+              Ada.Exceptions.Save_Occurrence (E);
+            Parse_Config (Config => Default_Traces_File_Contents);
+      end;
+   end;
 
    --  Look for a config file, that contains the configuration for the server
    --  (i.e: the configuration that can be specified through the 'initialize'
@@ -515,6 +549,15 @@ begin
      ("GPR PATH: " & VSS.Strings.Conversions.To_UTF_8_String (GPR_Path));
    Tracer.Trace
      ("PATH: " & VSS.Strings.Conversions.To_UTF_8_String (Path));
+
+   --  Log any exception that occured while parsing the user's traces
+   --  configuration file.
+   if Exception_When_Parsing_Traces /= null then
+      Tracer.Trace_Exception
+        (Exception_When_Parsing_Traces.all,
+         "Exception while parsing traces file:");
+      Free (Exception_When_Parsing_Traces);
+   end if;
 
    --  Start monitoring the memory if the memory monitor trace is active
 
