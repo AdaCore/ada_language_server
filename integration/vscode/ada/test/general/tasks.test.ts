@@ -3,8 +3,8 @@
 import assert from 'assert';
 import path from 'path';
 import * as vscode from 'vscode';
-import { getEnclosingSymbol, getSelectedRegion } from '../../../src/commands';
-import { exe, getProjectFile } from '../../../src/helpers';
+import { getEnclosingSymbol, getSelectedRegion } from '../../src/commands';
+import { exe, getProjectFile } from '../../src/helpers';
 import {
     SimpleTaskDef,
     TASK_TYPE_ADA,
@@ -12,7 +12,7 @@ import {
     findTaskByName,
     getConventionalTaskLabel,
     isFromWorkspace,
-} from '../../../src/taskProviders';
+} from '../../src/taskProviders';
 import {
     activate,
     closeAllEditors,

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { envHasExec, findAdaMain, getSymbols, which } from '../../../src/helpers';
+import { envHasExec, findAdaMain, getSymbols, which } from '../../src/helpers';
 import { DocumentSymbol, SymbolKind, Uri, commands, workspace } from 'vscode';
 import { rangeToStr } from '../utils';
 

@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { adaExtState } from '../../../src/extension';
-import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../../../src/alsProtocolExtensions';
+import { adaExtState } from '../../src/extension';
+import { AdaGrammarRule, AdaSyntaxCheckProvider } from '../../src/alsProtocolExtensions';
 import { activate } from '../utils';
 
 suite('Syntax Check Test Suite', function () {

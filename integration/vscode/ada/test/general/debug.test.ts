@@ -4,10 +4,10 @@ import {
     adaDynamicDebugConfigProvider,
     createQuickPicksInitialLaunch,
     getOrFindGdb,
-} from '../../../src/debugConfigProvider';
-import { exe } from '../../../src/helpers';
+} from '../../src/debugConfigProvider';
+import { exe } from '../../src/helpers';
 import { activate } from '../utils';
-import { adaExtState } from '../../../src/extension';
+import { adaExtState } from '../../src/extension';
 
 suite('Dbg Cfgs', function () {
     let expectedConfigs: AdaConfig[];

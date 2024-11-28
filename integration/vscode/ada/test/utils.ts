@@ -4,13 +4,9 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import * as vscode from 'vscode';
 import { CodeLens, Uri, window, workspace } from 'vscode';
-import { adaExtState } from '../../src/extension';
-import { getArgValue, setTerminalEnvironment } from '../../src/helpers';
-import {
-    SimpleTaskProvider,
-    findTaskByName,
-    getConventionalTaskLabel,
-} from '../../src/taskProviders';
+import { adaExtState } from '../src/extension';
+import { getArgValue, setTerminalEnvironment } from '../src/helpers';
+import { SimpleTaskProvider, findTaskByName, getConventionalTaskLabel } from '../src/taskProviders';
 
 /**
  * This function compares some actual output to an expected referenced stored in

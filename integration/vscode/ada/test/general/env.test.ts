@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { setTerminalEnvironment } from '../../../src/helpers';
+import { setTerminalEnvironment } from '../../src/helpers';
 
 suite('Environment init', () => {
     test('Env init', () => {

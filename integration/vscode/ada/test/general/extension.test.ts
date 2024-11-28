@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import { adaExtState } from '../../../src/extension';
-import { getObjectDir } from '../../../src/helpers';
+import { adaExtState } from '../../src/extension';
+import { getObjectDir } from '../../src/helpers';
 import { activate, assertEqualToFileContent } from '../utils';
 
 import { readFileSync, writeFileSync } from 'fs';

@@ -5,11 +5,11 @@ import { spawnSync } from 'child_process';
 import { existsSync, renameSync } from 'fs';
 import path from 'path';
 import { SemanticTokensParams, SemanticTokensRequest, integer } from 'vscode-languageclient';
-import { adaExtState } from '../../../src/extension';
+import { adaExtState } from '../../src/extension';
 import { assertEqualToFileContent, update, activate } from '../utils';
 
-const extensionRootPath = path.join(__dirname, '..', '..', '..', '..');
-const testWsPath = path.join(extensionRootPath, 'test', 'workspaces', 'general');
+const extensionRootPath = path.join(__dirname, '..', '..', '..');
+const testWsPath = path.join(extensionRootPath, 'test', 'general', 'ws');
 const adaTestsPath = path.join(testWsPath, 'src', 'highlighting');
 
 suite('Highlighting', function () {

@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { DocumentSymbol, SymbolKind, commands } from 'vscode';
-import { envHasExec, getSymbols } from '../../../src/helpers';
+import { envHasExec, getSymbols } from '../../src/helpers';
 import {
     activate,
     closeAllEditors,
