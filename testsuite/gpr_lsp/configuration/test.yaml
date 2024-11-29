@@ -1,3 +1,1 @@
 title: 'workspace/didChangeConfiguration request'
-control:
-    - ['SKIP', 'env.build.os.name not in ("linux","windows")']

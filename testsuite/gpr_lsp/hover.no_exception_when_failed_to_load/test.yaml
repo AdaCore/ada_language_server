@@ -1,3 +1,2 @@
 title: 'hover.no_exception_when_failed_to_load'
-control:
-    - ['SKIP', 'env.build.os.name not in ("linux","windows")']
+
