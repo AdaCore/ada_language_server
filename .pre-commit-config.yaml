@@ -22,6 +22,24 @@ repos:
     hooks:
       - id: mypy
         files: '\.py$'
-        # exclude: "^tests/.+$"
+        args:
+          # These flags make mypy associate different module names to `test.py`
+          # files from different test directories.
+          - --explicit-package-bases
+          - --namespace-packages
         additional_dependencies:
           - pytest-lsp
+          - e3-testsuite
+          - psutil
+          - types-psutil
+
+  - repo: local
+    hooks:
+      # This hook checks that Python test directories are valid module names so
+      # that mypy will accept to analyse multiple test.py in different
+      # directories.
+      - id: py-filenames
+        name: Python test.py paths
+        entry: Python path components should be valid modules names (e.g. no '.' or whitespace). This is for mypy to accept dealing with test.py files in different directories.
+        language: fail
+        files: 'testsuite.*[^A-Za-z0-9_\/].*test\.py$'
