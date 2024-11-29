@@ -69,7 +69,9 @@ def run_a_module(
 
     # Load test.py as a module
     spec = importlib.util.spec_from_file_location("module.name", test_py_path)
+    assert spec
     module = importlib.util.module_from_spec(spec)
+    assert spec.loader
     spec.loader.exec_module(module)
 
     # Look for functions with the decorator @simple_test and run them

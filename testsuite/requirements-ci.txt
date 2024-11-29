@@ -1,0 +1,4 @@
+# This file contains the strict minimum Python requirements for running the
+# testsuite in CI.
+e3-testsuite
+pytest-lsp
