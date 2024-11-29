@@ -82,6 +82,11 @@ package LSP.Ada_Project_Loading is
       Project_Type : Project_Types);
    --  Set the type of the project.
 
+   function Get_Project_Type
+     (Project      : in out Project_Status_Type)
+      return Project_Types;
+   --  Get the type of the project.
+
    procedure Set_Missing_Ada_Runtime
      (Project      : in out Project_Status_Type;
       Value  : Boolean);

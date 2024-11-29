@@ -327,6 +327,15 @@ package body LSP.Ada_Project_Loading is
       Project.Project_Type := Project_Type;
    end Set_Project_Type;
 
+   ----------------------
+   -- Get_Project_Type --
+   ----------------------
+
+   function Get_Project_Type
+     (Project      : in out Project_Status_Type)
+      return Project_Types
+   is (Project.Project_Type);
+
    -----------------------------
    -- Set_Missing_Ada_Runtime --
    -----------------------------
