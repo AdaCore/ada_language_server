@@ -8,9 +8,7 @@
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -27,9 +25,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "rename"
-                        ]
+                        "resourceOperations": ["rename"]
                      }
                   },
                   "textDocument": {
@@ -38,15 +34,9 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": false,
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "resolveSupport": {
-                              "properties": [
-                                 "detail",
-                                 "documentation"
-                              ]
+                              "properties": ["detail", "documentation"]
                            }
                         }
                      },
@@ -82,12 +72,7 @@
                   "capabilities": {
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
+                        "triggerCharacters": [".", ",", "'", "("],
                         "resolveProvider": true
                      }
                   }
@@ -205,10 +190,10 @@
                         "insertTextFormat": 1
                      },
                      {
-                        "label": "Integer",
+                        "detail": "type Integer is range -16#8000_0000# .. 16#7fff_ffff#;",
+                        "documentation": "at __standard (6:4)",
                         "kind": 7,
-                        "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
-                        "documentation": "at __standard (4:3)",
+                        "label": "Integer",
                         "sortText": "00&00002Integer"
                      }
                   ]
