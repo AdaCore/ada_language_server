@@ -544,8 +544,8 @@ package body LSP.GPR_External_Tools is
            "list of switches to be used when invoking 'gnatcheck' for a " &
            "source of the language, if there is no applicable attribute " &
            "Switches.",
-         Index_Type            => PRA.No_Index,
-         Value                 => Single,
+         Index_Type            => PRA.String_Index,
+         Value                 => List,
          Value_Case_Sensitive  => True);
 
       Add_Attribute
@@ -554,8 +554,8 @@ package body LSP.GPR_External_Tools is
          Description           => "Index is a source file name. Value is " &
            "the list of switches to be used when invoking 'gnatcheck' for " &
            "the source.",
-         Index_Type            => PRA.No_Index,
-         Value                 => Single,
+         Index_Type            => PRA.String_Index,
+         Value                 => List,
          Value_Case_Sensitive  => True);
 
    end Import_GNATcheck_Attributes;
