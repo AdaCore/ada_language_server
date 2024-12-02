@@ -19,6 +19,17 @@
       "editor.detectIndentation": false
    },
    "python.analysis.extraPaths": ["testsuite"],
+   "python.analysis.packageIndexDepths": [
+      {
+         "name": "lsprotocol",
+         "depth": 10
+      },
+      {
+         "name": "pytest_lsp",
+         "depth": 4
+      }
+   ],
+   "python.analysis.autoImportCompletions": true,
    "flake8.args": ["--max-line-length", "88"],
    "[python]": {
       // Use the same line length as black and flake8
