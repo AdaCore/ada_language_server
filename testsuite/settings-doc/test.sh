@@ -16,7 +16,7 @@ python3 get-schema-properties.py <"$1/integration/vscode/ada/schemas/als-setting
 grep 'if Name = "[^"]\+"' "$1/source/ada/lsp-ada_configurations.adb" | sed -e 's/.*"\([^"]\+\)"/\1/' >impl.txt
 # Remove the following settings from the implementation list because they are
 # either hidden, or nested
-exclude="logThreshold onTypeFormatting indentOnly"
+exclude="onTypeFormatting indentOnly"
 for exc in $exclude; do
     echo "$(grep -v "$exc" <impl.txt)" >impl.txt
 done

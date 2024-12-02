@@ -357,3 +357,9 @@ This option controls the formatting provider for the `textDocument/formatting`,
 `textDocument/rangeFormatting` and `textDocument/onTypeFormatting` request. By default, this option
 is enabled and ALS uses GNATformat as its formatting provider. If disabled, GNATpp is used instead.
 
+### logThreshold
+
+Controls the maximum number of trace files preserved in the ALS log directory (which defaults to `~/.als`).
+When this threshold is reached, old trace files get deleted automatically.
+The default number of preserved trace files is `10`.
+See the documentation on [ALS Traces](doc/traces.md) for more information.

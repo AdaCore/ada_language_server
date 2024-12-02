@@ -470,6 +470,12 @@
                         ],
                         "default": "off",
                         "description": "Traces the communication between VS Code and the GPR language server in the 'GPR Language Server' Output view."
+                    },
+                    "ada.logThreshold": {
+                        "scope": "window",
+                        "type": "integer",
+                        "default": null,
+                        "description": "Controls the maximum number of trace files preserved in the ALS log directory (which defaults to `~/.als`). When this threshold is reached, old trace files get deleted automatically. The default number of preserved trace files is `10`."
                     }
                 }
             }
