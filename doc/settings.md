@@ -333,6 +333,24 @@ This option controls if the `textDocument/onTypeFormatting` request only indents
 it additionally tries to format the previous node. By default, this option is enabled, that is,
 `textDocument/onTypeFormatting` only indents new lines.
 
+In ALS config files, this setting must be specified in a nested form:
+
+```json
+{
+   "onTypeFormatting": {
+      "indentOnly": true
+   }
+}
+```
+
+Conversely, in VS Code this settings can be set without nesting:
+
+```json
+{
+   "ada.onTypeFormatting.indentOnly": true,
+}
+```
+
 ### useGnatformat
 
 This option controls the formatting provider for the `textDocument/formatting`,
