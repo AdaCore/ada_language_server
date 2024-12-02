@@ -1,3 +1,2 @@
 title: 'textDocument/hover request, test type comment gnat/leading style'
-control:
-    - ['SKIP', 'env.build.os.name not in ("linux","windows")']
+

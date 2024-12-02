@@ -1,6 +1,5 @@
 """Describes some types used in the LSP testing."""
 
-from typing import Any
 import json
 import os
 
@@ -11,6 +10,7 @@ current_id = 0
 
 class ResponseAssertionError(Exception):
     """An exception that we manage - to avoid printing long traceback."""
+
     pass
 
 
@@ -121,7 +121,7 @@ class LSPResponse(object):
         message = f"At {dir_and_file}:{line_number} in {fn_name}:\n"
         return message
 
-    def assertLocationsList(self, expected: list[(str, int)]):
+    def assertLocationsList(self, expected: list[tuple[str, int]]):
         """Compare the response to an expected list of locations.
         The expected list is a list of tuples (file base name, line number),
         with line_number being 1-based.

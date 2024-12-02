@@ -1,0 +1,4 @@
+# This file contains the Python requirements for a development environment.
+-r "requirements-ci.txt"
+psutil
+types-psutil

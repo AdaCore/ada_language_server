@@ -1,3 +1,2 @@
 title: 'shutdown'
-control:
-    - ['SKIP', 'env.build.os.name not in ("linux","windows")']
+
