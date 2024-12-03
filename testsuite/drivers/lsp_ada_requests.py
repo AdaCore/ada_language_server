@@ -8,7 +8,7 @@ from drivers.lsp_types import LSPMessage, URI
 # TODO: use a library such as pytest-lsp to support most requests
 
 
-def initialize(workspacefolder=URI(".")):
+def initialize(workspacefolder=URI(".")):  # noqa: B008
     """This mimics what vs code sends at the moment"""
     return LSPMessage(
         {
@@ -133,7 +133,7 @@ def initialized():
 
 
 def didChangeConfiguration(
-    scenarioVariables={},
+    scenarioVariables={},  # noqa: B006
     defaultCharset="ISO-8859-1",
     enableDiagnostics=False,
     followSymlinks=False,
@@ -178,9 +178,10 @@ def didOpen_from_disk(filename: str, language: str = "ada"):
         False,
     )
 
+
 def prepareCallHierarchy(filename: str, line: int, character: int):
     """Craft a textDocument/prepareCallHierarchy request.
-       line and character are specified in 1-based coordinates.
+    line and character are specified in 1-based coordinates.
     """
     return LSPMessage(
         {
@@ -192,9 +193,10 @@ def prepareCallHierarchy(filename: str, line: int, character: int):
         }
     )
 
+
 def incomingCalls(filename: str, line: int, character: int):
     """Craft a callHierarchy/incomingCalls request.
-       line and character are specified in 1-based coordinates.
+    line and character are specified in 1-based coordinates.
     """
     return LSPMessage(
         {
