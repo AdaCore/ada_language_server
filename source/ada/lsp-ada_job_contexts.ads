@@ -53,9 +53,16 @@ package LSP.Ada_Job_Contexts is
      access constant LSP.Ada_Client_Capabilities.Client_Capability'Class
        is abstract;
 
+   function Get_Base_Configuration (Self : Ada_Job_Context)
+     return access constant LSP.Ada_Configurations.Configuration'Class
+       is abstract;
+   --  The base configuration loaded at process startup from configuration
+   --  files.
+
    function Get_Configuration (Self : Ada_Job_Context)
      return access constant LSP.Ada_Configurations.Configuration'Class
        is abstract;
+   --  The current applicable configuration.
 
    procedure Set_Configuration
       (Self  : in out Ada_Job_Context;

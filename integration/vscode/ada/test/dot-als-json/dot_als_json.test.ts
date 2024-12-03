@@ -1,13 +1,16 @@
 import assert from 'assert';
-import { adaExtState } from '../../src/extension';
-import { activate } from '../utils';
 import path from 'path';
 import { ConfigurationTarget, workspace } from 'vscode';
+import { adaExtState } from '../../src/extension';
+import { activate } from '../utils';
 
 suite('dot-als-json', function () {
     this.beforeAll(async function () {
         await activate();
     });
+
+    const alsDotJsonValue = 'als-dot-json-value';
+    const settingsDotJsonValue = 'settings-json-value';
 
     /**
      * The goal of this testsuite is to verify the interaction between settings
@@ -35,24 +38,22 @@ suite('dot-als-json', function () {
          * Initially the scenario variable is set in .als.json but not in settings.json
          */
         const objDir = path.basename(await adaExtState.getObjectDir());
-        const expected = 'als-dot-json-value';
+        const expected = alsDotJsonValue;
         assert.equal(objDir, expected);
     });
 
     test('case-2', async function () {
         const initial = workspace.getConfiguration('ada').get('scenarioVariables');
         try {
-            /**
-             * First we change the VS Code settings to override the scenario variable.
-             */
-            const sentinel = 'settings-json-value';
-            await workspace.getConfiguration('ada').update('scenarioVariables', { Var: sentinel });
+            await workspace
+                .getConfiguration('ada')
+                .update('scenarioVariables', { Var: settingsDotJsonValue });
 
             /**
              * Check that the change overwrote the .als.json value
              */
             const objDir = path.basename(await adaExtState.getObjectDir());
-            assert.equal(objDir, sentinel);
+            assert.equal(objDir, settingsDotJsonValue);
         } finally {
             /**
              * Restore the initial value of the setting.
@@ -70,17 +71,15 @@ suite('dot-als-json', function () {
     test('undo-override', async function () {
         const initial = workspace.getConfiguration('ada').get('scenarioVariables');
         try {
-            /**
-             * First we change the VS Code settings to override the scenario variable.
-             */
-            const sentinel = 'settings-json-value';
-            await workspace.getConfiguration('ada').update('scenarioVariables', { Var: sentinel });
+            await workspace
+                .getConfiguration('ada')
+                .update('scenarioVariables', { Var: settingsDotJsonValue });
 
             /**
              * Check that the change overwrote the .als.json value
              */
             let objDir = path.basename(await adaExtState.getObjectDir());
-            assert.equal(objDir, sentinel);
+            assert.equal(objDir, settingsDotJsonValue);
 
             /**
              * Now let's undo the override.
@@ -88,15 +87,10 @@ suite('dot-als-json', function () {
             await workspace.getConfiguration('ada').update('scenarioVariables', undefined);
 
             /**
-             * Ideally we would want the ALS to switch back to the setting from
-             * .als.json but this is not the current behavior.
-             *
-             * Currently the didChangeConfiguration notification contains \{
-             * "scenarioVariables": null \} which makes ALS ignore the provided
-             * value and retain the last stored value.
+             * The value should go back to the .als.json value
              */
             objDir = path.basename(await adaExtState.getObjectDir());
-            assert.equal(objDir, sentinel);
+            assert.equal(objDir, alsDotJsonValue);
         } finally {
             /**
              * Restore the initial value of the setting.

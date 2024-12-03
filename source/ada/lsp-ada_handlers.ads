@@ -177,7 +177,17 @@ private
      and LSP.Ada_Job_Contexts.Ada_Job_Context
    with record
       Client : aliased LSP.Ada_Client_Capabilities.Client_Capability;
+
+      Base_Configuration : aliased LSP.Ada_Configurations.Configuration;
+      --  This is the initial configuration loaded at process startup from
+      --  configuration files (global, local .als.json, CLI --config). Later
+      --  on the configuration may be overwritten by the 'initialize' request
+      --  or 'onDidChangeConfiguration' notifications so saving this initial
+      --  configuration allows to revert settings back when a null value is
+      --  received in an `onDidChangeConfiguration` notification.
+
       Configuration : aliased LSP.Ada_Configurations.Configuration;
+      --  The current configuration in use.
 
       Contexts : LSP.Ada_Context_Sets.Context_Set;
       --  There is one context in this list per loaded project.
@@ -423,6 +433,10 @@ private
    overriding function Client (Self : Message_Handler) return
      access constant LSP.Ada_Client_Capabilities.Client_Capability'Class
        is (Self.Client'Unchecked_Access);
+
+   overriding function Get_Base_Configuration (Self : Message_Handler)
+     return access constant LSP.Ada_Configurations.Configuration'Class
+       is (Self.Base_Configuration'Unchecked_Access);
 
    overriding function Get_Configuration (Self : Message_Handler)
      return access constant LSP.Ada_Configurations.Configuration'Class is

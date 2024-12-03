@@ -434,6 +434,11 @@ package body LSP.Ada_Handlers is
          Self.Client.Set_Root_If_Empty (
             To_Virtual_String (ALS_Workspace_Config_File.Get_Parent));
       end if;
+
+      --  Save the initial configuration so that we can restore individual
+      --  settings back to the initial state when 'onDidChangeConfiguration'
+      --  provides null values.
+      Self.Base_Configuration := Self.Configuration;
    end Load_Config_Files;
 
    -------------------

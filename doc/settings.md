@@ -2,11 +2,11 @@
 
 ## Configuration Sources
 
-The ALS loads configuration settings from different sources in the following order:
+The ALS loads configuration settings from different sources. All configuration sources are loaded in the following order:
 
-1. The file `$XDG_CONFIG_HOME/als/config.json`, if it exists.
+1. A global user configuration file `$XDG_CONFIG_HOME/als/config.json`, if it exists.
 
-1. The file `.als.json` in the directory where ALS is spawned, if it exists.
+1. A workspace-specific `.als.json` file in the directory where ALS is spawned, if it exists.
 
    This is the prefered location to store project-specific settings that are tracked in version control and shared among developers.
 
@@ -16,7 +16,11 @@ The ALS loads configuration settings from different sources in the following ord
 
 1. In `workspace/didChangeConfiguration` LSP notifications, if specified.
 
-If given, the configuration file must be a JSON file with the following structure:
+Each configuration source can contain a partial list of settings. Thus each
+configuration source can override individual settings while preserving
+previously loaded settings.
+
+Configuration files must be JSON files matching [this JSON schema](integration/vscode/ada/schemas/als-settings-schema.json). Roughly the structure looks like this:
 
 ```json
 {
@@ -60,6 +64,12 @@ Similarly, settings passed in `workspace/didChangeConfiguration` notifications s
     }
 }
 ```
+
+## Base Configuration
+
+The *base configuration* is the one that ALS reaches after loading configuration files (i.e. global user configuration, workspace-specific `.als.json` file, and `--config` command line argument).
+
+After that the ALS may receive configuration changes through the `initialize` request, or the `workspace/didChangeConfiguration` notification. In those messages, if settings have the value `null`, ALS reverts their value to the base configuration. This allows clients to temporarily override settings, and revert them back in the same session.
 
 ## Visual Studio Code
 

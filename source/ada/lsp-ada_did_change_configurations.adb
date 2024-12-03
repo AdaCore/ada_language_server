@@ -15,9 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GPR2.Context;
 with LSP.Ada_Configurations;
 with LSP.Client_Message_Receivers;
 with LSP.Server_Notifications.DidChangeConfiguration;
+with VSS.Strings;
 
 package body LSP.Ada_Did_Change_Configurations is
 
@@ -75,6 +77,9 @@ package body LSP.Ada_Did_Change_Configurations is
       Message : LSP.Server_Messages.Server_Message_Access)
       return LSP.Server_Jobs.Server_Job_Access
    is
+      use type VSS.Strings.Virtual_String;
+      use type GPR2.Context.Object;
+
       Value : LSP.Server_Notifications.DidChangeConfiguration.Notification
         renames LSP.Server_Notifications.DidChangeConfiguration.Notification
           (Message.all);
@@ -82,16 +87,50 @@ package body LSP.Ada_Did_Change_Configurations is
       Result : constant Apply_Config_Job_Access :=
         new Apply_Config_Job (Self'Unchecked_Access);
 
-      Reload : Boolean renames Result.Reload;
-   begin
-      Result.Configuration :=
+      Base_Config : constant LSP.Ada_Configurations.Configuration :=
+        LSP.Ada_Configurations.Configuration
+          (Self.Context.Get_Base_Configuration.all);
+
+      Current_Config : constant LSP.Ada_Configurations.Configuration :=
         LSP.Ada_Configurations.Configuration
           (Self.Context.Get_Configuration.all);
 
-      Result.Configuration.Read_JSON (Value.Params.settings, Reload);
+      New_Config : LSP.Ada_Configurations.Configuration
+        renames Result.Configuration;
+      Reload : Boolean renames Result.Reload;
+   begin
+
+      --  The configuration loading logic offers a Reload output boolean that
+      --  indicates if values were changed that require reloading the project.
+      --  However this doesn't work when a 'null' value is received. 'null'
+      --  values are ignored by the configuration parser and thus don't signal
+      --  the Reload flag.
+      --
+      --  To address that we have to compare the relevant configuration
+      --  settings after they are parsed and cannot rely on the configuration
+      --  parsing logic.
+
+      --  Start with the base configuration.
+      New_Config := Base_Config;
+
+      --  Read the new received configuration. 'null' values will be ignored
+      --  and thus keep the value from the base config.
+      New_Config.Read_JSON (Value.Params.settings, Reload);
 
       --  Always reload project if Project_Tree isn't ready
       Reload := Reload or not Self.Context.Project_Tree_Is_Defined;
+
+      --  Compare with the current configuration to see if a reload is
+      --  necessary
+      Reload :=
+        Reload
+        or else New_Config.Relocate_Build_Tree
+                /= Current_Config.Relocate_Build_Tree
+        or else New_Config.Relocate_Root /= Current_Config.Relocate_Root
+        or else New_Config.Project_File /= Current_Config.Project_File
+        or else New_Config.Context /= Current_Config.Context
+        or else New_Config.Charset /= Current_Config.Charset
+        or else New_Config.Follow_Symlinks /= Current_Config.Follow_Symlinks;
 
       if Reload then
          --  Stop indexing by changing project stamp
