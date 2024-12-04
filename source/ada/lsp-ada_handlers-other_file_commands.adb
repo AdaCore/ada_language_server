@@ -166,7 +166,9 @@ package body LSP.Ada_Handlers.Other_File_Commands is
                   View           : constant GPR2.Project.View.Object :=
                     Handler.Project_Tree.Root_Project;
                   Visible_Source : constant GPR2.Build.Source.Object :=
-                    View.Visible_Source (F.Simple_Name);
+                    (if View.Has_Source (F.Simple_Name)
+                     then View.Visible_Source (F.Simple_Name)
+                     else GPR2.Build.Source.Undefined);
                   Unit           : GPR2.Build.Compilation_Unit.Object :=
                     GPR2.Build.Compilation_Unit.Undefined;
                begin

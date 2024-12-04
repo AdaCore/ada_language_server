@@ -1,0 +1,278 @@
+[
+   {
+      "comment": [
+         "Test didCreateFiles notification"
+         ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "fileOperations": {
+                        "didCreate": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "documentSymbolProvider": true,
+                     "definitionProvider": true,
+                     "workspace": {
+                        "fileOperations": {
+                           "didCreate": {
+                              "filters": [
+                                 {
+                                    "scheme": "file",
+                                    "pattern": {
+                                       "glob": "**/*.ad{a,s,b,c}",
+                                       "matches": "file",
+                                       "options": {
+                                          "ignoreCase": true
+                                       }
+                                    }
+                                 }
+                              ]
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "defaultCharset": "ISO-8859-1",
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {}
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Foo;\nprocedure Main is\nbegin\n   Foo.Bar;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 8
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": []
+            }
+         ]
+      }
+   },
+   {
+      "shell": ["mv",
+                "${DIR}${DIR_SEP}src1${DIR_SEP}foo.ads",
+                "${DIR}${DIR_SEP}src1${DIR_SEP}foo.1.ada"]
+   },
+   {
+      "shell": ["mv",
+                "${DIR}${DIR_SEP}src2${DIR_SEP}foo.2.ada",
+                "${DIR}${DIR_SEP}src2${DIR_SEP}foo.adb"]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didCreateFiles",
+            "params": {
+               "files": [
+                  {
+                     "uri": "$URI{src2/foo.adb}"
+                  },
+                  {
+                     "uri": "$URI{src1/foo.1.ada}"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 3,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-other-file",
+                    "arguments": [
+                        {
+                            "uri": "$URI{src1/foo.1.ada}"
+                        }
+                    ]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "method": "window/showDocument",
+                    "params": {
+                        "uri": "$URI{src2/foo.adb}",
+                        "takeFocus": true
+                    }
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": null
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 4,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-other-file",
+                    "arguments": [
+                        {
+                            "uri": "$URI{src1/foo.1.ada}"
+                        }
+                    ]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "method": "window/showDocument",
+                    "params": {
+                        "uri": "$URI{src2/foo.adb}",
+                        "takeFocus": true
+                    }
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": null
+                }
+            ]
+        }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 8
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "uri": "$URI{src1/foo.1.ada}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 2,
+                        "character": 16
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

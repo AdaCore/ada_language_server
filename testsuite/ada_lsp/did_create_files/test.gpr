@@ -1,0 +1,9 @@
+project Test is
+
+   for Source_Dirs use (".", "src1", "src2");
+
+   package Naming is
+      for Spec_Suffix ("Ada") use ".1.ada";
+   end Naming;
+
+end Test;
