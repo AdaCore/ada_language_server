@@ -16,12 +16,12 @@ python3 get-schema-properties.py <"$1/integration/vscode/ada/schemas/als-setting
 grep 'if Name = "[^"]\+"' "$1/source/ada/lsp-ada_configurations.adb" | sed -e 's/.*"\([^"]\+\)"/\1/' >impl.txt
 # Remove the following settings from the implementation list because they are
 # either hidden, or nested
-exclude="onTypeFormatting indentOnly"
+exclude="onTypeFormatting indentOnly trace"
 for exc in $exclude; do
     echo "$(grep -v "$exc" <impl.txt)" >impl.txt
 done
 # Add the following properties because they are nested
-add="onTypeFormatting.indentOnly"
+add="onTypeFormatting.indentOnly trace.server"
 for a in $add; do
     echo "$a" >>impl.txt
 done
@@ -31,16 +31,17 @@ echo "$(sort <impl.txt)" >impl.txt
 # Check that all VS Code settings are documented
 diff -u pkg.txt doc.txt
 
-# The ada.trace.server setting exists only in VS Code and not in .als.json
-# files. So remove it before the comparison.
-#
-# We need to use a subshell because it's not allowed to read and write the same
-# file in one pipeline
-# echo "$(grep -v trace.server <doc.txt)" >doc.txt
-echo "$(grep -v trace.server <doc.txt)" >doc.txt
-
 # Check that all implemented settings are documented
 diff -u impl.txt doc.txt
+
+# Before comparing with the schema, we need to filter out VSCode-only settings
+# which are not defined in the schema and shouldn't be because we don't want to
+# allow such values in .als.json files.
+vscode_only="trace.server showNotificationsOnErrors"
+for s in $vscode_only; do
+    echo "$(grep -v "$s" impl.txt)" >impl.txt
+    echo "$(grep -v "$s" doc.txt)" >doc.txt
+done
 
 # Check that all implemented settings are defined in the JSON Schema
 diff -u impl.txt schema.txt

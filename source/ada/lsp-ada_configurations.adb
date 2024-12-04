@@ -364,8 +364,19 @@ package body LSP.Ada_Configurations is
 
          elsif Name = "showNotificationsOnErrors"
          then
-            --  This is a VS Code only setting, treated at the VS Code extension's level
+            --  This is a VS Code only setting, treated at the VS Code
+            --  extension's level. We still include it here to mark it as
+            --  recognized and to support the settings-doc test that checks
+            --  that each setting is documented.
             null;
+
+         elsif Name = "trace"
+         then
+            --  Same as above. Do not merge this branch with the previous one.
+            --  The settings-doc test relies on the fact that each setting has
+            --  a dedicated if-branch.
+            null;
+
          end if;
 
          Skip_Value (JSON, Index);
