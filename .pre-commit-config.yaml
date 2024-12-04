@@ -24,6 +24,4 @@ repos:
         files: '\.py$'
         # exclude: "^tests/.+$"
         additional_dependencies:
-          - --extra-index-url
-          - https://gitlab.adacore-it.com/api/v4/projects/it%2Fpackage-registry/packages/pypi/simple
           - pytest-lsp
