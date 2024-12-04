@@ -114,8 +114,6 @@ als-cov:
 
     - target_subdir=$target_subdir/ada-coverage
     - publish-pages $CI_PROJECT_DIR/coverage/dhtml/ --target-subdir $target_subdir --expires 30
-    - >
-      echo "Coverage report: https://pages.gitlab.adacore-it.com/$CI_PROJECT_PATH/$target_subdir/index.html"
   coverage: '/^Stmt Coverage:\s+(\d+\.\d+\%) \(\d+ \/ \d+\)$/'
   artifacts:
     when: always #  Upload on errors too
@@ -152,8 +150,6 @@ vscode-extension:
       fi
     - target_subdir=$target_subdir/ts-coverage
     - publish-pages $CI_PROJECT_DIR/coverage/ --target-subdir $target_subdir --expires 30
-    - >
-      echo "Coverage report: https://pages.gitlab.adacore-it.com/$CI_PROJECT_PATH/$target_subdir/index.html"
 
     # Compute coverage percentage
     - line_rate=$(cat $CI_PROJECT_DIR/coverage/cobertura-coverage.xml | grep -o 'line-rate="\([^"]\+\)"' | head -1 | grep -o '[0-9.]\+')
