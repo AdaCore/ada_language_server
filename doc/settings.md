@@ -75,7 +75,12 @@ prefixing each setting name with `ada.`, e.g.
 
 ## Settings
 
-Ada Language Server understands these settings:
+Settings taken into account only from the Ada & SPARK VS Code extension:
+
+* [showNotificationsOnErrors](#shownotificationsonerrors)
+* [trace.server](#traceserver)
+
+Settings understood by the Ada Language Server itself, independently from the LSP client:
 
 * [projectFile](#projectfile)
 * [scenarioVariables](#scenariovariables)
@@ -96,6 +101,29 @@ Ada Language Server understands these settings:
 * [useGnatformat](#usegnatformat)
 
 ----
+
+### showNotificationsOnErrors
+
+Controls whether VS Code should display error notifications for failing LSP requests.
+
+This is disabled by default to avoid distractions while coding, and can be enabled if the User wishes to troubleshoot an unexpected behavior in the Ada & SPARK language support in VS Code.
+Note that regardless of this setting, errors are always logged to the VS Code output channels `Ada Language Server` and `GPR Language Server`. This setting only controls whether a corresponding visual notification is emitted in the UI.
+
+### trace.server
+
+This option controls the tracing of the communication between VS Code and the Ada
+language server. It causes the client to trace each message sent and received
+to/from the Ada language server in the `Ada Language Server` Output view.
+
+The possible values are:
+
+* `off`: no tracing.
+* `messages`: brief traces are emitted for each request sent and each response received.
+* `verbose`: verbose traces are emitted for each request sent and each response received, including the message content.
+
+On the server side this option does not trigger any additional logging.
+
+An equivalent setting `gpr.trace.server` exists for tracing the communcation between VS Code and the GPR language server.
 
 ### projectFile
 
@@ -291,22 +319,6 @@ For more information about documentation styles see GNATdoc User's Manual.
     'documentationStyle': 'gnat'
 ```
 
-### trace.server
-
-This option controls the tracing of the communication between VS Code and the Ada
-language server. It causes the client to trace each message sent and received
-to/from the Ada language server in the `Ada Language Server` Output view.
-
-The possible values are:
-
-* `off`: no tracing.
-* `messages`: brief traces are emitted for each request sent and each response received.
-* `verbose`: verbose traces are emitted for each request sent and each response received, including the message content.
-
-On the server side this option does not trigger any additional logging.
-
-An equivalent setting `gpr.trace.server` exists for tracing the communcation between VS Code and the GPR language server.
-
 ### onTypeFormatting.indentOnly
 
 This option controls if the `textDocument/onTypeFormatting` request only indents a new line, or if
@@ -318,3 +330,4 @@ it additionally tries to format the previous node. By default, this option is en
 This option controls the formatting provider for the `textDocument/formatting`,
 `textDocument/rangeFormatting` and `textDocument/onTypeFormatting` request. By default, this option
 is enabled and ALS uses GNATformat as its formatting provider. If disabled, GNATpp is used instead.
+

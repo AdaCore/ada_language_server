@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+* Add a setting `ada.showNotificationsOnErrors` to control whether VS Code should display error notifications for failing LSP requests.
+
 ## 26.0.202411173
 
 * Create commands for opening the project file and the log file

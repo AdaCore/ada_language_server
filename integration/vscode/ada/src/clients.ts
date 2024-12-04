@@ -1,9 +1,35 @@
 import { existsSync } from 'fs';
 import * as vscode from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
+import {
+    LanguageClient,
+    LanguageClientOptions,
+    MessageSignature,
+    ServerOptions,
+} from 'vscode-languageclient/node';
 import { logger } from './extension';
 import { logErrorAndThrow, setTerminalEnvironment } from './helpers';
 
+class AdaLanguageClient extends LanguageClient {
+    /**
+     * Override this function to avoid displaying popup notifications on LSP errors when
+     * the 'showNotificationsOnErrors' setting is disabled.
+     */
+    override handleFailedRequest<T>(
+        type: MessageSignature,
+        token: vscode.CancellationToken | undefined,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        error: any,
+        defaultValue: T,
+        showNotification?: boolean | undefined,
+    ): T {
+        const showError = vscode.workspace.getConfiguration('ada').get('showNotificationsOnErrors');
+        if (!showError) {
+            showNotification = false;
+        }
+
+        return super.handleFailedRequest(type, token, error, defaultValue, showNotification);
+    }
+}
 export function createClient(
     context: vscode.ExtensionContext,
     id: string,
@@ -93,5 +119,5 @@ export function createClient(
         initializationOptions: () => ({ ada: vscode.workspace.getConfiguration('ada') }),
     };
     // Create the language client
-    return new LanguageClient(id, name, serverOptions, clientOptions);
+    return new AdaLanguageClient(id, name, serverOptions, clientOptions);
 }

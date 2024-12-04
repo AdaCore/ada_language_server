@@ -3770,9 +3770,10 @@ package body LSP.Ada_Handlers is
             --  Inform the client that the request failed
             Self.Sender.On_Error_Response
               (Id,
-               (code    => LSP.Enumerations.InternalError,
-                message => VSS.Strings.Conversions.To_Virtual_String
-                  (Err_Msg)));
+               (code    =>
+                  LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+                message =>
+                  VSS.Strings.Conversions.To_Virtual_String (Err_Msg)));
 
             return Libadalang.Analysis.No_Defining_Name;
          end;

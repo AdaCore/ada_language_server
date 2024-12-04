@@ -361,6 +361,11 @@ package body LSP.Ada_Configurations is
            and then JSON (Index).Kind = Boolean_Value
          then
             Self.Use_Gnatformat := JSON (Index).Boolean_Value;
+
+         elsif Name = "showNotificationsOnErrors"
+         then
+            --  This is a VS Code only setting, treated at the VS Code extension's level
+            null;
          end if;
 
          Skip_Value (JSON, Index);
