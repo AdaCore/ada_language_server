@@ -82,9 +82,13 @@ class PyLSP(ALSTestDriver):
                 str(python_file),
             ]
 
-            for _ in range(0, self.env.main_options.verbose):  # type: ignore
+            assert self.env.main_options
+            for _ in range(0, self.env.main_options.verbose):
                 # Transfer -v arguments to the Python test driver to reflect verbosity
                 cmd += ["-v"]
+
+            if self.env.main_options.debug:
+                cmd.append("--debug")
 
             # Spawn a child Python process to run the test, to avoid lingering file
             # handles which can create issues on Windows when the test work dir is
@@ -95,9 +99,9 @@ class PyLSP(ALSTestDriver):
                 "PYTHONPATH": os.path.dirname(os.path.dirname(__file__)),
             }
 
-            assert self.env.main_options
-            if self.env.main_options.debug:
-                cmd.append("--debug")
+            if self.env.main_options.debug or self.env.main_options.verbose:
+                # In this case we use Run directly without piping options to connect the
+                # subprocess directly to the parent I/O.
 
                 LOG.info(f"Run: cd {wd}; {command_line_image(cmd)}")
                 r = Run(
