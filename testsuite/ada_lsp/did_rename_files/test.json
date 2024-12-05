@@ -1,0 +1,263 @@
+[
+   {
+      "comment": [
+         "Test didRenameFiles notification"
+         ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "fileOperations": {
+                        "didRename": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "defaultCharset": "ISO-8859-1",
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {}
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Bar;\nprocedure Main is\nbegin\n   Bar.Hello;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 8
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "uri": "$URI{src1/foo.1.ada}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 2,
+                        "character": 18
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "shell": ["mv",
+                "${DIR}${DIR_SEP}src1${DIR_SEP}foo.1.ada",
+                "${DIR}${DIR_SEP}src1${DIR_SEP}bar.1.ada"]
+   },
+   {
+      "shell": ["mv",
+                "${DIR}${DIR_SEP}src2${DIR_SEP}foo.adb",
+                "${DIR}${DIR_SEP}src2${DIR_SEP}bar.adb"]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didRenameFiles",
+            "params": {
+               "files": [
+                  {
+                     "oldUri": "$URI{src2/foo.adb}",
+                     "newUri": "$URI{src2/bar.adb}"
+                  },
+                  {
+                     "oldUri": "$URI{src1/foo.1.ada}",
+                     "newUri": "$URI{src2/bar.1.ada}"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 5,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-other-file",
+                    "arguments": [
+                        {
+                            "uri": "$URI{src1/bar.1.ada}"
+                        }
+                    ]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "method": "window/showDocument",
+                    "params": {
+                        "uri": "$URI{src2/bar.adb}",
+                        "takeFocus": true
+                    }
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": null
+                }
+            ]
+        }
+    },
+    {
+        "send": {
+            "request": {
+                "jsonrpc":"2.0",
+                "id": 6,
+                "method":"workspace/executeCommand",
+                "params":{
+                    "command": "als-other-file",
+                    "arguments": [
+                        {
+                            "uri": "$URI{src1/bar.1.ada}"
+                        }
+                    ]
+                }
+            },
+            "wait":[
+                {
+                    "jsonrpc": "2.0",
+                    "method": "window/showDocument",
+                    "params": {
+                        "uri": "$URI{src2/bar.adb}",
+                        "takeFocus": true
+                    }
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": null
+                }
+            ]
+        }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 8
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": {
+                  "uri": "$URI{src1/bar.1.ada}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 13
+                     },
+                     "end": {
+                        "line": 2,
+                        "character": 18
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

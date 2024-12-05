@@ -348,6 +348,11 @@
                 "title": "UI",
                 "order": 2,
                 "properties": {
+                    "ada.showNotificationsOnErrors": {
+                        "markdownDescription": "Whether to show error notifications for failing LSP requests.",
+                        "default": false,
+                        "type": "boolean"
+                    },
                     "ada.documentationStyle": {
                         "scope": "window",
                         "type": "string",
