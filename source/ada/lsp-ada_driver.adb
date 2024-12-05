@@ -33,6 +33,7 @@ with System.Secondary_Stack;
 
 with VSS.Application;
 with VSS.Command_Line;
+with VSS.Strings;
 with VSS.Strings.Conversions;
 
 with GNATCOLL.JSON;
@@ -430,9 +431,9 @@ begin
          Traces_File := GNATdebug;
       else
          --  No $HOME/.als directory: create one first
-         if not ALS_Dir.Is_Directory then
+         if not ALS_Log_Dir.Is_Directory then
             begin
-               Make_Dir (ALS_Dir);
+               Make_Dir (ALS_Log_Dir);
 
             exception
                --  We have caught an exception when trying to create the .als
@@ -441,23 +442,23 @@ begin
                   Ada.Text_IO.Put_Line
                     (Ada.Text_IO.Standard_Error,
                      "warning: Could not create default ALS log directory at '"
-                     & ALS_Dir.Display_Full_Name
+                     & ALS_Log_Dir.Display_Full_Name
                      & "'"
                      & Ada.Characters.Latin_1.LF
                      & "Please make sure the parent directory is writable or "
                      & "specify another parent directory via the ALS_HOME "
                      & "environment variable.");
-                  ALS_Dir := GNATCOLL.VFS.No_File;
+                  ALS_Log_Dir := GNATCOLL.VFS.No_File;
             end;
          end if;
 
          --  If the ALS directory is valid, parse any existing trace file or
          --  create a default one if needed.
 
-         if ALS_Dir.Is_Directory then
+         if ALS_Log_Dir.Is_Directory then
             Traces_File :=
               Create_From_Dir
-                (Dir       => ALS_Dir,
+                (Dir       => ALS_Log_Dir,
                  Base_Name =>
                    +(if VSS.Command_Line.Is_Specified (Language_GPR_Option)
                      then GPR_Log_File_Prefix
@@ -465,7 +466,7 @@ begin
                    & "_traces.cfg");
 
             --  No default traces file found: create one if we can
-            if not Traces_File.Is_Regular_File and then ALS_Dir.Is_Writable
+            if not Traces_File.Is_Regular_File and then ALS_Log_Dir.Is_Writable
             then
                declare
                   W_Traces_File : Writable_File;
@@ -568,10 +569,22 @@ begin
                                    GNATCOLL.Traces.On);
       --  Trace to activate the support for incremental text changes.
 
+      CLI_Config_Path : constant VSS.Strings.Virtual_String :=
+        VSS.Command_Line.Value (Config_File_Option);
+      CLI_Config_File : constant GNATCOLL.VFS.Virtual_File :=
+        (if not CLI_Config_Path.Is_Empty
+         then
+           GNATCOLL.VFS.Create_From_Base
+             (GNATCOLL.VFS.Filesystem_String
+                (VSS.Strings.Conversions.To_UTF_8_String (CLI_Config_Path)))
+         else GNATCOLL.VFS.No_File);
+      --  Interpret the --config argument relative to the current directory.
+      --  If an absolute path was given, Create_From_Base will use it directly.
+
    begin
       Ada_Handler.Initialize
         (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active,
-         Config_File => VSS.Command_Line.Value (Config_File_Option));
+         CLI_Config_File => CLI_Config_File);
    end;
 
    Server.Initialize (Stream'Unchecked_Access);

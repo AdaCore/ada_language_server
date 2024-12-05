@@ -361,36 +361,14 @@ package body LSP.Ada_Handlers is
    procedure Initialize
      (Self                     : access Message_Handler'Class;
       Incremental_Text_Changes : Boolean;
-      Config_File              : VSS.Strings.Virtual_String)
+      CLI_Config_File          : GNATCOLL.VFS.Virtual_File := GNATCOLL.VFS.No_File)
    is
-      function Directory (File : VSS.Strings.Virtual_String)
-        return VSS.Strings.Virtual_String;
-
-      ---------------
-      -- Directory --
-      ---------------
-
-      function Directory (File : VSS.Strings.Virtual_String)
-        return VSS.Strings.Virtual_String is
-
-         Value : constant GNATCOLL.VFS.Virtual_File :=
-           GNATCOLL.VFS.Create_From_UTF8
-             (VSS.Strings.Conversions.To_UTF_8_String (File));
-      begin
-         return VSS.Strings.Conversions.To_Virtual_String
-           (Value.Dir.Display_Full_Name);
-      end Directory;
-
    begin
       Self.Incremental_Text_Changes := Incremental_Text_Changes;
       Self.File_Monitor :=
         new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
 
-      if not Config_File.Is_Empty then
-         Self.Configuration.Read_File (Config_File);
-         Self.Client.Set_Root_If_Empty (Directory (Config_File));
-         LSP.Ada_Handlers.Project_Loading.Reload_Project (Self.all);
-      end if;
+      Self.Load_Config_Files (CLI_Config_File);
    end Initialize;
 
    ----------------------
@@ -410,6 +388,53 @@ package body LSP.Ada_Handlers is
 
    function Is_Shutdown
      (Self : Message_Handler'Class) return Boolean is (Self.Shutdown);
+
+   -----------------------
+   -- Load_Config_Files --
+   -----------------------
+
+   procedure Load_Config_Files
+     (Self : in out Message_Handler;
+      CLI_Config_File : GNATCOLL.VFS.Virtual_File)
+   is
+      use LSP.Env;
+      use LSP.Utils;
+      use type VSS.Strings.Virtual_String;
+
+      Candidates : constant VSS.String_Vectors.Virtual_String_Vector :=
+        [To_Virtual_String (ALS_User_Config_File),
+         To_Virtual_String (ALS_Workspace_Config_File),
+         To_Virtual_String (CLI_Config_File)];
+
+   begin
+      for F_Path of Candidates loop
+         if not F_Path.Is_Empty then
+            declare
+               F : constant GNATCOLL.VFS.Virtual_File :=
+                 To_Virtual_File (F_Path);
+            begin
+               Self.Tracer.Trace_Text ("Trying config file: " & F_Path);
+               if F.Is_Regular_File then
+                  Self.Tracer.Trace_Text ("Loading config file: " & F_Path);
+                  Self.Configuration.Read_File (F_Path);
+               else
+                  Self.Tracer.Trace_Text (F_Path & " doesn't exist");
+               end if;
+            end;
+         end if;
+      end loop;
+
+      --  Some old LSP clients fail to send the root directory in the LSP
+      --  initialize request, so we set a default here that is later
+      --  overwritten if a value is provided in the initialize request.
+      --  Prioritize the config file given on the CLI.
+      if CLI_Config_File.Is_Regular_File then
+         Self.Client.Set_Root_If_Empty (To_Virtual_String (CLI_Config_File.Dir));
+      elsif ALS_Workspace_Config_File.Is_Regular_File then
+         Self.Client.Set_Root_If_Empty (
+            To_Virtual_String (ALS_Workspace_Config_File.Get_Parent));
+      end if;
+   end Load_Config_Files;
 
    -------------------
    -- Log_Method_In --
@@ -2379,7 +2404,7 @@ package body LSP.Ada_Handlers is
       Self.Sender.On_Initialize_Response (Id, Response);
 
       Log_Info.a_type := LSP.Enumerations.Log;
-      Log_Info.message.Append ("Log directory is ");
+      Log_Info.message.Append ("Log file is: ");
       Log_Info.message.Append (Self.Tracer.Location);
       Self.Sender.On_LogMessage_Notification (Log_Info);
    end On_Initialize_Request;

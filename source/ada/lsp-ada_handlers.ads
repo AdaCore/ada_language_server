@@ -75,13 +75,22 @@ package LSP.Ada_Handlers is
    procedure Initialize
      (Self : access Message_Handler'Class;
       Incremental_Text_Changes : Boolean;
-      Config_File              : VSS.Strings.Virtual_String);
+      CLI_Config_File          : GNATCOLL.VFS.Virtual_File := GNATCOLL.VFS.No_File);
    --  Initialize the message handler and configure it.
    --
    --  Incremental_Text_Changes - activate the support for incremental text
    --  changes.
    --
-   --  Config_File - custom configuration file, if present
+   --  CLI_Config_File - custom configuration file
+
+   procedure Load_Config_Files
+     (Self : in out Message_Handler;
+      CLI_Config_File : GNATCOLL.VFS.Virtual_File);
+   --  Read configuration files in the following order:
+   --
+   --  1. $XDG_CONFIG_HOME/als/config.json, if it exists
+   --  2. .als.json in the current directory, if it exists
+   --  3. The given CLI_Config_File, if it exists
 
    overriding function Contexts_For_File
      (Self : Message_Handler;

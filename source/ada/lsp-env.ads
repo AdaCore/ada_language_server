@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------------
 
 with GNATCOLL.VFS;
-with LSP.Utils;
 with VSS.Strings;
 with VSS.Application;
 
@@ -28,44 +27,49 @@ package LSP.Env is
 
    Home : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("HOME");
+   --  Value of the HOME environment variable
 
-   Home_Dir : constant GNATCOLL.VFS.Virtual_File :=
-     LSP.Utils.To_Virtual_File (Home);
+   function Home_Dir return GNATCOLL.VFS.Virtual_File;
+   --  Directory pointed by the HOME environment variable
 
    ALS_Home : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("ALS_HOME");
+   --  The value of the ALS_HOME environment variable.
+   --
    --  The ALS_HOME environment controls the location where ALS produces logs.
    --  If specified, $ALS_HOME/.als is used, otherwise $HOME/.als is used.
 
    GPR_Path : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("GPR_PROJECT_PATH");
+   --  The value of the GPR_PROJECT_PATH environment variable.
 
    Path : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("PATH");
+   --  The value of the PATH environment variable.
 
-   ALS_Log_Dir : constant GNATCOLL.VFS.Virtual_File :=
-     ((if ALS_Home.Is_Empty then Home_Dir
-       else LSP.Utils.To_Virtual_File (ALS_Home))
-      / ".als");
+   function ALS_Log_Dir return GNATCOLL.VFS.Virtual_File;
    --  The location where ALS produces logs. If ALS_HOME is specified,
    --  $ALS_HOME/.als is used, otherwise $HOME/.als is used.
+   --
+   --  In an exotic case where HOME is not defined, use the current directory
 
-   XDG_CONFIG_HOME : constant VSS.Strings.Virtual_String :=
-     VSS.Application.System_Environment.Value
-       ("XDG_CONFIG_HOME", LSP.Utils.To_Virtual_String (Home_Dir / ".config"));
+   function XDG_CONFIG_HOME return VSS.Strings.Virtual_String;
    --  The XDG_CONFIG_HOME environment variable, defaulting to $HOME/.config if
    --  unspecified.
    --
    --  See XDG Base Directory Specification at
    --  https://specifications.freedesktop.org/basedir-spec/latest
 
-   ALS_User_Config_Dir : constant GNATCOLL.VFS.Virtual_File :=
-     LSP.Utils.To_Virtual_File (XDG_CONFIG_HOME) / "als";
+   function ALS_User_Config_Dir return GNATCOLL.VFS.Virtual_File;
+   --  The $XDG_CONFIG_HOME/als directory where ALS reads the global
+   --  configuration file.
 
-   ALS_User_Config_File : constant GNATCOLL.VFS.Virtual_File :=
-     ALS_User_Config_Dir / "config.json";
+   function ALS_User_Config_File return GNATCOLL.VFS.Virtual_File;
+   --  The $XDG_CONFIG_HOME/als/config.json file where ALS reads the global
+   --  configuration.
 
-   ALS_Workspace_Config_File : constant GNATCOLL.VFS.Virtual_File :=
-     GNATCOLL.VFS.Create_From_Base (".als.json");
+   function ALS_Workspace_Config_File return GNATCOLL.VFS.Virtual_File;
+   --  The file .als.json in the current directory. This is the workspace
+   --  configuration file.
 
 end LSP.Env;
