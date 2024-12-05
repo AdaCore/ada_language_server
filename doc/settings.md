@@ -2,17 +2,25 @@
 
 ## Configuration Sources
 
-The ALS can be given configuration settings in the following ways:
+The ALS loads configuration settings from different sources. All configuration sources are loaded in the following order:
 
-1. The `--config CONFIG_FILE` command line option, if specified.
+1. A global user configuration file `$XDG_CONFIG_HOME/als/config.json`, if it exists.
 
-2. The `initializationOptions` property of the `initialize` request, if specified.
+1. A workspace-specific `.als.json` file in the directory where ALS is spawned, if it exists.
 
-3. In `workspace/didChangeConfiguration` LSP notifications.
+   This is the prefered location to store project-specific settings that are tracked in version control and shared among developers.
 
-4. In the User, Remote or Workspace settings of Visual Studio Code, where each setting name is prefixed with `ada.`.
+1. The `--config CONFIG_FILE` file, if specified in the command line.
 
-If given, the configuration file must be a JSON file with the following structure:
+1. The `initializationOptions` property of the `initialize` request, if specified.
+
+1. In `workspace/didChangeConfiguration` LSP notifications, if specified.
+
+Each configuration source can contain a partial list of settings. Thus each
+configuration source can override individual settings while preserving
+previously loaded settings.
+
+Configuration files must be JSON files matching [this JSON schema](integration/vscode/ada/schemas/als-settings-schema.json). Roughly the structure looks like this:
 
 ```json
 {
@@ -57,6 +65,14 @@ Similarly, settings passed in `workspace/didChangeConfiguration` notifications s
 }
 ```
 
+## Base Configuration
+
+The *base configuration* is the one that ALS reaches after loading configuration files (i.e. global user configuration, workspace-specific `.als.json` file, and `--config` command line argument).
+
+After that the ALS may receive configuration changes through the `initialize` request, or the `workspace/didChangeConfiguration` notification. In those messages, if settings have the value `null`, ALS reverts their value to the base configuration. This allows clients to temporarily override settings, and revert them back in the same session.
+
+## Visual Studio Code
+
 In the context of Visual Studio Code, configuration settings can be set in the
 User, Remote or Workspace `settings.json` file or the [multi-root workspace
 file](https://code.visualstudio.com/docs/editor/multi-root-workspaces) by
@@ -72,6 +88,8 @@ prefixing each setting name with `ada.`, e.g.
     "ada.useGnatformat": true
 }
 ```
+
+These settings are sent to the ALS in the LSP `initialize` request, and then in `workspace/didChangeConfiguration` notifications if they get updated.
 
 ## Settings
 
@@ -325,9 +343,33 @@ This option controls if the `textDocument/onTypeFormatting` request only indents
 it additionally tries to format the previous node. By default, this option is enabled, that is,
 `textDocument/onTypeFormatting` only indents new lines.
 
+In ALS config files, this setting must be specified in a nested form:
+
+```json
+{
+   "onTypeFormatting": {
+      "indentOnly": true
+   }
+}
+```
+
+Conversely, in VS Code this settings can be set without nesting:
+
+```json
+{
+   "ada.onTypeFormatting.indentOnly": true,
+}
+```
+
 ### useGnatformat
 
 This option controls the formatting provider for the `textDocument/formatting`,
 `textDocument/rangeFormatting` and `textDocument/onTypeFormatting` request. By default, this option
 is enabled and ALS uses GNATformat as its formatting provider. If disabled, GNATpp is used instead.
 
+### logThreshold
+
+Controls the maximum number of trace files preserved in the ALS log directory (which defaults to `~/.als`).
+When this threshold is reached, old trace files get deleted automatically.
+The default number of preserved trace files is `10`.
+See the documentation on [ALS Traces](doc/traces.md) for more information.

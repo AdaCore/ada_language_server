@@ -33,7 +33,7 @@ with System.Secondary_Stack;
 
 with VSS.Application;
 with VSS.Command_Line;
-with VSS.Standard_Paths;
+with VSS.Strings;
 with VSS.Strings.Conversions;
 
 with GNATCOLL.JSON;
@@ -83,6 +83,7 @@ with LSP.Ada_Tokens_Range;
 with LSP.Ada_Type_Hierarchy_Subtypes;
 with LSP.Ada_Type_Hierarchy_Supertypes;
 with LSP.Default_Message_Handlers;
+with LSP.Env;
 with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
 with LSP.GPR_Handlers;
@@ -330,20 +331,7 @@ procedure LSP.Ada_Driver is
      not VSS.Application.System_Environment.Value ("ALS_FUZZING").Is_Empty;
    pragma Unreferenced (Fuzzing_Activated);
 
-   ALS_Home               : constant VSS.Strings.Virtual_String :=
-     VSS.Application.System_Environment.Value ("ALS_HOME");
-   GPR_Path               : constant VSS.Strings.Virtual_String :=
-     VSS.Application.System_Environment.Value ("GPR_PROJECT_PATH");
-   Path                   : constant VSS.Strings.Virtual_String :=
-     VSS.Application.System_Environment.Value ("PATH");
-   Home_Dir               : constant Virtual_File :=
-     Create_From_UTF8
-       (VSS.Strings.Conversions.To_UTF_8_String
-          ((if ALS_Home.Is_Empty
-              then VSS.Standard_Paths.Writable_Location
-                     (VSS.Standard_Paths.Home_Location)
-              else ALS_Home)));
-   ALS_Dir                : Virtual_File := Home_Dir / ".als";
+   ALS_Log_Dir                : Virtual_File := LSP.Env.ALS_Log_Dir;
    Clean_ALS_Dir          : Boolean := False;
    GNATdebug              : constant Virtual_File := Create_From_Base
      (".gnatdebug");
@@ -443,9 +431,9 @@ begin
          Traces_File := GNATdebug;
       else
          --  No $HOME/.als directory: create one first
-         if not ALS_Dir.Is_Directory then
+         if not ALS_Log_Dir.Is_Directory then
             begin
-               Make_Dir (ALS_Dir);
+               Make_Dir (ALS_Log_Dir);
 
             exception
                --  We have caught an exception when trying to create the .als
@@ -454,23 +442,23 @@ begin
                   Ada.Text_IO.Put_Line
                     (Ada.Text_IO.Standard_Error,
                      "warning: Could not create default ALS log directory at '"
-                     & ALS_Dir.Display_Full_Name
+                     & ALS_Log_Dir.Display_Full_Name
                      & "'"
                      & Ada.Characters.Latin_1.LF
                      & "Please make sure the parent directory is writable or "
                      & "specify another parent directory via the ALS_HOME "
                      & "environment variable.");
-                  ALS_Dir := GNATCOLL.VFS.No_File;
+                  ALS_Log_Dir := GNATCOLL.VFS.No_File;
             end;
          end if;
 
          --  If the ALS directory is valid, parse any existing trace file or
          --  create a default one if needed.
 
-         if ALS_Dir.Is_Directory then
+         if ALS_Log_Dir.Is_Directory then
             Traces_File :=
               Create_From_Dir
-                (Dir       => ALS_Dir,
+                (Dir       => ALS_Log_Dir,
                  Base_Name =>
                    +(if VSS.Command_Line.Is_Specified (Language_GPR_Option)
                      then GPR_Log_File_Prefix
@@ -478,7 +466,7 @@ begin
                    & "_traces.cfg");
 
             --  No default traces file found: create one if we can
-            if not Traces_File.Is_Regular_File and then ALS_Dir.Is_Writable
+            if not Traces_File.Is_Regular_File and then ALS_Log_Dir.Is_Writable
             then
                declare
                   W_Traces_File : Writable_File;
@@ -549,9 +537,9 @@ begin
    Tracer.Trace ("Initializing server ...");
 
    Tracer.Trace
-     ("GPR PATH: " & VSS.Strings.Conversions.To_UTF_8_String (GPR_Path));
+     ("GPR PATH: " & VSS.Strings.Conversions.To_UTF_8_String (LSP.Env.GPR_Path));
    Tracer.Trace
-     ("PATH: " & VSS.Strings.Conversions.To_UTF_8_String (Path));
+     ("PATH: " & VSS.Strings.Conversions.To_UTF_8_String (LSP.Env.Path));
 
    --  Log any exception that occured while parsing the user's traces
    --  configuration file.
@@ -581,10 +569,22 @@ begin
                                    GNATCOLL.Traces.On);
       --  Trace to activate the support for incremental text changes.
 
+      CLI_Config_Path : constant VSS.Strings.Virtual_String :=
+        VSS.Command_Line.Value (Config_File_Option);
+      CLI_Config_File : constant GNATCOLL.VFS.Virtual_File :=
+        (if not CLI_Config_Path.Is_Empty
+         then
+           GNATCOLL.VFS.Create_From_Base
+             (GNATCOLL.VFS.Filesystem_String
+                (VSS.Strings.Conversions.To_UTF_8_String (CLI_Config_Path)))
+         else GNATCOLL.VFS.No_File);
+      --  Interpret the --config argument relative to the current directory.
+      --  If an absolute path was given, Create_From_Base will use it directly.
+
    begin
       Ada_Handler.Initialize
         (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active,
-         Config_File => VSS.Command_Line.Value (Config_File_Option));
+         CLI_Config_File => CLI_Config_File);
    end;
 
    Server.Initialize (Stream'Unchecked_Access);
@@ -737,7 +737,7 @@ begin
       --  Remove the logs produced for the GPR language if the '--language-gpr'
       --  option has been specified. Otherwise remove the Ada language logs.
       Remove_Old_Log_files
-        (Dir                 => ALS_Dir,
+        (Dir                 => ALS_Log_Dir,
          Prefix              =>
            (if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
             GPR_Log_File_Prefix else Ada_Log_File_Prefix),

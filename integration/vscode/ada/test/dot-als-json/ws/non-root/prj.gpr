@@ -1,0 +1,4 @@
+project Prj is
+    Var := external ("Var", "obj");
+    for Object_Dir use Var;
+end Prj;
