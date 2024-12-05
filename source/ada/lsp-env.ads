@@ -26,15 +26,12 @@ package LSP.Env is
    use type GNATCOLL.VFS.Virtual_File;
 
    Testing : constant Boolean :=
-      VSS.Application.System_Environment.Contains ("ALS_TESTING");
+     VSS.Application.System_Environment.Contains ("ALS_TESTING");
    --  Constant set to True when ALS is running within a testsuite.
 
-   Home : constant VSS.Strings.Virtual_String :=
-     VSS.Application.System_Environment.Value ("HOME");
-   --  Value of the HOME environment variable
-
    function Home_Dir return GNATCOLL.VFS.Virtual_File;
-   --  Directory pointed by the HOME environment variable
+   --  The user home directory on POSIX or the user profile directory on
+   --  Windows.
 
    ALS_Home : constant VSS.Strings.Virtual_String :=
      VSS.Application.System_Environment.Value ("ALS_HOME");
@@ -57,7 +54,7 @@ package LSP.Env is
    --
    --  In an exotic case where HOME is not defined, use the current directory
 
-   function XDG_CONFIG_HOME return VSS.Strings.Virtual_String;
+   function XDG_CONFIG_HOME return GNATCOLL.VFS.Virtual_File;
    --  The XDG_CONFIG_HOME environment variable, defaulting to $HOME/.config if
    --  unspecified.
    --
