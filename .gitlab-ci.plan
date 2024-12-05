@@ -1,7 +1,7 @@
 def build_(qualifier={}):
     with defaults(qualifier=qualifier):
         anod_build("als")
-        anod_build("vscode-extension")
+        anod_build("vscode-extension", qualifier={"mono-plat": True})
 
 
 def test_als_(qualifier={}):
@@ -19,10 +19,10 @@ def test_als_cov_(qualifier={}):
 
 
 def test_vscode_extension_(qualifier={}):
-    with defaults(qualifier=qualifier):
-        # Install the component built in the preceding CI build job
-        anod_install("vscode-extension")
-        anod_test("vscode-extension", qualifier=qualifier | {"coverage": True})
+    component_qual = qualifier | {"mono-plat": True}
+    # Install the component built in the preceding CI build job
+    anod_install("vscode-extension", qualifier=component_qual)
+    anod_test("vscode-extension", qualifier=component_qual | {"coverage": True})
 
 
 def build_test_gs_(qualifier={}):
@@ -64,12 +64,12 @@ def build_test_gs_edge():
 def test_integration_testsuite():
     # The two components below have been built by the build job of the CI
     anod_install("als")
-    anod_install("vscode-extension")
+    anod_install("vscode-extension", qualifier={"mono-plat": True})
     # Install gps component to avoid it getting rebuilt. We are only interested in
     # vscode tests in the integration-testsuite, not gps.
     anod_install("gps")
     # Run the subset of integration-testsuite that uses VS Code
     anod_test(
         "integration-testsuite",
-        qualifier={"run-tools": "vscode", "cleanup-mode": "none"},
+        qualifier={"run-tools": "vscode", "cleanup-mode": "none", "mono-plat": True},
     )
