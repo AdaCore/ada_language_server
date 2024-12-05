@@ -5,6 +5,7 @@ section below it for the last release. -->
 ## \<next>
 
 * Add a setting `ada.showNotificationsOnErrors` to control whether VS Code should display error notifications for failing LSP requests.
+* Add support for a default `.als.json` workspace configuration file and a global `$XDG_CONFIG_HOME/als/config.json` user configuration file. See [settings.md](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md) for more information.
 
 ## 26.0.202411173
 
