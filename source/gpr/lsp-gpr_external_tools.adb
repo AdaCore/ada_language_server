@@ -459,6 +459,16 @@ package body LSP.GPR_External_Tools is
 
       Add_Attribute
         (Package_Name          => +"Analyzer",
+         Attribute_Name        => +"Subdirs",
+         Description           => "Relative path from the object directory " &
+           "to the 'gnatsas' directory where intermediate files (and results " &
+           "if Output_Dir is not specified) will be output.",
+         Index_Type            => PRA.No_Index,
+         Value                 => Single,
+         Value_Case_Sensitive  => True);
+
+      Add_Attribute
+        (Package_Name          => +"Analyzer",
          Attribute_Name        => +"Review_File",
          Description           => "GNATSAS review file to use for this " &
            "project.",
