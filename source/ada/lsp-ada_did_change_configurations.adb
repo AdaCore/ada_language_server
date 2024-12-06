@@ -15,11 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GPR2.Context;
 with LSP.Ada_Configurations;
 with LSP.Client_Message_Receivers;
 with LSP.Server_Notifications.DidChangeConfiguration;
-with VSS.Strings;
 
 package body LSP.Ada_Did_Change_Configurations is
 
@@ -28,7 +26,7 @@ package body LSP.Ada_Did_Change_Configurations is
    is limited new LSP.Server_Jobs.Server_Job with record
       Message       : LSP.Server_Messages.Server_Message_Access;
       Configuration : LSP.Ada_Configurations.Configuration;
-      Reload        : Boolean;
+      Reload        : Boolean := False;
    end record;
 
    type Apply_Config_Job_Access is access all Apply_Config_Job;
@@ -77,9 +75,6 @@ package body LSP.Ada_Did_Change_Configurations is
       Message : LSP.Server_Messages.Server_Message_Access)
       return LSP.Server_Jobs.Server_Job_Access
    is
-      use type VSS.Strings.Virtual_String;
-      use type GPR2.Context.Object;
-
       Value : LSP.Server_Notifications.DidChangeConfiguration.Notification
         renames LSP.Server_Notifications.DidChangeConfiguration.Notification
           (Message.all);
@@ -99,6 +94,8 @@ package body LSP.Ada_Did_Change_Configurations is
         renames Result.Configuration;
       Reload : Boolean renames Result.Reload;
    begin
+      Self.Context.Get_Trace_Handle.Trace
+        ("Processing received workspace/didChangeConfiguration notification");
 
       --  The configuration loading logic offers a Reload output boolean that
       --  indicates if values were changed that require reloading the project.
@@ -115,22 +112,19 @@ package body LSP.Ada_Did_Change_Configurations is
 
       --  Read the new received configuration. 'null' values will be ignored
       --  and thus keep the value from the base config.
-      New_Config.Read_JSON (Value.Params.settings, Reload);
+      New_Config.Read_JSON (Value.Params.settings);
+
+      Reload := False;
 
       --  Always reload project if Project_Tree isn't ready
-      Reload := Reload or not Self.Context.Project_Tree_Is_Defined;
+      if not Self.Context.Project_Tree_Is_Defined then
+         Self.Context.Get_Trace_Handle.Trace
+           ("Scheduling a reload because the project tree is not defined");
+         Reload := True;
+      end if;
 
-      --  Compare with the current configuration to see if a reload is
-      --  necessary
-      Reload :=
-        Reload
-        or else New_Config.Relocate_Build_Tree
-                /= Current_Config.Relocate_Build_Tree
-        or else New_Config.Relocate_Root /= Current_Config.Relocate_Root
-        or else New_Config.Project_File /= Current_Config.Project_File
-        or else New_Config.Context /= Current_Config.Context
-        or else New_Config.Charset /= Current_Config.Charset
-        or else New_Config.Follow_Symlinks /= Current_Config.Follow_Symlinks;
+      --  Then compare the new configuration with the current one
+      Reload := Reload or else Current_Config.Needs_Reload (New_Config);
 
       if Reload then
          --  Stop indexing by changing project stamp

@@ -31,10 +31,23 @@ package LSP.Ada_Configurations is
 
    type Configuration is tagged private;
 
+   function Needs_Reload
+     (Self : Configuration; Other : Configuration'Class) return Boolean;
+   --  Compare the given configurations and return whether or not a project
+   --  reload is needed.
+   --
+   --  For example, if the 'projectFile' setting changed, a project reload is
+   --  needed while if the 'insertWithClauses' setting changed, a project
+   --  reload is not necessary.
+   --
+   --  Note that for the 'scenarioVariables' settings, the comparison is made
+   --  using the "=" operator of the GPR2.Context.Object object which does an
+   --  order-insensitive comparison. That means that a simple change in the
+   --  order of scenario variables doesn't trigger a reload, which is nice.
+
    procedure Read_JSON
      (Self   : in out Configuration'Class;
-      JSON   : LSP.Structures.LSPAny;
-      Reload : out Boolean);
+      JSON   : LSP.Structures.LSPAny);
 
    procedure Read_File
      (Self : in out Configuration'Class;
@@ -125,7 +138,7 @@ package LSP.Ada_Configurations is
    --  Whether onTypeFormatting is enabled.
 
    function On_Type_Formatting_Settings
-     return LSP.Structures.DocumentOnTypeFormattingOptions;
+      return LSP.Structures.DocumentOnTypeFormattingOptions;
 
 private
 
