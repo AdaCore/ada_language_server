@@ -299,11 +299,6 @@ export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationP
  */
 const setupCmd = [
     {
-        description: 'Catch all Ada exceptions',
-        text: 'catch exception',
-        ignoreFailures: true,
-    },
-    {
         description: 'Enable pretty-printing for gdb',
         text: '-enable-pretty-printing',
         ignoreFailures: true,
@@ -461,5 +456,6 @@ function createAttachConfig(adaMain: AdaMain): AdaConfig {
          */
         // preLaunchTask: adaMain ? getBuildTaskName(adaMain) : BUILD_PROJECT_TASK_NAME,
         miDebuggerPath: getOrFindGdb(),
+        setupCommands: setupCmd,
     };
 }
