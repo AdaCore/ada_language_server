@@ -1021,7 +1021,13 @@
                             "args": [],
                             "cwd": "^\"\\${workspaceFolder}\"",
                             "stopAtEntry": false,
-                            "preLaunchTask": "ada: Build current project"
+                            "externalConsole": false,
+                            "preLaunchTask": "ada: Build current project",
+                            "setupCommands": {
+                                "description": "Enable pretty-printing for gdb",
+                                "text": "-enable-pretty-printing",
+                                "ignoreFailures": true
+                            }
                         }
                     }
                 ],
