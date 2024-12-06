@@ -43,6 +43,7 @@ with LSP.Ada_Job_Contexts;
 with LSP.Ada_Project_Loading;
 with LSP.Client_Message_Receivers;
 with LSP.Constants;
+with LSP.Diagnostic_Sources; use LSP.Diagnostic_Sources;
 with LSP.File_Monitors;
 with LSP.Locations;
 with LSP.Server_Message_Visitors;
@@ -73,9 +74,10 @@ package LSP.Ada_Handlers is
    with private;
 
    procedure Initialize
-     (Self : access Message_Handler'Class;
+     (Self                     : access Message_Handler'Class;
       Incremental_Text_Changes : Boolean;
-      CLI_Config_File          : GNATCOLL.VFS.Virtual_File := GNATCOLL.VFS.No_File);
+      CLI_Config_File          : GNATCOLL.VFS.Virtual_File :=
+        GNATCOLL.VFS.No_File);
    --  Initialize the message handler and configure it.
    --
    --  Incremental_Text_Changes - activate the support for incremental text
@@ -194,6 +196,9 @@ private
       --  There should always be at least one "project" context - if no .gpr
       --  is known to the server, this context should map to the implicit
       --  project.
+
+      Diagnostic_Sources : Workspace_Diagnostic_Source_Vectors.Vector;
+      --  Workspace diagnostic sources.
 
       Highlighter    : aliased LSP.Ada_Highlighters.Ada_Highlighter;
       --  Semantic token highlighter for Ada
@@ -388,7 +393,18 @@ private
    --  Publish diagnostic messages for given document if needed.
    --  Other_Diagnostics can be used to specify punctual diagnostics not coming
    --  from sources that analyze files when being opened or modified.
-   --  When Force is True, the diagnostics will always be sent, not matter if
+   --  When Force is True, the diagnostics will always be sent, regardless if
+   --  they have changed or not.
+
+   procedure Publish_Diagnostics
+     (Self              : in out Message_Handler;
+      Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
+        LSP.Structures.Empty;
+      Force             : Boolean := False);
+   --  Publish workspace diagnostic messages.
+   --  Other_Diagnostics can be used to specify punctual diagnostics not coming
+   --  from sources that analyze files when being opened or modified.
+   --  When Force is True, the diagnostics will always be sent, regardless if
    --  they have changed or not.
 
    overriding function To_File

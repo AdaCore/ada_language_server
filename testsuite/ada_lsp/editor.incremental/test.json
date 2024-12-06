@@ -410,15 +410,7 @@
                         },
                         "source": "libadalang",
                         "message": "Skipped token hello"
-                     },
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
+                     }
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -459,16 +451,7 @@
             {
                "params": {
                   "uri": "$URI{hello.ads}",
-                  "diagnostics": [
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
-                  ]
+                  "diagnostics": []
                },
                "method": "textDocument/publishDiagnostics"
             }
@@ -521,15 +504,7 @@
                            }
                         },
                         "message": "Missing ';'"
-                     },
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
+                     }
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -570,16 +545,7 @@
             {
                "params": {
                   "uri": "$URI{hello.ads}",
-                  "diagnostics": [
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
-                  ]
+                  "diagnostics": []
                },
                "method": "textDocument/publishDiagnostics"
             }
@@ -645,15 +611,7 @@
                            }
                         },
                         "message": "Skipped token hello"
-                     },
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
+                     }
                   ]
                },
                "method": "textDocument/publishDiagnostics"
@@ -694,16 +652,7 @@
             {
                "params": {
                   "uri": "$URI{hello.ads}",
-                  "diagnostics": [
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
-                  ]
+                  "diagnostics": []
                },
                "method": "textDocument/publishDiagnostics"
             }
@@ -769,16 +718,7 @@
                            }
                         },
                         "message": "Skipped token hello"
-                     },
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message":  "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
-                  ]
+                     }]
                },
                "method": "textDocument/publishDiagnostics"
             }
@@ -818,16 +758,7 @@
             {
                "params": {
                   "uri": "$URI{hello.ads}",
-                  "diagnostics": [
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
-                  ]
+                  "diagnostics": []
                },
                "method": "textDocument/publishDiagnostics"
             }
@@ -893,16 +824,7 @@
                            }
                         },
                         "message": "Skipped token hello"
-                     },
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
-                  ]
+                     }]
                },
                "method": "textDocument/publishDiagnostics"
             }
@@ -942,16 +864,7 @@
             {
                "params": {
                   "uri": "$URI{hello.ads}",
-                  "diagnostics": [
-                     {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 2,
-                        "source": "ada.project",
-                        "message": "No project was found in the root directory. Please create a GPR project file and add it to the configuration."}
-                  ]
+                  "diagnostics": []
                },
                "method": "textDocument/publishDiagnostics"
             }

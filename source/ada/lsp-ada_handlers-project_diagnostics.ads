@@ -15,31 +15,29 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with LSP.Ada_Contexts;
 with LSP.Ada_Project_Loading;
 with LSP.Diagnostic_Sources;
 
 package LSP.Ada_Handlers.Project_Diagnostics is
 
    type Diagnostic_Source
-     (Handler : not null access LSP.Ada_Handlers.Message_Handler)
-   is limited new LSP.Diagnostic_Sources.Diagnostic_Source with private;
+     (Handler : not null access LSP.Ada_Handlers.Message_Handler'Class)
+   is limited new LSP.Diagnostic_Sources.Workspace_Diagnostic_Source with private;
 
-   overriding procedure Get_Diagnostic
-     (Self    : in out Diagnostic_Source;
-      Context : LSP.Ada_Contexts.Context;
-      Errors  : out LSP.Structures.Diagnostic_Vector);
+   overriding
+   procedure Get_Diagnostics
+     (Self        : in out Diagnostic_Source;
+      Diagnostics : out LSP.Structures.Diagnostic_Vector);
    --  Fill diagnostics for given document.
 
    overriding function Has_New_Diagnostic
-     (Self    : in out Diagnostic_Source;
-      Context : LSP.Ada_Contexts.Context) return Boolean;
+     (Self    : in out Diagnostic_Source) return Boolean;
 
 private
 
    type Diagnostic_Source
-     (Handler : not null access LSP.Ada_Handlers.Message_Handler)
-   is limited new LSP.Diagnostic_Sources.Diagnostic_Source with record
+     (Handler : not null access LSP.Ada_Handlers.Message_Handler'Class)
+   is limited new LSP.Diagnostic_Sources.Workspace_Diagnostic_Source with record
       Last_Status : LSP.Ada_Project_Loading.Project_Status_Type;
    end record;
 

@@ -1,0 +1,21 @@
+V "GNAT Lib v26.20241124"
+M P W=b
+A -gnatA
+A -gnatc
+A -mtune=generic
+A -march=x86-64
+P NO
+
+RN
+RV NO_IMPLEMENTATION_PRAGMAS
+RV NO_ELABORATION_CODE
+
+U main%b		main.adb		c8bac64d OO SU
+
+D main.adb		20241206102531 c8bac64d main%b
+D system.ads		20241119011855 14286b0f system%s
+G a e
+G c Z b b [main standard 1 11 none]
+X 1 main.adb
+1U11*Main 1b11 4l5 4t9
+

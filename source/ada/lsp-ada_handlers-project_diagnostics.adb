@@ -24,14 +24,14 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
    --  repeat the information every time diagnostics are published for every
    --  file.
 
-   --------------------
-   -- Get_Diagnostic --
-   --------------------
+   ---------------------
+   -- Get_Diagnostics --
+   ---------------------
 
-   overriding procedure Get_Diagnostic
-     (Self    : in out Diagnostic_Source;
-      Context : LSP.Ada_Contexts.Context;
-      Errors  : out LSP.Structures.Diagnostic_Vector) is
+   overriding
+   procedure Get_Diagnostics
+     (Self        : in out Diagnostic_Source;
+      Diagnostics : out LSP.Structures.Diagnostic_Vector) is
    begin
       if Self.Handler.Configuration.Project_Diagnostics_Enabled then
          Self.Last_Status := Self.Handler.Project_Status;
@@ -42,21 +42,18 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
          --  diagnostics only if there is an issue to solve or a potential
          --  enhancement.
 
-         Errors.Append_Vector
+         Diagnostics.Append_Vector
            (LSP.Ada_Project_Loading.Get_Diagnostics (Self.Last_Status));
       end if;
-   end Get_Diagnostic;
+   end Get_Diagnostics;
 
    ------------------------
    -- Has_New_Diagnostic --
    ------------------------
 
    overriding function Has_New_Diagnostic
-     (Self    : in out Diagnostic_Source;
-      Context : LSP.Ada_Contexts.Context)
-      return Boolean
-   is
-      pragma Unreferenced (Context);
+     (Self    : in out Diagnostic_Source)
+      return Boolean is
    begin
       if Self.Handler.Configuration.Project_Diagnostics_Enabled then
          return LSP.Ada_Project_Loading.Has_New_Diagnostics

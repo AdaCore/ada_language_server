@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Containers.Vectors;
 with Ada.Unchecked_Deallocation;
 with LSP.Structures;
 limited with LSP.Ada_Contexts;
@@ -23,23 +24,53 @@ package LSP.Diagnostic_Sources is
 
    type Diagnostic_Source is limited interface;
    --  A source of diagnostic (errors/warnings) messages
-
    type Diagnostic_Source_Access is
      access LSP.Diagnostic_Sources.Diagnostic_Source'Class;
+   package Diagnostic_Source_Vectors is new
+     Ada.Containers.Vectors
+       (Positive,
+        LSP.Diagnostic_Sources.Diagnostic_Source_Access,
+        LSP.Diagnostic_Sources."=");
 
    procedure Get_Diagnostic
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector) is abstract;
-   --  Fill diagnostics for given document.
+   --  Fill diagnostics for the given context.
 
    function Has_New_Diagnostic
-     (Self    : in out Diagnostic_Source;
-      Context : LSP.Ada_Contexts.Context) return Boolean is abstract;
+     (Self : in out Diagnostic_Source; Context : LSP.Ada_Contexts.Context)
+      return Boolean
+   is abstract;
    --  Return True if diagnostic changed since last call to Get_Diagnostic or
    --  if Get_Diagnostic was never called and any diagnostic presents.
 
    procedure Unchecked_Free is new Ada.Unchecked_Deallocation
      (Diagnostic_Source'Class, Diagnostic_Source_Access);
+
+   type Workspace_Diagnostic_Source is limited interface;
+   --  Interface for worspace diagnostics (i.e: diagnostics that
+   --  are not specific to a given context/document).
+
+   type Workspace_Diagnostic_Source_Access is
+     access LSP.Diagnostic_Sources.Workspace_Diagnostic_Source'Class;
+   package Workspace_Diagnostic_Source_Vectors is new
+     Ada.Containers.Vectors
+       (Positive,
+        LSP.Diagnostic_Sources.Workspace_Diagnostic_Source_Access,
+        LSP.Diagnostic_Sources."=");
+
+   procedure Get_Diagnostics
+     (Self        : in out Workspace_Diagnostic_Source;
+      Diagnostics : out LSP.Structures.Diagnostic_Vector)
+   is abstract;
+
+   function Has_New_Diagnostic
+     (Self : in out Workspace_Diagnostic_Source)
+      return Boolean
+   is abstract;
+
+   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
+     (Workspace_Diagnostic_Source'Class, Workspace_Diagnostic_Source_Access);
 
 end LSP.Diagnostic_Sources;
