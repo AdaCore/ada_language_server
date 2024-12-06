@@ -114,6 +114,11 @@ min_diff: on the fly computed diff of the different values
         # instrumented programs.
         self.env.gnatcov = GNATcov(self) if self.env.options.gnatcov else None
 
+        # Set an environment variable indicating that we are in the ALS testsuite. This
+        # is used to make the ALS more verbose about errors when in the test
+        # environment.
+        os.environ["ALS_TESTING"] = "1"
+
         self.start_time = datetime.datetime.now()
 
     def tear_down(self):

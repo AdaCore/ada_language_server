@@ -35,7 +35,7 @@ if (process.env['MOCHA_GREP']) {
     baseMochaOptions.grep = process.env['MOCHA_GREP'];
 }
 
-const testsuites = ['general', 'gnattest', 'workspace_missing_dirs'];
+const testsuites = ['general', 'workspace_missing_dirs', 'dot-als-json'];
 
 export default defineConfig(
     testsuites.map((suiteName) => {
@@ -65,8 +65,8 @@ export default defineConfig(
 
         return {
             label: `Ada extension testsuite: ${suiteName}`,
-            files: `out/test/suite/${suiteName}/**/*.test.js`,
-            workspaceFolder: `./test/workspaces/${suiteName}`,
+            files: `out/test/${suiteName}/**/*.test.js`,
+            workspaceFolder: `./test/${suiteName}/ws`,
             mocha: mochaOptions,
             env: {
                 // When working remotely on Linux, it is necessary to have "Xvfb
@@ -87,5 +87,5 @@ export default defineConfig(
             // Use external installation if provided in the VSCODE env variable
             useInstallation: process.env.VSCODE ? { fromPath: process.env.VSCODE } : undefined,
         };
-    })
+    }),
 );

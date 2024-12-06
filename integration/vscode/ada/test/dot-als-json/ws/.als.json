@@ -1,0 +1,6 @@
+{
+    "projectFile": "non-root/prj.gpr",
+    "scenarioVariables": {
+        "Var": "als-dot-json-value"
+    }
+}

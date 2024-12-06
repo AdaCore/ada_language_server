@@ -19,5 +19,5 @@
         "resolveJsonModule": true
     },
     "exclude": ["node_modules", "out"],
-    "include": ["test", "src"]
+    "include": ["test", "src", ".vscode-test.mjs"]
 }
