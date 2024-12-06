@@ -77,7 +77,7 @@
                                     }
                                  }
                               },
-                              "message": "unrecognized attribute \"Foo\""
+                              "message": "undefined attribute \"Foo\""
                            }
                         ]
                      }
