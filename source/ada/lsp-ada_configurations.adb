@@ -22,15 +22,22 @@ with Ada.Containers.Generic_Anonymous_Array_Sort;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with LSP.GNATCOLL_Tracers;
 with LSP.Utils;
 
 with VSS.JSON.Pull_Readers.Simple;
 with VSS.JSON.Streams;
 with VSS.Strings.Conversions;
+with VSS.Strings.Formatters.Booleans;
+with VSS.Strings.Formatters.Strings;
+with VSS.Strings.Templates;
 with VSS.Text_Streams.File_Input;
 with VSS.Transformers.Casing;
 
 package body LSP.Ada_Configurations is
+
+   Trace : constant LSP.GNATCOLL_Tracers.Tracer :=
+     LSP.GNATCOLL_Tracers.Create ("ALS.CONFIG", GNATCOLL.Traces.Off);
 
    Doc_Style_Values : constant VSS.String_Vectors.Virtual_String_Vector :=
      [for Item in GNATdoc.Comments.Options.Documentation_Style =>
@@ -71,8 +78,7 @@ package body LSP.Ada_Configurations is
    procedure Parse_Ada
      (Self   : in out Configuration'Class;
       JSON   : LSP.Structures.LSPAny;
-      From   : Positive;
-      Reload : out Boolean);
+      From   : Positive);
 
    ----------------
    -- Build_Path --
@@ -136,25 +142,17 @@ package body LSP.Ada_Configurations is
    procedure Parse_Ada
      (Self   : in out Configuration'Class;
       JSON   : LSP.Structures.LSPAny;
-      From   : Positive;
-      Reload : out Boolean)
+      From   : Positive)
    is
       use all type VSS.JSON.JSON_Number_Kind;
       use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
-      use type VSS.String_Vectors.Virtual_String_Vector;
 
       Index : Positive := From;
       Variables_Names  : VSS.String_Vectors.Virtual_String_Vector;
       Variables_Values : VSS.String_Vectors.Virtual_String_Vector;
-      Follow_Symlinks  : constant Boolean := Self.Follow_Symlinks;
 
       procedure Parse_Variables (From : Positive);
       procedure Swap_Variables (Left, Right : Positive);
-
-      procedure Set
-        (Target : in out VSS.Strings.Virtual_String;
-         Value  : VSS.Strings.Virtual_String);
-      --  If Target /= Value then assign Target and set Reload to Trues
 
       ---------------------
       -- Parse_Variables --
@@ -181,20 +179,6 @@ package body LSP.Ada_Configurations is
          end loop;
       end Parse_Variables;
 
-      ---------
-      -- Set --
-      ---------
-
-      procedure Set
-        (Target : in out VSS.Strings.Virtual_String;
-         Value  : VSS.Strings.Virtual_String) is
-      begin
-         if Target /= Value then
-            Target := Value;
-            Reload := True;
-         end if;
-      end Set;
-
       --------------------
       -- Swap_Variables --
       --------------------
@@ -220,7 +204,6 @@ package body LSP.Ada_Configurations is
 
       Name : VSS.Strings.Virtual_String;
    begin
-      Reload := False;
       Index := Index + 1;  --  skip start object
 
       while Index <= JSON.Last_Index
@@ -232,17 +215,17 @@ package body LSP.Ada_Configurations is
          if Name = "relocateBuildTree"
            and then JSON (Index).Kind = String_Value
          then
-            Set (Self.Relocate_Build_Tree, JSON (Index).String_Value);
+            Self.Relocate_Build_Tree := JSON (Index).String_Value;
 
          elsif Name = "rootDir"
            and then JSON (Index).Kind = String_Value
          then
-            Set (Self.Relocate_Root, JSON (Index).String_Value);
+            Self.Relocate_Root := JSON (Index).String_Value;
 
          elsif Name = "projectFile"
            and then JSON (Index).Kind = String_Value
          then
-            Set (Self.Project_File, JSON (Index).String_Value);
+            Self.Project_File := JSON (Index).String_Value;
 
          elsif Name = "projectDiagnostics"
            and then JSON (Index).Kind = Boolean_Value
@@ -254,10 +237,6 @@ package body LSP.Ada_Configurations is
          then
             Parse_Variables (Index);
             Sort_Variables (1, Variables_Names.Length);
-
-            Reload := Reload or else
-              Variables_Names /= Self.Variables_Names or else
-              Variables_Values /= Self.Variables_Values;
 
             Self.Variables_Names := Variables_Names;
             Self.Variables_Values := Variables_Values;
@@ -276,7 +255,7 @@ package body LSP.Ada_Configurations is
          elsif Name = "defaultCharset"
            and then JSON (Index).Kind = String_Value
          then
-            Set (Self.Charset, JSON (Index).String_Value);
+            Self.Charset := JSON (Index).String_Value;
 
          elsif Name = "enableDiagnostics"
            and then JSON (Index).Kind = Boolean_Value
@@ -318,7 +297,6 @@ package body LSP.Ada_Configurations is
            and then JSON (Index).Kind = Boolean_Value
          then
             Self.Follow_Symlinks := JSON (Index).Boolean_Value;
-            Reload := Reload or else Follow_Symlinks /= Self.Follow_Symlinks;
 
          elsif Name = "documentationStyle"
            and then JSON (Index).Kind = String_Value
@@ -403,7 +381,6 @@ package body LSP.Ada_Configurations is
       Input   : aliased VSS.Text_Streams.File_Input.File_Input_Text_Stream;
       Reader  : VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
       JSON    : LSP.Structures.LSPAny;
-      Ignore  : Boolean;
    begin
       Input.Open (File, "utf-8");
       Reader.Set_Stream (Input'Unchecked_Access);
@@ -416,7 +393,7 @@ package body LSP.Ada_Configurations is
          Reader.Read_Next;
       end loop;
 
-      Self.Parse_Ada (JSON, JSON.First_Index, Ignore);
+      Self.Parse_Ada (JSON, JSON.First_Index);
    end Read_File;
 
    ---------------
@@ -425,32 +402,27 @@ package body LSP.Ada_Configurations is
 
    procedure Read_JSON
      (Self   : in out Configuration'Class;
-      JSON   : LSP.Structures.LSPAny;
-      Reload : out Boolean)
+      JSON   : LSP.Structures.LSPAny)
    is
       use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
       Index : Positive := JSON.First_Index + 1;
 
    begin
-      Reload := False;
-
       if JSON.Is_Empty or else JSON.First_Element.Kind /= Start_Object then
          return;
       end if;
 
-      while Index < JSON.Last_Index
-        and then JSON (Index).Kind = Key_Name
+      while Index < JSON.Last_Index and then JSON (Index).Kind = Key_Name
       loop
          declare
             Is_Ada : constant Boolean := JSON (Index).Key_Name = "ada";
          begin
             Index := Index + 1;
 
-            if Is_Ada and then
-              Index <= JSON.Last_Index and then
-              JSON (Index).Kind = Start_Object
+            if Is_Ada and then Index <= JSON.Last_Index
+              and then JSON (Index).Kind = Start_Object
             then
-               Self.Parse_Ada (JSON, Index, Reload);
+               Self.Parse_Ada (JSON, Index);
                exit;
             else
                Skip_Value (JSON, Index);
@@ -482,5 +454,123 @@ package body LSP.Ada_Configurations is
          exit when Level = 0;
       end loop;
    end Skip_Value;
+
+   function Diff
+     (Old, Nnew    : VSS.Strings.Virtual_String;
+      Setting_Name : VSS.Strings.Virtual_String) return Boolean;
+   --  A setting comparison helper that logs when a difference is detected.
+
+   ----------
+   -- Diff --
+   ----------
+
+   function Diff
+     (Old, Nnew    : VSS.Strings.Virtual_String;
+      Setting_Name : VSS.Strings.Virtual_String) return Boolean
+   is
+      use VSS.Strings.Formatters.Strings;
+   begin
+      if Old /= Nnew then
+         if Trace.Active then
+            Trace.Trace_Text
+              (VSS.Strings.Templates.To_Virtual_String_Template
+                 ("Signaling project reload because the setting '{}' changed from '{}' to '{}'")
+                 .Format
+                 (Image (Setting_Name), Image (Old), Image (Nnew)));
+         end if;
+         return True;
+      else
+         return False;
+      end if;
+   end Diff;
+
+   function Diff
+     (Old, Nnew : Boolean; Setting_Name : VSS.Strings.Virtual_String)
+      return Boolean;
+   --  A setting comparison helper that logs when a difference is detected.
+
+   ----------
+   -- Diff --
+   ----------
+
+   function Diff
+     (Old, Nnew : Boolean; Setting_Name : VSS.Strings.Virtual_String)
+      return Boolean
+   is
+      use VSS.Strings.Formatters.Strings;
+      use VSS.Strings.Formatters.Booleans;
+   begin
+      if Old /= Nnew then
+         if Trace.Active then
+            Trace.Trace_Text
+              (VSS.Strings.Templates.To_Virtual_String_Template
+                 ("Signaling project reload because the setting '{}' changed from '{}' to '{}'")
+                 .Format
+                 (Image (Setting_Name), Image (Old), Image (Nnew)));
+         end if;
+         return True;
+      else
+         return False;
+      end if;
+   end Diff;
+
+   function Diff
+     (Old, Nnew    : GPR2.Context.Object;
+      Setting_Name : VSS.Strings.Virtual_String) return Boolean;
+   --  A setting comparison helper that logs when a difference is detected.
+
+   ----------
+   -- Diff --
+   ----------
+
+   function Diff
+     (Old, Nnew    : GPR2.Context.Object;
+      Setting_Name : VSS.Strings.Virtual_String) return Boolean
+   is
+      use VSS.Strings.Formatters.Strings;
+      use type GPR2.Context.Object;
+   begin
+      if Old /= Nnew then
+         if Trace.Active then
+            Trace.Trace_Text
+              (VSS.Strings.Templates.To_Virtual_String_Template
+                 ("Signaling project reload because the setting '{}' changed")
+                 .Format
+                 (Image (Setting_Name)));
+         end if;
+         return True;
+      else
+         return False;
+      end if;
+   end Diff;
+
+   ------------------
+   -- Needs_Reload --
+   ------------------
+
+   function Needs_Reload
+     (Self : Configuration; Other : Configuration'Class) return Boolean
+   is
+      Reload : Boolean := False;
+   begin
+      Reload :=
+        Diff
+          (Self.Relocate_Build_Tree, Other.Relocate_Build_Tree,
+           "relocateBuildTree")
+        or else Diff
+          (Self.Relocate_Root, Other.Relocate_Root, "rootDir")
+        or else Diff (Self.Project_File, Other.Project_File, "projectFile")
+        or else Diff (Self.Context, Other.Context, "scenarioVariables")
+        or else Diff (Self.Charset, Other.Charset, "defaultCharset")
+        or else Diff
+          (Self.Follow_Symlinks, Other.Follow_Symlinks, "followSymlinks");
+
+      if not Reload and then Trace.Active then
+         Trace.Trace
+           ("No change in configuration that warrants a project reload.");
+      end if;
+
+      return Reload;
+   end Needs_Reload;
 
 end LSP.Ada_Configurations;

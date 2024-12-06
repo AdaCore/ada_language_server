@@ -2386,24 +2386,21 @@ package body LSP.Ada_Handlers is
 
       --  If settings were given in initializationOptions, parse and apply them.
       if not Value.initializationOptions.Is_Empty then
-         Self.Tracer.Trace ("Processing initializationOptions from initialize request");
-         declare
-            Reload : Boolean;
-         begin
-            --  The expected structure is this:
-            --     "initializationOptions": {
-            --        "ada": {
-            --           "projectFile": "...",
-            --           "scenarioVariables": ...,
-            --           ...
-            --        }
-            --     }
-            Self.Configuration.Read_JSON (Value.initializationOptions, Reload);
+         Self.Tracer.Trace
+           ("Processing initializationOptions from initialize request");
+         --  The expected structure is this:
+         --     "initializationOptions": {
+         --        "ada": {
+         --           "projectFile": "...",
+         --           "scenarioVariables": ...,
+         --           ...
+         --        }
+         --     }
+         Self.Configuration.Read_JSON (Value.initializationOptions);
 
-            --  We don't load the project here because we can't send progress
-            --  notifications to the client before receiving the 'initialized'
-            --  notification. See On_Initialized_Notification.
-         end;
+         --  We don't load the project here because we can't send progress
+         --  notifications to the client before receiving the 'initialized'
+         --  notification. See On_Initialized_Notification.
       end if;
 
       Self.Sender.On_Initialize_Response (Id, Response);
