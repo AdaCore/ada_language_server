@@ -149,7 +149,7 @@
                                     }
                                  }
                               },
-                              "message": "unrecognized attribute \"Bar\""
+                              "message": "undefined attribute \"Bar\""
                            }
                         ]
                      }
