@@ -594,6 +594,7 @@
          "wait": []
       }
    },
+
    {
       "send": {
          "request": {
@@ -629,20 +630,6 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 12,
-            "method": "workspace/executeCommand",
-            "params": {
-               "arguments": [],
-               "command": "als-reload-project"
-            }
-         },
-         "wait": []
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
             "method": "textDocument/didClose",
             "params": {
                "textDocument": {
@@ -654,21 +641,11 @@
       }
    },
    {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "method": "textDocument/didOpen",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{foo-bar2.ads}",
-                  "languageId": "Ada",
-                  "version": 0,
-                  "text": "package Foo.Bar2 is\n   procedure N is null;\nend Foo.Bar2;\n"
-               }
-            }
-         },
-         "wait": []
-      }
+    "shell": [
+        "mv",
+        "${DIR}${DIR_SEP}foo-bar1.ads",
+        "${DIR}${DIR_SEP}foo-bar2.ads"
+    ]
    },
    {
       "send": {

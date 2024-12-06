@@ -239,24 +239,33 @@ package body LSP.Ada_Handlers is
       File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List
    is
+      Is_Runtime_File : constant Boolean :=
+        Self.Project_Predefined_Sources.Contains (File);
+      --  Check if the given file belongs to the runtime.
+
       function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
-        (Self.Is_Part_Of_Project (File));
+        (Is_Runtime_File or else Self.Is_Part_Of_Project (File));
       --  Return True if File is a source of the project held by Context
 
-   begin
-      --  If the file does not exist on disk, assume this is a file
-      --  being created and, as a special convenience in this case,
-      --  assume it could belong to any project.
-      if not File.Is_Regular_File
-      --  If the file is a runtime file for the loaded project environment,
-      --  all projects can see it.
-        or else Self.Project_Predefined_Sources.Contains (File)
-      then
-         return Self.Contexts.Each_Context;
-      end if;
+      Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
+        (Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access));
+      --  Get the list of contexts that know the given file.
 
-      --  List contexts where File is a source of the project hierarchy
-      return Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
+   begin
+      --  The file does not exist on disk or does not belong to any project's
+      --  subtree context: in that case return the fallback context, if any.
+      if not File.Is_Regular_File or else Contexts.Is_Empty then
+         declare
+            use LSP.Ada_Context_Sets;
+            Fallback_Context : constant Context_Access :=
+              Self.Contexts.Get_Best_Context
+                (Self.To_URI (File.Display_Full_Name));
+         begin
+            return (if Fallback_Context /= null then [Fallback_Context] else []);
+         end;
+      else
+         return Contexts;
+      end if;
    end Contexts_For_File;
 
    ----------
@@ -1692,16 +1701,18 @@ package body LSP.Ada_Handlers is
       is
          use VSS.Strings.Conversions;
 
-         Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
-           Self.Contexts_For_File (File);
+         function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean
+         is (Self.Is_Part_Of_Project (File));
+         --  Return True if File is a source of the project held by Context
 
-         function Has_Dir
-           (Context : LSP.Ada_Contexts.Context)
-            return Boolean
+         function Has_Dir (Context : LSP.Ada_Contexts.Context) return Boolean
          is (Context.List_Source_Directories.Contains (File.Dir));
          --  Return True if File is in a source directory of the project held
          --  by Context.
 
+         Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
+           Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access);
+         --  Get the list of contexts that know this newly created file.
       begin
          --  If the file was created by the client, then the DidCreateFiles
          --  notification might have been received from it. In that case,

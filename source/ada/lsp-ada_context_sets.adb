@@ -44,6 +44,7 @@ package body LSP.Ada_Context_Sets is
 
       Self.Map.Clear;
       Self.Total := 0;
+      Self.Fallback_Context := null;
    end Cleanup;
 
    ------------------
@@ -70,8 +71,8 @@ package body LSP.Ada_Context_Sets is
    ----------------------
 
    function Get_Best_Context
-     (Self : Context_Set'Class;
-      URI  : LSP.Structures.DocumentUri) return Context_Access is
+     (Self : Context_Set'Class; URI : LSP.Structures.DocumentUri)
+      return Context_Access is
    begin
       for Context of Self.Contexts loop
          if Context.Is_Part_Of_Project (URI) then
@@ -79,7 +80,7 @@ package body LSP.Ada_Context_Sets is
          end if;
       end loop;
 
-      return Self.Contexts.First_Element;
+      return Self.Fallback_Context;
    end Get_Best_Context;
 
    ---------
@@ -113,6 +114,16 @@ package body LSP.Ada_Context_Sets is
       Self.Contexts.Prepend (Item);
       Self.Map.Insert (Item.Id, Item);
       Self.Total := Self.Total + Item.File_Count;
+
+      --  Free any previously set fallback context before
+      --  setting the new one.
+      if Item.Is_Fallback_Context then
+         if Self.Fallback_Context /= null then
+            Self.Fallback_Context.Free;
+            Unchecked_Free (Self.Fallback_Context);
+         end if;
+         Self.Fallback_Context := Item;
+      end if;
    end Prepend;
 
    -------------------------

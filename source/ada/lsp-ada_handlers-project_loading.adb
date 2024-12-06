@@ -105,42 +105,11 @@ package body LSP.Ada_Handlers.Project_Loading is
      (Self : in out Message_Handler'Class);
    --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
 
-   procedure Mark_Source_Files_For_Indexing
+   procedure Enqueue_Indexing_Job
      (Self : in out Message_Handler'Class);
-   --  Mark all sources in all projects for indexing and refresh the
-   --  diagnostics for the opened files.
-   --  This factorizes code between Load_Project and Load_Implicit_Project.
-
-   procedure Create_Empty_Context_If_Needed
-     (Self : in out Message_Handler'Class);
-   --  In case the project was not loaded and we don't want to rely on
-   --  the implicit project: create an empty context.
-
-   ------------------------------------
-   -- Create_Empty_Context_If_Needed --
-   ------------------------------------
-
-   procedure Create_Empty_Context_If_Needed
-     (Self : in out Message_Handler'Class)
-   is
-      use LSP.Ada_Context_Sets;
-      use LSP.Ada_Contexts;
-   begin
-      if Self.Contexts.Is_Empty then
-         declare
-            C      : constant Context_Access := new Context (Self.Tracer);
-            Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
-              (Self'Unchecked_Access);
-         begin
-            C.Initialize
-              (File_Reader         => Reader,
-               Follow_Symlinks     => Self.Configuration.Follow_Symlinks,
-               Style               => Self.Configuration.Documentation_Style,
-               As_Fallback_Context => True);
-            Self.Contexts.Prepend (C);
-         end;
-      end if;
-   end Create_Empty_Context_If_Needed;
+   --  Enqueue the indexing job, which indexes all the project's sources.
+   --  This also indexes immediately any already opened document, creating
+   --  the handler's fallback context before for that purpose.
 
    ---------------------------
    -- Ensure_Project_Loaded --
@@ -164,8 +133,6 @@ package body LSP.Ada_Handlers.Project_Loading is
          --  as a guarantee that the initialization has been done.
          return;
       end if;
-
-      Tracer.Trace_Text ("Looking for a project in root: " & Self.Client.Root);
 
       --  First consider ada.projectFile
       if not Project_File.Is_Empty then
@@ -358,10 +325,9 @@ package body LSP.Ada_Handlers.Project_Loading is
       Release_Contexts_And_Project_Info (Self);
 
       C.Initialize
-        (File_Reader         => Reader,
-         Follow_Symlinks     => Self.Configuration.Follow_Symlinks,
-         Style               => Self.Configuration.Documentation_Style,
-         As_Fallback_Context => True);
+        (File_Reader     => Reader,
+         Follow_Symlinks => Self.Configuration.Follow_Symlinks,
+         Style           => Self.Configuration.Documentation_Style);
 
       --  Note: we would call Load_Implicit_Project here, but this has
       --  two problems:
@@ -392,7 +358,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       Self.Contexts.Prepend (C);
 
       --  Reindex the files from disk in the background after a project reload
-      Mark_Source_Files_For_Indexing (Self);
+      Enqueue_Indexing_Job (Self);
    end Load_Implicit_Project;
 
    ------------------
@@ -553,9 +519,11 @@ package body LSP.Ada_Handlers.Project_Loading is
          Tracer.Trace
            ("The project set in the configuration doesn't exist: "
             & Project_File.Display_Full_Name);
-         Self.Project_Status.Set_Load_Status (LSP.Ada_Project_Loading.Project_Not_Found);
-         Create_Empty_Context_If_Needed (Self);
-         Mark_Source_Files_For_Indexing (Self);
+         Self.Project_Status.Set_Load_Status
+           (LSP.Ada_Project_Loading.Project_Not_Found);
+
+         --  Index source files and already opened files.
+         Enqueue_Indexing_Job (Self);
          return;
       end if;
 
@@ -614,16 +582,7 @@ package body LSP.Ada_Handlers.Project_Loading is
             Self.Project_Status.Set_Load_Status (LSP.Ada_Project_Loading.Invalid_Project);
       end;
 
-      if not Self.Project_Status.Is_Project_Loaded then
-         --  This function tried to load a specific project file. If errors
-         --  were encountered, we don't want to fallback on the implicit
-         --  project.
-         --
-         --  But we don't want to keep retrying to load the same project, so we
-         --  create an empty context that makes Ensure_Project_Loaded stop
-         --  trying to load a project.
-         Create_Empty_Context_If_Needed (Self);
-      else
+      if Self.Project_Status.Is_Project_Loaded then
          --  No exception during Load_Autoconf, check if we have the runtime
          declare
             Root : constant GPR2.Project.View.Object :=
@@ -653,21 +612,55 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       --  We have successfully loaded a real project: monitor the filesystem
       --  for any changes on the sources of the project
-      Self.File_Monitor.Monitor_Directories (Self.Contexts.All_Source_Directories);
+      Self.File_Monitor.Monitor_Directories
+        (Self.Contexts.All_Source_Directories);
 
-      Mark_Source_Files_For_Indexing (Self);
+      --  Index source files and already opened files.
+      Enqueue_Indexing_Job (Self);
    end Load_Project;
 
-   ------------------------------------
-   -- Mark_Source_Files_For_Indexing --
-   ------------------------------------
+   --------------------------
+   -- Enqueue_Indexing_Job --
+   --------------------------
 
-   procedure Mark_Source_Files_For_Indexing
+   procedure Enqueue_Indexing_Job
      (Self : in out Message_Handler'Class)
    is
-      Files : LSP.Ada_Indexing.File_Sets.Set;
+      procedure Create_Fallback_Context (Self : in out Message_Handler'Class);
+      --  Create a fallback context for the given handler's contexts' set.
 
+      -----------------------------
+      -- Create_Fallback_Context --
+      -----------------------------
+
+      procedure Create_Fallback_Context (Self : in out Message_Handler'Class)
+      is
+         use LSP.Ada_Context_Sets;
+         use LSP.Ada_Contexts;
+      begin
+         declare
+            C      : constant Context_Access := new Context (Self.Tracer);
+            Reader :
+              LSP.Ada_Handlers.File_Readers.LSP_File_Reader
+                (Self'Unchecked_Access);
+         begin
+            Self.Tracer.Trace_Text ("Creating fallback context");
+
+            C.Initialize
+              (File_Reader         => Reader,
+               Follow_Symlinks     => Self.Configuration.Follow_Symlinks,
+               Style               => Self.Configuration.Documentation_Style,
+               As_Fallback_Context => True);
+            Self.Contexts.Prepend (C);
+         end;
+      end Create_Fallback_Context;
+
+      Files : LSP.Ada_Indexing.File_Sets.Set;
    begin
+      --  Create a fallback context before indexing. This allows to
+      --  have a context to index already opened non-source files, if any.
+      Create_Fallback_Context (Self);
+
       for Document of Self.Open_Documents loop
          --  Reindex all open documents immediately after project reload,
          --  so that navigation from editors is accurate.
@@ -691,8 +684,8 @@ package body LSP.Ada_Handlers.Project_Loading is
          --  Mark all the predefined sources too (runtime)
          for F in Self.Project_Predefined_Sources.Iterate loop
             declare
-               File : GNATCOLL.VFS.Virtual_File renames
-                 LSP.Ada_File_Sets.File_Sets.Element (F);
+               File : GNATCOLL.VFS.Virtual_File
+                 renames LSP.Ada_File_Sets.File_Sets.Element (F);
             begin
                for Context of Self.Contexts.Each_Context loop
                   Files.Include (File);
@@ -701,13 +694,14 @@ package body LSP.Ada_Handlers.Project_Loading is
          end loop;
       end if;
 
+      --  Schedule the indexing job
       LSP.Ada_Indexing.Schedule_Indexing
-        (Self.Server,
-         Self'Unchecked_Access,
-         Self.Configuration,
-         Self.Project_Stamp,
-         Files);
-   end Mark_Source_Files_For_Indexing;
+        (Server        => Self.Server,
+         Handler       => Self'Unchecked_Access,
+         Configuration => Self.Configuration,
+         Project_Stamp => Self.Project_Stamp,
+         Files         => Files);
+   end Enqueue_Indexing_Job;
 
    ---------------------------------------
    -- Release_Contexts_And_Project_Info --
