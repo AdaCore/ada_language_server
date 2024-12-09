@@ -29,11 +29,6 @@ suite('Dbg Cfgs', function () {
                 preLaunchTask: 'ada: Build main - src/main1.adb',
                 setupCommands: [
                     {
-                        description: 'Catch all Ada exceptions',
-                        text: 'catch exception',
-                        ignoreFailures: true,
-                    },
-                    {
                         description: 'Enable pretty-printing for gdb',
                         text: '-enable-pretty-printing',
                         ignoreFailures: true,
@@ -48,6 +43,13 @@ suite('Dbg Cfgs', function () {
                 program: '${workspaceFolder}/obj/main1exec' + exe,
                 processId: '${command:pickProcess}',
                 MIMode: 'gdb',
+                setupCommands: [
+                    {
+                        description: 'Enable pretty-printing for gdb',
+                        text: '-enable-pretty-printing',
+                        ignoreFailures: true,
+                    },
+                ],
                 miDebuggerPath: getOrFindGdb() ?? '<undefined>',
             },
             {
@@ -64,11 +66,6 @@ suite('Dbg Cfgs', function () {
                 preLaunchTask: 'ada: Build main - src/test.adb',
                 setupCommands: [
                     {
-                        description: 'Catch all Ada exceptions',
-                        text: 'catch exception',
-                        ignoreFailures: true,
-                    },
-                    {
                         description: 'Enable pretty-printing for gdb',
                         text: '-enable-pretty-printing',
                         ignoreFailures: true,
@@ -83,6 +80,13 @@ suite('Dbg Cfgs', function () {
                 program: '${workspaceFolder}/obj/test' + exe,
                 processId: '${command:pickProcess}',
                 MIMode: 'gdb',
+                setupCommands: [
+                    {
+                        description: 'Enable pretty-printing for gdb',
+                        text: '-enable-pretty-printing',
+                        ignoreFailures: true,
+                    },
+                ],
                 miDebuggerPath: getOrFindGdb() ?? '<undefined>',
             },
         ];

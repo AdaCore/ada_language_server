@@ -652,10 +652,8 @@ package body LSP.GPR_Handlers is
    overriding procedure On_DidChangeConfiguration_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeConfigurationParams) is
-      Reload : Boolean;
-      pragma Warnings (Off, Reload);
    begin
-      Self.Configuration.Read_JSON (Value.settings, Reload);
+      Self.Configuration.Read_JSON (Value.settings);
 
       for Document of Self.Open_Documents loop
          begin
