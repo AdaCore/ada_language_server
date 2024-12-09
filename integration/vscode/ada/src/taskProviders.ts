@@ -162,8 +162,8 @@ const predefinedTasks: PredefinedTask[] = [
         },
         /**
          * Analysis results are not printed on stdio so no need to parse them
-         * with a problem matcher. Results should be viewed with the `gnatsas
-         * report` task below. Note that the "--root" argument is required so
+         * with a problem matcher. Results should be viewed with the 'gnatsas
+         * report' task below. Note that the "--root" argument is required so
          * the file URIs in the SARIF file are relative to the workspace root
          * folder and SARIF-viewer extensions can correctly resolve them.
          */
@@ -174,8 +174,15 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_ADA,
             command: 'gnatsas',
-            args: ['report', 'sarif', '${command:ada.gprProjectArgs}', '-o', 'report.sarif',
-                '--root', '${workspaceFolder}'],
+            args: [
+                'report',
+                'sarif',
+                '${command:ada.gprProjectArgs}',
+                '-o',
+                'report.sarif',
+                '--root',
+                '${workspaceFolder}',
+            ],
         },
         /**
          * Analysis results are not printed on stdio so no need to parse them
