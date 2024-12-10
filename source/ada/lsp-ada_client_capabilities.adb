@@ -608,13 +608,20 @@ package body LSP.Ada_Client_Capabilities is
       return GNATCOLL.VFS.Virtual_File
    is
       Value : constant VSS.Strings.Virtual_String := Client.Root;
-      Root  : constant String :=
-                 VSS.Strings.Conversions.To_UTF_8_String (Value);
    begin
-      return GNATCOLL.VFS.Create_From_UTF8
-               (if Value.Starts_With ("file://")
-                then URIs.Conversions.To_File (Root, True)
+      if Value.Is_Empty then
+         return GNATCOLL.VFS.No_File;
+      else
+         declare
+            Root  : constant String :=
+              VSS.Strings.Conversions.To_UTF_8_String (Value);
+         begin
+            return GNATCOLL.VFS.Create_From_UTF8
+              (if Value.Starts_With ("file://")
+               then URIs.Conversions.To_File (Root, True)
                else Root);
+         end;
+      end if;
    end Root_Directory;
 
 end LSP.Ada_Client_Capabilities;

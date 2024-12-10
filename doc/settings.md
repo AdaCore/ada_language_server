@@ -101,6 +101,7 @@ Settings taken into account only from the Ada & SPARK VS Code extension:
 Settings understood by the Ada Language Server itself, independently from the LSP client:
 
 * [projectFile](#projectfile)
+* [gprConfigurationFile](#gprconfigurationfile)
 * [scenarioVariables](#scenariovariables)
 * [defaultCharset](#defaultcharset)
 * [relocateBuildTree](#relocatebuildtree)
@@ -154,6 +155,16 @@ root folder, then ALS will use it.
 
 ```javascript
     'projectFile': 'gnat/lsp_server.gpr'
+```
+
+### gprConfigurationFile
+
+You can configure the GPRBuild configuration file via the
+`gprConfigurationFile` key. The setting has a string value, that points to
+the `.cgpr` file. It could be a full path or relative path.
+
+```javascript
+    'gprConfigurationFile': 'gnat/lsp_server.cgpr'
 ```
 
 ### scenarioVariables

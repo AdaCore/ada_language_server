@@ -77,11 +77,12 @@ package body LSP.Ada_Handlers.Project_Loading is
    LF : VSS.Characters.Virtual_Character renames VSS.Characters.Latin.Line_Feed;
 
    procedure Load_Project
-     (Self         : in out Message_Handler'Class;
-      Project_Path : VSS.Strings.Virtual_String;
-      Context      : GPR2.Context.Object;
-      Environment  : GPR2.Environment.Object;
-      Charset      : VSS.Strings.Virtual_String);
+     (Self            : in out Message_Handler'Class;
+      Project_Path    : VSS.Strings.Virtual_String;
+      GPR_Config_Path : VSS.Strings.Virtual_String;
+      Context         : GPR2.Context.Object;
+      Environment     : GPR2.Environment.Object;
+      Charset         : VSS.Strings.Virtual_String);
    --  Attempt to load the given project file, with the scenario provided.
    --  This unloads all currently loaded project contexts. This factorizes code
    --  between Load_Project_With_Alire and Ensure_Project_Loaded.
@@ -149,7 +150,10 @@ package body LSP.Ada_Handlers.Project_Loading is
       use type VSS.Strings.Virtual_String;
 
       GPRs_Found   : Natural := 0;
-      Project_File : VSS.Strings.Virtual_String := Self.Configuration.Project_File;
+      Project_File : VSS.Strings.Virtual_String :=
+        Self.Configuration.Project_File;
+      GPR_Configuration_File : VSS.Strings.Virtual_String :=
+        Self.Configuration.GPR_Configuration_File;
       Is_Alire_Crate : constant Boolean := Alire.Is_Alire_Crate (Self.Client);
       Has_Alire : Boolean;
       Alire_Errors : VSS.Strings.Virtual_String;
@@ -276,12 +280,21 @@ package body LSP.Ada_Handlers.Project_Loading is
                end if;
             end if;
 
+            if GPR_Configuration_File.Starts_With ("file://") then
+               GPR_Configuration_File :=
+                 VSS.Strings.Conversions.To_Virtual_String
+                   (URIs.Conversions.To_File
+                      (VSS.Strings.Conversions.To_UTF_8_String
+                         (GPR_Configuration_File), True));
+            end if;
+
             Load_Project
-              (Self         => Self,
-               Project_Path => Project_File,
-               Context      => Self.Configuration.Context,
-               Environment  => Environment,
-               Charset      => Charset);
+              (Self            => Self,
+               Project_Path    => Project_File,
+               GPR_Config_Path => GPR_Configuration_File,
+               Context         => Self.Configuration.Context,
+               Environment     => Environment,
+               Charset         => Charset);
          end;
       else
          --  We didn't find a project file. Let's load an implicit project. We
@@ -328,11 +341,13 @@ package body LSP.Ada_Handlers.Project_Loading is
    is
       use LSP.Ada_Context_Sets;
       use LSP.Ada_Contexts;
+      use type GNATCOLL.VFS.Virtual_File;
 
       C : constant Context_Access := new Context (Self.Tracer);
 
       Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
         (Self'Unchecked_Access);
+      Root   : GNATCOLL.VFS.Virtual_File;
    begin
       Tracer.Trace
         ("Loading the implicit project because " & Status'Image);
@@ -362,8 +377,9 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  When there is no .gpr, create a project which loads the
       --  root directory in the workspace.
 
-      if not Self.Client.Root.Is_Empty then
-         Self.Project_Dirs_Loaded.Include (Self.Client.Root_Directory);
+      Root := Self.Client.Root_Directory;
+      if Root /= GNATCOLL.VFS.No_File then
+         Self.Project_Dirs_Loaded.Include (Root);
       end if;
 
       Reload_Implicit_Project_Dirs (Self);
@@ -384,16 +400,22 @@ package body LSP.Ada_Handlers.Project_Loading is
    ------------------
 
    procedure Load_Project
-     (Self         : in out Message_Handler'Class;
-      Project_Path : VSS.Strings.Virtual_String;
-      Context      : GPR2.Context.Object;
-      Environment  : GPR2.Environment.Object;
-      Charset      : VSS.Strings.Virtual_String)
+     (Self            : in out Message_Handler'Class;
+      Project_Path    : VSS.Strings.Virtual_String;
+      GPR_Config_Path : VSS.Strings.Virtual_String;
+      Context         : GPR2.Context.Object;
+      Environment     : GPR2.Environment.Object;
+      Charset         : VSS.Strings.Virtual_String)
    is
       use type VSS.Strings.Virtual_String;
+      use type GNATCOLL.VFS.Virtual_File;
 
-      Project_File : GNATCOLL.VFS.Virtual_File :=
+      Project_File    : GNATCOLL.VFS.Virtual_File :=
         LSP.Utils.To_Virtual_File (Project_Path);
+
+      GPR_Config_File : GNATCOLL.VFS.Virtual_File;
+
+      Root            : GNATCOLL.VFS.Virtual_File;
 
       procedure Create_Context_For_Non_Aggregate
         (View : GPR2.Project.View.Object);
@@ -504,11 +526,22 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  relative path; if so, we're assuming it's relative
       --  to Self.Root.
 
+      Root := Self.Client.Root_Directory;
+
       if not Project_File.Is_Absolute_Path
-        and then not Self.Client.Root.Is_Empty
+        and then Root /= GNATCOLL.VFS.No_File
       then
-         Project_File := GNATCOLL.VFS.Join (Self.Client.Root_Directory,
-                                            Project_File);
+         Project_File := GNATCOLL.VFS.Join (Root, Project_File);
+      end if;
+
+      if not GPR_Config_Path.Is_Empty then
+         GPR_Config_File := LSP.Utils.To_Virtual_File (GPR_Config_Path);
+
+         if not GPR_Config_File.Is_Absolute_Path
+           and then Root /= GNATCOLL.VFS.No_File
+         then
+            GPR_Config_File := GNATCOLL.VFS.Join (Root, GPR_Config_File);
+         end if;
       end if;
 
       --  Unload the project tree and the project environment
@@ -540,6 +573,12 @@ package body LSP.Ada_Handlers.Project_Loading is
       begin
          --  Load the project
          Opts.Add_Switch (GPR2.Options.P, Project_File.Display_Full_Name);
+
+         if GPR_Config_File /= GNATCOLL.VFS.No_File then
+            Opts.Add_Switch
+              (GPR2.Options.Config, GPR_Config_File.Display_Full_Name);
+         end if;
+
          Opts.Add_Context (Context);
 
          Tracer.Trace ("Loading project with GPR2");
