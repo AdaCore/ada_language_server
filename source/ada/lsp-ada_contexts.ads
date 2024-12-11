@@ -85,8 +85,7 @@ package LSP.Ada_Contexts is
    --  context after calling this.
 
    function URI_To_File
-     (Self : Context;
-      URI  : LSP.Structures.DocumentUri)
+     (Self : Context; URI : LSP.Structures.DocumentUri)
       return GNATCOLL.VFS.Virtual_File;
 
    procedure Find_All_References

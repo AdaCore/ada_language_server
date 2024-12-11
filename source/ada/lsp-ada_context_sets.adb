@@ -23,8 +23,8 @@ with LSP.Ada_File_Sets;
 
 package body LSP.Ada_Context_Sets is
 
-   procedure Unchecked_Free is new Ada.Unchecked_Deallocation
-     (LSP.Ada_Contexts.Context, Context_Access);
+   procedure Unchecked_Free is new
+     Ada.Unchecked_Deallocation (LSP.Ada_Contexts.Context, Context_Access);
 
    -------------
    -- Cleanup --

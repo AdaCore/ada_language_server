@@ -170,15 +170,6 @@
                         "message": "Missing ';'"
                      },
                      {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 0, "character": 0 }
-                        },
-                        "severity": 4,
-                        "source": "ada.project",
-                        "message": "A unique project in the root directory was found and loaded but it was not explicitly configured."
-                     },
-                     {
                         "message": "Failed to execute the Add Parameter refactoring.",
                         "range": {
                            "start": {

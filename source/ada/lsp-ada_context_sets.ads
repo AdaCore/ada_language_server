@@ -34,19 +34,17 @@ package LSP.Ada_Context_Sets is
 
    type Context_Access is access LSP.Ada_Contexts.Context;
 
-   package Context_Lists is new Ada.Containers.Doubly_Linked_Lists
-     (Context_Access);
+   package Context_Lists is new
+     Ada.Containers.Doubly_Linked_Lists (Context_Access);
 
    function Is_Empty (Self : Context_Set'Class) return Boolean;
    --  Check if the set has no contexts
 
-   procedure Prepend
-     (Self : in out Context_Set'Class;
-      Item : Context_Access);
+   procedure Prepend (Self : in out Context_Set'Class; Item : Context_Access);
    --  Append an item to the set
 
    procedure Reload_All_Contexts (Self : in out Context_Set'Class);
-   --  Reload ech context in the set
+   --  Reload each context in the set
 
    function Get_Best_Context
      (Self : Context_Set'Class;
@@ -97,9 +95,12 @@ private
       "="             => "=");
 
    type Context_Set is tagged limited record
-      Contexts : Context_Lists.List;
-      Map      : Maps.Map;  --  A map from Context.Id to Context access
-      Total    : Natural := 0;
+      Contexts           : Context_Lists.List;
+
+      Map                : Maps.Map;
+      --  A map from Context.Id to Context access
+
+      Total              : Natural := 0;
    end record;
 
 end LSP.Ada_Context_Sets;

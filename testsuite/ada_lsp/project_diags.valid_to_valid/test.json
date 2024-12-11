@@ -52,7 +52,7 @@
                "jsonrpc": "2.0",
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{main.adb}",
+                  "uri": "$URI{}",
                   "diagnostics": [
                        {
                         "range": {
@@ -106,7 +106,7 @@
             {
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{main.adb}",
+                  "uri": "$URI{}",
                   "diagnostics": []
                }
             }
@@ -151,7 +151,7 @@
                "jsonrpc": "2.0",
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{main.adb}",
+                  "uri": "$URI{}",
                   "diagnostics": []
                }
             }

@@ -83,7 +83,6 @@ with LSP.Ada_Handlers.Renaming;
 with LSP.Ada_Handlers.Symbols;
 with LSP.Ada_Commands;
 with LSP.Client_Side_File_Monitors;
-with LSP.Diagnostic_Sources;
 with LSP.Errors;
 with LSP.Formatters.Texts;
 with LSP.Generic_Cancel_Check;
@@ -173,9 +172,18 @@ package body LSP.Ada_Handlers is
         renames LSP.Ada_Handlers.Locations.Append_Location;
 
    function Project_Predefined_Units
-     (Self    : in out Message_Handler;
-      Context : LSP.Ada_Contexts.Context)
+     (Self : in out Message_Handler; Context : LSP.Ada_Contexts.Context)
       return Libadalang.Analysis.Analysis_Unit_Array;
+
+   procedure Get_Workspace_Diagnostics
+     (Self    : in out Message_Handler'Class;
+      Changed : out Boolean;
+      Errors  : out LSP.Structures.Diagnostic_Vector;
+      Force   : Boolean := False);
+   --  Get all the worskpace-specific diagnostics, using the handler's workspace
+   --  diagnostics' sources.
+   --  When Force is True, any existing diagnostic will be retrieved, no matter
+   --  if they have changed or not since the last query.
 
    -----------------------------
    -- Allocate_Progress_Token --
@@ -320,6 +328,27 @@ package body LSP.Ada_Handlers is
       end if;
    end Get_Open_Document_Version;
 
+   -------------------------------
+   -- Get_Workspace_Diagnostics --
+   -------------------------------
+
+   procedure Get_Workspace_Diagnostics
+     (Self    : in out Message_Handler'Class;
+      Changed : out Boolean;
+      Errors  : out LSP.Structures.Diagnostic_Vector;
+      Force   : Boolean := False) is
+   begin
+      Errors.Clear;
+      Changed := (for some Source of Self.Diagnostic_Sources =>
+                    Source.Has_New_Diagnostic);
+
+      if Changed or else Force then
+         for Source of Self.Diagnostic_Sources loop
+            Source.Get_Diagnostics (Errors);
+         end loop;
+      end if;
+   end Get_Workspace_Diagnostics;
+
    ----------------------------
    -- Imprecise_Resolve_Name --
    ----------------------------
@@ -361,12 +390,15 @@ package body LSP.Ada_Handlers is
    procedure Initialize
      (Self                     : access Message_Handler'Class;
       Incremental_Text_Changes : Boolean;
-      CLI_Config_File          : GNATCOLL.VFS.Virtual_File := GNATCOLL.VFS.No_File)
+      CLI_Config_File          : GNATCOLL.VFS.Virtual_File :=
+        GNATCOLL.VFS.No_File)
    is
    begin
       Self.Incremental_Text_Changes := Incremental_Text_Changes;
       Self.File_Monitor :=
         new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
+      Self.Diagnostic_Sources :=
+         [new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source (Self)];
 
       Self.Load_Config_Files (CLI_Config_File);
    end Initialize;
@@ -1916,9 +1948,6 @@ package body LSP.Ada_Handlers is
       File   : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
       Object : constant Internal_Document_Access :=
         new LSP.Ada_Documents.Document (Self.Tracer);
-      Diag   : constant LSP.Diagnostic_Sources.Diagnostic_Source_Access :=
-        new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
-          (Self'Unchecked_Access);
    begin
       Self.Log_Method_In ("Text_Document_Did_Open", URI);
 
@@ -1932,7 +1961,7 @@ package body LSP.Ada_Handlers is
       Project_Loading.Ensure_Project_Loaded (Self);
 
       --  We have received a document: add it to the documents container
-      Object.Initialize (URI, Value.textDocument.text, Diag);
+      Object.Initialize (URI, Value.textDocument.text);
       Self.Open_Documents.Include (File, Object);
 
       --  Handle the case where we're loading the implicit project: do
@@ -3597,6 +3626,41 @@ package body LSP.Ada_Handlers is
 
          if Changed or else not Other_Diagnostics.Is_Empty then
             Diag.uri := Document.URI;
+            Self.Sender.On_PublishDiagnostics_Notification (Diag);
+         end if;
+      end if;
+   end Publish_Diagnostics;
+
+   -------------------------
+   -- Publish_Diagnostics --
+   -------------------------
+
+   procedure Publish_Diagnostics
+     (Self              : in out Message_Handler;
+      Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
+        LSP.Structures.Empty;
+      Force             : Boolean := False)
+   is
+      Diag    : LSP.Structures.PublishDiagnosticsParams;
+      Changed : Boolean;
+
+   begin
+      --  Retrieve all the workspace diagnostics and publish them.
+
+      if Self.Configuration.Diagnostics_Enabled then
+         Diag.diagnostics.Append_Vector (Other_Diagnostics);
+
+         Self.Get_Workspace_Diagnostics
+           (Changed => Changed,
+            Errors  => Diag.diagnostics,
+            Force   => Force);
+
+         if Changed or else not Other_Diagnostics.Is_Empty then
+            Diag.uri :=
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (URIs.Conversions.From_File
+                    (Self.Client.Root_Directory.Display_Full_Name))
+               with null record);
             Self.Sender.On_PublishDiagnostics_Notification (Diag);
          end if;
       end if;
