@@ -191,6 +191,11 @@ private
       Configuration : aliased LSP.Ada_Configurations.Configuration;
       --  The current configuration in use.
 
+      Base_Configuration_Received : Boolean := False;
+      --  Set to true once we receive the user's base configuration, either
+      --  through config files, the 'initialize' request or the first
+      --  'didChangeConfiguration' notification.
+
       Contexts : LSP.Ada_Context_Sets.Context_Set;
       --  There is one context in this list per loaded project.
       --  There should always be at least one "project" context - if no .gpr
