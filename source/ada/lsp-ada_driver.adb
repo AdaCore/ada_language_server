@@ -564,9 +564,9 @@ begin
    Gnatformat.Configuration.Elaborate_GPR2;
 
    declare
-      Allow_Incremental_Text_Changes : constant GNATCOLL.Traces.Trace_Handle
-        := GNATCOLL.Traces.Create ("ALS.ALLOW_INCREMENTAL_TEXT_CHANGES",
-                                   GNATCOLL.Traces.On);
+      Allow_Incremental_Text_Changes : constant GNATCOLL.Traces.Trace_Handle :=
+        GNATCOLL.Traces.Create
+          ("ALS.ALLOW_INCREMENTAL_TEXT_CHANGES", GNATCOLL.Traces.On);
       --  Trace to activate the support for incremental text changes.
 
       CLI_Config_Path : constant VSS.Strings.Virtual_String :=
@@ -584,7 +584,7 @@ begin
    begin
       Ada_Handler.Initialize
         (Incremental_Text_Changes => Allow_Incremental_Text_Changes.Is_Active,
-         CLI_Config_File => CLI_Config_File);
+         CLI_Config_File          => CLI_Config_File);
    end;
 
    Server.Initialize (Stream'Unchecked_Access);

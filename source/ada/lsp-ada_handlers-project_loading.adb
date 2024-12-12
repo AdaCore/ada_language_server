@@ -168,23 +168,26 @@ package body LSP.Ada_Handlers.Project_Loading is
          Tracer.Trace_Text ("Found ada.projectFile = " & Project_File);
 
          if Project_File.Starts_With ("file://") then
-            Project_File := VSS.Strings.Conversions.To_Virtual_String
-            (URIs.Conversions.To_File
-               (VSS.Strings.Conversions.To_UTF_8_String (Project_File), True));
+            Project_File :=
+              VSS.Strings.Conversions.To_Virtual_String
+                (URIs.Conversions.To_File
+                   (VSS.Strings.Conversions.To_UTF_8_String (Project_File),
+                    True));
          end if;
 
          --  Report how we found the project
-         Self.Project_Status.Set_Project_Type (LSP.Ada_Project_Loading.Configured_Project);
+         Self.Project_Status.Set_Project_Type
+           (LSP.Ada_Project_Loading.Configured_Project);
 
       elsif Is_Alire_Crate then
          Tracer.Trace ("Workspace is an Alire crate");
          Tracer.Trace ("Determining project from 'alr show' output");
 
          LSP.Alire.Determine_Alire_Project
-           (Root        => Self.Client.Root_Directory.Display_Full_Name,
-            Has_Alire   => Has_Alire,
-            Error       => Alire_Errors,
-            Project     => Project_File);
+           (Root      => Self.Client.Root_Directory.Display_Full_Name,
+            Has_Alire => Has_Alire,
+            Error     => Alire_Errors,
+            Project   => Project_File);
 
          if not Has_Alire then
             Tracer.Trace
@@ -196,7 +199,8 @@ package body LSP.Ada_Handlers.Project_Loading is
             Tracer.Trace_Text ("Encountered errors: " & Alire_Errors);
          else
             --  Report how we found the project
-            Self.Project_Status.Set_Project_Type (LSP.Ada_Project_Loading.Alire_Project);
+            Self.Project_Status.Set_Project_Type
+              (LSP.Ada_Project_Loading.Alire_Project);
          end if;
       end if;
 
@@ -205,7 +209,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          Tracer.Trace ("Looking for a unique project at the root");
          declare
             Files : GNATCOLL.VFS.File_Array_Access :=
-               Self.Client.Root_Directory.Read_Dir (GNATCOLL.VFS.Files_Only);
+              Self.Client.Root_Directory.Read_Dir (GNATCOLL.VFS.Files_Only);
             Found : GNATCOLL.VFS.Virtual_File;
          begin
             for X of Files.all loop
@@ -222,11 +226,13 @@ package body LSP.Ada_Handlers.Project_Loading is
                Project_File := LSP.Utils.To_Virtual_String (Found);
 
                --  Report how we found the project
-               Self.Project_Status.Set_Project_Type (LSP.Ada_Project_Loading.Single_Project_Found);
+               Self.Project_Status.Set_Project_Type
+                 (LSP.Ada_Project_Loading.Single_Project_Found);
 
                Tracer.Trace_Text ("Found unique project: " & Project_File);
             else
-               Tracer.Trace ("Found " & GPRs_Found'Image & " projects at the root");
+               Tracer.Trace
+                 ("Found " & GPRs_Found'Image & " projects at the root");
             end if;
          end;
       end if;
@@ -234,12 +240,18 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  At this stage we tried everything to find a project file. Now let's try to load.
       if not Project_File.Is_Empty then
          declare
-            Environment : GPR2.Environment.Object := GPR2.Environment.Process_Environment;
+            Environment : GPR2.Environment.Object :=
+              GPR2.Environment.Process_Environment;
 
             Charset : constant VSS.Strings.Virtual_String :=
-              (if not Self.Configuration.Charset.Is_Empty then Self.Configuration.Charset
-               elsif Is_Alire_Crate then VSS.Strings.Virtual_String'("utf-8")  --  Alire projects tend to prefer utf-8
-               else "iso-8859-1");
+              (if not Self.Configuration.Charset.Is_Empty
+               then Self.Configuration.Charset
+               elsif Is_Alire_Crate
+               then
+                 VSS.Strings.Virtual_String'
+                   ("utf-8")  --  Alire projects tend to prefer utf-8
+               else
+                 "iso-8859-1");
 
             Errors : VSS.Strings.Virtual_String;
          begin
@@ -248,16 +260,19 @@ package body LSP.Ada_Handlers.Project_Loading is
                   Tracer.Trace ("Setting environment from 'alr printenv'");
 
                   LSP.Alire.Setup_Alire_Env
-                    (Root        => Self.Client.Root_Directory.Display_Full_Name,
+                    (Root        =>
+                       Self.Client.Root_Directory.Display_Full_Name,
                      Has_Alire   => Has_Alire,
                      Error       => Errors,
                      Environment => Environment);
 
                   if not Errors.Is_Empty then
-                     Tracer.Trace_Text ("Encountered errors with Alire:" & LF & Errors);
+                     Tracer.Trace_Text
+                       ("Encountered errors with Alire:" & LF & Errors);
                   end if;
                else
-                  Tracer.Trace ("Alire environment is already set up. Not calling 'alr printenv'.");
+                  Tracer.Trace
+                    ("Alire environment is already set up. Not calling 'alr printenv'.");
                end if;
             end if;
 
@@ -277,7 +292,8 @@ package body LSP.Ada_Handlers.Project_Loading is
          Load_Implicit_Project
            (Self,
             (if GPRs_Found = 0 then LSP.Ada_Project_Loading.No_Project
-             elsif GPRs_Found > 1 then LSP.Ada_Project_Loading.Multiple_Projects
+             elsif GPRs_Found > 1
+             then LSP.Ada_Project_Loading.Multiple_Projects
              else LSP.Ada_Project_Loading.Project_Not_Found));
       end if;
 
@@ -285,6 +301,10 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  successfully loaded, or project loading failed and we created a dummy
       --  context to avoid retrying.
       pragma Assert (not Self.Contexts.Is_Empty);
+
+      --  Publish workspace diagnostics every time a project might have
+      --  been loaded/reloaded.
+      Self.Publish_Diagnostics (Force => True);
    end Ensure_Project_Loaded;
 
    ---------------------

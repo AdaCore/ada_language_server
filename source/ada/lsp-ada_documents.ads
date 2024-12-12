@@ -33,7 +33,7 @@ limited with LSP.Ada_Contexts;
 limited with LSP.Ada_Handlers;
 with LSP.Ada_Completions;
 with LSP.Constants;
-with LSP.Diagnostic_Sources;
+with LSP.Diagnostic_Sources; use LSP.Diagnostic_Sources;
 with LSP.Text_Documents.Langkit_Documents;
 with LSP.Search;
 with LSP.Structures;
@@ -52,12 +52,10 @@ package LSP.Ada_Documents is
      with Storage_Size => 0;
 
    procedure Initialize
-     (Self       : in out Document;
-      URI        : LSP.Structures.DocumentUri;
-      Text       : VSS.Strings.Virtual_String;
-      Diagnostic : LSP.Diagnostic_Sources.Diagnostic_Source_Access);
-   --  Create a new document from a TextDocumentItem. Use Diagnostic as
-   --  project status diagnostic source.
+     (Self : in out Document;
+      URI  : LSP.Structures.DocumentUri;
+      Text : VSS.Strings.Virtual_String);
+   --  Create a new document from a TextDocumentItem.
 
    procedure Cleanup (Self : in out Document);
    --  Free all the data associated to this document.
@@ -306,16 +304,13 @@ private
       "<"          => VSS.Strings."<",
       "="          => Name_Vectors."=");
 
-   type Diagnostic_Source_Array is array (Natural range <>) of
-     LSP.Diagnostic_Sources.Diagnostic_Source_Access;
-
    type Document (Tracer : not null LSP.Tracers.Tracer_Access) is
      new LSP.Text_Documents.Langkit_Documents.Langkit_Text_Document with record
       Symbol_Cache : Symbol_Maps.Map;
       --  Cache of all defining name symbol of the document.
       Refresh_Symbol_Cache : Boolean := False;
       --  Symbol_Cache rebuild is required before.
-      Diagnostic_Sources : Diagnostic_Source_Array (1 .. 2);
+      Diagnostic_Sources : Diagnostic_Source_Vectors.Vector;
       --  Known sources of diagnostics
    end record;
 

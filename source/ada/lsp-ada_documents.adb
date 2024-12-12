@@ -1132,18 +1132,16 @@ package body LSP.Ada_Documents is
    ----------------
 
    procedure Initialize
-     (Self       : in out Document;
-      URI        : LSP.Structures.DocumentUri;
-      Text       : VSS.Strings.Virtual_String;
-      Diagnostic : LSP.Diagnostic_Sources.Diagnostic_Source_Access) is
+     (Self : in out Document;
+      URI  : LSP.Structures.DocumentUri;
+      Text : VSS.Strings.Virtual_String) is
    begin
       LSP.Text_Documents.Constructors.Initialize (Self, URI, Text);
 
-      Self.Refresh_Symbol_Cache   := True;
-      Self.Diagnostic_Sources (1) := new
-        LSP.Ada_Documents.LAL_Diagnostics.Diagnostic_Source
-          (Self'Unchecked_Access);
-      Self.Diagnostic_Sources (2)  := Diagnostic;
+      Self.Refresh_Symbol_Cache := True;
+      Self.Diagnostic_Sources.Append
+        (new LSP.Ada_Documents.LAL_Diagnostics.Diagnostic_Source
+               (Self'Unchecked_Access));
    end Initialize;
 
    ----------------------
