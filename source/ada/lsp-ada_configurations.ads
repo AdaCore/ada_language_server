@@ -30,6 +30,9 @@ with GPR2.Path_Name;
 package LSP.Ada_Configurations is
 
    type Configuration is tagged private;
+   --  Type representing the server's configuration, containing all the
+   --  settings that can be set through the 'initialize' and
+   --  'didChangeConfiguration' notifications.
 
    function Needs_Reload
      (Self : Configuration; Other : Configuration'Class) return Boolean;
