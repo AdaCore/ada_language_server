@@ -11,7 +11,16 @@ import sys
 import urllib
 import urllib.parse
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Sequence, Type
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Literal,
+    Sequence,
+    Type,
+    TypedDict,
+)
+import uuid
 import warnings
 
 import attrs
@@ -36,6 +45,7 @@ from lsprotocol.types import (
     CallHierarchyItem,
     CallHierarchyPrepareParams,
     ClientCapabilities,
+    DidChangeConfigurationParams,
     DidOpenTextDocumentParams,
     ExecuteCommandParams,
     InitializeParams,
@@ -201,8 +211,45 @@ class ALSLanguageClientProtocol(LanguageClientProtocol):
         return super().connection_made(transport)
 
 
+class OnTypeFormattingSetting(TypedDict):
+    indentOnly: bool
+
+
+class ALSSettings(
+    TypedDict,
+    # This indicates that the dictionary keys can be omitted, they are not required to
+    # appear
+    total=False,
+):
+    """This class helps create a dictionary of ALS settings. It has to be manually
+    updated when new settings are added.
+
+    So if you see a missing setting that you need, consider adding it.
+    """
+
+    defaultCharset: str | None
+    displayMethodAncestryOnNavigation: bool | None
+    documentationStyle: Literal["gnat", "leading"] | None
+    enableDiagnostics: bool | None
+    enableIndexing: bool | None
+    foldComments: bool | None
+    followSymlinks: bool | None
+    insertWithClauses: bool | None
+    logThreshold: int | None
+    namedNotationThreshold: int | None
+    onTypeFormatting: OnTypeFormattingSetting | None
+    projectDiagnostics: bool | None
+    projectFile: str | None
+    relocateBuildTree: str | None
+    renameInComments: bool | None
+    rootDir: str | None
+    scenarioVariables: dict[str, str] | None
+    useCompletionSnippets: bool | None
+    useGnatformat: bool | None
+
+
 class ALSLanguageClient(LanguageClient):
-    """This class provides methods to communicate with a language server."""
+    """This class provides methods to communicate with the Ada Language Server."""
 
     def __init__(
         self,
@@ -214,6 +261,63 @@ class ALSLanguageClient(LanguageClient):
             kwargs["protocol_cls"] = ALSLanguageClientProtocol
 
         super().__init__(*args, configuration=configuration, **kwargs)
+
+    async def getObjectDir(self) -> str | None:
+        """Send the "als-object-dir" command to obtain the object dir of the currently
+        loaded project.
+        """
+        return await self.workspace_execute_command_async(
+            ExecuteCommandParams("als-object-dir")
+        )
+
+    async def getObjDirBasename(self) -> str | None:
+        """Send the "als-object-dir" command to obtain the object dir of the currently
+        loaded project, and return its basename.
+        """
+        obj_dir = await self.getObjectDir()
+        if obj_dir is not None:
+            return os.path.basename(obj_dir)
+        else:
+            return None
+
+    def didChangeConfig(self, settings: ALSSettings) -> None:
+        """Send a workspace/didChangeConfiguration notification with as set of ALS
+        settings.
+        """
+        self.workspace_did_change_configuration(
+            DidChangeConfigurationParams(settings={"ada": settings})
+        )
+
+    def didOpenVirtual(
+        self, uri: str | None = None, language_id="ada", version=0, text: str = ""
+    ) -> str:
+        """Send a didOpen notification for a file that doesn't exist on disk.
+
+        If the `uri` parameter is omitted, a random one is generated
+        automatically with a `.ads` extension.
+
+        :param uri: the URI of the file. If None, that will be automatically
+        generated and returned as a result of the call.
+        :param language_id: the language_id parameter of the LSP notification.
+        :param version: the version parameter of the LSP notification. Defaults
+        to 0.
+        :param text: the text parameter of the LSP notification.
+
+        :return: the URI of the document
+        """
+        if uri is None:
+            path = str(uuid.uuid4())
+            if language_id == "ada":
+                path += ".ads"
+            else:
+                path += "." + language_id
+            uri = URI(path)
+
+        self.text_document_did_open(
+            DidOpenTextDocumentParams(TextDocumentItem(uri, language_id, version, text))
+        )
+
+        return uri
 
 
 def als_client_factory() -> ALSLanguageClient:
@@ -647,13 +751,16 @@ def assertLocationsList(
 
 async def awaitIndexingEnd(lsp: LanguageClient):
     """Wait until the ALS finishes indexing."""
+    LOG.info("Awaiting indexing start and end")
+
     indexing_progress = None
     while indexing_progress is None:
         await asyncio.sleep(0.2)
-        LOG.info(
-            "Awaiting indexing progress - lsp.progress_reports = %s",
-            lsp.progress_reports,
-        )
+        if args.verbose >= 2:
+            LOG.debug(
+                "Awaiting indexing progress - lsp.progress_reports = %s",
+                lsp.progress_reports,
+            )
         indexing_progress = next(
             (prog for prog in lsp.progress_reports if "indexing" in str(prog)),
             None,
@@ -664,7 +771,8 @@ async def awaitIndexingEnd(lsp: LanguageClient):
     last_progress = lsp.progress_reports[indexing_progress][-1]
     while not isinstance(last_progress, WorkDoneProgressEnd):
         await asyncio.sleep(0.2)
-        LOG.info("Waiting for indexing end - last_progress = %s", last_progress)
+        if args.verbose >= 2:
+            LOG.debug("Waiting for indexing end - last_progress = %s", last_progress)
         last_progress = lsp.progress_reports[indexing_progress][-1]
 
     LOG.info("Received indexing end message")
