@@ -1,0 +1,6 @@
+{
+   "$schema": "../../../integration/vscode/ada/schemas/als-settings-schema.json",
+   "scenarioVariables": {
+      "Var": "value-from-config-file"
+   }
+}
