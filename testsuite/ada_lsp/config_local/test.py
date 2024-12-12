@@ -11,12 +11,11 @@ loaded, then p2.gpr is our success sentinel.
 Then the test queries for the current project to determine the success or failure.
 """
 
-from pytest_lsp import LanguageClient
-from drivers.pylsp import URI, assertEqual, getCurrentProject, test
+from drivers.pylsp import URI, ALSLanguageClient, assertEqual, test
 
 
 @test()
-async def func(lsp: LanguageClient) -> None:
-    response = await lsp.workspace_execute_command_async(getCurrentProject())
+async def func(lsp: ALSLanguageClient) -> None:
+    response = await lsp.getCurrentProject()
     assert response
     assertEqual(response, URI("non-root/p2.gpr"))

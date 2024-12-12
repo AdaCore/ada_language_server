@@ -38,7 +38,6 @@ from drivers.pylsp import (
     ALSLanguageClient,
     ALSSettings,
     assertEqual,
-    awaitIndexingEnd,
     test,
 )
 
@@ -68,18 +67,18 @@ async def test1(lsp: ALSLanguageClient) -> None:
     )
     # Because no project file was set, we need a didOpen to load the project
     lsp.didOpenVirtual()
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-init")
 
     # Now let's change the settings
     lsp.didChangeConfig({"scenarioVariables": {"Var": "new-value"}})
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "new-value")
 
     # Now we send a null value to revert to the base config which should be the config
     # file, not the initialize request.
     lsp.didChangeConfig({"scenarioVariables": None})
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-config-file")
 
 
@@ -99,17 +98,17 @@ async def test2(lsp: ALSLanguageClient) -> None:
     )
     # Because no project file was set, we need a didOpen to load the project
     lsp.didOpenVirtual()
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-init")
 
     # Now let's change the settings and revert back to see if we revert to the right
     # value.
     lsp.didChangeConfig({"scenarioVariables": {"Var": "new-value"}})
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "new-value")
 
     lsp.didChangeConfig({"scenarioVariables": None})
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-init")
 
 
@@ -130,7 +129,7 @@ async def test3(lsp: ALSLanguageClient) -> None:
     )
     # Because no project file was set, we need a didOpen to load the project
     lsp.didOpenVirtual()
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     # No value was provided for the scenario variable, so we should get the default
     # value defined in the project.
     assertEqual(await lsp.getObjDirBasename(), "value-from-prj")
@@ -138,11 +137,11 @@ async def test3(lsp: ALSLanguageClient) -> None:
     # Now let's change the settings and revert back to see if we revert to the right
     # value.
     lsp.didChangeConfig({"scenarioVariables": {"Var": "new-value"}})
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "new-value")
 
     lsp.didChangeConfig({"scenarioVariables": None})
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-prj")
 
 
@@ -158,7 +157,7 @@ async def test4(lsp: ALSLanguageClient) -> None:
     )
     # Because no project file was set, we need a didOpen to load the project
     lsp.didOpenVirtual()
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     # No value was provided for the scenario variable, so we should get the default
     # value defined in the project.
     assertEqual(await lsp.getObjDirBasename(), "value-from-prj")
@@ -168,14 +167,14 @@ async def test4(lsp: ALSLanguageClient) -> None:
     lsp.didChangeConfig(
         {"scenarioVariables": {"Var": "value-from-first-config-change"}}
     )
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-first-config-change")
 
     # Now we change to another value, and revert with a null value.
     lsp.didChangeConfig({"scenarioVariables": {"Var": "new-value"}})
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "new-value")
 
     lsp.didChangeConfig({"scenarioVariables": None})
-    await awaitIndexingEnd(lsp)
+    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-first-config-change")

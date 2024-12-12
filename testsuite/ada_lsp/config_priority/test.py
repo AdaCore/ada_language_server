@@ -17,9 +17,8 @@ import os
 from drivers.pylsp import (
     URI,
     ALSClientServerConfig,
-    LanguageClient,
+    ALSLanguageClient,
     assertEqual,
-    getCurrentProject,
     test,
 )
 
@@ -30,9 +29,9 @@ from drivers.pylsp import (
         server_env=os.environ | {"XDG_CONFIG_HOME": os.path.abspath("xdg_config_home")},
     )
 )
-async def test_global_local(lsp: LanguageClient) -> None:
+async def test_global_local(lsp: ALSLanguageClient) -> None:
     """Test that the local .als.json takes priority over the global config file"""
-    response = await lsp.workspace_execute_command_async(getCurrentProject())
+    response = await lsp.getCurrentProject()
     assertEqual(response, URI("non-root/p4.gpr"))
 
 
@@ -42,9 +41,9 @@ async def test_global_local(lsp: LanguageClient) -> None:
         server_env=os.environ | {"XDG_CONFIG_HOME": "some_non_existing_path"},
     )
 )
-async def test_local_cli(lsp: LanguageClient) -> None:
+async def test_local_cli(lsp: ALSLanguageClient) -> None:
     """Test that the CLI config file takes priority over the local .als.json one"""
-    response = await lsp.workspace_execute_command_async(getCurrentProject())
+    response = await lsp.getCurrentProject()
     assertEqual(response, URI("non-root/p2.gpr"))
 
 
@@ -54,7 +53,7 @@ async def test_local_cli(lsp: LanguageClient) -> None:
         server_env=os.environ | {"XDG_CONFIG_HOME": os.path.abspath("xdg_config_home")},
     )
 )
-async def test_all(lsp: LanguageClient) -> None:
+async def test_all(lsp: ALSLanguageClient) -> None:
     """Test that the CLI config file takes priority over both"""
-    response = await lsp.workspace_execute_command_async(getCurrentProject())
+    response = await lsp.getCurrentProject()
     assertEqual(response, URI("non-root/p2.gpr"))
