@@ -17,9 +17,8 @@ import os
 from drivers.pylsp import (
     URI,
     ALSClientServerConfig,
-    LanguageClient,
+    ALSLanguageClient,
     assertEqual,
-    getCurrentProject,
     test,
 )
 
@@ -29,7 +28,7 @@ from drivers.pylsp import (
         [os.environ.get("ALS", "ada_language_server"), "--config", "my_config.json"]
     )
 )
-async def test_func(lsp: LanguageClient) -> None:
-    response = await lsp.workspace_execute_command_async(getCurrentProject())
+async def test_func(lsp: ALSLanguageClient) -> None:
+    response = await lsp.getCurrentProject()
     assert response
     assertEqual(response, URI("non-root/p2.gpr"))

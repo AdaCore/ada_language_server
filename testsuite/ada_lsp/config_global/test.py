@@ -18,9 +18,8 @@ import os
 from drivers.pylsp import (
     URI,
     ALSClientServerConfig,
-    LanguageClient,
+    ALSLanguageClient,
     assertEqual,
-    getCurrentProject,
     test,
 )
 
@@ -31,7 +30,7 @@ from drivers.pylsp import (
         server_env=os.environ | {"XDG_CONFIG_HOME": os.path.abspath("xdg_config_home")},
     )
 )
-async def func(lsp: LanguageClient) -> None:
-    response = await lsp.workspace_execute_command_async(getCurrentProject())
+async def func(lsp: ALSLanguageClient) -> None:
+    response = await lsp.getCurrentProject()
     assert response
     assertEqual(response, URI("non-root/p2.gpr"))

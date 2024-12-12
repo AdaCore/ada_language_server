@@ -262,6 +262,60 @@ class ALSLanguageClient(LanguageClient):
 
         super().__init__(*args, configuration=configuration, **kwargs)
 
+    def debugHere(self, msg: str | None = None):
+        """Pause the test execution and print the PID of the ALS process in order to
+        attach a debugger. The test driver will ask the User to press Enter after the
+        debugger is attached to continue test execution.
+        """
+        import psutil
+
+        if not args.debug:
+            raise TestInfraError(
+                "Test must be run with --debug to use debugHere()",
+                print_backtrace=False,
+            )
+
+        if self._server is None:
+            raise TestInfraError(
+                "Server object is null. Cannot determine PID to debug."
+            )
+
+        server = psutil.Process(self._server.pid)
+        LOG.debug("Server process PID: %d, Name: %s", server.pid, server.name())
+
+        # The server can either be the ALS process, or the lsp-devtools process wrapping
+        # it
+        if "ada_language_server" in server.name():
+            LOG.debug("Server process is ALS")
+            pass
+        else:
+            LOG.debug("Server process is not ALS. Let's find ALS.")
+            # Find the child process of lsp-devtools that is the ALS
+            children = server.children(True)
+
+            if LOG.getEffectiveLevel() <= logging.DEBUG:
+                # Only compute this in verbose mode to avoid the overhead
+                children_info = "\n".join(f"   {p.pid}: {p.name()}" for p in children)
+                LOG.debug("Children processes:\n%s", children_info)
+
+            server = next((p for p in children if "ada_language_server" in p.name()))
+
+        if not msg:
+            msg = "## Debug point reached. Attach with:"
+        print(msg, file=sys.stderr)
+        print(f"    gdb -p {server.pid}", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("## Press Enter to continue", file=sys.stderr)
+        input()
+
+    async def getCurrentProject(self) -> str | None:
+        """Craft a request for the "als-project-file" command which queries for the
+        currently loaded project.
+        """
+        return await self.workspace_execute_command_async(
+            ExecuteCommandParams("als-project-file")
+        )
+
     async def getObjectDir(self) -> str | None:
         """Send the "als-object-dir" command to obtain the object dir of the currently
         loaded project.
@@ -318,6 +372,59 @@ class ALSLanguageClient(LanguageClient):
         )
 
         return uri
+
+    async def awaitIndexingEnd(self):
+        """Wait until the ALS finishes indexing."""
+        LOG.info("Awaiting indexing start and end")
+
+        indexing_progress = None
+        while indexing_progress is None:
+            await asyncio.sleep(0.2)
+            if args.verbose >= 2:
+                LOG.debug(
+                    "Awaiting indexing progress - lsp.progress_reports = %s",
+                    self.progress_reports,
+                )
+            indexing_progress = next(
+                (prog for prog in self.progress_reports if "indexing" in str(prog)),
+                None,
+            )
+
+        LOG.info("Received indexing progress token")
+
+        last_progress = self.progress_reports[indexing_progress][-1]
+        while not isinstance(last_progress, WorkDoneProgressEnd):
+            await asyncio.sleep(0.2)
+            if args.verbose >= 2:
+                LOG.debug(
+                    "Waiting for indexing end - last_progress = %s", last_progress
+                )
+            last_progress = self.progress_reports[indexing_progress][-1]
+
+        LOG.info("Received indexing end message")
+
+    def assertNoLSPErrors(self):
+        """Assert that no Error-level log messages have been received by the LSP client
+        so far.
+        """
+        errors = [m for m in self.log_messages if m.type == MessageType.Error]
+        if errors:
+            msg = "\n### Found LSP Errors ###\n" + to_str(errors)
+            raise AssertionError(msg)
+
+    async def prepareCallHierarchy(
+        self, uri: str, line_one_based: int, char_one_based: int
+    ):
+        return await self.text_document_prepare_call_hierarchy_async(
+            callHierarchyPrepareParams(uri, line_one_based, char_one_based)
+        )
+
+    async def callHierarchyIncomingCalls(
+        self, uri: str, line_one_based: int, char_on_based: int
+    ):
+        return await self.call_hierarchy_incoming_calls_async(
+            callHierarchyIncomingCallsParams(uri, line_one_based, char_on_based)
+        )
 
 
 def als_client_factory() -> ALSLanguageClient:
@@ -475,7 +582,7 @@ def test(
             assert client
 
             if args.debug:
-                debugHere(client, "## We're about to start the test. Attach with:")
+                client.debugHere("## We're about to start the test. Attach with:")
 
             if initialize:
                 await client.initialize_session(
@@ -494,7 +601,7 @@ def test(
 
             if assert_no_lsp_errors:
                 # Assert the absence of Error LSP log messages
-                assertNoLSPErrors(client)
+                client.assertNoLSPErrors()
         finally:
             try:
                 if client:
@@ -749,45 +856,6 @@ def assertLocationsList(
     )
 
 
-async def awaitIndexingEnd(lsp: LanguageClient):
-    """Wait until the ALS finishes indexing."""
-    LOG.info("Awaiting indexing start and end")
-
-    indexing_progress = None
-    while indexing_progress is None:
-        await asyncio.sleep(0.2)
-        if args.verbose >= 2:
-            LOG.debug(
-                "Awaiting indexing progress - lsp.progress_reports = %s",
-                lsp.progress_reports,
-            )
-        indexing_progress = next(
-            (prog for prog in lsp.progress_reports if "indexing" in str(prog)),
-            None,
-        )
-
-    LOG.info("Received indexing progress token")
-
-    last_progress = lsp.progress_reports[indexing_progress][-1]
-    while not isinstance(last_progress, WorkDoneProgressEnd):
-        await asyncio.sleep(0.2)
-        if args.verbose >= 2:
-            LOG.debug("Waiting for indexing end - last_progress = %s", last_progress)
-        last_progress = lsp.progress_reports[indexing_progress][-1]
-
-    LOG.info("Received indexing end message")
-
-
-def assertNoLSPErrors(lsp: LanguageClient):
-    """Assert that no Error-level log messages have been received by the LSP client so
-    far.
-    """
-    errors = [m for m in lsp.log_messages if m.type == MessageType.Error]
-    if errors:
-        msg = "\n### Found LSP Errors ###\n" + to_str(errors)
-        raise AssertionError(msg)
-
-
 class TestInfraError(Exception):
 
     def __init__(
@@ -795,49 +863,3 @@ class TestInfraError(Exception):
     ) -> None:
         super().__init__(msg, *args)
         self.print_backtrace = print_backtrace
-
-
-def debugHere(lsp: LanguageClient, msg: str | None = None):
-    import psutil
-
-    if not args.debug:
-        raise TestInfraError(
-            "Test must be run with --debug to use debugHere()", print_backtrace=False
-        )
-
-    if lsp._server is None:
-        raise TestInfraError("Server object is null. Cannot determine PID to debug.")
-
-    server = psutil.Process(lsp._server.pid)
-    LOG.debug("Server process PID: %d, Name: %s", server.pid, server.name())
-
-    # The server can either be the ALS process, or the lsp-devtools process wrapping it
-    if "ada_language_server" in server.name():
-        LOG.debug("Server process is ALS")
-        pass
-    else:
-        LOG.debug("Server process is not ALS. Let's find ALS.")
-        # Find the child process of lsp-devtools that is the ALS
-        children = server.children(True)
-
-        if LOG.getEffectiveLevel() <= logging.DEBUG:
-            # Only compute this in verbose mode to avoid the overhead
-            children_info = "\n".join(f"   {p.pid}: {p.name()}" for p in children)
-            LOG.debug("Children processes:\n%s", children_info)
-
-        server = next((p for p in children if "ada_language_server" in p.name()))
-
-    if not msg:
-        msg = "## Debug point reached. Attach with:"
-    print(msg, file=sys.stderr)
-    print(f"    gdb -p {server.pid}", file=sys.stderr)
-    print("", file=sys.stderr)
-    print("## Press Enter to continue", file=sys.stderr)
-    input()
-
-
-def getCurrentProject() -> ExecuteCommandParams:
-    """Craft a request for the "als-project-file" command which queries for the
-    currently loaded project.
-    """
-    return ExecuteCommandParams("als-project-file")
