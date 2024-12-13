@@ -1,44 +1,37 @@
-from drivers.lsp_python_driver import LSP, complex_test
-from drivers.lsp_ada_requests import (
-    didOpen_from_disk,
-    prepareCallHierarchy,
-    incomingCalls,
-    initialize,
-    initialized,
-    didChangeConfiguration,
-)
 import os
 
+from drivers.pylsp import URI, ALSLanguageClient, test
+from lsprotocol.types import ClientCapabilities, InitializedParams, InitializeParams
 
-# Use a complex_test rather than a simple_test
-# so we can inspect the results of initialize()
-@complex_test
-def test_called_by(wd) -> list[str] | None:
-    program = os.environ.get("ALS", "ada_language_server")
-    lsp = LSP(program, wd)
+
+# Use initialize=False so we can inspect the results of the initialize request
+@test(initialize=False)
+async def test_called_by(lsp: ALSLanguageClient) -> None:
     # Send the initialize request
-    response = lsp.send(initialize())
+    response = await lsp.initialize_session(
+        InitializeParams(ClientCapabilities(), root_uri=URI(os.getcwd()))
+    )
     # Verify that the right capability is advertised
-    response.assertField("capabilities.callHierarchyProvider", True)
+    lsp.assertEqual(response.capabilities.call_hierarchy_provider, True)
 
     # Send the initialized notification and the didChangeConfiguration notification
-    lsp.send(initialized())
-    lsp.send(didChangeConfiguration())
-    # Send a didOpen for main.adb
-    main_adb = os.path.join(wd, "main.adb")
-    p_adb = os.path.join(wd, "p.adb")
+    lsp.initialized(InitializedParams())
+    lsp.didChangeConfig({})
 
-    lsp.send(didOpen_from_disk(main_adb))
+    # Send a didOpen for main.adb
+    main_adb = lsp.didOpenFile("main.adb")
 
     # Send a textDocument/prepareCallHierarchy request
-    response = lsp.send(prepareCallHierarchy(main_adb, 3, 44))
-    response.assertLocationsList([("p.adb", 2)])
+    res1 = await lsp.prepareCallHierarchy(main_adb, 3, 44)
+    lsp.assertLocationsList(res1, [("p.adb", 2)])
 
     # Now send the callHierarchy/incomingCalls request
-    response = lsp.send(incomingCalls(p_adb, 2, 14))
+    p_adb = URI("p.adb")
+    res2 = await lsp.callHierarchyIncomingCalls(p_adb, 2, 14)
 
     # Expect these locations
-    response.assertLocationsList(
+    lsp.assertLocationsList(
+        res2,
         [
             ("main.adb", 10),
             ("main.adb", 14),
@@ -46,7 +39,5 @@ def test_called_by(wd) -> list[str] | None:
             ("main.adb", 2),
             ("p.ads", 1),
             ("p.adb", 8),
-        ]
+        ],
     )
-    lsp.shutdown()
-    return []
