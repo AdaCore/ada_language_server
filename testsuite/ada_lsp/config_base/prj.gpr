@@ -1,0 +1,3 @@
+project Prj is
+    for Object_Dir use external("Var", "value-from-prj");
+end Prj;

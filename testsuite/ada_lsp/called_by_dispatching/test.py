@@ -4,8 +4,6 @@ from drivers.pylsp import (
     URI,
     ALSLanguageClient,
     assertLocationsList,
-    callHierarchyIncomingCallsParams,
-    callHierarchyPrepareParams,
     didOpenTextDocumentParams,
     test,
 )
@@ -19,18 +17,14 @@ async def test_called_by(lsp: ALSLanguageClient):
     lsp.text_document_did_open(open_params)
 
     # Send a textDocument/prepareCallHierarchy request
-    result1 = await lsp.text_document_prepare_call_hierarchy_async(
-        callHierarchyPrepareParams(main_adb_uri, 7, 4)
-    )
+    result1 = await lsp.prepareCallHierarchy(main_adb_uri, 7, 4)
     assert result1
 
     # Expect these locations
     assertLocationsList(result1, [("root.ads", 5)])
 
     # Now send the callHierarchy/incomingCalls request
-    result2 = await lsp.call_hierarchy_incoming_calls_async(
-        callHierarchyIncomingCallsParams(root_ads_uri, 5, 14)
-    )
+    result2 = await lsp.callHierarchyIncomingCalls(root_ads_uri, 5, 14)
     assert result2
 
     # Expect these locations

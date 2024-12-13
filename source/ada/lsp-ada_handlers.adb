@@ -438,6 +438,8 @@ package body LSP.Ada_Handlers is
          To_Virtual_String (ALS_Workspace_Config_File),
          To_Virtual_String (CLI_Config_File)];
 
+      Config_File_Processed : Boolean := False;
+      New_Configuration     : LSP.Ada_Configurations.Configuration;
    begin
       for F_Path of Candidates loop
          if not F_Path.Is_Empty then
@@ -448,7 +450,8 @@ package body LSP.Ada_Handlers is
                Self.Tracer.Trace_Text ("Trying config file: " & F_Path);
                if F.Is_Regular_File then
                   Self.Tracer.Trace_Text ("Loading config file: " & F_Path);
-                  Self.Configuration.Read_File (F_Path);
+                  New_Configuration.Read_File (F_Path);
+                  Config_File_Processed := True;
                else
                   Self.Tracer.Trace_Text (F_Path & " doesn't exist");
                end if;
@@ -461,16 +464,20 @@ package body LSP.Ada_Handlers is
       --  overwritten if a value is provided in the initialize request.
       --  Prioritize the config file given on the CLI.
       if CLI_Config_File.Is_Regular_File then
-         Self.Client.Set_Root_If_Empty (To_Virtual_String (CLI_Config_File.Dir));
+         Self.Client.Set_Root_If_Empty
+           (To_Virtual_String (CLI_Config_File.Dir));
       elsif ALS_Workspace_Config_File.Is_Regular_File then
-         Self.Client.Set_Root_If_Empty (
-            To_Virtual_String (ALS_Workspace_Config_File.Get_Parent));
+         Self.Client.Set_Root_If_Empty
+           (To_Virtual_String (ALS_Workspace_Config_File.Get_Parent));
       end if;
 
-      --  Save the initial configuration so that we can restore individual
-      --  settings back to the initial state when 'onDidChangeConfiguration'
-      --  provides null values.
-      Self.Base_Configuration := Self.Configuration;
+      --  Set it as the current configuration.
+      --  This will also save it as the initial configuration so that
+      --  we can restore individual settings back to the initial state when
+      --  'onDidChangeConfiguration' provides null values.
+      if Config_File_Processed then
+         Self.Set_Configuration (New_Configuration);
+      end if;
    end Load_Config_Files;
 
    -------------------
@@ -2425,7 +2432,19 @@ package body LSP.Ada_Handlers is
          --           ...
          --        }
          --     }
-         Self.Configuration.Read_JSON (Value.initializationOptions);
+         declare
+            New_Configuration : LSP.Ada_Configurations.Configuration;
+         begin
+            --  Parse the configuration.
+            New_Configuration.Read_JSON (Value.initializationOptions);
+
+            --  Set it as the current configuration.
+            --  This will also save it as the initial configuration (if not done
+            --  yet through config files) so that we can restore individual
+            --  settings back to the initial state when
+            --  'onDidChangeConfiguration' provides null values.
+            Self.Set_Configuration (New_Configuration);
+         end;
 
          --  We don't load the project here because we can't send progress
          --  notifications to the client before receiving the 'initialized'
@@ -3783,6 +3802,14 @@ package body LSP.Ada_Handlers is
       Value : LSP.Ada_Configurations.Configuration'Class) is
    begin
       Self.Configuration := LSP.Ada_Configurations.Configuration (Value);
+
+      --  The base configuration is still the default one, meaning that
+      --  we did not receive any user configuration previously: use
+      --  the new configuration as the base one.
+      if not Self.Base_Configuration_Received then
+         Self.Base_Configuration := Self.Configuration;
+         Self.Base_Configuration_Received := True;
+      end if;
    end Set_Configuration;
 
    -----------------------
