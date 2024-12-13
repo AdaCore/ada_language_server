@@ -1,2 +1,1 @@
-title: 'called_by'
-driver: python
+driver: pylsp
