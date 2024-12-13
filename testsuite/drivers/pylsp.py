@@ -392,14 +392,20 @@ class ALSLanguageClient(LanguageClient):
 
         LOG.info("Received indexing progress token")
 
-        last_progress = self.progress_reports[indexing_progress][-1]
+        last_progress = None
         while not isinstance(last_progress, WorkDoneProgressEnd):
             await asyncio.sleep(0.2)
             if args.verbose >= 2:
                 LOG.debug(
                     "Waiting for indexing end - last_progress = %s", last_progress
                 )
-            last_progress = self.progress_reports[indexing_progress][-1]
+            # Initially the list of progress messages is empty, so check the length
+            # before reading
+            last_progress = (
+                self.progress_reports[indexing_progress][-1]
+                if self.progress_reports[indexing_progress]
+                else None
+            )
 
         LOG.info("Received indexing end message")
 
