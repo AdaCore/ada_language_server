@@ -1,12 +1,10 @@
 on:
-  push:
-    tags:
-      - 2*.*.*
+  workflow_call:
   workflow_dispatch:
 
 name: Build binaries
 env:
-  DEFAULT_TAG: 24.0.999
+  DEFAULT_TAG: 26.0.999
 jobs:
   build:
     name: Build and deploy

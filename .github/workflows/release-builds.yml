@@ -1,0 +1,11 @@
+name: Release builds
+
+on:
+    push:
+        tags:
+          - 2*.*.*
+
+jobs:
+  call-workflow:
+    uses: AnthonyLeonardoGracio/ada_language_server/.github/workflows/build-binaries.yml@master
+    secrets: inherit

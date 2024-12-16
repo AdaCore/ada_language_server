@@ -1,0 +1,11 @@
+name: Scheduled builds
+
+on:
+ # Schedule builds everyday a 9:30 UTC, skipping week-ends
+ schedule:
+    - cron:  '30 9 * * 2,4'
+
+jobs:
+  call-workflow:
+    uses: AnthonyLeonardoGracio/ada_language_server/.github/workflows/build-binaries.yml@master
+    secrets: inherit
