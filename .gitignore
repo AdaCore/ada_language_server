@@ -79,6 +79,7 @@ celerybeat-schedule
 .env
 
 # virtualenv
+.venv/
 venv/
 ENV/
 
@@ -103,4 +104,6 @@ testsuite/.als/inout.txt
 # Temporary testsuite's files and directories
 testsuite/ada_lsp/project_symlinks/link
 
-out
+# Temporary and output directories of e3-testsuite
+tmp/
+out/

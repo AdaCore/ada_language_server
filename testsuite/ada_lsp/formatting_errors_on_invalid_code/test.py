@@ -3,6 +3,8 @@ Test that texDocument/formatting and textDocument/rangeFormatting requests
 return errors when the code is syntactically invalid.
 """
 
+import pygls.exceptions
+from drivers.pylsp import ALSLanguageClient, assertEqual, test
 from lsprotocol.types import (
     DidChangeConfigurationParams,
     DocumentFormattingParams,
@@ -12,20 +14,12 @@ from lsprotocol.types import (
     Range,
     TextDocumentIdentifier,
 )
-import pygls.exceptions
-from drivers.pylsp import (
-    ALSLanguageClient,
-    didOpenTextDocumentParams,
-    test,
-    assertEqual,
-)
 
 
 @test()
 async def test_called_by(lsp: ALSLanguageClient):
     # Send a didOpen for main.adb
-    open_params, main_adb_uri = didOpenTextDocumentParams("main.adb")
-    lsp.text_document_did_open(open_params)
+    main_adb_uri = lsp.didOpenFile("main.adb")
 
     # Test with GNATformat formatting backend
     lsp.workspace_did_change_configuration(

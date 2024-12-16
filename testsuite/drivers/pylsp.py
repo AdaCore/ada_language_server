@@ -10,35 +10,19 @@ import shlex
 import sys
 import urllib
 import urllib.parse
-from pathlib import Path
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Literal,
-    Sequence,
-    Type,
-    TypedDict,
-)
 import uuid
 import warnings
+from pathlib import Path
+from typing import Any, Awaitable, Callable, Literal, Sequence, Type, TypedDict
 
 import attrs
 import lsprotocol.converters
 import lsprotocol.types
-from lsprotocol import types
-from pygls.client import JsonRPCClient
-from pygls.protocol import default_converter
-from pytest_lsp import (
-    ClientServerConfig,
-    LanguageClient,
-    LanguageClientProtocol,
-    LspSpecificationWarning,
-)
 from drivers import ALSTestDriver
 from e3.os.process import Run, command_line_image
 from e3.testsuite.driver.classic import ProcessResult, TestAbortWithFailure
 from e3.testsuite.result import TestStatus
+from lsprotocol import types
 from lsprotocol.types import (
     CallHierarchyIncomingCall,
     CallHierarchyIncomingCallsParams,
@@ -56,6 +40,14 @@ from lsprotocol.types import (
     TextDocumentIdentifier,
     TextDocumentItem,
     WorkDoneProgressEnd,
+)
+from pygls.client import JsonRPCClient
+from pygls.protocol import default_converter
+from pytest_lsp import (
+    ClientServerConfig,
+    LanguageClient,
+    LanguageClientProtocol,
+    LspSpecificationWarning,
 )
 
 LOG = logging.getLogger(__name__)
@@ -342,6 +334,21 @@ class ALSLanguageClient(LanguageClient):
             DidChangeConfigurationParams(settings={"ada": settings})
         )
 
+    def didOpenFile(self, src_path: Path | str, language_id="ada", version=0) -> str:
+        """Send a textDocument/didOpen notification for a file on disk. The content of
+        the file is automatically read and sent in the notification. The URI is returned
+        for later use in other requests about the file.
+        """
+        uri = URI(src_path)
+
+        self.text_document_did_open(
+            DidOpenTextDocumentParams(
+                TextDocumentItem(uri, language_id, version, Path(src_path).read_text())
+            )
+        )
+
+        return uri
+
     def didOpenVirtual(
         self, uri: str | None = None, language_id="ada", version=0, text: str = ""
     ) -> str:
@@ -392,14 +399,20 @@ class ALSLanguageClient(LanguageClient):
 
         LOG.info("Received indexing progress token")
 
-        last_progress = self.progress_reports[indexing_progress][-1]
+        last_progress = None
         while not isinstance(last_progress, WorkDoneProgressEnd):
             await asyncio.sleep(0.2)
             if args.verbose >= 2:
                 LOG.debug(
                     "Waiting for indexing end - last_progress = %s", last_progress
                 )
-            last_progress = self.progress_reports[indexing_progress][-1]
+            # Initially the list of progress messages is empty, so check the length
+            # before reading
+            last_progress = (
+                self.progress_reports[indexing_progress][-1]
+                if self.progress_reports[indexing_progress]
+                else None
+            )
 
         LOG.info("Received indexing end message")
 
@@ -416,15 +429,41 @@ class ALSLanguageClient(LanguageClient):
         self, uri: str, line_one_based: int, char_one_based: int
     ):
         return await self.text_document_prepare_call_hierarchy_async(
-            callHierarchyPrepareParams(uri, line_one_based, char_one_based)
+            CallHierarchyPrepareParams(
+                TextDocumentIdentifier(uri), Pos(line_one_based, char_one_based)
+            )
         )
 
     async def callHierarchyIncomingCalls(
-        self, uri: str, line_one_based: int, char_on_based: int
+        self, uri: str, line_one_based: int, char_one_based: int
     ):
+        rng = RangeZero(line_one_based, char_one_based)
         return await self.call_hierarchy_incoming_calls_async(
-            callHierarchyIncomingCallsParams(uri, line_one_based, char_on_based)
+            CallHierarchyIncomingCallsParams(
+                CallHierarchyItem(
+                    name="",
+                    kind=SymbolKind.Function,
+                    uri=uri,
+                    range=rng,
+                    selection_range=rng,
+                )
+            )
         )
+
+    def assertEqual(self, actual: Any, expected: Any) -> None:
+        """Raise an AssertionError if actual != expected."""
+        assertEqual(actual, expected)
+
+    def assertLocationsList(
+        self,
+        actual: Sequence[CallHierarchyItem | CallHierarchyIncomingCall],
+        expected: list[tuple[str, int]],
+    ) -> None:
+        """Assert the content of a list of results from a CallHierarchy or
+        CallHierarchyIncomingCall request. Expected results are given as a list of
+        (<basename>, <line-one-based>) tuples.
+        """
+        assertLocationsList(actual, expected)
 
 
 def als_client_factory() -> ALSLanguageClient:
@@ -744,16 +783,6 @@ def do_main():
     run_test_file(args.test_py_path)
 
 
-def callHierarchyPrepareParams(
-    src_uri: str, line_one_based: int, char_one_based: int
-) -> CallHierarchyPrepareParams:
-    """Shortcut for creating a CallHierarchyPrepareParams object."""
-    return CallHierarchyPrepareParams(
-        TextDocumentIdentifier(src_uri),
-        Pos(line_one_based, char_one_based),
-    )
-
-
 def Pos(line_one_based: int, char_one_based: int):
     """Shortcut for creating a Position object with ONE-BASED locations."""
     return Position(line_one_based - 1, char_one_based - 1)
@@ -765,24 +794,6 @@ def RangeZero(line_one_based: int, char_one_based: int):
     """
     pos = Pos(line_one_based, char_one_based)
     return Range(pos, pos)
-
-
-def callHierarchyIncomingCallsParams(
-    src_uri: str, line_one_based: int, char_one_based: int
-) -> CallHierarchyIncomingCallsParams:
-    """Shortcut for creating a CallHierarchyIncomingCallsParams object."""
-    rng = RangeZero(line_one_based, char_one_based)
-    param = CallHierarchyIncomingCallsParams(
-        item=CallHierarchyItem(
-            name="",
-            kind=SymbolKind.Function,
-            uri=src_uri,
-            range=rng,
-            selection_range=rng,
-        )
-    )
-
-    return param
 
 
 def didOpenTextDocumentParams(
@@ -804,7 +815,7 @@ def URI(src_path: Path | str) -> str:
     """Create a URI for the given file path."""
     src_abs = Path(src_path).resolve()
 
-    # Replace backslashs with forward slashes to avoid too much quoting in URIs
+    # Replace back slashes with forward slashes to avoid too much quoting in URIs
     src_abs_str = str(src_abs).replace("\\", "/")
 
     quoted = urllib.parse.quote(src_abs_str)
