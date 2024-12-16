@@ -67,18 +67,15 @@ async def test1(lsp: ALSLanguageClient) -> None:
     )
     # Because no project file was set, we need a didOpen to load the project
     lsp.didOpenVirtual()
-    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-init")
 
     # Now let's change the settings
     lsp.didChangeConfig({"scenarioVariables": {"Var": "new-value"}})
-    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "new-value")
 
     # Now we send a null value to revert to the base config which should be the config
     # file, not the initialize request.
     lsp.didChangeConfig({"scenarioVariables": None})
-    await lsp.awaitIndexingEnd()
     assertEqual(await lsp.getObjDirBasename(), "value-from-config-file")
 
 
