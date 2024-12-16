@@ -285,6 +285,13 @@
                         "description": "GPR project file (*.gpr) for this workspace.\n\nIt is recommended to set this to a relative path starting at the root of the workspace.",
                         "order": 0
                     },
+                    "ada.gprConfigurationFile": {
+                        "scope": "window",
+                        "type": "string",
+                        "default": null,
+                        "description": "GPR configuration file (*.cgpr) for this workspace.\n\nIt is recommended to set this to a relative path starting at the root of the workspace.",
+                        "order": 0
+                    },
                     "ada.scenarioVariables": {
                         "scope": "window",
                         "type": "object",

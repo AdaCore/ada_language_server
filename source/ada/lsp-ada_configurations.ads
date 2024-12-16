@@ -60,6 +60,10 @@ package LSP.Ada_Configurations is
      (Self : Configuration'Class) return VSS.Strings.Virtual_String;
    --  The project file, if provided by the user on Configuration/Init
 
+   function GPR_Configuration_File
+     (Self : Configuration'Class) return VSS.Strings.Virtual_String;
+   --  The configuration file, if provided by the user on Configuration/Init
+
    function Charset
      (Self : Configuration'Class) return VSS.Strings.Virtual_String;
    --  A character set for Libadalang
@@ -149,6 +153,7 @@ private
 
    type Configuration is tagged record
       Project_File                : VSS.Strings.Virtual_String;
+      GPR_Configuration_File      : VSS.Strings.Virtual_String;
       Charset                     : VSS.Strings.Virtual_String;
       Relocate_Build_Tree         : VSS.Strings.Virtual_String;
       Relocate_Root               : VSS.Strings.Virtual_String;
@@ -181,6 +186,10 @@ private
    function Project_File
      (Self : Configuration'Class) return VSS.Strings.Virtual_String is
        (Self.Project_File);
+
+   function GPR_Configuration_File
+     (Self : Configuration'Class) return VSS.Strings.Virtual_String is
+       (Self.GPR_Configuration_File);
 
    function Charset
      (Self : Configuration'Class) return VSS.Strings.Virtual_String is

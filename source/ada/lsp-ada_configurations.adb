@@ -227,6 +227,11 @@ package body LSP.Ada_Configurations is
          then
             Self.Project_File := JSON (Index).String_Value;
 
+         elsif Name = "gprConfigurationFile"
+           and then JSON (Index).Kind = String_Value
+         then
+            Self.GPR_Configuration_File := JSON (Index).String_Value;
+
          elsif Name = "projectDiagnostics"
            and then JSON (Index).Kind = Boolean_Value
          then
