@@ -1,6 +1,9 @@
 #!/bin/bash
 
-set -e -x
+# Stop on errors
+set -e
+# Make execution verbose
+set -x
 
 STEP=${1:-all}
 TAG=$2                # For master it's 24.0.999, while for tag it's the tag itself
@@ -10,6 +13,17 @@ NODE_ARCH_PLATFORM=$3 # Empty - autodetect with `node`, otherwise one of:
 # x64/darwin
 # x64/linux
 # x64/win32
+
+MYPATH=$(realpath "$0")
+MYDIRPATH=$(dirname "$MYPATH")
+ROOT=$(dirname "$MYDIRPATH")
+
+# Switch to the root of the ALS repository
+cd "$ROOT"
+
+# Configure Alire to use a local cache because we will need to copy shared
+# libraries from there
+alr settings --global --set dependencies.shared false
 
 # Crates to pin from GitHub repo
 
@@ -49,9 +63,6 @@ branch_gnatformat=edge
 branch_libgpr2=next
 branch_prettier_ada=main
 
-# A temporary file for langkit setevn
-SETENV=$PWD/subprojects/libadalang/setenv.sh
-
 # Set `prod` build mode
 ########################
 # for adasat,gnatformat,lal,langkit,lal_refactor,laltools,markdown,spawn
@@ -62,6 +73,19 @@ export GPR_BUILD=production
 export GPR2_BUILD=release
 export VSS_BUILD_PROFILE=release
 export PRETTIER_ADA_BUILD_MODE=prod
+
+function activate_venv() {
+   [ -d "$ROOT/.venv" ] || python -m venv "$ROOT/.venv"
+   case "$NODE_ARCH_PLATFORM" in
+   *win32*)
+      subdir=Scripts
+      ;;
+   *)
+      subdir=bin
+      ;;
+   esac
+   source "$ROOT/.venv/$subdir/activate"
+}
 
 # Install custom Alire index with missing crates
 function install_index() {
@@ -94,9 +118,17 @@ function pin_crates() {
 
       URL="https://github.com/AdaCore/${repo:-$crate}.git"
       if [ ! -d "subprojects/$crate" ]; then
+         # If the checkout doesn't exist, clone
          git clone "$URL" "subprojects/$crate"
-         git -C "subprojects/$crate" checkout "${commit:-${branch:-master}}"
+      else
+         # This script makes some changes in files of dependency checkouts to
+         # make the build work with Alire. Stash them to avoid interference
+         # with the next Git commands.
+         git -C "subprojects/$crate" stash
+         # If the checkout exists, reuse the directory but fetch the new history
+         git -C "subprojects/$crate" fetch origin
       fi
+      git -C "subprojects/$crate" checkout "${commit:-${branch:-master}}"
       cp -v "subprojects/$crate".toml "subprojects/$crate/alire.toml"
       alr --force --non-interactive pin "$crate" "--use=$PWD/subprojects/$crate"
    done
@@ -104,58 +136,97 @@ function pin_crates() {
    alr exec alr -- action -r post-fetch # Configure XmlAda, etc
 }
 
-# Build langkit shared libraries required to generate libadalang.
-# Export setenv to $SETENV
-# Clean `.ali` and `.o` to avoid static vis relocatable mess
-function build_so_raw() {
-   cd subprojects/langkit_support
-   echo "GPR_PROJECT_PATH=$GPR_PROJECT_PATH"
-   sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
-   pip install .
-   python manage.py make --no-mypy --generate-auto-dll-dirs \
-      --library-types=relocatable --gargs "-cargs -fPIC"
-   python manage.py setenv >"$SETENV"
-   cd -
-   find . -name '*.o' -delete
-   find . -name '*.ali' -delete
+# Build langkit which is required to generate libadalang.
+#
+# The idea is to build langkit in the form of an installable wheel that
+# contains all the dynamic libraries of dependencies such that Python can
+# easily find everything at runtime. This avoids the security limitation of
+# macOS not propagating DYLD_LIBRARY_PATH to child processes.
+function build_langkit_raw() {
+   (
+      # Use a sub-shell to preserve the parent PWD
+      cd subprojects/langkit_support
+
+      echo "GPR_PROJECT_PATH=$GPR_PROJECT_PATH"
+
+      # Adjust the scenario variable for libgpr2
+      sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
+
+      # Install e3-binarydata which is needed for packaging langkit as a wheel
+      pip install git+https://github.com/AdaCore/e3-binarydata.git#egg=e3-binarydata
+
+      # Install base langkit support Python library
+      pip install .
+
+      # Create a directory where langkit will be installed
+      prefix_dir=$PWD/lkt-install
+      rm -rf "$prefix_dir"
+      mkdir -p "$prefix_dir"
+      # Create a temporary dir used during the creation of the langkit wheel
+      tmp_dir=$PWD/lkt-tmp
+      rm -rf "$tmp_dir"
+      mkdir -p "$tmp_dir"
+      # Create a directory where all shared libraries that langkit depends on will
+      # be copied prior to the creation of the wheel
+      dep_lib_dir="$PWD/dep-libs"
+      rm -rf "$dep_lib_dir"
+      mkdir -p "$dep_lib_dir"
+
+      # This builds langkit, as well as all the library projects of the dependencies
+      python manage.py build-langkit-support \
+         --library-types=relocatable
+      python manage.py install-langkit-support "$prefix_dir" \
+         --library-types=relocatable
+
+      # Now we have to collect all the shared libraries that langkit depends on.
+
+      # First we copy the libraries from the GNAT installation.
+      # Find the gnat installation directory
+      gnat_prefix=$(dirname "$(dirname "$(which gnat)")")
+      # Copy the libraries. Exclude paths with dSYM on macOS because those have .dylib homonyms with debug symbols.
+      find "$gnat_prefix" -name "${OS_LIB_PREFIX}gnarl*${OS_LIB_EXT}" -not -path "*dSYM*" -exec cp -v {} "$dep_lib_dir" \;
+      find "$gnat_prefix" -name "${OS_LIB_PREFIX}gnat*${OS_LIB_EXT}" -not -path "*dSYM*" -exec cp -v {} "$dep_lib_dir" \;
+
+      # Alire projects are either in the als/alire/cache directory, or in
+      # als/subprojects
+      find ../../alire/cache/dependencies .. -name "*${OS_LIB_EXT}" -exec cp -v {} "$dep_lib_dir" \;
+
+      # Next build and install langkit
+      (cd contrib/lkt && ./manage.py make --library-types=relocatable --disable-all-mains)
+      (cd contrib/lkt && ./manage.py install "$prefix_dir" \
+         --library-types=relocatable --disable-all-mains)
+
+      # Finally build the wheel, including all the dependency libraries
+      (cd contrib/lkt && ./manage.py create-wheel \
+         --with-python=python \
+         "$prefix_dir" \
+         "$tmp_dir" \
+         "$dep_lib_dir" \
+         "$prefix_dir")
+
+      # And now install the resulting wheel into the Python environment
+      pip install "$prefix_dir"/*.whl --force-reinstall
+   )
 }
 
-# Run build_so_raw in Alire environment
-function build_so() {
-   LIBRARY_PATH=relocatable alr exec bash -- "$0" build_so_raw
+# Run build_langkit_raw in Alire environment
+function build_langkit() {
+   # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
+   # all the dependencies.
+   alr exec bash -- -x "$0" build_langkit_raw
 }
 
 # Build ALS with alire
 function build_als() {
-   ADALIB=$(alr exec gcc -- -print-libgcc-file-name)
+   # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
+   # all the dependencies.
+   LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" all
+}
 
-   if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
-      ADALIB=$(cygpath -u "$ADALIB")
-      # Fix setenv.sh to be bash script for MSYS2 by replacing
-      #  1) C:\ -> /C/  2) '\' -> '/' and ';' -> ':' 3) ": export" -> "; export"
-      sed -i -e 's#\([A-Z]\):\\#/\1/#g' -e 'y#\\;#/:#' -e 's/: export /; export /' "$SETENV"
-      cat "$SETENV"
-      # libgcc_s_seh-1.dll is already in PATH
-
-   elif [[ $NODE_ARCH_PLATFORM == "x64/linux" ]]; then
-      NEW_PATH=$(dirname "$(alr exec gcc -- -print-file-name=libgcc_s.so.1)")
-   else
-      NEW_PATH=$(dirname "$(alr exec gcc -- -print-file-name=libgcc_s.dylib.1)")
-   fi
-
-   ADALIB=$(dirname "$ADALIB")/adalib
-   DEPS=$PWD/alire/cache/dependencies
-   NEW_PATH=$ADALIB:$NEW_PATH
-
-   for ITEM in $DEPS/*/{iconv,gmp,schema,dom,sax,input_sources,unicode}; do
-      [ -d "$ITEM" ] && NEW_PATH=$ITEM/lib/relocatable:$NEW_PATH
-   done
-
-   echo "NEW_PATH=$NEW_PATH"
-   export DYLD_LIBRARY_PATH=$NEW_PATH:$DYLD_LIBRARY_PATH
-   export PATH=$NEW_PATH":$PATH"
-   # Let's ignore make check exit code until it is stable
-   LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" check || true
+function test_als() {
+   pip install -r "$ROOT/testsuite/requirements-ci.txt"
+   export ALS="$ROOT/.obj/server/ada_language_server"
+   alr exec python -- "$ROOT/testsuite/testsuite.py"
 }
 
 # Find the path to libgmp as linked in the given executable
@@ -186,6 +257,24 @@ if [[ -z "$NODE_ARCH_PLATFORM" ]]; then
 fi
 
 ALS_EXEC_DIR=integration/vscode/ada/$NODE_ARCH_PLATFORM
+
+case "$NODE_ARCH_PLATFORM" in
+*darwin*)
+   OS_LIB_PREFIX="lib"
+   OS_EXE_EXT=""
+   OS_LIB_EXT=".dylib"
+   ;;
+*win*)
+   OS_LIB_PREFIX=""
+   OS_EXE_EXT=".exe"
+   OS_LIB_EXT=".dll"
+   ;;
+*)
+   OS_LIB_PREFIX="lib"
+   OS_EXE_EXT=""
+   OS_LIB_EXT=".so"
+   ;;
+esac
 
 function fix_rpath() {
    if [ "$RUNNER_OS" = macOS ]; then
@@ -230,14 +319,18 @@ function strip_debug() {
    cd -
 }
 
+# Always activate the Python venv first
+activate_venv
+
 case $STEP in
 all)
    install_index
    pin_crates
-   build_so
+   build_langkit
    build_als
    fix_rpath
    strip_debug
+   test_als
    ;;
 
 install_index)
@@ -248,16 +341,20 @@ pin_crates)
    pin_crates
    ;;
 
-build_so)
-   build_so
+build_langkit)
+   build_langkit
    ;;
 
-build_so_raw)
-   build_so_raw
+build_langkit_raw)
+   build_langkit_raw
    ;;
 
 build_als)
    build_als
+   ;;
+
+test_als)
+   test_als
    ;;
 
 fix_rpath)

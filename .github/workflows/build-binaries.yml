@@ -79,8 +79,6 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          alr settings --global --set dependencies.shared false
-          pip3 install e3-testsuite
           scripts/build_als.sh all "$TAG"
       - name: Build ALS with cross (Linux)
         if: ${{ runner.os == 'Linux' }}
