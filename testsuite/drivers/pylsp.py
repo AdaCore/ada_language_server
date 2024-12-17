@@ -232,6 +232,7 @@ class ALSSettings(
     onTypeFormatting: OnTypeFormattingSetting | None
     projectDiagnostics: bool | None
     projectFile: str | None
+    gprConfigurationFile: str | None
     relocateBuildTree: str | None
     renameInComments: bool | None
     rootDir: str | None

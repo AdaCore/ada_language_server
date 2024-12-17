@@ -7,6 +7,11 @@
             "type": "string",
             "description": "GPR project file (*.gpr) for this workspace.\n\nIt is recommended to set this to a relative path starting at the root of the workspace."
         },
+        "gprConfigurationFile": {
+            "type": "string",
+            "default": null,
+            "description": "GPR configuration file (*.cgpr) for this workspace.\n\nIt is recommended to set this to a relative path starting at the root of the workspace."
+        },
         "scenarioVariables": {
             "type": "object",
             "default": {},
