@@ -66,6 +66,9 @@ jobs:
             aws s3 cp s3://adacore-gha-tray-eu-west-1/toolchain/aarch64-Linux-gmp-6.2.1.tar.bz2 . --sse=AES256
             sudo tar xjf aarch64-Linux-gcc-14.2.tar.bz2  -C /
             sudo tar xjf aarch64-Linux-gmp-6.2.1.tar.bz2 -C /
+        # This step can fail on personal forks that don't have credentials for
+        # AWS. Allow failure so that the non-cross build still gets performed.
+        continue-on-error: true
       - name: Fetch dependency commits numbers
         shell: bash
         if: ${{ env.TAG != env.DEFAULT_TAG }}
