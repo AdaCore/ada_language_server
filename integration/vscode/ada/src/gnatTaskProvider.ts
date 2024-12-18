@@ -41,7 +41,7 @@ interface TaskProperties {
     description?: string;
     // Use project and scenario args. Treated as true if unspecified.
     projectArgs?: boolean;
-    // Use -cargs:ada -gnatef to obtain full paths in diagnostics. Treated as true if unspecified.
+    // Use -cargs -gnatef to obtain full paths in diagnostics. Treated as true if unspecified.
     diagnosticArgs?: boolean;
 }
 
@@ -330,7 +330,7 @@ export async function computeProject(): Promise<string> {
 } // Call commonArgs on args and append `-gnatef` to generate full file names in errors/warnings
 
 export const getDiagnosticArgs = (): string[] => {
-    const p_gnatef = ['-cargs:ada', '-gnatef'];
+    const p_gnatef = ['-cargs', '-gnatef'];
     return p_gnatef;
 };
 export function getScenarioArgs() {
