@@ -202,10 +202,7 @@ function build_langkit_raw() {
 
          # Alire projects are either in the als/alire/cache directory, or in
          # als/subprojects.
-         #
-         # Use -P to not follow symbolic links
-         # Use * suffix to cover e.g. libgnatcoll_iconv.so.24.0.0
-         find ../../alire/cache/dependencies .. -name "${OS_LIB_PREFIX}*${OS_LIB_EXT}*" -exec cp -v -P {} "$dep_lib_dir" \;
+         find ../../alire/cache/dependencies .. -name "${OS_LIB_PREFIX}*${OS_LIB_EXT}" -exec cp -v {} "$dep_lib_dir" \;
          ;;
       esac
 
@@ -273,7 +270,6 @@ function build_langkit() {
 function set_langkit_usage_env() {
    case "$NODE_ARCH_PLATFORM" in
    *linux*)
-      echo "Hello!"
       lib_path_prefix=$PWD/subprojects/langkit_support/contrib/lkt/build/lib/relocatable
       export LD_LIBRARY_PATH="$lib_path_prefix/dev:$lib_path_prefix/prod:$LD_LIBRARY_PATH"
       ;;
@@ -429,5 +425,10 @@ fix_rpath)
 
 strip_debug)
    strip_debug
+   ;;
+
+*)
+   echo "Unrecognized step: $STEP"
+   exit 1
    ;;
 esac
