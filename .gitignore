@@ -24,7 +24,7 @@ var/
 .installed.cfg
 *.egg
 
-# Subprojects checkouts setup by ANCR
+# Subprojects checkouts setup by ANCR or the scripts/build_als.sh script
 subprojects/
 
 # PyInstaller
