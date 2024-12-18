@@ -38,6 +38,7 @@ package body LSP.Ada_Request_Jobs is
               (Client'Unchecked_Access);
          begin
             Self.Request.Visit_Server_Receiver (R);
+            Status := LSP.Server_Jobs.Done;
          end;
    end Execute_Request;
 
