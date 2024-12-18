@@ -67,13 +67,13 @@ ada: Build and run main - src/test.adb
     test('Ada task command lines', async function () {
         const expectedCmdLines = `
 ada: Clean current project - gprclean -P ${projectPath}
-ada: Build current project - gprbuild -P ${projectPath} -cargs:ada -gnatef
-ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
-ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} -cargs:ada -gnatef
+ada: Build current project - gprbuild -P ${projectPath} -cargs -gnatef
+ada: Check current file - gprbuild -q -f -c -u -gnatc -P ${projectPath} \${fileBasename} -cargs -gnatef
+ada: Compile current file - gprbuild -q -f -c -u -P ${projectPath} \${fileBasename} -cargs -gnatef
 ada: Generate documentation from the project - gnatdoc -P ${projectPath}
-ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs:ada -gnatef
+ada: Build main - src/main1.adb - gprbuild -P ${projectPath} src/main1.adb -cargs -gnatef
 ada: Run main - src/main1.adb - .${path.sep}obj${path.sep}main1exec${exe}
-ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb -cargs:ada -gnatef
+ada: Build main - src/test.adb - gprbuild -P ${projectPath} src/test.adb -cargs -gnatef
 ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 `.trim();
 
@@ -167,7 +167,7 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
                 args: [
                     '${command:ada.gprProjectArgs}',
                     '--no-object-check',
-                    '-cargs:ada',
+                    '-cargs',
                     '-gnatef',
                 ],
                 label: 'ada: Build current project',
@@ -195,7 +195,7 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
             // The '--no-object-check' switch has been added to the 'ada: Build current project'
             // predefined task in the workspace's tasks.json file: check that it's indeed present
             // in the returned task's command line.
-            const expectedCmd = `gprbuild -P ${projectPath} --no-object-check -cargs:ada -gnatef`;
+            const expectedCmd = `gprbuild -P ${projectPath} --no-object-check -cargs -gnatef`;
 
             assert.strictEqual(actualCmd, expectedCmd);
         } finally {

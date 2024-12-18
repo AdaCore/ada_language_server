@@ -706,7 +706,7 @@ async function buildTestDriver(run: vscode.TestRun) {
      */
     const driverPrjPath = await getGnatTestDriverProjectPath();
     run.appendOutput(`Building the test harness project\r\n`);
-    const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath, '-cargs:ada', '-gnatef']);
+    const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath, '-cargs', '-gnatef']);
 
     prepareAndAppendOutput(run, gprbuild.stdout.toLocaleString());
     prepareAndAppendOutput(run, gprbuild.stderr.toLocaleString());

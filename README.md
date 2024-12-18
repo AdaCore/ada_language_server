@@ -234,7 +234,7 @@ by providing extra tool command line options via the `args` property of the obje
          "command": "gprbuild",
          "args": [
             "${command:ada.gprProjectArgs}",
-            "-cargs:ada",
+            "-cargs",
             "-gnatef",
             "-gargs",
             "-vh"
@@ -258,7 +258,7 @@ You can also customize the working directory of the task or the environment vari
          "command": "gprbuild",
          "args": [
             "${command:ada.gprProjectArgs}",
-            "-cargs:ada",
+            "-cargs",
             "-gnatef"
          ],
          "options": {
