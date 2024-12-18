@@ -17,6 +17,7 @@ NODE_ARCH_PLATFORM=$3 # Empty - autodetect with `node`, otherwise one of:
 MYPATH=$(realpath "$0")
 MYDIRPATH=$(dirname "$MYPATH")
 ROOT=$(dirname "$MYDIRPATH")
+VENV_PATH="$ROOT/.venv"
 
 # Switch to the root of the ALS repository
 cd "$ROOT"
@@ -75,7 +76,7 @@ export VSS_BUILD_PROFILE=release
 export PRETTIER_ADA_BUILD_MODE=prod
 
 function activate_venv() {
-   [ -d "$ROOT/.venv" ] || python -m venv "$ROOT/.venv"
+   [ -d "$VENV_PATH" ] || python -m venv "$VENV_PATH"
    case "$NODE_ARCH_PLATFORM" in
    *win32*)
       subdir=Scripts
@@ -84,7 +85,7 @@ function activate_venv() {
       subdir=bin
       ;;
    esac
-   source "$ROOT/.venv/$subdir/activate"
+   source "$VENV_PATH/$subdir/activate"
 }
 
 # Install custom Alire index with missing crates
@@ -152,8 +153,12 @@ function build_langkit_raw() {
       # Adjust the scenario variable for libgpr2
       sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
 
-      # Install e3-binarydata which is needed for packaging langkit as a wheel
-      pip install git+https://github.com/AdaCore/e3-binarydata.git#egg=e3-binarydata
+      case "$NODE_ARCH_PLATFORM" in
+      *darwin*)
+         # Install e3-binarydata which is needed for packaging langkit as a wheel
+         pip install git+https://github.com/AdaCore/e3-binarydata.git#egg=e3-binarydata
+         ;;
+      esac
 
       # Install base langkit support Python library
       pip install .
@@ -178,25 +183,33 @@ function build_langkit_raw() {
       python manage.py install-langkit-support "$prefix_dir" \
          --library-types=relocatable
 
-      # Now we have to collect all the shared libraries that langkit depends on.
-
-      # First we copy the libraries from the GNAT installation.
-      # Find the gnat installation directory
-      gnat_prefix=$(dirname "$(dirname "$(which gnat)")")
-      # Copy the libraries. Exclude paths with dSYM on macOS because those have .dylib homonyms with debug symbols.
-      find "$gnat_prefix" -name "${OS_LIB_PREFIX}gnarl*${OS_LIB_EXT}" -not -path "*dSYM*" -exec cp -v {} "$dep_lib_dir" \;
-      find "$gnat_prefix" -name "${OS_LIB_PREFIX}gnat*${OS_LIB_EXT}" -not -path "*dSYM*" -exec cp -v {} "$dep_lib_dir" \;
-
-      # Alire projects are either in the als/alire/cache directory, or in
-      # als/subprojects
-      find ../../alire/cache/dependencies .. -name "*${OS_LIB_EXT}" -exec cp -v {} "$dep_lib_dir" \;
-
       # Next build and install langkit
       (cd contrib/lkt && ./manage.py make --library-types=relocatable --disable-all-mains)
       (cd contrib/lkt && ./manage.py install "$prefix_dir" \
          --library-types=relocatable --disable-all-mains)
 
-      # Finally build the wheel, including all the dependency libraries
+      case "$NODE_ARCH_PLATFORM" in
+      *darwin*)
+         # on macOS, we want to copy all dependency libraries into the wheel to
+         # avoid relying on DYLD_LIBRARY_PATH which has security restrictions.
+
+         # First we copy the libraries from the GNAT installation.
+         # Find the gnat installation directory
+         gnat_prefix=$(dirname "$(dirname "$(which gnat)")")
+         # Copy the libraries. Exclude paths with dSYM on macOS because those have .dylib homonyms with debug symbols.
+         find "$gnat_prefix" -name "${OS_LIB_PREFIX}gnarl*${OS_LIB_EXT}" -not -path "*dSYM*" -exec cp -v {} "$dep_lib_dir" \;
+         find "$gnat_prefix" -name "${OS_LIB_PREFIX}gnat*${OS_LIB_EXT}" -not -path "*dSYM*" -exec cp -v {} "$dep_lib_dir" \;
+
+         # Alire projects are either in the als/alire/cache directory, or in
+         # als/subprojects.
+         #
+         # Use -P to not follow symbolic links
+         # Use * suffix to cover e.g. libgnatcoll_iconv.so.24.0.0
+         find ../../alire/cache/dependencies .. -name "${OS_LIB_PREFIX}*${OS_LIB_EXT}*" -exec cp -v -P {} "$dep_lib_dir" \;
+         ;;
+      esac
+
+      # Finally build the wheel
       (cd contrib/lkt && ./manage.py create-wheel \
          --with-python=python \
          "$prefix_dir" \
@@ -206,18 +219,71 @@ function build_langkit_raw() {
 
       # And now install the resulting wheel into the Python environment
       pip install "$prefix_dir"/*.whl --force-reinstall
+
+      case "$NODE_ARCH_PLATFORM" in
+      *linux*)
+         # On Linux shared libraries are not built with the right RPATH entries
+         # to make them movable. So we delete the installed library and instead
+         # use LD_LIBRARY_PATH to resolve it. See set_langkit_usage_env().
+         find "$VENV_PATH" -name "liblktlang.so" -delete
+         ;;
+      esac
    )
 }
+
+# # This function modified PATH and LD_LIBRARY_PATH so that libraries built by
+# # Alire become visible. In particular, this is needed when importing liblktlang
+# # (langkit) in Python to be able to load all libraries.
+# function setup_library_path() {
+#    ADALIB=$(alr exec gcc -- -print-libgcc-file-name)
+
+#    if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
+#       ADALIB=$(cygpath -u "$ADALIB")
+#    elif [[ $NODE_ARCH_PLATFORM == "x64/linux" ]]; then
+#       NEW_PATH=$(dirname "$(alr exec gcc -- -print-file-name=libgcc_s.so.1)")
+#    else
+#       NEW_PATH=$(dirname "$(alr exec gcc -- -print-file-name=libgcc_s.dylib.1)")
+#    fi
+
+#    ADALIB=$(dirname "$ADALIB")/adalib
+#    DEPS=$PWD/alire/cache/dependencies
+#    NEW_PATH=$ADALIB:$NEW_PATH
+
+#    for ITEM in "$DEPS"/*/{iconv,gmp,schema,dom,sax,input_sources,unicode}; do
+#       [ -d "$ITEM" ] && NEW_PATH=$ITEM/lib/relocatable:$NEW_PATH
+#    done
+
+#    echo "NEW_PATH=$NEW_PATH"
+#    export DYLD_LIBRARY_PATH=$NEW_PATH:$DYLD_LIBRARY_PATH
+#    export LD_LIBRARY_PATH=$NEW_PATH:$LD_LIBRARY_PATH
+#    export PATH=$NEW_PATH":$PATH"
+# }
 
 # Run build_langkit_raw in Alire environment
 function build_langkit() {
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
    alr exec bash -- -x "$0" build_langkit_raw
+
+   # Check if the langkit build was successful
+   set_langkit_usage_env
+   python -c 'import liblktlang'
+}
+
+function set_langkit_usage_env() {
+   case "$NODE_ARCH_PLATFORM" in
+   *linux*)
+      echo "Hello!"
+      lib_path_prefix=$PWD/subprojects/langkit_support/contrib/lkt/build/lib/relocatable
+      export LD_LIBRARY_PATH="$lib_path_prefix/dev:$lib_path_prefix/prod:$LD_LIBRARY_PATH"
+      ;;
+   esac
 }
 
 # Build ALS with alire
 function build_als() {
+   set_langkit_usage_env
+
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
    LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" all
