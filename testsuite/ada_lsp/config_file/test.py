@@ -18,8 +18,9 @@ from lsprotocol.types import (
     Location,
 )
 
-# create default.cgpr configuration file that will use sjlj runtime
-subprocess.check_call(["gprconfig", "--batch", "--config=Ada,,sjlj,,GNAT"])
+
+# create default.cgpr configuration file that will use not-default runtime
+subprocess.check_call(["gprconfig", "--batch", "--config=Ada,,light,,GNAT"])
 
 
 @test()
@@ -42,7 +43,7 @@ async def do_testing(lsp: ALSLanguageClient) -> None:
     # Check result
     assert result
     assert isinstance(result, Location)
-    assertEqual("sjlj" in result.uri, True)
+    assertEqual("light" in result.uri, True)
 
     # Check relative to root paths
     lsp.didChangeConfig(
@@ -62,4 +63,4 @@ async def do_testing(lsp: ALSLanguageClient) -> None:
     # Check result
     assert result
     assert isinstance(result, Location)
-    assertEqual("sjlj" in result.uri, True)
+    assertEqual("light" in result.uri, True)
