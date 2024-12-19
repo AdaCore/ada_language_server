@@ -261,9 +261,9 @@ procedure LSP.Ada_Driver is
    Server      : aliased LSP.Servers.Server;
    Stream      : aliased LSP.Stdio_Streams.Stdio_Stream;
    Ada_Handler : aliased LSP.Ada_Handlers.Message_Handler
-     (Server'Access, Server'Access, Tracer'Unchecked_Access);
+     (Server'Unchecked_Access, Server'Access, Tracer'Unchecked_Access);
    GPR_Handler : aliased LSP.GPR_Handlers.Message_Handler
-     (Server'Access, Tracer'Unchecked_Access);
+     (Server'Unchecked_Access, Tracer'Unchecked_Access);
 
    --  Job handlers
    Ada_Did_Change_Handler : aliased

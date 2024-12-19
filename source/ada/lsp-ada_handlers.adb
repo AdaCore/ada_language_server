@@ -88,7 +88,6 @@ with LSP.Formatters.Texts;
 with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
 with LSP.Search;
-with LSP.Servers;
 with LSP.Servers.FS_Watch;
 with LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
@@ -397,7 +396,7 @@ package body LSP.Ada_Handlers is
    ----------------
 
    procedure Initialize
-     (Self                     : access Message_Handler'Class;
+     (Self                     : in out Message_Handler;
       Incremental_Text_Changes : Boolean;
       CLI_Config_File          : GNATCOLL.VFS.Virtual_File :=
         GNATCOLL.VFS.No_File)
@@ -407,7 +406,8 @@ package body LSP.Ada_Handlers is
       Self.File_Monitor :=
         new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
       Self.Diagnostic_Sources :=
-         [new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source (Self)];
+         [new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
+           (Self'Unchecked_Access)];
 
       Self.Load_Config_Files (CLI_Config_File);
    end Initialize;
