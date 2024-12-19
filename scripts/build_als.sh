@@ -131,8 +131,18 @@ function pin_crates() {
       fi
       git -C "subprojects/$crate" checkout "${commit:-${branch:-master}}"
       cp -v "subprojects/$crate".toml "subprojects/$crate/alire.toml"
-      alr --force --non-interactive pin "$crate" "--use=$PWD/subprojects/$crate"
+
+      # Instead of calling `alr pin` for each crate, it's more efficient to
+      # append the necessary text in alire.toml and call `alr update` once at
+      # the end.
+      cat >>"$PWD/alire.toml" <<EOF
+[[pins]]
+$crate = { path='subprojects/$crate' }
+
+EOF
    done
+
+   alr --force --non-interactive update
 
    alr exec alr -- action -r post-fetch # Configure XmlAda, etc
 }
