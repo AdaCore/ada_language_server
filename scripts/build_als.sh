@@ -199,7 +199,7 @@ function build_langkit_raw() {
          --library-types=relocatable --disable-all-mains)
 
       case "$NODE_ARCH_PLATFORM" in
-      *darwin*)
+      *win32*|*darwin*)
          # on macOS, we want to copy all dependency libraries into the wheel to
          # avoid relying on DYLD_LIBRARY_PATH which has security restrictions.
 
@@ -239,34 +239,6 @@ function build_langkit_raw() {
       esac
    )
 }
-
-# # This function modified PATH and LD_LIBRARY_PATH so that libraries built by
-# # Alire become visible. In particular, this is needed when importing liblktlang
-# # (langkit) in Python to be able to load all libraries.
-# function setup_library_path() {
-#    ADALIB=$(alr exec gcc -- -print-libgcc-file-name)
-
-#    if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
-#       ADALIB=$(cygpath -u "$ADALIB")
-#    elif [[ $NODE_ARCH_PLATFORM == "x64/linux" ]]; then
-#       NEW_PATH=$(dirname "$(alr exec gcc -- -print-file-name=libgcc_s.so.1)")
-#    else
-#       NEW_PATH=$(dirname "$(alr exec gcc -- -print-file-name=libgcc_s.dylib.1)")
-#    fi
-
-#    ADALIB=$(dirname "$ADALIB")/adalib
-#    DEPS=$PWD/alire/cache/dependencies
-#    NEW_PATH=$ADALIB:$NEW_PATH
-
-#    for ITEM in "$DEPS"/*/{iconv,gmp,schema,dom,sax,input_sources,unicode}; do
-#       [ -d "$ITEM" ] && NEW_PATH=$ITEM/lib/relocatable:$NEW_PATH
-#    done
-
-#    echo "NEW_PATH=$NEW_PATH"
-#    export DYLD_LIBRARY_PATH=$NEW_PATH:$DYLD_LIBRARY_PATH
-#    export LD_LIBRARY_PATH=$NEW_PATH:$LD_LIBRARY_PATH
-#    export PATH=$NEW_PATH":$PATH"
-# }
 
 # Run build_langkit_raw in Alire environment
 function build_langkit() {
