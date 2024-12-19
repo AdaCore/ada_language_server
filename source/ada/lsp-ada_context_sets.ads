@@ -47,11 +47,12 @@ package LSP.Ada_Context_Sets is
    --  Reload each context in the set
 
    function Get_Best_Context
-     (Self : Context_Set'Class;
-      URI  : LSP.Structures.DocumentUri) return Context_Access;
+     (Self : Context_Set'Class; URI : LSP.Structures.DocumentUri)
+      return Context_Access;
    --  Return the first context in Contexts which contains a project
-   --  which knows about file. Return the first context if no such
-   --  context was found.
+   --  which knows about file.
+   --  If the file is not a known by any project context, return a
+   --  fallback context not linked to any project subtree.
 
    function Total_Source_Files (Self : Context_Set'Class) return Natural;
    --  Number of files in all contexts
@@ -95,12 +96,19 @@ private
       "="             => "=");
 
    type Context_Set is tagged limited record
-      Contexts           : Context_Lists.List;
+      Contexts : Context_Lists.List;
+      --  The list of all contexts.
 
-      Map                : Maps.Map;
-      --  A map from Context.Id to Context access
+      Fallback_Context : Context_Access;
+      --  The fallback context used for files that do not belong
+      --  to any project's subtree.
 
-      Total              : Natural := 0;
+      Map      : Maps.Map;
+      --  A map from Context.Id to Context access.
+
+      Total    : Natural := 0;
+      --  The total number of source files known by all the contexts stored
+      --  in this set.
    end record;
 
 end LSP.Ada_Context_Sets;

@@ -545,6 +545,8 @@ package body LSP.Ada_Contexts is
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String
         ("iso-8859-1");
       Self.Reader_Reference := Create_File_Reader_Reference (File_Reader);
+
+      --  Tab stop is set 1 to disable "visible character guessing" by LAL.
       Self.LAL_Context := Libadalang.Analysis.Create_Context
         (Unit_Provider => Self.Unit_Provider,
          File_Reader   => Self.Reader_Reference,
@@ -552,10 +554,15 @@ package body LSP.Ada_Contexts is
          Charset       => Self.Get_Charset,
          Tab_Stop      => 1);
       Self.Style := Style;
-
-      --  Tab stop is set 1 to disable "visible character guessing" by LAL.
       Self.Is_Fallback_Context := As_Fallback_Context;
    end Initialize;
+
+   -------------------------
+   -- Is_Fallback_Context --
+   -------------------------
+
+   function Is_Fallback_Context (Self : Context) return Boolean
+   is (Self.Is_Fallback_Context);
 
    ------------------------
    -- Is_Part_Of_Project --
@@ -565,8 +572,7 @@ package body LSP.Ada_Contexts is
      (Self : Context;
       URI : LSP.Structures.DocumentUri) return Boolean is
    begin
-      return Self.Is_Fallback_Context
-        or else Self.Source_Files.Contains (Self.URI_To_File (URI));
+      return Self.Is_Part_Of_Project (Self.URI_To_File (URI));
    end Is_Part_Of_Project;
 
    ------------------------
@@ -577,8 +583,7 @@ package body LSP.Ada_Contexts is
      (Self : Context;
       File : Virtual_File) return Boolean is
    begin
-      return Self.Is_Fallback_Context
-        or else Self.Source_Files.Contains (File);
+      return Self.Source_Files.Contains (File);
    end Is_Part_Of_Project;
 
    ------------------

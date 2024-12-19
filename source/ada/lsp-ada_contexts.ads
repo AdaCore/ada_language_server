@@ -91,10 +91,11 @@ package LSP.Ada_Contexts is
    procedure Find_All_References
      (Self       : Context;
       Definition : Libadalang.Analysis.Defining_Name;
-      Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
-         Kind    : Libadalang.Common.Ref_Result_Kind;
-         Cancel  : in out Boolean));
+      Callback   :
+        not null access procedure
+          (Base_Id : Libadalang.Analysis.Base_Id;
+           Kind    : Libadalang.Common.Ref_Result_Kind;
+           Cancel  : in out Boolean));
    --  Finds all references to a given defining name in all units of the
    --  context.
 
@@ -124,10 +125,11 @@ package LSP.Ada_Contexts is
    procedure Find_All_Calls
      (Self       : Context;
       Definition : Libadalang.Analysis.Defining_Name;
-      Callback   : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
-         Kind    : Libadalang.Common.Ref_Result_Kind;
-         Cancel  : in out Boolean));
+      Callback   :
+        not null access procedure
+          (Base_Id : Libadalang.Analysis.Base_Id;
+           Kind    : Libadalang.Common.Ref_Result_Kind;
+           Cancel  : in out Boolean));
    --  Return all the enclosing entities that call Definition in all sources
    --  known to this project.
 
@@ -147,43 +149,55 @@ package LSP.Ada_Contexts is
      (Self              : Context;
       Definition        : Libadalang.Analysis.Defining_Name;
       Imprecise_Results : out Boolean;
-      Callback          : not null access procedure
-        (Base_Id : Libadalang.Analysis.Base_Id;
-         Kind    : Libadalang.Common.Ref_Result_Kind;
-         Cancel  : in out Boolean));
+      Callback          :
+        not null access procedure
+          (Base_Id : Libadalang.Analysis.Base_Id;
+           Kind    : Libadalang.Common.Ref_Result_Kind;
+           Cancel  : in out Boolean));
    --  Get all the references to a given defining name in all units for
    --  renaming purposes: for instance, when called on a tagged type primitive
    --  definition, references to the base subprograms it inherits and to the
    --  overriding ones are also returned.
 
-   function Is_Part_Of_Project
-     (Self : Context;
-      URI  : LSP.Structures.DocumentUri) return Boolean;
-   --  Check if given file belongs to the project loaded in the Context
+   function Is_Fallback_Context (Self : Context) return Boolean;
+   --  Return true if the given context is used as a fallback (i.e: used for files
+   --  that do not belong to any known project subtree).
 
    function Is_Part_Of_Project
-     (Self : Context;
-      File : GNATCOLL.VFS.Virtual_File) return Boolean;
-   --  Check if given file belongs to the project loaded in the Context
+     (Self : Context; URI : LSP.Structures.DocumentUri) return Boolean;
+   --  Check if the file designated by the given URI belongs to the project
+   --  loaded in the Context.
+   --  This returns False for fallback contexts, since fallback contexts
+   --  are not linked to any project subtree.
 
-   function List_Files (Self : Context'CLass)
-     return LSP.Ada_File_Sets.File_Sets.Set_Iterator_Interfaces
-       .Reversible_Iterator'Class;
+   function Is_Part_Of_Project
+     (Self : Context; File : GNATCOLL.VFS.Virtual_File) return Boolean;
+   --  Check if given file belongs to the project loaded in the Context.
+   --  This returns False for fallback contexts, since fallback contexts
+   --  are not linked to any project subtree.
+
+   function List_Files
+     (Self : Context'CLass)
+      return LSP
+               .Ada_File_Sets
+               .File_Sets
+               .Set_Iterator_Interfaces
+               .Reversible_Iterator'Class;
    --  Return the list of files known to this context.
 
    function File_Count (Self : Context) return Natural;
    --  Return number of files known to this context.
 
-   function Get_PP_Options (Self : Context) return
-     Utils.Command_Lines.Command_Line;
+   function Get_PP_Options
+     (Self : Context) return Utils.Command_Lines.Command_Line;
    --  Return the command line for the Pretty Printer
 
    function Get_Format_Options
      (Self : Context) return Gnatformat.Configuration.Format_Options_Type;
    --  Return the formatting options for Gnatformat
 
-   function Get_Documentation_Style (Self : Context) return
-     GNATdoc.Comments.Options.Documentation_Style;
+   function Get_Documentation_Style
+     (Self : Context) return GNATdoc.Comments.Options.Documentation_Style;
    --  Get the documentation style used for this context.
 
    function Analysis_Units
@@ -191,8 +205,7 @@ package LSP.Ada_Contexts is
    --  Return the analysis units for all Ada sources known to this context
 
    function List_Source_Directories
-     (Self                     : Context;
-      Include_Externally_Built : Boolean := False)
+     (Self : Context; Include_Externally_Built : Boolean := False)
       return LSP.Ada_File_Sets.File_Sets.Set;
    --  List the source directories, including externally built projects' source
    --  directories when Include_Externally_Built is set to True.
@@ -220,23 +233,19 @@ package LSP.Ada_Contexts is
    --  increase the speed of semantic requests.
 
    procedure Include_File
-     (Self    : in out Context;
-      File    : GNATCOLL.VFS.Virtual_File);
+     (Self : in out Context; File : GNATCOLL.VFS.Virtual_File);
    --  Includes File in Self's source files
 
    procedure Exclude_File
-     (Self    : in out Context;
-      File    : GNATCOLL.VFS.Virtual_File);
+     (Self : in out Context; File : GNATCOLL.VFS.Virtual_File);
    --  Excludes File from Self's source files
 
    procedure Index_Document
-     (Self     : in out Context;
-      Document : in out LSP.Ada_Documents.Document);
+     (Self : in out Context; Document : in out LSP.Ada_Documents.Document);
    --  Index/reindex the given document in this context
 
    procedure Flush_Document
-     (Self : in out Context;
-      File : GNATCOLL.VFS.Virtual_File);
+     (Self : in out Context; File : GNATCOLL.VFS.Virtual_File);
    --  Revert a document to the state of the file discarding any changes
 
    function LAL_Context
@@ -247,10 +256,11 @@ package LSP.Ada_Contexts is
      (Self        : Context;
       Pattern     : LSP.Search.Search_Pattern'Class;
       Only_Public : Boolean;
-      Callback    : not null access procedure
-        (File : GNATCOLL.VFS.Virtual_File;
-         Name : Libadalang.Analysis.Defining_Name;
-         Stop : in out Boolean);
+      Callback    :
+        not null access procedure
+          (File : GNATCOLL.VFS.Virtual_File;
+           Name : Libadalang.Analysis.Defining_Name;
+           Stop : in out Boolean);
       Unit_Prefix : VSS.Strings.Virtual_String :=
         VSS.Strings.Empty_Virtual_String);
    --  Find symbols that match the given Pattern in all files of the context and
