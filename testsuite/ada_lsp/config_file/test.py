@@ -3,7 +3,6 @@ The goal of this test is to check that we take in account
 configurationFile configuration option and have proper navigation
 """
 
-import e3
 import subprocess
 from drivers.pylsp import (
     ALSLanguageClient,
@@ -19,13 +18,9 @@ from lsprotocol.types import (
     Location,
 )
 
-if "windows" in e3.env.Env().build.platform:
-    runtime = "light"
-else:
-    runtime = "sjlj"
 
-# create default.cgpr configuration file that will use not-native runtime
-subprocess.check_call(["gprconfig", "--batch", "--config=Ada,," + runtime + ",,GNAT"])
+# create default.cgpr configuration file that will use not-default runtime
+subprocess.check_call(["gprconfig", "--batch", "--config=Ada,,light,,GNAT"])
 
 
 @test()
@@ -48,7 +43,7 @@ async def do_testing(lsp: ALSLanguageClient) -> None:
     # Check result
     assert result
     assert isinstance(result, Location)
-    assertEqual(runtime in result.uri, True)
+    assertEqual("light" in result.uri, True)
 
     # Check relative to root paths
     lsp.didChangeConfig(
@@ -68,4 +63,4 @@ async def do_testing(lsp: ALSLanguageClient) -> None:
     # Check result
     assert result
     assert isinstance(result, Location)
-    assertEqual(runtime in result.uri, True)
+    assertEqual("light" in result.uri, True)
