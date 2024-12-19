@@ -67,7 +67,7 @@ const TASK_BUILD_PROJECT: PredefinedTask = {
     taskDef: {
         type: TASK_TYPE_ADA,
         command: 'gprbuild',
-        args: ['${command:ada.gprProjectArgs}', '-cargs:ada', '-gnatef'],
+        args: ['${command:ada.gprProjectArgs}', "'-cargs:ada'", '-gnatef'],
     },
     problemMatchers: DEFAULT_PROBLEM_MATCHER,
     taskGroup: vscode.TaskGroup.Build,
@@ -115,7 +115,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatc',
                 '${command:ada.gprProjectArgs}',
                 '${fileBasename}',
-                '-cargs:ada',
+                "'-cargs:ada'",
                 '-gnatef',
             ],
         },
@@ -133,7 +133,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-u',
                 '${command:ada.gprProjectArgs}',
                 '${fileBasename}',
-                '-cargs:ada',
+                "'-cargs:ada'",
                 '-gnatef',
             ],
         },
@@ -411,7 +411,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             args: [
                                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                                 main.mainRelPath(),
-                                '-cargs:ada',
+                                "'-cargs:ada'",
                                 '-gnatef',
                             ],
                         },
@@ -1115,7 +1115,7 @@ function updateToAlire(taskDef: SimpleTaskDef): SimpleTaskDef {
              * scenario args because they are managed by ALIRE.
              *
              */
-            args.splice(0, args.length, 'build', '--', '-cargs:ada', '-gnatef');
+            args.splice(0, args.length, 'build', '--', "'-cargs:ada'", '-gnatef');
         } else if (taskDef == TASK_CLEAN_PROJECT.taskDef) {
             /**
              * Replace the entire command with `alr clean`. Ignore project and
