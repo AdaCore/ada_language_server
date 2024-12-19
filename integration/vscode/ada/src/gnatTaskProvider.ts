@@ -330,7 +330,7 @@ export async function computeProject(): Promise<string> {
 } // Call commonArgs on args and append `-gnatef` to generate full file names in errors/warnings
 
 export const getDiagnosticArgs = (): string[] => {
-    const p_gnatef = ['-cargs:ada', '-gnatef'];
+    const p_gnatef = ["'-cargs:ada'", '-gnatef'];
     return p_gnatef;
 };
 export function getScenarioArgs() {
