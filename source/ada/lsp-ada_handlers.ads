@@ -51,7 +51,7 @@ with LSP.Server_Notification_Receivers;
 with LSP.Server_Notifications;
 with LSP.Server_Request_Receivers;
 with LSP.Server_Requests;
-limited with LSP.Servers;
+with LSP.Servers;
 with LSP.Structures;
 with LSP.Tracers;
 with LSP.Unimplemented_Handlers;
@@ -62,7 +62,7 @@ private with LAL_Refactor;
 package LSP.Ada_Handlers is
 
    type Message_Handler
-     (Server : not null access LSP.Servers.Server'Class;
+     (Server : not null LSP.Servers.Server_Access;
       --  Please avoid to use this discriminant!
       Sender : not null access LSP.Client_Message_Receivers
         .Client_Message_Receiver'Class;
@@ -74,7 +74,7 @@ package LSP.Ada_Handlers is
    with private;
 
    procedure Initialize
-     (Self                     : access Message_Handler'Class;
+     (Self                     : in out Message_Handler;
       Incremental_Text_Changes : Boolean;
       CLI_Config_File          : GNATCOLL.VFS.Virtual_File :=
         GNATCOLL.VFS.No_File);
@@ -168,7 +168,7 @@ private
    type Has_Been_Canceled_Function is access function return Boolean;
 
    type Message_Handler
-     (Server : not null access LSP.Servers.Server'Class;
+     (Server : not null LSP.Servers.Server_Access;
       --  Please avoid to use this discriminant!
       Sender : not null access LSP.Client_Message_Receivers
         .Client_Message_Receiver'Class;
