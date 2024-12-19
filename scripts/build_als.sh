@@ -207,7 +207,9 @@ function build_langkit_raw() {
       esac
 
       # Finally build the wheel
+      pip install wheel # necessary to make python setup.py bdist_wheel work
       (cd contrib/lkt && ./manage.py create-wheel \
+         --verbosity=debug \
          --with-python=python \
          "$prefix_dir" \
          "$tmp_dir" \
