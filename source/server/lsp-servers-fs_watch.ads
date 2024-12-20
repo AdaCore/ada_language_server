@@ -24,7 +24,7 @@ private with Libfswatch;
 
 package LSP.Servers.FS_Watch is
 
-   type FS_Watch_Monitor (Server : access LSP.Servers.Server'Class) is
+   type FS_Watch_Monitor (Server : not null LSP.Servers.Server_Access) is
      limited new LSP.File_Monitors.File_Monitor with private;
 
 private
@@ -66,7 +66,7 @@ private
    end Monitor_Task;
    type Monitor_Task_Access is access Monitor_Task;
 
-   type FS_Watch_Monitor (Server : access LSP.Servers.Server'Class) is
+   type FS_Watch_Monitor (Server : not null LSP.Servers.Server_Access) is
      limited new LSP.File_Monitors.File_Monitor with
    record
       Filesystem_Monitor_Task : Monitor_Task_Access;

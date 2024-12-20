@@ -50,8 +50,8 @@ private with VSS.Stream_Element_Vectors;
 package LSP.Servers is
 
    type Server is limited
-     new LSP.Client_Message_Receivers.Client_Message_Receiver
-       with private;
+     new LSP.Client_Message_Receivers.Client_Message_Receiver with private;
+   type Server_Access is access all Server'Class with Storage_Size => 0;
    --  The representation of LSP server.
    --  Use methods of Client_Message_Receiver to send notifications, requests
    --  and responses to the LSP client.
