@@ -1702,7 +1702,7 @@
             "patterns": [
                 {
                     "begin": "(?i)\\bwith\\b",
-                    "end": "(?=(;|\\))",
+                    "end": "(?=(;|\\)))",
                     "beginCaptures": {
                         "0": { "name": "keyword.ada" }
                     },
