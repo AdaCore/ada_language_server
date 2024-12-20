@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+## 26.0.202412190
+
 * The configured project is now automatically reloaded when adding/renaming/deleting a file in a known source directory.
 * GPR .cgpr config files can now be passed to the Ada Language Server through the new `gprConfigurationFile` configuration option.
 * Project diagnostics are no longer published on each opened Ada file: instead, they are now published on the workspace's root directory.
