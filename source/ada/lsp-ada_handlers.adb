@@ -150,6 +150,12 @@ package body LSP.Ada_Handlers is
 
    overriding function To_LSP_Range
      (Self  : in out Message_Handler;
+      Node   : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.A_Range is
+        (LSP.Ada_Handlers.Locations.To_LSP_Range (Self, Node));
+
+   overriding function To_LSP_Range
+     (Self  : in out Message_Handler;
       Unit  : Libadalang.Analysis.Analysis_Unit;
       Token : Libadalang.Common.Token_Reference)
       return LSP.Structures.A_Range is
