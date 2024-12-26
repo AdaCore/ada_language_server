@@ -11,6 +11,7 @@ section below it for the last release. -->
 * Project diagnostics are no longer published on each opened Ada file: instead, they are now published on the workspace's root directory.
 * Add a setting `ada.showNotificationsOnErrors` to control whether VS Code should display error notifications for failing LSP requests.
 * Add support for a default `.als.json` workspace configuration file and a global `$XDG_CONFIG_HOME/als/config.json` user configuration file. See [settings.md](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md) for more information.
+* Implement "Selection Range" LSP request.
 
 ## 26.0.202411173
 
