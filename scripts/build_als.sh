@@ -88,12 +88,6 @@ function activate_venv() {
    source "$VENV_PATH/$subdir/activate"
 }
 
-# Install custom Alire index with missing crates
-function install_index() {
-   alr index --del=als || true
-   alr index --add="$PWD" --name=als
-}
-
 # Clone dependencies
 function pin_crates() {
    # Many dependencies are not yet available as Alire crates in the community
@@ -370,17 +364,12 @@ activate_venv
 
 case $STEP in
 all)
-   install_index
    pin_crates
    build_langkit
    build_als
    fix_rpath
    strip_debug
    test_als
-   ;;
-
-install_index)
-   install_index
    ;;
 
 pin_crates)
