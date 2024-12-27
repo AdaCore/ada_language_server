@@ -80,7 +80,7 @@ include:
           when: manual
           allow_failure: true
 
-als-cov:
+als-cov:linux:
   variables:
     RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
   after_script:
@@ -127,7 +127,7 @@ als-cov:
       # Also archive the report file for debugging the CI integration
       - coverage/cobertura.xml
 
-vscode-extension:
+vscode-extension:linux:
   after_script:
     # Source the env prepared by generic_anod_ci
     - cat /tmp/ci_env.sh
