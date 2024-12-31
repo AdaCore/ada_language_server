@@ -133,6 +133,11 @@ package LSP.Ada_Job_Contexts is
       return LSP.Structures.Location is abstract;
 
    function To_LSP_Range
+     (Self   : in out Ada_Job_Context;
+      Node   : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.A_Range is abstract;
+
+   function To_LSP_Range
      (Self  : in out Ada_Job_Context;
       Unit  : Libadalang.Analysis.Analysis_Unit;
       Token : Libadalang.Common.Token_Reference)

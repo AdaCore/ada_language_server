@@ -78,6 +78,7 @@ with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Show_Dependencies_Commands;
 with LSP.Ada_Handlers.Source_Dirs_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
+with LSP.Ada_Selection_Range;
 with LSP.Ada_Tokens_Full;
 with LSP.Ada_Tokens_Range;
 with LSP.Ada_Type_Hierarchy_Subtypes;
@@ -111,6 +112,7 @@ with LSP.Server_Requests.Hover;
 with LSP.Server_Requests.Initialize;
 with LSP.Server_Requests.PrepareTypeHierarchy;
 with LSP.Server_Requests.References;
+with LSP.Server_Requests.SelectionRange;
 with LSP.Server_Requests.Subtypes;
 with LSP.Server_Requests.Supertypes;
 with LSP.Server_Requests.Tokens_Full;
@@ -297,6 +299,10 @@ procedure LSP.Ada_Driver is
 
    Ada_Folding_Range_Handler : aliased
      LSP.Ada_Folding_Range.Ada_Folding_Range_Handler
+       (Ada_Handler'Unchecked_Access);
+
+   Ada_Selection_Range_Handler : aliased
+     LSP.Ada_Selection_Range.Ada_Selection_Range_Handler
        (Ada_Handler'Unchecked_Access);
 
    Ada_Tokens_Full_Handler : aliased
@@ -680,6 +686,10 @@ begin
          Server.Register_Handler
            (LSP.Server_Requests.FoldingRange.Request'Tag,
             Ada_Folding_Range_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.SelectionRange.Request'Tag,
+            Ada_Selection_Range_Handler'Unchecked_Access);
 
          Server.Register_Handler
            (LSP.Server_Requests.Tokens_Full.Request'Tag,

@@ -321,6 +321,37 @@ package body LSP.Ada_Handlers.Locations is
       return To_LSP_Range (Unit, Sloc);
    end To_LSP_Range;
 
+   ------------------
+   -- To_LSP_Range --
+   ------------------
+
+   function To_LSP_Range
+     (Self : in out Message_Handler'Class;
+      Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.A_Range
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI : constant LSP.Structures.DocumentUri :=
+        (VSS.Strings.Conversions.To_Virtual_String
+           (URIs.Conversions.From_File (Node.Unit.Get_Filename))
+         with null record);
+
+      Sloc : constant Langkit_Support.Slocs.Source_Location_Range :=
+        Node.Sloc_Range;
+
+      Doc : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+
+   begin
+      if Doc /= null then
+         return Doc.To_A_Range (Sloc);
+
+      else
+         return To_LSP_Range (Node.Unit, Sloc);
+      end if;
+   end To_LSP_Range;
+
    ---------------------
    -- To_LSP_Location --
    ---------------------

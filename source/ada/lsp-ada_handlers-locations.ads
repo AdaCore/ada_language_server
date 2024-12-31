@@ -51,6 +51,11 @@ package LSP.Ada_Handlers.Locations is
       Token : Libadalang.Common.Token_Reference)
       return LSP.Structures.A_Range;
 
+   function To_LSP_Range
+     (Self  : in out Message_Handler'Class;
+      Node : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.A_Range;
+
    function Get_Node_At
      (Self     : in out Message_Handler'Class;
       Context  : LSP.Ada_Contexts.Context;
