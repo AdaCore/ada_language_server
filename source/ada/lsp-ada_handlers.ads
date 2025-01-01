@@ -509,6 +509,11 @@ private
       Token : Libadalang.Common.Token_Reference)
       return LSP.Structures.A_Range;
 
+   overriding function To_LSP_Range
+     (Self  : in out Message_Handler;
+      Node   : Libadalang.Analysis.Ada_Node'Class)
+      return LSP.Structures.A_Range;
+
    overriding procedure Append_Location
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
