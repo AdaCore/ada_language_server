@@ -473,11 +473,11 @@
                            "range": {
                               "start": {
                                  "line": 0,
-                                 "character": 0
+                                 "character": 5
                               },
                               "end": {
                                  "line": 0,
-                                 "character": 9
+                                 "character": 8
                               }
                            },
                            "selectionRange": {
@@ -497,11 +497,11 @@
                            "range": {
                               "start": {
                                  "line": 1,
-                                 "character": 0
+                                 "character": 5
                               },
                               "end": {
                                  "line": 1,
-                                 "character": 9
+                                 "character": 8
                               }
                            },
                            "selectionRange": {
@@ -697,11 +697,11 @@
                            "range": {
                               "start": {
                                  "line": 0,
-                                 "character": 0
+                                 "character": 5
                               },
                               "end": {
                                  "line": 0,
-                                 "character": 9
+                                 "character": 8
                               }
                            },
                            "selectionRange": {
@@ -825,11 +825,11 @@
                            "range": {
                               "start": {
                                  "line": 0,
-                                 "character": 0
+                                 "character": 5
                               },
                               "end": {
                                  "line": 0,
-                                 "character": 9
+                                 "character": 8
                               }
                            },
                            "selectionRange": {
@@ -849,11 +849,11 @@
                            "range": {
                               "start": {
                                  "line": 1,
-                                 "character": 0
+                                 "character": 5
                               },
                               "end": {
                                  "line": 1,
-                                 "character": 9
+                                 "character": 8
                               }
                            },
                            "selectionRange": {
@@ -984,11 +984,11 @@
                            "range": {
                               "start": {
                                  "line": 0,
-                                 "character": 0
+                                 "character": 5
                               },
                               "end": {
                                  "line": 0,
-                                 "character": 9
+                                 "character": 8
                               }
                            },
                            "selectionRange": {
