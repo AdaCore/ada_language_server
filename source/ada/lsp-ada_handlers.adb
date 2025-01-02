@@ -1449,6 +1449,8 @@ package body LSP.Ada_Handlers is
 
       if Value.a_range.start = LSP.Constants.Empty then
          declare
+            use LSP.Ada_Handlers.Project_Diagnostics;
+
             Diagnostics : LSP.Structures.Diagnostic_Vector;
             use type VSS.Strings.Virtual_String;
 
@@ -1461,7 +1463,7 @@ package body LSP.Ada_Handlers is
                      ("default.gpr").Display_Full_Name);
          begin
             for Item of Value.context.diagnostics loop
-               if Item.source = "project" then
+               if Item.source = Project_Diagnostics_Source_ID then
                   Diagnostics.Append (Item);
                end if;
             end loop;
