@@ -118,6 +118,9 @@ class PyLSP(ALSTestDriver):
                 if r.status != 0:
                     raise TestAbortWithFailure("non-zero status code")
             else:
+                # Usually we specify a timeout here, however a test file may
+                # contain multiple tests. So instead we apply a timeout to each
+                # test in async_wrapper()
                 p: ProcessResult = self.shell(
                     cmd,
                     # Start the test process directly in the test work dir. This way
@@ -125,7 +128,6 @@ class PyLSP(ALSTestDriver):
                     cwd=str(wd),
                     env=env,
                     ignore_environ=False,
-                    timeout=15,  # seconds
                     stdin=None,
                 )
 
@@ -647,8 +649,9 @@ def test(
 
             LOG.info("Running test function: %s", func.__name__)
 
-            # Run the test
-            await func(client)
+            # Run the test with a timeout
+            async with asyncio.timeout(15):  # seconds
+                await func(client)
 
             if assert_no_lsp_errors:
                 # Assert the absence of Error LSP log messages
