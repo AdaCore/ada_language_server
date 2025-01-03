@@ -499,6 +499,15 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                     resolvedTask.group = tDecl.taskGroup;
                 }
 
+                /**
+                 * Do not reveal the Terminal panel when running the task: we
+                 * want to highlight the issues displayed in the Problems view
+                 * instead.
+                 */
+                resolvedTask.presentationOptions = {
+                    reveal: vscode.TaskRevealKind.Never,
+                };
+
                 result.push(resolvedTask);
             } else {
                 logger.error(`Failed to resolve task: ${JSON.stringify(task, undefined, 2)}`);
