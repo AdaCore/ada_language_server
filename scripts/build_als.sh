@@ -161,6 +161,18 @@ function build_langkit_raw() {
       *darwin*)
          # Install e3-binarydata which is needed for packaging langkit as a wheel
          pip install git+https://github.com/AdaCore/e3-binarydata.git#egg=e3-binarydata
+
+         # On macOS, the full path of gnat.adc is stored in ALI files with case
+         # normalization. Upon re-runs, gprbuild is unable to match the
+         # normalized path with a non-case-normalized real path. This causes
+         # unnecessary recompilations at every run.
+         #
+         # To avoid that, we use the -gnateb flag which tells GNAT to not use
+         # an absolute path for gnat.adc
+         gprbuild_flag="--gargs=-cargs:ada -gnateb"
+         ;;
+      *)
+         gprbuild_flag="--gargs="
          ;;
       esac
 
@@ -183,17 +195,18 @@ function build_langkit_raw() {
 
       # This builds langkit, as well as all the library projects of the dependencies
       python manage.py build-langkit-support \
-         --library-types=relocatable
+         --library-types=relocatable \
+         "$gprbuild_flag"
       python manage.py install-langkit-support "$prefix_dir" \
          --library-types=relocatable
 
       # Next build and install langkit
-      (cd contrib/lkt && ./manage.py make --library-types=relocatable --disable-all-mains)
+      (cd contrib/lkt && ./manage.py make --library-types=relocatable --disable-all-mains "$gprbuild_flag")
       (cd contrib/lkt && ./manage.py install "$prefix_dir" \
          --library-types=relocatable --disable-all-mains)
 
       case "$NODE_ARCH_PLATFORM" in
-      *win32*|*darwin*)
+      *win32* | *darwin*)
          # on macOS, we want to copy all dependency libraries into the wheel to
          # avoid relying on DYLD_LIBRARY_PATH which has security restrictions.
 
@@ -258,9 +271,22 @@ function set_langkit_usage_env() {
 function build_als() {
    set_langkit_usage_env
 
+   case "$NODE_ARCH_PLATFORM" in
+   *darwin*)
+      # On macOS, the full path of gnat.adc is stored in ALI files with case
+      # normalization. Upon re-runs, gprbuild is unable to match the
+      # normalized path with a non-case-normalized real path. This causes
+      # unnecessary recompilations at every run.
+      #
+      # To avoid that, we use the -gnateb flag which tells GNAT to not use
+      # an absolute path for gnat.adc
+      gprbuild_flag="-cargs:ada -gnateb"
+      ;;
+   esac
+
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
-   LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" all
+   LIBRARY_TYPE=static STANDALONE=no GPRBUILD_EXTRA="$gprbuild_flag" alr exec make -- "VERSION=$TAG" all
 }
 
 function test_als() {
