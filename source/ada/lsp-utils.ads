@@ -115,11 +115,6 @@ package LSP.Utils is
       return LSP.Structures.DiagnosticSeverity_Optional;
    --  Convert a GPR2 message level into a LSP diagnostic severity.
 
-   function To_LSP_Diagnostic
-     (Message : GPR2.Message.Object) return LSP.Structures.Diagnostic;
-   --  Convert a GPR2 message into a proper LSP diagnostic, with the right
-   --  severity level and the location reported by GPR2.
-
    function To_Virtual_File
      (Value : VSS.Strings.Virtual_String) return GNATCOLL.VFS.Virtual_File is
      (GNATCOLL.VFS.Create_From_UTF8
