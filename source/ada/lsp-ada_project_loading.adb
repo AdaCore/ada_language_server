@@ -18,6 +18,7 @@
 with GPR2.Message;
 with GPR2.Path_Name;
 with GPR2.Source_Reference;
+with LSP.Ada_Handlers.Project_Diagnostics;
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Utils;
@@ -156,7 +157,7 @@ package body LSP.Ada_Project_Loading is
       begin
          --  Initialize the parent diagnostic.
          Parent_Diagnostic.a_range := ((0, 0), (0, 0));
-         Parent_Diagnostic.source := "ada.project";
+         Parent_Diagnostic.source := LSP.Ada_Handlers.Project_Diagnostics.Project_Diagnostics_Source_ID;
          Parent_Diagnostic.severity :=
            (True, Load_Status_Severity (Project));
          Parent_Diagnostic.message := Load_Status_Message (Project);

@@ -20,6 +20,9 @@ with LSP.Diagnostic_Sources;
 
 package LSP.Ada_Handlers.Project_Diagnostics is
 
+   Project_Diagnostics_Source_ID : constant VSS.Strings.Virtual_String :=
+     "ada.project";
+
    type Diagnostic_Source
      (Handler : not null access LSP.Ada_Handlers.Message_Handler'Class)
    is limited new LSP.Diagnostic_Sources.Workspace_Diagnostic_Source with private;
