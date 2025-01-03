@@ -337,10 +337,7 @@ package body LSP.Utils is
 
          when Ada_Base_Package_Decl |
               Ada_Generic_Formal_Package |
-              --  Ignore: Ada_Generic_Package_Decl kind, this node always have
-              --  an Ada_Generic_Package_Internal as a child and we will use it
-              --  to create the CompletionItem/DocumentSymbol
-              Ada_Generic_Package_Instantiation |
+              Ada_Generic_Package_Decl |
               Ada_Generic_Package_Renaming_Decl |
               Ada_Package_Renaming_Decl =>
             return LSP.Enumerations.A_Package;
@@ -353,8 +350,7 @@ package body LSP.Utils is
               Ada_Task_Body =>
             return LSP.Enumerations.Module;
 
-         when Ada_Concrete_Type_Decl |
-              Ada_Formal_Type_Decl =>
+         when Ada_Concrete_Type_Decl =>
             return (if Laltools.Common.Is_Structure (Node)
                     then LSP.Enumerations.Struct
                     else LSP.Enumerations.Class);

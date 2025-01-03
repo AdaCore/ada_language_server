@@ -81,9 +81,15 @@ package body LSP.Ada_Document_Symbol is
    new LSP.Ada_Request_Jobs.Ada_Request_Job
      (Priority => LSP.Server_Jobs.Low)
    with record
-      Pattern  : Search_Pattern_Access;
-      Node     : Libadalang.Analysis.Ada_Node;
-      Stack    : Stack_Item_Lists.List;
+      Pattern : Search_Pattern_Access;
+      --  Pattern used to filter the symbols.
+
+      Node    : Libadalang.Analysis.Ada_Node;
+      --  The current node in the Analysis_Unit. It is only valid till the
+      --  Analysis_Unit is not saved, it should not be copied.
+
+      Stack   : Stack_Item_Lists.List;
+      --  List of interesting Symbols with their children still being computed.
    end record;
 
    overriding procedure Execute_Ada_Request
@@ -268,15 +274,9 @@ package body LSP.Ada_Document_Symbol is
    is
       use type Ada.Containers.Count_Type;
 
-      function Is_Leaf_Symbol
+      function Is_Interesting_Symbol
         (Node : Libadalang.Analysis.Ada_Node) return Boolean;
-      --  Node has a symbol and can't contain nested symbols.
-      --  Also return True for uninteresting symbols to avoid
-      --  descend under their subtrees
-
-      function Is_Namespace_Symbol
-        (Node : Libadalang.Analysis.Ada_Node) return Boolean;
-      --  Node has a symbol and may contain nested symbols
+      --  Return True if Node contains symbols and should be added in the stack
 
       procedure Skip_Node (Node : in out Libadalang.Analysis.Ada_Node);
       --  If we are leaving the node at top of the stack, then append
@@ -286,170 +286,160 @@ package body LSP.Ada_Document_Symbol is
       procedure Continue (Node : in out Libadalang.Analysis.Ada_Node);
       --  Set Node to Node.First_Child if any, do Skip_Node (Node) otherwise
 
-      procedure Append_Leaf_Symbol (Node : Libadalang.Analysis.Ada_Node);
-      procedure Append_Namespace_Symbol
+      procedure Pop_Stack;
+      --  Remove the last Item from the stack and create the DocumentSymbols
+      --  related to it before adding them in its parent.
+
+      procedure Append_Name
         (Node     : Libadalang.Analysis.Ada_Node;
-         Children : in out LSP.Structures.DocumentSymbol_Vector);
+         Name     : Libadalang.Analysis.Ada_Node'Class;
+         Children : in out LSP.Structures.DocumentSymbol_Vector;
+         Text     : VSS.Strings.Virtual_String;
+         Kind     : LSP.Enumerations.SymbolKind;
+         Is_Proc  : LSP.Structures.Boolean_Optional := (Is_Set => False);
+         Visible  : LSP.Structures.AlsVisibility_Optional :=
+           (Is_Set => False);
+         Detail   : VSS.Strings.Virtual_String :=
+           VSS.Strings.Empty_Virtual_String);
+      --  Create a DocumentSymbol and add it as a children of the last node
+      --  in the stack.
 
-      ------------------------
-      -- Append_Leaf_Symbol --
-      ------------------------
+      ---------------
+      -- Pop_Stack --
+      ---------------
 
-      procedure Append_Leaf_Symbol (Node : Libadalang.Analysis.Ada_Node) is
-
-         procedure Append_Name
-           (Name   : Libadalang.Analysis.Name'Class;
-            Kind   : LSP.Enumerations.SymbolKind;
-            Detail : VSS.Strings.Virtual_String :=
-              VSS.Strings.Empty_Virtual_String);
-
-         procedure Append_Name
-           (Name   : Libadalang.Analysis.Name'Class;
-            Kind   : LSP.Enumerations.SymbolKind;
-            Detail : VSS.Strings.Virtual_String :=
-              VSS.Strings.Empty_Virtual_String)
-         is
-            Node_Span : constant LSP.Structures.A_Range :=
-              Self.Parent.Context.To_LSP_Location (Node).a_range;
-
-            Name_Span : constant LSP.Structures.A_Range :=
-              Self.Parent.Context.To_LSP_Location (Name).a_range;
-
-            Top       : Stack_Item renames Self.Stack (Self.Stack.Last);
-
-            Item      : constant LSP.Structures.DocumentSymbol :=
-              (name           => VSS.Strings.To_Virtual_String (Name.Text),
-               detail         => Detail,
-               kind           => Kind,
-               a_range        => Node_Span,
-               selectionRange => Name_Span,
-               others         => <>);
-         begin
-            Top.Children.Append (Item);
-         end Append_Name;
-
+      procedure Pop_Stack
+      is
+         Item : Stack_Item := Self.Stack.Last_Element;
+         --  Copy of the last item
       begin
-         case Node.Kind is
+         --  Delete it from the stack now: Append_Name will add the symbols
+         --  in the next element in the stack.
+         Self.Stack.Delete_Last;
+
+         case Item.Node.Kind is
             when Libadalang.Common.Ada_With_Clause_Range =>
-               for Name of Node.As_With_Clause.F_Packages loop
-                  Append_Name (Name, LSP.Enumerations.Namespace);
+               for Name of Item.Node.As_With_Clause.F_Packages loop
+                  Append_Name
+                    (Node     => Name.As_Ada_Node,
+                     Name     => Name,
+                     Children => Item.Children,
+                     Text     => VSS.Strings.To_Virtual_String (Name.Text),
+                     Kind     => LSP.Enumerations.Namespace);
                end loop;
 
             when Libadalang.Common.Ada_Pragma_Node =>
+               --  Only show pragmas for high level symbols
                if Self.Stack.Length < 3 then
                   declare
                      Pragma_Node : constant Libadalang.Analysis.Pragma_Node :=
-                       Node.As_Pragma_Node;
+                       Item.Node.As_Pragma_Node;
                   begin
+                     --  Use the name of the pragma as the symbol and
+                     --  its value as the profile.
                      if not
                        (Pragma_Node.F_Id.Is_Null
                         and then Pragma_Node.F_Args.Is_Null)
                      then
                         Append_Name
-                          (Node.As_Pragma_Node.F_Id,
-                           Kind   => LSP.Enumerations.Property,
-                           Detail =>
+                          (Item.Node,
+                           Item.Node.As_Pragma_Node.F_Id,
+                           Children => Item.Children,
+                           Text     =>
+                             VSS.Strings.To_Virtual_String
+                               (Item.Node.As_Pragma_Node.F_Id.Text),
+                           Kind     => LSP.Enumerations.Property,
+                           Detail   =>
                              VSS.Strings.To_Virtual_String
                                ("("
-                                & Node.As_Pragma_Node.F_Args.Text & ")"));
+                                & Item.Node.As_Pragma_Node.F_Args.Text & ")"));
                      end if;
                   end;
                end if;
-
-            when others =>
-               null;  --  Ignore other nodes filtered by Is_Leaf_Symbol
-         end case;
-      end Append_Leaf_Symbol;
-
-      -----------------------------
-      -- Append_Namespace_Symbol --
-      -----------------------------
-
-      procedure Append_Namespace_Symbol
-        (Node     : Libadalang.Analysis.Ada_Node;
-         Children : in out LSP.Structures.DocumentSymbol_Vector)
-      is
-         procedure Append_Name
-           (Name    : Libadalang.Analysis.Ada_Node'Class;
-            Text    : VSS.Strings.Virtual_String;
-            Kind    : LSP.Enumerations.SymbolKind;
-            Is_Proc : LSP.Structures.Boolean_Optional := (Is_Set => False);
-            Visible : LSP.Structures.AlsVisibility_Optional :=
-              (Is_Set => False);
-            Detail  : VSS.Strings.Virtual_String :=
-              VSS.Strings.Empty_Virtual_String);
-
-         procedure Append_Name
-           (Name    : Libadalang.Analysis.Ada_Node'Class;
-            Text    : VSS.Strings.Virtual_String;
-            Kind    : LSP.Enumerations.SymbolKind;
-            Is_Proc : LSP.Structures.Boolean_Optional := (Is_Set => False);
-            Visible : LSP.Structures.AlsVisibility_Optional :=
-              (Is_Set => False);
-            Detail  : VSS.Strings.Virtual_String :=
-              VSS.Strings.Empty_Virtual_String)
-         is
-            Node_Span : constant LSP.Structures.A_Range :=
-              Self.Parent.Context.To_LSP_Location (Node).a_range;
-
-            Name_Span : constant LSP.Structures.A_Range :=
-              Self.Parent.Context.To_LSP_Location (Name).a_range;
-
-            Top       : Stack_Item renames Self.Stack (Self.Stack.Last);
-
-            Item      : constant LSP.Structures.DocumentSymbol :=
-              (name              => Text,
-               detail            => Detail,
-               kind              => Kind,
-               a_range           => Node_Span,
-               selectionRange    => Name_Span,
-               children          => Children,
-               alsIsDeclaration  => Is_Declaration (Node),
-               alsIsAdaProcedure => Is_Proc,
-               alsVisibility     => Visible,
-               others            => <>);
-         begin
-            if Self.Pattern.Match (Text) then
-               Top.Children.Append (Item);
-            end if;
-         end Append_Name;
-
-      begin
-         case Node.Kind is
             when Libadalang.Common.Ada_Ada_Node_List_Range =>
+               --  The only Ada_Node_List allowed is the first one at the
+               --  starts of the file which contains the list of with clauses.
+               --  This is synchronized with Is_Interesting_Symbol
                Append_Name
-                 (Name => Node.As_Ada_Node_List.Last_Child,
-                  Text => "With clauses",
-                  Kind => LSP.Enumerations.Namespace);
+                 (Node     => Item.Node,
+                  Name     => Item.Node.As_Ada_Node_List.Last_Child,
+                  Children => Item.Children,
+                  Text     => "With clauses",
+                  Kind     => LSP.Enumerations.Namespace);
 
             when Libadalang.Common.Ada_Basic_Decl =>
-               for Name of Node.As_Basic_Decl.P_Defining_Names loop
+               for Name of Item.Node.As_Basic_Decl.P_Defining_Names loop
 
                   exit when Name.Is_Null;
 
                   Append_Name
-                    (Name   => Name,
-                     Text   => VSS.Strings.To_Virtual_String (Name.Text),
-                     Kind   => LSP.Utils.Get_Decl_Kind
-                       (Node.As_Basic_Decl,
+                    (Node     => Item.Node,
+                     Name     => Name,
+                     Children => Item.Children,
+                     Text     => VSS.Strings.To_Virtual_String (Name.Text),
+                     Kind     => LSP.Utils.Get_Decl_Kind
+                       (Item.Node.As_Basic_Decl,
                         Ignore_Local => Self.Stack.Length > 2),
-                     Is_Proc => (if Is_Function (Node.As_Basic_Decl)
+                     Is_Proc  => (if Is_Function (Item.Node.As_Basic_Decl)
                                  then (Is_Set => False)
                                  else (Is_Set => True, Value => True)),
-                     Visible => Get_Visibility (Node.As_Basic_Decl),
-                     Detail => Get_Profile (Node.As_Basic_Decl));
+                     Visible  => Get_Visibility (Item.Node.As_Basic_Decl),
+                     Detail   => Get_Profile (Item.Node.As_Basic_Decl));
                end loop;
 
             when others =>
                null;  --  Unexpected
          end case;
-      end Append_Namespace_Symbol;
+      end Pop_Stack;
 
-      --------------------
-      -- Is_Leaf_Symbol --
-      --------------------
+      -----------------
+      -- Append_Name --
+      -----------------
 
-      function Is_Leaf_Symbol
+      procedure Append_Name
+        (Node     : Libadalang.Analysis.Ada_Node;
+         Name     : Libadalang.Analysis.Ada_Node'Class;
+         Children : in out LSP.Structures.DocumentSymbol_Vector;
+         Text     : VSS.Strings.Virtual_String;
+         Kind     : LSP.Enumerations.SymbolKind;
+         Is_Proc  : LSP.Structures.Boolean_Optional := (Is_Set => False);
+         Visible  : LSP.Structures.AlsVisibility_Optional :=
+           (Is_Set => False);
+         Detail   : VSS.Strings.Virtual_String :=
+           VSS.Strings.Empty_Virtual_String)
+      is
+         Node_Span : constant LSP.Structures.A_Range :=
+           Self.Parent.Context.To_LSP_Location (Node).a_range;
+
+         Name_Span : constant LSP.Structures.A_Range :=
+           Self.Parent.Context.To_LSP_Location (Name).a_range;
+
+         Top       : Stack_Item renames Self.Stack (Self.Stack.Last);
+
+         Item      : constant LSP.Structures.DocumentSymbol :=
+           (name              => Text,
+            detail            => Detail,
+            kind              => Kind,
+            a_range           => Node_Span,
+            selectionRange    => Name_Span,
+            children          => Children,
+            alsIsDeclaration  => Is_Declaration (Node),
+            alsIsAdaProcedure => Is_Proc,
+            alsVisibility     => Visible,
+            others            => <>);
+      begin
+         if Self.Pattern.Match (Text) then
+            --  Consume the children we should only add them once
+            Children.Clear;
+            Top.Children.Append (Item);
+         end if;
+      end Append_Name;
+
+      ---------------------------
+      -- Is_Interesting_Symbol --
+      ---------------------------
+
+      function Is_Interesting_Symbol
         (Node : Libadalang.Analysis.Ada_Node) return Boolean is
       begin
          case Node.Kind is
@@ -457,7 +447,23 @@ package body LSP.Ada_Document_Symbol is
                return True;
             when Libadalang.Common.Ada_Pragma_Node =>
                return True;
+            when Libadalang.Common.Ada_Ada_Node_List_Range =>
+               --  The only Ada_Node_List at the starts of the Analysis_Unit
+               --  (= with a stack of 1) is the list of "with clauses".
+               --  Create a fake parent name "With clauses" and add them in it
+               return Self.Stack.Length < 2
+                 and then Node.As_Ada_Node_List.Ada_Node_List_Has_Element (1);
+
             when Libadalang.Common.Ada_Basic_Decl =>
+               if Node.Kind in
+                 Libadalang.Common.Ada_Generic_Package_Internal_Range
+                   | Libadalang.Common.Ada_Generic_Formal_Subp_Decl
+               then
+                  --  These Base_Decls are not canonical for each of them
+                  --  another exists with the same Defining_Name
+                  return False;
+               end if;
+
                declare
                   use type LSP.Enumerations.SymbolKind;
 
@@ -467,35 +473,19 @@ package body LSP.Ada_Document_Symbol is
                   Kind : constant LSP.Enumerations.SymbolKind :=
                     LSP.Utils.Get_Decl_Kind
                       (Decl, Ignore_Local => Self.Stack.Length > 2);
+                  --  Check if the symbol is "useful" and not a local symbol
+                  --  like a local variable. The list is shared across multiple
+                  --  requests like completion and can should be updated
+                  --  carefully.
                begin
-                  return Kind = LSP.Enumerations.A_Null;
+                  return
+                    Kind /= LSP.Enumerations.A_Null;
                end;
 
             when others =>
-               return False;
+               return False;  --  Not a symbol we want to add
          end case;
-      end Is_Leaf_Symbol;
-
-      -------------------------
-      -- Is_Namespace_Symbol --
-      -------------------------
-
-      function Is_Namespace_Symbol
-        (Node : Libadalang.Analysis.Ada_Node) return Boolean is
-      begin
-         case Node.Kind is
-            when Libadalang.Common.Ada_Ada_Node_List_Range =>
-               --  An artifical "With clauses" node
-               return Self.Stack.Length < 2
-                 and then Node.As_Ada_Node_List.Ada_Node_List_Has_Element (1);
-
-            when Libadalang.Common.Ada_Basic_Decl =>
-               return True;
-
-            when others =>
-               return False;
-         end case;
-      end Is_Namespace_Symbol;
+      end Is_Interesting_Symbol;
 
       ---------------
       -- Skip_Node --
@@ -529,15 +519,9 @@ package body LSP.Ada_Document_Symbol is
          Sibling : constant Libadalang.Analysis.Ada_Node :=
            (if Parent.Is_Null then Parent else Next_Sibling);
       begin
-         --  We are leaving Node, so check if it is on the top os the stack
+         --  We are leaving Node, so check if it is on the top of the stack
          if Self.Stack.Last_Element.Node = Node then
-            declare
-               Children : LSP.Structures.DocumentSymbol_Vector :=
-                 Self.Stack (Self.Stack.Last).Children;
-            begin
-               Self.Stack.Delete_Last;
-               Append_Namespace_Symbol (Node, Children);
-            end;
+            Pop_Stack;
          end if;
 
          if Sibling.Is_Null then
@@ -572,13 +556,8 @@ package body LSP.Ada_Document_Symbol is
       Status := LSP.Server_Jobs.Continue;
 
       while not Self.Node.Is_Null loop
-         if Is_Leaf_Symbol (Self.Node) then
-            Append_Leaf_Symbol (Self.Node);
-            Skip_Node (Self.Node);
 
-            exit;
-
-         elsif Is_Namespace_Symbol (Self.Node) then
+         if Is_Interesting_Symbol (Self.Node) then
             Self.Stack.Append ((Node => Self.Node, Children => <>));
             Continue (Self.Node);
 
