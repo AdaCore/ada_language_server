@@ -29,7 +29,6 @@ async def do_testing(lsp: ALSLanguageClient) -> None:
     lsp.didChangeConfig(
         {"projectFile": URI("main.gpr"), "gprConfigurationFile": URI("default.cgpr")}
     )
-    await lsp.awaitIndexingEnd()
 
     # Send a didOpen for main.adb
     open_params, main_adb_uri = didOpenTextDocumentParams("main.adb")
@@ -49,7 +48,6 @@ async def do_testing(lsp: ALSLanguageClient) -> None:
     lsp.didChangeConfig(
         {"projectFile": "main1.gpr", "gprConfigurationFile": "default.cgpr"}
     )
-    await lsp.awaitIndexingEnd()
 
     # Send a didOpen for main.adb
     open_params, main_adb_uri = didOpenTextDocumentParams("main.adb")
