@@ -20,7 +20,7 @@ Each configuration source can contain a partial list of settings. Thus each
 configuration source can override individual settings while preserving
 previously loaded settings.
 
-Configuration files must be JSON files matching [this JSON schema](integration/vscode/ada/schemas/als-settings-schema.json). Roughly the structure looks like this:
+Configuration files must be JSON files matching [this JSON schema](../integration/vscode/ada/schemas/als-settings-schema.json). Roughly the structure looks like this:
 
 ```json
 {
