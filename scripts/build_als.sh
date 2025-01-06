@@ -124,6 +124,12 @@ function pin_crates() {
          git -C "subprojects/$crate" fetch origin
       fi
       git -C "subprojects/$crate" checkout "${commit:-${branch:-master}}"
+      if [ -z "$commit" ]; then
+         # If no specific commit was requested, a branch is used. The previous
+         # checkout command would simply switch to it but not update it from
+         # remote. So let's do that update.
+         git -C "subprojects/$crate" pull origin "${branch:-master}"
+      fi
       cp -v "subprojects/$crate".toml "subprojects/$crate/alire.toml"
 
       # Instead of calling `alr pin` for each crate, it's more efficient to
