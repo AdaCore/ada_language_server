@@ -18,7 +18,6 @@
 with Ada.Strings.Unbounded;
 with System;
 
-with Libadalang.Common;
 with Libadalang.Lexer;
 with Libadalang.Sources;
 with Langkit_Support.Diagnostics;
@@ -475,6 +474,29 @@ package body LSP.Utils is
            Line_Number_Formatters.Image (Node.Sloc_Range.Start_Line),
            Column_Number_Formatters.Image (Node.Sloc_Range.Start_Column));
    end Node_Location_Image;
+
+   -------------------------
+   -- Previous_Non_Trivia --
+   -------------------------
+
+   function Previous_Non_Trivia
+     (Token : Libadalang.Common.Token_Reference)
+      return Libadalang.Common.Token_Reference
+   is
+      use Libadalang.Common;
+
+   begin
+      return
+         Result : Token_Reference :=
+           (if Token = No_Token then No_Token else Previous (Token))
+      do
+         while Result /= No_Token
+           and then Kind (Data (Result)) in Ada_Whitespace | Ada_Comment
+         loop
+            Result := Previous (Result);
+         end loop;
+      end return;
+   end Previous_Non_Trivia;
 
    -------------------
    -- Span_To_Slice --
