@@ -159,9 +159,6 @@ function build_langkit_raw() {
 
       case "$NODE_ARCH_PLATFORM" in
       *darwin*)
-         # Install e3-binarydata which is needed for packaging langkit as a wheel
-         pip install git+https://github.com/AdaCore/e3-binarydata.git#egg=e3-binarydata
-
          # On macOS, the full path of gnat.adc is stored in ALI files with case
          # normalization. Upon re-runs, gprbuild is unable to match the
          # normalized path with a non-case-normalized real path. This causes
