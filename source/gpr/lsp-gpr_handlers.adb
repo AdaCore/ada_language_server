@@ -685,6 +685,33 @@ package body LSP.GPR_Handlers is
       Files_With_Diags : GPR2.Path_Name.Set.Object;
       --  Used to update Document.Files_With_Diags
 
+      function To_LSP_Diagnostic
+        (Message : GPR2.Message.Object) return LSP.Structures.Diagnostic;
+      --  Convert a GPR2 message into a proper LSP diagnostic, with the right
+      --  severity level and the location reported by GPR2.
+
+      -----------------------
+      -- To_LSP_Diagnostic --
+      -----------------------
+
+      function To_LSP_Diagnostic
+        (Message : GPR2.Message.Object) return LSP.Structures.Diagnostic
+      is
+         use GPR2.Message;
+
+         Diagnostic : LSP.Structures.Diagnostic;
+      begin
+         Diagnostic.a_range  := LSP.Utils.To_Range (Message.Sloc);
+         Diagnostic.severity :=
+           LSP.Utils.To_Optional_DiagnosticSeverity (Message.Level);
+         Diagnostic.message  :=
+           VSS.Strings.Conversions.To_Virtual_String (Message.Message);
+         Diagnostic.source   :=
+           VSS.Strings.Conversions.To_Virtual_String ("gpr.project");
+
+         return Diagnostic;
+      end To_LSP_Diagnostic;
+
    begin
       if Self.Diagnostics_Enabled then
          Document.Get_Errors
@@ -710,7 +737,7 @@ package body LSP.GPR_Handlers is
                      declare
                         Message    : constant GPR2.Message.Object := C.Element;
                         Diagnostic : constant LSP.Structures.Diagnostic :=
-                          LSP.Utils.To_LSP_Diagnostic (Message);
+                          To_LSP_Diagnostic (Message);
                      begin
                         Diag.diagnostics.Append (Diagnostic);
                      end;

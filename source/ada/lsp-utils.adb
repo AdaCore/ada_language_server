@@ -637,26 +637,4 @@ package body LSP.Utils is
          when GPR2.Message.Lint     => (True, LSP.Enumerations.Hint),
          when GPR2.Message.End_User => (True, LSP.Enumerations.Information));
 
-   -----------------------
-   -- To_LSP_Diagnostic --
-   -----------------------
-
-   function To_LSP_Diagnostic
-     (Message : GPR2.Message.Object) return LSP.Structures.Diagnostic
-   is
-      use GPR2.Message;
-
-      Diagnostic : LSP.Structures.Diagnostic;
-   begin
-      Diagnostic.a_range  := To_Range (Message.Sloc);
-      Diagnostic.severity := To_Optional_DiagnosticSeverity (Message.Level);
-      Diagnostic.message  :=
-        VSS.Strings.Conversions.To_Virtual_String
-          (Message.Message);
-      Diagnostic.source   :=
-        VSS.Strings.Conversions.To_Virtual_String ("project");
-
-      return Diagnostic;
-   end To_LSP_Diagnostic;
-
 end LSP.Utils;
