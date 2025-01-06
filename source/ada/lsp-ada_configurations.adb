@@ -25,7 +25,7 @@ with GNATCOLL.VFS;
 with LSP.GNATCOLL_Tracers;
 with LSP.Utils;
 
-with VSS.JSON.Pull_Readers.Simple;
+with VSS.JSON.Pull_Readers.JSON5;
 with VSS.JSON.Streams;
 with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Booleans;
@@ -384,7 +384,7 @@ package body LSP.Ada_Configurations is
       File : VSS.Strings.Virtual_String)
    is
       Input   : aliased VSS.Text_Streams.File_Input.File_Input_Text_Stream;
-      Reader  : VSS.JSON.Pull_Readers.Simple.JSON_Simple_Pull_Reader;
+      Reader  : VSS.JSON.Pull_Readers.JSON5.JSON5_Pull_Reader;
       JSON    : LSP.Structures.LSPAny;
    begin
       Input.Open (File, "utf-8");
