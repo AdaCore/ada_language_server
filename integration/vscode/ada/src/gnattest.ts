@@ -712,7 +712,13 @@ async function buildTestDriver(run: vscode.TestRun) {
     prepareAndAppendOutput(run, gprbuild.stderr.toLocaleString());
 
     if (gprbuild.status !== 0) {
-        throw Error('Error while building the test driver');
+        throw Error(
+            'Error while building the test driver:\n' +
+                gprbuild.output
+                    .filter((x) => x != null)
+                    .map((x) => x.toLocaleString())
+                    .join('\n'),
+        );
     }
 }
 
