@@ -63,7 +63,7 @@ project LSP_Server is
           & ("-gnateDVERSION=""" & VERSION & """",
              "-gnateDBUILD_DATE=""" & BUILD_DATE & """");
       for Switches ("s-memory.adb") use ("-g", "-O2", "-gnatpg");
-      for Local_Configuration_Pragmas use "gnat.adc";
+      for Local_Configuration_Pragmas use "als-gnat.adc";
    end Compiler;
 
    package Linker is

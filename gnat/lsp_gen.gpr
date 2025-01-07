@@ -77,7 +77,7 @@ project LSP_Gen is
 
    package Compiler is
       for Default_Switches ("Ada") use Common_Ada_Switches & Ada_Switches;
-      for Local_Configuration_Pragmas use "gnat.adc";
+      for Local_Configuration_Pragmas use "als-gnat.adc";
    end Compiler;
 
    package Binder is
