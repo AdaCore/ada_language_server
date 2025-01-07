@@ -1,0 +1,9 @@
+{
+   "projectFile": "gnat/lsp_server.gpr",
+   "scenarioVariables": {
+      "LIBRARY_TYPE": "static"
+   },
+   "onTypeFormatting": {
+      "indentOnly": false
+   }
+}
