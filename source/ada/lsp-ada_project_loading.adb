@@ -58,13 +58,21 @@ package body LSP.Ada_Project_Loading is
    begin
       case Project.Status is
          when Valid_Project =>
-            if Project.Project_Type = Single_Project_Found then
-               return VSS.Strings.To_Virtual_String
-                 ("A unique project in the root directory was found"
-                  & " and loaded but it was not explicitly configured.");
-            else
-               return VSS.Strings.Empty_Virtual_String;
-            end if;
+            case Project.Project_Type is
+               when Single_Project_Found =>
+                  return
+                    VSS.Strings.To_Virtual_String
+                      ("A unique project in the root directory was found"
+                       & " and loaded but it was not explicitly configured.");
+
+               when Alire_Project =>
+                  return
+                    VSS.Strings.To_Virtual_String
+                      ("The project has been found and loaded through Alire.");
+
+               when others =>
+                  return VSS.Strings.Empty_Virtual_String;
+            end case;
          when No_Project =>
             return VSS.Strings.To_Virtual_String
               ("No project was found in the root directory."
