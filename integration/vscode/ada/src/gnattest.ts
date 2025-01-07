@@ -706,7 +706,11 @@ async function buildTestDriver(run: vscode.TestRun) {
      */
     const driverPrjPath = await getGnatTestDriverProjectPath();
     run.appendOutput(`Building the test harness project\r\n`);
-    const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath, "'-cargs:ada'", '-gnatef']);
+    /**
+     * The following arguments are passed directly to the spawned subprocess.
+     * It not necessary nor appropriate to apply shell quoting here.
+     */
+    const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath, '-cargs:ada', '-gnatef']);
 
     prepareAndAppendOutput(run, gprbuild.stdout.toLocaleString());
     prepareAndAppendOutput(run, gprbuild.stderr.toLocaleString());
