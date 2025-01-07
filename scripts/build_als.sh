@@ -75,6 +75,10 @@ export GPR2_BUILD=release
 export VSS_BUILD_PROFILE=release
 export PRETTIER_ADA_BUILD_MODE=prod
 
+# Global switch for a workaround on macOS. Set to non-empty to activate the
+# workaround.
+USE_GNAT_ADC_BASENAME=""
+
 function activate_venv() {
    [ -d "$VENV_PATH" ] || python -m venv "$VENV_PATH"
    case "$NODE_ARCH_PLATFORM" in
@@ -163,21 +167,21 @@ function build_langkit_raw() {
       # Adjust the scenario variable for libgpr2
       sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
 
-      case "$NODE_ARCH_PLATFORM" in
-      *darwin*)
-         # On macOS, the full path of gnat.adc is stored in ALI files with case
-         # normalization. Upon re-runs, gprbuild is unable to match the
-         # normalized path with a non-case-normalized real path. This causes
-         # unnecessary recompilations at every run.
-         #
-         # To avoid that, we use the -gnateb flag which tells GNAT to not use
-         # an absolute path for gnat.adc
-         gprbuild_flag="--gargs=-cargs:ada -gnateb"
-         ;;
-      *)
-         gprbuild_flag="--gargs="
-         ;;
-      esac
+      gprbuild_flag="--gargs="
+      if [ -n "$USE_GNAT_ADC_BASENAME" ]; then
+         case "$NODE_ARCH_PLATFORM" in
+         *darwin*)
+            # On macOS, the full path of gnat.adc is stored in ALI files with case
+            # normalization. Upon re-runs, gprbuild is unable to match the
+            # normalized path with a non-case-normalized real path. This causes
+            # unnecessary recompilations at every run.
+            #
+            # To avoid that, we use the -gnateb flag which tells GNAT to not use
+            # an absolute path for gnat.adc
+            gprbuild_flag="--gargs=-cargs:ada -gnateb"
+            ;;
+         esac
+      fi
 
       # Install base langkit support Python library
       pip install .
@@ -274,18 +278,20 @@ function set_langkit_usage_env() {
 function build_als() {
    set_langkit_usage_env
 
-   case "$NODE_ARCH_PLATFORM" in
-   *darwin*)
-      # On macOS, the full path of gnat.adc is stored in ALI files with case
-      # normalization. Upon re-runs, gprbuild is unable to match the
-      # normalized path with a non-case-normalized real path. This causes
-      # unnecessary recompilations at every run.
-      #
-      # To avoid that, we use the -gnateb flag which tells GNAT to not use
-      # an absolute path for gnat.adc
-      gprbuild_flag="-cargs:ada -gnateb"
-      ;;
-   esac
+   if [ -n "$USE_GNAT_ADC_BASENAME" ]; then
+      case "$NODE_ARCH_PLATFORM" in
+      *darwin*)
+         # On macOS, the full path of gnat.adc is stored in ALI files with case
+         # normalization. Upon re-runs, gprbuild is unable to match the
+         # normalized path with a non-case-normalized real path. This causes
+         # unnecessary recompilations at every run.
+         #
+         # To avoid that, we use the -gnateb flag which tells GNAT to not use
+         # an absolute path for gnat.adc
+         gprbuild_flag="-cargs:ada -gnateb"
+         ;;
+      esac
+   fi
 
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
