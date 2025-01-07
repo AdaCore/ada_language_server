@@ -288,14 +288,14 @@ function build_als() {
          #
          # To avoid that, we use the -gnateb flag which tells GNAT to not use
          # an absolute path for gnat.adc
-         gprbuild_flag="-cargs:ada -gnateb"
+         gprbuild_flag="-vm -cargs:ada -gnateb -bargs -v"
          ;;
       esac
    fi
 
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
-   LIBRARY_TYPE=static STANDALONE=no GPRBUILD_EXTRA="$gprbuild_flag" alr exec make -- "VERSION=$TAG" all
+   LIBRARY_TYPE=static STANDALONE=no GPRBUILD_CARGS="$gprbuild_flag" alr exec make -- "VERSION=$TAG" all
 }
 
 function test_als() {
