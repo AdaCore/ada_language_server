@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+* Support single-line (`//`) and multi-line (`/* */`) comments in ALS JSON configuration files
+
 ## 26.0.202412190
 
 * The configured project is now automatically reloaded when adding/renaming/deleting a file in a known source directory.
