@@ -1,0 +1,7 @@
+{
+   // Single line comment
+   /* multi-line
+      comment
+   */
+   "projectFile": "non-root/p2.gpr"
+}
