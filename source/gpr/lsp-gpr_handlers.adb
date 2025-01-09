@@ -200,7 +200,7 @@ package body LSP.GPR_Handlers is
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidOpenTextDocumentParams)
    is
-      URI    : constant LSP.Structures.DocumentUri := Value.textDocument.uri;
+      URI : constant LSP.Structures.DocumentUri := Value.textDocument.uri;
       File   : constant GNATCOLL.VFS.Virtual_File  := Self.To_File (URI);
       Object : constant Internal_Document_Access   :=
         new LSP.GPR_Documents.Document (Self.Tracer);
@@ -212,10 +212,8 @@ package body LSP.GPR_Handlers is
 
       --  We have received a document: add it to the documents container
       Object.Initialize
-        (URI,
-         GPR2.Path_Name.Create (Self.To_File (URI)),
-         Value.textDocument.text,
-         Self'Unchecked_Access);
+        (URI, GPR2.Path_Name.Create (Self.To_File (URI)),
+         Value.textDocument.text, Self'Unchecked_Access);
 
       Self.Open_Documents.Include (File, Object);
 
@@ -223,8 +221,9 @@ package body LSP.GPR_Handlers is
 
       begin
          Object.Load
-           (Client        => Self.Client,
-            Configuration => Self.Get_Configuration);
+           (Client         => Self.Client,
+            Configuration  => Self.Get_Configuration,
+            Update_Sources => True);
       exception
          when E : others =>
             Self.Tracer.Trace_Exception (E, "On_DidOpen_Notification");
@@ -242,6 +241,36 @@ package body LSP.GPR_Handlers is
 
       Self.Tracer.Trace ("Finished Text_Document_Did_Open");
    end On_DidOpen_Notification;
+
+   -----------------------------
+   -- On_DidSave_Notification --
+   -----------------------------
+
+   overriding procedure On_DidSave_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidSaveTextDocumentParams)
+   is
+      URI : LSP.Structures.DocumentUri renames Value.textDocument.uri;
+
+      Document : constant LSP.GPR_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+   begin
+      --  Reload the project tree on saving, and update its sources
+      --  to get GPR2 diagnostics related to source files/directories.
+      Document.Load
+        (Client         => Self.Get_Client.all,
+         Configuration  => Self.Get_Configuration,
+         Update_Sources => True);
+
+      --  Build GPR file for LSP needs.
+
+      LSP.GPR_Files.Parse_Modified_Document
+        (File_Provider => Self'Unrestricted_Access,
+         Path          => Self.To_File (URI));
+
+      --  Emit diagnostics
+      Self.Publish_Diagnostics (Document);
+   end On_DidSave_Notification;
 
    -------------------------------
    -- On_DocumentSymbol_Request --
@@ -393,6 +422,8 @@ package body LSP.GPR_Handlers is
                       (openClose => (Is_Set => True, Value => True),
                        change    =>
                          (Is_Set => True, Value => LSP.Enumerations.Full),
+                       save =>
+                         (Is_Set => True, Value => (True, True)),
                        others    => <>)));
 
       Response.capabilities.documentSymbolProvider :=
@@ -658,7 +689,10 @@ package body LSP.GPR_Handlers is
       for Document of Self.Open_Documents loop
          begin
             --  reload gpr tree
-            Document.Load (Self.Client, Self.Configuration);
+            Document.Load
+              (Client         => Self.Client,
+               Configuration  => Self.Configuration,
+               Update_Sources => True);
 
          exception
             when E : others =>
