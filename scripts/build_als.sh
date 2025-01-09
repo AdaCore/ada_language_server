@@ -75,10 +75,6 @@ export GPR2_BUILD=release
 export VSS_BUILD_PROFILE=release
 export PRETTIER_ADA_BUILD_MODE=prod
 
-# Global switch for a workaround on macOS. Set to non-empty to activate the
-# workaround.
-USE_GNAT_ADC_BASENAME=""
-
 function activate_venv() {
    [ -d "$VENV_PATH" ] || python -m venv "$VENV_PATH"
    case "$NODE_ARCH_PLATFORM" in
@@ -151,12 +147,10 @@ EOF
    alr exec alr -- action -r post-fetch # Configure XmlAda, etc
 }
 
+# A temporary file for langkit setevn
+SETENV=$PWD/subprojects/libadalang/setenv.sh
+
 # Build langkit which is required to generate libadalang.
-#
-# The idea is to build langkit in the form of an installable wheel that
-# contains all the dynamic libraries of dependencies such that Python can
-# easily find everything at runtime. This avoids the security limitation of
-# macOS not propagating DYLD_LIBRARY_PATH to child processes.
 function build_langkit_raw() {
    (
       # Use a sub-shell to preserve the parent PWD
@@ -164,93 +158,24 @@ function build_langkit_raw() {
 
       echo "GPR_PROJECT_PATH=$GPR_PROJECT_PATH"
 
-      # Adjust the scenario variable for libgpr2
       sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
+      pip install .
+      python manage.py make --no-mypy --generate-auto-dll-dirs \
+         --library-types=relocatable --gargs "-cargs -fPIC"
 
-      gprbuild_flag="--gargs="
-      if [ -n "$USE_GNAT_ADC_BASENAME" ]; then
-         case "$NODE_ARCH_PLATFORM" in
-         *darwin*)
-            # On macOS, the full path of gnat.adc is stored in ALI files with case
-            # normalization. Upon re-runs, gprbuild is unable to match the
-            # normalized path with a non-case-normalized real path. This causes
-            # unnecessary recompilations at every run.
-            #
-            # To avoid that, we use the -gnateb flag which tells GNAT to not use
-            # an absolute path for gnat.adc
-            gprbuild_flag="--gargs=-cargs:ada -gnateb"
-            ;;
-         esac
+      # Export the environment to use langkit into a file for later usage
+      python manage.py setenv >"$SETENV"
+
+      if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
+         # Fix setenv.sh to be bash script for MSYS2 by replacing
+         #  1) C:\ -> /C/  2) '\' -> '/' and ';' -> ':' 3) ": export" -> "; export"
+         sed -i -e 's#\([A-Z]\):\\#/\1/#g' -e 'y#\\;#/:#' -e 's/: export /; export /' "$SETENV"
+         cat "$SETENV"
       fi
 
-      # Install base langkit support Python library
-      pip install .
-
-      # Create a directory where langkit will be installed
-      prefix_dir=$PWD/lkt-install
-      rm -rf "$prefix_dir"
-      mkdir -p "$prefix_dir"
-      # Create a temporary dir used during the creation of the langkit wheel
-      tmp_dir=$PWD/lkt-tmp
-      rm -rf "$tmp_dir"
-      mkdir -p "$tmp_dir"
-      # Create a directory where all shared libraries that langkit depends on will
-      # be copied prior to the creation of the wheel
-      dep_lib_dir="$PWD/dep-libs"
-      rm -rf "$dep_lib_dir"
-      mkdir -p "$dep_lib_dir"
-
-      # This builds langkit, as well as all the library projects of the dependencies
-      python manage.py build-langkit-support \
-         --library-types=relocatable \
-         "$gprbuild_flag"
-      python manage.py install-langkit-support "$prefix_dir" \
-         --library-types=relocatable
-
-      # Next build and install langkit
-      (cd contrib/lkt && ./manage.py make --library-types=relocatable --disable-all-mains "$gprbuild_flag")
-      (cd contrib/lkt && ./manage.py install "$prefix_dir" \
-         --library-types=relocatable --disable-all-mains)
-
-      case "$NODE_ARCH_PLATFORM" in
-      *win32* | *darwin*)
-         # on macOS, we want to copy all dependency libraries into the wheel to
-         # avoid relying on DYLD_LIBRARY_PATH which has security restrictions.
-
-         # First we copy the libraries from the GNAT installation.
-         # Find the gnat installation directory
-         gnat_prefix=$(dirname "$(dirname "$(which gnat)")")
-         # Copy the libraries. Exclude paths with dSYM on macOS because those have .dylib homonyms with debug symbols.
-         find "$gnat_prefix" -name "${OS_LIB_PREFIX}gnarl*${OS_LIB_EXT}" -not -path "*dSYM*" -exec cp -v {} "$dep_lib_dir" \;
-         find "$gnat_prefix" -name "${OS_LIB_PREFIX}gnat*${OS_LIB_EXT}" -not -path "*dSYM*" -exec cp -v {} "$dep_lib_dir" \;
-
-         # Alire projects are either in the als/alire/cache directory, or in
-         # als/subprojects.
-         find ../../alire/cache/dependencies .. -name "${OS_LIB_PREFIX}*${OS_LIB_EXT}" -exec cp -v {} "$dep_lib_dir" \;
-         ;;
-      esac
-
-      # Finally build the wheel
-      pip install wheel # necessary to make python setup.py bdist_wheel work
-      (cd contrib/lkt && ./manage.py create-wheel \
-         --verbosity=debug \
-         --with-python=python \
-         "$prefix_dir" \
-         "$tmp_dir" \
-         "$dep_lib_dir" \
-         "$prefix_dir")
-
-      # And now install the resulting wheel into the Python environment
-      pip install "$prefix_dir"/*.whl --force-reinstall
-
-      case "$NODE_ARCH_PLATFORM" in
-      *linux*)
-         # On Linux shared libraries are not built with the right RPATH entries
-         # to make them movable. So we delete the installed library and instead
-         # use LD_LIBRARY_PATH to resolve it. See set_langkit_usage_env().
-         find "$VENV_PATH" -name "liblktlang.so" -delete
-         ;;
-      esac
+      # Clean `.ali` and `.o` to avoid static vis relocatable mess
+      find . -name '*.o' -delete
+      find . -name '*.ali' -delete
    )
 }
 
@@ -259,39 +184,41 @@ function build_langkit() {
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
    alr exec bash -- -x "$0" build_langkit_raw
-
-   # Check if the langkit build was successful
-   set_langkit_usage_env
-   python -c 'import liblktlang'
 }
 
 function set_langkit_usage_env() {
-   case "$NODE_ARCH_PLATFORM" in
-   *linux*)
-      lib_path_prefix=$PWD/subprojects/langkit_support/contrib/lkt/build/lib/relocatable
-      export LD_LIBRARY_PATH="$lib_path_prefix/dev:$lib_path_prefix/prod:$LD_LIBRARY_PATH"
-      ;;
-   esac
+   ADALIB=$(alr exec gcc -- -print-libgcc-file-name)
+
+   if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
+      ADALIB=$(cygpath -u "$ADALIB")
+      # libgcc_s_seh-1.dll is already in PATH
+
+   elif [[ $NODE_ARCH_PLATFORM == "x64/linux" ]]; then
+      NEW_PATH=$(dirname "$(alr exec gcc -- -print-file-name=libgcc_s.so.1)")
+   else
+      NEW_PATH=$(dirname "$(alr exec gcc -- -print-file-name=libgcc_s.dylib.1)")
+   fi
+
+   ADALIB=$(dirname "$ADALIB")/adalib
+   DEPS=$PWD/alire/cache/dependencies
+   NEW_PATH=$ADALIB:$NEW_PATH
+
+   for ITEM in $DEPS/*/{iconv,gmp,schema,dom,sax,input_sources,unicode}; do
+      [ -d "$ITEM" ] && NEW_PATH=$ITEM/lib/relocatable:$NEW_PATH
+   done
+
+   echo "NEW_PATH=$NEW_PATH"
+   export DYLD_LIBRARY_PATH=$NEW_PATH:$DYLD_LIBRARY_PATH
+   export PATH=$NEW_PATH":$PATH"
+
+   source "$SETENV"
 }
 
 # Build ALS with alire
 function build_als() {
+   # Check if langkit is usable
    set_langkit_usage_env
-
-   if [ -n "$USE_GNAT_ADC_BASENAME" ]; then
-      case "$NODE_ARCH_PLATFORM" in
-      *darwin*)
-         # On macOS, the full path of gnat.adc is stored in ALI files with case
-         # normalization. Upon re-runs, gprbuild is unable to match the
-         # normalized path with a non-case-normalized real path. This causes
-         # unnecessary recompilations at every run.
-         #
-         # To avoid that, we use the -gnateb flag which tells GNAT to not use
-         # an absolute path for gnat.adc
-         gprbuild_flag="-vm -cargs:ada -gnateb -bargs -v"
-         ;;
-      esac
-   fi
+   python -c 'import liblktlang'
 
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
