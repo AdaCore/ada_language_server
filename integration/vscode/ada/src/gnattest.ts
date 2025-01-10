@@ -514,9 +514,15 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: C
         /**
          * Collect and filter tests to run.
          */
-        const requestedLeafTests = requestedRootTests.flatMap((i) => collectLeafItems(i, token));
+        const requestedLeafTests = (
+            await Promise.all(requestedRootTests.map(async (i) => await collectLeafItems(i, token)))
+        ).flat();
         const excludedLeafTests = request.exclude
-            ? request.exclude.flatMap((i) => collectLeafItems(i, token))
+            ? (
+                  await Promise.all(
+                      request.exclude.map(async (i) => await collectLeafItems(i, token)),
+                  )
+              ).flat()
             : [];
         const testsToRun = requestedLeafTests.filter((t) => {
             if (token?.isCancellationRequested) {
@@ -614,7 +620,7 @@ async function handleRunAll(request: vscode.TestRunRequest, token?: Cancellation
         /**
          * Collect all tests, i.e. all leafs of the TestItem tree.
          */
-        const allTests: TestItem[] = collectLeafsFromCollection(controller.items, token);
+        const allTests: TestItem[] = await collectLeafsFromCollection(controller.items, token);
 
         /**
          * Mark tests as queued
@@ -625,17 +631,6 @@ async function handleRunAll(request: vscode.TestRunRequest, token?: Cancellation
          * Build the test driver
          */
         await buildTestDriverAndReportErrors(run, allTests);
-
-        if (token?.isCancellationRequested) {
-            throw new vscode.CancellationError();
-        }
-
-        /**
-         * Resolve all the test tree before collecting tests
-         */
-        const promises: Promise<void>[] = [];
-        controller.items.forEach((i) => promises.push(resolveHandler(i, true, token)));
-        await Promise.all(promises);
 
         if (token?.isCancellationRequested) {
             throw new vscode.CancellationError();
@@ -810,37 +805,71 @@ export function determineTestOutcome(
  *
  * @param items - a {@link vscode.TestItemCollection}
  * @param token - a cancellation token to stop the traversal
+ * @param resolve - whether to resolve items that can have children or process
+ * them as they are
  * @returns the array of leaf TestItems reachable from the given collection.
  */
-export function collectLeafsFromCollection(
+export async function collectLeafsFromCollection(
     items: vscode.TestItemCollection,
     token?: CancellationToken,
-): vscode.TestItem[] {
+    resolve: boolean = true,
+): Promise<vscode.TestItem[]> {
     const res: vscode.TestItem[] = [];
-    items.forEach((i) => {
+
+    /**
+     * items.forEach() wouldn't work here because each iteration produces a
+     * promise that we can't await. Ideally we could have used
+     * Promise.all(items.map(...)) but the TestItemCollection type doesn't
+     * offer a map method. So instead we use a regular for-loop and await in
+     * each iteration.
+     */
+    for (const [, item] of items) {
         if (token?.isCancellationRequested) {
             throw new vscode.CancellationError();
         }
-        res.push(...collectLeafItems(i, token));
-    });
+        res.push(...(await collectLeafItems(item, token, resolve)));
+    }
     return res;
 }
 
 /**
  *
- * @param item - a {@link vscode.TestItem}
+ * @param item - a {@link TestItem}
  * @param token - a cancellation token to stop the traversal
+ * @param resolve - whether to resolve items that can have children or process
+ * them as they are
  * @returns the array of leaf TestItems reachable from the given TestItem
  */
-export function collectLeafItems(item: TestItem, token?: CancellationToken): vscode.TestItem[] {
+export async function collectLeafItems(
+    item: TestItem,
+    token?: CancellationToken,
+    resolve: boolean = true,
+): Promise<vscode.TestItem[]> {
+    /**
+     * If the TestItem has never been expanded in the UI, its children may have
+     * not been populated yet. Force a resolve operation to load the children.
+     */
+    if (resolve && item.canResolveChildren && controller.resolveHandler) {
+        await controller.resolveHandler(item);
+    }
+
     if (item.children.size > 0) {
         const res: vscode.TestItem[] = [];
-        item.children.forEach((i) => {
+
+        /**
+         * items.forEach() wouldn't work here because each iteration produces a
+         * promise that we can't await. Ideally we could have used
+         * Promise.all(items.map(...)) but the TestItemCollection type doesn't
+         * offer a map method. So instead we use a regular for-loop and await in
+         * each iteration.
+         */
+        for (const [, i] of item.children) {
             if (token?.isCancellationRequested) {
                 throw new vscode.CancellationError();
             }
-            res.push(...collectLeafItems(i, token));
-        });
+            res.push(...(await collectLeafItems(i, token, resolve)));
+        }
+
         return res;
     } else {
         return [item];
