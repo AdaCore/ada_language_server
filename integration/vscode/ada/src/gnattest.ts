@@ -8,6 +8,12 @@ import { TestItem } from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
 import { escapeRegExp, exe, getObjectDir } from './helpers';
+import {
+    findTaskByName,
+    runTaskAndGetResult,
+    TASK_BUILD_TEST_DRIVER,
+    TASK_TYPE_ADA,
+} from './taskProviders';
 
 export let controller: vscode.TestController;
 export let testRunProfile: vscode.TestRunProfile;
@@ -582,18 +588,22 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: C
  * reported on those tests.
  */
 async function buildTestDriverAndReportErrors(run: vscode.TestRun, testsToRun: vscode.TestItem[]) {
-    try {
-        await buildTestDriver(run);
-    } catch (error) {
+    const task = await findTaskByName(`${TASK_TYPE_ADA}: ${TASK_BUILD_TEST_DRIVER}`);
+    const result = await runTaskAndGetResult(task);
+    if (result != 0) {
+        const msg =
+            `Task '${TASK_BUILD_TEST_DRIVER}' failed.` +
+            ` Check the [Problems](command:workbench.panel.markers.view.focus) view` +
+            ` and the [Terminal](command:terminal.focus) view for more information.`;
+        const md = new vscode.MarkdownString(msg);
+        md.isTrusted = true;
+        const testMsg = new vscode.TestMessage(md);
         /**
-         * In case of failure, report all tests as errored.
+         * Mark each test as errored, not failed, since the tests can't run
+         * because of the build error.
          */
-        const md = getBuildErrorMessage();
-        for (const test of testsToRun) {
-            run.errored(test, new vscode.TestMessage(md));
-        }
-        run.end();
-        throw error;
+        testsToRun.forEach((test) => run.errored(test, testMsg));
+        throw Error(msg);
     }
 }
 
@@ -617,6 +627,15 @@ function prepareAndAppendOutput(run: vscode.TestRun, out: string) {
 async function handleRunAll(request: vscode.TestRunRequest, token?: CancellationToken) {
     const run = controller.createTestRun(request, undefined, false);
     try {
+        /**
+         * If the run request was created with the 'Tests: Run All Tests'
+         * command before activating the Testing view, then the controller is
+         * still empty. In that case let's refresh it to load the tests.
+         */
+        if (controller.items.size == 0) {
+            await controller.refreshHandler!(token ?? new vscode.CancellationTokenSource().token);
+        }
+
         /**
          * Collect all tests, i.e. all leafs of the TestItem tree.
          */
@@ -670,54 +689,6 @@ async function handleRunAll(request: vscode.TestRunRequest, token?: Cancellation
         }
     } finally {
         run.end();
-    }
-}
-
-/**
- * Failures to build the test driver are reported as test errors to make them
- * clearly visible.
- *
- * @returns the message to be used as a test failure when the test driver fails
- * to build.
- */
-function getBuildErrorMessage() {
-    const md = new vscode.MarkdownString(
-        'Failed to build the test driver, [view output](command:testing.showMostRecentOutput)',
-    );
-    md.isTrusted = true;
-    return md;
-}
-
-/**
- * Invoke gprbuild on the test driver project and pipe the output into the given
- * TestRun object.
- *
- * @param run - the TestRun object hosting this execution
- * @throws an Error if the process ends with an error code
- */
-async function buildTestDriver(run: vscode.TestRun) {
-    /**
-     * TODO replace this with a task invocation to capture problems
-     */
-    const driverPrjPath = await getGnatTestDriverProjectPath();
-    run.appendOutput(`Building the test harness project\r\n`);
-    /**
-     * The following arguments are passed directly to the spawned subprocess.
-     * It not necessary nor appropriate to apply shell quoting here.
-     */
-    const gprbuild = logAndRun(run, ['gprbuild', '-P', driverPrjPath, '-cargs:ada', '-gnatef']);
-
-    prepareAndAppendOutput(run, gprbuild.stdout.toLocaleString());
-    prepareAndAppendOutput(run, gprbuild.stderr.toLocaleString());
-
-    if (gprbuild.status !== 0) {
-        throw Error(
-            'Error while building the test driver:\n' +
-                gprbuild.output
-                    .filter((x) => x != null)
-                    .map((x) => x.toLocaleString())
-                    .join('\n'),
-        );
     }
 }
 

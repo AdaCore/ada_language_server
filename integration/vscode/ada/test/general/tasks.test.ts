@@ -21,9 +21,9 @@ import {
     isCoreTask,
     isGNATSASTask,
     negate,
-    runTaskAndGetResult,
     testTask,
 } from '../utils';
+import { runTaskAndGetResult } from '../../src/taskProviders';
 
 suite('Task Providers', function () {
     this.timeout('15s');
