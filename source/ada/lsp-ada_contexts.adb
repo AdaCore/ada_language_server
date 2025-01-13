@@ -27,6 +27,7 @@ with GPR2.Containers;
 with GPR2.Path_Name;
 with GPR2.Project.Attribute;
 with GPR2.Project.Attribute_Index;
+with GPR2.Project.Registry.Attribute;
 with GPR2.Build.Source;
 with GPR2.Build.Source.Sets;
 
@@ -925,24 +926,62 @@ package body LSP.Ada_Contexts is
       return Ada.Strings.Unbounded.To_String (Self.Charset);
    end Charset;
 
-   -----------------------------
-   -- Project_Attribute_Value --
-   -----------------------------
+   ------------------------------
+   -- Project_Attribute_Values --
+   ------------------------------
 
-   function Project_Attribute_Value
-     (Self         : Context;
-      Attribute    : GPR2.Q_Attribute_Id;
-      Index        : String := "";
-      Default      : String := "";
-      Use_Extended : Boolean := False) return String is
+   function Project_Attribute_Values
+     (View              : GPR2.Project.View.Object;
+      Attribute         : GPR2.Q_Attribute_Id;
+      Index             : String := "";
+      Is_List_Attribute : out Boolean;
+      Is_Known          : out Boolean)
+      return VSS.String_Vectors.Virtual_String_Vector
+   is
+      use GPR2.Project.Registry.Attribute;
+
+      Attribute_Index : constant GPR2.Project.Attribute_Index.Object :=
+        (if Index = "" then GPR2.Project.Attribute_Index.Undefined
+         else GPR2.Project.Attribute_Index.Create (Index));
+
+      Attribute_Value : GPR2.Project.Attribute.Object;
+
+      function Convert
+        (Values : GPR2.Containers.Source_Value_List)
+         return VSS.String_Vectors.Virtual_String_Vector;
+
+      -------------
+      -- Convert --
+      -------------
+
+      function Convert
+        (Values : GPR2.Containers.Source_Value_List)
+         return VSS.String_Vectors.Virtual_String_Vector
+      is
+         Result : VSS.String_Vectors.Virtual_String_Vector;
+      begin
+         for Value of Values loop
+            Result.Append (VSS.Strings.Conversions.To_Virtual_String (Value.Text));
+         end loop;
+
+         return Result;
+      end Convert;
+
    begin
-      return Project_Attribute_Value
-        (View         => Self.Tree.Root_Project,
-         Attribute    => Attribute,
-         Index        => Index,
-         Default      => Default,
-         Use_Extended => Use_Extended);
-   end Project_Attribute_Value;
+      Is_Known := False;
+
+      if View.Check_Attribute
+           (Name   => Attribute,
+            Index  => Attribute_Index,
+            Result => Attribute_Value)
+      then
+         Is_List_Attribute := (Attribute_Value.Kind = List);
+         Is_Known := True;
+         return Convert (Attribute_Value.Values);
+      end if;
+
+      return [];
+   end Project_Attribute_Values;
 
    -----------------------------
    -- Project_Attribute_Value --
@@ -952,46 +991,40 @@ package body LSP.Ada_Contexts is
      (View         : GPR2.Project.View.Object;
       Attribute    : GPR2.Q_Attribute_Id;
       Index        : String := "";
-      Default      : String := "";
-      Use_Extended : Boolean := False) return String is
-      Attribute_Index : constant GPR2.Project.Attribute_Index.Object :=
-        (if Index = ""
-         then GPR2.Project.Attribute_Index.Undefined
-         else GPR2.Project.Attribute_Index.Create (Index));
-
-      Attribute_Value : GPR2.Project.Attribute.Object;
-
+      Default      : String := "") return String
+   is
+      Dummy      : Boolean;
+      Is_Known   : Boolean;
+      Values : constant VSS.String_Vectors.Virtual_String_Vector :=
+        Project_Attribute_Values
+          (View              => View,
+           Attribute         => Attribute,
+           Index             => Index,
+           Is_List_Attribute => Dummy,
+           Is_Known          => Is_Known);
    begin
-      if View.Check_Attribute
-        (Name   => Attribute,
-         Index  => Attribute_Index,
-         Result => Attribute_Value)
-      then
-         return Attribute_Value.Value.Text;
-      elsif Use_Extended and then View.Is_Extending then
-         --  Look at Extended project list as attribute not found in
-         --  Root_Project and Use_Extended requested.
-
-         declare
-            Extended_Root : GPR2.Project.View.Object :=
-              View.Extended_Root;
-         begin
-            while Extended_Root.Is_Defined loop
-               if Extended_Root.Check_Attribute
-                 (Name   => Attribute,
-                  Index  => Attribute_Index,
-                  Result => Attribute_Value)
-               then
-                  return Attribute_Value.Value.Text;
-               elsif Extended_Root.Is_Extending then
-                  Extended_Root := Extended_Root.Extended_Root;
-               else
-                  Extended_Root := GPR2.Project.View.Undefined;
-               end if;
-            end loop;
-         end;
+      if Is_Known then
+         return VSS.Strings.Conversions.To_UTF_8_String (Values.First_Element);
+      else
+         return Default;
       end if;
-      return Default;
+   end Project_Attribute_Value;
+
+   -----------------------------
+   -- Project_Attribute_Value --
+   -----------------------------
+
+   function Project_Attribute_Value
+     (Self         : Context;
+      Attribute    : GPR2.Q_Attribute_Id;
+      Index        : String := "";
+      Default      : String := "") return String is
+   begin
+      return Project_Attribute_Value
+        (View         => Self.Tree.Root_Project,
+         Attribute    => Attribute,
+         Index        => Index,
+         Default      => Default);
    end Project_Attribute_Value;
 
 end LSP.Ada_Contexts;
