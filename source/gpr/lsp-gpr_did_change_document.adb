@@ -102,11 +102,14 @@ package body LSP.GPR_Did_Change_Document is
            (Message.Params.textDocument.version, Changes);
       end if;
 
-      --  Load gpr tree & prepare diagnostics
+      --  Load gpr tree & prepare diagnostics.
+      --  Do not update the tree's sources because it's too slow: we only want
+      --  to publish syntactic and semantic diagnostics here.
 
       Self.Document.Load
-        (Client        => Self.Parent.Context.Get_Client.all,
-         Configuration => Self.Parent.Context.Get_Configuration);
+        (Client         => Self.Parent.Context.Get_Client.all,
+         Configuration  => Self.Parent.Context.Get_Configuration,
+         Update_Sources => False);
 
       --  Build GPR file for LSP needs.
 

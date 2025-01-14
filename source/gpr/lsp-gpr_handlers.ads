@@ -153,6 +153,10 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidOpenTextDocumentParams);
 
+   overriding procedure On_DidSave_Notification
+     (Self  : in out Message_Handler;
+      Value : LSP.Structures.DidSaveTextDocumentParams);
+
    overriding procedure On_Hover_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;

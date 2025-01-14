@@ -1,0 +1,227 @@
+[
+   {
+      "comment": [
+         "Test that source file diagnostics get published ",
+         "a first time after opening a GPR file and then ",
+         "get properly updated when saving the edited file"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Default is\n   for Main use (\"main.adb\");\n   for Source_Dirs use (\"src\");\nend Default;",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{default.gpr}",
+                  "diagnostics": [
+                     "<HAS>",
+                     {
+                        "message": "there are no sources of language \"Ada\" in this project",
+                        "range": {
+                           "end": {
+                              "character": 0,
+                              "line": 0
+                           },
+                           "start": {
+                              "character": 0,
+                              "line": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "gpr.project"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": "Remove the line that causes errors related to source files.",
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 31
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "comment": "Save the file and check that source file diagnostics have been cleared.",
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didSave",
+            "params": { "textDocument": { "uri": "$URI{default.gpr}" } }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{default.gpr}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "comment": "Put the problematic line back again.",
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 0
+                        }
+                     },
+                     "text": "  for Source_Dirs use (\"src\");\n"
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "comment": "Save the file and check that source files diagnostics are back again.",
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didSave",
+            "params": { "textDocument": { "uri": "$URI{default.gpr}" } }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{default.gpr}",
+                  "diagnostics": [
+                     "<HAS>",
+                     {
+                        "message": "there are no sources of language \"Ada\" in this project",
+                        "range": {
+                           "end": {
+                              "character": 0,
+                              "line": 0
+                           },
+                           "start": {
+                              "character": 0,
+                              "line": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "gpr.project"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
