@@ -27,7 +27,6 @@ with GPR2.Containers;
 with GPR2.Path_Name;
 with GPR2.Project.Attribute;
 with GPR2.Project.Attribute_Index;
-with GPR2.Project.View.Set;
 with GPR2.Build.Source;
 with GPR2.Build.Source.Sets;
 
@@ -607,6 +606,21 @@ package body LSP.Ada_Contexts is
 
       procedure Update_Source_Files is
 
+         procedure Process_Closure
+           (Root     : GPR2.Project.View.Object;
+            Callback : not null access procedure
+              (View : GPR2.Project.View.Object));
+         --  Process the closure of Root with the given callback.
+         --  Similar to GPR2.Project.View.Closure, but, in addition,
+         --  when encountering an extending project, consider the
+         --  project it is extending to be part of the closure.
+
+         procedure Add_Sources_From_View (View : GPR2.Project.View.Object);
+         --  Add the sources from the given view to the context
+
+         procedure Add_Dirs_From_View (View : GPR2.Project.View.Object);
+         --  Add the source directories from the given view to the context
+
          procedure Insert_Source (Source : GPR2.Build.Source.Object);
          --  Insert Source in Self.Source_Files
 
@@ -614,54 +628,83 @@ package body LSP.Ada_Contexts is
          -- Insert_Source --
          -------------------
 
-         procedure Insert_Source (Source : GPR2.Build.Source.Object) is
-            Path : constant Virtual_File := Source.Path_Name.Virtual_File;
+         procedure Insert_Source (Source : GPR2.Build.Source.Object)
+         is
+            Path : constant Virtual_File :=
+              Source.Path_Name.Virtual_File;
          begin
             if not Self.Source_Files.Contains (Path) then
                Self.Source_Files.Include (Path);
             end if;
          end Insert_Source;
 
+         ---------------------
+         -- Process_Closure --
+         ---------------------
+
+         procedure Process_Closure
+           (Root     : GPR2.Project.View.Object;
+            Callback : not null access procedure
+              (View : GPR2.Project.View.Object))
+         is
+         begin
+            --  First process the closure of the view
+            for View of Root.Closure
+              (Include_Self => True) when not View.Is_Runtime
+            loop
+               Callback (View);
+            end loop;
+
+            --  If we're looking at an extending view, now
+            --  process the closure of the extended views.
+            if Root.Is_Extending then
+               for V of Root.Extended loop
+                  Process_Closure (V, Callback);
+               end loop;
+            end if;
+         end Process_Closure;
+
+         ---------------------------
+         -- Add_Sources_From_View --
+         ---------------------------
+
+         procedure Add_Sources_From_View (View : GPR2.Project.View.Object) is
+            Sources : constant GPR2.Build.Source.Sets.Object := View.Sources;
+            use type GPR2.Language_Id;
+         begin
+            for Source of Sources loop
+               if Source.Language = GPR2.Ada_Language then
+                  Insert_Source (Source);
+               end if;
+            end loop;
+         end Add_Sources_From_View;
+
+         ------------------------
+         -- Add_Dirs_From_View --
+         ------------------------
+
+         procedure Add_Dirs_From_View (View : GPR2.Project.View.Object) is
+         begin
+            if View.Is_Externally_Built then
+               for Dir of View.Source_Directories loop
+                  Self.External_Source_Dirs.Include (Dir.Virtual_File);
+               end loop;
+            else
+               for Dir of View.Source_Directories loop
+                  Self.Source_Dirs.Include (Dir.Virtual_File);
+               end loop;
+            end if;
+         end Add_Dirs_From_View;
+
       begin
          Self.Source_Files.Clear;
 
-         for View of Root.Closure (Include_Self => True)
-           when not View.Is_Runtime
-         loop
-            declare
-               Sources : constant GPR2.Build.Source.Sets.Object
-                  := View.Sources;
-               use type GPR2.Language_Id;
-            begin
-               for Source of Sources loop
-                  if Source.Language = GPR2.Ada_Language then
-                     Insert_Source (Source);
-                  end if;
-               end loop;
-            end;
-         end loop;
+         Process_Closure (Root, Add_Sources_From_View'Access);
 
          Self.Source_Dirs.Clear;
          Self.External_Source_Dirs.Clear;
 
-         declare
-            Views : constant GPR2.Project.View.Set.Object :=
-               Root.Closure (Include_Self => True);
-         begin
-            for View of Views
-              when not View.Is_Runtime
-            loop
-               if View.Is_Externally_Built then
-                  for Dir of View.Source_Directories loop
-                     Self.External_Source_Dirs.Include (Dir.Virtual_File);
-                  end loop;
-               else
-                  for Dir of View.Source_Directories loop
-                     Self.Source_Dirs.Include (Dir.Virtual_File);
-                  end loop;
-               end if;
-            end loop;
-         end;
+         Process_Closure (Root, Add_Dirs_From_View'Access);
 
          Self.Extension_Set.Clear;
 

@@ -8,6 +8,7 @@ section below it for the last release. -->
 * Fix the reporting of test results in the Testing view when the test tree is not expanded
 * Fix sluggish completion while editing GPR files
 * Provide a task `ada: Build GNATtest test harness project` allowing to customize the build step of test execution in `tasks.json`
+* Fix cross-references (navigation, call hierarchy, finding all references) when the project is an Extending project.
 
 ## 26.0.202412190
 

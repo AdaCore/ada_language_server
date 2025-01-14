@@ -451,6 +451,16 @@ class ALSLanguageClient(LanguageClient):
             )
         )
 
+    async def references(self, uri: str, line_one_based: int, char_one_based: int):
+        pos = Pos(line_one_based, char_one_based)
+        return await self.text_document_references_async(
+            lsprotocol.types.ReferenceParams(
+                context=lsprotocol.types.ReferenceContext(include_declaration=True),
+                text_document=TextDocumentIdentifier(uri),
+                position=pos,
+            )
+        )
+
     def assertEqual(self, actual: Any, expected: Any) -> None:
         """Raise an AssertionError if actual != expected."""
         assertEqual(actual, expected)
@@ -784,12 +794,12 @@ def do_main():
     run_test_file(args.test_py_path)
 
 
-def Pos(line_one_based: int, char_one_based: int):
+def Pos(line_one_based: int, char_one_based: int) -> Position:
     """Shortcut for creating a Position object with ONE-BASED locations."""
     return Position(line_one_based - 1, char_one_based - 1)
 
 
-def RangeZero(line_one_based: int, char_one_based: int):
+def RangeZero(line_one_based: int, char_one_based: int) -> Range:
     """Shortcut for creating a Range that starts and ends at the same location given
     with ONE-BASED integers.
     """

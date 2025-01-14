@@ -1,0 +1,8 @@
+with "../common/common.gpr";
+
+project Program is
+
+   for Main use ("program.adb");
+   for Source_Dirs use (".");
+
+end Program;
