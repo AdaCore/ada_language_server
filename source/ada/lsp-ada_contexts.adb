@@ -158,22 +158,6 @@ package body LSP.Ada_Contexts is
       return Source_Units;
    end Analysis_Units;
 
-   -----------------------------
-   -- List_Source_Directories --
-   -----------------------------
-
-   function List_Source_Directories
-     (Self                     : Context;
-      Include_Externally_Built : Boolean := False)
-      return LSP.Ada_File_Sets.File_Sets.Set is
-   begin
-      if Include_Externally_Built then
-         return Self.Source_Dirs.Union (Self.External_Source_Dirs);
-      else
-         return Self.Source_Dirs;
-      end if;
-   end List_Source_Directories;
-
    ----------------------------
    -- List_Source_Externsion --
    ----------------------------
@@ -685,15 +669,9 @@ package body LSP.Ada_Contexts is
 
          procedure Add_Dirs_From_View (View : GPR2.Project.View.Object) is
          begin
-            if View.Is_Externally_Built then
-               for Dir of View.Source_Directories loop
-                  Self.External_Source_Dirs.Include (Dir.Virtual_File);
-               end loop;
-            else
-               for Dir of View.Source_Directories loop
-                  Self.Source_Dirs.Include (Dir.Virtual_File);
-               end loop;
-            end if;
+            for Dir of View.Source_Directories loop
+               Self.Source_Dirs.Include (Dir.Virtual_File);
+            end loop;
          end Add_Dirs_From_View;
 
       begin
@@ -702,7 +680,6 @@ package body LSP.Ada_Contexts is
          Process_Closure (Root, Add_Sources_From_View'Access);
 
          Self.Source_Dirs.Clear;
-         Self.External_Source_Dirs.Clear;
 
          Process_Closure (Root, Add_Dirs_From_View'Access);
 
