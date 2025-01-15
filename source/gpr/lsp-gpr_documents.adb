@@ -176,9 +176,10 @@ package body LSP.GPR_Documents is
    ----------
 
    procedure Load
-     (Self          : in out Document;
-      Client        : LSP.Ada_Client_Capabilities.Client_Capability;
-      Configuration : LSP.Ada_Configurations.Configuration) is
+     (Self           : in out Document;
+      Client         : LSP.Ada_Client_Capabilities.Client_Capability;
+      Configuration  : LSP.Ada_Configurations.Configuration;
+      Update_Sources : Boolean := False) is
 
       procedure Update_Diagnostics;
       --  Update Self.Messages, Self.Errors_Changed, Self.Has_Diagnostics
@@ -216,15 +217,14 @@ package body LSP.GPR_Documents is
          Opts.Add_Switch (GPR2.Options.P, String (Self.File.Value));
          Opts.Add_Context (Configuration.Context);
 
-         Success := Self.Tree.Load
-           (Opts,
-            Reporter         => Reporter,
-            With_Runtime     => True,
-            Absent_Dir_Error => GPR2.No_Error,
-            File_Reader      => Self.File_Provider.Get_File_Reader,
-            Environment      => LSP.GPR_Files.Environment);
+         Success :=
+           Self.Tree.Load
+             (Opts, Reporter   => Reporter, With_Runtime => True,
+              Absent_Dir_Error => GPR2.No_Error,
+              File_Reader      => Self.File_Provider.Get_File_Reader,
+              Environment      => LSP.GPR_Files.Environment);
 
-         if Success then
+         if Update_Sources and then Success then
             Self.Tree.Update_Sources;
          end if;
 

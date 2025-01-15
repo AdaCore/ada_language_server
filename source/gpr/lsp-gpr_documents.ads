@@ -74,10 +74,14 @@ package LSP.GPR_Documents is
    --  project status diagnostic source.
 
    procedure Load
-     (Self          : in out Document;
-      Client        : LSP.Ada_Client_Capabilities.Client_Capability;
-      Configuration : LSP.Ada_Configurations.Configuration);
+     (Self           : in out Document;
+      Client         : LSP.Ada_Client_Capabilities.Client_Capability;
+      Configuration  : LSP.Ada_Configurations.Configuration;
+      Update_Sources : Boolean := False);
    --  Load associated GPR tree.
+   --  If Update_Sources is True, the tree's sources will be updated after
+   --  loading it successfully, allowing to retrieve GPR2 warnings/errors
+   --  related to source files and directories later on.
 
    procedure Cleanup (Self : in out Document);
    --  Free all the data associated to this document.
