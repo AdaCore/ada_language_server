@@ -1,0 +1,6 @@
+project Extending extends "program/program.gpr" is
+
+   for Main use ("extending.adb");
+   for Source_Dirs use ("extending");
+
+end Extending;
