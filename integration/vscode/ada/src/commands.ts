@@ -656,15 +656,24 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
  * for use with GPR-based tools.
  */
 export async function gprProjectArgs(): Promise<string[]> {
-    const vars: string[][] = Object.entries(
-        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
-    );
-    return ['-P', await getProjectFromConfigOrALS()].concat(
-        vars.map(([key, value]) => `-X${key}=${value}`),
-    );
+    const scenarioArgs = gprScenarioArgs();
+
+    return ['-P', await getProjectFromConfigOrALS()].concat(scenarioArgs);
 }
 
 export const PROJECT_FROM_CONFIG = '${config:ada.projectFile}';
+
+/**
+ * @returns an array of -X scenario command lines arguments for use with
+ * GPR-based tools.
+ */
+export function gprScenarioArgs() {
+    const vars: string[][] = Object.entries(
+        vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
+    );
+    const scenarioArgs = vars.map(([key, value]) => `-X${key}=${value}`);
+    return scenarioArgs;
+}
 
 /**
  * @returns `"$\{config:ada.projectFile\}"` if that setting has a value, or else

@@ -16,10 +16,12 @@
 ----------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { existsSync } from 'fs';
 import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import { CMD_GPR_PROJECT_ARGS } from './commands';
 import { adaExtState, logger } from './extension';
+import { getGnatTestDriverProjectPath } from './gnattest';
 import { AdaMain, getAdaMains, showErrorMessageWithOpenLogButton } from './helpers';
 
 export const TASK_TYPE_ADA = 'ada';
@@ -90,6 +92,7 @@ export const TASK_PROVE_SUPB_PLAIN_NAME = 'Prove subprogram';
 export const TASK_PROVE_REGION_PLAIN_NAME = 'Prove selected region';
 export const TASK_PROVE_LINE_PLAIN_NAME = 'Prove line';
 export const TASK_PROVE_FILE_PLAIN_NAME = 'Prove file';
+export const TASK_BUILD_TEST_DRIVER = 'Build GNATtest test harness project';
 
 /**
  * Predefined tasks offered by the extension. Both 'ada' and 'spark' tasks are
@@ -230,7 +233,7 @@ const predefinedTasks: PredefinedTask[] = [
         problemMatchers: '',
     },
     {
-        label: 'Create/update test skeletons for the project',
+        label: 'Create or update GNATtest test framework',
         taskDef: {
             type: TASK_TYPE_ADA,
             command: 'gnattest',
@@ -454,6 +457,23 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                     return [buildTask, runTask, buildAndRunTask];
                 }),
             );
+
+            /**
+             * If a test harness project exists, provide a task to build it.
+             */
+            const harnessPrj = await getGnatTestDriverProjectPath();
+            if (existsSync(harnessPrj)) {
+                taskDeclsToOffer.push({
+                    label: TASK_BUILD_TEST_DRIVER,
+                    taskDef: {
+                        type: TASK_TYPE_ADA,
+                        command: 'gprbuild',
+                        args: ['-P', harnessPrj, "'-cargs:ada'", '-gnatef'],
+                    },
+                    problemMatchers: DEFAULT_PROBLEM_MATCHER,
+                    taskGroup: vscode.TaskGroup.Build,
+                });
+            }
         }
 
         /**
@@ -1156,4 +1176,64 @@ function isAlire(command: string | vscode.ShellQuotedString): boolean {
     const value = typeof command == 'string' ? command : command.value;
     const commandBasename = basename(value);
     return commandBasename.match(/^alr(\.exe)?$/) != null;
+}
+
+/**
+ * Execute the given task, wait until it finishes and return the underlying
+ * process exit code.
+ *
+ * @param task - a {@link vscode.Task}
+ * @returns a Promise that resolves to the underlying process exit code when the
+ * task finishes execution.
+ */
+export async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
+    return await new Promise<number | undefined>((resolve, reject) => {
+        let started = false;
+
+        const startDisposable = vscode.tasks.onDidStartTask((e) => {
+            if (e.execution.task == task) {
+                /**
+                 * Task was started, let's listen to the end.
+                 */
+                started = true;
+                startDisposable.dispose();
+            }
+        });
+
+        const endDisposable = vscode.tasks.onDidEndTaskProcess((e) => {
+            if (e.execution.task == task) {
+                endDisposable.dispose();
+                resolve(e.exitCode);
+            }
+        });
+
+        setTimeout(() => {
+            /**
+             * If the task has not started within the timeout below, it means an
+             * error occured during startup. Reject the promise.
+             */
+            if (!started) {
+                const msg = `The task '${getConventionalTaskLabel(
+                    task,
+                )}' was not started, likely due to an error.\n`;
+                reject(Error(msg));
+            }
+        }, 3000);
+
+        void vscode.tasks.executeTask(task);
+    }).catch(async (reason) => {
+        if (reason instanceof Error) {
+            let msg = 'The current list of tasks is:\n';
+            msg += await vscode.tasks.fetchTasks({ type: task.definition.type }).then(
+                (list) => list.map(getConventionalTaskLabel).join('\n'),
+
+                (reason) => `fetchTasks promise was rejected: ${reason}`,
+            );
+
+            reason.message += '\n' + msg;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        return Promise.reject(reason);
+    });
 }

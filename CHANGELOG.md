@@ -7,6 +7,7 @@ section below it for the last release. -->
 * Support single-line (`//`) and multi-line (`/* */`) comments in ALS JSON configuration files
 * Fix the reporting of test results in the Testing view when the test tree is not expanded
 * Fix sluggish completion while editing GPR files
+* Provide a task `ada: Build GNATtest test harness project` allowing to customize the build step of test execution in `tasks.json`
 
 ## 26.0.202412190
 
