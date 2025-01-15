@@ -52,7 +52,7 @@
             {
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{}",
+                  "uri": "$URI{test.gpr}",
                   "diagnostics": [
                        {
                         "range": {
@@ -125,7 +125,7 @@
                "jsonrpc": "2.0",
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{}",
+                  "uri": "$URI{not_visible_project/project_with_errors.gpr}",
                   "diagnostics": [
                        {
                         "range": {

@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.VFS;
 with LSP.Ada_Project_Loading;
 with LSP.Diagnostic_Sources;
 
@@ -22,16 +23,17 @@ package LSP.Ada_Handlers.Project_Diagnostics is
 
    Project_Diagnostics_Source_ID : constant VSS.Strings.Virtual_String :=
      "ada.project";
-
    type Diagnostic_Source
      (Handler : not null access LSP.Ada_Handlers.Message_Handler'Class)
    is limited new LSP.Diagnostic_Sources.Workspace_Diagnostic_Source with private;
 
-   overriding
-   procedure Get_Diagnostics
-     (Self        : in out Diagnostic_Source;
-      Diagnostics : out LSP.Structures.Diagnostic_Vector);
+   overriding procedure Get_Diagnostics
+     (Self          : in out Diagnostic_Source;
+      Diagnostics   : out LSP.Structures.Diagnostic_Vector;
+      Target_File   : out GNATCOLL.VFS.Virtual_File);
    --  Fill diagnostics for given document.
+   --  Target_File is the file where diagnostics should be published
+   --  (e.g: project file, workspace's root directory).
 
    overriding function Has_New_Diagnostic
      (Self    : in out Diagnostic_Source) return Boolean;

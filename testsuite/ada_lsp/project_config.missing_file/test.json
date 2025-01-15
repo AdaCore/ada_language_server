@@ -70,7 +70,7 @@
                "jsonrpc": "2.0",
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{}",
+                  "uri": "$URI{prj1.gpr}",
                   "diagnostics": [
                      {
                         "range": {
