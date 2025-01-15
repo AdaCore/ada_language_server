@@ -147,8 +147,8 @@ EOF
    alr exec alr -- action -r post-fetch # Configure XmlAda, etc
 }
 
-# A temporary file for langkit setevn
-SETENV=$PWD/subprojects/libadalang/setenv.sh
+# A temporary file for langkit environment
+LANGKIT_SETENV=$PWD/subprojects/libadalang/setenv.sh
 
 # Build langkit which is required to generate libadalang.
 function build_langkit_raw() {
@@ -160,23 +160,66 @@ function build_langkit_raw() {
 
       sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
       pip install .
-      python manage.py make --no-mypy --generate-auto-dll-dirs \
-         --library-types=relocatable --gargs "-cargs -fPIC"
 
-      # Export the environment to use langkit into a file for later usage
-      python manage.py setenv >"$SETENV"
+      # On macOS, the full path of gnat.adc is stored in ALI files with case
+      # normalization. Upon re-runs, gprbuild is unable to match the
+      # normalized path with a non-case-normalized real path. This causes
+      # unnecessary recompilations at every run.
+      #
+      # To avoid that, we use the -gnateb flag which tells GNAT to not use
+      # an absolute path for gnat.adc
+      python manage.py make --no-mypy --generate-auto-dll-dirs \
+         --library-types=relocatable --gargs "-m -v -cargs:ada -gnateb"
+
+      if [[ $NODE_ARCH_PLATFORM = *darwin* ]]; then
+         find . -name '*.dylib' -print0 |
+            while IFS= read -r -d '' lib; do
+               fix_dylib_rpaths "$lib"
+            done
+      fi
+
+      # Export the environment needed to use langkit into a file for later
+      # usage
+      python manage.py setenv >"$LANGKIT_SETENV"
 
       if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
          # Fix setenv.sh to be bash script for MSYS2 by replacing
          #  1) C:\ -> /C/  2) '\' -> '/' and ';' -> ':' 3) ": export" -> "; export"
-         sed -i -e 's#\([A-Z]\):\\#/\1/#g' -e 'y#\\;#/:#' -e 's/: export /; export /' "$SETENV"
-         cat "$SETENV"
+         sed -i -e 's#\([A-Z]\):\\#/\1/#g' -e 'y#\\;#/:#' -e 's/: export /; export /' "$LANGKIT_SETENV"
       fi
 
-      # Clean `.ali` and `.o` to avoid static vis relocatable mess
-      find . -name '*.o' -delete
-      find . -name '*.ali' -delete
+      cat "$LANGKIT_SETENV"
    )
+}
+
+# On macOS, there are two issues with gprbuild:
+#
+# 1. The linker arguments for rpath produce a leading space into paths:
+#    "-Wl,-rpath, @executable_path/...". This makes the dynamic library loader
+#    unable to use those rpaths at runtime.
+# 2. The linker uses "@executable_path" which applies in the context of an
+#    exectuable but not in a context where the library is loaded directly, which
+#    is precisely the case we want when we do `import liblktlang` in Python.
+#    Instead, "@loader_path" should be used.
+#
+# This function applies a workaround by removing the leading space from rpath
+# entries, and replacing @executable_path with @loader_path.
+function fix_dylib_rpaths() {
+   lib=$1
+   # Log the full output of otool for debugging
+   otool -l "$lib"
+
+   # First fix paths with a leading space
+   paths_with_space=$(otool -l "$lib" | grep -A2 LC_RPATH | grep "path  " | awk '{ print $2 }')
+   for p in $paths_with_space; do
+      install_name_tool -rpath " $p" "${p/@executable_path/@loader_path}" "$lib"
+   done
+   # Then replace @executable_path with @loader_path in all paths (there can be
+   # ones without a leading space, hence doing 2 passes)
+   paths_with_exec_path=$(otool -l "$lib" | grep -A2 LC_RPATH | grep "@executable_path" | awk '{ print $2 }')
+   for p in $paths_with_exec_path; do
+      install_name_tool -rpath "$p" "${p/@executable_path/@loader_path}" "$lib"
+   done
 }
 
 # Run build_langkit_raw in Alire environment
@@ -186,7 +229,18 @@ function build_langkit() {
    alr exec bash -- -x "$0" build_langkit_raw
 }
 
-function set_langkit_usage_env() {
+# This function adds the paths of DLLs from GCC installation and the Alire deps
+# in alire/cache/dependencies (i.e. Alire deps that haven't been pinned to
+# local checkouts) to the runtime environement so that they may be loaded in
+# cases where the DLLs we build don't have appropriate RPATH entries.
+#
+# This is necessary on Windows and macOS, so PATH and DYLD_LIBRARY_PATH are
+# used.
+#
+# However, on macOS we're now using fix_dylib_rpaths to correct the RPATH
+# entries, so DYLD_LIBRARY_PATH should no longer be necessary. But we keep it
+# for good measure.
+function add_unpinned_deps_dlls_to_runtime_path() {
    ADALIB=$(alr exec gcc -- -print-libgcc-file-name)
 
    if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
@@ -210,19 +264,24 @@ function set_langkit_usage_env() {
    echo "NEW_PATH=$NEW_PATH"
    export DYLD_LIBRARY_PATH=$NEW_PATH:$DYLD_LIBRARY_PATH
    export PATH=$NEW_PATH":$PATH"
-
-   source "$SETENV"
 }
 
 # Build ALS with alire
 function build_als() {
-   # Check if langkit is usable
-   set_langkit_usage_env
-   python -c 'import liblktlang'
+   add_unpinned_deps_dlls_to_runtime_path
+
+   # Check that we can use langkit successfully
+   (
+      source "$LANGKIT_SETENV"
+      # On Windows it is not enough to source the langkit env and unpinned
+      # deps. The libraries of pinned Alire dependencies (not under
+      # alire/cache/dependencies) must also be made visible.
+      alr exec python -- -c 'import liblktlang; print("Imported liblktlang successfully")'
+   )
 
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
-   LIBRARY_TYPE=static STANDALONE=no GPRBUILD_CARGS="$gprbuild_flag" alr exec make -- "VERSION=$TAG" all
+   LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" all
 }
 
 function test_als() {
