@@ -6,7 +6,12 @@ import * as vscode from 'vscode';
 import { CodeLens, Uri, window, workspace } from 'vscode';
 import { adaExtState } from '../src/extension';
 import { getArgValue, setTerminalEnvironment } from '../src/helpers';
-import { SimpleTaskProvider, findTaskByName, getConventionalTaskLabel } from '../src/taskProviders';
+import {
+    SimpleTaskProvider,
+    findTaskByName,
+    getConventionalTaskLabel,
+    runTaskAndGetResult,
+} from '../src/taskProviders';
 
 /**
  * This function compares some actual output to an expected referenced stored in
@@ -105,66 +110,6 @@ export async function getCommandLines(
         })
         .join('\n');
     return actualCommandLines;
-}
-
-/**
- * Execute the given task, wait until it finishes and return the underlying
- * process exit code.
- *
- * @param task - a {@link vscode.Task}
- * @returns a Promise that resolves to the underlying process exit code when the
- * task finishes execution.
- */
-export async function runTaskAndGetResult(task: vscode.Task): Promise<number | undefined> {
-    return await new Promise<number | undefined>((resolve, reject) => {
-        let started = false;
-
-        const startDisposable = vscode.tasks.onDidStartTask((e) => {
-            if (e.execution.task == task) {
-                /**
-                 * Task was started, let's listen to the end.
-                 */
-                started = true;
-                startDisposable.dispose();
-            }
-        });
-
-        const endDisposable = vscode.tasks.onDidEndTaskProcess((e) => {
-            if (e.execution.task == task) {
-                endDisposable.dispose();
-                resolve(e.exitCode);
-            }
-        });
-
-        setTimeout(() => {
-            /**
-             * If the task has not started within the timeout below, it means an
-             * error occured during startup. Reject the promise.
-             */
-            if (!started) {
-                const msg = `The task '${getConventionalTaskLabel(
-                    task,
-                )}' was not started, likely due to an error.\n`;
-                reject(Error(msg));
-            }
-        }, 3000);
-
-        void vscode.tasks.executeTask(task);
-    }).catch(async (reason) => {
-        if (reason instanceof Error) {
-            let msg = 'The current list of tasks is:\n';
-            msg += await vscode.tasks.fetchTasks({ type: task.definition.type }).then(
-                (list) => list.map(getConventionalTaskLabel).join('\n'),
-
-                (reason) => `fetchTasks promise was rejected: ${reason}`,
-            );
-
-            reason.message += '\n' + msg;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        return Promise.reject(reason);
-    });
 }
 
 /**
@@ -371,7 +316,7 @@ export function and<T extends unknown[]>(...predicates: ((...args: T) => boolean
  * Utility filter for selecting GNATtest tasks.
  */
 export function isGNATTestTask(t: vscode.Task): boolean {
-    return t.name.includes('test skeleton');
+    return t.name.toLowerCase().includes('gnattest');
 }
 
 /**
