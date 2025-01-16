@@ -164,16 +164,12 @@ package body LSP.Ada_Context_Sets is
    ----------------------------
 
    function All_Source_Directories
-     (Self                     : Context_Set'Class;
-      Include_Externally_Built : Boolean := False)
-      return GNATCOLL.VFS.File_Array
+     (Self : Context_Set'Class) return GNATCOLL.VFS.File_Array
    is
       Consolidated_Set : LSP.Ada_File_Sets.File_Sets.Set;
    begin
       for C of Self.Contexts loop
-         Consolidated_Set.Union
-           (C.List_Source_Directories
-              (Include_Externally_Built => Include_Externally_Built));
+         Consolidated_Set.Union (C.List_Source_Directories);
       end loop;
 
       declare

@@ -205,8 +205,7 @@ package LSP.Ada_Contexts is
    --  Return the analysis units for all Ada sources known to this context
 
    function List_Source_Directories
-     (Self : Context; Include_Externally_Built : Boolean := False)
-      return LSP.Ada_File_Sets.File_Sets.Set;
+      (Self : Context) return LSP.Ada_File_Sets.File_Sets.Set;
    --  List the source directories, including externally built projects' source
    --  directories when Include_Externally_Built is set to True.
 
@@ -325,11 +324,8 @@ private
       --  Cache for the list of Ada source files in the loaded project tree.
 
       Source_Dirs    : LSP.Ada_File_Sets.File_Sets.Set;
-      --  All the source dirs in the loaded project, not including
+      --  All the source dirs in the loaded project, including
       --  the externally built projects
-
-      External_Source_Dirs : LSP.Ada_File_Sets.File_Sets.Set;
-      --  All the source dirs coming from externally built projects
 
       Extension_Set : LSP.Ada_File_Sets.Extension_Sets.Set;
       --  All the ada extensions valid for the current project
@@ -358,6 +354,10 @@ private
    function List_Files (Self : Context'Class)
      return LSP.Ada_File_Sets.File_Sets.Set_Iterator_Interfaces
        .Reversible_Iterator'Class is (Self.Source_Files.Iterate);
+
+   function List_Source_Directories
+     (Self : Context) return LSP.Ada_File_Sets.File_Sets.Set
+   is (Self.Source_Dirs);
 
    function File_Count (Self : Context) return Natural
    is (Self.Source_Files.Length);

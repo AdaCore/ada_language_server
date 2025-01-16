@@ -56,8 +56,7 @@ package body LSP.Ada_Handlers.Source_Dirs_Commands is
       end Append;
 
       Source_Dirs : constant GNATCOLL.VFS.File_Array :=
-        Handler.Contexts.All_Source_Directories
-          (Include_Externally_Built => True);
+        Handler.Contexts.All_Source_Directories;
    begin
       Response := (Is_Null => False, Value => <>);
       Append ((Kind => VSS.JSON.Streams.Start_Array));
