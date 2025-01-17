@@ -236,8 +236,7 @@ package body LSP.Ada_Handlers.Other_File_Commands is
                       (View         => Handler.Project_Tree.Root_Project,
                        Attribute    => Spec_Suffix_Attr_Id,
                        Index        => "ada",
-                       Default      => ".ads",
-                       Use_Extended => True)
+                       Default      => ".ads")
                   else ".ads");
                Impl_Ext            : constant String :=
                  (if Handler.Project_Tree.Is_Defined
@@ -246,8 +245,7 @@ package body LSP.Ada_Handlers.Other_File_Commands is
                       (View         => Handler.Project_Tree.Root_Project,
                        Attribute    => Impl_Suffix_Attr_Id,
                        Index        => "ada",
-                       Default      => ".adb",
-                       Use_Extended => True)
+                       Default      => ".adb")
                   else ".adb");
             begin
                if GNATCOLL.Utils.Ends_With (File.Display_Full_Name, Impl_Ext)

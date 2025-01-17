@@ -1,0 +1,200 @@
+[
+   {
+      "comment": "Test for the 'als-get-project-attribute-value' command"
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-get-project-attribute-value"]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw0",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-get-project-attribute-value",
+               "arguments": [
+                  {
+                     "attribute": "non_existing_attribute"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "error": {
+                  "code": -32602,
+                  "message": "The queried attribute is not known"
+               },
+               "id": "sw0",
+               "jsonrpc": "2.0"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw1",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-get-project-attribute-value",
+               "arguments": [
+                  {
+                     "attribute": "object_dir"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw1",
+               "result": "."
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw2",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-get-project-attribute-value",
+               "arguments": [
+                  {
+                     "attribute": "target"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw2",
+               "result": "arm-eabi"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw3",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-get-project-attribute-value",
+               "arguments": [
+                  {
+                     "attribute": "languages"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw3",
+               "result": ["ada", "c"]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw4",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-get-project-attribute-value",
+               "arguments": [
+                  {
+                     "attribute": "default_switches",
+                     "pkg": "compiler",
+                     "index": "main.adb"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw4",
+               "result": ["-g"]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

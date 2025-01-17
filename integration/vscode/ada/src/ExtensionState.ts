@@ -1,5 +1,10 @@
 import * as vscode from 'vscode';
-import { Disposable, ExecuteCommandRequest, LanguageClient } from 'vscode-languageclient/node';
+import {
+    Disposable,
+    ExecuteCommandParams,
+    ExecuteCommandRequest,
+    LanguageClient,
+} from 'vscode-languageclient/node';
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { createClient } from './clients';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
@@ -182,6 +187,42 @@ export class ExtensionState {
             void this.showReloadWindowPopup();
         }
     };
+
+    /**
+     * Returns the value of the given project attribute, or raises
+     * an exception when the queried attribute is not known
+     * (i.e: not registered in GPR2's knowledge database).
+     *
+     * @param attribute - The name of the project attribute (e.g: 'Target')
+     * @param pkg - The name of the attribute's package (e.g: 'Compiler').
+     * Can be empty for project-level attributes.
+     * @param index - Attribute's index, if any. Can be a file or a language
+     * (e.g: 'for Runtime ("Ada") use...').
+     * @returns the value of the queried project attribute. Can be either a string or a
+     * list of strings, depending on the attribute itself (e.g: 'Main' attribute is
+     * specified as a list of strings while 'Target' as a string)
+     */
+    public async getProjectAttributeValue(
+        attribute: string,
+        pkg: string = '',
+        index: string = '',
+    ): Promise<string | string[]> {
+        const params: ExecuteCommandParams = {
+            command: 'als-get-project-attribute-value',
+            arguments: [
+                {
+                    attribute: attribute,
+                    pkg: pkg,
+                    index: index,
+                },
+            ],
+        };
+
+        const attrValue = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, params)) as
+            | string
+            | string[];
+        return attrValue;
+    }
 
     /**
      * @returns the URI of the main project file from the ALS

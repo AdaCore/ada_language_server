@@ -1,0 +1,8 @@
+project Default extends "common" is
+  for Languages use ("ada", "c");
+
+  package Compiler is
+    for Default_Switches ("main.adb") use ("-g");
+  end Compiler;
+
+end Default;
