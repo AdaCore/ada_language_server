@@ -58,9 +58,7 @@ package LSP.Ada_Context_Sets is
    --  Number of files in all contexts
 
    function All_Source_Directories
-     (Self                     : Context_Set'Class;
-      Include_Externally_Built : Boolean := False)
-      return GNATCOLL.VFS.File_Array;
+     (Self : Context_Set'Class) return GNATCOLL.VFS.File_Array;
    --  Return the list of all source directories for writable projects in the
    --  context, including externally built projects' source directories when
    --  Include_Externally_Built is set to True.
