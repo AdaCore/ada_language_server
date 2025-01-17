@@ -105,7 +105,7 @@ endif
 
 all: coverage-instrument
 ifeq ($(ALIRE),True)
-	alr build -- -XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_FLAGS)
+	alr build -- -XVERSION=$(VERSION) -XBUILD_DATE=$(BUILD_DATE) $(GPRBUILD_FLAGS) $(GPRBUILD_CARGS)
 else
 	# We have our own s-memory.adb which overwrites the default System.Memory implementation
         # For unclear reasons, this file is not recompiled when the version of GNAT was changed

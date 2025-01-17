@@ -1,6 +1,9 @@
 #!/bin/bash
 
-set -e -x
+# Stop on errors
+set -e
+# Make execution verbose
+set -x
 
 STEP=${1:-all}
 TAG=$2                # For master it's 24.0.999, while for tag it's the tag itself
@@ -10,6 +13,18 @@ NODE_ARCH_PLATFORM=$3 # Empty - autodetect with `node`, otherwise one of:
 # x64/darwin
 # x64/linux
 # x64/win32
+
+MYPATH=$(realpath "$0")
+MYDIRPATH=$(dirname "$MYPATH")
+ROOT=$(dirname "$MYDIRPATH")
+VENV_PATH="$ROOT/.venv"
+
+# Switch to the root of the ALS repository
+cd "$ROOT"
+
+# Configure Alire to use a local cache because we will need to copy shared
+# libraries from there
+alr settings --global --set dependencies.shared false
 
 # Crates to pin from GitHub repo
 
@@ -49,9 +64,6 @@ branch_gnatformat=edge
 branch_libgpr2=next
 branch_prettier_ada=main
 
-# A temporary file for langkit setevn
-SETENV=$PWD/subprojects/libadalang/setenv.sh
-
 # Set `prod` build mode
 ########################
 # for adasat,gnatformat,lal,langkit,lal_refactor,laltools,markdown,spawn
@@ -63,10 +75,17 @@ export GPR2_BUILD=release
 export VSS_BUILD_PROFILE=release
 export PRETTIER_ADA_BUILD_MODE=prod
 
-# Install custom Alire index with missing crates
-function install_index() {
-   alr index --del=als || true
-   alr index --add="$PWD" --name=als
+function activate_venv() {
+   [ -d "$VENV_PATH" ] || python -m venv "$VENV_PATH"
+   case "$NODE_ARCH_PLATFORM" in
+   *win32*)
+      subdir=Scripts
+      ;;
+   *)
+      subdir=bin
+      ;;
+   esac
+   source "$VENV_PATH/$subdir/activate"
 }
 
 # Clone dependencies
@@ -94,47 +113,138 @@ function pin_crates() {
 
       URL="https://github.com/AdaCore/${repo:-$crate}.git"
       if [ ! -d "subprojects/$crate" ]; then
+         # If the checkout doesn't exist, clone
          git clone "$URL" "subprojects/$crate"
-         git -C "subprojects/$crate" checkout "${commit:-${branch:-master}}"
+      else
+         # This script makes some changes in files of dependency checkouts to
+         # make the build work with Alire. Stash them to avoid interference
+         # with the next Git commands.
+         git -C "subprojects/$crate" stash
+         # If the checkout exists, reuse the directory but fetch the new history
+         git -C "subprojects/$crate" fetch origin
+      fi
+      git -C "subprojects/$crate" checkout "${commit:-${branch:-master}}"
+      if [ -z "$commit" ]; then
+         # If no specific commit was requested, a branch is used. The previous
+         # checkout command would simply switch to it but not update it from
+         # remote. So let's do that update.
+         git -C "subprojects/$crate" pull origin "${branch:-master}"
       fi
       cp -v "subprojects/$crate".toml "subprojects/$crate/alire.toml"
-      alr --force --non-interactive pin "$crate" "--use=$PWD/subprojects/$crate"
+
+      # Instead of calling `alr pin` for each crate, it's more efficient to
+      # append the necessary text in alire.toml and call `alr update` once at
+      # the end.
+      cat >>"$PWD/alire.toml" <<EOF
+[[pins]]
+$crate = { path='subprojects/$crate' }
+
+EOF
    done
+
+   alr --force --non-interactive update
 
    alr exec alr -- action -r post-fetch # Configure XmlAda, etc
 }
 
-# Build langkit shared libraries required to generate libadalang.
-# Export setenv to $SETENV
-# Clean `.ali` and `.o` to avoid static vis relocatable mess
-function build_so_raw() {
-   cd subprojects/langkit_support
-   echo "GPR_PROJECT_PATH=$GPR_PROJECT_PATH"
-   sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
-   pip install .
-   python manage.py make --no-mypy --generate-auto-dll-dirs \
-      --library-types=relocatable --gargs "-cargs -fPIC"
-   python manage.py setenv >"$SETENV"
-   cd -
-   find . -name '*.o' -delete
-   find . -name '*.ali' -delete
+# A temporary file for langkit environment
+LANGKIT_SETENV=$PWD/subprojects/libadalang/setenv.sh
+
+# Build langkit which is required to generate libadalang.
+function build_langkit_raw() {
+   (
+      # Use a sub-shell to preserve the parent PWD
+      cd subprojects/langkit_support
+
+      echo "GPR_PROJECT_PATH=$GPR_PROJECT_PATH"
+
+      sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
+      pip install .
+
+      # On macOS, the full path of gnat.adc is stored in ALI files with case
+      # normalization. Upon re-runs, gprbuild is unable to match the
+      # normalized path with a non-case-normalized real path. This causes
+      # unnecessary recompilations at every run.
+      #
+      # To avoid that, we use the -gnateb flag which tells GNAT to not use
+      # an absolute path for gnat.adc
+      python manage.py make --no-mypy --generate-auto-dll-dirs \
+         --library-types=relocatable --gargs "-m -v -cargs:ada -gnateb"
+
+      if [[ $NODE_ARCH_PLATFORM = *darwin* ]]; then
+         find . -name '*.dylib' -print0 |
+            while IFS= read -r -d '' lib; do
+               fix_dylib_rpaths "$lib"
+            done
+      fi
+
+      # Export the environment needed to use langkit into a file for later
+      # usage
+      python manage.py setenv >"$LANGKIT_SETENV"
+
+      if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
+         # Fix setenv.sh to be bash script for MSYS2 by replacing
+         #  1) C:\ -> /C/  2) '\' -> '/' and ';' -> ':' 3) ": export" -> "; export"
+         sed -i -e 's#\([A-Z]\):\\#/\1/#g' -e 'y#\\;#/:#' -e 's/: export /; export /' "$LANGKIT_SETENV"
+      fi
+
+      cat "$LANGKIT_SETENV"
+   )
 }
 
-# Run build_so_raw in Alire environment
-function build_so() {
-   LIBRARY_PATH=relocatable alr exec bash -- "$0" build_so_raw
+# On macOS, there are two issues with gprbuild:
+#
+# 1. The linker arguments for rpath produce a leading space into paths:
+#    "-Wl,-rpath, @executable_path/...". This makes the dynamic library loader
+#    unable to use those rpaths at runtime.
+# 2. The linker uses "@executable_path" which applies in the context of an
+#    exectuable but not in a context where the library is loaded directly, which
+#    is precisely the case we want when we do `import liblktlang` in Python.
+#    Instead, "@loader_path" should be used.
+#
+# This function applies a workaround by removing the leading space from rpath
+# entries, and replacing @executable_path with @loader_path.
+function fix_dylib_rpaths() {
+   lib=$1
+   # Log the full output of otool for debugging
+   otool -l "$lib"
+
+   # First fix paths with a leading space
+   paths_with_space=$(otool -l "$lib" | grep -A2 LC_RPATH | grep "path  " | awk '{ print $2 }')
+   for p in $paths_with_space; do
+      install_name_tool -rpath " $p" "${p/@executable_path/@loader_path}" "$lib"
+   done
+   # Then replace @executable_path with @loader_path in all paths (there can be
+   # ones without a leading space, hence doing 2 passes)
+   paths_with_exec_path=$(otool -l "$lib" | grep -A2 LC_RPATH | grep "@executable_path" | awk '{ print $2 }')
+   for p in $paths_with_exec_path; do
+      install_name_tool -rpath "$p" "${p/@executable_path/@loader_path}" "$lib"
+   done
 }
 
-# Build ALS with alire
-function build_als() {
+# Run build_langkit_raw in Alire environment
+function build_langkit() {
+   # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
+   # all the dependencies.
+   alr exec bash -- -x "$0" build_langkit_raw
+}
+
+# This function adds the paths of DLLs from GCC installation and the Alire deps
+# in alire/cache/dependencies (i.e. Alire deps that haven't been pinned to
+# local checkouts) to the runtime environement so that they may be loaded in
+# cases where the DLLs we build don't have appropriate RPATH entries.
+#
+# This is necessary on Windows and macOS, so PATH and DYLD_LIBRARY_PATH are
+# used.
+#
+# However, on macOS we're now using fix_dylib_rpaths to correct the RPATH
+# entries, so DYLD_LIBRARY_PATH should no longer be necessary. But we keep it
+# for good measure.
+function add_unpinned_deps_dlls_to_runtime_path() {
    ADALIB=$(alr exec gcc -- -print-libgcc-file-name)
 
    if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
       ADALIB=$(cygpath -u "$ADALIB")
-      # Fix setenv.sh to be bash script for MSYS2 by replacing
-      #  1) C:\ -> /C/  2) '\' -> '/' and ';' -> ':' 3) ": export" -> "; export"
-      sed -i -e 's#\([A-Z]\):\\#/\1/#g' -e 'y#\\;#/:#' -e 's/: export /; export /' "$SETENV"
-      cat "$SETENV"
       # libgcc_s_seh-1.dll is already in PATH
 
    elif [[ $NODE_ARCH_PLATFORM == "x64/linux" ]]; then
@@ -154,8 +264,30 @@ function build_als() {
    echo "NEW_PATH=$NEW_PATH"
    export DYLD_LIBRARY_PATH=$NEW_PATH:$DYLD_LIBRARY_PATH
    export PATH=$NEW_PATH":$PATH"
-   # Let's ignore make check exit code until it is stable
-   LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" check || true
+}
+
+# Build ALS with alire
+function build_als() {
+   add_unpinned_deps_dlls_to_runtime_path
+
+   # Check that we can use langkit successfully
+   (
+      source "$LANGKIT_SETENV"
+      # On Windows it is not enough to source the langkit env and unpinned
+      # deps. The libraries of pinned Alire dependencies (not under
+      # alire/cache/dependencies) must also be made visible.
+      alr exec python -- -c 'import liblktlang; print("Imported liblktlang successfully")'
+   )
+
+   # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
+   # all the dependencies.
+   LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" all
+}
+
+function test_als() {
+   pip install -r "$ROOT/testsuite/requirements-ci.txt"
+   export ALS="$ROOT/.obj/server/ada_language_server"
+   alr exec python -- "$ROOT/testsuite/testsuite.py" --failure-exit-code 0
 }
 
 # Find the path to libgmp as linked in the given executable
@@ -186,6 +318,24 @@ if [[ -z "$NODE_ARCH_PLATFORM" ]]; then
 fi
 
 ALS_EXEC_DIR=integration/vscode/ada/$NODE_ARCH_PLATFORM
+
+case "$NODE_ARCH_PLATFORM" in
+*darwin*)
+   OS_LIB_PREFIX="lib"
+   OS_EXE_EXT=""
+   OS_LIB_EXT=".dylib"
+   ;;
+*win*)
+   OS_LIB_PREFIX=""
+   OS_EXE_EXT=".exe"
+   OS_LIB_EXT=".dll"
+   ;;
+*)
+   OS_LIB_PREFIX="lib"
+   OS_EXE_EXT=""
+   OS_LIB_EXT=".so"
+   ;;
+esac
 
 function fix_rpath() {
    if [ "$RUNNER_OS" = macOS ]; then
@@ -230,34 +380,37 @@ function strip_debug() {
    cd -
 }
 
+# Always activate the Python venv first
+activate_venv
+
 case $STEP in
 all)
-   install_index
    pin_crates
-   build_so
+   build_langkit
    build_als
    fix_rpath
    strip_debug
-   ;;
-
-install_index)
-   install_index
+   test_als
    ;;
 
 pin_crates)
    pin_crates
    ;;
 
-build_so)
-   build_so
+build_langkit)
+   build_langkit
    ;;
 
-build_so_raw)
-   build_so_raw
+build_langkit_raw)
+   build_langkit_raw
    ;;
 
 build_als)
    build_als
+   ;;
+
+test_als)
+   test_als
    ;;
 
 fix_rpath)
@@ -266,5 +419,10 @@ fix_rpath)
 
 strip_debug)
    strip_debug
+   ;;
+
+*)
+   echo "Unrecognized step: $STEP"
+   exit 1
    ;;
 esac
