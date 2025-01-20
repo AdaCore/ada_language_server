@@ -1,4 +1,11 @@
 on:
+  schedule:
+    - cron:  '0 4 * * 1-5'
+    #         | | | | + day of week (0 - 6 or SUN-SAT)
+    #         | | | +-- month (1 - 12 or JAN-DEC)
+    #         | | +---- day of the month (1 - 31)
+    #         | +------ hour (0 - 23)
+    #         +-------- minute (0 - 59)
   push:
     tags:
       - 2*.*.*
