@@ -37,6 +37,7 @@ with Libadalang.Common;
 with Utils.Command_Lines;
 with Pp.Command_Lines;
 
+with VSS.String_Vectors;
 with VSS.Strings;
 
 with LSP.Ada_Documents;
@@ -275,13 +276,38 @@ package LSP.Ada_Contexts is
    function Charset (Self : Context) return String;
    --  Return the charset for this context
 
+   function Project_Attribute_Values
+     (View              : GPR2.Project.View.Object;
+      Attribute         : GPR2.Q_Attribute_Id;
+      Index             : String := "";
+      Is_List_Attribute : out Boolean;
+      Is_Known          : out Boolean)
+      return VSS.String_Vectors.Virtual_String_Vector;
+   --  Returns the values for the given project attribute.
+   --  The corresponding attribute would have been set in the project as:
+   --      for Attribute use "value";
+   --      for Attribute use ("value_1", "value_2");
+   --  or
+   --      for Attribute (Index) use "value";
+   --      for Attribute (Index) use ("value_1", "value_2");
+   --
+   --  If the attribute is not defined in the project itself, then the
+   --  attribute is looked up in the project extended by the project (if
+   --  any).
+   --  A default value will always be returned if the attribute is known.
+   --  Is_List_Attribute will be set to True if the queried attribute is a
+   --  string list attribute (e.g: for Main use ("main1.adb", "main2.adb"))
+   --  or set to False if it's a simple string one
+   --  (e.g: for Target use "arm-eabi");
+   --  Is_Known will be set to False if the attribute is not known (i.e: not
+   --  registered in GPR2's knowledge database).
+
    function Project_Attribute_Value
-     (Self         : Context;
+     (View         : GPR2.Project.View.Object;
       Attribute    : GPR2.Q_Attribute_Id;
       Index        : String := "";
-      Default      : String := "";
-      Use_Extended : Boolean := False) return String;
-   --  Returns the value for Self's project Attribute.
+      Default      : String := "") return String;
+   --  Returns the value for the given string project Attribute.
    --  Default is returned if the attribute wasn't set by the user and
    --  has no default value.
    --  The corresponding attribute would have been set in the project as:
@@ -289,18 +315,18 @@ package LSP.Ada_Contexts is
    --  or
    --      for Attribute (Index) use "value";
    --
-   --  If Use_Extended is True and the attribute is not defined in Project
-   --  itself, then the attribute is looked up in the project extended by
-   --  Project (if any).
+   --  If the given attribute corresponds to a string list attribute instead
+   --  (e.g: 'Main' attribute, which takes a list of mains) of a simple string
+   --  attribute, the first value of the list is returned: if you want to get
+   --  the full list use the Project_Attribute_Values function instead.
 
    function Project_Attribute_Value
-     (View         : GPR2.Project.View.Object;
+     (Self         : Context;
       Attribute    : GPR2.Q_Attribute_Id;
       Index        : String := "";
-      Default      : String := "";
-      Use_Extended : Boolean := False) return String;
-   --  Same as above, but computing the value from the given view instead
-   --  of the context's root project.
+      Default      : String := "") return String;
+   --  Same as above, but computing the value directly from the context's
+   --  root project view.
 
 private
 

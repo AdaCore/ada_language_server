@@ -14,6 +14,8 @@ GPR_PROJECT_PATH.prepend = "${CRATE_ROOT}/build"
 
 [[actions]]
 type = "pre-build"
+# It is necessary to load the env here because macOS protection prevents
+# inheriting DYLD_LIBRARY_PATH from the parent environment
 command = ["bash", "-c", "-x", "source setenv.sh; pip install -rrequirements-{github,pypi}.txt && python manage.py generate"]
 
 [[depends-on]]

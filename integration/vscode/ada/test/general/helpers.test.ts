@@ -2,6 +2,7 @@ import assert from 'assert';
 import { envHasExec, findAdaMain, getSymbols, which } from '../../src/helpers';
 import { DocumentSymbol, SymbolKind, Uri, commands, workspace } from 'vscode';
 import { rangeToStr } from '../utils';
+import { adaExtState } from '../../src/extension';
 
 suite('which and envHasExec', function () {
     test('existing', function () {
@@ -48,6 +49,31 @@ suite('findAdaMain', function () {
         } else {
             assert(!adaMain_from_uppercase);
         }
+    });
+});
+
+suite('getProjectAttributeValue', function () {
+    test('Get project attribute value (simple case)', async function () {
+        /* Basic test for getProjectAttributeValue */
+        const switches = await adaExtState.getProjectAttributeValue(
+            'Default_Switches',
+            'Compiler',
+            'Ada',
+        );
+        assert.deepEqual(switches, ['-g', '-O0']);
+    });
+
+    test('Get unknown project attribute value', async function () {
+        /* Check that we get an exception when trying to get the value
+        of an unknown attribute */
+
+        let error = undefined;
+        try {
+            await adaExtState.getProjectAttributeValue('Unknown');
+        } catch (e) {
+            error = e;
+        }
+        assert.notEqual(error, undefined);
     });
 });
 

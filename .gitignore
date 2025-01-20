@@ -110,3 +110,7 @@ testsuite/ada_lsp/project_symlinks/link
 # Temporary and output directories of e3-testsuite
 tmp/
 out/
+
+# Alire-generated directories
+alire/
+config/

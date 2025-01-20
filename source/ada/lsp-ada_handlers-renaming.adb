@@ -112,10 +112,22 @@ package body LSP.Ada_Handlers.Renaming is
         (Attribute    : GPR2.Q_Attribute_Id;
          Index        : String := "";
          Default      : String := "";
-         Use_Extended : Boolean := False)
-            return String
-      is (C.Project_Attribute_Value
-          (Attribute, Index, Default, Use_Extended));
+         Use_Extended : Boolean := False) return String;
+
+      ---------------------------------------
+      -- Attribute_Value_Provider_Callback --
+      ---------------------------------------
+
+      function Attribute_Value_Provider_Callback
+        (Attribute    : GPR2.Q_Attribute_Id;
+         Index        : String := "";
+         Default      : String := "";
+         Use_Extended : Boolean := False) return String
+      is
+         pragma Unreferenced (Use_Extended);
+      begin
+         return C.Project_Attribute_Value (Attribute, Index, Default);
+      end Attribute_Value_Provider_Callback;
 
       Attribute_Value_Provider : constant
         GPR2_Attribute_Value_Provider_Access :=
