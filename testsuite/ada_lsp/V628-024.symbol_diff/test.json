@@ -1,15 +1,10 @@
 [
    {
-      "comment": [
-         "Tests if symbols diff works"
-      ]
+      "comment": ["Tests if symbols diff works"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}",
-            "--tracefile=./traces.cfg"
-         ]
+         "cmd": ["${ALS}", "--tracefile=./traces.cfg"]
       }
    },
    {
@@ -26,9 +21,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "rename"
-                        ]
+                        "resourceOperations": ["rename"]
                      }
                   },
                   "textDocument": {
@@ -37,15 +30,9 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": false,
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "resolveSupport": {
-                              "properties": [
-                                 "detail",
-                                 "documentation"
-                              ]
+                              "properties": ["detail", "documentation"]
                            }
                         }
                      },
@@ -100,7 +87,8 @@
                      "enableDiagnostics": true,
                      "followSymlinks": false,
                      "documentationStyle": "gnat",
-                     "foldComments": false
+                     "foldComments": false,
+                     "useGnatformat": false
                   }
                }
             }
@@ -230,8 +218,7 @@
                }
             }
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
    {

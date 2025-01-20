@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "Test formatting request"
-      ]
+      "comment": ["Test formatting request"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -110,7 +106,7 @@
                "id": 3,
                "error": {
                   "code": -32803,
-                  "message": "GNATPP: Syntactically invalid code can't be formatted"
+                  "message": "GNATFORMAT: Syntactically invalid code can't be formatted"
                }
             }
          ]
