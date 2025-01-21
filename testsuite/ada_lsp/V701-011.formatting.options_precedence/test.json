@@ -7,9 +7,7 @@
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -26,9 +24,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "rename"
-                        ]
+                        "resourceOperations": ["rename"]
                      }
                   },
                   "textDocument": {
@@ -37,15 +33,9 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": false,
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "resolveSupport": {
-                              "properties": [
-                                 "detail",
-                                 "documentation"
-                              ]
+                              "properties": ["detail", "documentation"]
                            }
                         }
                      },
@@ -191,7 +181,7 @@
                            "character": 0
                         }
                      },
-                     "newText": "          procedure Free is new Ada.Unchecked_Deallocation\n                   (My_Type, My_Type_Access);\n"
+                     "newText": "          procedure Free is new\n            Ada.Unchecked_Deallocation (My_Type, My_Type_Access);\n"
                   },
                   {
                      "range": {

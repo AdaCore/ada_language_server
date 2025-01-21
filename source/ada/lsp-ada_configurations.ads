@@ -165,7 +165,7 @@ private
       Rename_In_Comments          : Boolean := False;
       Folding_Comments            : Boolean := True;
       Use_Completion_Snippets     : Boolean := True;
-      Use_Gnatformat              : Boolean := False;
+      Use_Gnatformat              : Boolean := True;
       Indent_Only                 : Boolean := True;
       Follow_Symlinks             : Boolean := True;
       Insert_With_Clauses         : Boolean := True;
