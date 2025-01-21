@@ -295,13 +295,22 @@ export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationP
 }
 
 /**
- * GDB default setup options
+ * GDB default setup options.
+ * We enable pretty-printing by default and disable questions
+ * on multiple matches due to an issue with vscode-cpptools
+ * GDB integration
+ * (see https://github.com/microsoft/vscode-cpptools/issues/11953)
  */
 const setupCmd = [
     {
         description: 'Enable pretty-printing for gdb',
         text: '-enable-pretty-printing',
         ignoreFailures: true,
+    },
+    {
+        description: 'Disable questions on multiple matches',
+        text: 'set multiple-symbols cancel',
+        ignoreFailures: false,
     },
 ];
 

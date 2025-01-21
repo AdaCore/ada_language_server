@@ -1033,11 +1033,18 @@
                             "stopAtEntry": false,
                             "externalConsole": false,
                             "preLaunchTask": "ada: Build current project",
-                            "setupCommands": {
-                                "description": "Enable pretty-printing for gdb",
-                                "text": "-enable-pretty-printing",
-                                "ignoreFailures": true
-                            }
+                            "setupCommands": [
+                                {
+                                    "description": "Enable pretty-printing for gdb",
+                                    "text": "-enable-pretty-printing",
+                                    "ignoreFailures": true
+                                },
+                                {
+                                    "description": "Disable questions on multiple matches",
+                                    "text": "set multiple-symbols cancel",
+                                    "ignoreFailures": false
+                                }
+                            ]
                         }
                     }
                 ],
