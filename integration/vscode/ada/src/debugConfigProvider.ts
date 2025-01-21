@@ -182,7 +182,6 @@ export function initializeConfig(main: AdaMain, name?: string): AdaConfig {
         type: ADA_DEBUG_BACKEND_TYPE,
         name: name ?? (main ? `Ada: Debug main - ${main.mainRelPath()}` : 'Ada: Debugger Launch'),
         request: 'launch',
-        targetArchitecture: process.arch,
         cwd: '${workspaceFolder}',
         program: main
             ? `\${workspaceFolder}/${main.execRelPath()}`
