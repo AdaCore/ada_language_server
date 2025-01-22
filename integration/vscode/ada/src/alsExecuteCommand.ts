@@ -91,9 +91,9 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
         } else if (command === 'als-reload-project') {
-            //  Clear the cache and the predefined tasks when the project
+            // Clear the cache and the predefined tasks when the project
             // has been reloaded.
-            adaExtState.clearCacheAndTasks('project has been reloading: clearing caches and tasks');
+            adaExtState.clearCacheAndTasks('project is being reloaded: clearing caches and tasks');
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return next(command, args);
