@@ -39,6 +39,7 @@ import {
     alsReplaceTypeCommandExecutor,
     ReplaceTypeCommandArgs,
 } from './refactoring/alsReplaceTypeCommand';
+import { adaExtState } from './extension';
 
 /**
  * Type alias for a function that intercepts a command and executes it by return a promise that
@@ -89,6 +90,10 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
                 args[0] as ReplaceTypeCommandArgs,
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
+        } else if (command === 'als-reload-project') {
+            // Clear the cache and the predefined tasks when the project
+            // has been reloaded.
+            adaExtState.clearCacheAndTasks('project is being reloaded: clearing caches and tasks');
         }
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return next(command, args);
