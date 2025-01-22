@@ -333,7 +333,7 @@ export const getDiagnosticArgs = (): string[] => {
     const p_gnatef = ["'-cargs:ada'", '-gnatef'];
     return p_gnatef;
 };
-export function getScenarioArgs() {
+export function getScenarioArgs(): string[] {
     const vars: string[][] = Object.entries(
         vscode.workspace.getConfiguration('ada').get('scenarioVariables') ?? [],
     );

@@ -138,7 +138,7 @@ export function getTerminalEnv(): { [name: string]: string | null } {
  * @returns the value of the applicable `terminal.integrated.env.*` setting,
  * after evaluation of macros such as `${env:...}`.
  */
-export function getEvaluatedTerminalEnv() {
+export function getEvaluatedTerminalEnv(): { [name: string]: string | null } {
     const custom_env = getTerminalEnv();
 
     if (custom_env) {
