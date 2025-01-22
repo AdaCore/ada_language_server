@@ -3,7 +3,6 @@ import {
     AdaConfig,
     adaDynamicDebugConfigProvider,
     createQuickPicksInitialLaunch,
-    getOrFindGdb,
 } from '../../src/debugConfigProvider';
 import { exe } from '../../src/helpers';
 import { activate } from '../utils';
@@ -38,7 +37,7 @@ suite('Dbg Cfgs', function () {
                         text: 'set multiple-symbols cancel',
                     },
                 ],
-                miDebuggerPath: getOrFindGdb() ?? '<undefined>',
+                miDebuggerPath: adaExtState.getOrFindGdb() ?? '<undefined>',
             },
             {
                 name: 'Ada: Attach debugger to running process - src/main1.adb',
@@ -59,7 +58,7 @@ suite('Dbg Cfgs', function () {
                         text: 'set multiple-symbols cancel',
                     },
                 ],
-                miDebuggerPath: getOrFindGdb() ?? '<undefined>',
+                miDebuggerPath: adaExtState.getOrFindGdb() ?? '<undefined>',
             },
             {
                 type: 'cppdbg',
@@ -84,7 +83,7 @@ suite('Dbg Cfgs', function () {
                         text: 'set multiple-symbols cancel',
                     },
                 ],
-                miDebuggerPath: getOrFindGdb() ?? '<undefined>',
+                miDebuggerPath: adaExtState.getOrFindGdb() ?? '<undefined>',
             },
             {
                 name: 'Ada: Attach debugger to running process - src/test.adb',
@@ -105,7 +104,7 @@ suite('Dbg Cfgs', function () {
                         text: 'set multiple-symbols cancel',
                     },
                 ],
-                miDebuggerPath: getOrFindGdb() ?? '<undefined>',
+                miDebuggerPath: adaExtState.getOrFindGdb() ?? '<undefined>',
             },
         ];
     });
