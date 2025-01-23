@@ -10,7 +10,7 @@ Default traces configuration file names are:
    use the following contents as a starter:
 
    ```text
-   >ada_ls_log.$T.log:buffer_size=0
+   >ada_ls_log.$T.$$.log:buffer_size=0
    ALS.MAIN=yes
    ALS.IN=no
    ALS.OUT=no
