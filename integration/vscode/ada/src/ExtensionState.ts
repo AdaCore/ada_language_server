@@ -61,7 +61,7 @@ export class ExtensionState {
     private adaTaskProvider?: SimpleTaskProvider;
     private sparkTaskProvider?: SimpleTaskProvider;
 
-    public clearALSCache() {
+    private clearALSCache() {
         this.cachedProjectUri = undefined;
         this.cachedObjectDir = undefined;
         this.cachedMains = undefined;
@@ -170,10 +170,9 @@ export class ExtensionState {
             e.affectsConfiguration('ada.scenarioVariables') ||
             e.affectsConfiguration('ada.projectFile')
         ) {
-            logger.info('project related settings have changed: clearing caches for tasks');
-            this.clearALSCache();
-            this.unregisterTaskDisposables();
-            this.registerTaskDisposables();
+            this.clearCacheAndTasks(
+                'project related settings have changed: clearing caches and tasks',
+            );
         }
 
         //  React to changes made in the environment variables, showing
@@ -187,6 +186,20 @@ export class ExtensionState {
             void this.showReloadWindowPopup();
         }
     };
+
+    /**
+     * Clear the extension's cache and, unregister its predefined tasks and register them
+     * again to make sure they take into account the current extension's state
+     * (environment, loaded project...).
+     *
+     * @param msg - Log message explaning why the cache is being cleared.
+     */
+    public clearCacheAndTasks(logMsg = ''): void {
+        logger.info(logMsg);
+        this.clearALSCache();
+        this.unregisterTaskDisposables();
+        this.registerTaskDisposables();
+    }
 
     /**
      * Returns the value of the given project attribute, or raises

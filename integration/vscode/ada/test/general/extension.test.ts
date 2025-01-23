@@ -68,4 +68,38 @@ suite('Extensions Test Suite', function () {
             throw new Error('No workspace folder found for the specified URI');
         }
     });
+    test('Clear Cache On Project Reload', async () => {
+        if (vscode.workspace.workspaceFolders !== undefined) {
+            // Get the workspace root folder
+            const folder = vscode.workspace.workspaceFolders[0].uri;
+
+            //  Check the object directory when 'for Object_Dir use "obj"' is present
+            // in the GPR file
+            const originalObjDir: string = await adaExtState.getObjectDir();
+            assert.strictEqual(originalObjDir, vscode.Uri.joinPath(folder, 'obj').fsPath);
+
+            // Remove the line that specifies the object directory in the GPR file
+            const fileUri = vscode.Uri.joinPath(folder, 'prj.gpr');
+            const contentBefore = readFileSync(fileUri.fsPath, 'utf-8');
+            const newContent = contentBefore.replace('    for Object_Dir use "obj";', '');
+            writeFileSync(fileUri.fsPath, newContent, 'utf-8');
+
+            // Reload the project and check the object dir value: should be set
+            // to the project's root directory (workspace directory)
+            await vscode.commands.executeCommand('als-reload-project');
+            try {
+                assert.strictEqual(await adaExtState.getObjectDir(), folder.fsPath);
+            } finally {
+                // Restore the old GPR file contents
+                writeFileSync(fileUri.fsPath, contentBefore);
+            }
+
+            // Reload the project to its original state, and check that
+            // the object directory is back to its original value too.
+            await vscode.commands.executeCommand('als-reload-project');
+            assert.strictEqual(await adaExtState.getObjectDir(), originalObjDir);
+        } else {
+            throw new Error('No workspace folder found for the specified URI');
+        }
+    });
 });
