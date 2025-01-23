@@ -1,0 +1,57 @@
+[
+   {
+      "comment": [
+         "Use an invalid json file .als.json and verify we are receiving",
+         "warnings."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+           {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 2,
+                  "message": "$URI{.als.json}: Cannot parse configuration file"
+               }
+           },
+           {
+               "method": "window/logMessage",
+               "params": {
+                  "type": 2,
+                  "message": "$URI{.als.json}: Cannot parse configuration file"
+               }
+           }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

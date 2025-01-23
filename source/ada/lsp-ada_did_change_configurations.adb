@@ -15,9 +15,12 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.VFS;
 with LSP.Ada_Configurations;
 with LSP.Client_Message_Receivers;
+with LSP.Enumerations;
 with LSP.Server_Notifications.DidChangeConfiguration;
+with VSS.String_Vectors;
 
 package body LSP.Ada_Did_Change_Configurations is
 
@@ -93,6 +96,8 @@ package body LSP.Ada_Did_Change_Configurations is
       New_Config : LSP.Ada_Configurations.Configuration
         renames Result.Configuration;
       Reload : Boolean renames Result.Reload;
+
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
    begin
       Self.Context.Get_Trace_Handle.Trace
         ("Processing received workspace/didChangeConfiguration notification");
@@ -112,9 +117,15 @@ package body LSP.Ada_Did_Change_Configurations is
 
       --  Read the new received configuration. 'null' values will be ignored
       --  and thus keep the value from the base config.
-      New_Config.Read_JSON (Value.Params.settings);
+      New_Config.Read_JSON (Value.Params.settings, Messages);
 
       Reload := False;
+
+      Self.Context.Send_Messages
+        (Show     => True,
+         Messages => Messages,
+         Severity => LSP.Enumerations.Warning,
+         File     => GNATCOLL.VFS.No_File);
 
       --  Always reload project if Project_Tree isn't ready
       if not Self.Context.Project_Tree_Is_Defined then

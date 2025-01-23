@@ -1,0 +1,85 @@
+[
+   {
+      "comment": [
+         "Set an invalid configuration in .als.json ",
+         "and verify we are receiving warnings."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+           {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 2,
+                  "message": "$URI{.als.json}: Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
+               }
+           },
+           {
+               "method": "window/logMessage",
+               "params": {
+                  "type": 2,
+                  "message": "$URI{.als.json}: Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
+               }
+           },
+           {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 2,
+                  "message": "$URI{.als.json}: Invalid type for the Ada setting \"logThreshold\" please check the value."
+               }
+           },
+           {
+               "method": "window/logMessage",
+               "params": {
+                  "type": 2,
+                  "message": "$URI{.als.json}: Invalid type for the Ada setting \"logThreshold\" please check the value."
+               }
+            },
+            {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 2,
+                  "message": "$URI{.als.json}: Unknown Ada setting \"unknownAttr\"."
+               }
+            },
+            {
+               "method": "window/logMessage",
+               "params": {
+                  "type": 2,
+                  "message": "$URI{.als.json}: Unknown Ada setting \"unknownAttr\"."
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
