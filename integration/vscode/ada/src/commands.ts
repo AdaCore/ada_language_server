@@ -18,10 +18,11 @@ import {
     TASK_PROVE_SUPB_PLAIN_NAME,
     TASK_TYPE_SPARK,
     findBuildAndRunTask,
-    getBuildAndRunTasks,
+    getTasksWithPrefix,
     getConventionalTaskLabel,
     isFromWorkspace,
     workspaceTasksFirst,
+    getBuildAndRunTaskName,
 } from './taskProviders';
 import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
 
@@ -42,6 +43,16 @@ export const CMD_BUILD_AND_RUN_MAIN = 'ada.buildAndRunMain';
  * @see {@link buildAndDebugSpecifiedMain}
  */
 export const CMD_BUILD_AND_DEBUG_MAIN = 'ada.buildAndDebugMain';
+
+/**
+ * Identifier for a hidden command used for building and running a project main,
+ * using GNATemulator.
+ * The command accepts a parameter which is the URI of the main source file.
+ * It is triggered by CodeLenses provided by the extension.
+ *
+ * @see {@link buildAndRunMainWithGNATemulator}
+ */
+export const CMD_BUILD_AND_RUN_GNATEMULATOR = 'ada.buildAndRunGNATemulator';
 
 /**
  * Identifier for a hidden command that returns an array of strings constituting
@@ -126,6 +137,12 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_BUILD_AND_DEBUG_MAIN, buildAndDebugSpecifiedMain),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            CMD_BUILD_AND_RUN_GNATEMULATOR,
+            buildAndRunMainWithGNATemulator,
+        ),
     );
 
     context.subscriptions.push(
@@ -241,7 +258,7 @@ let lastUsedTaskInfo: { source: string; name: string } | undefined;
  * @returns the TaskExecution corresponding to the task.
  */
 async function buildAndRunMainLast() {
-    const buildAndRunTasks = await getBuildAndRunTasks();
+    const buildAndRunTasks = await getTasksWithPrefix(getBuildAndRunTaskName());
     if (lastUsedTaskInfo) {
         const matchingTasks = buildAndRunTasks.filter(matchesLastUsedTask);
         assert(matchingTasks.length <= 1);
@@ -305,7 +322,7 @@ async function buildAndRunMainAsk() {
             ],
         };
     }
-    const adaTasksMain = await getBuildAndRunTasks();
+    const adaTasksMain = await getTasksWithPrefix(getBuildAndRunTaskName());
 
     if (adaTasksMain.length > 0) {
         const tasksFromWorkspace = adaTasksMain.filter(isFromWorkspace);
@@ -555,17 +572,23 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
  * displayed.
  *
  * @param main - a URI of a document
+ * @param useGNATemulator - whether the main should be ran through
+ * GNATemulator.
  */
-async function buildAndRunSpecifiedMain(main: vscode.Uri): Promise<void> {
+async function buildAndRunSpecifiedMain(
+    main: vscode.Uri,
+    useGNATemulator: boolean = false,
+): Promise<void> {
     const adaMain = await findAdaMain(main.fsPath);
     if (adaMain) {
-        const task = await findBuildAndRunTask(adaMain);
+        const task = await findBuildAndRunTask(adaMain, useGNATemulator);
         if (task) {
             lastUsedTaskInfo = { source: task.source, name: task.name };
             await vscode.tasks.executeTask(task);
         } else {
+            const taskLabel = useGNATemulator ? 'Build and Run GNATemulator' : 'Build and Run';
             void vscode.window.showErrorMessage(
-                `Could not find the 'Build and Run' task for the project main ` +
+                `Could not find the '${taskLabel}' task for the project main ` +
                     `${adaMain.mainRelPath()}`,
                 { modal: true },
             );
@@ -577,6 +600,18 @@ async function buildAndRunSpecifiedMain(main: vscode.Uri): Promise<void> {
             { modal: true },
         );
     }
+}
+
+/*
+ * This is a command handler that builds and runs the main given as parameter,
+ * using GNATemulator to run the executable.
+ * If the given URI does not match one of the project Mains an error is
+ * displayed.
+ *
+ * @param main - a URI of a document
+ */
+async function buildAndRunMainWithGNATemulator(main: vscode.Uri): Promise<void> {
+    return buildAndRunSpecifiedMain(main, true);
 }
 
 /**
