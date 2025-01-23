@@ -70,7 +70,12 @@ type scope_metric_type = {
 };
 type metric_type = {
     '@_kind': metric_kind_type;
-    '@_count': number;
+
+    /**
+     *  should be 'number' but we don't want to ask the XML parser to parse
+     *  numbers
+     */
+    '@_count': string;
     '@_ratio': number;
 };
 type metric_kind_type =

@@ -25,6 +25,7 @@ import {
     getBuildAndRunTaskName,
 } from './taskProviders';
 import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
+import { loadGnatCoverageReport } from './gnattest';
 
 /**
  * Identifier for a hidden command used for building and running a project main.
@@ -169,6 +170,10 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram),
+    );
+
+    context.subscriptions.push(
+        commands.registerCommand('ada.loadGnatCovXMLReport', loadGnatCovXMLReport),
     );
 
     registerTaskWrappers(context);
@@ -935,4 +940,25 @@ async function sparkProveSubprogram(
      * Execute the task.
      */
     return await vscode.tasks.executeTask(resolvedTask);
+}
+async function loadGnatCovXMLReport() {
+    const selection = await vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        filters: {
+            'index.xml': ['xml'],
+        },
+        title: "Select a 'index.xml' GNATcoverage report to load",
+    });
+
+    if (selection && selection.length > 0 && selection[0]) {
+        const path = selection[0].fsPath;
+        if (!path.endsWith('index.xml')) {
+            throw Error(
+                `The selected file must be 'index.xml'. Instead, the selected file was: ${path}`,
+            );
+        }
+        await loadGnatCoverageReport(path);
+    }
 }

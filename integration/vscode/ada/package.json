@@ -850,6 +850,10 @@
                 "command": "ada.spark.tasks.proveLine",
                 "title": "spark: Prove line (task wrapper)",
                 "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "ada.loadGnatCovXMLReport",
+                "title": "ada: GNATcoverage - Load an existing XML coverage report"
             }
         ],
         "keybindings": [
