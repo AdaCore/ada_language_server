@@ -6,7 +6,7 @@
     "publisher": "AdaCore",
     "license": "GPL-3.0",
     "engines": {
-        "vscode": "^1.83.1"
+        "vscode": "^1.88.0"
     },
     "categories": [
         "Programming Languages",
@@ -1080,7 +1080,7 @@
         "@types/command-exists": "1.2.3",
         "@types/mocha": "10.0.7",
         "@types/node": "16.18.16",
-        "@types/vscode": "1.83.1",
+        "@types/vscode": "~1.88.0",
         "@types/ws": "8.5.12",
         "@typescript-eslint/eslint-plugin": "8.3.0",
         "@typescript-eslint/parser": "8.3.0",
