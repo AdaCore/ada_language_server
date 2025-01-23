@@ -7,16 +7,18 @@ import * as vscode from 'vscode';
 import { TestItem } from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
-import { parseGnatcovIndexXml } from './gnatcov';
+import { parseGnatcovFileXml, parseGnatcovIndexXml } from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
 import { escapeRegExp, exe, getObjectDir, setTerminalEnvironment } from './helpers';
 import {
     DEFAULT_PROBLEM_MATCHER,
     findTaskByName,
+    getConventionalTaskLabel,
     runTaskAndGetResult,
     runTaskSequence,
     SimpleTaskDef,
     TASK_BUILD_TEST_DRIVER,
+    TASK_GNATCOV_SETUP,
     TASK_TYPE_ADA,
 } from './taskProviders';
 
@@ -218,7 +220,11 @@ async function addUnitItem(unit: Unit) {
     const srcUri = await findFileInWorkspace(srcFile);
     const unitId = createUnitItemId(unit);
     if (!controller.items.get(unitId)) {
-        const testItem = controller.createTestItem(unitId, `Tests for ${srcFile}`, srcUri);
+        const testItem = controller.createTestItem(
+            unitId,
+            `Tests for source file - ${srcFile}`,
+            srcUri,
+        );
 
         /**
          * To implement lazy loading of children, we set canResolveChildren and
@@ -268,7 +274,7 @@ function addTestedItem(parentTestItem: vscode.TestItem, tested: Tested) {
          */
         const testedItem = controller.createTestItem(
             testItemId,
-            `Tests for subprogram ${testedSubprogramName}`,
+            `Tests for subprogram - ${testedSubprogramName}`,
             parentTestItem.uri,
         );
         testedItem.range = range;
@@ -479,6 +485,7 @@ function configureTestExecution(controller: vscode.TestController) {
         vscode.TestRunProfileKind.Coverage,
         (r, t) => runHandler(r, t, true),
     );
+    testCoverageProfile.loadDetailedCoverage = loadDetailedCoverage;
 }
 
 /**
@@ -493,18 +500,29 @@ export async function runHandler(
     token?: vscode.CancellationToken,
     coverage: boolean = false,
 ) {
-    if ((request.include?.length ?? 0) === 0 && (request.exclude?.length ?? 0) === 0) {
-        /**
-         * Run all tests. This ignores request.exclude which is why we only use
-         * it in this branch.
-         */
-        await handleRunAll(request, token, coverage);
-    } else {
-        /**
-         * Run a specific set of tests
-         */
-        await handleRunRequestedTests(request, token, coverage);
-    }
+    /**
+     * We remove the usage of handleRunAll temporarily to factorize all test
+     * execution logic in handleRunRequestedTests.
+     *
+     * The difference between the two is that handleRunAll calls the test
+     * harness once to run all tests, while handleRunRequestedTests makes
+     * multiple invocation, one for each test, and is thus more flexible hence
+     * prioritizing it.
+     */
+
+    // if ((request.include?.length ?? 0) === 0 && (request.exclude?.length ?? 0) === 0) {
+    //     /**
+    //      * Run all tests. This ignores request.exclude which is why we only use
+    //      * it in this branch.
+    //      */
+    //     await handleRunAll(request, token, coverage);
+    // } else {
+
+    /**
+     * Run a specific set of tests
+     */
+    await handleRunRequestedTests(request, token, coverage);
+    // }
 }
 
 /**
@@ -639,10 +657,10 @@ async function handleRunRequestedTests(
             }
         }
 
-        /**
-         * Prepare coverage report
-         */
         if (coverage) {
+            /**
+             * Produce a GNATcov XML report
+             */
             const outputDir = path.join(await adaExtState.getObjectDir(), 'cov-xml');
             const adaTP = adaExtState.getAdaTaskProvider()!;
             const gnatcovReportTask = (await adaTP.resolveTask(
@@ -702,21 +720,6 @@ async function buildTestDriverAndReportErrors(
     if (coverage) {
         const adaTP = adaExtState.getAdaTaskProvider()!;
 
-        const gnatcovRTSetupTask = (await adaTP.resolveTask(
-            new vscode.Task(
-                {
-                    type: TASK_TYPE_ADA,
-                    command: 'gnatcov',
-                    args: ['setup'],
-                },
-                vscode.TaskScope.Workspace,
-                `setup GNATcoverage runtime library`,
-                TASK_TYPE_ADA,
-                undefined,
-                DEFAULT_PROBLEM_MATCHER,
-            ),
-        ))!;
-
         const instTaskDef: SimpleTaskDef = {
             type: TASK_TYPE_ADA,
             command: 'gnatcov',
@@ -728,12 +731,13 @@ async function buildTestDriverAndReportErrors(
             new vscode.Task(
                 instTaskDef,
                 vscode.TaskScope.Workspace,
-                `GNATcoverage-instrument project file`,
+                `GNATcoverage - Generate instrumented sources for coverage analysis`,
                 TASK_TYPE_ADA,
                 undefined,
                 DEFAULT_PROBLEM_MATCHER,
             ),
         ))!;
+        instTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
 
         const buildTaskDef: SimpleTaskDef = {
             type: TASK_TYPE_ADA,
@@ -753,28 +757,43 @@ async function buildTestDriverAndReportErrors(
             new vscode.Task(
                 buildTaskDef,
                 vscode.TaskScope.Workspace,
-                `build GNATtest harness project in coverage mode`,
+                `GNATcoverage - Build GNATtest harness project in coverage mode`,
                 TASK_TYPE_ADA,
                 undefined,
                 DEFAULT_PROBLEM_MATCHER,
             ),
         ))!;
+        buildTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
 
-        result = await runTaskSequence([
-            // gnatcovRTSetupTask,
-            instTask,
-            buildTask,
-        ]);
+        class WriteEmitter extends vscode.EventEmitter<string> {
+            override fire(data: string): void {
+                run.appendOutput(data);
+            }
+        }
+
+        result = await runTaskSequence([instTask, buildTask], new WriteEmitter());
     } else {
         const task = await findTaskByName(`${TASK_BUILD_TEST_DRIVER}`);
+        run.appendOutput(`Executing task: ${getConventionalTaskLabel(task)}\r\n`);
         result = await runTaskAndGetResult(task);
     }
 
     if (result != 0) {
-        const msg =
+        let msg =
             `Error while building the test harness project.` +
             ` Check the [Problems](command:workbench.panel.markers.view.focus) view` +
             ` and the [Terminal](command:terminal.focus) view for more information.`;
+
+        if (coverage) {
+            const taskName = `${TASK_TYPE_ADA}: ${TASK_GNATCOV_SETUP.label}`;
+            const taskNameEncoded = taskName.replace(/:/g, '%3A').replace(/ /g, '%20');
+            msg +=
+                `\n\nIf the errors relate to the GNATcoverage runtime library,` +
+                ` remember to set it up using the` +
+                ` [${taskName}]` +
+                `(command:workbench.action.tasks.runTask?%22${taskNameEncoded}%22) task.`;
+        }
+
         const md = new vscode.MarkdownString(msg);
         md.isTrusted = true;
         const testMsg = new vscode.TestMessage(md);
@@ -1050,6 +1069,106 @@ function logAndRun(
     return cp.spawnSync(cmd[0], cmd.slice(1), { env: env });
 }
 
+/**
+ * A class that holds the summary coverage data of a source file, and provides
+ * a method to load detailed coverage data about that source file.
+ */
+class GnatcovFileCoverage extends vscode.FileCoverage {
+    sourceFileXmlReport: string;
+
+    /**
+     *
+     * @param detailedXmlReportPath - The path to the GNATcov XML report for the given source file.
+     * @param uri - URI of the source file
+     * @param statementCoverage - statement coverage information
+     * @param branchCoverage - branch coverage information, if available
+     * @param declarationCoverage - declaration coverage information, if available
+     */
+    constructor(
+        detailedXmlReportPath: string,
+        uri: vscode.Uri,
+        statementCoverage: vscode.TestCoverageCount,
+        branchCoverage?: vscode.TestCoverageCount,
+        declarationCoverage?: vscode.TestCoverageCount,
+    ) {
+        super(uri, statementCoverage, branchCoverage, declarationCoverage);
+        this.sourceFileXmlReport = detailedXmlReportPath;
+    }
+
+    /**
+     * Report detailed coverage information by loading the file's GNATcov XML report.
+     */
+    public async load(token: CancellationToken): Promise<vscode.FileCoverageDetail[]> {
+        const data = parseGnatcovFileXml(this.sourceFileXmlReport);
+        return Promise.resolve(
+            data.src_mapping.flatMap((src_mapping) =>
+                src_mapping.src.line
+                    .map((line) => {
+                        if (token.isCancellationRequested) {
+                            throw new vscode.CancellationError();
+                        }
+
+                        const zeroBasedLine = line['@_num'] - 1;
+                        const lineLength = line['@_src'].length;
+                        const res = new vscode.StatementCoverage(
+                            false,
+                            new vscode.Range(zeroBasedLine, 0, zeroBasedLine, lineLength),
+                        );
+
+                        switch (src_mapping['@_coverage']) {
+                            case '-':
+                            case '!':
+                            case '?':
+                            case '+':
+                                /**
+                                 * Lines with coverage obligations are highlighted
+                                 * as covered iff they are marked as '+'
+                                 */
+                                res.executed = src_mapping['@_coverage'] == '+';
+                                return res;
+
+                            case '.':
+                                /**
+                                 * Lines with no coverage obligations are not highlighted
+                                 */
+                                return undefined;
+
+                            case '#':
+                            case '@':
+                            case '*':
+                                /**
+                                 * Exempted lines are not highlighted
+                                 */
+                                return undefined;
+
+                            case 'v':
+                            case '>':
+                                /**
+                                 * Symbols are for object level coverage which
+                                 * is not supported in VS Code.
+                                 */
+                                return undefined;
+
+                            case '0':
+                                /**
+                                 * Symbol specific to binary traces which are
+                                 * not used in the VS Code integration.
+                                 */
+                                return undefined;
+                        }
+                    })
+                    .filter((v) => !!v),
+            ),
+        );
+    }
+}
+
+/**
+ *
+ * @param run - the test run to add coverage data to
+ * @param covDir - The path to the directory containing GNATcoverage XML
+ * reports. The directory must contain a single 'index.xml' file.
+ */
 async function addCoverageData(run: vscode.TestRun, covDir: string) {
     const indexPath = path.join(covDir, 'index.xml');
     const data = parseGnatcovIndexXml(indexPath);
@@ -1063,7 +1182,38 @@ async function addCoverageData(run: vscode.TestRun, covDir: string) {
             '@_count'
         ];
         const covered = file.metric.find((m) => m['@_kind'] == 'fully_covered')!['@_count'];
-        const fileCov = new vscode.FileCoverage(srcUri, { covered, total });
+
+        const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
+            (inc) => inc['@_href'] == `${file['@_name']!}.xml`,
+        )!['@_href'];
+        const fileReportPath = path.join(covDir, fileReportBasename);
+
+        const fileCov = new GnatcovFileCoverage(fileReportPath, srcUri, { covered, total });
         run.addCoverage(fileCov);
     }
+}
+
+/**
+ *
+ * @param _testRun - The test run
+ * @param fileCoverage - The FileCoverage object for which we want to load detailed coverage
+ * @param token - a cancellation token
+ * @returns
+ */
+async function loadDetailedCoverage(
+    _testRun: vscode.TestRun,
+    fileCoverage: vscode.FileCoverage,
+    token: CancellationToken,
+): Promise<vscode.FileCoverageDetail[]> {
+    try {
+        return await (fileCoverage as GnatcovFileCoverage).load(token);
+    } catch (err) {
+        let msg = `Error while loading detailed coverage data`;
+        if (err instanceof Error) {
+            msg += `:\n${err.toString()}`;
+        }
+        void vscode.window.showErrorMessage(msg);
+    }
+
+    return [];
 }

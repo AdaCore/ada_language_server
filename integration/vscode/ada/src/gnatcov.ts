@@ -44,9 +44,17 @@ type coverage_level_type =
     | 'stmt+decision'
     | 'stmt+mcdc'
     | 'stmt+uc_mcdc';
+
 type sources_type = {
-    source: source_type[];
+    source?: source_type[];
+    'xi:include': xi_include_type[];
 };
+
+type xi_include_type = {
+    '@_parse': string;
+    '@_href': string;
+};
+
 type source_type = {
     '@_file': string;
     '@_coverage_level': coverage_level_type;
@@ -102,7 +110,34 @@ type statement_type = {
     '@_id': number;
     '@_text': string;
 };
+
+/**
+ *
+ *   .   |  No coverage obligation is attached to the line
+ *
+ *   -   |  Coverage obligations attached to the line, none satisfied
+ *   !   |  Coverage obligations attached to the line, some satisfied
+ *   ?   |  Coverage obligations attached to the line, undetermined coverage state
+ *       |  (in the absence of other violations)
+ *   +   |  Coverage obligations attached to the line, all satisfied
+ *
+ *   #   |  Zero violations in exempted region
+ *   *   |  One violation in exempted region
+ *   \@  |  Also related to exemptions, unclear semantics
+ *
+ *   0   |  not coverable code, only relevant in binary traces mode (no
+ *       |  instrumentation) which is unsupported in VS Code
+ *
+ *   v, \>  |  symbols for object level coverage which is not supported in VS
+ *          |  Code. We only support source level coverage.
+ * See
+ * https://docs.adacore.com/gnatcoverage-docs/html/gnatcov/cov_source.html#annotated-sources-text-xcov
+ * and
+ * https://docs.adacore.com/gnatcoverage-docs/html/gnatcov/exemptions.html#reporting-about-coverage-exemptions
+ * for more information.
+ */
 type coverage_type = '.' | '+' | '-' | '!' | '?' | '#' | '@' | '*' | '0' | 'v' | '>';
+
 type decision_type = {
     src?: src_type;
     condition: condition_type[];
@@ -155,6 +190,43 @@ export function parseGnatcovIndexXml(path: string): CovIndex {
     if ('document' in parseResult) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         return parseResult.document as CovIndex;
+    } else {
+        throw Error(`Could not parse GNATcoverage report: ${path}`);
+    }
+}
+
+/**
+ *
+ * @param path - path to GNATcoverage <source-file>.xml report
+ * @returns parsed report
+ */
+export function parseGnatcovFileXml(path: string): source_type {
+    const fileContentAsBuffer = fs.readFileSync(path);
+
+    const options: Partial<X2jOptions> = {
+        // By default the parser ignores attributes, so we set this option
+        // to obtain attributes.
+        ignoreAttributes: false,
+        // This prefix is used in the JS objects resulting from the parsing
+        // to differentiate attributes from child nodes.
+        attributeNamePrefix: '@_',
+        isArray: (_, jPath) => {
+            return (['source.src_mapping.src.line'] as string[]).indexOf(jPath) !== -1;
+        },
+        /**
+         * By default, attribute values are trimmed from leading and trailing
+         * whitespace. GNATcov stores the content of source code lines in XML
+         * attributes so we don't want to trim in order to preserve the
+         * original content.
+         */
+        trimValues: false,
+    };
+    const parser = new XMLParser(options);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const parseResult = parser.parse(fileContentAsBuffer);
+    if ('source' in parseResult) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        return parseResult.source as source_type;
     } else {
         throw Error(`Could not parse GNATcoverage report: ${path}`);
     }
