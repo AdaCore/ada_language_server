@@ -1,0 +1,104 @@
+[
+   {
+      "comment": [
+         "Set an invalid configuration while the ALS is running ",
+         "and verify we are receiving warnings."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "unknownAttr": "Hello",
+                     "USEGNATFORMAT": false,
+                     "logThreshold": false,
+                     "insertWithClauses": true
+                  }
+               }
+            }
+         },
+         "wait": [
+           {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 2,
+                  "message": "Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
+               }
+           },
+           {
+               "method": "window/logMessage",
+               "params": {
+                  "type": 2,
+                  "message": "Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
+               }
+           },
+           {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 2,
+                  "message": "Invalid type for the Ada setting \"logThreshold\" please check the value."
+               }
+            },
+            {
+               "method": "window/logMessage",
+               "params": {
+                  "type": 2,
+                  "message": "Invalid type for the Ada setting \"logThreshold\" please check the value."
+               }
+            },
+            {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 2,
+                  "message": "Unknown Ada setting \"unknownAttr\"."
+               }
+            },
+            {
+               "method": "window/logMessage",
+               "params": {
+                  "type": 2,
+                  "message": "Unknown Ada setting \"unknownAttr\"."
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

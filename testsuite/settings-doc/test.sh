@@ -13,7 +13,8 @@ grep '^### ' "$1/doc/settings.md" | sed -e 's/....//' | sort >doc.txt
 python3 get-schema-properties.py <"$1/integration/vscode/ada/schemas/als-settings-schema.json" >schema.txt
 
 # Collect settings read in the ALS implementation
-grep 'if Name = "[^"]\+"' "$1/source/ada/lsp-ada_configurations.adb" | sed -e 's/.*"\([^"]\+\)"/\1/' >impl.txt
+python3 get-implementation-settings.py <"$1/source/ada/lsp-ada_configurations.adb" >impl.txt
+
 # Remove the following settings from the implementation list because they are
 # either hidden, or nested
 exclude="onTypeFormatting indentOnly trace"

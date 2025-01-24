@@ -30,6 +30,8 @@ with GPR2.Project.Tree;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
+with LSP.Enumerations;
+with VSS.String_Vectors;
 with VSS.Strings.Conversions;
 
 with LSP.Ada_Client_Capabilities;
@@ -469,6 +471,13 @@ private
 
    overriding procedure Increment_Project_Timestamp
      (Self : in out Message_Handler);
+
+   overriding procedure Send_Messages
+     (Self     : Message_Handler;
+      Show     : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+      Severity : LSP.Enumerations.MessageType;
+      File     : GNATCOLL.VFS.Virtual_File);
 
    overriding function Project_Tree_Is_Defined (Self : Message_Handler)
      return Boolean is (Self.Project_Tree.Is_Defined);

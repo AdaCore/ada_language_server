@@ -49,12 +49,14 @@ package LSP.Ada_Configurations is
    --  order of scenario variables doesn't trigger a reload, which is nice.
 
    procedure Read_JSON
-     (Self   : in out Configuration'Class;
-      JSON   : LSP.Structures.LSPAny);
+     (Self     : in out Configuration'Class;
+      JSON     : LSP.Structures.LSPAny;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector);
 
    procedure Read_File
-     (Self : in out Configuration'Class;
-      File : VSS.Strings.Virtual_String);
+     (Self     : in out Configuration'Class;
+      File     : VSS.Strings.Virtual_String;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector);
 
    function Project_File
      (Self : Configuration'Class) return VSS.Strings.Virtual_String;

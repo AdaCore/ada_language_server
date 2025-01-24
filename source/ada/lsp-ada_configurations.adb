@@ -76,9 +76,12 @@ package body LSP.Ada_Configurations is
       Index : in out Positive);
 
    procedure Parse_Ada
-     (Self   : in out Configuration'Class;
-      JSON   : LSP.Structures.LSPAny;
-      From   : Positive);
+     (Self     : in out Configuration'Class;
+      JSON     : LSP.Structures.LSPAny;
+      From     : Positive;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector);
+   --  Parse custom Ada configuration.
+   --  Messages will contains warnings related to unknown configuration.
 
    ----------------
    -- Build_Path --
@@ -140,9 +143,10 @@ package body LSP.Ada_Configurations is
    ---------------
 
    procedure Parse_Ada
-     (Self   : in out Configuration'Class;
-      JSON   : LSP.Structures.LSPAny;
-      From   : Positive)
+     (Self     : in out Configuration'Class;
+      JSON     : LSP.Structures.LSPAny;
+      From     : Positive;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector)
    is
       use all type VSS.JSON.JSON_Number_Kind;
       use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
@@ -151,8 +155,19 @@ package body LSP.Ada_Configurations is
       Variables_Names  : VSS.String_Vectors.Virtual_String_Vector;
       Variables_Values : VSS.String_Vectors.Virtual_String_Vector;
 
+      Configuration_Error : exception;
+      --  Raise when we have a configuration exception
+
       procedure Parse_Variables (From : Positive);
       procedure Swap_Variables (Left, Right : Positive);
+
+      function Check_Variable
+        (Var_Name      : VSS.Strings.Virtual_String;
+         Var_Kind      : VSS.JSON.Streams.JSON_Stream_Element_Kind;
+         Expected_Name : VSS.Strings.Virtual_String;
+         Expected_Kind : VSS.JSON.Streams.JSON_Stream_Element_Kind)
+         return Boolean;
+      --  Return True when Var_Name matches Expected_Name
 
       ---------------------
       -- Parse_Variables --
@@ -180,6 +195,50 @@ package body LSP.Ada_Configurations is
       end Parse_Variables;
 
       --------------------
+      -- Check_Variable --
+      --------------------
+
+      function Check_Variable
+        (Var_Name      : VSS.Strings.Virtual_String;
+         Var_Kind      : VSS.JSON.Streams.JSON_Stream_Element_Kind;
+         Expected_Name : VSS.Strings.Virtual_String;
+         Expected_Kind : VSS.JSON.Streams.JSON_Stream_Element_Kind)
+         return Boolean
+      is
+         Lower_Name : constant VSS.Strings.Virtual_String :=
+           Var_Name.Transform (VSS.Transformers.Casing.To_Lowercase);
+         Lower_Expected : constant VSS.Strings.Virtual_String :=
+           Expected_Name.Transform (VSS.Transformers.Casing.To_Lowercase);
+      begin
+         if Lower_Name = Lower_Expected then
+            if Var_Name = Expected_Name then
+               if Var_Kind = Expected_Kind then
+                  --  Only valid case: good name, casing and kind
+                  return True;
+               else
+                  Messages.Append
+                    ("Invalid type for the Ada setting """
+                     & Var_Name
+                     & """ please check the value.");
+               end if;
+            else
+               Messages.Append
+                 ("Ada settings are case sensitive: """
+                  & Var_Name
+                  & """ has been ignored please set it to """
+                  & Expected_Name
+                  & """.");
+            end if;
+
+            --  Found an invalid configuration for Var_Name, skip it
+            raise Configuration_Error;
+         else
+            --  Didn't match Var_Name
+            return False;
+         end if;
+      end Check_Variable;
+
+      --------------------
       -- Swap_Variables --
       --------------------
 
@@ -204,165 +263,184 @@ package body LSP.Ada_Configurations is
 
       Name : VSS.Strings.Virtual_String;
    begin
+      Messages := VSS.String_Vectors.Empty_Virtual_String_Vector;
       Index := Index + 1;  --  skip start object
 
       while Index <= JSON.Last_Index
         and then JSON (Index).Kind = Key_Name
       loop
-         Name := JSON (Index).Key_Name;
-         Index := Index + 1;
+         begin
+            Name := JSON (Index).Key_Name;
+            Index := Index + 1;
 
-         if Name = "relocateBuildTree"
-           and then JSON (Index).Kind = String_Value
-         then
-            Self.Relocate_Build_Tree := JSON (Index).String_Value;
-
-         elsif Name = "rootDir"
-           and then JSON (Index).Kind = String_Value
-         then
-            Self.Relocate_Root := JSON (Index).String_Value;
-
-         elsif Name = "projectFile"
-           and then JSON (Index).Kind = String_Value
-         then
-            Self.Project_File := JSON (Index).String_Value;
-
-         elsif Name = "gprConfigurationFile"
-           and then JSON (Index).Kind = String_Value
-         then
-            Self.GPR_Configuration_File := JSON (Index).String_Value;
-
-         elsif Name = "projectDiagnostics"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Project_Diagnostics_Enabled := JSON (Index).Boolean_Value;
-
-         elsif Name = "scenarioVariables"
-           and then JSON (Index).Kind = Start_Object
-         then
-            Parse_Variables (Index);
-            Sort_Variables (1, Variables_Names.Length);
-
-            Self.Variables_Names := Variables_Names;
-            Self.Variables_Values := Variables_Values;
-
-            --  Replace Context with user provided values
-            Self.Context.Clear;
-            for J in 1 .. Variables_Names.Length loop
-               Self.Context.Insert
-                 (GPR2.External_Name_Type
-                    (VSS.Strings.Conversions.To_UTF_8_String
-                         (Variables_Names (J))),
-                  VSS.Strings.Conversions.To_UTF_8_String
-                    (Variables_Values (J)));
-            end loop;
-
-         elsif Name = "defaultCharset"
-           and then JSON (Index).Kind = String_Value
-         then
-            Self.Charset := JSON (Index).String_Value;
-
-         elsif Name = "enableDiagnostics"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Diagnostics_Enabled := JSON (Index).Boolean_Value;
-
-         elsif Name = "enableIndexing"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Indexing_Enabled := JSON (Index).Boolean_Value;
-
-         elsif Name = "renameInComments"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Rename_In_Comments := JSON (Index).Boolean_Value;
-
-         elsif Name = "namedNotationThreshold"
-           and then JSON (Index).Kind = Number_Value
-           and then JSON (Index).Number_Value.Kind = JSON_Integer
-         then
-            Self.Named_Notation_Threshold :=
-              Natural (JSON (Index).Number_Value.Integer_Value);
-
-         elsif Name = "foldComments"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Folding_Comments := JSON (Index).Boolean_Value;
-
-         elsif Name = "displayMethodAncestryOnNavigation"
-           and then JSON (Index).Kind = String_Value
-           and then Display_Method_Values.Contains
-             (JSON (Index).String_Value)
-         then
-            Self.Method_Ancestry_Policy :=
-              LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy
-                'Value (+JSON (Index).String_Value);
-
-         elsif Name = "followSymlinks"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Follow_Symlinks := JSON (Index).Boolean_Value;
-
-         elsif Name = "documentationStyle"
-           and then JSON (Index).Kind = String_Value
-           and then Doc_Style_Values.Contains (JSON (Index).String_Value)
-         then
-            Self.Documentation_Style :=
-              GNATdoc.Comments.Options.Documentation_Style'Value
-                (+JSON (Index).String_Value);
-
-         elsif Name = "useCompletionSnippets"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Use_Completion_Snippets := JSON (Index).Boolean_Value;
-
-         elsif Name = "insertWithClauses"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Insert_With_Clauses := JSON (Index).Boolean_Value;
-
-         elsif Name = "logThreshold"
-           and then JSON (Index).Kind = Number_Value
-           and then JSON (Index).Number_Value.Kind = JSON_Integer
-         then
-            Self.Log_Threshold :=
-              Natural (JSON (Index).Number_Value.Integer_Value);
-
-         elsif Name = "onTypeFormatting"
-           and then JSON (Index).Kind = Start_Object
-         then
-            Name := JSON (Index + 1).Key_Name;
-
-            if Name = "indentOnly"
-              and then JSON (Index + 2).Kind = Boolean_Value
+            if Check_Variable
+              (Name, JSON (Index).Kind, "relocateBuildTree", String_Value)
             then
-               Self.Indent_Only := JSON (Index + 2).Boolean_Value;
+               Self.Relocate_Build_Tree := JSON (Index).String_Value;
 
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "rootDir", String_Value)
+            then
+               Self.Relocate_Root := JSON (Index).String_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "gprConfigurationFile", String_Value)
+            then
+               Self.GPR_Configuration_File := JSON (Index).String_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "projectFile", String_Value)
+            then
+               Self.Project_File := JSON (Index).String_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "projectDiagnostics", Boolean_Value)
+            then
+               Self.Project_Diagnostics_Enabled := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "scenarioVariables", Start_Object)
+            then
+               Parse_Variables (Index);
+               Sort_Variables (1, Variables_Names.Length);
+
+               Self.Variables_Names := Variables_Names;
+               Self.Variables_Values := Variables_Values;
+
+               --  Replace Context with user provided values
+               Self.Context.Clear;
+               for J in 1 .. Variables_Names.Length loop
+                  Self.Context.Insert
+                    (GPR2.External_Name_Type
+                       (VSS.Strings.Conversions.To_UTF_8_String
+                            (Variables_Names (J))),
+                     VSS.Strings.Conversions.To_UTF_8_String
+                       (Variables_Values (J)));
+               end loop;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "defaultCharset", String_Value)
+            then
+               Self.Charset := JSON (Index).String_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "enableDiagnostics", Boolean_Value)
+            then
+               Self.Diagnostics_Enabled := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "enableIndexing", Boolean_Value)
+            then
+               Self.Indexing_Enabled := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "renameInComments", Boolean_Value)
+            then
+               Self.Rename_In_Comments := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "namedNotationThreshold", Number_Value)
+            then
+               if JSON (Index).Number_Value.Kind = JSON_Integer then
+                  Self.Named_Notation_Threshold :=
+                    Natural (JSON (Index).Number_Value.Integer_Value);
+               end if;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "foldComments", Boolean_Value)
+            then
+               Self.Folding_Comments := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind,
+               "displayMethodAncestryOnNavigation", String_Value)
+            then
+               if Display_Method_Values.Contains (JSON (Index).String_Value)
+               then
+                  Self.Method_Ancestry_Policy :=
+                    LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy
+                      'Value (+JSON (Index).String_Value);
+               end if;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "followSymlinks", Boolean_Value)
+            then
+               Self.Follow_Symlinks := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "documentationStyle", String_Value)
+            then
+               if Doc_Style_Values.Contains (JSON (Index).String_Value) then
+                  Self.Documentation_Style :=
+                    GNATdoc.Comments.Options.Documentation_Style'Value
+                      (+JSON (Index).String_Value);
+               end if;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "useCompletionSnippets", Boolean_Value)
+            then
+               Self.Use_Completion_Snippets := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "insertWithClauses", Boolean_Value)
+            then
+               Self.Insert_With_Clauses := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "logThreshold", Number_Value)
+            then
+               if JSON (Index).Number_Value.Kind = JSON_Integer then
+                  Self.Log_Threshold :=
+                    Natural (JSON (Index).Number_Value.Integer_Value);
+               end if;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "onTypeFormatting", Start_Object)
+            then
+               Name := JSON (Index + 1).Key_Name;
+
+               if Check_Variable
+                 (Name, JSON (Index + 2).Kind, "indentOnly", Boolean_Value)
+               then
+                  Self.Indent_Only := JSON (Index + 2).Boolean_Value;
+
+               end if;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "useGnatformat", Boolean_Value)
+            then
+               Self.Use_Gnatformat := JSON (Index).Boolean_Value;
+
+            elsif Name = "showNotificationsOnErrors"
+            then
+               --  This is a VS Code only setting, treated at the VS Code
+               --  extension's level. We still include it here to mark it as
+               --  recognized and to support the settings-doc test that checks
+               --  that each setting is documented.
+               null;
+
+            elsif Name = "trace"
+            then
+               --  Same as above. Do not merge this branch with the previous one.
+               --  The settings-doc test relies on the fact that each setting has
+               --  a dedicated if-branch.
+               null;
+
+            else
+               Messages.Append
+                 ("Unknown Ada setting """ & Name & """.");
             end if;
+            Skip_Value (JSON, Index);
 
-         elsif Name = "useGnatformat"
-           and then JSON (Index).Kind = Boolean_Value
-         then
-            Self.Use_Gnatformat := JSON (Index).Boolean_Value;
-
-         elsif Name = "showNotificationsOnErrors"
-         then
-            --  This is a VS Code only setting, treated at the VS Code
-            --  extension's level. We still include it here to mark it as
-            --  recognized and to support the settings-doc test that checks
-            --  that each setting is documented.
-            null;
-
-         elsif Name = "trace"
-         then
-            --  Same as above. Do not merge this branch with the previous one.
-            --  The settings-doc test relies on the fact that each setting has
-            --  a dedicated if-branch.
-            null;
-
-         end if;
-
-         Skip_Value (JSON, Index);
+         exception
+            when Configuration_Error =>
+               --  A message was produced for this value, skip it
+               Skip_Value (JSON, Index);
+            when others =>
+               Messages.Append ("Invalid Ada Configuration.");
+               --  Abort parsing the Ada Configuration
+               return;
+         end;
       end loop;
    end Parse_Ada;
 
@@ -380,25 +458,38 @@ package body LSP.Ada_Configurations is
    ---------------
 
    procedure Read_File
-     (Self : in out Configuration'Class;
-      File : VSS.Strings.Virtual_String)
+     (Self     : in out Configuration'Class;
+      File     : VSS.Strings.Virtual_String;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector)
    is
+      use type VSS.JSON.Streams.JSON_Stream_Element_Kind;
       Input   : aliased VSS.Text_Streams.File_Input.File_Input_Text_Stream;
       Reader  : VSS.JSON.Pull_Readers.JSON5.JSON5_Pull_Reader;
       JSON    : LSP.Structures.LSPAny;
    begin
       Input.Open (File, "utf-8");
       Reader.Set_Stream (Input'Unchecked_Access);
+
       Reader.Read_Next;
       pragma Assert (Reader.Is_Start_Document);
       Reader.Read_Next;
 
       while not Reader.Is_End_Document loop
+         --  Check if there is an invalid token
+         exit when Reader.Element_Kind = VSS.JSON.Streams.Invalid;
          JSON.Append (Reader.Element);
          Reader.Read_Next;
       end loop;
 
-      Self.Parse_Ada (JSON, JSON.First_Index);
+      if Reader.Is_End_Document then
+         --  The file was successfully parsed without errors
+         Self.Parse_Ada (JSON, JSON.First_Index, Messages);
+      else
+         --  No the end of the document means we found an invalid token
+         --  at this point it's better to refuse the whole configuration
+         --  than to use only a part of it
+         Messages.Append ("Cannot parse configuration file");
+      end if;
    end Read_File;
 
    ---------------
@@ -406,8 +497,9 @@ package body LSP.Ada_Configurations is
    ---------------
 
    procedure Read_JSON
-     (Self   : in out Configuration'Class;
-      JSON   : LSP.Structures.LSPAny)
+     (Self     : in out Configuration'Class;
+      JSON     : LSP.Structures.LSPAny;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector)
    is
       use all type VSS.JSON.Streams.JSON_Stream_Element_Kind;
       Index : Positive := JSON.First_Index + 1;
@@ -427,7 +519,7 @@ package body LSP.Ada_Configurations is
             if Is_Ada and then Index <= JSON.Last_Index
               and then JSON (Index).Kind = Start_Object
             then
-               Self.Parse_Ada (JSON, Index);
+               Self.Parse_Ada (JSON, Index, Messages);
                exit;
             else
                Skip_Value (JSON, Index);

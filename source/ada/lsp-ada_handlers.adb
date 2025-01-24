@@ -29,7 +29,6 @@ with VSS.Strings;
 with VSS.Strings.Formatters.Integers;
 with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
-with VSS.String_Vectors;
 
 with Laltools.Common;
 with Laltools.Partial_GNATPP;
@@ -91,7 +90,6 @@ with LSP.Search;
 with LSP.Servers.FS_Watch;
 with LSP.Structures.LSPAny_Vectors;
 with LSP.Utils;
-with LSP.Enumerations;
 
 package body LSP.Ada_Handlers is
 
@@ -412,7 +410,7 @@ package body LSP.Ada_Handlers is
       Self.File_Monitor :=
         new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
       Self.Diagnostic_Sources :=
-         [new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
+        [new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
            (Self'Unchecked_Access)];
 
       Self.Load_Config_Files (CLI_Config_File);
@@ -455,6 +453,7 @@ package body LSP.Ada_Handlers is
 
       Config_File_Processed : Boolean := False;
       New_Configuration     : LSP.Ada_Configurations.Configuration;
+      Messages              : VSS.String_Vectors.Virtual_String_Vector;
    begin
       for F_Path of Candidates loop
          if not F_Path.Is_Empty then
@@ -465,7 +464,14 @@ package body LSP.Ada_Handlers is
                Self.Tracer.Trace_Text ("Trying config file: " & F_Path);
                if F.Is_Regular_File then
                   Self.Tracer.Trace_Text ("Loading config file: " & F_Path);
-                  New_Configuration.Read_File (F_Path);
+                  New_Configuration.Read_File (F_Path, Messages);
+
+                  Self.Send_Messages
+                    (Show     => True,
+                     Messages => Messages,
+                     Severity => LSP.Enumerations.Warning,
+                     File     => F);
+
                   Config_File_Processed := True;
                else
                   Self.Tracer.Trace_Text (F_Path & " doesn't exist");
@@ -2453,9 +2459,17 @@ package body LSP.Ada_Handlers is
          --     }
          declare
             New_Configuration : LSP.Ada_Configurations.Configuration;
+            Messages : VSS.String_Vectors.Virtual_String_Vector;
          begin
             --  Parse the configuration.
-            New_Configuration.Read_JSON (Value.initializationOptions);
+            New_Configuration.Read_JSON
+              (Value.initializationOptions, Messages);
+
+            Self.Send_Messages
+              (Show     => True,
+               Messages => Messages,
+               Severity => LSP.Enumerations.Warning,
+               File     => GNATCOLL.VFS.No_File);
 
             --  Set it as the current configuration.
             --  This will also save it as the initial configuration (if not done
@@ -3811,6 +3825,37 @@ package body LSP.Ada_Handlers is
 
       return Definition;
    end Resolve_Name;
+
+   -------------------
+   -- Send_Messages --
+   -------------------
+
+   overriding procedure Send_Messages
+     (Self     : Message_Handler;
+      Show     : Boolean;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+      Severity : LSP.Enumerations.MessageType;
+      File     : GNATCOLL.VFS.Virtual_File)
+   is
+      use GNATCOLL.VFS;
+      use VSS.Strings;
+      Prefix : constant VSS.Strings.Virtual_String :=
+        (if File /= No_File
+         then VSS.Strings.Virtual_String
+           (Self.To_URI (File.Display_Full_Name)) & ": "
+         else "");
+   begin
+      for Message of Messages loop
+         if Show then
+            Self.Sender.On_ShowMessage_Notification
+              ((Severity, Prefix & Message));
+         end if;
+
+         Self.Sender.On_LogMessage_Notification
+           ((Severity, Prefix & Message));
+         Self.Tracer.Trace_Text (Message);
+      end loop;
+   end Send_Messages;
 
    -----------------------
    -- Set_Configuration --
