@@ -413,7 +413,7 @@ begin
         & (if VSS.Command_Line.Is_Specified (Language_GPR_Option)
            then GPR_Log_File_Prefix
            else Ada_Log_File_Prefix)
-        & "_log.$T.log:buffer_size=0:buffer_size=0"
+        & "_log.$T.$$.log:buffer_size=0:buffer_size=0"
         & Ada.Characters.Latin_1.LF
         & "ALS.MAIN=yes"
         & Ada.Characters.Latin_1.LF
