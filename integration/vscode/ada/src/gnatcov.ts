@@ -1,4 +1,5 @@
 import { X2jOptions, XMLParser } from 'fast-xml-parser';
+import { number } from 'fp-ts';
 import * as fs from 'fs';
 
 /**
@@ -75,7 +76,7 @@ type metric_type = {
      *  should be 'number' but we don't want to ask the XML parser to parse
      *  numbers
      */
-    '@_count': string;
+    '@_count': number;
     '@_ratio': number;
 };
 type metric_kind_type =
@@ -171,6 +172,21 @@ type message_kind_type =
     | 'exclusion';
 
 /**
+ * Process attribute values to convert certain attributes to number values.
+ *
+ * @param name - attribute name
+ * @param value - unprocessed value
+ * @returns processed value
+ */
+function attributeValueProcessor(name: string, value: string): unknown {
+    return ['scope_line', 'count', 'ratio', 'num', 'column_begin', 'column_end', 'id'].includes(
+        name,
+    )
+        ? Number.parseInt(value)
+        : value;
+}
+
+/**
  *
  * @param path - path to GNATcoverage index.xml report
  * @returns parsed report
@@ -188,6 +204,8 @@ export function parseGnatcovIndexXml(path: string): CovIndex {
         isArray: (_, jPath) => {
             return ([] as string[]).indexOf(jPath) !== -1;
         },
+        trimValues: false,
+        attributeValueProcessor: attributeValueProcessor,
     };
     const parser = new XMLParser(options);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -225,7 +243,9 @@ export function parseGnatcovFileXml(path: string): source_type {
          * original content.
          */
         trimValues: false,
+        attributeValueProcessor: attributeValueProcessor,
     };
+
     const parser = new XMLParser(options);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const parseResult = parser.parse(fileContentAsBuffer);

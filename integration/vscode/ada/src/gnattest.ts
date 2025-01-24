@@ -1207,12 +1207,10 @@ async function addCoverageData(run: vscode.TestRun, covDir: string) {
                 if (found.length == 0) continue;
 
                 const srcUri = found[0];
-                const total = Number.parseInt(
-                    file.metric.find((m) => m['@_kind'] == 'total_lines_of_relevance')!['@_count'],
-                );
-                const covered = Number.parseInt(
-                    file.metric.find((m) => m['@_kind'] == 'fully_covered')!['@_count'],
-                );
+                const total = file.metric.find((m) => m['@_kind'] == 'total_lines_of_relevance')![
+                    '@_count'
+                ];
+                const covered = file.metric.find((m) => m['@_kind'] == 'fully_covered')!['@_count'];
 
                 const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
                     (inc) => inc['@_href'] == `${file['@_name']!}.xml`,
