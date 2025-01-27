@@ -88,7 +88,9 @@ suite('Extensions Test Suite', function () {
             // to the project's root directory (workspace directory)
             await vscode.commands.executeCommand('als-reload-project');
             try {
-                assert.strictEqual(await adaExtState.getObjectDir(), folder.fsPath);
+                const objDirValue = await adaExtState.getObjectDir();
+                const objDirURI = vscode.Uri.file(objDirValue);
+                assert.strictEqual(objDirURI.fsPath, folder.fsPath);
             } finally {
                 // Restore the old GPR file contents
                 writeFileSync(fileUri.fsPath, contentBefore);
