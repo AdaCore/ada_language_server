@@ -679,7 +679,7 @@ package body LSP.Ada_Contexts is
          Self.Source_Files.Clear;
          Self.Source_Dirs.Clear;
 
-         --  Iterate on all the project coexisting inside the Provider
+         --  Iterate on all the projects coexisting inside the Provider
          --  By design there is no source collision so merge them.
          for Project of Provider.Projects loop
             Process_Closure (Project, Add_Sources_From_View'Access);

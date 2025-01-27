@@ -621,7 +621,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          if Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind then
             --  For aggregated root project, use LAL to create sets of
             --  aggregated projects and sub-projects which can coexist in
-            --  the same LAL provider. This is more memory efficient.
+            --  the same LAL provider to reduce the memory footprint.
             declare
                Providers : GPR2_Provider_And_Projects_Array_Access :=
                  Create_Project_Unit_Providers (Self.Project_Tree);
