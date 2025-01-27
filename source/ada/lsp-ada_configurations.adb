@@ -155,7 +155,7 @@ package body LSP.Ada_Configurations is
       Variables_Names  : VSS.String_Vectors.Virtual_String_Vector;
       Variables_Values : VSS.String_Vectors.Virtual_String_Vector;
 
-      Configuration_Error : exception;
+      Skip_Value_Exception : exception;
       --  Raise when we have a configuration exception
 
       procedure Parse_Variables (From : Positive);
@@ -215,6 +215,10 @@ package body LSP.Ada_Configurations is
                if Var_Kind = Expected_Kind then
                   --  Only valid case: good name, casing and kind
                   return True;
+               elsif Var_Kind = Null_Value then
+                  --  Null kind correspond to the default configuration just
+                  --  ignore this Variable
+                  raise Skip_Value_Exception;
                else
                   Messages.Append
                     ("Invalid type for the Ada setting """
@@ -231,7 +235,7 @@ package body LSP.Ada_Configurations is
             end if;
 
             --  Found an invalid configuration for Var_Name, skip it
-            raise Configuration_Error;
+            raise Skip_Value_Exception;
          else
             --  Didn't match Var_Name
             return False;
@@ -433,7 +437,7 @@ package body LSP.Ada_Configurations is
             Skip_Value (JSON, Index);
 
          exception
-            when Configuration_Error =>
+            when Skip_Value_Exception =>
                --  A message was produced for this value, skip it
                Skip_Value (JSON, Index);
             when others =>
