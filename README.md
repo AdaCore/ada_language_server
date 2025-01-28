@@ -146,7 +146,7 @@ Here is an example config file:
       "BINUTILS_SRC_DIR": "/null"
    },
    "ada.defaultCharset": "utf-8",
-   "ada.enableDiagnostics": false,
+   "ada.adaFileDiagnostics": false,
    "ada.renameInComments": false
 }
 ```

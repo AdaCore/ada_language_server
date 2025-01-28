@@ -51,7 +51,7 @@
                   "ada": {
                      "projectFile": "$URI{default.gpr}",
                      "scenarioVariables": {},
-                     "enableDiagnostics": true,
+                     "adaFileDiagnostics": true,
                      "defaultCharset": "ISO-8859-1"
                   }
                }

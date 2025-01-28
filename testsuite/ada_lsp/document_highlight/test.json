@@ -388,7 +388,7 @@
                      "scenarioVariables": {},
                      "defaultCharset": "iso-8859-1",
                      "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
-                     "enableDiagnostics": true,
+                     "adaFileDiagnostics": true,
                      "renameInComments": false
                   }
                }

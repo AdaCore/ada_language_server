@@ -106,8 +106,10 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [defaultCharset](#defaultcharset)
 * [relocateBuildTree](#relocatebuildtree)
 * [rootDir](#rootdir)
-* [enableDiagnostics](#enablediagnostics)
+* [enableDiagnostics](#enableddiagnostics)
+* [adaFileDiagnostics](#adafilediagnostics)
 * [projectDiagnostics](#projectdiagnostics)
+* [alireDiagnostics](#alirediagnostics)
 * [enableIndexing](#enableindexing)
 * [renameInComments](#renameincomments)
 * [namedNotationThreshold](#namednotationthreshold)
@@ -217,27 +219,47 @@ for more details about the corresponding gprbuild switch.
 
 ### enableDiagnostics
 
-You can explicitly deactivate the emission of diagnostics, via the
-`enableDiagnostics` key. By default, diagnostics are enabled.
-The value is a boolean.
+This setting has been deprecated please have a look at `projectDiagnostics`,
+`adaFileDiagnostics` and `alireDiagnostics`.
 
 ```javascript
     'enableDiagnostics': false
+```
+
+### adaFileDiagnostics
+
+You can explicitly deactivate the emission of diagnostics for Ada Files
+via the `adaFileDiagnostics` key. By default, diagnostics are enabled.
+The value is a boolean.
+
+```javascript
+    'adaFileDiagnostics': false
 ```
 
 ### projectDiagnostics
 
-This setting needs `enableDiagnostics` enabled and can be disabled to remove
-project related diagnotics.
+You can explicitly deactivate the emission of diagnostics when loading a
+project via the `projectDiagnostics` key. By default, diagnostics are enabled.
 The value is a boolean.
 
 ```javascript
-    'enableDiagnostics': false
+    'projectDiagnostics': false
+```
+
+### alireDiagnostics
+
+You can explicitly deactivate the emission of diagnostics when loading an
+alire crate via the `alireDiagnostics` key.
+By default, diagnostics are enabled.
+The value is a boolean.
+
+```javascript
+    'alireDiagnostics': false
 ```
 
 ### enableIndexing
 
-By default, the server indexes the source files after loading a project,
+By default, the server indexes the source files after loading a project
 to speed up subsequent requests. This behavior can be controlled
 via the `enableIndexing` flag in this request.
 The value is a boolean.

@@ -104,7 +104,7 @@
                         "VAR": "A"
                      },
                      "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": true
+                     "adaFileDiagnostics": true
                   }
                }
             }
@@ -158,7 +158,7 @@
                         "VAR": "B"
                      },
                      "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": true
+                     "adaFileDiagnostics": true
                   }
                }
             }
@@ -180,7 +180,7 @@
                         "VAR": "C"
                      },
                      "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": true
+                     "adaFileDiagnostics": true
                   }
                }
             }

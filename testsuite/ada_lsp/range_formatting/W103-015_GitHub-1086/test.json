@@ -52,7 +52,7 @@
                      "scenarioVariables": {},
                      "defaultCharset": "iso-8859-1",
                      "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
-                     "enableDiagnostics": true,
+                     "adaFileDiagnostics": true,
                      "useCompletionSnippets": false,
                      "renameInComments": false,
                      "useGnatformat": false

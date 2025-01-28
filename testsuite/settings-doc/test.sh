@@ -29,6 +29,16 @@ done
 # Sort the list
 echo "$(sort <impl.txt)" >impl.txt
 
+# Add the following properties in schema, they are obsolete
+add="enableDiagnostics"
+for a in $add; do
+    echo "$a" >>schema.txt
+    echo "$a" >>pkg.txt
+done
+# Sort the lists
+echo "$(sort <schema.txt)" >schema.txt
+echo "$(sort <pkg.txt)" >pkg.txt
+
 # Check that all VS Code settings are documented
 diff -u pkg.txt doc.txt
 

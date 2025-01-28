@@ -30,7 +30,7 @@
                 "method":"workspace/didChangeConfiguration",
                 "params":{
                     "settings":
-                         {"ada": {"enableDiagnostics": false}
+                         {"ada": {"adaFileDiagnostics": false}
                          }
                     }
             },

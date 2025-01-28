@@ -105,7 +105,7 @@
                   "ada": {
                      "defaultCharset": "ISO-8859-1",
                      "documentationStyle": "gnat",
-                     "enableDiagnostics": false,
+                     "adaFileDiagnostics": false,
                      "foldComments": false,
                      "followSymlinks": false,
                      "insertWithClauses": true,

@@ -57,10 +57,13 @@ package body LSP.Ada_Documents.LAL_Diagnostics is
 
    overriding function Has_New_Diagnostic
      (Self    : in out Diagnostic_Source;
-      Context : LSP.Ada_Contexts.Context) return Boolean
-   is
+      Context : LSP.Ada_Contexts.Context) return Boolean is
    begin
-      return Self.Errors /= Self.Get_Diagnostics (Context);
+      if Self.Is_Enabled then
+         return Self.Errors /= Self.Get_Diagnostics (Context);
+      else
+         return False;
+      end if;
    end Has_New_Diagnostic;
 
    --------------------
@@ -78,7 +81,9 @@ package body LSP.Ada_Documents.LAL_Diagnostics is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.Document.Unit (Context);
    begin
-      if Unit.Has_Diagnostics then
+      if Self.Is_Enabled
+        and then Unit.Has_Diagnostics
+      then
          for Error of Unit.Diagnostics loop
 
             --  Filter out diagnostics that simply report "Cannot parse <..>",
@@ -97,5 +102,15 @@ package body LSP.Ada_Documents.LAL_Diagnostics is
          return (Last => 0, List => (1 .. 0 => <>));
       end if;
    end Get_Diagnostics;
+
+   ----------------
+   -- Is_Enabled --
+   ----------------
+
+   overriding function Is_Enabled
+     (Self : Diagnostic_Source) return Boolean is
+   begin
+      return Self.Handler.Ada_File_Diagnostics_Enabled;
+   end Is_Enabled;
 
 end LSP.Ada_Documents.LAL_Diagnostics;

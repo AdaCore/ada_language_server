@@ -223,7 +223,7 @@ class ALSSettings(
     defaultCharset: str | None
     displayMethodAncestryOnNavigation: bool | None
     documentationStyle: Literal["gnat", "leading"] | None
-    enableDiagnostics: bool | None
+    adaFileDiagnostics: bool | None
     enableIndexing: bool | None
     foldComments: bool | None
     followSymlinks: bool | None

@@ -108,7 +108,7 @@
                       "scenarioVariables": {},
                       "defaultCharset": "ISO-8859-1",
                       "enableIndexing": false,
-                      "enableDiagnostics": false
+                      "adaFileDiagnostics": false
                   }
                }
             }

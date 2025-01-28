@@ -84,7 +84,7 @@
                      "projectFile": "$URI{hello.gpr}",
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": true,
+                     "adaFileDiagnostics": true,
                      "followSymlinks": false,
                      "documentationStyle": "gnat",
                      "foldComments": false,

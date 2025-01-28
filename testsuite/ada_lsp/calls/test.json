@@ -105,7 +105,7 @@
                   "ada": {
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": false,
+                     "adaFileDiagnostics": false,
                      "followSymlinks": false
                   }
                }

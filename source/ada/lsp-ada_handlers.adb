@@ -179,6 +179,16 @@ package body LSP.Ada_Handlers is
      (Self : in out Message_Handler; Context : LSP.Ada_Contexts.Context)
       return Libadalang.Analysis.Analysis_Unit_Array;
 
+   ----------------------------------
+   -- Ada_File_Diagnostics_Enabled --
+   ----------------------------------
+
+   function Ada_File_Diagnostics_Enabled
+     (Self : Message_Handler'Class) return Boolean is
+   begin
+      return Self.Configuration.Ada_File_Diagnostics_Enabled;
+   end Ada_File_Diagnostics_Enabled;
+
    -----------------------------
    -- Allocate_Progress_Token --
    -----------------------------
@@ -218,7 +228,9 @@ package body LSP.Ada_Handlers is
    is
       Diag : LSP.Structures.PublishDiagnosticsParams;
    begin
-      if Self.Configuration.Diagnostics_Enabled then
+      if Self.Configuration.Ada_File_Diagnostics_Enabled
+        or else Self.Configuration.Project_Diagnostics_Enabled
+      then
          Diag.uri := Document.URI;
          Self.Sender.On_PublishDiagnostics_Notification (Diag);
       end if;
@@ -2017,7 +2029,7 @@ package body LSP.Ada_Handlers is
       Project_Loading.Ensure_Project_Loaded (Self);
 
       --  We have received a document: add it to the documents container
-      Object.Initialize (URI, Value.textDocument.text);
+      Object.Initialize (Self, URI, Value.textDocument.text);
       Self.Open_Documents.Include (File, Object);
 
       --  Handle the case where we're loading the implicit project: do
@@ -3691,7 +3703,7 @@ package body LSP.Ada_Handlers is
       Changed : Boolean;
       Diag    : LSP.Structures.PublishDiagnosticsParams;
    begin
-      if Self.Configuration.Diagnostics_Enabled then
+      if Self.Configuration.Ada_File_Diagnostics_Enabled then
          Document.Get_Errors
            (Context => Self.Contexts.Get_Best_Context (Document.URI).all,
             Changed => Changed,
@@ -3721,47 +3733,44 @@ package body LSP.Ada_Handlers is
       Target_File : Virtual_File;
    begin
       --  Retrieve all the workspace diagnostics and publish them.
+      Changed :=
+        (for some Source of Self.Workspace_Diagnostic_Sources
+         => Source.Has_New_Diagnostic);
 
-      if Self.Configuration.Diagnostics_Enabled then
-         Changed :=
-           (for some Source of Self.Workspace_Diagnostic_Sources
-            => Source.Has_New_Diagnostic);
+      if Changed or else Force then
+         --  First clear any currently published workspace diagnostics
+         for File of Self.Workspace_Diagnostic_Files loop
+            Self.Sender.On_PublishDiagnostics_Notification
+              (LSP.Structures.PublishDiagnosticsParams'
+                 (uri    =>
+                      (VSS.Strings.Conversions.To_Virtual_String
+                           (URIs.Conversions.From_File (File.Display_Full_Name))
+                       with null record),
+                  others => <>));
+         end loop;
 
-         if Changed or else Force then
-            --  First clear any currently published workspace diagnostics
-            for File of Self.Workspace_Diagnostic_Files loop
-               Self.Sender.On_PublishDiagnostics_Notification
-                 (LSP.Structures.PublishDiagnosticsParams'
-                    (uri    =>
-                       (VSS.Strings.Conversions.To_Virtual_String
-                          (URIs.Conversions.From_File (File.Display_Full_Name))
-                        with null record),
-                     others => <>));
-            end loop;
+         Self.Workspace_Diagnostic_Files.Clear;
 
-            Self.Workspace_Diagnostic_Files.Clear;
+         --  Query all the workspace diagnostic sources, and publish
+         --  diagnostics on their target file, if any
+         for Source of Self.Workspace_Diagnostic_Sources loop
+            Source.Get_Diagnostics
+              (Diagnostics => Diag.diagnostics, Target_File => Target_File);
 
-            --  Query all the workspace diagnostic sources, and publish
-            --  diagnostics on their target file, if any
-            for Source of Self.Workspace_Diagnostic_Sources loop
-               Source.Get_Diagnostics
-                 (Diagnostics => Diag.diagnostics, Target_File => Target_File);
+            --  We have some diagnostics: publish them
+            if not Diag.diagnostics.Is_Empty then
+               Self.Workspace_Diagnostic_Files.Include (Target_File);
 
-               --  We have some diagnostics: publish them
-               if not Diag.diagnostics.Is_Empty then
-                  Self.Workspace_Diagnostic_Files.Include (Target_File);
+               Diag.uri :=
+                 (VSS.Strings.Conversions.To_Virtual_String
+                    (URIs.Conversions.From_File
+                         (Target_File.Display_Full_Name))
+                  with null record);
+               Self.Sender.On_PublishDiagnostics_Notification (Diag);
 
-                  Diag.uri :=
-                    (VSS.Strings.Conversions.To_Virtual_String
-                       (URIs.Conversions.From_File
-                          (Target_File.Display_Full_Name))
-                     with null record);
-                  Self.Sender.On_PublishDiagnostics_Notification (Diag);
-
-                  Diag.diagnostics.Clear;
-               end if;
-            end loop;
-         end if;
+               Diag.diagnostics.Clear;
+            end if;
+         end loop;
       end if;
    end Publish_Diagnostics;
 

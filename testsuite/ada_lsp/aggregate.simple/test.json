@@ -78,7 +78,7 @@
                   "ada": {
                      "projectFile": "agg.gpr",
                      "scenarioVariables": {},
-                     "enableDiagnostics": false,
+                     "adaFileDiagnostics": false,
                      "defaultCharset": "UTF-8"
                   }
                }

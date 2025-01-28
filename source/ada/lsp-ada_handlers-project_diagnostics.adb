@@ -35,32 +35,28 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
       Target_File   : out GNATCOLL.VFS.Virtual_File)
    is
       use GNATCOLL.VFS;
+      Project_File : constant Virtual_File :=
+        Self.Handler.Project_Status.Get_Project_File;
+      Root_Dir     : constant Virtual_File :=
+        Self.Handler.Client.Root_Directory;
    begin
-      if Self.Handler.Configuration.Project_Diagnostics_Enabled then
-         declare
-            Project_File : constant Virtual_File :=
-              Self.Handler.Project_Status.Get_Project_File;
-            Root_Dir     : constant Virtual_File :=
-              Self.Handler.Client.Root_Directory;
-         begin
-            --  Set the target file according to the source's initial target
-            --  (root directory or project file itself)
-            Target_File :=
-              (if Project_File.Is_Regular_File then Project_File
-               else Root_Dir);
+      if Self.Is_Enabled then
+         --  Set the target file according to the source's initial target
+         --  (root directory or project file itself)
+         Target_File :=
+           (if Project_File.Is_Regular_File then Project_File
+            else Root_Dir);
 
-            Self.Last_Status := Self.Handler.Project_Status;
+         Self.Last_Status := Self.Handler.Project_Status;
 
-            Tracer.Trace ("Project loading status: " & Self.Last_Status'Image);
+         Tracer.Trace ("Project loading status: " & Self.Last_Status'Image);
 
-            --  If we have a valid project return immediately: we want to display
-            --  diagnostics only if there is an issue to solve or a potential
-            --  enhancement.
+         --  If we have a valid project return immediately: we want to display
+         --  diagnostics only if there is an issue to solve or a potential
+         --  enhancement.
 
-            Diagnostics.Append_Vector
-              (LSP.Ada_Project_Loading.Get_Diagnostics (Self.Last_Status));
-         end;
-
+         Diagnostics.Append_Vector
+           (LSP.Ada_Project_Loading.Get_Diagnostics (Self.Last_Status));
       end if;
    end Get_Diagnostics;
 
@@ -72,7 +68,7 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
      (Self    : in out Diagnostic_Source)
       return Boolean is
    begin
-      if Self.Handler.Configuration.Project_Diagnostics_Enabled then
+      if Self.Is_Enabled then
          return LSP.Ada_Project_Loading.Has_New_Diagnostics
            (Self.Last_Status,
             Self.Handler.Project_Status);
@@ -80,5 +76,16 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
          return False;
       end if;
    end Has_New_Diagnostic;
+
+   ----------------
+   -- Is_Enabled --
+   ----------------
+
+   overriding function Is_Enabled
+     (Self : in out Diagnostic_Source)
+      return Boolean is
+   begin
+      return Self.Handler.Configuration.Project_Diagnostics_Enabled;
+   end Is_Enabled;
 
 end LSP.Ada_Handlers.Project_Diagnostics;
