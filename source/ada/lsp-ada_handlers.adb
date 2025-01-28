@@ -271,6 +271,53 @@ package body LSP.Ada_Handlers is
       end if;
    end Contexts_For_File;
 
+   ---------------------------
+   -- Contexts_For_Position --
+   ---------------------------
+
+   overriding function Contexts_For_Position
+     (Self : in out Message_Handler;
+      Pos  : LSP.Structures.TextDocumentPositionParams'Class)
+      return LSP.Ada_Context_Sets.Context_Lists.List
+   is
+      Best_Context : constant LSP.Ada_Context_Sets.Context_Access :=
+        Self.Get_Best_Context (Pos.textDocument.uri);
+      --  Find a context which can resolved the node at Pos
+
+      Name_Node : constant Libadalang.Analysis.Name :=
+        Laltools.Common.Get_Node_As_Name
+          (Self.Get_Node_At (Best_Context.all, Pos));
+      --  Find the node
+
+      Def_Name : Libadalang.Analysis.Defining_Name;
+      Decl     : Libadalang.Analysis.Basic_Decl;
+      --  Resolve the node to find the file defining it
+
+      File : GNATCOLL.VFS.Virtual_File := Self.To_File (Pos.textDocument.uri);
+      --  In the worst scenario use initial file to filter the contexts
+
+      Ignored : Boolean;
+   begin
+
+      if not Name_Node.Is_Null then
+         Def_Name := Resolve_Name
+           (Self      => Self,
+            Id        => (False, "Getting context for Position"),
+            Context   => Best_Context.all,
+            Name_Node => Name_Node,
+            Imprecise => Ignored);
+
+         if not Def_Name.Is_Null then
+            --  The decl can be found, use the file where it was defined
+            --  to filter the contexts.
+            Decl := Def_Name.P_Basic_Decl;
+            File := GNATCOLL.VFS.Create_From_UTF8 (Decl.Unit.Get_Filename);
+         end if;
+      end if;
+
+      return Self.Contexts_For_File (File);
+   end Contexts_For_Position;
+
    ----------
    -- Free --
    ----------
@@ -2399,7 +2446,7 @@ package body LSP.Ada_Handlers is
 
    begin
       --  Find the references in all contexts
-      for C of Self.Contexts_For_URI (Item.uri) loop
+      for C of Self.Contexts_For_Position (Position) loop
          Process_Context (C.all);
 
          exit when Self.Is_Canceled.all;
@@ -2827,7 +2874,7 @@ package body LSP.Ada_Handlers is
 
    begin
       --  Find the references in all contexts
-      for C of Self.Contexts_For_URI (Item.uri) loop
+      for C of Self.Contexts_For_Position (Position) loop
          Process_Context (C.all);
 
          exit when Self.Is_Canceled.all;
@@ -3036,7 +3083,7 @@ package body LSP.Ada_Handlers is
       Errors : LAL_Refactor.Refactoring_Diagnostic_Vector;
 
    begin
-      for C of Self.Contexts_For_URI (Value.textDocument.uri) loop
+      for C of Self.Contexts_For_Position (Position) loop
          declare
             Name_Node : constant Libadalang.Analysis.Name :=
               Laltools.Common.Get_Node_As_Name

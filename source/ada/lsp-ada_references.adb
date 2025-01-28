@@ -17,8 +17,6 @@
 
 with Ada.Unchecked_Deallocation;
 
-with GNATCOLL.VFS;
-
 with Libadalang.Analysis;
 with Libadalang.Common;
 
@@ -87,11 +85,8 @@ package body LSP.Ada_References is
       return LSP.Server_Jobs.Server_Job_Access
    is
       Value : LSP.Server_Requests.References.Request
-        renames LSP.Server_Requests.References.Request
-          (Message.all);
-
-      File : constant GNATCOLL.VFS.Virtual_File :=
-        Self.Context.To_File (Value.Params.textDocument.uri);
+      renames LSP.Server_Requests.References.Request
+        (Message.all);
 
       Result : constant Ada_References_Job_Access :=
         new Ada_References_Job'
@@ -99,7 +94,8 @@ package body LSP.Ada_References is
            Request => LSP.Ada_Request_Jobs.Request_Access (Message),
            others  => <>);
    begin
-      Result.Contexts := Self.Context.Contexts_For_File (File);
+      Result.Contexts :=
+        Self.Context.Contexts_For_Position (Value.Params);
 
       return LSP.Server_Jobs.Server_Job_Access (Result);
    end Create_Job;
