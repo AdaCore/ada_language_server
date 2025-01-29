@@ -25,6 +25,7 @@ with Ada.Exceptions;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with GPR2.Build.Source.Sets;
 with GPR2.Project.Tree;
 
 with Libadalang.Analysis;
@@ -95,11 +96,6 @@ package LSP.Ada_Handlers is
    --  1. $XDG_CONFIG_HOME/als/config.json, if it exists
    --  2. .als.json in the current directory, if it exists
    --  3. The given CLI_Config_File, if it exists
-
-   overriding function Contexts_For_File
-     (Self : Message_Handler;
-      File : GNATCOLL.VFS.Virtual_File)
-      return LSP.Ada_Context_Sets.Context_Lists.List;
 
    function Is_Shutdown (Self : Message_Handler'Class) return Boolean;
    --  Return True when shutdown has been requested.
@@ -423,6 +419,16 @@ private
            (VSS.Strings.Conversions.To_UTF_8_String (URI),
             Normalize => Self.Configuration.Follow_Symlinks)));
 
+   overriding function Contexts_For_File
+     (Self : Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File)
+      return LSP.Ada_Context_Sets.Context_Lists.List;
+
+   overriding function Contexts_For_Position
+     (Self : in out Message_Handler;
+      Pos  : LSP.Structures.TextDocumentPositionParams'Class)
+      return LSP.Ada_Context_Sets.Context_Lists.List;
+
    function To_URI
      (Ignore : Message_Handler'Class;
       File   : String) return LSP.Structures.DocumentUri
@@ -488,13 +494,19 @@ private
       and then Self.Project_Tree.Root_Project.Is_Defined
       and then Self.Project_Tree.Root_Project.Kind in GPR2.Aggregate_Kind);
 
+   overriding function Get_Runtime_Sources (Self : Message_Handler)
+     return GPR2.Build.Source.Sets.Object is
+     (if Self.Project_Tree_Is_Defined
+      then Self.Project_Tree.Runtime_Project.Sources
+      else GPR2.Build.Source.Sets.Empty_Set);
+
    overriding procedure Reload_Project (Self : in out Message_Handler);
 
    overriding function Get_Best_Context
      (Self : Message_Handler;
       URI  : LSP.Structures.DocumentUri)
       return LSP.Ada_Context_Sets.Context_Access is
-        (Self.Contexts.Get_Best_Context (URI));
+     (Self.Contexts.Get_Best_Context (URI));
 
    overriding function Get_Node_At
      (Self     : in out Message_Handler;

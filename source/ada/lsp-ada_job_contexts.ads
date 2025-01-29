@@ -27,6 +27,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 with Laltools.Common;
+with GPR2.Build.Source.Sets;
 
 with LSP.Enumerations;
 with VSS.String_Vectors;
@@ -88,6 +89,9 @@ package LSP.Ada_Job_Contexts is
    function Project_Tree_Is_Aggregate
      (Self : Ada_Job_Context) return Boolean is abstract;
 
+   function Get_Runtime_Sources
+     (Self : Ada_Job_Context) return GPR2.Build.Source.Sets.Object is abstract;
+
    procedure Reload_Project (Self : in out Ada_Job_Context) is abstract;
 
    function Get_Open_Document
@@ -110,11 +114,20 @@ package LSP.Ada_Job_Contexts is
      (Self : Ada_Job_Context;
       File : GNATCOLL.VFS.Virtual_File)
       return LSP.Ada_Context_Sets.Context_Lists.List is abstract;
+   --  Return the list of contexts containing File as a source
 
    function Get_Best_Context
      (Self : Ada_Job_Context;
       URI  : LSP.Structures.DocumentUri)
       return LSP.Ada_Context_Sets.Context_Access is abstract;
+   --  Return the first context containing URI as a source or the first
+   --  context is the list if no such context exist
+
+   function Contexts_For_Position
+     (Self : in out Ada_Job_Context;
+      Pos  : LSP.Structures.TextDocumentPositionParams'Class)
+      return LSP.Ada_Context_Sets.Context_Lists.List is abstract;
+   --  Return all the contexts recognizing and sharing the symbol at Pos
 
    function Get_Node_At
      (Self     : in out Ada_Job_Context;

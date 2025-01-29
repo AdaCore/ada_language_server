@@ -33,6 +33,7 @@ with Laltools.Common;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
+with Libadalang.Project_Provider;
 
 with Utils.Command_Lines;
 with Pp.Command_Lines;
@@ -66,10 +67,10 @@ package LSP.Ada_Contexts is
    --  in particular.
 
    procedure Load_Project
-     (Self    : in out Context;
-      Tree    : GPR2.Project.Tree.Object;
-      Root    : GPR2.Project.View.Object;
-      Charset : String);
+     (Self     : in out Context;
+      Provider : Libadalang.Project_Provider.GPR2_Provider_And_Projects;
+      Tree     : GPR2.Project.Tree.Object;
+      Charset  : String);
    --  Use the given project tree, and root project within this project
    --  tree, as project for this context. Root must be a non-aggregate
    --  project tree representing the root of a hierarchy inside Tree.
@@ -232,6 +233,13 @@ package LSP.Ada_Contexts is
    --  If PLE is True, Populate_Lexical_Env is called at the end, which will
    --  increase the speed of semantic requests.
 
+   procedure Add_Invisible_Symbols
+     (Self : in out Context;
+      File : GNATCOLL.VFS.Virtual_File;
+      Unit : Libadalang.Analysis.Analysis_Unit);
+   --  Add invisible symbols present in Unit to the given context's cache,
+   --  even if Unit is not known by this context.
+
    procedure Include_File
      (Self : in out Context; File : GNATCOLL.VFS.Virtual_File);
    --  Includes File in Self's source files
@@ -342,7 +350,7 @@ private
       --  Indicate that this is a "fallback" context, ie the context
       --  holding any file, in the case no valid project was loaded.
 
-      Tree           : GPR2.Project.Tree.Object;
+      Tree           : GPR2.Project.Tree.Object := GPR2.Project.Tree.Undefined;
       --  The loaded project tree: we need to keep a reference to this
       --  in order to figure out which files are Ada and which are not.
 

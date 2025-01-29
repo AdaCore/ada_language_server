@@ -34,7 +34,6 @@ with GPR2.Build.Source.Sets;
 with VSS.Strings.Conversions;
 
 with Libadalang.Common;           use Libadalang.Common;
-with Libadalang.Project_Provider;
 with Langkit_Support.Slocs;
 
 with Utils.Command_Lines.Common;
@@ -48,7 +47,8 @@ with LSP.Ada_Projects;
 
 package body LSP.Ada_Contexts is
 
-   Indexing_Trace   : constant Trace_Handle := Create ("ALS.INDEXING", Off);
+   Indexing_Debug_Trace : constant Trace_Handle :=
+     Create ("ALS.INDEXING.DEBUG", Off);
 
    use type Libadalang.Analysis.Analysis_Unit;
 
@@ -575,10 +575,10 @@ package body LSP.Ada_Contexts is
    ------------------
 
    procedure Load_Project
-     (Self    : in out Context;
-      Tree    : GPR2.Project.Tree.Object;
-      Root    : GPR2.Project.View.Object;
-      Charset : String)
+     (Self     : in out Context;
+      Provider : Libadalang.Project_Provider.GPR2_Provider_And_Projects;
+      Tree     : GPR2.Project.Tree.Object;
+      Charset  : String)
    is
       procedure Update_Source_Files;
       --  Update the value of Self.Source_Files
@@ -677,12 +677,14 @@ package body LSP.Ada_Contexts is
 
       begin
          Self.Source_Files.Clear;
-
-         Process_Closure (Root, Add_Sources_From_View'Access);
-
          Self.Source_Dirs.Clear;
 
-         Process_Closure (Root, Add_Dirs_From_View'Access);
+         --  Iterate on all the projects coexisting inside the Provider
+         --  By design there is no source collision so merge them.
+         for Project of Provider.Projects loop
+            Process_Closure (Project, Add_Sources_From_View'Access);
+            Process_Closure (Project, Add_Dirs_From_View'Access);
+         end loop;
 
          Self.Extension_Set.Clear;
 
@@ -725,7 +727,7 @@ package body LSP.Ada_Contexts is
 
          --  Initialize an gnatpp command line object
 
-         if Root.Check_Attribute
+         if Provider.Projects.First_Element.Check_Attribute
            (Name   => LSP.Ada_Projects.Pretty_Printer.Switches,
             Index  => LSP.Ada_Projects.Pretty_Printer.Ada_Index,
             Result => Attribute)
@@ -776,13 +778,11 @@ package body LSP.Ada_Contexts is
       --  sharing the same name. For example for GNATTest stubs.
       Self.Id := VSS.Strings.Conversions.To_Virtual_String
         (URIs.Conversions.From_File
-           (String (Root.Path_Name.Value)));
+           (String (Provider.Projects.First_Element.Path_Name.Value)));
       Self.Tree := Tree;
       Self.Charset := Ada.Strings.Unbounded.To_Unbounded_String (Charset);
 
-      Self.Unit_Provider :=
-        Libadalang.Project_Provider.Create_Project_Unit_Provider
-          (Tree => Tree, Project => Root);
+      Self.Unit_Provider := Provider.Provider;
 
       Self.Event_Handler := Libadalang.Analysis.Create_Event_Handler_Reference
         (LSP_Context_Event_Handler_Type'(Tracer => Self.Tracer));
@@ -791,7 +791,11 @@ package body LSP.Ada_Contexts is
       Update_Source_Files;
 
       Pretty_Printer_Setup;
-      Self.Format_Options := Gnatformat.Configuration.From_Project (Root);
+      --  Choose the first project in case of aggregate context, assuming
+      --  they all share the gnatformat options.
+      Self.Format_Options :=
+        Gnatformat.Configuration.From_Project
+          (Provider.Projects.First_Element);
    end Load_Project;
 
    ------------
@@ -846,7 +850,7 @@ package body LSP.Ada_Contexts is
       --  Add a trace before the call to Get_AU, so we can see in the traces
       --  the memory being consumed by Get_AU + Indexing for this file.
       Trace
-        (Indexing_Trace,
+        (Indexing_Debug_Trace,
          "Indexing " & (if PLE then "(PLE) " else "") &
            File.Display_Full_Name);
 
@@ -856,7 +860,7 @@ package body LSP.Ada_Contexts is
          Unit := Self.Get_AU (File, Reparse => Reparse);
 
          if Unit = Libadalang.Analysis.No_Analysis_Unit then
-            Trace (Indexing_Trace, "No AU found: not indexing");
+            Trace (Indexing_Debug_Trace, "No AU found: not indexing");
             return;
          end if;
 
@@ -867,11 +871,23 @@ package body LSP.Ada_Contexts is
          end if;
 
          Trace
-           (Indexing_Trace,
+           (Indexing_Debug_Trace,
             "Done indexing." & Integer'Image (Unit.Diagnostics'Length) &
               " diagnostic(s) found.");
       end;
    end Index_File;
+
+   ---------------------------
+   -- Add_Invisible_Symbols --
+   ---------------------------
+
+   procedure Add_Invisible_Symbols
+     (Self : in out Context;
+      File : GNATCOLL.VFS.Virtual_File;
+      Unit : Libadalang.Analysis.Analysis_Unit) is
+   begin
+      Self.Source_Files.Index_File (File, Unit);
+   end Add_Invisible_Symbols;
 
    ------------------
    -- Include_File --
@@ -970,14 +986,17 @@ package body LSP.Ada_Contexts is
    begin
       Is_Known := False;
 
-      if View.Check_Attribute
+      if View.Is_Defined then
+
+         if View.Check_Attribute
            (Name   => Attribute,
             Index  => Attribute_Index,
             Result => Attribute_Value)
-      then
-         Is_List_Attribute := (Attribute_Value.Kind = List);
-         Is_Known := True;
-         return Convert (Attribute_Value.Values);
+         then
+            Is_List_Attribute := (Attribute_Value.Kind = List);
+            Is_Known := True;
+            return Convert (Attribute_Value.Values);
+         end if;
       end if;
 
       return [];

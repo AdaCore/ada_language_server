@@ -15,6 +15,11 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GPR2;
+
+with Libadalang;
+with Libadalang.Analysis;
+with LSP.Ada_Contexts;
 with LSP.Servers;
 
 with VSS.Strings.Formatters.Integers;
@@ -111,6 +116,36 @@ package body LSP.Ada_Indexing is
 
          Client.On_ProgressEnd_Work_Done
            (Self.Indexing_Token, (message => <>));
+
+         if Self.Handler.Project_Tree_Is_Aggregate then
+            --  Add runtime to the invisible symbols for aggregate project
+            declare
+               use GPR2;
+               use Libadalang.Analysis;
+               --  We want to avoid creating an Analysis_Unit in each context
+               --  so create a new context and create once an Analysis_Unit for
+               --  each predefined file before parsing it and filling the
+               --  invisible symbols for all the contexts
+               Temp_Context : constant Analysis_Context'Class :=
+                 Create_Context;
+            begin
+               for Source of Self.Handler.Get_Runtime_Sources loop
+                  if Source.Language = GPR2.Ada_Language then
+                     declare
+                        File : constant GNATCOLL.VFS.Virtual_File :=
+                          Source.Path_Name.Virtual_File;
+                        Unit : constant Analysis_Unit :=
+                          Temp_Context.Get_From_File (File.Display_Full_Name);
+                     begin
+                        for Context of Self.Handler.Contexts_For_File (File)
+                        loop
+                           Context.Add_Invisible_Symbols (File, Unit);
+                        end loop;
+                     end;
+                  end if;
+               end loop;
+            end;
+         end if;
       end if;
 
       Status :=

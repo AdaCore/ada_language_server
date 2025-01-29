@@ -173,6 +173,7 @@ package body LSP.Ada_Handlers.Renaming is
          elsif Versioned_Documents then
 
             Result.documentChanges.Append (Item);
+            --  Here we should avoid/remove duplicates
 
          else
 
@@ -183,7 +184,12 @@ package body LSP.Ada_Handlers.Renaming is
             end if;
 
             for X of Item.Variant_1.edits loop
-               Result.changes (URI).Append (X.TextEdit);
+               --  Search if this exact textEdit was already added by
+               --  another context
+               if not Result.changes (URI).Find (X.TextEdit).Has_Element
+               then
+                  Result.changes (URI).Append (X.TextEdit);
+               end if;
             end loop;
          end if;
       end Append;
