@@ -178,16 +178,6 @@ package body LSP.Ada_Handlers is
      (Self : in out Message_Handler; Context : LSP.Ada_Contexts.Context)
       return Libadalang.Analysis.Analysis_Unit_Array;
 
-   procedure Get_Workspace_Diagnostics
-     (Self    : in out Message_Handler'Class;
-      Changed : out Boolean;
-      Errors  : out LSP.Structures.Diagnostic_Vector;
-      Force   : Boolean := False);
-   --  Get all the worskpace-specific diagnostics, using the handler's workspace
-   --  diagnostics' sources.
-   --  When Force is True, any existing diagnostic will be retrieved, no matter
-   --  if they have changed or not since the last query.
-
    -----------------------------
    -- Allocate_Progress_Token --
    -----------------------------
@@ -391,27 +381,6 @@ package body LSP.Ada_Handlers is
       end if;
    end Get_Open_Document_Version;
 
-   -------------------------------
-   -- Get_Workspace_Diagnostics --
-   -------------------------------
-
-   procedure Get_Workspace_Diagnostics
-     (Self    : in out Message_Handler'Class;
-      Changed : out Boolean;
-      Errors  : out LSP.Structures.Diagnostic_Vector;
-      Force   : Boolean := False) is
-   begin
-      Errors.Clear;
-      Changed := (for some Source of Self.Diagnostic_Sources =>
-                    Source.Has_New_Diagnostic);
-
-      if Changed or else Force then
-         for Source of Self.Diagnostic_Sources loop
-            Source.Get_Diagnostics (Errors);
-         end loop;
-      end if;
-   end Get_Workspace_Diagnostics;
-
    ----------------------------
    -- Imprecise_Resolve_Name --
    ----------------------------
@@ -454,13 +423,12 @@ package body LSP.Ada_Handlers is
      (Self                     : in out Message_Handler;
       Incremental_Text_Changes : Boolean;
       CLI_Config_File          : GNATCOLL.VFS.Virtual_File :=
-        GNATCOLL.VFS.No_File)
-   is
+        GNATCOLL.VFS.No_File) is
    begin
       Self.Incremental_Text_Changes := Incremental_Text_Changes;
       Self.File_Monitor :=
         new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
-      Self.Diagnostic_Sources :=
+      Self.Workspace_Diagnostic_Sources :=
         [new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
            (Self'Unchecked_Access)];
 
@@ -3739,32 +3707,55 @@ package body LSP.Ada_Handlers is
    -------------------------
 
    procedure Publish_Diagnostics
-     (Self              : in out Message_Handler;
-      Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
-        LSP.Structures.Empty;
-      Force             : Boolean := False)
+     (Self : in out Message_Handler; Force : Boolean := False)
    is
-      Diag    : LSP.Structures.PublishDiagnosticsParams;
-      Changed : Boolean;
+      use GNATCOLL.VFS;
 
+      Diag        : LSP.Structures.PublishDiagnosticsParams;
+      Changed     : Boolean;
+      Target_File : Virtual_File;
    begin
       --  Retrieve all the workspace diagnostics and publish them.
 
       if Self.Configuration.Diagnostics_Enabled then
-         Diag.diagnostics.Append_Vector (Other_Diagnostics);
+         Changed :=
+           (for some Source of Self.Workspace_Diagnostic_Sources
+            => Source.Has_New_Diagnostic);
 
-         Self.Get_Workspace_Diagnostics
-           (Changed => Changed,
-            Errors  => Diag.diagnostics,
-            Force   => Force);
+         if Changed or else Force then
+            --  First clear any currently published workspace diagnostics
+            for File of Self.Workspace_Diagnostic_Files loop
+               Self.Sender.On_PublishDiagnostics_Notification
+                 (LSP.Structures.PublishDiagnosticsParams'
+                    (uri    =>
+                       (VSS.Strings.Conversions.To_Virtual_String
+                          (URIs.Conversions.From_File (File.Display_Full_Name))
+                        with null record),
+                     others => <>));
+            end loop;
 
-         if Changed or else not Other_Diagnostics.Is_Empty then
-            Diag.uri :=
-              (VSS.Strings.Conversions.To_Virtual_String
-                 (URIs.Conversions.From_File
-                    (Self.Client.Root_Directory.Display_Full_Name))
-               with null record);
-            Self.Sender.On_PublishDiagnostics_Notification (Diag);
+            Self.Workspace_Diagnostic_Files.Clear;
+
+            --  Query all the workspace diagnostic sources, and publish
+            --  diagnostics on their target file, if any
+            for Source of Self.Workspace_Diagnostic_Sources loop
+               Source.Get_Diagnostics
+                 (Diagnostics => Diag.diagnostics, Target_File => Target_File);
+
+               --  We have some diagnostics: publish them
+               if not Diag.diagnostics.Is_Empty then
+                  Self.Workspace_Diagnostic_Files.Include (Target_File);
+
+                  Diag.uri :=
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (URIs.Conversions.From_File
+                          (Target_File.Display_Full_Name))
+                     with null record);
+                  Self.Sender.On_PublishDiagnostics_Notification (Diag);
+
+                  Diag.diagnostics.Clear;
+               end if;
+            end loop;
          end if;
       end if;
    end Publish_Diagnostics;

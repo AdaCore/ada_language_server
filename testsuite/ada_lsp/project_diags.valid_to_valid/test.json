@@ -1,8 +1,6 @@
 [
    {
-      "comment": [
-         "Load a valid project and then load another valid project."
-      ]
+      "comment": ["Load a valid project and then load another valid project."]
    },
    {
       "start": {
@@ -48,13 +46,13 @@
             }
          },
          "wait": [
-           {
+            {
                "jsonrpc": "2.0",
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{}",
+                  "uri": "$URI{test.gpr}",
                   "diagnostics": [
-                       {
+                     {
                         "range": {
                            "start": { "line": 0, "character": 0 },
                            "end": { "line": 0, "character": 0 }
@@ -70,24 +68,24 @@
       }
    },
    {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": 2,
-                "method":"workspace/executeCommand",
-                "params":{
-                    "command": "als-project-file",
-                    "arguments": [{}]
-                }
-            },
-            "wait":[
-                {
-                    "jsonrpc": "2.0",
-                    "id": 2,
-                    "result": "$URI{test.gpr}"
-                }
-            ]
-        }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-project-file",
+               "arguments": [{}]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 2,
+               "result": "$URI{test.gpr}"
+            }
+         ]
+      }
    },
    {
       "send": {
@@ -106,7 +104,7 @@
             {
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{}",
+                  "uri": "$URI{test.gpr}",
                   "diagnostics": []
                }
             }
@@ -114,24 +112,24 @@
       }
    },
    {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": 3,
-                "method":"workspace/executeCommand",
-                "params":{
-                    "command": "als-project-file",
-                    "arguments": [{}]
-                }
-            },
-            "wait":[
-                {
-                    "jsonrpc": "2.0",
-                    "id": 3,
-                    "result": "$URI{test.gpr}"
-                }
-            ]
-        }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-project-file",
+               "arguments": [{}]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 3,
+               "result": "$URI{test.gpr}"
+            }
+         ]
+      }
    },
    {
       "send": {
@@ -146,37 +144,28 @@
                }
             }
          },
-         "wait": [
-           {
-               "jsonrpc": "2.0",
-               "method": "textDocument/publishDiagnostics",
-               "params": {
-                  "uri": "$URI{}",
-                  "diagnostics": []
-               }
-            }
-         ]
+         "wait": []
       }
    },
    {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": 4,
-                "method":"workspace/executeCommand",
-                "params":{
-                    "command": "als-project-file",
-                    "arguments": [{}]
-                }
-            },
-            "wait":[
-                {
-                    "jsonrpc": "2.0",
-                    "id": 4,
-                    "result": "$URI{not_visible_project/valid.gpr}"
-                }
-            ]
-        }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-project-file",
+               "arguments": [{}]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 4,
+               "result": "$URI{not_visible_project/valid.gpr}"
+            }
+         ]
+      }
    },
    {
       "stop": {

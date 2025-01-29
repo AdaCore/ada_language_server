@@ -65,13 +65,13 @@
             }
          },
          "wait": [
-           {
+            {
                "jsonrpc": "2.0",
                "method": "textDocument/publishDiagnostics",
                "params": {
                   "uri": "$URI{}",
                   "diagnostics": [
-                       {
+                     {
                         "range": {
                            "start": { "line": 0, "character": 0 },
                            "end": { "line": 0, "character": 0 }
@@ -87,24 +87,24 @@
       }
    },
    {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": 2,
-                "method":"workspace/executeCommand",
-                "params":{
-                    "command": "als-project-file",
-                    "arguments": [{}]
-                }
-            },
-            "wait":[
-                {
-                    "jsonrpc": "2.0",
-                    "id": 2,
-                    "result": ""
-                }
-            ]
-        }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-project-file",
+               "arguments": [{}]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 2,
+               "result": ""
+            }
+         ]
+      }
    },
    {
       "send": {
@@ -120,13 +120,13 @@
             }
          },
          "wait": [
-           {
+            {
                "jsonrpc": "2.0",
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{}",
+                  "uri": "$URI{not_visible_project/project_with_errors.gpr}",
                   "diagnostics": [
-                       {
+                     {
                         "range": {
                            "start": { "line": 0, "character": 0 },
                            "end": { "line": 0, "character": 0 }
@@ -160,24 +160,24 @@
       }
    },
    {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": 3,
-                "method":"workspace/executeCommand",
-                "params":{
-                    "command": "als-project-file",
-                    "arguments": [{}]
-                }
-            },
-            "wait":[
-                {
-                    "jsonrpc": "2.0",
-                    "id": 3,
-                    "result": "$URI{not_visible_project/project_with_errors.gpr}"
-                }
-            ]
-        }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-project-file",
+               "arguments": [{}]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 3,
+               "result": "$URI{not_visible_project/project_with_errors.gpr}"
+            }
+         ]
+      }
    },
    {
       "stop": {
