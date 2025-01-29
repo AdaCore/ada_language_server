@@ -247,8 +247,12 @@ package body LSP.Ada_Handlers is
       --  Check if the given file belongs to the runtime.
 
       function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
-        (Is_Runtime_File or else Self.Is_Part_Of_Project (File));
+        ((Is_Runtime_File and then not Self.Is_Fallback_Context)
+         or else Self.Is_Part_Of_Project (File));
       --  Return True if File is a source of the project held by Context
+      --  Avoid considering runtime files as sources for the fallback context,
+      --  if there is no context available for this file then we will still
+      --  use the fallback later.
 
       Contexts : constant LSP.Ada_Context_Sets.Context_Lists.List :=
         (Self.Contexts.Each_Context (Is_A_Source'Unrestricted_Access));
