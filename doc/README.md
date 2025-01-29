@@ -18,13 +18,13 @@ You can also use custom commands to perform queries on the code base, to develop
 
 Here are some implementations of custom features in the ALS implemented through this mechanism:
 
-* [Show Dependencies](../source/ada/lsp-ada_handlers-show_dependencies_commands.ads)
-* [Other File](../source/ada/lsp-ada_handlers-other_file_commands.ads)
+* [Show Dependencies](https://github.com/AdaCore/ada_language_server/blob/master/source/ada/lsp-ada_handlers-show_dependencies_commands.ads)
+* [Other File](https://github.com/AdaCore/ada_language_server/blob/master/source/ada/lsp-ada_handlers-other_file_commands.ads)
 
 ## Feature description document
 
 Each feature is described in a dedicated Markdown document.
-There is [a list of all features](.#list-of-features) at the end of this document.
+There is [a list of all features](#list-of-custom-features) at the end of this document.
 We provide a [template](./TEMPLATE.md) for convenience.
 The feature description document has the following structure:
 
@@ -62,3 +62,32 @@ related resources.
  * [Check Syntax](check_syntax.md)
  * [Executables](executables.md)
  * [Call Hierarchy](callhierarchy.md)
+ * [Document symbol params](document_symbol_params.md)
+ * [Get project attribute value](get_project_attribute_value.md)
+ * [Initialization](initialization.md)
+ * [Object dir](object_dir.md)
+ * [Project file](project_file.md)
+ * [Source dirs](source_dirs.md)
+ * [Workspace symbol params](workspace_symbol_params.md)
+
+```{toctree}
+:maxdepth: 1
+:caption: "List of custom features:"
+:hidden:
+
+debug
+other_file
+reference_kinds
+show_dependencies
+check_syntax
+executables
+callhierarchy
+document_symbol_params
+get_project_attribute_value
+initialization
+object_dir
+project_file
+source_dirs
+workspace_symbol_params
+TEMPLATE
+```

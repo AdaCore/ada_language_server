@@ -20,7 +20,7 @@ We introduce two commands, the first one:
 
 Which provides the mains for the project, with a response type:
 
-```typesript
+```typescript
 type GlsMainResult = string[];
 ```
 
@@ -30,6 +30,6 @@ The second one is:
 
 Which provides the executables for the project, with a response type:
 
-```typesript
+```typescript
 type GlsExecutableResult = string[];
 ```
