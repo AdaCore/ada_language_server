@@ -1,16 +1,7 @@
 import assert from 'assert';
-import { existsSync } from 'fs';
-import path from 'path';
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
-import {
-    AdaMain,
-    exe,
-    getAdaMains,
-    getEvaluatedTerminalEnv,
-    getProjectFile,
-    getProjectFileRelPath,
-} from './helpers';
+import { AdaMain, getAdaMains, getProjectFile, getProjectFileRelPath } from './helpers';
 import { BUILD_PROJECT_TASK_NAME, getBuildTaskName } from './taskProviders';
 
 export const ADA_DEBUG_BACKEND_TYPE = 'cppdbg';
@@ -40,8 +31,9 @@ export const adaDynamicDebugConfigProvider = {
         _folder?: vscode.WorkspaceFolder,
     ): Promise<AdaConfig[]> {
         const mains = await getAdaMains();
+        const target = await adaExtState.getTargetPrefix();
         const configs: AdaConfig[] = mains.flatMap((m) => {
-            return [initializeConfig(m), createAttachConfig(m)];
+            return [initializeConfig(m, target), createAttachConfig(m, target)];
         });
         if (configs.length == 0) {
             /**
@@ -112,55 +104,6 @@ export function initializeDebugging(ctx: vscode.ExtensionContext): {
     return { providerInitial: providerInitial, providerDynamic: adaDynamicDebugConfigProvider };
 }
 
-let cachedGdb: string | undefined | null = undefined;
-
-/**
- *
- * @returns the full path to the `gdb` executable, taking into consideration the
- * `PATH` variable in the `terminal.integrated.env.*` setting if set. Otherwise,
- * the `PATH` variable of the current process environment is considered.
- *
- * The current process environment is unlikely to change during the lifetime of
- * the extension, and we already prompt the User to reload the window in case
- * the `terminal.integrated.env.*` variables change. For this reason, we compute
- * the value only on the first call, and cache it for subsequent calls to return
- * it efficiently.
- */
-export function getOrFindGdb(): string | undefined {
-    if (cachedGdb == undefined) {
-        /**
-         * If undefined yet, try to compute it.
-         */
-        const env = getEvaluatedTerminalEnv();
-        let pathVal: string;
-        if (env && 'PATH' in env) {
-            pathVal = env.PATH ?? '';
-        } else if ('PATH' in process.env) {
-            pathVal = process.env.PATH ?? '';
-        } else {
-            pathVal = '';
-        }
-
-        const gdb = pathVal
-            .split(path.delimiter)
-            .map<string>((v) => path.join(v, 'gdb' + exe))
-            .find(existsSync);
-
-        if (gdb) {
-            // Found
-            cachedGdb = gdb;
-            return cachedGdb;
-        } else {
-            // Not found. Assign null to cache to avoid recomputing at every call.
-            cachedGdb = null;
-        }
-    }
-
-    // When returning, coerce null to undefined because the distinction doesn't
-    // matter on the caller side.
-    return cachedGdb ?? undefined;
-}
-
 /**
  * Initialize a debug configuration based on 'cppdbg' for the given executable
  * if specified. Otherwise the program field includes
@@ -175,7 +118,7 @@ export function getOrFindGdb(): string | undefined {
  * 'program' parameter.
  * @returns an AdaConfig
  */
-export function initializeConfig(main: AdaMain, name?: string): AdaConfig {
+export function initializeConfig(main: AdaMain, target: string, name?: string): AdaConfig {
     // TODO it would be nice if this and the package.json configuration snippet
     // were the same.
     const config: AdaConfig = {
@@ -192,7 +135,7 @@ export function initializeConfig(main: AdaMain, name?: string): AdaConfig {
         MIMode: 'gdb',
         preLaunchTask: main ? getBuildTaskName(main) : BUILD_PROJECT_TASK_NAME,
         setupCommands: setupCmd,
-        miDebuggerPath: getOrFindGdb(),
+        miDebuggerPath: adaExtState.getOrFindGdb(target),
     };
 
     return config;
@@ -283,9 +226,9 @@ export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationP
             return debugConfiguration;
         } else {
             const main = await getOrAskForProgram();
-
+            const target = await adaExtState.getTargetPrefix();
             if (main) {
-                return initializeConfig(main);
+                return initializeConfig(main, target);
             }
         }
 
@@ -449,7 +392,7 @@ async function getAdaMainForSourceFile(
     return mains.find((val) => srcPath == val.mainFullPath);
 }
 
-function createAttachConfig(adaMain: AdaMain): AdaConfig {
+function createAttachConfig(adaMain: AdaMain, target: string): AdaConfig {
     return {
         name: `Ada: Attach debugger to running process - ${adaMain.mainRelPath()}`,
         type: ADA_DEBUG_BACKEND_TYPE,
@@ -463,7 +406,7 @@ function createAttachConfig(adaMain: AdaMain): AdaConfig {
          * to trigger an unwanted rebuild, so we don't set a preLaunchTask.
          */
         // preLaunchTask: adaMain ? getBuildTaskName(adaMain) : BUILD_PROJECT_TASK_NAME,
-        miDebuggerPath: getOrFindGdb(),
+        miDebuggerPath: adaExtState.getOrFindGdb(target),
         setupCommands: setupCmd,
     };
 }

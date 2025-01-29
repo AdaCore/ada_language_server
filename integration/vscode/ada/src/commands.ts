@@ -593,6 +593,7 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
 
     const wsFolder = vscode.workspace.getWorkspaceFolder(main);
     const adaMain = await findAdaMain(main.fsPath);
+    const target = await adaExtState.getTargetPrefix();
     if (adaMain) {
         /**
          * The vscode API doesn't provide a way to list both automatically
@@ -602,7 +603,7 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
          * the given main URI.
          */
         // Create a launch config for this main to help with matching
-        const configToMatch = initializeConfig(adaMain);
+        const configToMatch = initializeConfig(adaMain, target);
         logger.debug('Debug config to match:\n' + JSON.stringify(configToMatch, null, 2));
 
         let matchingConfig = undefined;
