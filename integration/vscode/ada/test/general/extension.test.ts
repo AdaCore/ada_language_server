@@ -73,10 +73,12 @@ suite('Extensions Test Suite', function () {
             // Get the workspace root folder
             const folder = vscode.workspace.workspaceFolders[0].uri;
 
-            //  Check the object directory when 'for Object_Dir use "obj"' is present
+            // Check the object directory when 'for Object_Dir use "obj"' is present
             // in the GPR file
             const originalObjDir: string = await adaExtState.getObjectDir();
-            assert.strictEqual(originalObjDir, vscode.Uri.joinPath(folder, 'obj').fsPath);
+            const originalObjDirURI = vscode.Uri.file(originalObjDir);
+
+            assert.strictEqual(originalObjDirURI.path, vscode.Uri.joinPath(folder, 'obj').path);
 
             // Remove the line that specifies the object directory in the GPR file
             const fileUri = vscode.Uri.joinPath(folder, 'prj.gpr');
@@ -90,7 +92,7 @@ suite('Extensions Test Suite', function () {
             try {
                 const objDirValue = await adaExtState.getObjectDir();
                 const objDirURI = vscode.Uri.file(objDirValue);
-                assert.strictEqual(objDirURI.fsPath, folder.fsPath);
+                assert.strictEqual(objDirURI.path, folder.path);
             } finally {
                 // Restore the old GPR file contents
                 writeFileSync(fileUri.fsPath, contentBefore);
