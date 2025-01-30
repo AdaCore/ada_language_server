@@ -1,6 +1,8 @@
 import { X2jOptions, XMLParser } from 'fast-xml-parser';
-import { number } from 'fp-ts';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { CancellationToken } from 'vscode-languageclient';
 
 /**
  * TypeScript types to represent data from GNATcoverage XML reports
@@ -56,7 +58,7 @@ type xi_include_type = {
     '@_href': string;
 };
 
-type source_type = {
+export type source_type = {
     '@_file': string;
     '@_coverage_level': coverage_level_type;
     scope_metric: scope_metric_type[];
@@ -94,7 +96,7 @@ type obligation_stats_type = {
     metric: metric_type[];
     '@_kind': string;
 };
-type src_mapping_type = {
+export type src_mapping_type = {
     src: src_type;
     statement: statement_type[];
     decision: decision_type[];
@@ -104,7 +106,7 @@ type src_mapping_type = {
 type src_type = {
     line: line_type[];
 };
-type line_type = {
+export type line_type = {
     '@_num': number;
     '@_src': string;
     '@_column_begin': number;
@@ -142,7 +144,20 @@ type statement_type = {
  * https://docs.adacore.com/gnatcoverage-docs/html/gnatcov/exemptions.html#reporting-about-coverage-exemptions
  * for more information.
  */
-type coverage_type = '.' | '+' | '-' | '!' | '?' | '#' | '@' | '*' | '0' | 'v' | '>';
+export const coverage_type_values = [
+    '.',
+    '+',
+    '-',
+    '!',
+    '?',
+    '#',
+    '@',
+    '*',
+    '0',
+    'v',
+    '>',
+] as const;
+export type coverage_type = (typeof coverage_type_values)[number];
 
 type decision_type = {
     src?: src_type;
@@ -255,4 +270,165 @@ export function parseGnatcovFileXml(path: string): source_type {
     } else {
         throw Error(`Could not parse GNATcoverage report: ${path}`);
     }
+}
+
+/**
+ *
+ * @param run - the test run to add coverage data to
+ * @param covDir - The path to the directory containing GNATcoverage XML
+ * reports. The directory must contain a single 'index.xml' file.
+ */
+export async function addCoverageData(run: vscode.TestRun, covDir: string) {
+    const indexPath = path.join(covDir, 'index.xml');
+    const data = parseGnatcovIndexXml(indexPath);
+
+    await vscode.window.withProgress(
+        {
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: 'Loading GNATcoverage report',
+        },
+        async (progress, token) => {
+            const array = data.coverage_report.coverage_summary!.file;
+            let done: number = 0;
+            const totalFiles = array.length;
+            for (const file of array) {
+                if (token.isCancellationRequested) {
+                    throw new vscode.CancellationError();
+                }
+
+                const found = await vscode.workspace.findFiles(`**/${file['@_name']!}`, null, 1);
+                if (found.length == 0) continue;
+
+                const srcUri = found[0];
+                const total = file.metric.find((m) => m['@_kind'] == 'total_lines_of_relevance')![
+                    '@_count'
+                ];
+                const covered = file.metric.find((m) => m['@_kind'] == 'fully_covered')!['@_count'];
+
+                const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
+                    (inc) => inc['@_href'] == `${file['@_name']!}.xml`,
+                )!['@_href'];
+                const fileReportPath = path.join(covDir, fileReportBasename);
+
+                if (covered > total) {
+                    throw Error(
+                        `Got ${covered} covered lines for a` +
+                            ` total of ${total} in ${file['@_name']!}`,
+                    );
+                }
+
+                const fileCov = new GnatcovFileCoverage(fileReportPath, srcUri, { covered, total });
+                run.addCoverage(fileCov);
+
+                progress.report({
+                    message: `${++done} / ${totalFiles} source files`,
+                    increment: (100 * 1) / totalFiles,
+                });
+            }
+        },
+    );
+}
+/**
+ * A class that holds the summary coverage data of a source file, and provides
+ * a method to load detailed coverage data about that source file.
+ */
+export class GnatcovFileCoverage extends vscode.FileCoverage {
+    sourceFileXmlReport: string;
+
+    /**
+     *
+     * @param detailedXmlReportPath - The path to the GNATcov XML report for the given source file.
+     * @param uri - URI of the source file
+     * @param statementCoverage - statement coverage information
+     * @param branchCoverage - branch coverage information, if available
+     * @param declarationCoverage - declaration coverage information, if available
+     */
+    constructor(
+        detailedXmlReportPath: string,
+        uri: vscode.Uri,
+        statementCoverage: vscode.TestCoverageCount,
+        branchCoverage?: vscode.TestCoverageCount,
+        declarationCoverage?: vscode.TestCoverageCount,
+    ) {
+        super(uri, statementCoverage, branchCoverage, declarationCoverage);
+        this.sourceFileXmlReport = detailedXmlReportPath;
+    }
+
+    /**
+     * Report detailed coverage information by loading the file's GNATcov XML report.
+     */
+    public async load(token?: CancellationToken): Promise<vscode.FileCoverageDetail[]> {
+        const data = parseGnatcovFileXml(this.sourceFileXmlReport);
+        return Promise.resolve(convertSourceReport(data, token));
+    }
+}
+
+export function convertSourceReport(
+    data: source_type,
+    token?: CancellationToken,
+): vscode.StatementCoverage[] {
+    return data.src_mapping.flatMap((src_mapping) => convertSrcMapping(src_mapping, token));
+}
+
+export function convertSrcMapping(
+    src_mapping: src_mapping_type,
+    token?: CancellationToken,
+): vscode.StatementCoverage[] {
+    return src_mapping.src.line
+        .map((line) => {
+            if (token?.isCancellationRequested) {
+                throw new vscode.CancellationError();
+            }
+
+            const zeroBasedLine = line['@_num'] - 1;
+            const lineLength = line['@_src'].length;
+            const res = new vscode.StatementCoverage(
+                false,
+                new vscode.Range(zeroBasedLine, 0, zeroBasedLine, lineLength),
+            );
+
+            switch (src_mapping['@_coverage']) {
+                case '-':
+                case '!':
+                case '?':
+                case '+':
+                    /**
+                     * Lines with coverage obligations are highlighted
+                     * as covered iff they are marked as '+'
+                     */
+                    res.executed = src_mapping['@_coverage'] == '+';
+                    return res;
+
+                case '.':
+                    /**
+                     * Lines with no coverage obligations are not highlighted
+                     */
+                    return undefined;
+
+                case '#':
+                case '@':
+                case '*':
+                    /**
+                     * Exempted lines are not highlighted
+                     */
+                    return undefined;
+
+                case 'v':
+                case '>':
+                    /**
+                     * Symbols are for object level coverage which
+                     * is not supported in VS Code.
+                     */
+                    return undefined;
+
+                case '0':
+                    /**
+                     * Symbol specific to binary traces which are
+                     * not used in the VS Code integration.
+                     */
+                    return undefined;
+            }
+        })
+        .filter((v) => !!v);
 }

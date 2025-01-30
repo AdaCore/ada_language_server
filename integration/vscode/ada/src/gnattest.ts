@@ -7,13 +7,12 @@ import * as vscode from 'vscode';
 import { TestItem } from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
-import { parseGnatcovFileXml, parseGnatcovIndexXml } from './gnatcov';
+import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
 import { escapeRegExp, exe, getObjectDir, setTerminalEnvironment } from './helpers';
 import {
     DEFAULT_PROBLEM_MATCHER,
     findTaskByName,
-    getConventionalTaskLabel,
     runTaskAndGetResult,
     runTaskSequence,
     SimpleTaskDef,
@@ -730,8 +729,13 @@ async function buildTestDriverAndReportErrors(
     testsToRun: vscode.TestItem[],
     coverage: boolean,
 ) {
-    let result;
+    class WriteEmitter extends vscode.EventEmitter<string> {
+        override fire(data: string): void {
+            run.appendOutput(data);
+        }
+    }
 
+    const buildTasks = [];
     if (coverage) {
         const adaTP = adaExtState.getAdaTaskProvider()!;
 
@@ -780,18 +784,13 @@ async function buildTestDriverAndReportErrors(
         ))!;
         buildTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
 
-        class WriteEmitter extends vscode.EventEmitter<string> {
-            override fire(data: string): void {
-                run.appendOutput(data);
-            }
-        }
-
-        result = await runTaskSequence([instTask, buildTask], new WriteEmitter());
+        buildTasks.push(instTask, buildTask);
     } else {
         const task = await findTaskByName(`${TASK_BUILD_TEST_DRIVER}`);
-        run.appendOutput(`Executing task: ${getConventionalTaskLabel(task)}\r\n`);
-        result = await runTaskAndGetResult(task);
+        buildTasks.push(task);
     }
+
+    const result = await runTaskSequence(buildTasks, new WriteEmitter());
 
     if (result != 0) {
         let msg =
@@ -808,6 +807,8 @@ async function buildTestDriverAndReportErrors(
                 ` [${taskName}]` +
                 `(command:workbench.action.tasks.runTask?%22${taskNameEncoded}%22) task.`;
         }
+
+        prepareAndAppendOutput(run, msg);
 
         const md = new vscode.MarkdownString(msg);
         md.isTrusted = true;
@@ -1082,158 +1083,6 @@ function logAndRun(
 ): cp.SpawnSyncReturns<Buffer> {
     run.appendOutput(`$ ${cmd.map((arg) => `"${arg}"`).join(' ')}\r\n`);
     return cp.spawnSync(cmd[0], cmd.slice(1), { env: env });
-}
-
-/**
- * A class that holds the summary coverage data of a source file, and provides
- * a method to load detailed coverage data about that source file.
- */
-class GnatcovFileCoverage extends vscode.FileCoverage {
-    sourceFileXmlReport: string;
-
-    /**
-     *
-     * @param detailedXmlReportPath - The path to the GNATcov XML report for the given source file.
-     * @param uri - URI of the source file
-     * @param statementCoverage - statement coverage information
-     * @param branchCoverage - branch coverage information, if available
-     * @param declarationCoverage - declaration coverage information, if available
-     */
-    constructor(
-        detailedXmlReportPath: string,
-        uri: vscode.Uri,
-        statementCoverage: vscode.TestCoverageCount,
-        branchCoverage?: vscode.TestCoverageCount,
-        declarationCoverage?: vscode.TestCoverageCount,
-    ) {
-        super(uri, statementCoverage, branchCoverage, declarationCoverage);
-        this.sourceFileXmlReport = detailedXmlReportPath;
-    }
-
-    /**
-     * Report detailed coverage information by loading the file's GNATcov XML report.
-     */
-    public async load(token?: CancellationToken): Promise<vscode.FileCoverageDetail[]> {
-        const data = parseGnatcovFileXml(this.sourceFileXmlReport);
-        return Promise.resolve(
-            data.src_mapping.flatMap((src_mapping) =>
-                src_mapping.src.line
-                    .map((line) => {
-                        if (token?.isCancellationRequested) {
-                            throw new vscode.CancellationError();
-                        }
-
-                        const zeroBasedLine = line['@_num'] - 1;
-                        const lineLength = line['@_src'].length;
-                        const res = new vscode.StatementCoverage(
-                            false,
-                            new vscode.Range(zeroBasedLine, 0, zeroBasedLine, lineLength),
-                        );
-
-                        switch (src_mapping['@_coverage']) {
-                            case '-':
-                            case '!':
-                            case '?':
-                            case '+':
-                                /**
-                                 * Lines with coverage obligations are highlighted
-                                 * as covered iff they are marked as '+'
-                                 */
-                                res.executed = src_mapping['@_coverage'] == '+';
-                                return res;
-
-                            case '.':
-                                /**
-                                 * Lines with no coverage obligations are not highlighted
-                                 */
-                                return undefined;
-
-                            case '#':
-                            case '@':
-                            case '*':
-                                /**
-                                 * Exempted lines are not highlighted
-                                 */
-                                return undefined;
-
-                            case 'v':
-                            case '>':
-                                /**
-                                 * Symbols are for object level coverage which
-                                 * is not supported in VS Code.
-                                 */
-                                return undefined;
-
-                            case '0':
-                                /**
-                                 * Symbol specific to binary traces which are
-                                 * not used in the VS Code integration.
-                                 */
-                                return undefined;
-                        }
-                    })
-                    .filter((v) => !!v),
-            ),
-        );
-    }
-}
-
-/**
- *
- * @param run - the test run to add coverage data to
- * @param covDir - The path to the directory containing GNATcoverage XML
- * reports. The directory must contain a single 'index.xml' file.
- */
-async function addCoverageData(run: vscode.TestRun, covDir: string) {
-    const indexPath = path.join(covDir, 'index.xml');
-    const data = parseGnatcovIndexXml(indexPath);
-
-    await vscode.window.withProgress(
-        {
-            cancellable: true,
-            location: vscode.ProgressLocation.Notification,
-            title: 'Loading GNATcoverage report',
-        },
-        async (progress, token) => {
-            const array = data.coverage_report.coverage_summary!.file;
-            let done: number = 0;
-            const totalFiles = array.length;
-            for (const file of array) {
-                if (token.isCancellationRequested) {
-                    throw new vscode.CancellationError();
-                }
-
-                const found = await vscode.workspace.findFiles(`**/${file['@_name']!}`, null, 1);
-                if (found.length == 0) continue;
-
-                const srcUri = found[0];
-                const total = file.metric.find((m) => m['@_kind'] == 'total_lines_of_relevance')![
-                    '@_count'
-                ];
-                const covered = file.metric.find((m) => m['@_kind'] == 'fully_covered')!['@_count'];
-
-                const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
-                    (inc) => inc['@_href'] == `${file['@_name']!}.xml`,
-                )!['@_href'];
-                const fileReportPath = path.join(covDir, fileReportBasename);
-
-                if (covered > total) {
-                    throw Error(
-                        `Got ${covered} covered lines for a` +
-                            ` total of ${total} in ${file['@_name']!}`,
-                    );
-                }
-
-                const fileCov = new GnatcovFileCoverage(fileReportPath, srcUri, { covered, total });
-                run.addCoverage(fileCov);
-
-                progress.report({
-                    message: `${++done} / ${totalFiles} source files`,
-                    increment: (100 * 1) / totalFiles,
-                });
-            }
-        },
-    );
 }
 
 /**
