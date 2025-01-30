@@ -9,6 +9,7 @@ section below it for the last release. -->
 * Fix sluggish completion while editing GPR files
 * Provide a task `ada: Build GNATtest test harness project` allowing to customize the build step of test execution in `tasks.json`
 * Fix cross-references (navigation, call hierarchy, finding all references) when the project is an Extending project.
+* [GNATformat](https://github.com/AdaCore/gnatformat) is now the default back-end for LSP formatting requests
 
 ## 26.0.202412190
 
