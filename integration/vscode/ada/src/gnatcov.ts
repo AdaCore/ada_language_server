@@ -292,40 +292,60 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
             const array = data.coverage_report.coverage_summary!.file;
             let done: number = 0;
             const totalFiles = array.length;
-            for (const file of array) {
-                if (token.isCancellationRequested) {
-                    throw new vscode.CancellationError();
-                }
+            const fileCovs = (
+                await Promise.all(
+                    array.map(async (file) => {
+                        if (token.isCancellationRequested) {
+                            throw new vscode.CancellationError();
+                        }
 
-                const found = await vscode.workspace.findFiles(`**/${file['@_name']!}`, null, 1);
-                if (found.length == 0) continue;
+                        const found = await vscode.workspace.findFiles(
+                            `**/${file['@_name']!}`,
+                            null,
+                            1,
+                        );
+                        if (found.length == 0) {
+                            return undefined;
+                        }
 
-                const srcUri = found[0];
-                const total = file.metric.find((m) => m['@_kind'] == 'total_lines_of_relevance')![
-                    '@_count'
-                ];
-                const covered = file.metric.find((m) => m['@_kind'] == 'fully_covered')!['@_count'];
+                        const srcUri = found[0];
+                        const total = file.metric.find(
+                            (m) => m['@_kind'] == 'total_lines_of_relevance',
+                        )!['@_count'];
+                        const covered = file.metric.find((m) => m['@_kind'] == 'fully_covered')![
+                            '@_count'
+                        ];
 
-                const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
-                    (inc) => inc['@_href'] == `${file['@_name']!}.xml`,
-                )!['@_href'];
-                const fileReportPath = path.join(covDir, fileReportBasename);
+                        const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
+                            (inc) => inc['@_href'] == `${file['@_name']!}.xml`,
+                        )!['@_href'];
+                        const fileReportPath = path.join(covDir, fileReportBasename);
 
-                if (covered > total) {
-                    throw Error(
-                        `Got ${covered} covered lines for a` +
-                            ` total of ${total} in ${file['@_name']!}`,
-                    );
-                }
+                        if (covered > total) {
+                            throw Error(
+                                `Got ${covered} covered lines for a` +
+                                    ` total of ${total} in ${file['@_name']!}`,
+                            );
+                        }
 
-                const fileCov = new GnatcovFileCoverage(fileReportPath, srcUri, { covered, total });
+                        const fileCov = new GnatcovFileCoverage(fileReportPath, srcUri, {
+                            covered,
+                            total,
+                        });
+
+                        progress.report({
+                            message: `${++done} / ${totalFiles} source files`,
+                            increment: (100 * 1) / totalFiles,
+                        });
+
+                        return fileCov;
+                    }),
+                )
+            ).filter((v) => !!v);
+            fileCovs.map((fileCov) => {
                 run.addCoverage(fileCov);
-
-                progress.report({
-                    message: `${++done} / ${totalFiles} source files`,
-                    increment: (100 * 1) / totalFiles,
-                });
-            }
+            });
+            await Promise.all(fileCovs);
         },
     );
 }
