@@ -52,7 +52,7 @@
             {
                "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{}",
+                  "uri": "$URI{test.gpr}",
                   "diagnostics": [
                        {
                         "range": {

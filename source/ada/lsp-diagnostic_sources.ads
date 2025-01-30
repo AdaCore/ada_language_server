@@ -17,6 +17,7 @@
 
 with Ada.Containers.Vectors;
 with Ada.Unchecked_Deallocation;
+with GNATCOLL.VFS;
 with LSP.Structures;
 limited with LSP.Ada_Contexts;
 
@@ -49,8 +50,10 @@ package LSP.Diagnostic_Sources is
      (Diagnostic_Source'Class, Diagnostic_Source_Access);
 
    type Workspace_Diagnostic_Source is limited interface;
-   --  Interface for worspace diagnostics (i.e: diagnostics that
+   --  Interface for workspace diagnostics (i.e: diagnostics that
    --  are not specific to a given context/document).
+   --  Currently published workspace diagnostics are always cleared
+   --  before querying new workspace diagnostics.
 
    type Workspace_Diagnostic_Source_Access is
      access LSP.Diagnostic_Sources.Workspace_Diagnostic_Source'Class;
@@ -61,8 +64,9 @@ package LSP.Diagnostic_Sources is
         LSP.Diagnostic_Sources."=");
 
    procedure Get_Diagnostics
-     (Self        : in out Workspace_Diagnostic_Source;
-      Diagnostics : out LSP.Structures.Diagnostic_Vector)
+     (Self          : in out Workspace_Diagnostic_Source;
+      Diagnostics   : out LSP.Structures.Diagnostic_Vector;
+      Target_File   : out GNATCOLL.VFS.Virtual_File)
    is abstract;
 
    function Has_New_Diagnostic

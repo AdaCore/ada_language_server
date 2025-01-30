@@ -30,20 +30,37 @@ package body LSP.Ada_Handlers.Project_Diagnostics is
 
    overriding
    procedure Get_Diagnostics
-     (Self        : in out Diagnostic_Source;
-      Diagnostics : out LSP.Structures.Diagnostic_Vector) is
+     (Self          : in out Diagnostic_Source;
+      Diagnostics   : out LSP.Structures.Diagnostic_Vector;
+      Target_File   : out GNATCOLL.VFS.Virtual_File)
+   is
+      use GNATCOLL.VFS;
    begin
       if Self.Handler.Configuration.Project_Diagnostics_Enabled then
-         Self.Last_Status := Self.Handler.Project_Status;
+         declare
+            Project_File : constant Virtual_File :=
+              Self.Handler.Project_Status.Get_Project_File;
+            Root_Dir     : constant Virtual_File :=
+              Self.Handler.Client.Root_Directory;
+         begin
+            --  Set the target file according to the source's initial target
+            --  (root directory or project file itself)
+            Target_File :=
+              (if Project_File.Is_Regular_File then Project_File
+               else Root_Dir);
 
-         Tracer.Trace ("Project loading status: " & Self.Last_Status'Image);
+            Self.Last_Status := Self.Handler.Project_Status;
 
-         --  If we have a valid project return immediately: we want to display
-         --  diagnostics only if there is an issue to solve or a potential
-         --  enhancement.
+            Tracer.Trace ("Project loading status: " & Self.Last_Status'Image);
 
-         Diagnostics.Append_Vector
-           (LSP.Ada_Project_Loading.Get_Diagnostics (Self.Last_Status));
+            --  If we have a valid project return immediately: we want to display
+            --  diagnostics only if there is an issue to solve or a potential
+            --  enhancement.
+
+            Diagnostics.Append_Vector
+              (LSP.Ada_Project_Loading.Get_Diagnostics (Self.Last_Status));
+         end;
+
       end if;
    end Get_Diagnostics;
 

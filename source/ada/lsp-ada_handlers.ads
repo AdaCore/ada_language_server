@@ -200,8 +200,14 @@ private
       --  is known to the server, this context should map to the implicit
       --  project.
 
-      Diagnostic_Sources : Workspace_Diagnostic_Source_Vectors.Vector;
+      Workspace_Diagnostic_Sources :
+        Workspace_Diagnostic_Source_Vectors.Vector;
       --  Workspace diagnostic sources.
+
+      Workspace_Diagnostic_Files : LSP.Ada_File_Sets.File_Sets.Set;
+      --  Files for which workspace diagnostics have been published.
+      --  Used to clear any existing workspace diagnostic before querying
+      --  new ones.
 
       Highlighter    : aliased LSP.Ada_Highlighters.Ada_Highlighter;
       --  Semantic token highlighter for Ada
@@ -400,15 +406,12 @@ private
    --  they have changed or not.
 
    procedure Publish_Diagnostics
-     (Self              : in out Message_Handler;
-      Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
-        LSP.Structures.Empty;
-      Force             : Boolean := False);
+     (Self : in out Message_Handler; Force : Boolean := False);
    --  Publish workspace diagnostic messages.
-   --  Other_Diagnostics can be used to specify punctual diagnostics not coming
-   --  from sources that analyze files when being opened or modified.
    --  When Force is True, the diagnostics will always be sent, regardless if
    --  they have changed or not.
+   --  Currently published workspace diagnostics are always cleared
+   --  before querying new workspace diagnostics.
 
    overriding function To_File
      (Self : Message_Handler;

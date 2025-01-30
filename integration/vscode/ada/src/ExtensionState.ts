@@ -9,10 +9,12 @@ import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { createClient } from './clients';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { logger } from './extension';
+import { existsSync } from 'fs';
+import path from 'path';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
-import { getArgValue, TERMINAL_ENV_SETTING_NAME } from './helpers';
+import { getArgValue, TERMINAL_ENV_SETTING_NAME, exe, getEvaluatedTerminalEnv } from './helpers';
 import {
     SimpleTaskDef,
     SimpleTaskProvider,
@@ -54,9 +56,11 @@ export class ExtensionState {
      */
     cachedProjectUri: vscode.Uri | undefined;
     cachedObjectDir: string | undefined;
+    cachedTargetPrefix: string | undefined;
     cachedMains: string[] | undefined;
     cachedExecutables: string[] | undefined;
     cachedAlireTomls: vscode.Uri[] | undefined;
+    cachedGdb: string | undefined | null = undefined;
 
     private adaTaskProvider?: SimpleTaskProvider;
     private sparkTaskProvider?: SimpleTaskProvider;
@@ -64,9 +68,11 @@ export class ExtensionState {
     private clearALSCache() {
         this.cachedProjectUri = undefined;
         this.cachedObjectDir = undefined;
+        this.cachedTargetPrefix = undefined;
         this.cachedMains = undefined;
         this.cachedExecutables = undefined;
         this.cachedAlireTomls = undefined;
+        this.cachedGdb = undefined;
     }
 
     constructor(context: vscode.ExtensionContext) {
@@ -238,6 +244,58 @@ export class ExtensionState {
     }
 
     /**
+     *
+     * @returns the full path to the `gdb` executable, taking into consideration the
+     * `PATH` variable in the `terminal.integrated.env.*` setting if set. Otherwise,
+     * the `PATH` variable of the current process environment is considered. When
+     * a non-native target is specified, it will be prepeneded to the `gdb` executable
+     * before looking in the `PATH` (e.g: `arm-eabi-gdb` for `arm-eabi` target).
+     *
+     * The current process environment is unlikely to change during the lifetime of
+     * the extension, and we already prompt the User to reload the window in case
+     * the `terminal.integrated.env.*` variables change. For this reason, we compute
+     * the value only on the first call, and cache it for subsequent calls to return
+     * it efficiently.
+     *
+     * @param target - The target for which gdb should be looked for.
+     */
+    public getOrFindGdb(target: string = ''): string | undefined {
+        if (this.cachedGdb === undefined) {
+            /**
+             * If undefined yet, try to compute it.
+             */
+            const env = getEvaluatedTerminalEnv();
+            let pathVal: string;
+            if (env && 'PATH' in env) {
+                pathVal = env.PATH ?? '';
+            } else if ('PATH' in process.env) {
+                pathVal = process.env.PATH ?? '';
+            } else {
+                pathVal = '';
+            }
+
+            const gdbExeBasename = target != '' ? `${target}-gdb${exe}` : `gdb${exe}`;
+            const gdb = pathVal
+                .split(path.delimiter)
+                .map<string>((v) => path.join(v, gdbExeBasename))
+                .find(existsSync);
+
+            if (gdb) {
+                // Found
+                this.cachedGdb = gdb;
+                return this.cachedGdb;
+            } else {
+                // Not found. Assign null to cache to avoid recomputing at every call.
+                this.cachedGdb = null;
+            }
+        }
+
+        // When returning, coerce null to undefined because the distinction doesn't
+        // matter on the caller side.
+        return this.cachedGdb ?? undefined;
+    }
+
+    /**
      * @returns the URI of the main project file from the ALS
      */
     public async getProjectUri(): Promise<vscode.Uri | undefined> {
@@ -251,6 +309,31 @@ export class ExtensionState {
         }
 
         return this.cachedProjectUri;
+    }
+
+    /**
+     * Returns the target prefix that should be used when spawning tools
+     * like gnat, gcc or gdb.
+     * For instance if the project has an 'arm-eabi' target, this
+     * function will return 'arm-eabi'. For native projects, this
+     * will return an empty string.
+     *
+     * @returns the target prefix
+     */
+    public async getTargetPrefix(): Promise<string> {
+        if (!this.cachedTargetPrefix) {
+            // Get the compiler driver's path from the Compiler.Driver project
+            // attribute, and delete the last bit to get the prefix
+            const driverPath = (await this.getProjectAttributeValue(
+                'driver',
+                'compiler',
+                'ada',
+            )) as string;
+            const driver = path.basename(driverPath);
+            this.cachedTargetPrefix = driver.substring(0, driver.lastIndexOf('-'));
+        }
+
+        return this.cachedTargetPrefix;
     }
 
     /**
