@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
+import { parallelize, staggerProgress } from './helpers';
+import { cpus } from 'os';
 
 /**
  * TypeScript types to represent data from GNATcoverage XML reports
@@ -291,10 +293,16 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
         async (progress, token) => {
             const array = data.coverage_report.coverage_summary!.file;
             let done: number = 0;
+            let lastProgress = 0;
             const totalFiles = array.length;
+            progress.report({
+                message: `${done} / ${totalFiles} source files`,
+            });
             const fileCovs = (
-                await Promise.all(
-                    array.map(async (file) => {
+                await parallelize(
+                    array,
+                    Math.min(cpus().length, 8),
+                    async (file) => {
                         if (token.isCancellationRequested) {
                             throw new vscode.CancellationError();
                         }
@@ -333,13 +341,46 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                             total,
                         });
 
-                        progress.report({
-                            message: `${++done} / ${totalFiles} source files`,
-                            increment: (100 * 1) / totalFiles,
-                        });
+                        /**
+                         * Do we need a lock to increment this counter given
+                         * that we are processing with threads?
+                         *
+                         * The answer is no.
+                         *
+                         * In JavaScript semantics each function runs to
+                         * completion uninterrupted. 'async' doesn't mean that
+                         * functions run concurrently. It means that something
+                         * will be executed later.
+                         *
+                         * When a function flow encounters 'await', it hands
+                         * off processing to another async operation.
+                         *
+                         * So at any one time, only one function is executing
+                         * and accessing the counter. It is safe to increment
+                         * without locking.
+                         */
+                        ++done;
+
+                        /**
+                         * Reporting progress too often can cause the UI to freeze.
+                         * Instead we use staggerProgress to report progress only
+                         * when the percentage has increased by 1%.
+                         */
+                        lastProgress = staggerProgress(
+                            done,
+                            totalFiles,
+                            lastProgress,
+                            (increment) => {
+                                progress.report({
+                                    message: `${done} / ${totalFiles} source files`,
+                                    increment: increment,
+                                });
+                            },
+                        );
 
                         return fileCov;
-                    }),
+                    },
+                    token,
                 )
             ).filter((v) => !!v);
             fileCovs.map((fileCov) => {

@@ -520,3 +520,89 @@ export async function showErrorMessageWithOpenLogButton(
         mainOutputChannel.show();
     }
 }
+
+/**
+ *
+ * @param data - input data to process
+ * @param threads - number of async functions processing the data. Must be strictly positive 0.
+ * @param op - the function to process the data
+ * @returns the processed
+ */
+export async function parallelize<T, Result>(
+    data: T[],
+    threads: number,
+    op: (arg: T) => Result | Promise<Result>,
+    token?: CancellationToken,
+): Promise<Result[]> {
+    assert(threads > 0);
+    const len = data.length;
+    let start = 0;
+
+    /**
+     * Initialize an array with the expected length.
+     */
+    const result = new Array<Result>(len);
+    while (start < len) {
+        if (token?.isCancellationRequested) {
+            throw new CancellationError();
+        }
+
+        /**
+         * Take a chunk corresponding to the number of threads.
+         */
+        const chunk = data.slice(start, start + threads);
+
+        /**
+         * Process the chunk as async promises which may be evaluated concurrently.
+         */
+        const chunkRes = await Promise.all(chunk.map(op));
+
+        /**
+         * Since the array is initialized with a length, its content is already
+         * allocated with empty values. So we need a splice operation where we
+         * delete the existing empty values and replace them with the results.
+         */
+        result.splice(start, chunkRes.length, ...chunkRes);
+
+        start += threads;
+    }
+
+    return result;
+}
+
+/**
+ * When using {@link vscode.window.withProgress}, reporting progress too often
+ * can cause the UI to freeze. This function helps stagger progress reports
+ * such that progress is reported only when a minimum increment is reached,
+ * e.g. every 1%.
+ *
+ * Here's how the function should be used:
+ *
+ *    TODO
+ *
+ *
+ * @param done - the number of items processed since the beginning of the work
+ * @param total - the total number of items to be processed
+ * @param lastProgress - the last 'done' value at which progress was reported
+ * @param progress - a callback that is called when the minimum increment is reached
+ * @param minimumIncrement - the minimum increment to wait for before calling
+ * the 'progress' callback.
+ * @returns `lastProgress` if no progress was reported, and returns `done` when
+ * progress was reported.
+ */
+export function staggerProgress(
+    done: number,
+    total: number,
+    lastProgress: number,
+    progress: (increment: number) => void,
+    minimumIncrement: number = 1,
+): number {
+    const sinceLastReport = done - lastProgress;
+    const increment = Math.floor((sinceLastReport * 100) / total);
+    if (increment >= minimumIncrement) {
+        progress(increment);
+        return done;
+    } else {
+        return lastProgress;
+    }
+}
