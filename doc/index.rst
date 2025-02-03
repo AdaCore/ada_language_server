@@ -10,11 +10,9 @@ Ada & SPARK extension for VS Code documentation
    :maxdepth: 2
    :caption: Contents:
 
-   Tutorial: Using Ada in VS Code <ada_language_server.wiki/Getting-Started.md>
+   Tutorial: Using Ada in VS Code <Getting-Started.md>
    refactoring_tools
    settings
    traces
    tips_and_tricks
-   build
-   Developing on the Ada Language Server <HACKING.md>
-   Protocol extensions <README.md>
+   Protocol extensions <extensions.md>

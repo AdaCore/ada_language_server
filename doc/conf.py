@@ -21,19 +21,7 @@ exclude_patterns = [
     "_build",
     "Thumbs.db",
     ".DS_Store",
-    # 'ada_language_server.wiki/Custom-colors-in-VS-Code.md',
-    # 'ada_language_server.wiki/Getting-Started.md',
-    "ada_language_server.wiki/Home.md",
-    # 'ada_language_server.wiki/Project-file-editing.md',
-    # 'ada_language_server.wiki/Set-workspace-specific-environment-variables.md',
-    "ada_language_server.wiki/Supported-LSP-requests.md",
-    # 'ada_language_server.wiki/Working-on-a-remote-machine.md',
-    # 'build.md',
     "gitpod.md",
-    "protocol.md",
-    "specification-3-14.md",
-    "specification-3-15.md",
-    "specification-3-16.md",
 ]
 
 # -- Options for HTML output -------------------------------------------------

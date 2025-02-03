@@ -1,4 +1,5 @@
-# feature name
+# TEMPLATE.md
+> Put feature name into the header
 
 ## Short introduction
 

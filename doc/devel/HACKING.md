@@ -22,11 +22,7 @@ of the ALS.
 
 ## Building
 
-To build the ALS, run:
-
-```sh
-make
-```
+See [build.md](build.md) for details.
 
 ## Debugging
 
