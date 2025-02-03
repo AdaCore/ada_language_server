@@ -629,24 +629,20 @@ package body LSP.Ada_Contexts is
 
          procedure Process_Closure
            (Root     : GPR2.Project.View.Object;
-            Callback : not null access procedure
-              (View : GPR2.Project.View.Object))
-         is
+            Callback :
+              not null access procedure (View : GPR2.Project.View.Object)) is
          begin
-            --  First process the closure of the view
-            for View of Root.Closure
-              (Include_Self => True) when not View.Is_Runtime
+            --  Process the closure of the root project, including any
+            --  aggregated library and the projects that it might extend.
+            for View
+              of Root.Closure
+                   (Include_Self       => True,
+                    Include_Extended   => True,
+                    Include_Aggregated => True)
+              when not View.Is_Runtime
             loop
                Callback (View);
             end loop;
-
-            --  If we're looking at an extending view, now
-            --  process the closure of the extended views.
-            if Root.Is_Extending then
-               for V of Root.Extended loop
-                  Process_Closure (V, Callback);
-               end loop;
-            end if;
          end Process_Closure;
 
          ---------------------------

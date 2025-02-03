@@ -132,7 +132,7 @@
                                     }
                                  }
                               },
-                              "message": "unrecognized attribute \"Bla\""
+                              "message": "undefined attribute \"Bla\""
                            }
                         ]
                      }
