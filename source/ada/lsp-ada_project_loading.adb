@@ -293,8 +293,10 @@ package body LSP.Ada_Project_Loading is
          when Single_Project_Found .. Implicit_Project =>
             --  Even if the project is valid this is not an expected one
             return True;
+
          when others =>
-            return Project.Status /= Valid_Project
+            return
+              Project.Status /= Valid_Project
               or else Has_Pertinent_GPR2_Messages (Project);
       end case;
    end Has_Diagnostics;
@@ -361,8 +363,7 @@ package body LSP.Ada_Project_Loading is
    -----------------------
 
    procedure Set_GPR2_Messages
-     (Project       : in out Project_Status_Type;
-      GPR2_Messages : GPR2.Log.Object) is
+     (Project : in out Project_Status_Type; GPR2_Messages : GPR2.Log.Object) is
    begin
       Project.GPR2_Messages := GPR2_Messages;
 
@@ -372,15 +373,32 @@ package body LSP.Ada_Project_Loading is
       --  Valid_Project_With_Warning.
       if Project.Status = Valid_Project then
          if Project.GPR2_Messages.Has_Element
-           (Hint    => False,
-            Warning => True,
-            Error   => True,
-            Lint    => False)
+              (Hint => False, Warning => True, Error => True, Lint => False)
          then
             Project.Status := Valid_Project_With_Warning;
          end if;
       end if;
    end Set_GPR2_Messages;
+
+      ------------------------
+      -- Set_Alire_Messages --
+      ------------------------
+
+   procedure Set_Alire_Messages
+     (Project        : in out Project_Status_Type;
+      Alire_Messages : VSS.String_Vectors.Virtual_String_Vector) is
+   begin
+      Project.Alire_Messages := Alire_Messages;
+   end Set_Alire_Messages;
+
+   ------------------------
+   -- Get_Alire_Messages --
+   ------------------------
+
+   function Get_Alire_Messages
+     (Project : Project_Status_Type)
+      return VSS.String_Vectors.Virtual_String_Vector
+   is (Project.Alire_Messages);
 
    ----------------------
    -- Set_Project_File --

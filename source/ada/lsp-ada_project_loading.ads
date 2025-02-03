@@ -18,6 +18,7 @@
 with GNATCOLL.VFS;
 with GPR2.Log;
 with LSP.Structures;
+with VSS.String_Vectors;
 
 package LSP.Ada_Project_Loading is
 
@@ -69,8 +70,7 @@ package LSP.Ada_Project_Loading is
    --  @value Project_Not_Found: the configured project was not found.
 
    procedure Set_Load_Status
-     (Project : in out Project_Status_Type;
-      Status  : Project_Status);
+     (Project : in out Project_Status_Type; Status : Project_Status);
    --  Set the status of the project
 
    function Get_Load_Status
@@ -78,24 +78,30 @@ package LSP.Ada_Project_Loading is
    --  Return the status
 
    procedure Set_Project_Type
-     (Project      : in out Project_Status_Type;
-      Project_Type : Project_Types);
+     (Project : in out Project_Status_Type; Project_Type : Project_Types);
    --  Set the type of the project.
 
    function Get_Project_Type
-     (Project      : in out Project_Status_Type)
-      return Project_Types;
+     (Project : in out Project_Status_Type) return Project_Types;
    --  Get the type of the project.
 
    procedure Set_Missing_Ada_Runtime
-     (Project      : in out Project_Status_Type;
-      Value  : Boolean);
+     (Project : in out Project_Status_Type; Value : Boolean);
    --  Should be called when the runtime for Project is found
 
    procedure Set_GPR2_Messages
-     (Project       : in out Project_Status_Type;
-      GPR2_Messages : GPR2.Log.Object);
+     (Project : in out Project_Status_Type; GPR2_Messages : GPR2.Log.Object);
    --  Set the messages related to GPR2 project loading
+
+   procedure Set_Alire_Messages
+     (Project        : in out Project_Status_Type;
+      Alire_Messages : VSS.String_Vectors.Virtual_String_Vector);
+   --  Set the messages related to Alire project loading
+
+   function Get_Alire_Messages
+     (Project : Project_Status_Type)
+      return VSS.String_Vectors.Virtual_String_Vector;
+   --  Get the messages related to Alire project loading
 
    procedure Set_Project_File
      (Project      : in out Project_Status_Type;
@@ -103,21 +109,18 @@ package LSP.Ada_Project_Loading is
    --  Set the file we are trying to load
 
    function Get_Project_File
-     (Project      : in out Project_Status_Type)
-   return GNATCOLL.VFS.Virtual_File;
+     (Project : in out Project_Status_Type) return GNATCOLL.VFS.Virtual_File;
    --  Get the project file that was loaded (or attempted)
 
    function Is_Implicit_Fallback
      (Project : Project_Status_Type) return Boolean;
    --  Return True if the implicit project has been loaded
 
-   function Is_Project_Loaded
-     (Project : Project_Status_Type) return Boolean;
+   function Is_Project_Loaded (Project : Project_Status_Type) return Boolean;
    --  Return True if the project was loaded
 
    function Has_New_Diagnostics
-     (Old_Project : Project_Status_Type;
-      New_Project : Project_Status_Type)
+     (Old_Project : Project_Status_Type; New_Project : Project_Status_Type)
       return Boolean;
    --  Return True when the New_Project has a different status or different
    --  messages compare to Old_Project
@@ -130,8 +133,7 @@ package LSP.Ada_Project_Loading is
    --  Add code actions related to Project in Result
 
    function Get_Diagnostics
-     (Project : Project_Status_Type)
-      return LSP.Structures.Diagnostic_Vector;
+     (Project : Project_Status_Type) return LSP.Structures.Diagnostic_Vector;
    --  Compute and return the diagnostics of the project
 
 private
@@ -151,6 +153,10 @@ private
 
       GPR2_Messages       : GPR2.Log.Object := GPR2.Log.Undefined;
       --  The warning/error messages emitted by GPR2 while loading the project.
+
+      Alire_Messages : VSS.String_Vectors.Virtual_String_Vector;
+      --  The warning/error messages related to Alire while attempting to
+      --  load a project from a workspace that contains an alire.toml file.
    end record;
 
    No_Project_Status : constant Project_Status_Type :=
@@ -159,7 +165,8 @@ private
         Status              => Valid_Project,
         Project_File        => GNATCOLL.VFS.No_File,
         Missing_Ada_Runtime => False,
-        GPR2_Messages       => <>);
+        GPR2_Messages       => <>,
+        Alire_Messages      => <>);
 
    function Get_Load_Status
      (Project : Project_Status_Type) return Project_Status is (Project.Status);
