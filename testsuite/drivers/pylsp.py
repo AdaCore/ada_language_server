@@ -6,6 +6,7 @@ import inspect
 import json
 import logging
 import os
+import psutil
 import shlex
 import sys
 import urllib
@@ -845,6 +846,19 @@ def URI(src_path: Path | str) -> str:
     return src_uri
 
 
+def find_ALS_process():
+    """
+    Return the ALS process launched by the pyslsp test driver.
+    """
+    for x in psutil.pids():
+        try:
+            p = psutil.Process(x)
+            if p.ppid() == os.getpid() and p.name().startswith("ada_language_server"):
+                return p
+        except psutil.NoSuchProcess:
+            pass
+
+
 def assertEqual(actual: Any, expected: Any) -> None:
     """Raise an AssertionError if actual != expected."""
     if actual != expected:
@@ -876,6 +890,20 @@ def assertLocationsList(
         "\n".join(map(to_str, actual_locations)),
         "\n".join(map(to_str, expected)),
     )
+
+
+def get_ALS_memory_footprint():
+    """
+    Return the memory footprint in MB of the ALS process launched
+    by the pyslsp test driver.
+    """
+    for x in psutil.pids():
+        try:
+            p = psutil.Process(x)
+            if p.ppid() == os.getpid() and p.name().startswith("ada_language_server"):
+                return p.memory_full_info().rss / (1024**2)
+        except psutil.NoSuchProcess:
+            pass
 
 
 class TestInfraError(Exception):
