@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                       Copyright (C) 2024, AdaCore                        --
+--                     Copyright (C) 2024-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -110,6 +110,10 @@ package LSP.GPR_Files.References is
       return Attribute_Definition;
    --  if Reference is a valid attribute reference returns all GPR2
    --  informations needed to access attribute value.
+
+   function Token_Reference
+     (Ref : Reference) return Gpr_Parser.Common.Token_Reference;
+   --  Token_Reference adapter.
 
 private
 
