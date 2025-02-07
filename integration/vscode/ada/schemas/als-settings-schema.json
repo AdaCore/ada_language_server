@@ -45,7 +45,7 @@
         },
         "useGnatformat": {
             "type": "boolean",
-            "default": false,
+            "default": true,
             "markdownDescription": "Enable GNATformat as the formatting provider for Ada source files."
         },
         "onTypeFormatting": {
