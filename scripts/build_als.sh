@@ -61,7 +61,7 @@ repo_vss=VSS
 branch_gnatdoc=edge
 branch_lal_refactor=edge
 branch_gnatformat=edge
-branch_libgpr2=next
+branch_libgpr2=main
 branch_prettier_ada=main
 
 # Set `prod` build mode
