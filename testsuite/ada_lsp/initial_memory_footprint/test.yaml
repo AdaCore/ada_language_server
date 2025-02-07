@@ -1,0 +1,2 @@
+# If the title is the same as the directory name, it can be ommited.
+driver: pylsp
