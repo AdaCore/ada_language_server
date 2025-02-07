@@ -68,6 +68,45 @@ suite('Extensions Test Suite', function () {
             throw new Error('No workspace folder found for the specified URI');
         }
     });
+
+    test('New File - Ada Main', async () => {
+        if (vscode.workspace.workspaceFolders !== undefined) {
+            await vscode.commands.executeCommand('ada.createNewAdaMainUnit');
+            const activeEditor = vscode.window.activeTextEditor;
+            assert.strictEqual(
+                activeEditor?.document.languageId,
+                'ada',
+                'We should have a newly created Ada editor',
+            );
+            const text = activeEditor.document.getText() ?? '';
+            assert.strictEqual(
+                text.startsWith('procedure'),
+                true,
+                `We should have a main procedure snippet at the beginning ` +
+                    `of the new editor, but instead we have:\n\n${text}`,
+            );
+        }
+    });
+
+    test('New File - Ada Package', async () => {
+        if (vscode.workspace.workspaceFolders !== undefined) {
+            await vscode.commands.executeCommand('ada.createNewAdaPackage');
+            const activeEditor = vscode.window.activeTextEditor;
+            assert.strictEqual(
+                activeEditor?.document.languageId,
+                'ada',
+                'We should have a newly created Ada editor',
+            );
+            const text = activeEditor.document.getText() ?? '';
+            assert.strictEqual(
+                text.startsWith('package'),
+                true,
+                `We should have a package declaration snippet at the beginning ` +
+                    `of the new editor, but instead we have:\n\n${text}`,
+            );
+        }
+    });
+
     test('Clear Cache On Project Reload', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
             // Get the workspace root folder

@@ -393,7 +393,7 @@ export class ExtensionState {
 
     /**
      *
-     * @returns the list of source directorues defined in the project loaded by the ALS
+     * @returns the list of source directories defined in the project loaded by the ALS
      */
     public async getSourceDirs(): Promise<ALSSourceDirDescription[]> {
         if (this.cachedSourceDirs === undefined) {

@@ -81,6 +81,16 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
     context.subscriptions.push(
+        vscode.commands.registerCommand('ada.createNewAdaMainUnit', () =>
+            createNewAdaFile('Main Procedure'),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.createNewAdaPackage', () =>
+            createNewAdaFile('Package Declaration or Body'),
+        ),
+    );
+    context.subscriptions.push(
         vscode.commands.registerCommand('ada.subprogramBox', addSubprogramBoxCommand),
     );
     context.subscriptions.push(
@@ -429,6 +439,22 @@ async function buildAndRunMainAsk() {
     }
 }
 
+/**
+ * Handler for commands that create new Ada files.
+ * This function creates a new Ada editor, focus it, and insert the specified snippet.
+ * Used to proivide Ada file templates.
+ *
+ * @param snippetName - the name of the snippet to insert in the newly created editor.
+ */
+async function createNewAdaFile(snippetName: string) {
+    const doc = await vscode.workspace.openTextDocument({ language: 'ada' });
+    await vscode.window.showTextDocument(doc);
+    await vscode.commands.executeCommand('editor.action.insertSnippet', {
+        langId: 'ada',
+        name: snippetName,
+    });
+}
+
 //  Take active editor URI and call execute 'als-other-file' command in LSP
 const otherFileHandler = () => {
     const activeEditor = vscode.window.activeTextEditor;
@@ -458,11 +484,6 @@ const otherFileHandler = () => {
  * when missing directories
  */
 export async function checkSrcDirectories(atStartup = false, displayYesNoPopup = true) {
-    type ALSSourceDirDescription = {
-        name: string;
-        uri: string;
-    };
-
     const foldersInSettings = vscode.workspace.getConfiguration().get('folders');
     const doNotShowAgainKey = 'ada.addMissingDirsToWorkspace.doNotShowAgain';
     const doNotShowAgain = adaExtState.context.workspaceState.get(doNotShowAgainKey);

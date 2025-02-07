@@ -769,6 +769,16 @@
         ],
         "commands": [
             {
+                "command": "ada.createNewAdaMainUnit",
+                "title": "Ada: Create Main Unit",
+                "shortTitle": "Ada Main Unit"
+            },
+            {
+                "command": "ada.createNewAdaPackage",
+                "title": "Ada: Create Package",
+                "shortTitle": "Ada Package"
+            },
+            {
                 "command": "ada.otherFile",
                 "title": "Ada: Go to other file"
             },
@@ -907,6 +917,16 @@
                     "command": "ada.buildAndRunMainAsk",
                     "when": "editorLangId == ada",
                     "group": "navigation@1"
+                }
+            ],
+            "file/newFile": [
+                {
+                    "command": "ada.createNewAdaMainUnit",
+                    "group": "ada"
+                },
+                {
+                    "command": "ada.createNewAdaPackage",
+                    "group": "ada"
                 }
             ]
         },
