@@ -139,6 +139,12 @@
         "body": ["loop", "\t$0", "end loop;"],
         "description": "Loop Statement"
     },
+    "Main Procedure": {
+        "prefix": "procedure",
+        "body": ["procedure ${2:Name} is", "\t$4", "begin", "\t$0", "end ${2:Name};"],
+        "description": "Main Procedure",
+        "isFileTemplate": true
+    },
     "Operator Declaration": {
         "prefix": "operator",
         "scope": "ada",
@@ -167,7 +173,8 @@
             "private",
             "end ${2:Name};"
         ],
-        "description": "Package Declaration or Body"
+        "description": "Package Declaration or Body",
+        "isFileTemplate": true
     },
     "Pragma Directive": {
         "prefix": "pragma",
