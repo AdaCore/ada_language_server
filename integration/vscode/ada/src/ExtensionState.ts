@@ -312,6 +312,17 @@ export class ExtensionState {
     }
 
     /**
+     * Returns true if the loaded project is a native project, false if
+     * it's a cross/bare-metal one.
+     *
+     * @returns a boolean indicating if the loaded project is a native one.
+     */
+    public async isNativeProject(): Promise<boolean> {
+        const targetPrefix = await this.getTargetPrefix();
+        return targetPrefix == '' || targetPrefix === undefined;
+    }
+
+    /**
      * Returns the target prefix that should be used when spawning tools
      * like gnat, gcc or gdb.
      * For instance if the project has an 'arm-eabi' target, this
@@ -321,16 +332,29 @@ export class ExtensionState {
      * @returns the target prefix
      */
     public async getTargetPrefix(): Promise<string> {
-        if (!this.cachedTargetPrefix) {
+        if (this.cachedTargetPrefix === undefined) {
             // Get the compiler driver's path from the Compiler.Driver project
-            // attribute, and delete the last bit to get the prefix
-            const driverPath = (await this.getProjectAttributeValue(
-                'driver',
-                'compiler',
-                'ada',
-            )) as string;
-            const driver = path.basename(driverPath);
-            this.cachedTargetPrefix = driver.substring(0, driver.lastIndexOf('-'));
+            // attribute, and delete the last bit to get the prefix.
+            // We get an exception when the attribute is not defined, which can
+            // happen when there is no available toolchain for the project's target:
+            // in that case, consider the project as a native one.
+            try {
+                const driverPath = (await this.getProjectAttributeValue(
+                    'driver',
+                    'compiler',
+                    'ada',
+                )) as string;
+                logger.info(`Got Project.Compiler.Driver ("ada") = ${driverPath}`);
+                const driver = path.basename(driverPath);
+                this.cachedTargetPrefix = driver.substring(0, driver.lastIndexOf('-'));
+                logger.info(`Computed target prefix: ${this.cachedTargetPrefix}`);
+            } catch (err) {
+                const errMessage =
+                    err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+                logger.warn(`Failed to get Project.Compiler.Driver ("ada"): ${errMessage}`);
+                logger.warn('Assuming empty target prefix');
+                this.cachedTargetPrefix = '';
+            }
         }
 
         return this.cachedTargetPrefix;

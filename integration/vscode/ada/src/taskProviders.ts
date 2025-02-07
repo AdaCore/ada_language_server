@@ -59,6 +59,7 @@ interface PredefinedTask {
     taskDef: SimpleTaskDef;
     problemMatchers?: string | string[];
     taskGroup?: vscode.TaskGroup;
+    revealKind?: vscode.TaskRevealKind;
 }
 
 /**
@@ -390,6 +391,8 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
         }
 
         const result: vscode.Task[] = [];
+        const targetPrefix = await adaExtState.getTargetPrefix();
+        const isNativeProject = await adaExtState.isNativeProject();
 
         /**
          * Start with the list of predefined tasks.
@@ -443,6 +446,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             command: execRelPath,
                             args: [],
                         },
+                        revealKind: vscode.TaskRevealKind.Always,
                     };
 
                     const buildAndRunTask: PredefinedTask = {
@@ -454,7 +458,35 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                         problemMatchers: '',
                     };
 
-                    return [buildTask, runTask, buildAndRunTask];
+                    const tasks = [buildTask, runTask, buildAndRunTask];
+
+                    if (!isNativeProject) {
+                        const gnatemulatorExe = targetPrefix
+                            ? targetPrefix + '-gnatemu'
+                            : 'gnatemu';
+                        const runGNATemulatorTask: PredefinedTask = {
+                            label: getRunGNATemulatorTaskPlainName(main),
+                            taskDef: {
+                                type: this.taskType,
+                                command: gnatemulatorExe,
+                                args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, execRelPath],
+                            },
+                            revealKind: vscode.TaskRevealKind.Always,
+                        };
+
+                        const buildAndRunGNATemulatorTask: PredefinedTask = {
+                            label: getBuildAndRunGNATemulatorTaskPlainName(main),
+                            taskDef: {
+                                type: this.taskType,
+                                compound: [buildTask.label, runGNATemulatorTask.label],
+                            },
+                            problemMatchers: '',
+                        };
+
+                        tasks.push(runGNATemulatorTask, buildAndRunGNATemulatorTask);
+                    }
+
+                    return tasks;
                 }),
             );
 
@@ -520,12 +552,13 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 }
 
                 /**
-                 * Do not reveal the Terminal panel when running the task: we
-                 * want to highlight the issues displayed in the Problems view
-                 * instead.
+                 * If the task has a specified revealKind, use it.
+                 * Otherwise, by default, do not reveal the Terminal panel when
+                 * running the task: we want to highlight the issues displayed
+                 * in the Problems view instead.
                  */
                 resolvedTask.presentationOptions = {
-                    reveal: vscode.TaskRevealKind.Never,
+                    reveal: tDecl.revealKind ?? vscode.TaskRevealKind.Never,
                 };
 
                 result.push(resolvedTask);
@@ -780,6 +813,13 @@ function getRunTaskPlainName(main?: AdaMain) {
 }
 
 /**
+ * The name of the 'Run GNATemulator' task of a main, without the task type.
+ */
+function getRunGNATemulatorTaskPlainName(main?: AdaMain) {
+    return `Run main with GNATemulator - ${main?.mainRelPath() ?? ''}`;
+}
+
+/**
  * The full name of the build task of a main, including the task type.
  */
 export function getRunTaskName(main?: AdaMain) {
@@ -790,8 +830,16 @@ export function getBuildAndRunTaskPlainName(main?: AdaMain) {
     return `Build and run main - ${main?.mainRelPath() ?? ''}`;
 }
 
+export function getBuildAndRunGNATemulatorTaskPlainName(main?: AdaMain) {
+    return `Build and run main with GNATemulator - ${main?.mainRelPath() ?? ''}`;
+}
+
 export function getBuildAndRunTaskName(main?: AdaMain) {
     return `${TASK_TYPE_ADA}: ${getBuildAndRunTaskPlainName(main)}`;
+}
+
+export function getBuildAndRunGNATemulatorTaskName(main?: AdaMain) {
+    return `${TASK_TYPE_ADA}: ${getBuildAndRunGNATemulatorTaskPlainName(main)}`;
 }
 
 export function createSparkTaskProvider(): SimpleTaskProvider {
@@ -1043,27 +1091,33 @@ export const workspaceTasksFirst = (a: vscode.Task, b: vscode.Task): number => {
 
 /**
  *
- * @returns Array of tasks of type `ada` and label starting with 'Build and run
- * main -'. This includes tasks automatically provided by the extension as well
+ * @returns Array of tasks of type `ada` and label starting with the given prefix.
+ * This includes tasks automatically provided by the extension as well
  * as user-defined tasks in tasks.json.
  */
-export async function getBuildAndRunTasks(): Promise<vscode.Task[]> {
+export async function getTasksWithPrefix(prefix: string): Promise<vscode.Task[]> {
     return await vscode.tasks.fetchTasks({ type: TASK_TYPE_ADA }).then((tasks) =>
         tasks
-            // Filter to tasks starting with the conventional name of "Build and run main" tasks
-            .filter((t) => getConventionalTaskLabel(t).startsWith(getBuildAndRunTaskName()))
+            // Filter to tasks starting with a conventional name that has the given
+            // prefix.
+            .filter((t) => getConventionalTaskLabel(t).startsWith(prefix))
 
             // Return workspace-defined tasks first
             .sort(workspaceTasksFirst),
     );
 }
 
-export async function findBuildAndRunTask(adaMain: AdaMain): Promise<vscode.Task | undefined> {
-    return (await getBuildAndRunTasks()).find(
-        // Tasks defined in tasks.json will have a leading 'ada: ' while the
-        // ones auto-generated by the extension don't. We want to match both.
-        (t) => getConventionalTaskLabel(t) == getBuildAndRunTaskName(adaMain),
-    );
+export async function findBuildAndRunTask(
+    adaMain: AdaMain,
+    useGNATemulator: boolean = false,
+): Promise<vscode.Task | undefined> {
+    const label = useGNATemulator
+        ? getBuildAndRunGNATemulatorTaskName(adaMain)
+        : getBuildAndRunTaskName(adaMain);
+
+    const tasks = await getTasksWithPrefix(label);
+
+    return tasks.length == 1 ? tasks[0] : undefined;
 }
 
 /**
