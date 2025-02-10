@@ -11,6 +11,7 @@ section below it for the last release. -->
 * Fix cross-references (navigation, call hierarchy, finding all references) when the project is an Extending project.
 * [GNATformat](https://github.com/AdaCore/gnatformat) is now the default back-end for LSP formatting requests
 * Add tasks and a CodeLens to run a given main with GNATemulator on non-native projects
+* Diagnostics are now emitted for issues encountered when trying to load an Alire crate
 
 ## 26.0.202412190
 

@@ -38,16 +38,14 @@ package LSP.Alire is
    --  set up.
 
    procedure Determine_Alire_Project
-     (Root        : String;
-      Has_Alire   : out Boolean;
-      Error       : out VSS.Strings.Virtual_String;
-      Project     : out VSS.Strings.Virtual_String);
+     (Root    : String;
+      Error   : out VSS.Strings.Virtual_String;
+      Project : out VSS.Strings.Virtual_String);
    --  if Root directory contains `alire.toml` file, then run
    --  `alr show` and determine the project from the output.
 
    procedure Setup_Alire_Env
      (Root        : String;
-      Has_Alire   : out Boolean;
       Error       : out VSS.Strings.Virtual_String;
       Environment : in out GPR2.Environment.Object);
    --  Run `alr printenv` and set up the obtained environment variables

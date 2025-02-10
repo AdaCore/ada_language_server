@@ -58,6 +58,7 @@ with LSP.Ada_Completions.Use_Clauses;
 with LSP.Ada_Completions;
 with LSP.Ada_Documentation;
 with LSP.Ada_Empty_Handlers;
+with LSP.Ada_Handlers.Alire_Diagnostics;
 with LSP.Ada_Handlers.Call_Hierarchy;
 with LSP.Ada_Handlers.Formatting;
 with LSP.Ada_Handlers.Invisibles;
@@ -429,8 +430,12 @@ package body LSP.Ada_Handlers is
       Self.File_Monitor :=
         new LSP.Servers.FS_Watch.FS_Watch_Monitor (Self.Server);
       Self.Workspace_Diagnostic_Sources :=
-        [new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
-           (Self'Unchecked_Access)];
+        [
+           new LSP.Ada_Handlers.Project_Diagnostics.Diagnostic_Source
+                 (Self'Unchecked_Access),
+
+           new LSP.Ada_Handlers.Alire_Diagnostics.Diagnostic_Source
+                 (Self'Unchecked_Access)];
 
       Self.Load_Config_Files (CLI_Config_File);
    end Initialize;

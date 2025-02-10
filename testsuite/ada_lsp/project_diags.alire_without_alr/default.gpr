@@ -1,0 +1,5 @@
+project Default is
+
+   for Foo use "Bar";
+
+end Default;

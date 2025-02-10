@@ -119,15 +119,14 @@ package body LSP.Ada_Handlers.Project_Loading is
    procedure Ensure_Project_Loaded (Self : in out Message_Handler'Class) is
       use type VSS.Strings.Virtual_String;
 
-      GPRs_Found   : Natural := 0;
-      Project_File : VSS.Strings.Virtual_String :=
+      GPRs_Found             : Natural := 0;
+      Project_File           : VSS.Strings.Virtual_String :=
         Self.Configuration.Project_File;
       GPR_Configuration_File : VSS.Strings.Virtual_String :=
         Self.Configuration.GPR_Configuration_File;
-      Is_Alire_Crate : constant Boolean := Alire.Is_Alire_Crate (Self.Client);
-      Has_Alire : Boolean;
-      Alire_Errors : VSS.Strings.Virtual_String;
-
+      Is_Alire_Crate         : constant Boolean :=
+        Alire.Is_Alire_Crate (Self.Client);
+      Alire_Error            : VSS.Strings.Virtual_String;
    begin
       if not Self.Contexts.Is_Empty then
          --  Rely on the fact that there is at least one context initialized
@@ -157,22 +156,17 @@ package body LSP.Ada_Handlers.Project_Loading is
 
          LSP.Alire.Determine_Alire_Project
            (Root      => Self.Client.Root_Directory.Display_Full_Name,
-            Has_Alire => Has_Alire,
-            Error     => Alire_Errors,
+            Error     => Alire_Error,
             Project   => Project_File);
 
-         if not Has_Alire then
-            Tracer.Trace
-              ("'alr' is not available on PATH, cannot determine project from Alire."
-               & " Falling back to other methods for finding a project file.");
-            --  TODO consider reporting this situation to the client as a
-            --  diagnostic instead of just a log trace
-         elsif not Alire_Errors.Is_Empty then
-            Tracer.Trace_Text ("Encountered errors: " & Alire_Errors);
+         if not Alire_Error.Is_Empty then
+            Tracer.Trace_Text ("Encountered errors: " & Alire_Error);
+            Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
          else
             --  Report how we found the project
             Self.Project_Status.Set_Project_Type
               (LSP.Ada_Project_Loading.Alire_Project);
+            Self.Project_Status.Set_Alire_Messages ([]);
          end if;
       end if;
 
@@ -225,22 +219,24 @@ package body LSP.Ada_Handlers.Project_Loading is
                else
                  "iso-8859-1");
 
-            Errors : VSS.Strings.Virtual_String;
          begin
-            if Is_Alire_Crate then
+            --  We have an Alire crate and we did not encounter any issue
+            --  when trying to determine the project file to load via
+            --  'alr show': try to setup the needed environment through Alire.
+            if Is_Alire_Crate and then Alire_Error.Is_Empty then
                if LSP.Alire.Should_Setup_Alire_Env (Self.Client) then
                   Tracer.Trace ("Setting environment from 'alr printenv'");
 
                   LSP.Alire.Setup_Alire_Env
                     (Root        =>
                        Self.Client.Root_Directory.Display_Full_Name,
-                     Has_Alire   => Has_Alire,
-                     Error       => Errors,
+                     Error       => Alire_Error,
                      Environment => Environment);
 
-                  if not Errors.Is_Empty then
+                  if not Alire_Error.Is_Empty then
                      Tracer.Trace_Text
-                       ("Encountered errors with Alire:" & LF & Errors);
+                       ("Encountered errors with Alire:" & LF & Alire_Error);
+                     Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
                   end if;
                else
                   Tracer.Trace
@@ -726,6 +722,7 @@ package body LSP.Ada_Handlers.Project_Loading is
       --  in all contexts would cost too much memory
       if Runtime_Indexing.Is_Active
         and then Self.Project_Tree.Is_Defined
+        and then Self.Project_Tree.Root_Project.Is_Defined
         and then Self.Project_Tree.Root_Project.Kind not in GPR2.Aggregate_Kind
       then
          --  Mark all the predefined sources too (runtime)
