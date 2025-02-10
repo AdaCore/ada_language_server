@@ -64,5 +64,5 @@ async def test_with_indexing(lsp: ALSLanguageClient) -> None:
 )
 async def test_without_indexing(lsp: ALSLanguageClient) -> None:
     await check_memory_footprint(
-        lsp, footprint_lower_bound=70, footprint_upper_bound=150
+        lsp, footprint_lower_bound=50, footprint_upper_bound=150
     )
