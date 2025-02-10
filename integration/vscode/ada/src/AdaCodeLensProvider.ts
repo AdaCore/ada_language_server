@@ -11,8 +11,14 @@ import {
     commands,
     Uri,
 } from 'vscode';
-import { CMD_BUILD_AND_DEBUG_MAIN, CMD_BUILD_AND_RUN_MAIN, CMD_SPARK_PROVE_SUBP } from './commands';
-import { envHasExec, getMains, getSymbols } from './helpers';
+import {
+    CMD_BUILD_AND_DEBUG_MAIN,
+    CMD_BUILD_AND_RUN_GNATEMULATOR,
+    CMD_BUILD_AND_RUN_MAIN,
+    CMD_SPARK_PROVE_SUBP,
+} from './commands';
+import { envHasExec, getSymbols } from './helpers';
+import { adaExtState } from './extension';
 
 export class AdaCodeLensProvider implements CodeLensProvider {
     onDidChangeCodeLenses?: Event<void> | undefined;
@@ -28,46 +34,61 @@ export class AdaCodeLensProvider implements CodeLensProvider {
         /**
          * For main procedures, provide Run and Debug CodeLenses.
          */
-        const res1 = getMains().then((mains) => {
-            if (
-                mains.some(
-                    (m) =>
-                        // Here we go through the Uri class to benefit from the normalization
-                        // of path casing on Windows. See Uri.fsPath documentation.
-                        Uri.file(m).fsPath == document.uri.fsPath,
-                )
-            ) {
-                // It's a main file, so let's offer Run and Debug actions on the main subprogram
-                return symbols.then((symbols) => {
-                    const functions = symbols.filter((s) => s.kind == SymbolKind.Function);
-                    if (functions.length > 0) {
-                        /**
-                         * We choose to provide the CodeLenses on the first
-                         * subprogram of the file. It may be possible that the
-                         * main subprogram is not the first one, but that's an
-                         * unlikely scenario that we choose not to handle for
-                         * the moment.
-                         */
-                        return [
-                            new CodeLens(functions[0].range, {
-                                command: CMD_BUILD_AND_RUN_MAIN,
-                                title: '$(run) Run',
-                                arguments: [document.uri],
-                            }),
-                            // TODO implement this command
-                            new CodeLens(functions[0].range, {
-                                command: CMD_BUILD_AND_DEBUG_MAIN,
-                                title: '$(debug-alt-small) Debug',
-                                arguments: [document.uri],
-                            }),
-                        ];
-                    } else {
-                        return [];
-                    }
-                });
-            } else {
-                return [];
-            }
+        const res1 = adaExtState.getTargetPrefix().then((targetPrefix) => {
+            return adaExtState.getMains().then((mains) => {
+                if (
+                    mains.some(
+                        (m) =>
+                            // Here we go through the Uri class to benefit from the normalization
+                            // of path casing on Windows. See Uri.fsPath documentation.
+                            Uri.file(m).fsPath == document.uri.fsPath,
+                    )
+                ) {
+                    // It's a main file, so let's offer Run and Debug actions on the main subprogram
+                    return symbols.then((symbols) => {
+                        const functions = symbols.filter((s) => s.kind == SymbolKind.Function);
+                        if (functions.length > 0) {
+                            /**
+                             * We choose to provide the CodeLenses on the first
+                             * subprogram of the file. It may be possible that the
+                             * main subprogram is not the first one, but that's an
+                             * unlikely scenario that we choose not to handle for
+                             * the moment.
+                             */
+                            let codeLenses = [
+                                new CodeLens(functions[0].range, {
+                                    command: CMD_BUILD_AND_RUN_MAIN,
+                                    title: '$(run) Run',
+                                    arguments: [document.uri],
+                                }),
+                                new CodeLens(functions[0].range, {
+                                    command: CMD_BUILD_AND_DEBUG_MAIN,
+                                    title: '$(debug-alt-small) Debug',
+                                    arguments: [document.uri],
+                                }),
+                            ];
+
+                            // It's not a native project: provide a 'Run with GNATemulator' CodeLens
+                            // if GNATemulator for the given target is present in the user's env.
+                            if (targetPrefix && envHasExec(targetPrefix + '-gnatemu')) {
+                                codeLenses = codeLenses.concat([
+                                    new CodeLens(functions[0].range, {
+                                        command: CMD_BUILD_AND_RUN_GNATEMULATOR,
+                                        title: '$(run) Run with GNATemulator',
+                                        arguments: [document.uri],
+                                    }),
+                                ]);
+                            }
+
+                            return codeLenses;
+                        } else {
+                            return [];
+                        }
+                    });
+                } else {
+                    return [];
+                }
+            });
         });
 
         let res2;

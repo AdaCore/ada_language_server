@@ -41,6 +41,14 @@ suite('CodeLens', function () {
         ]);
     });
 
+    test('no "GNATemulator" codelenses for native projects', async () => {
+        const codelenses = await getCodeLenses('src', 'main1.adb');
+        const result = simplifyCodelenses(codelenses).find((codelens) =>
+            codelens.command.title?.toLowerCase().includes('gnatemulator'),
+        );
+        assert(!result);
+    });
+
     test("in non-main file don't offer run & debug", async () => {
         const srcRelPath = ['src', 'foo.ads'];
         const codelenses = await getCodeLenses(...srcRelPath);
