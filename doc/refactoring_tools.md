@@ -29,7 +29,7 @@ See `/source/ada/lsp-ada_handlers-named_parameters_commands.ads` in [ALS reposit
 
 Demo source is `named_parameters//` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![named_parameters](https://user-images.githubusercontent.com/22893717/166944482-cfebab94-adf8-4de5-9018-8415be94f8f5.gif)
+![named_parameters](media/named_parameters.gif)
 
 
 ## Add Parameter
@@ -46,7 +46,7 @@ See `src/lal_refactor-subprogram_signature.ads` in [LAL Refactor repository](htt
 
 Demo source is `add_parameter//` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![add_parameter](https://user-images.githubusercontent.com/22893717/166926928-f6f5243c-6008-435f-9c2f-40aec0517936.gif)
+![add_parameter](media/add_parameter.gif)
 
 ## Remove Parameter
 
@@ -60,7 +60,7 @@ See `src/lal_refactor-subprogram_signature-remove_parameter.ads` in [LAL Refacto
 
 Demo source is `remove_parameter/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![remove parameter](https://user-images.githubusercontent.com/22893717/166926891-d621fb59-8524-4ba8-abfc-74c12fed2adf.gif)
+![remove_parameter](media/remove_parameter.gif)
 
 ## Move Parameter
 
@@ -74,7 +74,7 @@ See `src/lal_refactor-subprogram_signature.ads` in [LAL Refactor repository](htt
 
 Demo source is `move_parameter/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![move_parameter](https://user-images.githubusercontent.com/22893717/166927234-ba038012-25be-476e-bd29-d85c10a5b2d3.gif)
+![move_parameter](media/move_parameter.gif)
 
 ## Change Parameter Mode
 
@@ -87,7 +87,7 @@ See `src/lal_refactor-subprogram_signature.ads` in [LAL Refactor repository](htt
 
 Demo source is `change_parameter_mode/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![change_parameter_mode](https://user-images.githubusercontent.com/22893717/166927346-cbaa9789-eb44-44df-8a9a-c2b770d3a93e.gif)
+![change_parameter_mode](media/change_parameter_mode.gif)
 
 ## Change Parameter Type
 
@@ -101,7 +101,7 @@ See `src/lal_refactor-subprogram_signature-change_parameters_type.ads` in [LAL R
 
 Demo source is `change_parameter_type/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![change_parameter_type](https://user-images.githubusercontent.com/22893717/166927382-b04c5415-dc3e-49e1-9ef3-2840579447d8.gif)
+![change_parameter_type](media/change_parameter_type.gif)
 
 ## Change Parameter Default Value
 
@@ -115,7 +115,7 @@ See `src/lal_refactor-subprogram_signature-change_parameters_default_value.ads` 
 
 Demo source is `change_parameter_default_value/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![change_parameter_default_value](https://user-images.githubusercontent.com/22893717/166927617-f6f33bc4-d660-44ce-b836-bf02b839887e.gif)
+![change_parameter_default_value](media/change_parameter_default_value.gif)
 
 ## Extract Subprogram
 
@@ -130,7 +130,7 @@ See `src/lal_refactor-extract_subprogram.ads` in [LAL Refactor repository](https
 
 Demo source is `extract_subprogram/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![extract_subprogram](https://user-images.githubusercontent.com/22893717/166927664-c61af27f-a446-4e3a-acbe-71b7fa88e925.gif)
+![extract_subprogram](media/extract_subprogram.gif)
 
 ## Pull Up Declaration
 
@@ -143,7 +143,7 @@ See `src/lal_refactor-pull_up_declaration.ads` in [LAL Refactor repository](http
 
 Demo source is `pull_up_declaration/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![pull_up_declaration](https://user-images.githubusercontent.com/22893717/166927695-e6b9e016-1374-4aa5-9640-60aaf1a4b7fe.gif)
+![pull_up_declaration](media/pull_up_declaration.gif)
 
 ## Suppress Separate
 
@@ -157,7 +157,7 @@ See `src/lal_refactor-suppress_separate.ads` in [LAL Refactor repository](https:
 
 Demo source is `suppress_separate/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![suppress_separate](https://user-images.githubusercontent.com/22893717/166927780-441fdb3f-271f-4f69-99ff-367e8eef301e.gif)
+![suppress_separate](media/suppress_separate.gif)
 
 ## Introduce Parameter
 
@@ -171,7 +171,7 @@ See `src/lal_refactor-introduce_parameter.ads` in [LAL Refactor repository](http
 
 Demo source is `introduce_parameter/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![introduce parameter](https://user-images.githubusercontent.com/22893717/181477996-564a1365-33df-4227-bb82-e9ed802b4ed0.gif)
+![introduce_parameter](media/introduce_parameter.gif)
 
 ## Replace Type
 
@@ -183,7 +183,7 @@ See `src/lal_refactor-replace_type.ads` in [LAL Refactor repository](https://git
 
 Demo source is `replace_type/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![replace type](https://user-images.githubusercontent.com/22893717/217803466-ae5500fe-a071-4fe9-a669-24cd9c82917a.gif)
+![replace_type](media/replace_type.gif)
 
 ## Auto Import
 
@@ -195,7 +195,7 @@ Demo source is `replace_type/` in [Code Samples](https://github.com/AdaCore/ada_
 
 Demo source is `auto_import/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![auto import](https://user-images.githubusercontent.com/22893717/217804710-e686ef22-227b-4e81-8bb1-1f218e5709df.gif)
+![auto_import](media/auto_import.gif)
 
 ## Sort Dependencies
 
@@ -207,4 +207,4 @@ See `src/lal_refactor-sort_dependencies.ads` in [LAL Refactor repository](https:
 
 Demo source is `sort_dependencies/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
-![replace type](https://user-images.githubusercontent.com/22893717/217805066-ee69e6d6-4c9e-4075-8eb6-1fca7793c428.gif)
+![replace_type](media/replace_type.gif)

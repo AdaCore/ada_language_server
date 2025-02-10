@@ -13,7 +13,7 @@ In addition to semantic highlighting, users can customize syntax highlighting fo
 
 You can use the [Developer: Inspect editor tokens and scopes](https://www.youtube.com/watch?v=mC_htrJ1QPg&ab_channel=Code2020) command to know the scope of a given token (see the screenshot below). 
 
-<img src="media/inspect-tokens.png" width="400" />
+![inspect-tokens](media/inspect-tokens.png)
 
 You can also find more documentation about TextMat scopes [here](https://macromates.com/manual/en/language_grammars).
 

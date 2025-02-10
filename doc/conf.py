@@ -22,6 +22,7 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "gitpod.md",
+    "devel/*",
 ]
 
 # -- Options for HTML output -------------------------------------------------

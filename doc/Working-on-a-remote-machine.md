@@ -33,13 +33,13 @@ To do that, open the `Remote Explorer` view and click on the toolbar `Configure`
 
 After saving your SSH configuration file, you should now see all the servers in the `Remote Explorer` view.
 
-<img width="387" src="media/remote-explorer.png">
+![remote-explorer](media/remote-explorer.png)
 
 ## Connect to a remote machine
 
 Just click on the `Connect to Host in New Window` to connect to the server of your choice. If a passphrase is needed, VS Code will ask for it via an input dialog. You can avoid typing your passphrase each time by following the instructions described [here](https://www.thegeekdiary.com/how-to-avoid-ssh-from-prompting-key-passphrase-for-passwordless-logins/).
 
-<img width="669" src="media/connect-host.png">
+![connect-host](media/connect-host.png)
 
 Once you are connected, you will be able to open the workspace or folder of your choice and develop as if you were running VS Code locally.
 

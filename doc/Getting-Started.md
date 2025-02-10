@@ -66,7 +66,7 @@ recommended to create a project file even for the simplest Ada project.
 In the File Explorer title bar, select **New File** and name the file
 `hello_world.gpr`.
 
-![New File button](https://code.visualstudio.com/assets/docs/cpp/msvc/new-file-button.png)
+![New File button](media/new-file-button.png)
 
 Paste in the following source code:
 
