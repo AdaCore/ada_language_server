@@ -1698,13 +1698,11 @@ package body LSP.GPR_Files is
 
       if LSP.Alire.Should_Setup_Alire_Env (Client) then
          declare
-            Has_Alire : Boolean;
-            Error     : VSS.Strings.Virtual_String;
+            Error : VSS.Strings.Virtual_String;
          begin
             --  set Environment from Alire
             LSP.Alire.Setup_Alire_Env
               (Root        => Client.Root_Directory.Display_Full_Name,
-               Has_Alire   => Has_Alire,
                Error       => Error,
                Environment => Env);
          end;
