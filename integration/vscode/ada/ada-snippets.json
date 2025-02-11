@@ -169,8 +169,9 @@
         "prefix": "package",
         "body": [
             "${1|package,package body|} ${2:Name} is",
-            "\t${3|pragma Preelaborate;,pragma Pure;|}$0",
+            "\t$0",
             "private",
+            "\t",
             "end ${2:Name};"
         ],
         "description": "Package Declaration or Body",
