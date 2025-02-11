@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
 import { parallelize, staggerProgress } from './helpers';
 import { cpus } from 'os';
+import { assert } from 'console';
 
 /**
  * TypeScript types to represent data from GNATcoverage XML reports
@@ -307,16 +308,24 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                             throw new vscode.CancellationError();
                         }
 
-                        const found = await vscode.workspace.findFiles(
-                            `**/${file['@_name']!}`,
-                            null,
-                            1,
-                        );
-                        if (found.length == 0) {
-                            return undefined;
+                        assert(file['@_name']);
+
+                        let srcUri: vscode.Uri;
+                        if (path.isAbsolute(file['@_name']!)) {
+                            srcUri = vscode.Uri.file(file['@_name']!);
+                        } else {
+                            const found = await vscode.workspace.findFiles(
+                                `**/${file['@_name']!}`,
+                                null,
+                                1,
+                            );
+                            if (found.length == 0) {
+                                return undefined;
+                            }
+
+                            srcUri = found[0];
                         }
 
-                        const srcUri = found[0];
                         const total = file.metric.find(
                             (m) => m['@_kind'] == 'total_lines_of_relevance',
                         )!['@_count'];
@@ -325,7 +334,7 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                         ];
 
                         const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
-                            (inc) => inc['@_href'] == `${file['@_name']!}.xml`,
+                            (inc) => inc['@_href'] == `${path.basename(file['@_name']!)}.xml`,
                         )!['@_href'];
                         const fileReportPath = path.join(covDir, fileReportBasename);
 
