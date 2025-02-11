@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import { SymbolKind, commands } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
 import { ExecuteCommandRequest } from 'vscode-languageclient';
-import { ExtensionState } from './ExtensionState';
+import { ALSSourceDirDescription, ExtensionState } from './ExtensionState';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
 import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
@@ -80,6 +80,16 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand('ada.walkthroughStartDebugging', walkthroughStartDebugging),
     );
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.createNewAdaMainUnit', () =>
+            createNewAdaFile('Main Procedure'),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.createNewAdaPackage', () =>
+            createNewAdaFile('Package Declaration or Body'),
+        ),
+    );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.subprogramBox', addSubprogramBoxCommand),
     );
@@ -429,6 +439,22 @@ async function buildAndRunMainAsk() {
     }
 }
 
+/**
+ * Handler for commands that create new Ada files.
+ * This function creates a new Ada editor, focus it, and insert the specified snippet.
+ * Used to proivide Ada file templates.
+ *
+ * @param snippetName - the name of the snippet to insert in the newly created editor.
+ */
+async function createNewAdaFile(snippetName: string) {
+    const doc = await vscode.workspace.openTextDocument({ language: 'ada' });
+    await vscode.window.showTextDocument(doc);
+    await vscode.commands.executeCommand('editor.action.insertSnippet', {
+        langId: 'ada',
+        name: snippetName,
+    });
+}
+
 //  Take active editor URI and call execute 'als-other-file' command in LSP
 const otherFileHandler = () => {
     const activeEditor = vscode.window.activeTextEditor;
@@ -458,13 +484,7 @@ const otherFileHandler = () => {
  * when missing directories
  */
 export async function checkSrcDirectories(atStartup = false, displayYesNoPopup = true) {
-    type ALSSourceDirDescription = {
-        name: string;
-        uri: string;
-    };
-
     const foldersInSettings = vscode.workspace.getConfiguration().get('folders');
-    const alsClient = adaExtState.adaClient;
     const doNotShowAgainKey = 'ada.addMissingDirsToWorkspace.doNotShowAgain';
     const doNotShowAgain = adaExtState.context.workspaceState.get(doNotShowAgainKey);
 
@@ -473,13 +493,7 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
     //  triggered at startup while the user previously clicked on the
     //  'Don't show again' button for this workspace
     if (foldersInSettings === undefined && !(atStartup && doNotShowAgain)) {
-        const sourceDirs: ALSSourceDirDescription[] = (await alsClient.sendRequest(
-            ExecuteCommandRequest.type,
-            {
-                command: 'als-source-dirs',
-            },
-        )) as ALSSourceDirDescription[];
-
+        const sourceDirs: ALSSourceDirDescription[] = await adaExtState.getSourceDirs();
         const isSubdirectory = (dir: string, parent: string) => {
             //  Use lower-case on Windows since drives can be specified in VS Code
             //  either with lower or upper case characters.

@@ -26,6 +26,14 @@ import {
 import { isAbsolute } from 'path';
 
 /**
+ * Return type of the 'als-source-dirs' LSP request.
+ */
+export type ALSSourceDirDescription = {
+    name: string;
+    uri: string;
+};
+
+/**
  * This class encapsulates all state that should be maintained throughout the
  * lifecyle of the extension. This includes e.g. the Ada and GPR LSP clients,
  * task providers, etc...
@@ -56,6 +64,7 @@ export class ExtensionState {
      */
     cachedProjectUri: vscode.Uri | undefined;
     cachedObjectDir: string | undefined;
+    cachedSourceDirs: ALSSourceDirDescription[] | undefined;
     cachedTargetPrefix: string | undefined;
     cachedMains: string[] | undefined;
     cachedExecutables: string[] | undefined;
@@ -68,6 +77,7 @@ export class ExtensionState {
     private clearALSCache() {
         this.cachedProjectUri = undefined;
         this.cachedObjectDir = undefined;
+        this.cachedSourceDirs = undefined;
         this.cachedTargetPrefix = undefined;
         this.cachedMains = undefined;
         this.cachedExecutables = undefined;
@@ -379,6 +389,20 @@ export class ExtensionState {
         }
 
         return this.cachedObjectDir;
+    }
+
+    /**
+     *
+     * @returns the list of source directories defined in the project loaded by the ALS
+     */
+    public async getSourceDirs(): Promise<ALSSourceDirDescription[]> {
+        if (this.cachedSourceDirs === undefined) {
+            this.cachedSourceDirs = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, {
+                command: 'als-source-dirs',
+            })) as ALSSourceDirDescription[];
+        }
+
+        return this.cachedSourceDirs;
     }
 
     /**
