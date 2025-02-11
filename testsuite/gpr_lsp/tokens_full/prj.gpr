@@ -1,0 +1,11 @@
+with "config.gpr";
+abstract project Prj is
+   type Enum is ("-O0", "-O3", "-g");
+   Var : Enum := Config.Flag;
+
+   package Compiler is
+      for Switches ("Ada") use (Config.Flag);
+   end Compiler;
+
+   Var := "-O3";
+end Prj;
