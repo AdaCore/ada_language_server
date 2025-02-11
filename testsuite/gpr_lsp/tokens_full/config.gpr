@@ -1,0 +1,3 @@
+abstract project Config is
+   Flag := "-g";
+end Config;

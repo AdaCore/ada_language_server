@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2024, AdaCore                     --
+--                     Copyright (C) 2022-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,6 +30,7 @@ with LSP.Ada_Configurations;
 with LSP.Client_Message_Receivers;
 with LSP.GPR_Documents;
 with LSP.GPR_Files;
+with LSP.GPR_Highlighters;
 with LSP.GPR_Job_Contexts;
 with LSP.Server_Message_Visitors;
 private with LSP.Server_Requests;
@@ -121,6 +122,9 @@ private
 
       Configuration        : LSP.Ada_Configurations.Configuration;
       --  Ada/GPR configuration settings
+
+      Highlighter          : LSP.GPR_Highlighters.GPR_Highlighter;
+      --  Semantic token highlighter
    end record;
 
    overriding procedure On_Server_Notification
@@ -185,6 +189,11 @@ private
    overriding procedure On_DidChangeConfiguration_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidChangeConfigurationParams);
+
+   overriding procedure On_Tokens_Full_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensParams);
 
    -----------------------------------------
    -- LSP.GPR_Documents.Document_Provider --

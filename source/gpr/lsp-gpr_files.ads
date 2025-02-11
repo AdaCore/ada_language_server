@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023-2024, AdaCore                     --
+--                     Copyright (C) 2023-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -141,6 +141,22 @@ package LSP.GPR_Files is
      (Self : File; Position : LSP.Structures.Position) return GPR2.Package_Id;
    --  return the Position's Package_Id. Returns Project_Level_Scope if
    --  Position not inside a package.
+
+   type Package_Range is record
+      Package_Id : GPR2.Package_Id;
+      First      : Gpr_Parser.Common.Token_Reference :=
+                     Gpr_Parser.Common.No_Token;
+      --  'First' is at 'package' token
+
+      Last       : Gpr_Parser.Common.Token_Reference :=
+                     Gpr_Parser.Common.No_Token;
+      --  'Last' is at the package's end or at the end of the renaming.
+   end record;
+
+   type Package_Range_Array is array (Positive range <>) of Package_Range;
+
+   function Package_Ranges (Self : File) return Package_Range_Array;
+   --  Return array of ranges for File's packages.
 
    function Kind (Self : File) return GPR2.Project_Kind;
    --  return project kind as defined in project qualifier
