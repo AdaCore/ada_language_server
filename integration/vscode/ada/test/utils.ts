@@ -319,8 +319,12 @@ export function isGNATTestTask(t: vscode.Task): boolean {
     return t.name.toLowerCase().includes('gnattest');
 }
 
+function isGNATcovTask(t: vscode.Task): boolean {
+    return t.name.toLowerCase().includes('gnatcov');
+}
+
 /**
  * Utility filter for selecting core tasks that are not related to other tools
  * such as GNAT SAS or GNATtest.
  */
-export const isCoreTask = and(negate(isGNATSASTask), negate(isGNATTestTask));
+export const isCoreTask = and(negate(isGNATSASTask), negate(isGNATTestTask), negate(isGNATcovTask));
