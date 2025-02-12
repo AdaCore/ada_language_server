@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2024, AdaCore                     --
+--                     Copyright (C) 2022-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -23,14 +23,15 @@ with GPR2.Path_Name.Set;
 
 with Langkit_Support.Slocs;
 
-with LSP.GPR_Completions;
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Generic_Cancel_Check;
+with LSP.GPR_Completions;
 with LSP.GPR_Documentation;
 with LSP.GPR_File_Readers;
 with LSP.GPR_Files.References;
 with LSP.GPR_Files.Symbols;
+with LSP.Structures.Unwrap;
 with LSP.Text_Documents.Langkit_Documents;
 with LSP.Utils;
 
@@ -398,7 +399,8 @@ package body LSP.GPR_Handlers is
       Value : LSP.Structures.InitializeParams)
    is
       Response     : LSP.Structures.InitializeResult;
-      Capabilities : LSP.Structures.ServerCapabilities;
+      Capabilities : LSP.Structures.ServerCapabilities renames
+        Response.capabilities;
 
    begin
       Self.File_Reader := LSP.GPR_File_Readers.Create (Self'Unchecked_Access);
@@ -414,9 +416,7 @@ package body LSP.GPR_Handlers is
                     resolveProvider   => LSP.Constants.True,
                     others            => <>));
 
-      Response.capabilities := Capabilities;
-
-      Response.capabilities.textDocumentSync :=
+      Capabilities.textDocumentSync :=
         (Is_Set => True,
          Value  => (Is_TextDocumentSyncOptions => True,
                     TextDocumentSyncOptions =>
@@ -427,7 +427,7 @@ package body LSP.GPR_Handlers is
                          (Is_Set => True, Value => (True, True)),
                        others    => <>)));
 
-      Response.capabilities.documentSymbolProvider :=
+      Capabilities.documentSymbolProvider :=
         (Is_Set => True,
          Value  =>
            (Is_Boolean => False,
@@ -441,6 +441,32 @@ package body LSP.GPR_Handlers is
           .hierarchicalDocumentSymbolSupport.Is_Set
         and then Value.capabilities.textDocument.Value.documentSymbol.Value
           .hierarchicalDocumentSymbolSupport.Value;
+
+      declare
+         use LSP.Structures.Unwrap;
+
+         Types     : LSP.Structures.Virtual_String_Vector :=
+           tokenTypes
+             (semanticTokens (Value.capabilities.textDocument));
+
+         Modifiers : LSP.Structures.Virtual_String_Vector :=
+           tokenModifiers
+             (semanticTokens (Value.capabilities.textDocument));
+      begin
+         Self.Highlighter.Initialize (Types, Modifiers);
+
+         Capabilities.semanticTokensProvider :=
+           (Is_Set => True,
+            Value  =>
+              (Is_SemanticTokensOptions => True,
+               SemanticTokensOptions    =>
+                 (full    => LSP.Constants.True,
+                  a_range => <>,
+                  legend  =>
+                    (tokenTypes     => Types,
+                     tokenModifiers => Modifiers),
+                  others  => <>)));
+      end;
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
@@ -712,6 +738,27 @@ package body LSP.GPR_Handlers is
          end;
       end loop;
    end On_DidChangeConfiguration_Notification;
+
+   ----------------------------
+   -- On_Tokens_Full_Request --
+   ----------------------------
+
+   overriding procedure On_Tokens_Full_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.SemanticTokensParams)
+   is
+      File : constant LSP.GPR_Files.File_Access :=
+        LSP.GPR_Files.Parse
+          (File_Provider => Self'Unchecked_Access,
+           Path          => Self.To_File (Value.textDocument.uri));
+
+      Response : LSP.Structures.SemanticTokens_Or_Null (Is_Null => False);
+   begin
+      Self.Highlighter.Get_Tokens (File, Response.Value.data);
+
+      Self.Sender.On_Tokens_Full_Response (Id, Response);
+   end On_Tokens_Full_Request;
 
    -------------------------
    -- Publish_Diagnostics --

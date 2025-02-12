@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023-2024, AdaCore                     --
+--                     Copyright (C) 2023-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1372,6 +1372,25 @@ package body LSP.GPR_Files is
       end if;
 
    end Reset;
+
+   --------------------
+   -- Package_Ranges --
+   --------------------
+
+   function Package_Ranges (Self : File) return Package_Range_Array is
+      Result : Package_Range_Array (1 .. Natural (Self.Packages.Length));
+      Last   : Natural := 0;
+   begin
+      for J in Self.Packages.Iterate loop
+         Last := Last + 1;
+         Result (Last) :=
+           (Package_Id => Package_Maps.Key (J),
+            First      => Self.Packages (J).First,
+            Last       => Self.Packages (J).Last);
+      end loop;
+
+      return Result;
+   end Package_Ranges;
 
    -----------
    -- Parse --

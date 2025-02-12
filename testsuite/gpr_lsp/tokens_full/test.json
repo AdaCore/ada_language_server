@@ -1,0 +1,223 @@
+[
+  {
+    "comment": [
+      "test for textDocument/semanticTokens/full"
+    ]
+  },
+  {
+    "start": {
+      "cmd": [
+        "${ALS}",
+        "--language-gpr"
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "init",
+        "method": "initialize",
+        "params": {
+          "processId": 441587,
+          "rootUri": "$URI{.}",
+          "capabilities": {
+            "workspace": {
+              "applyEdit": true,
+              "workspaceEdit": {},
+              "didChangeConfiguration": {},
+              "didChangeWatchedFiles": {},
+              "executeCommand": {}
+            },
+            "textDocument": {
+              "synchronization": {},
+              "completion": {
+                "dynamicRegistration": true,
+                "completionItem": {
+                  "snippetSupport": true,
+                  "documentationFormat": [
+                    "plaintext",
+                    "markdown"
+                  ]
+                }
+              },
+              "hover": {},
+              "signatureHelp": {},
+              "declaration": {},
+              "definition": {},
+              "typeDefinition": {},
+              "implementation": {},
+              "references": {},
+              "documentHighlight": {},
+              "documentSymbol": {
+                "hierarchicalDocumentSymbolSupport": true
+              },
+              "codeLens": {},
+              "colorProvider": {},
+              "formatting": {
+                "dynamicRegistration": false
+              },
+              "rangeFormatting": {
+                "dynamicRegistration": false
+              },
+              "onTypeFormatting": {
+                "dynamicRegistration": false
+              },
+              "foldingRange": {
+                "lineFoldingOnly": true
+              },
+              "selectionRange": {},
+              "linkedEditingRange": {},
+              "callHierarchy": {},
+              "semanticTokens": {
+                "dynamicRegistration": true,
+                "tokenTypes": [
+                  "namespace",
+                  "type",
+                  "class",
+                  "enum",
+                  "interface",
+                  "struct",
+                  "typeParameter",
+                  "parameter",
+                  "variable",
+                  "property",
+                  "enumMember",
+                  "event",
+                  "function",
+                  "method",
+                  "macro",
+                  "keyword",
+                  "modifier",
+                  "comment",
+                  "string",
+                  "number",
+                  "regexp",
+                  "operator",
+                  "decorator"
+                ],
+                "tokenModifiers": [
+                  "declaration",
+                  "definition",
+                  "readonly",
+                  "static",
+                  "deprecated",
+                  "abstract",
+                  "async",
+                  "modification",
+                  "documentation",
+                  "defaultLibrary"
+                ],
+                "formats": ["relative"],
+                "requests": { "range": true, "full": { "delta": true } },
+                "multilineTokenSupport": false,
+                "overlappingTokenSupport": false,
+                "serverCancelSupport": true,
+                "augmentsSyntaxTokens": true
+              }
+            }
+          }
+        }
+      },
+      "wait": [
+        {
+          "jsonrpc": "2.0",
+          "id": "init",
+          "result": {
+            "capabilities": {
+              "textDocumentSync": {
+                "openClose": true,
+                "change": 1
+              },
+              "semanticTokensProvider": {
+                "legend": {
+                  "tokenTypes": ["namespace", "enum", "variable", "property"],
+                  "tokenModifiers": ["declaration", "modification"]
+                },
+                "full": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "initialized"
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{prj.gpr}",
+            "languageId": "Gpr",
+            "version": 1,
+            "text": "with \"config.gpr\";\nabstract project Prj is\n   type Enum is (\"-O0\", \"-O3\", \"-g\");\n   Var : Enum := Config.Flag;\n\n   package Compiler is\n      for Switches (\"Ada\") use (Config.Flag);\n   end Compiler;\n\n   Var := \"-O3\";\nend Prj;\n"
+          }
+        }
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "textDocument": {
+            "uri": "$URI{prj.gpr}"
+          }
+        },
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "textDocument/semanticTokens/full"
+      },
+      "wait": [
+        {
+          "id": 1,
+          "result": {
+            "data":[2,8,4,1,1,1,3,3,2,1,0,6,4,1,0,0,8,6,0,0,0,7,4,2,0,2,11,8,0,1,1,10,8,3,1,0,22,6,0,0,0,7,4,2,0,1,7,8,0,0,2,3,3,2,1,1,4,3,0,0]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "shutdown",
+        "method": "shutdown",
+        "params": null
+      },
+      "wait": [
+        {
+          "id": "shutdown",
+          "result": null
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "exit"
+      },
+      "wait": []
+    }
+  },
+  {
+    "stop": {
+      "exit_code": 0
+    }
+  }
+]
