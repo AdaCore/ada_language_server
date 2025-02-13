@@ -177,7 +177,14 @@ function build_langkit_raw() {
       if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
          # Fix setenv.sh to be bash script for MSYS2 by replacing
          #  1) C:\ -> /C/  2) '\' -> '/' and ';' -> ':' 3) ": export" -> "; export"
-         sed -i -e 's#\([A-Z]\):\\#/\1/#g' -e 'y#\\;#/:#' -e 's/: export /; export /' "$LANGKIT_SETENV"
+         #
+         # Only do this on the PATH environment variable which MSYS2/Cygwin
+         # automatically converts to Windows paths. Other variables such as
+         # PYTHONPATH must be left in Windows format to be usable by Python
+         # subprocresses.
+         #
+         # See https://www.msys2.org/docs/filesystem-paths/
+         sed -i -e '/^PATH=/s#\([A-Z]\):\\#/\1/#g' -e '/^PATH=/y#\\;#/:#' -e '/^PATH=/s/: export /; export /' "$LANGKIT_SETENV"
       fi
 
       cat "$LANGKIT_SETENV"
