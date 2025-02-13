@@ -698,6 +698,7 @@ async function handleRunRequestedTests(
                     DEFAULT_PROBLEM_MATCHER,
                 ),
             ))!;
+            gnatcovReportTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
             const result = await runTaskAndGetResult(gnatcovReportTask);
             if (result != 0) {
                 const msg =
