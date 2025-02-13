@@ -64,6 +64,9 @@ branch_gnatformat=edge
 branch_libgpr2=main
 branch_prettier_ada=main
 
+# Repository URLs can be overriden (e.g. to personal forks for experimentation)
+# url_langkit_support=https://github.com/<my-github-login>/langkit.git
+
 # Set `prod` build mode
 ########################
 # for adasat,gnatformat,lal,langkit,lal_refactor,laltools,markdown,spawn
@@ -111,7 +114,10 @@ function pin_crates() {
          commit=$(grep "^${repo:-$crate}=" deps.txt | sed -e 's/.*=//')
       fi
 
-      URL="https://github.com/AdaCore/${repo:-$crate}.git"
+      url_var=url_$crate
+      url_override=${!url_var}
+      URL=${url_override:-"https://github.com/AdaCore/${repo:-$crate}.git"}
+
       if [ ! -d "subprojects/$crate" ]; then
          # If the checkout doesn't exist, clone
          git clone "$URL" "subprojects/$crate"
