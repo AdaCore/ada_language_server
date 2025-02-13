@@ -16,8 +16,8 @@ type ObjDirResponse = string;
 
 And a new command with out arguments:
 
-  method: `als-object-dir`
+    method: `als-object-dir`
 
 Returning the project file of the loaded project like this:
 
-  result: `ObjDirResponse`
+    result: `ObjDirResponse`
