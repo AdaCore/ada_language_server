@@ -599,9 +599,9 @@ begin
    Server.Initialize (Stream'Unchecked_Access);
 
    begin
-      if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
+      LSP.GPR_External_Tools.Initialize_Extra_Packages_Attributes;
 
-         LSP.GPR_External_Tools.Initialize_Extra_Packages_Attributes;
+      if VSS.Command_Line.Is_Specified (Language_GPR_Option) then
 
          Server.Register_Handler
            (LSP.Server_Notifications.DidChange.Notification'Tag,
