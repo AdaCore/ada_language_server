@@ -53,8 +53,9 @@ extension at
     - [Tasks](#tasks)
       - [Task Customization](#task-customization)
       - [Tasks for Project Mains](#tasks-for-project-mains)
-      - [GNATtest Support](#gnattest-support)
-      - [ALIRE Support](#alire-support)
+    - [Alire Support](#alire-support)
+    - [GNATtest Support](#gnattest-support)
+    - [GNATcoverage Support](#gnatcoverage-support)
     - [Commands and Shortcuts](#commands-and-shortcuts)
       - [Ada: Go to other file](#ada-go-to-other-file)
       - [Ada: Add subprogram box](#ada-add-subprogram-box)
@@ -254,7 +255,15 @@ For example, if the project defines a `main1.adb` and `main2.adb` located under 
 * `ada: Run main - src/main2.adb`
 * `ada: Build and run main - src/main2.adb`
 
-#### GNATtest Support
+### Alire Support
+
+When the workspace is an Alire crate (i.e. it contains an `alire.toml` file), the extension uses Alire to determine the GPR project that should be loaded and to obtain an environment where the crate's dependencies have been provisioned.
+
+Moreover when working with an Alire crate, VS Code tasks automatically use standard Alire commands. For example, the `ada: Build current project` task uses the command `alr build` and the `ada: Clean current project` task uses the command `alr clean`.
+
+All other tasks use `alr exec -- ...` to execute the command in the environment provided by Alire.
+
+### GNATtest Support
 
 If you install GNATtest, the Ada & SPARK extension for VS Code will provide the following functionalities:
 
@@ -264,7 +273,7 @@ If you install GNATtest, the Ada & SPARK extension for VS Code will provide the 
 
 * Tests created with GNATtest will be loaded in the VS Code **Testing** view as follows.
 
-  <img src="doc/gnattest-test-tree.png" width="650" alt="GNATtest Test Tree">
+  <img src="doc/gnattest-test-tree.png" width="650" alt="GNATtest Test Tree"/>
 
 * Tests can be executed individually or in batch through the available buttons in the interface, or through the `Test: Run All Tests` command or related commands.
 
@@ -272,7 +281,7 @@ If you install GNATtest, the Ada & SPARK extension for VS Code will provide the 
 
 * Test execution results are reflected in the test tree.
 
-  <img src="doc/gnattest-results.png" width="500" alt="GNATtest Test Results">
+  <img src="doc/gnattest-results.png" width="500" alt="GNATtest Test Results"/>
 
 GNATtest support has the following known limitations:
 
@@ -284,13 +293,34 @@ GNATtest support has the following known limitations:
 * Sections of test sources delimited by `begin read only` and `end read only` comments are not really protected from inadvertant edits.
   To ensure proper interactions with GNATtest, you must refrain from making edits in those sections.
 
-#### ALIRE Support
+### GNATcoverage Support
 
-When the workspace is an ALIRE project (i.e. it contains an `alire.toml` file), tasks automatically use standard ALIRE commands.
+GNATcoverage coverage reports can be imported in VS Code as follows:
 
-For example, the `ada: Build current project` task uses the command `alr build` and the `ada: Clean current project` task uses the command `alr clean`.
+1. Instruct GNATcoverage to produce an [XML report](https://docs.adacore.com/live/wave/gnatdas/html/gnatdas_ug/gnatcov/cov_source.html#xml-report-xml-xml)
+2. Invoke the VS Code command `ada: GNATcoverage - Load an existing XML coverage report`
+3. Browse to the location of the GNATcoverage XML report and select the `index.xml` file
 
-All other tasks use `alr exec -- ...` to execute the command in the environment provided by ALIRE.
+<img src="doc/gnatcov-report.png" width="1000" alt="GNATcoverage report in VS Code" />
+
+Note that importing coverage reports does not require GNATcoverage to be installed. In particular, this enables a workflow where the coverage report is produced in CI and downloaded and imported into VS Code for visualization and analysis.
+
+The GNATtest integration in VS Code also supports running tests in coverage mode, if GNATcoverage is installed on the development machine.
+
+1. Run the task `ada: GNATcoverage - Setup runtime library` once to set up the GNATcoverage runtime library
+2. If you don't already have a test harness project created, use the task `ada: Create or update GNATtest test framework` to create one
+3. Switch to the _Test Explorer_ view or use the `Testing: Focus on Test Explorer View` command to do that
+4. Run the tests in coverage mode using the command `Test: Run All Tests with Coverage`, or use the "play" icon next to a single test or group of tests with the label _Run Test with Coverage_.
+5. In one go, VS Code will:
+   1. Invoke [GNATcoverage source instrumentation](https://docs.adacore.com/live/wave/gnatdas/html/gnatdas_ug/gnatcov/src_traces.html)
+   1. Build the test harness project
+   1. Run the tests
+   1. Invoke [GNATcoverage source coverage analysis](https://docs.adacore.com/live/wave/gnatdas/html/gnatdas_ug/gnatcov/cov_source.html)
+   1. Load the GNATcoverage report into VS Code
+
+<img src="doc/gnattest-gnatcov.png" width="1000" alt="GNATtest with GNATcoverage in VS Code" />
+
+Integrating the steps of source instrumentation and test harness build into the test execution workflow allows for a quick feedback loop: run a test, observe results and coverage, edit the test or the tested code, repeat... In this context invoking the VS Code commands `Test: Rerun Last Run` and `Test: Rerun Last Run with Coverage` with their respective keyboard shortcuts can be valuable.
 
 ### Commands and Shortcuts
 
@@ -349,13 +379,13 @@ The VS Code extension has a few limitations and some differences compared to [GN
 * **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
 formatting might no succeed on incomplete/illegal code.
 
-* **Tooling support**: we currently provide support for some *SPARK*, *GNATtest* and *GNAT SAS* [Tasks](#tasks), but there is no support for tools such as *GNATcheck* or *GNATcoverage* yet.
+* **Tooling support**: we currently provide support for some *SPARK*, *GNATtest*, *GNATcoverage* and *GNAT SAS* [Tasks](#tasks), but some workflows may not be supported yet.
 
 * **Alire support**: if the root folder contains an `alire.toml` file and
   there is `alr` executable in the `PATH`, then the language server fetches
   the project's search path, environment variables and the project's file
   name from the crate description. [Tasks](#tasks) are also automatically
-  invoked with ALIRE in this case.
+  invoked with Alire in this case.
 
 * **Project support**: there is no `Scenario` view: users should configure scenarios via the *ada.scenarioVariables* setting (see the settings list available [here](doc/settings.md)). Saving the settings file after changing the values will automatically reload the project and update the
 predefined tasks to take into account the new scenario values.
