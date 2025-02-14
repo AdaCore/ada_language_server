@@ -576,10 +576,31 @@ export async function parallelize<T, Result>(
  * such that progress is reported only when a minimum increment is reached,
  * e.g. every 1%.
  *
- * Here's how the function should be used:
+ * @example Here's how the function should be used:
+ * ```ts
+ * await vscode.window.withProgress(...,
+ *     async (progress, token) => {
+ *         let done: number = 0;
+ *         let lastProgress = 0;
+ *         const total = ...;
  *
- *    TODO
- *
+ *         for (...) {
+ *             lastProgress = staggerProgress(
+ *                 done,
+ *                 total,
+ *                 lastProgress,
+ *                 (increment) => {
+ *                     progress.report({
+ *                         message: `${done} / ${total}`,
+ *                         increment: increment,
+ *                     });
+ *                 },
+ *             );
+ *             ++done;
+ *         }
+ *     }
+ * })
+ * ```
  *
  * @param done - the number of items processed since the beginning of the work
  * @param total - the total number of items to be processed
