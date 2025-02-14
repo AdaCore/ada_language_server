@@ -7,16 +7,29 @@ import * as vscode from 'vscode';
 import { TestItem } from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
-import { escapeRegExp, exe, getObjectDir } from './helpers';
+import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
+import { getScenarioArgs } from './gnatTaskProvider';
+import { escapeRegExp, exe, getObjectDir, setTerminalEnvironment } from './helpers';
 import {
+    DEFAULT_PROBLEM_MATCHER,
     findTaskByName,
     runTaskAndGetResult,
+    runTaskSequence,
+    SimpleTaskDef,
     TASK_BUILD_TEST_DRIVER,
+    TASK_GNATCOV_SETUP,
     TASK_TYPE_ADA,
 } from './taskProviders';
 
 export let controller: vscode.TestController;
 export let testRunProfile: vscode.TestRunProfile;
+export let testCoverageProfile: vscode.TestRunProfile;
+
+/**
+ * This test controller is not used for actually running tests. It is merely
+ * used for loading an existing GNATcoverage report obtained outside VS Code.
+ */
+let fileLoadController: vscode.TestController;
 
 /**
  * Types definition for the Gnattest XML file structure. The types match the XML
@@ -123,6 +136,15 @@ export function initializeTesting(context: vscode.ExtensionContext): vscode.Test
 
     configureTestExecution(controller);
 
+    /**
+     * Initialize the controller responsible for loading existing GNATcov
+     * reports on demand.
+     */
+    fileLoadController = vscode.tests.createTestController(
+        'gnatcoverage-report-loader',
+        'GNATcoverage Report Loader',
+    );
+
     return controller;
 }
 
@@ -212,7 +234,11 @@ async function addUnitItem(unit: Unit) {
     const srcUri = await findFileInWorkspace(srcFile);
     const unitId = createUnitItemId(unit);
     if (!controller.items.get(unitId)) {
-        const testItem = controller.createTestItem(unitId, `Tests for ${srcFile}`, srcUri);
+        const testItem = controller.createTestItem(
+            unitId,
+            `Tests for source file - ${srcFile}`,
+            srcUri,
+        );
 
         /**
          * To implement lazy loading of children, we set canResolveChildren and
@@ -262,7 +288,7 @@ function addTestedItem(parentTestItem: vscode.TestItem, tested: Tested) {
          */
         const testedItem = controller.createTestItem(
             testItemId,
-            `Tests for subprogram ${testedSubprogramName}`,
+            `Tests for subprogram - ${testedSubprogramName}`,
             parentTestItem.uri,
         );
         testedItem.range = range;
@@ -468,6 +494,12 @@ function configureTestExecution(controller: vscode.TestController) {
         vscode.TestRunProfileKind.Run,
         runHandler,
     );
+    testCoverageProfile = controller.createRunProfile(
+        'GNATtest (with coverage)',
+        vscode.TestRunProfileKind.Coverage,
+        (r, t) => runHandler(r, t, true),
+    );
+    testCoverageProfile.loadDetailedCoverage = loadDetailedCoverage;
 }
 
 /**
@@ -477,19 +509,34 @@ function configureTestExecution(controller: vscode.TestController) {
  * @param request - the request based on the User selections
  * @param token - a cancellation token
  */
-export async function runHandler(request: vscode.TestRunRequest, token?: vscode.CancellationToken) {
-    if ((request.include?.length ?? 0) === 0 && (request.exclude?.length ?? 0) === 0) {
-        /**
-         * Run all tests. This ignores request.exclude which is why we only use
-         * it in this branch.
-         */
-        await handleRunAll(request, token);
-    } else {
-        /**
-         * Run a specific set of tests
-         */
-        await handleRunRequestedTests(request, token);
-    }
+export async function runHandler(
+    request: vscode.TestRunRequest,
+    token?: vscode.CancellationToken,
+    coverage: boolean = false,
+) {
+    /**
+     * We remove the usage of handleRunAll temporarily to factorize all test
+     * execution logic in handleRunRequestedTests.
+     *
+     * The difference between the two is that handleRunAll calls the test
+     * harness once to run all tests, while handleRunRequestedTests makes
+     * multiple invocation, one for each test, and is thus more flexible hence
+     * prioritizing it.
+     */
+
+    // if ((request.include?.length ?? 0) === 0 && (request.exclude?.length ?? 0) === 0) {
+    //     /**
+    //      * Run all tests. This ignores request.exclude which is why we only use
+    //      * it in this branch.
+    //      */
+    //     await handleRunAll(request, token, coverage);
+    // } else {
+
+    /**
+     * Run a specific set of tests
+     */
+    await handleRunRequestedTests(request, token, coverage);
+    // }
 }
 
 /**
@@ -497,7 +544,11 @@ export async function runHandler(request: vscode.TestRunRequest, token?: vscode.
  * controller.items) and request.exclude. It then runs the test driver for each
  * test, using the --routines argument at each run to select a specific test.
  */
-async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: CancellationToken) {
+async function handleRunRequestedTests(
+    request: vscode.TestRunRequest,
+    token?: CancellationToken,
+    coverage = false,
+) {
     const run = controller.createTestRun(request, undefined, false);
     try {
         const requestedRootTests = [];
@@ -545,7 +596,7 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: C
         /**
          * Build the test driver
          */
-        await buildTestDriverAndReportErrors(run, testsToRun);
+        await buildTestDriverAndReportErrors(run, testsToRun, coverage);
 
         if (token?.isCancellationRequested) {
             throw new vscode.CancellationError();
@@ -555,6 +606,18 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: C
          * Invoke the test driver for each test
          */
         const execPath = await getGnatTestDriverExecPath();
+        const tracesDir = path.dirname(execPath);
+
+        function getTracePath(test: TestItem): string {
+            return path.join(tracesDir, test.id + '.srctrace');
+        }
+
+        /**
+         * Use environment provided by terminal.integrated.env.* for test execution.
+         */
+        const env = { ...process.env };
+        setTerminalEnvironment(env);
+
         for (const test of testsToRun) {
             if (token?.isCancellationRequested) {
                 throw new vscode.CancellationError();
@@ -562,16 +625,91 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: C
             const start = Date.now();
             run.started(test);
             const cmd = [execPath, '--passed-tests=show', `--routines=${test.id}`];
-            const driver = logAndRun(run, cmd);
+
+            if (coverage) {
+                /**
+                 * Set the name of the trace file for coverage analysis.
+                 */
+                env['GNATCOV_TRACE_FILE'] = getTracePath(test);
+            }
+
+            const driver = logAndRun(run, cmd, env);
             const duration = Date.now() - start;
-            const driverOutput = driver.stdout.toLocaleString();
-            prepareAndAppendOutput(run, driverOutput);
-            prepareAndAppendOutput(run, driver.stderr.toLocaleString());
-            determineTestOutcome(test, driverOutput, run, duration);
-            if (driver.status && driver.status !== 0) {
-                const msg = `The test driver ended with an error code: ${driver.status.toString()}`;
-                run.appendOutput(msg + '\r\n');
-                throw Error(msg);
+            if (driver.status !== null) {
+                /**
+                 * The child process was spawned successfully so we can use its
+                 * status and outputs.
+                 */
+                const driverOutput = driver.stdout.toLocaleString();
+                prepareAndAppendOutput(run, driverOutput);
+                prepareAndAppendOutput(run, driver.stderr.toLocaleString());
+
+                if (driver.status == 0) {
+                    determineTestOutcome(test, driverOutput, run, duration);
+                } else {
+                    const msg =
+                        `The test driver ended with an error code: ` +
+                        `${driver.status.toString()}`;
+                    run.appendOutput(msg + '\r\n');
+                    run.errored(test, new vscode.TestMessage(msg));
+                }
+            } else if (driver.error) {
+                /**
+                 * The child process failed to spawn and there's an error.
+                 */
+                run.errored(test, new vscode.TestMessage(driver.error.toString()));
+            } else {
+                /**
+                 * The child process failed to spawn and there's an error.
+                 */
+                run.errored(
+                    test,
+                    new vscode.TestMessage(
+                        `Failed to spawn the test command: ${cmd.toLocaleString()}`,
+                    ),
+                );
+            }
+        }
+
+        if (coverage) {
+            /**
+             * Produce a GNATcov XML report
+             */
+            const outputDir = path.join(await adaExtState.getObjectDir(), 'cov-xml');
+            const adaTP = adaExtState.getAdaTaskProvider()!;
+            const gnatcovReportTask = (await adaTP.resolveTask(
+                new vscode.Task(
+                    {
+                        type: TASK_TYPE_ADA,
+                        command: 'gnatcov',
+                        args: [
+                            'coverage',
+                            '-P',
+                            await getGnatTestDriverProjectPath(),
+                            '--level=stmt',
+                            '--annotate=xml',
+                            `--output-dir=${outputDir}`,
+                        ].concat(testsToRun.map(getTracePath)),
+                    },
+                    vscode.TaskScope.Workspace,
+                    `Create GNATcoverage XML report`,
+                    TASK_TYPE_ADA,
+                    undefined,
+                    DEFAULT_PROBLEM_MATCHER,
+                ),
+            ))!;
+            gnatcovReportTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
+            const result = await runTaskAndGetResult(gnatcovReportTask);
+            if (result != 0) {
+                const msg =
+                    `Error while running coverage analysis.` +
+                    ` See the [Terminal](command:terminal.focus) view for more information.`;
+                void vscode.window.showErrorMessage(msg);
+            } else {
+                /**
+                 * Convert GNATcoverage coverage report to VS Code
+                 */
+                await addCoverageData(run, outputDir);
             }
         }
     } finally {
@@ -587,14 +725,92 @@ async function handleRunRequestedTests(request: vscode.TestRunRequest, token?: C
  * @param testsToRun - the tests requested for execution - build failure will be
  * reported on those tests.
  */
-async function buildTestDriverAndReportErrors(run: vscode.TestRun, testsToRun: vscode.TestItem[]) {
-    const task = await findTaskByName(`${TASK_TYPE_ADA}: ${TASK_BUILD_TEST_DRIVER}`);
-    const result = await runTaskAndGetResult(task);
+async function buildTestDriverAndReportErrors(
+    run: vscode.TestRun,
+    testsToRun: vscode.TestItem[],
+    coverage: boolean,
+) {
+    class WriteEmitter extends vscode.EventEmitter<string> {
+        override fire(data: string): void {
+            run.appendOutput(data);
+        }
+    }
+
+    const buildTasks = [];
+    if (coverage) {
+        const adaTP = adaExtState.getAdaTaskProvider()!;
+
+        const instTaskDef: SimpleTaskDef = {
+            type: TASK_TYPE_ADA,
+            command: 'gnatcov',
+            args: ['instrument', '--level=stmt', '-P', await getGnatTestDriverProjectPath()].concat(
+                getScenarioArgs(),
+            ),
+        };
+        const instTask = (await adaTP.resolveTask(
+            new vscode.Task(
+                instTaskDef,
+                vscode.TaskScope.Workspace,
+                `GNATcoverage - Generate instrumented sources for coverage analysis`,
+                TASK_TYPE_ADA,
+                undefined,
+                DEFAULT_PROBLEM_MATCHER,
+            ),
+        ))!;
+        instTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
+
+        const buildTaskDef: SimpleTaskDef = {
+            type: TASK_TYPE_ADA,
+            command: 'gprbuild',
+            args: [
+                '-m',
+                '-s',
+                '--src-subdirs=gnatcov-instr',
+                '--implicit-with=gnatcov_rts.gpr',
+                '-P',
+                await getGnatTestDriverProjectPath(),
+            ]
+                .concat(getScenarioArgs())
+                .concat(['-cargs', '-g', '-fdump-scos', '-fpreserve-control-flow']),
+        };
+        const buildTask = (await adaTP.resolveTask(
+            new vscode.Task(
+                buildTaskDef,
+                vscode.TaskScope.Workspace,
+                `GNATcoverage - Build GNATtest harness project in coverage mode`,
+                TASK_TYPE_ADA,
+                undefined,
+                DEFAULT_PROBLEM_MATCHER,
+            ),
+        ))!;
+        buildTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
+
+        buildTasks.push(instTask, buildTask);
+    } else {
+        const task = await findTaskByName(`${TASK_BUILD_TEST_DRIVER}`);
+        buildTasks.push(task);
+    }
+
+    const result = await runTaskSequence(buildTasks, new WriteEmitter());
+
     if (result != 0) {
-        const msg =
-            `Task '${TASK_BUILD_TEST_DRIVER}' failed.` +
+        let msg =
+            `Error while building the test harness project.` +
             ` Check the [Problems](command:workbench.panel.markers.view.focus) view` +
             ` and the [Terminal](command:terminal.focus) view for more information.`;
+
+        if (coverage) {
+            const taskName = `${TASK_TYPE_ADA}: ${TASK_GNATCOV_SETUP.label}`;
+            const taskNameEncoded = taskName.replace(/:/g, '%3A').replace(/ /g, '%20');
+            msg +=
+                `\n\nIf the errors relate to the GNATcoverage runtime library,` +
+                ` remember to set it up using the` +
+                ` [${taskName}]` +
+                `(command:workbench.action.tasks.runTask?%22${taskNameEncoded}%22) task.`;
+        }
+
+        prepareAndAppendOutput(run, msg);
+
         const md = new vscode.MarkdownString(msg);
         md.isTrusted = true;
         const testMsg = new vscode.TestMessage(md);
@@ -624,7 +840,12 @@ function prepareAndAppendOutput(run: vscode.TestRun, out: string) {
  * in {@link handleRunRequestedTests} fails because of GNATtest shortcomings, we
  * still have this approach of running all tests as a backup.
  */
-async function handleRunAll(request: vscode.TestRunRequest, token?: CancellationToken) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function handleRunAll(
+    request: vscode.TestRunRequest,
+    token?: CancellationToken,
+    coverage = false,
+) {
     const run = controller.createTestRun(request, undefined, false);
     try {
         /**
@@ -649,7 +870,7 @@ async function handleRunAll(request: vscode.TestRunRequest, token?: Cancellation
         /**
          * Build the test driver
          */
-        await buildTestDriverAndReportErrors(run, allTests);
+        await buildTestDriverAndReportErrors(run, allTests, coverage);
 
         if (token?.isCancellationRequested) {
             throw new vscode.CancellationError();
@@ -856,7 +1077,58 @@ export async function collectLeafItems(
  * @param cmd - a command line to run
  * @returns the child process object returned by {@link cp.spawnSync}
  */
-function logAndRun(run: vscode.TestRun, cmd: string[]): cp.SpawnSyncReturns<Buffer> {
+function logAndRun(
+    run: vscode.TestRun,
+    cmd: string[],
+    env?: NodeJS.ProcessEnv,
+): cp.SpawnSyncReturns<Buffer> {
     run.appendOutput(`$ ${cmd.map((arg) => `"${arg}"`).join(' ')}\r\n`);
-    return cp.spawnSync(cmd[0], cmd.slice(1));
+    return cp.spawnSync(cmd[0], cmd.slice(1), { env: env });
+}
+
+/**
+ *
+ * @param _testRun - The test run
+ * @param fileCoverage - The FileCoverage object for which we want to load detailed coverage
+ * @param token - a cancellation token
+ * @returns
+ */
+async function loadDetailedCoverage(
+    _testRun: vscode.TestRun,
+    fileCoverage: vscode.FileCoverage,
+    token: CancellationToken,
+): Promise<vscode.FileCoverageDetail[]> {
+    try {
+        return await (fileCoverage as GnatcovFileCoverage).load(token);
+    } catch (err) {
+        let msg = `Error while loading detailed coverage data`;
+        if (err instanceof Error) {
+            msg += `:\n${err.toString()}`;
+        }
+        void vscode.window.showErrorMessage(msg);
+    }
+
+    return [];
+}
+
+/**
+ * Load an external GNATcoverage XML report in the VS Code UI.
+ *
+ * @param indexXmlPath - path of the index.xml file of a GNATcoverage XML report
+ */
+export async function loadGnatCoverageReport(indexXmlPath: string) {
+    const request = new vscode.TestRunRequest(
+        undefined,
+        undefined,
+        /**
+         * Associate the request with the coverage profile so that it becomes
+         * possible to load detailed coverage data for each file.
+         */
+        testCoverageProfile,
+    );
+    const run = fileLoadController.createTestRun(request, path.basename(indexXmlPath), false);
+
+    const covDir = path.dirname(indexXmlPath);
+    await addCoverageData(run, covDir);
+    run.end();
 }

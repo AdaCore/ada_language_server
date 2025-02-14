@@ -100,6 +100,7 @@ als-cov:linux:
       # save coverage results
     - cp -v $RESULTS_DIR/coverage-cobertura/cobertura.xml $CI_PROJECT_DIR/coverage
     - cp -r $RESULTS_DIR/coverage-dhtml $CI_PROJECT_DIR/coverage/dhtml
+    - cp -r $RESULTS_DIR/coverage-xml $CI_PROJECT_DIR/coverage/xml
 
     # display coverage stats for global reporting
     - echo_coverage_stats --coverage-file $RESULTS_DIR/coverage-xml/index.xml
@@ -124,8 +125,9 @@ als-cov:linux:
         path: coverage/cobertura.xml
     paths:
       - anod-logs/
-      # Also archive the report file for debugging the CI integration
+      # Also archive coverage reports as files for other use
       - coverage/cobertura.xml
+      - coverage/xml/
 
 vscode-extension:linux:
   after_script:
