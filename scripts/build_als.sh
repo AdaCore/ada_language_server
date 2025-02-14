@@ -64,6 +64,9 @@ branch_gnatformat=edge
 branch_libgpr2=main
 branch_prettier_ada=main
 
+# Repository URLs can be overriden (e.g. to personal forks for experimentation)
+# url_langkit_support=https://github.com/<my-github-login>/langkit.git
+
 # Set `prod` build mode
 ########################
 # for adasat,gnatformat,lal,langkit,lal_refactor,laltools,markdown,spawn
@@ -111,7 +114,10 @@ function pin_crates() {
          commit=$(grep "^${repo:-$crate}=" deps.txt | sed -e 's/.*=//')
       fi
 
-      URL="https://github.com/AdaCore/${repo:-$crate}.git"
+      url_var=url_$crate
+      url_override=${!url_var}
+      URL=${url_override:-"https://github.com/AdaCore/${repo:-$crate}.git"}
+
       if [ ! -d "subprojects/$crate" ]; then
          # If the checkout doesn't exist, clone
          git clone "$URL" "subprojects/$crate"
@@ -161,22 +167,8 @@ function build_langkit_raw() {
       sed -i.bak -e 's/GPR_BUILD/GPR_LIBRARY_TYPE/' ./langkit/libmanage.py
       pip install .
 
-      # On macOS, the full path of gnat.adc is stored in ALI files with case
-      # normalization. Upon re-runs, gprbuild is unable to match the
-      # normalized path with a non-case-normalized real path. This causes
-      # unnecessary recompilations at every run.
-      #
-      # To avoid that, we use the -gnateb flag which tells GNAT to not use
-      # an absolute path for gnat.adc
       python manage.py make --no-mypy --generate-auto-dll-dirs \
-         --library-types=relocatable --gargs "-m -v -cargs:ada -gnateb"
-
-      if [[ $NODE_ARCH_PLATFORM = *darwin* ]]; then
-         find . -name '*.dylib' -print0 |
-            while IFS= read -r -d '' lib; do
-               fix_dylib_rpaths "$lib"
-            done
-      fi
+         --library-types=relocatable --gargs="-m -j0 -vh"
 
       # Export the environment needed to use langkit into a file for later
       # usage
@@ -185,7 +177,14 @@ function build_langkit_raw() {
       if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
          # Fix setenv.sh to be bash script for MSYS2 by replacing
          #  1) C:\ -> /C/  2) '\' -> '/' and ';' -> ':' 3) ": export" -> "; export"
-         sed -i -e 's#\([A-Z]\):\\#/\1/#g' -e 'y#\\;#/:#' -e 's/: export /; export /' "$LANGKIT_SETENV"
+         #
+         # Only do this on the PATH environment variable which MSYS2/Cygwin
+         # automatically converts to Windows paths. Other variables such as
+         # PYTHONPATH must be left in Windows format to be usable by Python
+         # subprocresses.
+         #
+         # See https://www.msys2.org/docs/filesystem-paths/
+         sed -i -e '/^PATH=/s#\([A-Z]\):\\#/\1/#g' -e '/^PATH=/y#\\;#/:#' -e '/^PATH=/s/: export /; export /' "$LANGKIT_SETENV"
       fi
 
       cat "$LANGKIT_SETENV"
@@ -224,9 +223,16 @@ function fix_dylib_rpaths() {
 
 # Run build_langkit_raw in Alire environment
 function build_langkit() {
-   # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
-   # all the dependencies.
-   alr exec bash -- -x "$0" build_langkit_raw
+   (
+      # The langkit build will try to import liblktlang at the end. For that
+      # to work, all dependency libraries must be visible on
+      # [[DY]LD_LIBRARY_]PATH. This function takes care of that.
+      add_unpinned_deps_dlls_to_runtime_path
+
+      # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
+      # all the dependencies.
+      alr exec bash -- -x "$0" build_langkit_raw
+   )
 }
 
 # This function adds the paths of DLLs from GCC installation and the Alire deps
@@ -266,6 +272,18 @@ function add_unpinned_deps_dlls_to_runtime_path() {
    export PATH=$NEW_PATH":$PATH"
 }
 
+# This is a utility function to run a command line within an environment where
+# the Langkit 'lkt' library is available.
+#
+# e.g. lkt_run python -c 'import liblktlang'
+#
+# Currently it is unused because on macOS spawning processes through a chain of
+# lkt_run --> alr --> bash does not allow inheriting DYLD_LIBRARY_PATH and
+# doesn't allow the libraries to be found.
+function lkt_run() {
+   python -m langkit.scripts.lkm run --config "$ROOT/subprojects/langkit_support/lkt/langkit.yaml" -- "${@}"
+}
+
 # Build ALS with alire
 function build_als() {
    add_unpinned_deps_dlls_to_runtime_path
@@ -273,15 +291,20 @@ function build_als() {
    # Check that we can use langkit successfully
    (
       source "$LANGKIT_SETENV"
+
+      # Log environments for debugging
+      python -c 'import os; print("\n".join(f"{k}={v}" for k, v in os.environ.items()))'
+      alr exec python -- -c 'import os; print("\n".join(f"{k}={v}" for k, v in os.environ.items()))'
+
       # On Windows it is not enough to source the langkit env and unpinned
       # deps. The libraries of pinned Alire dependencies (not under
-      # alire/cache/dependencies) must also be made visible.
+      # alire/cache/dependencies) must also be made visible by calling 'alr exec'
       alr exec python -- -c 'import liblktlang; print("Imported liblktlang successfully")'
    )
 
    # We use 'alr exec' to benefit from Alire setting up GPR_PROJECT_PATH with
    # all the dependencies.
-   LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" all
+   LIBRARY_TYPE=static STANDALONE=no alr exec make -- "VERSION=$TAG" "GPRBUILD_CARGS=-m -vh" all
 }
 
 function test_als() {
@@ -419,6 +442,10 @@ fix_rpath)
 
 strip_debug)
    strip_debug
+   ;;
+
+fix_dylib_rpaths)
+   fix_dylib_rpaths "$2"
    ;;
 
 *)

@@ -15,8 +15,8 @@ export type ProjectFileResponse = string; // The Path to the GPR project file
 
 And a new command with out arguments:
 
-  command: `als-project-file`
+    command: `als-project-file`
 
 Returning the project file of the loaded project like this:
 
-  result: `ProjectFileResponse`
+    result: `ProjectFileResponse`

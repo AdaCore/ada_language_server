@@ -76,40 +76,7 @@ extension at
 
 ## Install
 
-You can build language server from sources.
-To build it from sources install dependencies and run
-
-```sh
-make
-```
-
-It will build `.obj/server/ada_language_server` file.
-
-### Dependencies
-
-To build the language server you need:
-
-* The GNAT compiler (at least GCC 11 or GNAT Community Edition 2021)
-* The [Libadalang](https://github.com/AdaCore/libadalang) library (it should be
-  built)
-* The [Libadalang-tools](https://github.com/AdaCore/libadalang-tools) library
-* The [VSS](https://github.com/AdaCore/VSS) library
-* The [gnatdoc](https://github.com/AdaCore/gnatdoc) library
-* The [gpr](https://github.com/AdaCore/gpr) library
-* The process [spawn](https://github.com/AdaCore/spawn) library
-* The [lal-refactor](https://github.com/AdaCore/lal-refactor) library
-* The [templates-parser](https://github.com/AdaCore/templates-parser) library
-
-Project files of the libraries must be available via the `GPR_PROJECT_PATH`
-environment variable.
-
-If you intend to use VS Code on this workspace, it is recommended to check out
-these dependencies under `subprojects/` or install them under
-`subprojects/prefix`. That will make them automatically visible to the VS Code
-Ada extension in this workspace.
-
-To run the language server you need `gnatls` (part of GNAT installation)
-somewhere in the path.
+You can build language server from sources. See [build.md](doc/devel/build.md) for details.
 
 ## Usage
 

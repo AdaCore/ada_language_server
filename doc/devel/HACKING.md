@@ -22,11 +22,7 @@ of the ALS.
 
 ## Building
 
-To build the ALS, run:
-
-```sh
-make
-```
+See [build.md](build.md) for details.
 
 ## Debugging
 
@@ -148,7 +144,7 @@ The UI offers ways to run or debug one test, a subset of tests or all tests.
 
 ### Other tests
 
-See more about the project testsuite [here](../testsuite/README.md).
+See more about the project testsuite [here](https://github.com/AdaCore/ada_language_server/blob/master/testsuite/README.md).
 
 ## Release VS Code extension
 
