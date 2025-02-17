@@ -13,6 +13,8 @@ section below it for the last release. -->
 * Add tasks and a CodeLens to run a given main with GNATemulator on non-native projects
 * Diagnostics are now emitted for issues encountered when trying to load an Alire crate
 * Commands to create a new main units and packages have been added, both available under the `File->New File...` menu
+* Add VS Code command `ada: GNATcoverage - Load an existing XML coverage report` for importing coverage reports
+* Support running GNATtest tests in coverage mode
 
 ## 26.0.202412190
 

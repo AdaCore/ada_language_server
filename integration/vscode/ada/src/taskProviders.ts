@@ -95,6 +95,18 @@ export const TASK_PROVE_LINE_PLAIN_NAME = 'Prove line';
 export const TASK_PROVE_FILE_PLAIN_NAME = 'Prove file';
 export const TASK_BUILD_TEST_DRIVER = 'Build GNATtest test harness project';
 
+export const TASK_GNATCOV_SETUP: PredefinedTask = {
+    label: 'GNATcoverage - Setup runtime library',
+    taskDef: {
+        type: TASK_TYPE_ADA,
+        command: 'gnatcov',
+        args: ['setup'],
+    },
+    problemMatchers: DEFAULT_PROBLEM_MATCHER,
+};
+
+const gnatCovTasks: PredefinedTask[] = [TASK_GNATCOV_SETUP];
+
 /**
  * Predefined tasks offered by the extension. Both 'ada' and 'spark' tasks are
  * included in this array. They are later on split and provided by different
@@ -370,7 +382,7 @@ const predefinedTasks: PredefinedTask[] = [
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHER,
     },
-];
+].concat(gnatCovTasks);
 
 /**
  * A provider of tasks based on the {@link SimpleTaskDef} task definition.
@@ -947,7 +959,12 @@ abstract class SequentialExecution extends vscode.CustomExecution {
                                 try {
                                     if (reason instanceof Error) {
                                         void vscode.window.showErrorMessage(reason.message);
-                                        writeEmitter.fire(reason.message + '\r\n');
+                                        /**
+                                         * Emit lines with \\r\\n because we're writing to a console
+                                         */
+                                        reason.message
+                                            .split(/\r?\n|\r|\n/g)
+                                            .forEach((line) => writeEmitter.fire(line + '\r\n'));
                                     }
                                 } finally {
                                     closeEmitter.fire(2);
@@ -1045,9 +1062,9 @@ class SequentialExecutionByName extends SequentialExecution {
  * @param tasks - list of tasks to run in sequence.
  * @returns Status of the last executed task.
  */
-function runTaskSequence(
+export function runTaskSequence(
     tasks: vscode.Task[],
-    writeEmitter: vscode.EventEmitter<string>,
+    writeEmitter?: vscode.EventEmitter<string>,
 ): Promise<number> {
     let p = new Promise<number>((resolve) => resolve(0));
     for (const t of tasks) {
@@ -1061,9 +1078,9 @@ function runTaskSequence(
                         }
                     });
 
-                    writeEmitter.fire(`Executing task: ${getConventionalTaskLabel(t)}\r\n`);
+                    writeEmitter?.fire(`Executing task: ${getConventionalTaskLabel(t)}\r\n`);
                     vscode.tasks.executeTask(t).then(undefined, (reason) => {
-                        writeEmitter.fire(`Could not execute task: ${reason}\r\n`);
+                        writeEmitter?.fire(`Could not execute task: ${reason}\r\n`);
                         // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
                         reject(reason);
                     });
