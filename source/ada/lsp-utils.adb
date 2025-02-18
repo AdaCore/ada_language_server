@@ -490,8 +490,7 @@ package body LSP.Utils is
          Result : Token_Reference :=
            (if Token = No_Token then No_Token else Previous (Token))
       do
-         while Result /= No_Token
-           and then Kind (Data (Result)) in Ada_Whitespace | Ada_Comment
+         while Result /= No_Token and then Libadalang.Common.Is_Trivia (Result)
          loop
             Result := Previous (Result);
          end loop;
