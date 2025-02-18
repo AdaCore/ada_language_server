@@ -10,7 +10,7 @@ section below it for the last release. -->
 * Provide a task `ada: Build GNATtest test harness project` allowing to customize the build step of test execution in `tasks.json`
 * Fix cross-references (navigation, call hierarchy, finding all references) when the project is an Extending project.
 * [GNATformat](https://github.com/AdaCore/gnatformat) is now the default back-end for LSP formatting requests
-* Add tasks and a CodeLens to run a given main with GNATemulator on non-native projects
+* Add tasks and a CodeLens to run and debug a given main with GNATemulator on non-native projects
 * Diagnostics are now emitted for issues encountered when trying to load an Alire crate
 * Commands to create a new main units and packages have been added, both available under the `File->New File...` menu
 * Add VS Code command `ada: GNATcoverage - Load an existing XML coverage report` for importing coverage reports
