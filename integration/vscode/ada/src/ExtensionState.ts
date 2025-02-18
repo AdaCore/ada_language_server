@@ -556,6 +556,16 @@ async function openSARIFViewerIfNeeded(task: vscode.Task) {
                             ? vscode.Uri.file(outputFilePath)
                             : vscode.Uri.joinPath(cwdURI, outputFilePath);
 
+                        /**
+                         * If we open a SARIF report that was already open, the
+                         * SARIF Viewer extension does not refresh the
+                         * contents. It is necessary to close the report and
+                         * reopen it.
+                         */
+                        // eslint-disable-next-line max-len
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                        await sarifExtAPI.closeLogs([sarifFileURI]);
+
                         // eslint-disable-next-line max-len
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
                         await sarifExtAPI.openLogs([sarifFileURI]);
