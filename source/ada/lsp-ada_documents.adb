@@ -1109,7 +1109,7 @@ package body LSP.Ada_Documents is
       is
          Previous : Token_Reference :=
            (if Token = No_Token then No_Token
-            else LSP.Utils.Previous_Non_Trivia (Token));
+            else Libadalang.Common.Previous (Token, Exclude_Trivia => True));
 
       begin
          if Previous = No_Token then
@@ -1117,7 +1117,8 @@ package body LSP.Ada_Documents is
          end if;
 
          if Kind (Data (Previous)) in Ada_Comma | Ada_Dot then
-            Previous := LSP.Utils.Previous_Non_Trivia (Previous);
+            Previous :=
+              Libadalang.Common.Previous (Previous, Exclude_Trivia => True);
          end if;
 
          declare

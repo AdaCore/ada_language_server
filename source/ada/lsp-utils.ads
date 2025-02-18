@@ -29,7 +29,6 @@ with LSP.Structures;
 with Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
-with Libadalang.Common;
 
 with Pp.Scanner;
 
@@ -107,12 +106,6 @@ package LSP.Utils is
      (Value : LSP.Structures.Integer_Or_Virtual_String)
       return VSS.Strings.Virtual_String;
    --  Return a string representation of the given value.
-
-   function Previous_Non_Trivia
-     (Token : Libadalang.Common.Token_Reference)
-      return Libadalang.Common.Token_Reference;
-   --  Gets the previous Token_Reference relative to Token that is not a
-   --  whitespace nor a comment.
 
    function To_Range
      (Sloc : GPR2.Source_Reference.Object) return LSP.Structures.A_Range;
