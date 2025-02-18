@@ -69,6 +69,7 @@ export class ExtensionState {
     cachedMains: string[] | undefined;
     cachedExecutables: string[] | undefined;
     cachedAlireTomls: vscode.Uri[] | undefined;
+    cachedDebugServerAddress: string | undefined | null;
     cachedGdb: string | undefined | null = undefined;
 
     private adaTaskProvider?: SimpleTaskProvider;
@@ -82,6 +83,7 @@ export class ExtensionState {
         this.cachedMains = undefined;
         this.cachedExecutables = undefined;
         this.cachedAlireTomls = undefined;
+        this.cachedDebugServerAddress = undefined;
         this.cachedGdb = undefined;
     }
 
@@ -368,6 +370,50 @@ export class ExtensionState {
         }
 
         return this.cachedTargetPrefix;
+    }
+
+    /**
+     * Returns the debug server address that should be used when debugging executables
+     * built for non-native projects.
+     * This checks for the IDE'Program_Host project attribute if {@link forGNATemulator} is
+     * set to false, and the Emulator'Debug_Port otherwise (GNATemulator project attribute).
+     * @param forGNATemulator - Set it to true to retrieve the debug server address that should
+     * be used by GNATemulator.
+     * @returns the debug server address, as a string (e.g: 'localhost:1234')
+     */
+    public async getDebugServerAddress(forGNATemulator = false): Promise<string | null> {
+        type AttributeID = {
+            name: string;
+            package: string;
+        };
+
+        if (this.cachedDebugServerAddress === undefined) {
+            const attrID: AttributeID = {
+                name: forGNATemulator ? 'Debug_Port' : 'Program_Host',
+                package: forGNATemulator ? 'Emulator' : 'IDE',
+            };
+            try {
+                const debugServerAddress = (await this.getProjectAttributeValue(
+                    attrID.name,
+                    attrID.package,
+                )) as string;
+                logger.info(`Got Project.${attrID.package}.${attrID.name} = ${debugServerAddress}`);
+                this.cachedDebugServerAddress = forGNATemulator
+                    ? `localhost:${debugServerAddress}`
+                    : debugServerAddress;
+                logger.info(`Computed debug server address: ${this.cachedDebugServerAddress}`);
+            } catch (err) {
+                const errMessage =
+                    err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+                logger.warn(
+                    `Failed to get Project.${attrID.package}.${attrID.name}: ${errMessage}`,
+                );
+                logger.warn('Assuming there is no debug server address');
+                this.cachedDebugServerAddress = null;
+            }
+        }
+
+        return this.cachedDebugServerAddress;
     }
 
     /**

@@ -23,6 +23,9 @@ import {
     isFromWorkspace,
     workspaceTasksFirst,
     getBuildAndRunTaskName,
+    getRunGNATemulatorTaskName,
+    getBuildTaskName,
+    runTaskAndGetResult,
 } from './taskProviders';
 import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
 import { loadGnatCoverageReport } from './gnattest';
@@ -54,6 +57,16 @@ export const CMD_BUILD_AND_DEBUG_MAIN = 'ada.buildAndDebugMain';
  * @see {@link buildAndRunMainWithGNATemulator}
  */
 export const CMD_BUILD_AND_RUN_GNATEMULATOR = 'ada.buildAndRunGNATemulator';
+
+/**
+ * Identifier for a hidden command used for building and debugging a project main,
+ * using GNATemulator.
+ * The command accepts a parameter which is the URI of the main source file.
+ * It is triggered by CodeLenses provided by the extension.
+ *
+ * @see {@link buildAndDebugSpecifiedMain}
+ */
+export const CMD_BUILD_AND_DEBUG_GNATEMULATOR = 'ada.buildAndDebugGNATemulator';
 
 /**
  * Identifier for a hidden command that returns an array of strings constituting
@@ -155,7 +168,12 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
             buildAndRunMainWithGNATemulator,
         ),
     );
-
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            CMD_BUILD_AND_DEBUG_GNATEMULATOR,
+            buildAndDebugSpecifiedMainWithGNATemulator,
+        ),
+    );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, gprProjectArgs),
     );
@@ -635,12 +653,17 @@ async function buildAndRunMainWithGNATemulator(main: vscode.Uri): Promise<void> 
 
 /**
  * This is a command handler that builds the main given as parameter and starts
- * a debug session on that main.  If the given URI does not match one of the
- * project Mains an error is displayed.
+ * a debug session on that main, running GNATemulator in debug mode before when
+ * asked.
+ * If the given URI does not match one of the project Mains an error is displayed.
  *
  * @param main - a URI of a document
+ * @param useGNATemulator - whether the main should be ran through GNATemulator
  */
-async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
+async function buildAndDebugSpecifiedMain(
+    main: vscode.Uri,
+    useGNATemulator: boolean = false,
+): Promise<void> {
     function isMatchingConfig(cfg: vscode.DebugConfiguration, configToMatch: AdaConfig): boolean {
         return cfg.type == configToMatch.type && cfg.name == configToMatch.name;
     }
@@ -648,6 +671,7 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
     const wsFolder = vscode.workspace.getWorkspaceFolder(main);
     const adaMain = await findAdaMain(main.fsPath);
     const target = await adaExtState.getTargetPrefix();
+    const debugServerAddress = await adaExtState.getDebugServerAddress(useGNATemulator);
     if (adaMain) {
         /**
          * The vscode API doesn't provide a way to list both automatically
@@ -657,7 +681,7 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
          * the given main URI.
          */
         // Create a launch config for this main to help with matching
-        const configToMatch = initializeConfig(adaMain, target);
+        const configToMatch = initializeConfig(adaMain, target, debugServerAddress);
         logger.debug('Debug config to match:\n' + JSON.stringify(configToMatch, null, 2));
 
         let matchingConfig = undefined;
@@ -683,6 +707,38 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
 
         if (matchingConfig) {
             logger.debug('Found matching config: ' + JSON.stringify(matchingConfig, null, 2));
+
+            // Trying to debug via GNATemulator: run the main via GNATemulator in debug mode
+            // before starting the debug session
+            if (useGNATemulator) {
+                const buildTaskName = getBuildTaskName(adaMain);
+                const buildTasks = await getTasksWithPrefix(buildTaskName);
+                if (buildTasks.length === 1) {
+                    const execStatus: number | undefined = await runTaskAndGetResult(buildTasks[0]);
+                    if (execStatus != 0) {
+                        const errorMsg = `Failed to build executable before launching GNATemulator`;
+                        logger.error(errorMsg);
+                        return;
+                    }
+                    logger.debug('Running GNATemulator before starting the debug configuration...');
+                    const runGNATemulatorTaskName = getRunGNATemulatorTaskName(adaMain, true);
+                    const runGNATemulatorForDebugTasks =
+                        await getTasksWithPrefix(runGNATemulatorTaskName);
+
+                    if (runGNATemulatorForDebugTasks.length < 1) {
+                        const errorMsg = `Could not find '${runGNATemulatorTaskName}' task`;
+                        logger.error(errorMsg);
+                        void vscode.window.showErrorMessage(errorMsg, { modal: true });
+                        return;
+                    }
+                    await vscode.tasks.executeTask(runGNATemulatorForDebugTasks[0]);
+                } else {
+                    const errorMsg = `Could not find '${buildTaskName}' task`;
+                    void vscode.window.showErrorMessage(errorMsg, { modal: true });
+                    logger.error(errorMsg);
+                }
+            }
+
             const success = await vscode.debug.startDebugging(wsFolder, matchingConfig);
             if (!success) {
                 void vscode.window.showErrorMessage(
@@ -704,6 +760,17 @@ async function buildAndDebugSpecifiedMain(main: vscode.Uri): Promise<void> {
             { modal: true },
         );
     }
+}
+
+/**
+ * This is a command handler that builds the main given as parameter and starts
+ * a debug session on that main, with GNATemulator.
+ * If the given URI does not match one of the project Mains an error is displayed.
+ *
+ * @param main - a URI of a document
+ */
+async function buildAndDebugSpecifiedMainWithGNATemulator(main: vscode.Uri): Promise<void> {
+    await buildAndDebugSpecifiedMain(main, true);
 }
 
 /**
