@@ -2,7 +2,7 @@ import assert from 'assert';
 import * as vscode from 'vscode';
 import { adaExtState } from './extension';
 import { AdaMain, getAdaMains, getProjectFile, getProjectFileRelPath } from './helpers';
-import { BUILD_PROJECT_TASK_NAME, getBuildTaskName } from './taskProviders';
+import { getBuildTaskName } from './taskProviders';
 
 export const ADA_DEBUG_BACKEND_TYPE = 'cppdbg';
 
@@ -22,7 +22,9 @@ export interface AdaConfig extends vscode.DebugConfiguration {
         ignoreFailures: boolean;
     }[];
     processId?: string;
+    preLaunchTask?: string;
     miDebuggerPath?: string;
+    miDebuggerServerAddress?: string;
 }
 
 export const adaDynamicDebugConfigProvider = {
@@ -32,8 +34,9 @@ export const adaDynamicDebugConfigProvider = {
     ): Promise<AdaConfig[]> {
         const mains = await getAdaMains();
         const target = await adaExtState.getTargetPrefix();
+        const debugServerAddress = await adaExtState.getDebugServerAddress();
         const configs: AdaConfig[] = mains.flatMap((m) => {
-            return [initializeConfig(m, target), createAttachConfig(m, target)];
+            return [initializeConfig(m, target, debugServerAddress), createAttachConfig(m, target)];
         });
         if (configs.length == 0) {
             /**
@@ -116,12 +119,22 @@ export function initializeDebugging(ctx: vscode.ExtensionContext): {
  * @param name - the full name of the configuration (optional). If provided,
  * this name short-circuits the automatic naming based on the 'main' or the
  * 'program' parameter.
+ * @param debugServerAddress - the debug server address that should be used by the debugger
+ * for remote debugging (equalivalent of 'target remote <debugServerAddress>' command for GDB).
+ * Set it to null to debug the program directly on the host.
  * @returns an AdaConfig
  */
-export function initializeConfig(main: AdaMain, target: string, name?: string): AdaConfig {
+export function initializeConfig(
+    main: AdaMain,
+    target: string,
+    debugServerAddress: string | null,
+    name?: string,
+): AdaConfig {
+    const preLaunchTask = getBuildTaskName(main);
+
     // TODO it would be nice if this and the package.json configuration snippet
     // were the same.
-    const config: AdaConfig = {
+    let config: AdaConfig = {
         type: ADA_DEBUG_BACKEND_TYPE,
         name: name ?? (main ? `Ada: Debug main - ${main.mainRelPath()}` : 'Ada: Debugger Launch'),
         request: 'launch',
@@ -133,10 +146,14 @@ export function initializeConfig(main: AdaMain, target: string, name?: string): 
         externalConsole: false,
         args: [],
         MIMode: 'gdb',
-        preLaunchTask: main ? getBuildTaskName(main) : BUILD_PROJECT_TASK_NAME,
+        preLaunchTask: preLaunchTask,
         setupCommands: setupCmd,
         miDebuggerPath: adaExtState.getOrFindGdb(target),
     };
+
+    if (debugServerAddress) {
+        config = { ...config, miDebuggerServerAddress: debugServerAddress };
+    }
 
     return config;
 }
@@ -227,8 +244,9 @@ export class AdaInitialDebugConfigProvider implements vscode.DebugConfigurationP
         } else {
             const main = await getOrAskForProgram();
             const target = await adaExtState.getTargetPrefix();
+            const debugServerAddress = await adaExtState.getDebugServerAddress();
             if (main) {
-                return initializeConfig(main, target);
+                return initializeConfig(main, target, debugServerAddress);
             }
         }
 

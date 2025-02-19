@@ -12,6 +12,7 @@ import {
     Uri,
 } from 'vscode';
 import {
+    CMD_BUILD_AND_DEBUG_GNATEMULATOR,
     CMD_BUILD_AND_DEBUG_MAIN,
     CMD_BUILD_AND_RUN_GNATEMULATOR,
     CMD_BUILD_AND_RUN_MAIN,
@@ -75,6 +76,11 @@ export class AdaCodeLensProvider implements CodeLensProvider {
                                     new CodeLens(functions[0].range, {
                                         command: CMD_BUILD_AND_RUN_GNATEMULATOR,
                                         title: '$(run) Run with GNATemulator',
+                                        arguments: [document.uri],
+                                    }),
+                                    new CodeLens(functions[0].range, {
+                                        command: CMD_BUILD_AND_DEBUG_GNATEMULATOR,
+                                        title: '$(debug-alt-small) Debug with GNATemulator',
                                         arguments: [document.uri],
                                     }),
                                 ]);

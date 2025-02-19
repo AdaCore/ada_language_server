@@ -310,7 +310,7 @@ function build_als() {
 function test_als() {
    pip install -r "$ROOT/testsuite/requirements-ci.txt"
    export ALS="$ROOT/.obj/server/ada_language_server"
-   alr exec python -- "$ROOT/testsuite/testsuite.py" --failure-exit-code 0
+   alr exec python -- "$ROOT/testsuite/testsuite.py" --failure-exit-code 0 --show-error-output
 }
 
 # Find the path to libgmp as linked in the given executable

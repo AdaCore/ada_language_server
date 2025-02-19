@@ -60,6 +60,7 @@ interface PredefinedTask {
     problemMatchers?: string | string[];
     taskGroup?: vscode.TaskGroup;
     revealKind?: vscode.TaskRevealKind;
+    isBackground?: boolean;
 }
 
 /**
@@ -486,6 +487,20 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             revealKind: vscode.TaskRevealKind.Always,
                         };
 
+                        const runGNATemulatorTaskForDebug: PredefinedTask = {
+                            ...runGNATemulatorTask,
+                            label: getRunGNATemulatorTaskPlainName(main, true),
+                            taskDef: {
+                                ...runGNATemulatorTask.taskDef,
+                                args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, `-g`, execRelPath],
+                            },
+                            isBackground: true,
+                            // This task is run before some debug tasks.
+                            // Problem is, it's a watch script, and since it never exits, VSCode
+                            // complains. All this is needed so VSCode just lets it run.
+                            problemMatchers: '',
+                        };
+
                         const buildAndRunGNATemulatorTask: PredefinedTask = {
                             label: getBuildAndRunGNATemulatorTaskPlainName(main),
                             taskDef: {
@@ -495,7 +510,21 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             problemMatchers: '',
                         };
 
-                        tasks.push(runGNATemulatorTask, buildAndRunGNATemulatorTask);
+                        const buildAndRunGNATemulatorTaskForDebug: PredefinedTask = {
+                            label: getBuildAndRunGNATemulatorTaskPlainName(main, true),
+                            taskDef: {
+                                type: this.taskType,
+                                compound: [buildTask.label, runGNATemulatorTaskForDebug.label],
+                            },
+                            problemMatchers: '',
+                        };
+
+                        tasks.push(
+                            runGNATemulatorTask,
+                            runGNATemulatorTaskForDebug,
+                            buildAndRunGNATemulatorTask,
+                            buildAndRunGNATemulatorTaskForDebug,
+                        );
                     }
 
                     return tasks;
@@ -572,6 +601,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                 resolvedTask.presentationOptions = {
                     reveal: tDecl.revealKind ?? vscode.TaskRevealKind.Never,
                 };
+                resolvedTask.isBackground = tDecl.isBackground ?? false;
 
                 result.push(resolvedTask);
             } else {
@@ -825,10 +855,18 @@ function getRunTaskPlainName(main?: AdaMain) {
 }
 
 /**
+ * The full name of the 'Run GNATemulator' task of a main, including the task type.
+ */
+export function getRunGNATemulatorTaskName(main?: AdaMain, forDebug = false) {
+    return `${TASK_TYPE_ADA}: ${getRunGNATemulatorTaskPlainName(main, forDebug)}`;
+}
+
+/**
  * The name of the 'Run GNATemulator' task of a main, without the task type.
  */
-function getRunGNATemulatorTaskPlainName(main?: AdaMain) {
-    return `Run main with GNATemulator - ${main?.mainRelPath() ?? ''}`;
+function getRunGNATemulatorTaskPlainName(main?: AdaMain, forDebug = false) {
+    const forDebugLabelSuffix = forDebug ? ' (debug)' : '';
+    return `Run main with GNATemulator${forDebugLabelSuffix} - ${main?.mainRelPath() ?? ''}`;
 }
 
 /**
@@ -842,16 +880,20 @@ export function getBuildAndRunTaskPlainName(main?: AdaMain) {
     return `Build and run main - ${main?.mainRelPath() ?? ''}`;
 }
 
-export function getBuildAndRunGNATemulatorTaskPlainName(main?: AdaMain) {
-    return `Build and run main with GNATemulator - ${main?.mainRelPath() ?? ''}`;
+export function getBuildAndRunGNATemulatorTaskPlainName(main?: AdaMain, forDebug = false) {
+    const forDebugLabelSuffix = forDebug ? ' (debug)' : '';
+    return (
+        `Build and run main with GNATemulator` +
+        `${forDebugLabelSuffix} - ${main?.mainRelPath() ?? ''}`
+    );
 }
 
 export function getBuildAndRunTaskName(main?: AdaMain) {
     return `${TASK_TYPE_ADA}: ${getBuildAndRunTaskPlainName(main)}`;
 }
 
-export function getBuildAndRunGNATemulatorTaskName(main?: AdaMain) {
-    return `${TASK_TYPE_ADA}: ${getBuildAndRunGNATemulatorTaskPlainName(main)}`;
+export function getBuildAndRunGNATemulatorTaskName(main?: AdaMain, forDebug = false) {
+    return `${TASK_TYPE_ADA}: ${getBuildAndRunGNATemulatorTaskPlainName(main, forDebug)}`;
 }
 
 export function createSparkTaskProvider(): SimpleTaskProvider {
