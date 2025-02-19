@@ -306,6 +306,40 @@ The GNATtest integration in VS Code also supports running tests in coverage mode
 
 Integrating the steps of source instrumentation and test harness build into the test execution workflow allows for a quick feedback loop: run a test, observe results and coverage, edit the test or the tested code, repeat... In this context invoking the VS Code commands `Test: Rerun Last Run` and `Test: Rerun Last Run with Coverage` with their respective keyboard shortcuts can be valuable.
 
+### Cross and Embedded Support
+
+This section provides some guidance to work on cross or embedded projects. It assumes
+that your `.gpr` project files are already properly configured to work on a cross environments/embedded platforms.
+
+#### GNATemulator Support
+
+If you have loaded an embedded project, the extension will automatically provide predefined tasks and commands
+to run and debug your application through GNATemulator, if available for your target.
+
+For instance if you have loaded a project with an `arm-eabi` target configured to run on a STM32F4
+board, the extension will provide predefined tasks, commands and CodeLenses to run and debug your
+program using GNATemulator.
+
+<img src="doc/media/gnatemu-debug-codelens.gif" width="800" alt="Debug with GNATemulator CodeLens" />
+
+The port used by the debugger launched by VS Code to connect to the running GNATemulator instance
+is the one specified via the `Emulator'Debug_Port` project attribute, so make sure it is set before
+running the dedicated GNATemulator command/CodeLens.
+
+Note that GNATemulator is not available for all GNAT embedded toolchains. For more information about GNATemulator itself and its availabilty please refer to the [GNATemulator User's Guide](https://docs.adacore.com/gnatemulator-docs/gnatemulator.html).
+
+#### Remote Debugging
+
+If your project can be debugged remotely via GDB using the `target remote <ip-of-target:port>` command, you will just need to set the `IDE'Program_Host` project attribute in your `.gpr` file to specify the address that should be used
+to connect to your machine or board.
+
+You will also need to run the debugging utility that spawns the remote `gdbserver` before launching the debugger in VS Code ( e.g: `st-util` or `openocd` for STM32F4 boards). This can be done directly through a VS Code `Terminal` or by configuring a custom [VS Code task](https://code.visualstudio.com/docs/editor/tasks) for that purpose.
+
+Once your project is setup, just open the VS Code
+`Run and Debug` panel and then click on the `Run and Debug` button.
+
+For more advanced use cases or if your program cannot be debugged remotely via GDB, you can try creating your custom VS Code debug launch configuration following [VS Code User's Guide for Launch Configurations](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations).
+
 ### Commands and Shortcuts
 
 The extension contributes commands and a few default key bindings.
@@ -363,7 +397,7 @@ The VS Code extension has a few limitations and some differences compared to [GN
 * **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
 formatting might no succeed on incomplete/illegal code.
 
-* **Tooling support**: we currently provide support for some *SPARK*, *GNATtest*, *GNATcoverage* and *GNAT SAS* [Tasks](#tasks), but some workflows may not be supported yet.
+* **Tooling support**: we currently provide support for some *SPARK*, *GNATtest*, *GNATcoverage*, *GNAT SAS* and *GNATemulator* [Tasks](#tasks), but some workflows may not be supported yet.
 
 * **Alire support**: if the root folder contains an `alire.toml` file and
   there is `alr` executable in the `PATH`, then the language server fetches
