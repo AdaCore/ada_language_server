@@ -157,25 +157,11 @@ See a [dedicated document](doc/refactoring_tools.md) with the list of available 
 
 ### Tasks
 
-The extension provides the following auto-detected tasks
-(under `/Terminal/Run Task...` menu):
+The extension provides a number of auto-detected tasks under the `/Terminal/Run Task...` menu. These
+predefined tasks are all prefixed by `ada:` and belong to the `ada` group.
+They can be used to build and run your program (`ada: Build current project` task) or launch external tools such as GNAT SAS, GNATprove and a few others.
 
-* `ada: Build current project` - launch `gprbuild` to build the current GPR project
-* `ada: Check current file` - launch `gprbuild` to check errors in the current editor
-* `ada: Clean current project` - launch `gprclean` to clean the current GPR project
-* `spark: Examine project` - launch `gnatprove` in flow analysis mode on the current GPR project
-* `spark: Examine file` - launch `gnatprove` in flow analysis mode on the file in the current editor
-* `spark: Examine subprogram` - launch `gnatprove` in flow analysis mode on the current subprogram in the current editor
-* `spark: Prove project` - launch `gnatprove` on the current GPR project
-* `spark: Prove file` - launch `gnatprove` on the file in the current editor
-* `spark: Prove subprogram` - launch `gnatprove` on the current subprogram in the current editor
-* `spark: Prove selected region` - launch `gnatprove` on the selected region in the current editor
-* `spark: Prove line` - launch `gnatprove` on the cursor line in the current editor
-* `spark: Clean project for proof` - launch `gnatprove` on the current GPR project to clean proof artefacts
-* `ada: Analyze the project with GNAT SAS`
-* `ada: Analyze the current file with GNAT SAS`
-* `ada: Create a report after a GNAT SAS analysis`
-* `ada: Analyze the project with GNAT SAS and produce a report`
+<img src="doc/run-task-ada-tasks.png" width="500" alt="GNATtest Test Results"/>
 
 You can bind keyboard shortcuts to them by adding to the `keybindings.json` file:
 
@@ -246,14 +232,12 @@ You can also customize the working directory of the task or the environment vari
 #### Tasks for Project Mains
 
 If your GPR project defines main programs via the project attribute `Main`, additional tasks are automatically provided for each defined main.
-For example, if the project defines a `main1.adb` and `main2.adb` located under the `src/` source directory, the following tasks will be available:
+For example, if the project defines a `main1.adb` and `main2.adb` located under the `src/` source directory, two different tasks will be available to build a given main:
 
 * `ada: Build main - src/main1.adb`
 * `ada: Run main - src/main1.adb`
-* `ada: Build and run main - src/main1.adb`
-* `ada: Build main - src/main2.adb`
-* `ada: Run main - src/main2.adb`
-* `ada: Build and run main - src/main2.adb`
+
+Same thing for all the predefined tasks that can have a main specified in their command line.
 
 ### Alire Support
 
