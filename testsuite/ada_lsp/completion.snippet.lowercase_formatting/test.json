@@ -1,0 +1,413 @@
+[
+   {
+      "comment": [
+         "Test the formatting of snippet via GNATPP"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+             "${ALS}",
+             "--tracefile=./traces.cfg"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 199714,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ],
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail"
+                              ]
+                           }
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "adaFileDiagnostics": true,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Foo is\n\n   procedure Bar (A, B, C, D, E, F, G, H, I, J : Integer);\n\n   procedure Bar (AAAAAAAA, BB, CCCCCCCC, DDDDDDDDDDDD, E : Integer);\n\n   procedure Bar (A, B : Integer);\n\n   procedure Bar (A, B, C, D, E, F, G, H, I, J : Integer) is\n   begin\n      null;\n   end Bar;\n\n   procedure Bar (AAAAAAAA, BB, CCCCCCCC, DDDDDDDDDDDD, E : Integer) is\n   begin\n      null;\n   end Bar;\n\n   procedure Bar (A, B : Integer) is\n   begin\n      null;\n   end Bar;\nbegin\n   Bar (\nend Foo;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               },
+               "position": {
+                  "line": 23,
+                  "character": 8
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "sortText": "+00",
+                        "filterText": "Bar (",
+                        "insertText": "${1:A : Integer}, ${2:B : Integer})$0",
+                        "insertTextFormat": 2,
+                        "textEdit": {
+                           "range": {
+                             "start": {
+                                "line": 23,
+                                "character": 3
+                              },
+                               "end": {
+                                 "line": 23,
+                                 "character": 8
+                              }
+                            },
+                            "newText": "bar (${1:A : Integer}, ${2:B : Integer})$0"
+                        },
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 6,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 6,
+                                 "character": 34
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+01",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+02",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "sortText": "+03",
+                        "filterText": "Bar (",
+                        "insertText": "AAAAAAAA => ${1:Integer}, BB => ${2:Integer}, CCCCCCCC => ${3:Integer}, DDDDDDDDDDDD => ${4:Integer}, E => ${5:Integer})$0",
+                        "insertTextFormat": 2,
+                        "textEdit": {
+                           "range": {
+                             "start": {
+                                "line": 23,
+                                "character": 3
+                              },
+                               "end": {
+                                 "line": 23,
+                                 "character": 8
+                              }
+                            },
+                            "newText": "bar\n     (aaaaaaaa     => ${1:Integer},\n      bb           => ${2:Integer},\n      cccccccc     => ${3:Integer},\n      dddddddddddd => ${4:Integer},\n      e            => ${5:Integer})$0"
+                        },
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 4,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 4,
+                                 "character": 69
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "AAAAAAAA",
+                        "kind": 5,
+                        "sortText": "+04",
+                        "insertText": "AAAAAAAA => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "BB",
+                        "kind": 5,
+                        "sortText": "+05",
+                        "insertText": "BB => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "CCCCCCCC",
+                        "kind": 5,
+                        "sortText": "+06",
+                        "insertText": "CCCCCCCC => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "DDDDDDDDDDDD",
+                        "kind": 5,
+                        "sortText": "+07",
+                        "insertText": "DDDDDDDDDDDD => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "E",
+                        "kind": 5,
+                        "sortText": "+08",
+                        "insertText": "E => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "Params of Bar",
+                        "kind": 15,
+                        "sortText": "+09",
+                        "filterText": "Bar (",
+                        "insertText": "A => ${1:Integer}, B => ${2:Integer}, C => ${3:Integer}, D => ${4:Integer}, E => ${5:Integer}, F => ${6:Integer}, G => ${7:Integer}, H => ${8:Integer}, I => ${9:Integer}, J => ${10:Integer})$0",
+                        "insertTextFormat": 2,
+                        "textEdit": {
+                           "range": {
+                             "start": {
+                                "line": 23,
+                                "character": 3
+                              },
+                               "end": {
+                                 "line": 23,
+                                 "character": 8
+                              }
+                            },
+                            "newText": "bar\n     (a => ${1:Integer},\n      b => ${2:Integer},\n      c => ${3:Integer},\n      d => ${4:Integer},\n      e => ${5:Integer},\n      f => ${6:Integer},\n      g => ${7:Integer},\n      h => ${8:Integer},\n      i => ${9:Integer},\n      j => ${10:Integer})$0"
+                        },
+                        "data": {
+                           "uri": "$URI{foo.adb}",
+                           "range": {
+                              "start": {
+                                 "line": 2,
+                                 "character": 3
+                              },
+                              "end": {
+                                 "line": 2,
+                                 "character": 58
+                              }
+                           }
+                        }
+                     },
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+10",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+11",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "C",
+                        "kind": 5,
+                        "sortText": "+12",
+                        "insertText": "C => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "D",
+                        "kind": 5,
+                        "sortText": "+13",
+                        "insertText": "D => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "E",
+                        "kind": 5,
+                        "sortText": "+14",
+                        "insertText": "E => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "F",
+                        "kind": 5,
+                        "sortText": "+15",
+                        "insertText": "F => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "G",
+                        "kind": 5,
+                        "sortText": "+16",
+                        "insertText": "G => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "H",
+                        "kind": 5,
+                        "sortText": "+17",
+                        "insertText": "H => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "I",
+                        "kind": 5,
+                        "sortText": "+18",
+                        "insertText": "I => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "J",
+                        "kind": 5,
+                        "sortText": "+19",
+                        "insertText": "J => ",
+                        "insertTextFormat": 1
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{foo.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{foo.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 53,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 53,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

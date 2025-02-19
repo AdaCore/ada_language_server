@@ -25,6 +25,7 @@ with VSS.Strings.Conversions;
 with VSS.Strings.Cursors.Iterators.Characters;
 with VSS.Strings.Cursors.Markers;
 with VSS.Strings.Hash;
+with VSS.Transformers.Casing;
 
 with LSP.Ada_Configurations;
 with LSP.Ada_Contexts;
@@ -198,7 +199,7 @@ package body LSP.Ada_Completions is
 
       Encoding : Encoding_Maps.Map;
       --  Map of Snippet fake name to snippet:
-      --  {"Foo_1" : "$1", "Foo_2" : "${2: Integer}"}
+      --  {"foobar_1" : "$1", "foobar_2" : "${2: Integer}"}
       --  $0 will not be replaced
 
       procedure Set_PP_Switches
@@ -212,7 +213,7 @@ package body LSP.Ada_Completions is
       --  Recreate the snippet via the pseudo code
 
       function Snippet_Placeholder (S : Virtual_String) return Virtual_String
-      is ("FooBar_" & S);
+      is ("foobar_" & S);
       --  Generate a fake entity for a snippet (S is the index of the snippet)
       --  The length of the placeholder will affect where the strings is cut
       --  to avoid exceeding line length => 8/9 characters seems to be
@@ -369,7 +370,11 @@ package body LSP.Ada_Completions is
                      Dummy := Pos.Backward;
                      Append (Res, U.Slice (Iterator, Pos));
                   end;
-                  Append (Res, Encoding (Match.Captured));
+                  Append
+                    (Res,
+                     Encoding
+                       (VSS.Transformers.Casing.To_Lowercase.Transform
+                            (Match.Captured)));
                   Iterator.Set_At (Match.Last_Marker);
                   Dummy := Iterator.Forward;
                end;
@@ -393,7 +398,9 @@ package body LSP.Ada_Completions is
       is
          Placeholder_Regexp : constant VSS.Regular_Expressions.
            Regular_Expression := VSS.Regular_Expressions.To_Regular_Expression
-             ("FooBar_[0-9]+");
+             ("FooBar_[0-9]+",
+              Options => [VSS.Regular_Expressions.Case_Insensitive => True,
+                          others => False]);
       begin
          return Placeholder_Regexp.Match (S, Start);
       end Find_Next_Placeholder;
