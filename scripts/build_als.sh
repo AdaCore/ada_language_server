@@ -311,6 +311,7 @@ function test_als() {
    pip install -r "$ROOT/testsuite/requirements-ci.txt"
    export ALS="$ROOT/.obj/server/ada_language_server"
    alr exec python -- "$ROOT/testsuite/testsuite.py" --failure-exit-code 0 --show-error-output
+   e3-testsuite-report --xunit-output xunit.xml out/new
 }
 
 # Find the path to libgmp as linked in the given executable
@@ -413,7 +414,6 @@ all)
    build_als
    fix_rpath
    strip_debug
-   test_als
    ;;
 
 pin_crates)
