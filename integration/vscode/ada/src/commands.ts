@@ -96,12 +96,17 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     context.subscriptions.push(vscode.commands.registerCommand('ada.otherFile', otherFileHandler));
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.createNewAdaMainUnit', () =>
-            createNewAdaFile('Main Procedure'),
+            createNewFile('ada', 'Main Procedure'),
         ),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.createNewAdaPackage', () =>
-            createNewAdaFile('Package Declaration or Body'),
+            createNewFile('ada', 'Package Declaration or Body'),
+        ),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.createNewGPRProjectFile', () =>
+            createNewFile('gpr', 'Project Declaration'),
         ),
     );
     context.subscriptions.push(
@@ -463,17 +468,19 @@ async function buildAndRunMainAsk() {
 }
 
 /**
- * Handler for commands that create new Ada files.
- * This function creates a new Ada editor, focus it, and insert the specified snippet.
- * Used to proivide Ada file templates.
+ * Handler for commands that create new files.
+ * This function creates a new editor for the given language, focus it,
+ * and insert the specified snippet.
+ * Used to proivide Ada/GPR file templates.
  *
+ * @param langId - the new file's language ID (e.g: 'ada' or 'gpr')
  * @param snippetName - the name of the snippet to insert in the newly created editor.
  */
-async function createNewAdaFile(snippetName: string) {
+async function createNewFile(langId: string, snippetName: string) {
     const doc = await vscode.workspace.openTextDocument({ language: 'ada' });
     await vscode.window.showTextDocument(doc);
     await vscode.commands.executeCommand('editor.action.insertSnippet', {
-        langId: 'ada',
+        langId: langId,
         name: snippetName,
     });
 }
