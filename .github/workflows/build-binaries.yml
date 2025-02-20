@@ -108,6 +108,17 @@ jobs:
             echo "No AArch64 cross compiler found:"
             alr exec -- gprconfig --show-targets || true
           fi
+      - name: Test
+        shell: bash
+        run: |
+          scripts/build_als.sh test_als "$TAG"
+      - name: Archive Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: als-test-report-${{ matrix.os }}
+          path: |
+            out/new
+            xunit.xml
       - name: Archive ALS binary
         uses: actions/upload-artifact@v4
         with:

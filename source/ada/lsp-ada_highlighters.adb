@@ -28,7 +28,8 @@ package body LSP.Ada_Highlighters is
    Highlighter_Debug : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create ("ALS.HIGHLIGHTERS.DEBUG", GNATCOLL.Traces.Off);
 
-   Skip : LSP.Enumerations.SemanticTokenTypes renames LSP.Enumerations.macro;
+   Skip : LSP.Enumerations.SemanticTokenTypes renames
+     LSP.Enumerations.decorator;
    --  A dedicated token type for unsupported tokens
 
    function Is_Ghost_Root_Node
@@ -717,6 +718,8 @@ package body LSP.Ada_Highlighters is
                return a_function;
             when Ada_Named_Stmt_Decl =>
                return namespace;
+            when Ada_Label_Decl =>
+               return namespace;
             when Ada_Number_Decl =>
                return number;
             when Ada_Package_Renaming_Decl =>
@@ -724,6 +727,14 @@ package body LSP.Ada_Highlighters is
             when Ada_Single_Protected_Decl =>
                return variable;
             when Ada_Single_Task_Decl =>
+               return variable;
+            when Ada_Extended_Return_Stmt_Object_Decl =>
+               return variable;
+            when Ada_Abstract_State_Decl
+               | Ada_Paren_Abstract_State_Decl
+               | Ada_Multi_Abstract_State_Decl =>
+               return macro;
+            when Ada_No_Type_Object_Renaming_Decl =>
                return variable;
             when others =>
                return Skip;
