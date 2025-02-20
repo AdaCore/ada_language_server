@@ -785,6 +785,11 @@
                 "shortTitle": "Ada Package"
             },
             {
+                "command": "ada.createNewGPRProjectFile",
+                "title": "Ada: Create GPR Project File",
+                "shortTitle": "GPR Project File"
+            },
+            {
                 "command": "ada.otherFile",
                 "title": "Ada: Go to other file"
             },
@@ -936,6 +941,10 @@
                 },
                 {
                     "command": "ada.createNewAdaPackage",
+                    "group": "ada"
+                },
+                {
+                    "command": "ada.createNewGPRProjectFile",
                     "group": "ada"
                 }
             ]
