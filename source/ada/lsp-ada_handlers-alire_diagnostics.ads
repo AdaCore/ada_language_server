@@ -36,6 +36,10 @@ package LSP.Ada_Handlers.Alire_Diagnostics is
    function Has_New_Diagnostic
      (Self : in out Diagnostic_Source) return Boolean;
 
+   overriding
+   function Is_Enabled
+     (Self : in out Diagnostic_Source) return Boolean;
+
 private
 
    type Diagnostic_Source

@@ -15,13 +15,15 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with LSP.Ada_Handlers;
 with LSP.Diagnostic_Sources;
 private with Langkit_Support.Diagnostics;
 
 package LSP.Ada_Documents.LAL_Diagnostics is
 
    type Diagnostic_Source
-     (Document : not null LSP.Ada_Documents.Document_Access)
+     (Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access)
    is limited new LSP.Diagnostic_Sources.Diagnostic_Source with private;
 
    overriding procedure Get_Diagnostic
@@ -34,6 +36,9 @@ package LSP.Ada_Documents.LAL_Diagnostics is
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context) return Boolean;
 
+   overriding function Is_Enabled
+     (Self : Diagnostic_Source) return Boolean;
+
 private
 
    subtype Diagnostic_Index is Natural range 0 .. MAX_NB_DIAGNOSTICS;
@@ -43,7 +48,8 @@ private
    end record;
 
    type Diagnostic_Source
-     (Document : not null LSP.Ada_Documents.Document_Access)
+     (Handler  : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Document : not null LSP.Ada_Documents.Document_Access)
    is limited new LSP.Diagnostic_Sources.Diagnostic_Source with record
       Errors   : Diagnostics;
    end record;

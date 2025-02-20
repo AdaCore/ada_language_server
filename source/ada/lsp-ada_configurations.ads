@@ -88,12 +88,17 @@ package LSP.Ada_Configurations is
    --  Maximum number of logs (should be > to the number of servers run
    --  simultaneously)
 
-   function Diagnostics_Enabled (Self : Configuration'Class) return Boolean;
-   --  Whether to publish diagnostics
+   function Ada_File_Diagnostics_Enabled
+     (Self : Configuration'Class) return Boolean;
+   --  Whether to publish file related diagnostics
 
    function Project_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
    --  Whether to publish project related diagnostics
+
+   function Alire_Diagnostics_Enabled
+     (Self : Configuration'Class) return Boolean;
+   --  Whether to publish alire related diagnostics
 
    function Indexing_Enabled (Self : Configuration'Class) return Boolean;
    --  Whether to index sources in the background. This should be True
@@ -154,23 +159,24 @@ private
    use type VSS.Strings.Virtual_String;
 
    type Configuration is tagged record
-      Project_File                : VSS.Strings.Virtual_String;
-      GPR_Configuration_File      : VSS.Strings.Virtual_String;
-      Charset                     : VSS.Strings.Virtual_String;
-      Relocate_Build_Tree         : VSS.Strings.Virtual_String;
-      Relocate_Root               : VSS.Strings.Virtual_String;
-      Named_Notation_Threshold    : Natural := 3;
-      Log_Threshold               : Natural := 10;
-      Diagnostics_Enabled         : Boolean := True;
-      Project_Diagnostics_Enabled : Boolean := True;
-      Indexing_Enabled            : Boolean := True;
-      Rename_In_Comments          : Boolean := False;
-      Folding_Comments            : Boolean := True;
-      Use_Completion_Snippets     : Boolean := True;
-      Use_Gnatformat              : Boolean := True;
-      Indent_Only                 : Boolean := True;
-      Follow_Symlinks             : Boolean := True;
-      Insert_With_Clauses         : Boolean := True;
+      Project_File                 : VSS.Strings.Virtual_String;
+      GPR_Configuration_File       : VSS.Strings.Virtual_String;
+      Charset                      : VSS.Strings.Virtual_String;
+      Relocate_Build_Tree          : VSS.Strings.Virtual_String;
+      Relocate_Root                : VSS.Strings.Virtual_String;
+      Named_Notation_Threshold     : Natural := 3;
+      Log_Threshold                : Natural := 10;
+      Ada_File_Diagnostics_Enabled : Boolean := True;
+      Project_Diagnostics_Enabled  : Boolean := True;
+      Alire_Diagnostics_Enabled    : Boolean := True;
+      Indexing_Enabled             : Boolean := True;
+      Rename_In_Comments           : Boolean := False;
+      Folding_Comments             : Boolean := True;
+      Use_Completion_Snippets      : Boolean := True;
+      Use_Gnatformat               : Boolean := True;
+      Indent_Only                  : Boolean := True;
+      Follow_Symlinks              : Boolean := True;
+      Insert_With_Clauses          : Boolean := True;
 
       Documentation_Style      : GNATdoc.Comments.Options.Documentation_Style
         := GNATdoc.Comments.Options.GNAT;
@@ -205,12 +211,18 @@ private
      (Self : Configuration'Class) return VSS.Strings.Virtual_String is
        (Self.Relocate_Root);
 
-   function Diagnostics_Enabled (Self : Configuration'Class) return Boolean is
-      (Self.Diagnostics_Enabled);
+   function Ada_File_Diagnostics_Enabled
+     (Self : Configuration'Class)
+      return Boolean is
+      (Self.Ada_File_Diagnostics_Enabled);
 
    function Project_Diagnostics_Enabled
      (Self : Configuration'Class)
       return Boolean is (Self.Project_Diagnostics_Enabled);
+
+   function Alire_Diagnostics_Enabled
+     (Self : Configuration'Class)
+      return Boolean is (Self.Alire_Diagnostics_Enabled);
 
    function Indexing_Enabled (Self : Configuration'Class) return Boolean is
       (Self.Indexing_Enabled);

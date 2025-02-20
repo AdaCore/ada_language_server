@@ -46,6 +46,10 @@ package LSP.Diagnostic_Sources is
    --  Return True if diagnostic changed since last call to Get_Diagnostic or
    --  if Get_Diagnostic was never called and any diagnostic presents.
 
+   function Is_Enabled
+     (Self : Diagnostic_Source) return Boolean is abstract;
+   --  Return True if the source should generate diagnotics
+
    procedure Unchecked_Free is new Ada.Unchecked_Deallocation
      (Diagnostic_Source'Class, Diagnostic_Source_Access);
 
@@ -70,6 +74,11 @@ package LSP.Diagnostic_Sources is
    is abstract;
 
    function Has_New_Diagnostic
+     (Self : in out Workspace_Diagnostic_Source)
+      return Boolean
+   is abstract;
+
+   function Is_Enabled
      (Self : in out Workspace_Diagnostic_Source)
       return Boolean
    is abstract;

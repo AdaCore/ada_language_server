@@ -104,7 +104,7 @@
                      "projectFile": "p.gpr",
                      "scenarioVariables": {},
                      "defaultCharset": "UTF-8",
-                     "enableDiagnostics": false
+                     "adaFileDiagnostics": false
                   }
                }
             }

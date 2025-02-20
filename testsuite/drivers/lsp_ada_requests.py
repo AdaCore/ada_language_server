@@ -135,7 +135,7 @@ def initialized():
 def didChangeConfiguration(
     scenarioVariables={},  # noqa: B006
     defaultCharset="ISO-8859-1",
-    enableDiagnostics=False,
+    adaFileDiagnostics=False,
     followSymlinks=False,
 ):
     """Emit a didChangeConfiguration notification with our Ada settings"""
@@ -147,7 +147,7 @@ def didChangeConfiguration(
                     "ada": {
                         "scenarioVariables": scenarioVariables,
                         "defaultCharset": defaultCharset,
-                        "enableDiagnostics": enableDiagnostics,
+                        "adaFileDiagnostics": adaFileDiagnostics,
                         "followSymlinks": followSymlinks,
                     }
                 }
