@@ -1329,9 +1329,10 @@ package body LSP.Ada_Documents is
      (Self    : in out Document;
       Handler : LSP.Ada_Handlers.Message_Handler'Class;
       URI     : LSP.Structures.DocumentUri;
-      Text    : VSS.Strings.Virtual_String) is
+      Text    : VSS.Strings.Virtual_String;
+      Version : Integer) is
    begin
-      LSP.Text_Documents.Constructors.Initialize (Self, URI, Text);
+      LSP.Text_Documents.Constructors.Initialize (Self, URI, Text, Version);
 
       Self.Refresh_Symbol_Cache := True;
       Self.Diagnostic_Sources.Append

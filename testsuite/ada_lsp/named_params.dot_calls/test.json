@@ -158,7 +158,7 @@
                      "documentChanges": [
                         {
                            "textDocument": {
-                              "version": 1,
+                              "version": 0,
                               "uri": "$URI{src/main.adb}"
                            },
                            "edits": [

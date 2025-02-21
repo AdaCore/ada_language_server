@@ -147,12 +147,14 @@ package body LSP.Text_Documents is
       ----------------
 
       procedure Initialize
-        (Self : in out Text_Document'Class;
-         URI  : LSP.Structures.DocumentUri;
-         Text : VSS.Strings.Virtual_String) is
+        (Self    : in out Text_Document'Class;
+         URI     : LSP.Structures.DocumentUri;
+         Text    : VSS.Strings.Virtual_String;
+         Version : Integer) is
       begin
          Self.URI  := URI;
          Self.Text := Text;
+         Self.Version := Version;
 
          Self.Recompute_Indexes;
       end Initialize;
