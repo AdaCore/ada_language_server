@@ -188,7 +188,7 @@ package body LSP.GPR_Handlers is
 
       --  Clean diagnostics up on closing document
 
-      if Self.Diagnostics_Enabled then
+      if Self.Configuration.GPR_File_Diagnostics_Enabled then
          Diag.uri := URI;
          Self.Sender.On_PublishDiagnostics_Notification (Diag);
       end if;
@@ -732,6 +732,9 @@ package body LSP.GPR_Handlers is
               (Client         => Self.Client,
                Configuration  => Self.Configuration,
                Update_Sources => True);
+            --  Refresh the diagnostics
+            Self.Publish_Diagnostics
+              (LSP.GPR_Documents.Document_Access (Document));
          exception
             when E : others =>
                Self.Tracer.Trace_Exception
@@ -806,7 +809,7 @@ package body LSP.GPR_Handlers is
       end To_LSP_Diagnostic;
 
    begin
-      if Self.Diagnostics_Enabled then
+      if Self.Configuration.GPR_File_Diagnostics_Enabled then
          Document.Get_Errors
            (Root_File => GPR2.Path_Name.Create (Self.To_File (Document.URI)),
             Changed   => Changed,
@@ -846,6 +849,12 @@ package body LSP.GPR_Handlers is
 
             Document.Update_Files_With_Diags (Files_With_Diags);
          end if;
+      else
+         --  Clear the diagnostics
+         Self.Sender.On_PublishDiagnostics_Notification
+           (LSP.Structures.PublishDiagnosticsParams'
+              (uri    => Document.URI,
+               others => <>));
       end if;
    end Publish_Diagnostics;
 

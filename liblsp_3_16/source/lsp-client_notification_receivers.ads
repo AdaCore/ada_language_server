@@ -19,6 +19,7 @@
 
 with LSP.Types;
 with LSP.Messages;
+with VSS.Strings;
 
 package LSP.Client_Notification_Receivers is
 
@@ -28,18 +29,21 @@ package LSP.Client_Notification_Receivers is
    --  Receiver of notification on LSP client side
 
    procedure On_Show_Message
-     (Self   : access Client_Notification_Receiver;
-      Params : LSP.Messages.ShowMessageParams) is abstract;
+     (Self     : access Client_Notification_Receiver;
+      Params   : LSP.Messages.ShowMessageParams;
+      Language : VSS.Strings.Virtual_String) is abstract;
    --  Process window/showMessage notification
 
    procedure On_Log_Message
      (Self    : access Client_Notification_Receiver;
-      Params : LSP.Messages.LogMessageParams) is abstract;
+      Params : LSP.Messages.LogMessageParams;
+      Language : VSS.Strings.Virtual_String) is abstract;
    --  Process window/logMessage notification
 
    procedure On_Publish_Diagnostics
-     (Self   : access Client_Notification_Receiver;
-      Params : LSP.Messages.PublishDiagnosticsParams) is abstract;
+     (Self     : access Client_Notification_Receiver;
+      Params   : LSP.Messages.PublishDiagnosticsParams;
+      Language : VSS.Strings.Virtual_String) is abstract;
    --  Process textDocument/publishDiagnostics notification
 
    function Get_Progress_Type

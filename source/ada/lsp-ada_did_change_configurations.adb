@@ -64,6 +64,7 @@ package body LSP.Ada_Did_Change_Configurations is
          Self.Parent.Context.Reload_Project;
       end if;
 
+      Self.Parent.Context.Refresh_Diagnostics;
    exception
       when E : others =>
          Self.Parent.Context.Trace_Exception (E);

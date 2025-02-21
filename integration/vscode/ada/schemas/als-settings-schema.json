@@ -88,7 +88,12 @@
         "adaFileDiagnostics": {
             "type": "boolean",
             "default": true,
-            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to Ada Files into the VS Code Problems view."
+            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of Ada Files into the VS Code Problems view."
+        },
+        "gprFileDiagnostics": {
+            "type": "boolean",
+            "default": true,
+            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of GPR Files into the VS Code Problems view."
         },
         "foldComments": {
             "type": "boolean",

@@ -219,6 +219,7 @@ private
      (Stream  : access Ada.Streams.Root_Stream_Type'Class;
       Handler : access LSP.Client_Notification_Receivers
       .Client_Notification_Receiver'Class;
+      Client  : LSP.Raw_Clients.Raw_Client'Class;
       Token   : LSP.Types.LSP_Number_Or_String);
 
    package Notification_Maps is new Ada.Containers.Hashed_Maps

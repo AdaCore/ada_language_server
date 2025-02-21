@@ -108,6 +108,7 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [rootDir](#rootdir)
 * [enableDiagnostics](#enableddiagnostics)
 * [adaFileDiagnostics](#adafilediagnostics)
+* [gprFileDiagnostics](#gprfilediagnostics)
 * [projectDiagnostics](#projectdiagnostics)
 * [alireDiagnostics](#alirediagnostics)
 * [enableIndexing](#enableindexing)
@@ -234,6 +235,17 @@ The value is a boolean.
 
 ```javascript
     'adaFileDiagnostics': false
+```
+
+### gprFileDiagnostics
+
+You can explicitly deactivate the emission of diagnostics related to the
+edition of gpr Files via the `gprFileDiagnostics` key. By default,
+diagnostics are enabled.
+The value is a boolean.
+
+```javascript
+    'gprFileDiagnostics': false
 ```
 
 ### projectDiagnostics

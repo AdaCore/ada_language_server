@@ -112,9 +112,6 @@ private
       --  False if the client disables symlink following. In this case
       --  URIs from client should match file names reported by GPR2.Path_Name
 
-      Diagnostics_Enabled  : Boolean := True;
-      --  Whether to publish diagnostics
-
       File_Reader          : GPR2.File_Readers.File_Reader_Reference;
 
       Is_Canceled          : Has_Been_Canceled_Function;

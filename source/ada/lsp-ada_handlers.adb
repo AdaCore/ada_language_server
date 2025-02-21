@@ -3687,7 +3687,7 @@ package body LSP.Ada_Handlers is
         LSP.Structures.Empty;
       Force             : Boolean := False)
    is
-      Changed : Boolean;
+      Changed : Boolean := False;
       Diag    : LSP.Structures.PublishDiagnosticsParams;
    begin
       if Self.Configuration.Ada_File_Diagnostics_Enabled then
@@ -3696,13 +3696,12 @@ package body LSP.Ada_Handlers is
             Changed => Changed,
             Errors  => Diag.diagnostics,
             Force   => Force);
+      end if;
 
+      if Force or else Changed or else not Other_Diagnostics.Is_Empty then
+         Diag.uri := Document.URI;
          Diag.diagnostics.Append_Vector (Other_Diagnostics);
-
-         if Changed or else not Other_Diagnostics.Is_Empty then
-            Diag.uri := Document.URI;
-            Self.Sender.On_PublishDiagnostics_Notification (Diag);
-         end if;
+         Self.Sender.On_PublishDiagnostics_Notification (Diag);
       end if;
    end Publish_Diagnostics;
 
@@ -3760,6 +3759,21 @@ package body LSP.Ada_Handlers is
          end loop;
       end if;
    end Publish_Diagnostics;
+
+   -------------------------
+   -- Refresh_Diagnostics --
+   -------------------------
+
+   overriding procedure Refresh_Diagnostics (Self : in out  Message_Handler) is
+   begin
+      for Document of Self.Open_Documents loop
+         Self.Publish_Diagnostics
+           (Document => LSP.Ada_Documents.Document_Access (Document),
+            Force    => True);
+      end loop;
+
+      Self.Publish_Diagnostics (Force => True);
+   end Refresh_Diagnostics;
 
    --------------------
    -- Reload_Project --

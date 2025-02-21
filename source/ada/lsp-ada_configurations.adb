@@ -346,6 +346,11 @@ package body LSP.Ada_Configurations is
                Self.Ada_File_Diagnostics_Enabled := JSON (Index).Boolean_Value;
 
             elsif Check_Variable
+              (Name, JSON (Index).Kind, "gprFileDiagnostics", Boolean_Value)
+            then
+               Self.GPR_File_Diagnostics_Enabled := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
               (Name, JSON (Index).Kind, "enableIndexing", Boolean_Value)
             then
                Self.Indexing_Enabled := JSON (Index).Boolean_Value;
