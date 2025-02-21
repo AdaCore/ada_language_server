@@ -109,7 +109,7 @@
                      "projectFile": "hello.gpr",
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1",
-                     "enableDiagnostics": false
+                     "adaFileDiagnostics": false
                   }
                }
             }

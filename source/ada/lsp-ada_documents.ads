@@ -52,9 +52,10 @@ package LSP.Ada_Documents is
      with Storage_Size => 0;
 
    procedure Initialize
-     (Self : in out Document;
-      URI  : LSP.Structures.DocumentUri;
-      Text : VSS.Strings.Virtual_String);
+     (Self    : in out Document;
+      Handler : LSP.Ada_Handlers.Message_Handler'Class;
+      URI     : LSP.Structures.DocumentUri;
+      Text    : VSS.Strings.Virtual_String);
    --  Create a new document from a TextDocumentItem.
 
    procedure Cleanup (Self : in out Document);

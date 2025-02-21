@@ -1,37 +1,33 @@
 {
     "Case Statement": {
-		"prefix": "case",
-		"scope": "gpr",
-		"body": [
-			"case ${1:Variable} is",
-			"\twhen \"${3:Condition}\" =>",
-			"\t\t$0",
-			"\twhen others =>",
-			"\t\t$2",
-			"end case;"
-		],
-		"description": "Case Statement"
+        "prefix": "case",
+        "scope": "gpr",
+        "body": [
+            "case ${1:Variable} is",
+            "\twhen \"${3:Condition}\" =>",
+            "\t\t$0",
+            "\twhen others =>",
+            "\t\t$2",
+            "end case;"
+        ],
+        "description": "Case Statement"
     },
     "Package Declaration": {
-		"prefix": "package",
-		"scope": "gpr",
-		"body": [
-			"package ${1|Binder,Builder,Check,Clean,Compiler,Cross_Reference,Documentation,Eliminate,Finder,Gnatls,Gnatstub,IDE,Install,Linker,Metrics,Naming,Pretty_Printer,Remote,Stack,Synchronize|} is",
-			"\t$0",
-			"end $1;"
-		],
-		"description": "Package Declaration"
-	},
+        "prefix": "package",
+        "scope": "gpr",
+        "body": [
+            "package ${1|Binder,Builder,Check,Clean,Compiler,Cross_Reference,Documentation,Eliminate,Finder,Gnatls,Gnatstub,IDE,Install,Linker,Metrics,Naming,Pretty_Printer,Remote,Stack,Synchronize|} is",
+            "\t$0",
+            "end $1;"
+        ],
+        "description": "Package Declaration"
+    },
     "Package Extension": {
-		"prefix": "package",
-		"scope": "gpr",
-		"body": [
-			"package ${1:Name} extends ${2} is",
-			"\t$0",
-			"end $1;"
-		],
-		"description": "Package Extension"
-	},
+        "prefix": "package",
+        "scope": "gpr",
+        "body": ["package ${1:Name} extends ${2} is", "\t$0", "end $1;"],
+        "description": "Package Extension"
+    },
     "Project Declaration": {
         "prefix": "project",
         "scope": "gpr",

@@ -32,19 +32,21 @@ package body LSP.Ada_Handlers.Alire_Diagnostics is
    is
       Diag : LSP.Structures.Diagnostic;
    begin
-      for Msg of Self.Handler.Project_Status.Get_Alire_Messages loop
-         Diag.message := Msg;
-         Diag.a_range := LSP.Structures.A_Range'((0, 0), (0, 0));
-         Diag.severity := (True, LSP.Enumerations.Warning);
-         Diag.source := Alire_Diagnostics_Source_ID;
-         Diagnostics.Append (Diag);
-      end loop;
+      if Self.Is_Enabled then
+         for Msg of Self.Handler.Project_Status.Get_Alire_Messages loop
+            Diag.message := Msg;
+            Diag.a_range := LSP.Structures.A_Range'((0, 0), (0, 0));
+            Diag.severity := (True, LSP.Enumerations.Warning);
+            Diag.source := Alire_Diagnostics_Source_ID;
+            Diagnostics.Append (Diag);
+         end loop;
 
-      --  Emit Alire-related diagnostics directly on the 'alire.toml' file
-      Target_File :=
-        GNATCOLL.VFS.Create_From_Base
-          (Base_Name => "alire.toml",
-           Base_Dir  => Self.Handler.Client.Root_Directory.Full_Name);
+         --  Emit Alire-related diagnostics directly on the 'alire.toml' file
+         Target_File :=
+           GNATCOLL.VFS.Create_From_Base
+             (Base_Name => "alire.toml",
+              Base_Dir  => Self.Handler.Client.Root_Directory.Full_Name);
+      end if;
    end Get_Diagnostics;
 
    ------------------------
@@ -55,7 +57,22 @@ package body LSP.Ada_Handlers.Alire_Diagnostics is
    function Has_New_Diagnostic (Self : in out Diagnostic_Source) return Boolean
    is
    begin
-      return not Self.Handler.Project_Status.Get_Alire_Messages.Is_Empty;
+      if Self.Is_Enabled then
+         return not Self.Handler.Project_Status.Get_Alire_Messages.Is_Empty;
+      else
+         return False;
+      end if;
    end Has_New_Diagnostic;
+
+   ----------------
+   -- Is_Enabled --
+   ----------------
+
+   overriding
+   function Is_Enabled
+     (Self : in out Diagnostic_Source) return Boolean is
+   begin
+      return Self.Handler.Configuration.Alire_Diagnostics_Enabled;
+   end Is_Enabled;
 
 end LSP.Ada_Handlers.Alire_Diagnostics;

@@ -64,7 +64,7 @@
                      "projectFile": "$URI{default.gpr}",
                      "scenarioVariables": {},
                      "defaultCharset": "UTF-8",
-                     "enableDiagnostics": true,
+                     "adaFileDiagnostics": true,
                      "followSymlinks": false,
                      "documentationStyle": "gnat",
                      "foldComments": false

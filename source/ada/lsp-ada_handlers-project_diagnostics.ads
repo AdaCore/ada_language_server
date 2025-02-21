@@ -36,7 +36,10 @@ package LSP.Ada_Handlers.Project_Diagnostics is
    --  (e.g: project file, workspace's root directory).
 
    overriding function Has_New_Diagnostic
-     (Self    : in out Diagnostic_Source) return Boolean;
+     (Self : in out Diagnostic_Source) return Boolean;
+
+   overriding function Is_Enabled
+     (Self : in out Diagnostic_Source) return Boolean;
 
 private
 

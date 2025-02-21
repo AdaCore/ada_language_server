@@ -162,7 +162,7 @@
                      },
                      "documentationStyle": "leading",
                      "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
-                     "enableDiagnostics": true,
+                     "adaFileDiagnostics": true,
                      "foldComments": true,
                      "namedNotationThreshold": 3,
                      "useCompletionSnippets": false,

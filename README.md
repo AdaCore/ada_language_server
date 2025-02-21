@@ -146,7 +146,7 @@ Here is an example config file:
       "BINUTILS_SRC_DIR": "/null"
    },
    "ada.defaultCharset": "utf-8",
-   "ada.enableDiagnostics": false,
+   "ada.adaFileDiagnostics": false,
    "ada.renameInComments": false
 }
 ```
@@ -157,25 +157,11 @@ See a [dedicated document](doc/refactoring_tools.md) with the list of available 
 
 ### Tasks
 
-The extension provides the following auto-detected tasks
-(under `/Terminal/Run Task...` menu):
+The extension provides a number of auto-detected tasks under the `/Terminal/Run Task...` menu. These
+predefined tasks are all prefixed by `ada:` and belong to the `ada` group.
+They can be used to build and run your program (`ada: Build current project` task) or launch external tools such as GNAT SAS, GNATprove and a few others.
 
-* `ada: Build current project` - launch `gprbuild` to build the current GPR project
-* `ada: Check current file` - launch `gprbuild` to check errors in the current editor
-* `ada: Clean current project` - launch `gprclean` to clean the current GPR project
-* `spark: Examine project` - launch `gnatprove` in flow analysis mode on the current GPR project
-* `spark: Examine file` - launch `gnatprove` in flow analysis mode on the file in the current editor
-* `spark: Examine subprogram` - launch `gnatprove` in flow analysis mode on the current subprogram in the current editor
-* `spark: Prove project` - launch `gnatprove` on the current GPR project
-* `spark: Prove file` - launch `gnatprove` on the file in the current editor
-* `spark: Prove subprogram` - launch `gnatprove` on the current subprogram in the current editor
-* `spark: Prove selected region` - launch `gnatprove` on the selected region in the current editor
-* `spark: Prove line` - launch `gnatprove` on the cursor line in the current editor
-* `spark: Clean project for proof` - launch `gnatprove` on the current GPR project to clean proof artefacts
-* `ada: Analyze the project with GNAT SAS`
-* `ada: Analyze the current file with GNAT SAS`
-* `ada: Create a report after a GNAT SAS analysis`
-* `ada: Analyze the project with GNAT SAS and produce a report`
+<img src="doc/run-task-ada-tasks.png" width="500" alt="GNATtest Test Results"/>
 
 You can bind keyboard shortcuts to them by adding to the `keybindings.json` file:
 
@@ -246,14 +232,12 @@ You can also customize the working directory of the task or the environment vari
 #### Tasks for Project Mains
 
 If your GPR project defines main programs via the project attribute `Main`, additional tasks are automatically provided for each defined main.
-For example, if the project defines a `main1.adb` and `main2.adb` located under the `src/` source directory, the following tasks will be available:
+For example, if the project defines a `main1.adb` and `main2.adb` located under the `src/` source directory, two different tasks will be available to build a given main:
 
 * `ada: Build main - src/main1.adb`
 * `ada: Run main - src/main1.adb`
-* `ada: Build and run main - src/main1.adb`
-* `ada: Build main - src/main2.adb`
-* `ada: Run main - src/main2.adb`
-* `ada: Build and run main - src/main2.adb`
+
+Same thing for all the predefined tasks that can have a main specified in their command line.
 
 ### Alire Support
 
@@ -322,6 +306,40 @@ The GNATtest integration in VS Code also supports running tests in coverage mode
 
 Integrating the steps of source instrumentation and test harness build into the test execution workflow allows for a quick feedback loop: run a test, observe results and coverage, edit the test or the tested code, repeat... In this context invoking the VS Code commands `Test: Rerun Last Run` and `Test: Rerun Last Run with Coverage` with their respective keyboard shortcuts can be valuable.
 
+### Cross and Embedded Support
+
+This section provides some guidance to work on cross or embedded projects. It assumes
+that your `.gpr` project files are already properly configured to work on a cross environments/embedded platforms.
+
+#### GNATemulator Support
+
+If you have loaded an embedded project, the extension will automatically provide predefined tasks and commands
+to run and debug your application through GNATemulator, if available for your target.
+
+For instance if you have loaded a project with an `arm-eabi` target configured to run on a STM32F4
+board, the extension will provide predefined tasks, commands and CodeLenses to run and debug your
+program using GNATemulator.
+
+<img src="doc/media/gnatemu-debug-codelens.gif" width="800" alt="Debug with GNATemulator CodeLens" />
+
+The port used by the debugger launched by VS Code to connect to the running GNATemulator instance
+is the one specified via the `Emulator'Debug_Port` project attribute, so make sure it is set before
+running the dedicated GNATemulator command/CodeLens.
+
+Note that GNATemulator is not available for all GNAT embedded toolchains. For more information about GNATemulator itself and its availabilty please refer to the [GNATemulator User's Guide](https://docs.adacore.com/gnatemulator-docs/gnatemulator.html).
+
+#### Remote Debugging
+
+If your project can be debugged remotely via GDB using the `target remote <ip-of-target:port>` command, you will just need to set the `IDE'Program_Host` project attribute in your `.gpr` file to specify the address that should be used
+to connect to your machine or board.
+
+You will also need to run the debugging utility that spawns the remote `gdbserver` before launching the debugger in VS Code ( e.g: `st-util` or `openocd` for STM32F4 boards). This can be done directly through a VS Code `Terminal` or by configuring a custom [VS Code task](https://code.visualstudio.com/docs/editor/tasks) for that purpose.
+
+Once your project is setup, just open the VS Code
+`Run and Debug` panel and then click on the `Run and Debug` button.
+
+For more advanced use cases or if your program cannot be debugged remotely via GDB, you can try creating your custom VS Code debug launch configuration following [VS Code User's Guide for Launch Configurations](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations).
+
 ### Commands and Shortcuts
 
 The extension contributes commands and a few default key bindings.
@@ -379,7 +397,7 @@ The VS Code extension has a few limitations and some differences compared to [GN
 * **Indentation/formatting**: it does not support automatic indentation when adding a newline and range/document
 formatting might no succeed on incomplete/illegal code.
 
-* **Tooling support**: we currently provide support for some *SPARK*, *GNATtest*, *GNATcoverage* and *GNAT SAS* [Tasks](#tasks), but some workflows may not be supported yet.
+* **Tooling support**: we currently provide support for some *SPARK*, *GNATtest*, *GNATcoverage*, *GNAT SAS* and *GNATemulator* [Tasks](#tasks), but some workflows may not be supported yet.
 
 * **Alire support**: if the root folder contains an `alire.toml` file and
   there is `alr` executable in the `PATH`, then the language server fetches

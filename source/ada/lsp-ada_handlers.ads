@@ -106,6 +106,10 @@ package LSP.Ada_Handlers is
       return LSP.Structures.ProgressToken;
    --  Return an unique token for indicating progress
 
+   function Ada_File_Diagnostics_Enabled
+     (Self : Message_Handler'Class) return Boolean;
+   --  Return True when diagnostics are enabled for Ada files
+
    -----------------------------
    --  Open Document Manager  --
    -----------------------------

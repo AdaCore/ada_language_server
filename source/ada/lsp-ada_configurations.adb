@@ -303,6 +303,19 @@ package body LSP.Ada_Configurations is
                Self.Project_Diagnostics_Enabled := JSON (Index).Boolean_Value;
 
             elsif Check_Variable
+              (Name, JSON (Index).Kind, "alireDiagnostics", Boolean_Value)
+            then
+               Self.Alire_Diagnostics_Enabled := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
+              (Name, JSON (Index).Kind, "enableDiagnostics", Boolean_Value)
+            then
+               Messages.Append
+                 ("enableDiagnostics has been deprecated please have a look at"
+                  & " adaFileDiagnostics, projectDiagnostics"
+                  & "and alireDiagnostics");
+
+            elsif Check_Variable
               (Name, JSON (Index).Kind, "scenarioVariables", Start_Object)
             then
                Parse_Variables (Index);
@@ -328,9 +341,9 @@ package body LSP.Ada_Configurations is
                Self.Charset := JSON (Index).String_Value;
 
             elsif Check_Variable
-              (Name, JSON (Index).Kind, "enableDiagnostics", Boolean_Value)
+              (Name, JSON (Index).Kind, "adaFileDiagnostics", Boolean_Value)
             then
-               Self.Diagnostics_Enabled := JSON (Index).Boolean_Value;
+               Self.Ada_File_Diagnostics_Enabled := JSON (Index).Boolean_Value;
 
             elsif Check_Variable
               (Name, JSON (Index).Kind, "enableIndexing", Boolean_Value)

@@ -304,12 +304,6 @@
                         },
                         "order": 1
                     },
-                    "ada.projectDiagnostics": {
-                        "scope": "window",
-                        "type": "boolean",
-                        "default": null,
-                        "description": "Controls whether or not the Ada Language Server should emit project diagnostics into the VS Code Problems view.\n\nNote: this setting is ignored if `ada.enableDiagnostics` is disabled and a workspace reload is necessary to refresh the diagnostics after modifying this setting."
-                    },
                     "ada.defaultCharset": {
                         "scope": "window",
                         "type": "string",
@@ -392,12 +386,6 @@
                         "default": null,
                         "description": "Controls the policy for displaying overriding and overridden subprograms on navigation requests such as 'Go To Definition' or 'Go To Implementations'."
                     },
-                    "ada.enableDiagnostics": {
-                        "scope": "window",
-                        "type": "boolean",
-                        "default": null,
-                        "description": "Controls whether or not the Ada Language Server should emit diagnostics into the VS Code Problems view."
-                    },
                     "ada.foldComments": {
                         "scope": "window",
                         "type": "boolean",
@@ -427,6 +415,30 @@
                         "type": "boolean",
                         "default": null,
                         "description": "Enable editing Ada comments to update references to an entity when it is being renamed."
+                    }
+                }
+            },
+            {
+                "type": "object",
+                "title": "Diagnostics",
+                "properties": {
+                    "ada.projectDiagnostics": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": null,
+                        "description": "Controls whether or not the Ada Language Server should emit project diagnostics into the VS Code Problems view."
+                    },
+                    "ada.alireDiagnostics": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": null,
+                        "description": "Controls whether or not the Ada Language Server should emit diagnostics related to alire into the VS Code Problems view."
+                    },
+                    "ada.adaFileDiagnostics": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": null,
+                        "description": "Controls whether or not the Ada Language Server should emit diagnostics related to Ada files into the VS Code Problems view."
                     }
                 }
             },
@@ -779,6 +791,11 @@
                 "shortTitle": "Ada Package"
             },
             {
+                "command": "ada.createNewGPRProjectFile",
+                "title": "Ada: Create GPR Project File",
+                "shortTitle": "GPR Project File"
+            },
+            {
                 "command": "ada.otherFile",
                 "title": "Ada: Go to other file"
             },
@@ -930,6 +947,10 @@
                 },
                 {
                     "command": "ada.createNewAdaPackage",
+                    "group": "ada"
+                },
+                {
+                    "command": "ada.createNewGPRProjectFile",
                     "group": "ada"
                 }
             ]

@@ -98,7 +98,7 @@
                "settings": {
                   "ada": {
                      "scenarioVariables": {},
-                     "enableDiagnostics": false,
+                     "adaFileDiagnostics": false,
                      "defaultCharset": "ISO-8859-1"
                   }
                }
