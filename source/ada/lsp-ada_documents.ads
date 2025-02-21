@@ -106,10 +106,8 @@ package LSP.Ada_Documents is
       Result   : out LSP.Structures.DocumentSymbol_Vector);
    --  Populate Result with a symbol hierarchy from the document.
 
-   function Get_Indentation
-     (Self    : Document;
-      Context : LSP.Ada_Contexts.Context;
-      Line    : Positive)
+   function Estimate_Indentation
+     (Self : Document; Context : LSP.Ada_Contexts.Context; Line : Positive)
       return VSS.Strings.Character_Count;
    --  Estimates the indention a line should have
 

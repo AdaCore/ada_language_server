@@ -1,0 +1,4 @@
+generic
+package After_Generic_Package_Private is
+private
+end After_Generic_Package_Private;

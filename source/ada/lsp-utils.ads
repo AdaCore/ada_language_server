@@ -17,20 +17,25 @@
 
 --  This package provides some utility subprograms.
 
-with VSS.Strings.Conversions;
-
 with GNATCOLL.VFS;
-with GPR2.Path_Name;
+
 with GPR2.Message;
+with GPR2.Path_Name;
 with GPR2.Source_Reference;
-with Libadalang.Analysis;
-with Langkit_Support.Slocs;
-with Pp.Scanner;
-with Utils.Char_Vectors;
-with Utils.Command_Lines;
 
 with LSP.Enumerations;
 with LSP.Structures;
+
+with Langkit_Support.Slocs;
+
+with Libadalang.Analysis;
+
+with Pp.Scanner;
+
+with Utils.Char_Vectors;
+with Utils.Command_Lines;
+
+with VSS.Strings.Conversions;
 
 package LSP.Utils is
 

@@ -995,20 +995,214 @@ package body LSP.Ada_Documents is
          Input_Range =>
             Self.To_Source_Location_Range ((Position, Position))));
 
-   ---------------------
-   -- Get_Indentation --
-   ---------------------
+   --------------------------
+   -- Estimate_Indentation --
+   --------------------------
 
-   function Get_Indentation
-     (Self    : Document;
-      Context : LSP.Ada_Contexts.Context;
-      Line    : Positive)
+   function Estimate_Indentation
+     (Self : Document; Context : LSP.Ada_Contexts.Context; Line : Positive)
       return VSS.Strings.Character_Count
    is
-     (VSS.Strings.Character_Count
-        (Laltools.Partial_GNATPP.Estimate_Indentation
-             (Self.Unit (Context),
-              Self.To_Source_Location ((Line, 1)).Line)));
+      use Langkit_Support.Slocs;
+      use Libadalang.Analysis;
+      use Libadalang.Common;
+
+      function Get_Relevant_Parents
+        (Unit  : Libadalang.Analysis.Analysis_Unit;
+         Token : Token_Reference) return Ada_Node_Array;
+      --  Analyze where in the tree this Token is and returns the appropriate
+      --  parent nodes that influence indentation.
+
+      function Parent_Based_Indentation
+        (Parents                  : Ada_Node_Array;
+         Indentation              : Positive := 3;
+         Indentation_Continuation : Positive := 2) return Natural;
+      --  Estimate the indentation starting at zero and incrementing based on
+      --  that Parents kind. Returns earlier if it finds a parent that always
+      --  sets indentation, for instance, a parameter list.
+
+      ------------------------------
+      -- Parent_Based_Indentation --
+      ------------------------------
+
+      function Parent_Based_Indentation
+        (Parents                  : Ada_Node_Array;
+         Indentation              : Positive := 3;
+         Indentation_Continuation : Positive := 2) return Natural
+      is
+         Current_Indentation : Natural := 0;
+
+      begin
+         for Parent of Parents loop
+            case Parent.Kind is
+               when Ada_Loop_Stmt_Range
+                  | Ada_For_Loop_Stmt_Range
+                  | Ada_While_Loop_Stmt_Range
+                  | Ada_If_Stmt_Range
+                  | Ada_Case_Stmt_Range
+                  | Ada_Case_Stmt_Alternative_Range
+                  | Ada_Record_Type_Def_Range
+                  | Ada_Generic_Formal_Part_Range
+                  | Ada_Begin_Block_Range
+                  | Ada_Decl_Block_Range
+               =>
+                  Current_Indentation := Current_Indentation + Indentation;
+
+               when Ada_Declarative_Part_Range =>
+                  --  When we type declare, a DeclBlock is created but not a
+                  --  DeclarativePart one. Only when you close the block with
+                  --  an end the node is created.
+                  --  DeclarativePart is a node that adds indentation.
+                  --  We cannot simply make DeclBlock also add indentation
+                  --  because it would double indent. So only add indentation
+                  --  to DeclarativeParts if their parent is not  DeclBlock.
+                  if Parent.Parent.Kind not in Ada_Decl_Block_Range then
+                     Current_Indentation := Current_Indentation + Indentation;
+                  end if;
+
+               when Ada_Handled_Stmts_Range =>
+                  --  HandledStmts can be children of DeclBlock and BeginBlock.
+                  --  These two add indentation, so HandledStmts should not
+                  --  double add if its their child.
+                  if Parent.Parent.Kind not in
+                       Ada_Begin_Block_Range
+                       | Ada_Decl_Block_Range
+                  then
+                     Current_Indentation := Current_Indentation +  Indentation;
+                  end if;
+
+               when Ada_Subp_Spec_Range | Ada_Assign_Stmt_Range =>
+                  Current_Indentation :=
+                    Current_Indentation + Indentation_Continuation;
+
+               when Ada_Dotted_Name_Range =>
+                  Current_Indentation :=
+                    Natural (Parent.Sloc_Range.Start_Column) - 1
+                    + Indentation_Continuation;
+                  exit;
+
+               when Ada_Params_Range =>
+                  Current_Indentation :=
+                    Natural (Parent.Sloc_Range.Start_Column) - 1 + 1;
+                  exit;
+
+               when Ada_Assoc_List_Range | Ada_Component_List_Range =>
+                  Current_Indentation :=
+                    Natural (Parent.Sloc_Range.Start_Column) - 1;
+                  exit;
+
+               when others =>
+                  null;
+            end case;
+         end loop;
+
+         return Current_Indentation;
+      end Parent_Based_Indentation;
+
+      --------------------------
+      -- Get_Relevant_Parents --
+      --------------------------
+
+      function Get_Relevant_Parents
+        (Unit  : Libadalang.Analysis.Analysis_Unit;
+         Token : Token_Reference) return Ada_Node_Array
+      is
+         Previous : Token_Reference :=
+           (if Token = No_Token then No_Token
+            else Libadalang.Common.Previous (Token, Exclude_Trivia => True));
+
+      begin
+         if Previous = No_Token then
+            return [];
+         end if;
+
+         if Kind (Data (Previous)) in Ada_Comma | Ada_Dot then
+            Previous :=
+              Libadalang.Common.Previous (Previous, Exclude_Trivia => True);
+         end if;
+
+         declare
+            Node : constant Ada_Node :=
+              Unit.Root.Lookup (Start_Sloc (Sloc_Range (Data (Previous))));
+
+         begin
+            if (Node.Kind in Ada_Begin_Block_Range
+                and Kind (Data (Previous)) in Ada_Begin)
+              or (Node.Kind in Ada_Decl_Block_Range
+                  and Kind (Data (Previous)) in Ada_Declare)
+              or Kind (Data (Previous)) in Ada_Brack_Open
+              or Node.Kind in Ada_Params_Range
+            then
+               return Node.Parents;
+
+            elsif Node.Kind in Ada_Subp_Body_Range then
+               if Kind (Data (Previous)) in Ada_Is then
+                  return Node.As_Subp_Body.F_Decls.Parents;
+
+               elsif Kind (Data (Previous)) in Ada_Begin then
+                  return Node.As_Subp_Body.F_Stmts.Parents;
+               end if;
+
+            elsif Node.Kind in Ada_Package_Body_Range then
+               if Kind (Data (Previous)) in Ada_Is then
+                  return Node.As_Package_Body.F_Decls.Parents;
+
+               elsif Kind (Data (Previous)) in Ada_Begin then
+                  return Node.As_Package_Body.F_Stmts.Parents;
+               end if;
+
+            elsif Node.Kind in Ada_Package_Decl_Range then
+               if Kind (Data (Previous)) in Ada_Is then
+                  return Node.As_Package_Decl.F_Public_Part.Parents;
+
+               elsif Kind (Data (Previous)) in Ada_Private then
+                  return Node.As_Package_Decl.F_Private_Part.Parents;
+               end if;
+
+            elsif Node.Kind in Ada_Generic_Package_Internal_Range then
+               if Kind (Data (Previous)) in Ada_Is then
+                  return
+                    Node.As_Generic_Package_Internal.F_Public_Part.Parents;
+
+               elsif Kind (Data (Previous)) in Ada_Private then
+                  return
+                    Node.As_Generic_Package_Internal.F_Private_Part.Parents;
+               end if;
+
+            elsif Node.Kind in Ada_Generic_Formal_Part_Range then
+               if Kind (Data (Previous)) in Ada_Generic then
+                  return Node.As_Generic_Formal_Part.F_Decls.Parents;
+               end if;
+            end if;
+
+            return Node.Parents (With_Self => False);
+         end;
+      end Get_Relevant_Parents;
+
+      Unit        : constant Analysis_Unit := Self.Unit (Context);
+      Line_Number : constant Langkit_Support.Slocs.Line_Number :=
+        Self.To_Source_Location ((Line, 1)).Line;
+      Token       : constant Token_Reference :=
+        Unit.Lookup_Token (Source_Location'(Line_Number, 1));
+
+      Format_Options : constant Gnatformat.Configuration.Format_Options_Type :=
+        Context.Get_Format_Options;
+
+      Indentation              : constant Positive :=
+        Gnatformat.Configuration.Get_Indentation
+          (Format_Options, Unit.Get_Filename);
+      Indentation_Continuation : constant Positive :=
+        Gnatformat.Configuration.Get_Indentation_Continuation
+          (Format_Options, Unit.Get_Filename);
+
+   begin
+      return
+        VSS.Strings.Character_Count
+          (Parent_Based_Indentation
+             (Parents                  => Get_Relevant_Parents (Unit, Token),
+              Indentation              => Indentation,
+              Indentation_Continuation => Indentation_Continuation));
+   end Estimate_Indentation;
 
    -----------------
    -- Get_Node_At --

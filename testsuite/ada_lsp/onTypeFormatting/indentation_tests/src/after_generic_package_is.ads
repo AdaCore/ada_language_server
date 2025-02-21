@@ -1,0 +1,3 @@
+generic
+package After_Generic_Package_Is is
+end After_Generic_Package_Is;

@@ -2577,6 +2577,10 @@ package body LSP.Ada_Handlers is
       use type VSS.Strings.Virtual_String;
 
       procedure Compute_Response;
+      --  Determines if how this document needs to be handled based on its
+      --  diagnostics and ALS settings. Dispatches to
+      --  Handle_Document_With_Diagnostics and
+      --  Handle_Document_Without_Diagnostics accordingly.
 
       procedure Handle_Document_With_Diagnostics;
       --  Simply adds indentation to the new line
@@ -2593,19 +2597,18 @@ package body LSP.Ada_Handlers is
       Response    : LSP.Structures.TextEdit_Vector_Or_Null;
       Indentation : constant VSS.Strings.Character_Count :=
         (declare
-            Indentation_First_Guess : constant VSS.Strings.Character_Count :=
-              Document.Get_Indentation (Context.all, Value.position.line);
+           Indentation_First_Guess : constant VSS.Strings.Character_Count :=
+             Document.Estimate_Indentation (Context.all, Value.position.line);
 
          begin
            (if Indentation_First_Guess
-                 >= VSS.Strings.Character_Count (Value.position.character)
-            then Indentation_First_Guess
-                   - VSS.Strings.Character_Count (Value.position.character)
+              >= VSS.Strings.Character_Count (Value.position.character)
+            then
+              Indentation_First_Guess
+              - VSS.Strings.Character_Count (Value.position.character)
             else 0));
       --  Do not add any indentation if the current cursor position is greater
       --  than the calculated one.
-      --  XXX position.character is counted as UTF-16 code units, actual
-      --  position need to be computed.
 
       ----------------------
       -- Compute_Response --
@@ -2615,8 +2618,8 @@ package body LSP.Ada_Handlers is
       begin
          if not LSP.Ada_Configurations.On_Type_Formatting then
             Self.Tracer.Trace
-              ("'onTypeFormatting' is not active, yet, ALS received a request - "
-               & "exiting earlier");
+              ("'onTypeFormatting' is not active, yet, ALS received a request "
+               & " - exiting earlier");
 
             return;
          end if;
@@ -2634,8 +2637,7 @@ package body LSP.Ada_Handlers is
          if Document.Has_Diagnostics (Context.all) then
             --  This is the unhappy path: when this Document has diagnostics.
             --  Get the previous node (based on the previous non whitespace
-            --  token), compute the indentation and format it (if configured to
-            --  to so).
+            --  token) and compute the indentation.
 
             Self.Tracer.Trace ("Document has diagnostics");
             Handle_Document_With_Diagnostics;
@@ -2644,13 +2646,12 @@ package body LSP.Ada_Handlers is
             --  This is the happy path: when this Document does not have any
             --  diagnostics.
             --  Get the previous node (based on the previous non whitespace
-            --  token) and compute the indentation.
+            --  token), compute the indentation and format it (if configured to
+            --  to so).
 
             Self.Tracer.Trace ("Document does not have any diagnostics");
             Handle_Document_Without_Diagnostics;
          end if;
-
-         Self.Tracer.Trace ("Exiting 'onTypeFormatting' Request");
       end Compute_Response;
 
       --------------------------------------
@@ -2661,9 +2662,7 @@ package body LSP.Ada_Handlers is
       begin
          Response.Append
            (LSP.Structures.TextEdit'
-              (a_range   =>
-                   (start  => Value.position,
-                    an_end => Value.position),
+              (a_range => (start  => Value.position, an_end => Value.position),
                newText => Indentation * VSS.Characters.Latin.Space));
       end Handle_Document_With_Diagnostics;
 
@@ -2778,37 +2777,24 @@ package body LSP.Ada_Handlers is
                Response => Response,
                Error    => Error);
 
-            if Success then
-               --  Result contains the Range_Format result.
-               --  Add indentation to the next line.
-
-               Response.Append
-                 (LSP.Structures.TextEdit'
-                    (a_range =>
-                         (start  => Value.position,
-                          an_end => Value.position),
-                     newText => Indentation * ' '));
-
-               return;
+            if not Success then
+               Self.Tracer.Trace
+                 ("The 'onTypeFormatting' has failed because of a "
+                  & "Range_Format error");
             end if;
-
-            Self.Tracer.Trace
-              ("The 'onTypeFormatting' has failed because of a "
-               & "Range_Format error");
 
             Response.Append
               (LSP.Structures.TextEdit'
                  (a_range =>
-                      (start  => Value.position,
-                       an_end => Value.position),
+                    (start  => Value.position, an_end => Value.position),
                   newText => Indentation * ' '));
          end;
       end Handle_Document_Without_Diagnostics;
 
    begin
       Self.Tracer.Trace ("On 'onTypeFormatting' Request");
-
       Compute_Response;
+      Self.Tracer.Trace ("Exiting 'onTypeFormatting' Request");
 
       Self.Sender.On_OnTypeFormatting_Response (Id, Response);
    end On_OnTypeFormatting_Request;
