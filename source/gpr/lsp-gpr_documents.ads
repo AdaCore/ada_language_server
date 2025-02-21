@@ -65,11 +65,12 @@ package LSP.GPR_Documents is
    --  Used to split a tree's log into logs (one for each file with message)
 
    procedure Initialize
-     (Self        : in out Document;
-      URI         : LSP.Structures.DocumentUri;
-      File        : GPR2.Path_Name.Object;
-      Text        : VSS.Strings.Virtual_String;
-      Provider    : LSP.GPR_Files.File_Provider_Access);
+     (Self     : in out Document;
+      URI      : LSP.Structures.DocumentUri;
+      File     : GPR2.Path_Name.Object;
+      Text     : VSS.Strings.Virtual_String;
+      Provider : LSP.GPR_Files.File_Provider_Access;
+      Version  : Integer);
    --  Create a new document from a TextDocumentItem. Use Diagnostic as
    --  project status diagnostic source.
 

@@ -2029,7 +2029,8 @@ package body LSP.Ada_Handlers is
       Project_Loading.Ensure_Project_Loaded (Self);
 
       --  We have received a document: add it to the documents container
-      Object.Initialize (Self, URI, Value.textDocument.text);
+      Object.Initialize
+        (Self, URI, Value.textDocument.text, Value.textDocument.version);
       Self.Open_Documents.Include (File, Object);
 
       --  Handle the case where we're loading the implicit project: do
