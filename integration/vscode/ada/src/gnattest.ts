@@ -738,52 +738,88 @@ async function buildTestDriverAndReportErrors(
 
     const buildTasks = [];
     if (coverage) {
-        const adaTP = adaExtState.getAdaTaskProvider()!;
+        const adaTP = adaExtState.getAdaTaskProvider();
+        assert(adaTP);
 
-        const instTaskDef: SimpleTaskDef = {
-            type: TASK_TYPE_ADA,
-            command: 'gnatcov',
-            args: ['instrument', '--level=stmt', '-P', await getGnatTestDriverProjectPath()].concat(
-                getScenarioArgs(),
-            ),
-        };
-        const instTask = (await adaTP.resolveTask(
-            new vscode.Task(
-                instTaskDef,
-                vscode.TaskScope.Workspace,
-                `GNATcoverage - Generate instrumented sources for coverage analysis`,
-                TASK_TYPE_ADA,
-                undefined,
-                DEFAULT_PROBLEM_MATCHER,
-            ),
-        ))!;
-        instTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
+        const instTaskName = `GNATcoverage - Generate instrumented sources for coverage analysis`;
+        /**
+         * First try to fetch an existing task of the corresponding name. The
+         * User may have defined a homonym in tasks.json to customize this
+         * step.
+         */
+        const instExistingTask = await findTaskByName(`${TASK_TYPE_ADA}: ${instTaskName}`).then(
+            undefined,
+            /**
+             * Return undefined in case of errors when searching for the task.
+             */
+            () => undefined,
+        );
+        let instTask;
+        if (instExistingTask) {
+            instTask = instExistingTask;
+        } else {
+            /**
+             * If there's no existing task of that name, create one on the fly.
+             */
+            const instTaskDef: SimpleTaskDef = {
+                type: TASK_TYPE_ADA,
+                command: 'gnatcov',
+                args: [
+                    'instrument',
+                    '--level=stmt',
+                    '-P',
+                    await getGnatTestDriverProjectPath(),
+                ].concat(getScenarioArgs()),
+            };
+            instTask = (await adaTP.resolveTask(
+                new vscode.Task(
+                    instTaskDef,
+                    vscode.TaskScope.Workspace,
+                    instTaskName,
+                    TASK_TYPE_ADA,
+                    undefined,
+                    DEFAULT_PROBLEM_MATCHER,
+                ),
+            ))!;
+            instTask.presentationOptions.reveal =
+                instTask.presentationOptions.reveal ?? vscode.TaskRevealKind.Never;
+        }
 
-        const buildTaskDef: SimpleTaskDef = {
-            type: TASK_TYPE_ADA,
-            command: 'gprbuild',
-            args: [
-                '-m',
-                '-s',
-                '--src-subdirs=gnatcov-instr',
-                '--implicit-with=gnatcov_rts.gpr',
-                '-P',
-                await getGnatTestDriverProjectPath(),
-            ]
-                .concat(getScenarioArgs())
-                .concat(['-cargs', '-g', '-fdump-scos', '-fpreserve-control-flow']),
-        };
-        const buildTask = (await adaTP.resolveTask(
-            new vscode.Task(
-                buildTaskDef,
-                vscode.TaskScope.Workspace,
-                `GNATcoverage - Build GNATtest harness project in coverage mode`,
-                TASK_TYPE_ADA,
-                undefined,
-                DEFAULT_PROBLEM_MATCHER,
-            ),
-        ))!;
-        buildTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
+        const buildTaskName = `GNATcoverage - Build GNATtest harness project in coverage mode`;
+        const buildExistingTask = await findTaskByName(`${TASK_TYPE_ADA}: ${buildTaskName}`).then(
+            undefined,
+            () => undefined,
+        );
+        let buildTask;
+        if (buildExistingTask) {
+            buildTask = buildExistingTask;
+        } else {
+            const buildTaskDef: SimpleTaskDef = {
+                type: TASK_TYPE_ADA,
+                command: 'gprbuild',
+                args: [
+                    '-m',
+                    '-s',
+                    '--src-subdirs=gnatcov-instr',
+                    '--implicit-with=gnatcov_rts.gpr',
+                    '-P',
+                    await getGnatTestDriverProjectPath(),
+                ]
+                    .concat(getScenarioArgs())
+                    .concat(['-cargs', '-g', '-fdump-scos', '-fpreserve-control-flow']),
+            };
+            buildTask = (await adaTP.resolveTask(
+                new vscode.Task(
+                    buildTaskDef,
+                    vscode.TaskScope.Workspace,
+                    buildTaskName,
+                    TASK_TYPE_ADA,
+                    undefined,
+                    DEFAULT_PROBLEM_MATCHER,
+                ),
+            ))!;
+            buildTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
+        }
 
         buildTasks.push(instTask, buildTask);
     } else {
