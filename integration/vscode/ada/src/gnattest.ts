@@ -9,7 +9,7 @@ import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
 import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
-import { escapeRegExp, exe, getObjectDir, setTerminalEnvironment } from './helpers';
+import { escapeRegExp, exe, getObjectDir, setTerminalEnvironment, slugify } from './helpers';
 import {
     DEFAULT_PROBLEM_MATCHER,
     findTaskByName,
@@ -609,7 +609,7 @@ async function handleRunRequestedTests(
         const tracesDir = path.dirname(execPath);
 
         function getTracePath(test: TestItem): string {
-            return path.join(tracesDir, test.id + '.srctrace');
+            return path.join(tracesDir, slugify(test.id) + '.srctrace');
         }
 
         /**
