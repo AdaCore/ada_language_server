@@ -55,7 +55,8 @@ package LSP.Ada_Documents is
      (Self    : in out Document;
       Handler : LSP.Ada_Handlers.Message_Handler'Class;
       URI     : LSP.Structures.DocumentUri;
-      Text    : VSS.Strings.Virtual_String);
+      Text    : VSS.Strings.Virtual_String;
+      Version : Integer);
    --  Create a new document from a TextDocumentItem.
 
    procedure Cleanup (Self : in out Document);
@@ -106,10 +107,8 @@ package LSP.Ada_Documents is
       Result   : out LSP.Structures.DocumentSymbol_Vector);
    --  Populate Result with a symbol hierarchy from the document.
 
-   function Get_Indentation
-     (Self    : Document;
-      Context : LSP.Ada_Contexts.Context;
-      Line    : Positive)
+   function Estimate_Indentation
+     (Self : Document; Context : LSP.Ada_Contexts.Context; Line : Positive)
       return VSS.Strings.Character_Count;
    --  Estimates the indention a line should have
 

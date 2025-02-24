@@ -95,9 +95,10 @@ package LSP.Text_Documents is
    package Constructors is
 
       procedure Initialize
-        (Self : in out Text_Document'Class;
-         URI  : LSP.Structures.DocumentUri;
-         Text : VSS.Strings.Virtual_String);
+        (Self    : in out Text_Document'Class;
+         URI     : LSP.Structures.DocumentUri;
+         Text    : VSS.Strings.Virtual_String;
+         Version : Integer);
 
    end Constructors;
 

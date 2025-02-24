@@ -147,13 +147,14 @@ package body LSP.GPR_Documents is
    ----------------
 
    procedure Initialize
-     (Self        : in out Document;
-      URI         : LSP.Structures.DocumentUri;
-      File        : GPR2.Path_Name.Object;
-      Text        : VSS.Strings.Virtual_String;
-      Provider    : LSP.GPR_Files.File_Provider_Access) is
+     (Self     : in out Document;
+      URI      : LSP.Structures.DocumentUri;
+      File     : GPR2.Path_Name.Object;
+      Text     : VSS.Strings.Virtual_String;
+      Provider : LSP.GPR_Files.File_Provider_Access;
+      Version  : Integer) is
    begin
-      LSP.Text_Documents.Constructors.Initialize (Self, URI, Text);
+      LSP.Text_Documents.Constructors.Initialize (Self, URI, Text, Version);
 
       Self.File          := File;
       Self.File_Provider := Provider;

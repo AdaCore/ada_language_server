@@ -257,7 +257,7 @@
                      {
                         "textDocument": {
                            "uri": "$URI{foo-bar1.ads}",
-                           "version": 1
+                           "version": 0
                         },
                         "edits": [
                            {
@@ -293,7 +293,7 @@
                      {
                         "textDocument": {
                            "uri": "$URI{main.adb}",
-                           "version": 1
+                           "version": 0
                         },
                         "edits": [
                            {

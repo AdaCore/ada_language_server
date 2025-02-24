@@ -214,8 +214,11 @@ package body LSP.GPR_Handlers is
 
       --  We have received a document: add it to the documents container
       Object.Initialize
-        (URI, GPR2.Path_Name.Create (Self.To_File (URI)),
-         Value.textDocument.text, Self'Unchecked_Access);
+        (URI,
+         GPR2.Path_Name.Create (Self.To_File (URI)),
+         Value.textDocument.text,
+         Self'Unchecked_Access,
+         Value.textDocument.version);
 
       Self.Open_Documents.Include (File, Object);
 
