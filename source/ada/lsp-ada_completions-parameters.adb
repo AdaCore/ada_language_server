@@ -889,6 +889,13 @@ package body LSP.Ada_Completions.Parameters is
          Cursor          => Cursor,
          Prev_Signatures => Filter_Signatures,
          Res             => Res);
+
+      if not Res.activeSignature.Is_Set or else Res.activeSignature.Value + 1 not in Res.signatures.First_Index .. Res.signatures.Last_Index then
+         Res.activeSignature := (Is_Set => True, Value => 0);
+      else
+         Res.activeParameter := Res.signatures.Element (Res.activeSignature.Value + 1).activeParameter;
+      end if;
+      --  Vector index start at 1
    end Propose_Signatures;
 
    -------------------
