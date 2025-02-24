@@ -541,7 +541,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                  */
                 (reason) => {
                     logger.error(
-                        'Error while querying for the GNATtest test driver project\n' + reason,
+                        'Error while querying for the GNATtest test driver project:\n' + reason,
                     );
                     return undefined;
                 },
