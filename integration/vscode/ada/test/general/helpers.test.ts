@@ -4,6 +4,7 @@ import {
     findAdaMain,
     getSymbols,
     parallelize,
+    slugify,
     staggerProgress,
     which,
 } from '../../src/helpers';
@@ -342,5 +343,10 @@ suite('staggerProgress', function () {
         });
         assert.ok(called, 'Progress reporting function was unexpectedly not called');
         assert.equal(lastProgress, 50);
+    });
+
+    test('slugify', function () {
+        assert.equal(slugify('file<>:"/\\|?*name'), 'file_________name');
+        assert.equal(slugify('file<>:"/\\|?*name'), 'file' + '_'.repeat(9) + 'name');
     });
 });
