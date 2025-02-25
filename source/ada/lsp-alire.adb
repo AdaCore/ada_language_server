@@ -98,7 +98,7 @@ package body LSP.Alire is
         GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
 
       Crate_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
-        VSS.Regular_Expressions.To_Regular_Expression ("^([^=]+)=");
+        VSS.Regular_Expressions.To_Regular_Expression ("^([^= ]+)=");
 
       Project_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
         VSS.Regular_Expressions.To_Regular_Expression
