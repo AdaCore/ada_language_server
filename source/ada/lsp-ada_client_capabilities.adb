@@ -27,7 +27,6 @@ with VSS.Strings.Conversions;
 with LSP.Ada_Configurations;
 with LSP.Constants;
 with LSP.Enumerations;
-with LSP.GPR_Files;
 with LSP.Structures.Unwrap;
 
 with LSP.Structures.LSPAny_Vectors;
@@ -208,8 +207,6 @@ package body LSP.Ada_Client_Capabilities is
       end if;
 
       Self.Parse_Experimental;
-
-      LSP.GPR_Files.Set_Environment (Client_Capability (Self));
 
    end Initialize;
 
