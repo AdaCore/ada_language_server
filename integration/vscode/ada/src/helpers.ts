@@ -627,3 +627,12 @@ export function staggerProgress(
         return lastProgress;
     }
 }
+
+/**
+ *
+ * @param arg - a string
+ * @returns a modified string suitable for use as a filename
+ */
+export function slugify(arg: string): string {
+    return arg.replace(/[<>:"/\\|?*]/g, '_');
+}

@@ -9,7 +9,7 @@ import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
 import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
-import { escapeRegExp, exe, getObjectDir, setTerminalEnvironment } from './helpers';
+import { escapeRegExp, exe, getObjectDir, setTerminalEnvironment, slugify } from './helpers';
 import {
     DEFAULT_PROBLEM_MATCHER,
     findTaskByName,
@@ -609,7 +609,7 @@ async function handleRunRequestedTests(
         const tracesDir = path.dirname(execPath);
 
         function getTracePath(test: TestItem): string {
-            return path.join(tracesDir, test.id + '.srctrace');
+            return path.join(tracesDir, slugify(test.id) + '.srctrace');
         }
 
         /**
@@ -624,7 +624,6 @@ async function handleRunRequestedTests(
             }
             const start = Date.now();
             run.started(test);
-            const cmd = [execPath, '--passed-tests=show', `--routines=${test.id}`];
 
             if (coverage) {
                 /**
@@ -633,7 +632,17 @@ async function handleRunRequestedTests(
                 env['GNATCOV_TRACE_FILE'] = getTracePath(test);
             }
 
-            const driver = logAndRun(run, cmd, env);
+            /**
+             * Use a path relative to the workspace root in the command line to
+             * make log lines shorter.
+             */
+            const cmd = [
+                vscode.workspace.asRelativePath(execPath),
+                '--passed-tests=show',
+                `--routines=${test.id}`,
+            ];
+            const testCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
+            const driver = logAndRun(run, cmd, env, testCwd);
             const duration = Date.now() - start;
             if (driver.status !== null) {
                 /**
@@ -1117,9 +1126,13 @@ function logAndRun(
     run: vscode.TestRun,
     cmd: string[],
     env?: NodeJS.ProcessEnv,
+    cwd?: string,
 ): cp.SpawnSyncReturns<Buffer> {
     run.appendOutput(`$ ${cmd.map((arg) => `"${arg}"`).join(' ')}\r\n`);
-    return cp.spawnSync(cmd[0], cmd.slice(1), { env: env });
+    return cp.spawnSync(cmd[0], cmd.slice(1), {
+        env: env,
+        cwd: cwd,
+    });
 }
 
 /**

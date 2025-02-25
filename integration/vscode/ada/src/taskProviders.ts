@@ -534,8 +534,19 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
             /**
              * If a test harness project exists, provide a task to build it.
              */
-            const harnessPrj = await getGnatTestDriverProjectPath();
-            if (existsSync(harnessPrj)) {
+            const harnessPrj = await getGnatTestDriverProjectPath().catch(
+                /**
+                 * In case of errors fallback silently to keep providing tasks
+                 * even in case of errors.
+                 */
+                (reason) => {
+                    logger.error(
+                        'Error while querying for the GNATtest test driver project:\n' + reason,
+                    );
+                    return undefined;
+                },
+            );
+            if (harnessPrj && existsSync(harnessPrj)) {
                 taskDeclsToOffer.push({
                     label: TASK_BUILD_TEST_DRIVER,
                     taskDef: {
