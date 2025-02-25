@@ -23,4 +23,9 @@ project Prj is
       for Excluded_Project_Files use ("prj.gpr");
    end Documentation;
 
+   --  This is only used to test that environment updates are taken into
+   --  account when restarting language servers.
+   Archive_Suffix_Var := external ("ARCHIVE_SUFFIX", ".a");
+   for Archive_Suffix use Archive_Suffix_Var;
+
 end Prj;

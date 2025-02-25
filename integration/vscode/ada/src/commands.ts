@@ -88,6 +88,9 @@ export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
 
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(
+        vscode.commands.registerCommand('ada.restartLanguageServers', restartLanguageServers),
+    );
+    context.subscriptions.push(
         vscode.commands.registerCommand('ada.createHelloWorldProject', createHelloWorldProject),
     );
     context.subscriptions.push(
@@ -465,6 +468,24 @@ async function buildAndRunMainAsk() {
         );
         return undefined;
     }
+}
+
+/**
+ * Handler for commands that restart language servers launched by the extension.
+ *
+ */
+async function restartLanguageServers() {
+    logger.info('Restarting language servers, updating the process environment first...');
+
+    // Restart the language server clients
+    for (const client of [adaExtState.adaClient, adaExtState.gprClient]) {
+        await client.restart();
+    }
+
+    //  Clear the extension's cache and tasks after restarting the servers
+    adaExtState.clearCacheAndTasks(
+        'Language servers have been restarted, clearing cache and tasks',
+    );
 }
 
 /**
