@@ -594,6 +594,7 @@ def test(
     shutdown: bool = True,
     assert_no_lsp_errors: bool = True,
     als_settings: ALSSettings | None = None,
+    timeout=15,
 ) -> Callable:
     """A decorator to mark a function as a test entry point. The function must receive a
     single parameter of type LanguageClient.
@@ -623,6 +624,7 @@ def test(
     error were received after the end of the test function.
     :param als_settings: ALS settings to send as 'initializationOptions' with the
     'initialize' request. Only applicable if initialize=True (which is the default).
+    :param timeout: test timeout in seconds
     """
 
     async def async_wrapper(
@@ -656,7 +658,7 @@ def test(
             LOG.info("Running test function: %s", func.__name__)
 
             # Run the test with a timeout
-            async with asyncio.timeout(15):  # seconds
+            async with asyncio.timeout(timeout):
                 await func(client)
 
             if assert_no_lsp_errors:
