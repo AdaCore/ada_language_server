@@ -9,7 +9,14 @@ import {
 import { logger } from './extension';
 import { logErrorAndThrow, setTerminalEnvironment } from './helpers';
 
-class AdaLanguageClient extends LanguageClient {
+export class AdaLanguageClient extends LanguageClient {
+    /**
+     * Used to store the client's process environment.
+     * Changes are taken into account when calling the
+     * {@link vscode.LanguageClient.restart} function.
+     */
+    public serverEnv: NodeJS.ProcessEnv = {};
+
     /**
      * Override this function to avoid displaying popup notifications on LSP errors when
      * the 'showNotificationsOnErrors' setting is disabled.
@@ -29,6 +36,21 @@ class AdaLanguageClient extends LanguageClient {
 
         return super.handleFailedRequest(type, token, error, defaultValue, showNotification);
     }
+
+    /**
+     * Override this function to update the client's process environment according to
+     * VS Code settings before restarting it.
+     */
+    override restart(): Promise<void> {
+        // Update the process environment before restarting the language servers, so
+        // that potential changes in VS Code settings related to the environment are
+        // taken into account.
+        setTerminalEnvironment(this.serverEnv);
+
+        // Restart the server
+        logger.info('Restarting language server: ' + this.name);
+        return super.restart();
+    }
 }
 export function createClient(
     context: vscode.ExtensionContext,
@@ -36,7 +58,7 @@ export function createClient(
     name: string,
     extra: string[],
     pattern: string,
-) {
+): AdaLanguageClient {
     let serverExecPath: string;
 
     // If the ALS environment variable is specified, use it as the path of the
@@ -91,14 +113,6 @@ export function createClient(
     // Set custom environment
     setTerminalEnvironment(serverEnv);
 
-    logger.debug(`Environment for ${name}:`);
-    for (const key in serverEnv) {
-        const value = serverEnv[key];
-        if (value) {
-            logger.debug(`${key}=${value}`);
-        }
-    }
-
     // Options to control the server
     const serverOptions: ServerOptions = {
         run: { command: serverExecPath, args: extra, options: { env: serverEnv } },
@@ -119,5 +133,7 @@ export function createClient(
         initializationOptions: () => ({ ada: vscode.workspace.getConfiguration('ada') }),
     };
     // Create the language client
-    return new AdaLanguageClient(id, name, serverOptions, clientOptions);
+    const client = new AdaLanguageClient(id, name, serverOptions, clientOptions);
+    client.serverEnv = serverEnv;
+    return client;
 }

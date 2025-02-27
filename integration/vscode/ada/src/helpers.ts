@@ -203,6 +203,14 @@ export function setTerminalEnvironment(
             }
         }
     }
+
+    logger.debug(`New process environment after update:`);
+    for (const key in targetEnv) {
+        const value = targetEnv[key];
+        if (value) {
+            logger.debug(`${key}=${value}`);
+        }
+    }
 }
 
 export function assertSupportedEnvironments(mainChannel: winston.Logger) {

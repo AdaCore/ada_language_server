@@ -19,6 +19,7 @@ section below it for the last release. -->
   been added, all available under the `File->New File...` menu
 * Add VS Code command `ada: GNATcoverage - Load an existing XML coverage report` for importing coverage reports
 * Support running GNATtest tests in coverage mode
+* Add command to restart the Ada Language Server instances
 
 ## 26.0.202412190
 
