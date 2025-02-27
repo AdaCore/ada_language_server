@@ -2,7 +2,10 @@
 
 <!-- Do not change the title of this section. After a release create a new
 section below it for the last release. -->
+
 ## \<next>
+
+## 26.0.202502240
 
 * Support single-line (`//`) and multi-line (`/* */`) comments in ALS JSON configuration files
 * Fix the reporting of test results in the Testing view when the test tree is not expanded
