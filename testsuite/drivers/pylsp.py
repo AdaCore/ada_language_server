@@ -593,6 +593,7 @@ def test(
     initialize: bool = True,
     shutdown: bool = True,
     assert_no_lsp_errors: bool = True,
+    als_settings: ALSSettings | None = None,
 ) -> Callable:
     """A decorator to mark a function as a test entry point. The function must receive a
     single parameter of type LanguageClient.
@@ -620,6 +621,8 @@ def test(
     of the test function.
     :param assert_no_lsp_errors: automatically assert that no LSP log message of level
     error were received after the end of the test function.
+    :param als_settings: ALS settings to send as 'initializationOptions' with the
+    'initialize' request. Only applicable if initialize=True (which is the default).
     """
 
     async def async_wrapper(
@@ -644,6 +647,9 @@ def test(
                         # ALS doesn't support the newer workspaceFolders property so we
                         # have to use the older rootURI property.
                         root_uri=URI(os.getcwd()),
+                        initialization_options=(
+                            {"ada": als_settings} if als_settings is not None else None
+                        ),
                     )
                 )
 
