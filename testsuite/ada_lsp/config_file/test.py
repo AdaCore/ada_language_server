@@ -28,7 +28,8 @@ subprocess.check_call(["gprconfig", "--batch", "--config=Ada,,light,,GNAT"])
         # Disable indexing to avoid wasting computation resources and risking test
         # timeouts
         "enableIndexing": False
-    }
+    },
+    timeout=30,
 )
 async def do_testing(lsp: ALSLanguageClient) -> None:
     # Set configuration file

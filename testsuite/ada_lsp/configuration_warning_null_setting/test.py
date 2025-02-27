@@ -23,7 +23,8 @@ EXPECTED = [
         # Disable indexing to avoid wasting computation resources and risking test
         # timeouts
         "enableIndexing": False
-    }
+    },
+    timeout=30,
 )
 async def main(lsp: ALSLanguageClient) -> None:
     # There is no config file
