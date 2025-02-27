@@ -189,47 +189,35 @@ package body LSP.Ada_Documents is
          --  "Ada.Text_IO.Put_Line" subprogram).
 
       begin
-         Missing_Unit_Name :=  VSS.Strings.Conversions.To_Virtual_String
-           (Langkit_Support.Text.To_UTF8
-              (Missing_Unit_Root_Decl.P_Fully_Qualified_Name));
+         Missing_Unit_Name :=
+           VSS.Strings.Conversions.To_Virtual_String
+             (Langkit_Support.Text.To_UTF8
+                (Missing_Unit_Root_Decl.P_Fully_Qualified_Name));
 
          --  We are completing a dotted name but its prefix does not match
          --  with the completion item's defining name's unit: this means we
-         --  are dealing with renames (e.g: 'GNAT.Strings.Strings_Access'
-         --  is a forward declaration of 'System.Strings.String_Access'). In
-         --  that case, use the prefix specified by the user instead of the
-         --  completion item's defining name's unit: the user explcitly wants
-         --  to use the renamed symbol instead of the base one.
-
+         --  are dealing with either renames (e.g: 'GNAT.Strings.Strings_Access'
+         --  is a forward declaration of 'System.Strings.String_Access') or
+         --  partially qualified dotted completion (e.g: the user typed
+         --  'Child.' to reference a 'Parent.Child.' package).
+         --  If the prefix corresponds to a known LAL unit (will be the case for
+         --  renames), import the unit corresponding to the prefix instead.
+         --  We don't want to this for partially qualified names: we still want
+         --  to import the fully qualified unit (so import 'Parent.Child' even
+         --  if the user just type 'Child.')
          if Is_Dotted_Name
            and then not Missing_Unit_Name.Starts_With (Dotted_Node_Prefix)
+           and then not Get_From_Provider
+                          (Context => Context.LAL_Context,
+                           Name    =>
+                             Langkit_Support.Text.To_Text
+                               (VSS.Strings.Conversions.To_UTF_8_String
+                                  (Dotted_Node_Prefix)),
+                           Kind    => Libadalang.Common.Unit_Specification)
+                          .Root
+                          .Is_Null
          then
-            declare
-               Dotted_Prefix_Parts : VSS.String_Vectors.
-                 Virtual_String_Vector :=
-                 Dotted_Node_Prefix.Split
-                   (Separator => VSS.Characters.Latin.Full_Stop);
-            begin
-               --  Check if the unit specified as a prefix actually exists.
-               --  If not, it might be a renamed package
-               --  declaration/instantiation: in that case we want to add a
-               --  with-clause on the enclosing unit (e.g: the prefix before
-               --  the last '.').
-
-               while Get_From_Provider
-                 (Context => Context.LAL_Context,
-                  Name    => Langkit_Support.Text.To_Text
-                    (VSS.Strings.Conversions.To_UTF_8_String
-                         (Dotted_Node_Prefix)),
-                  Kind    => Libadalang.Common.Unit_Specification).Root.Is_Null
-               loop
-                  Dotted_Prefix_Parts.Delete_Last;
-                  Dotted_Node_Prefix :=
-                    Dotted_Prefix_Parts.Join (VSS.Characters.Latin.Full_Stop);
-               end loop;
-
-               Missing_Unit_Name := Dotted_Node_Prefix;
-            end;
+            Missing_Unit_Name := Dotted_Node_Prefix;
          end if;
 
          --  We should not add any qualifier if the user accepted the
