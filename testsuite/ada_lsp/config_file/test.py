@@ -23,7 +23,13 @@ from lsprotocol.types import (
 subprocess.check_call(["gprconfig", "--batch", "--config=Ada,,light,,GNAT"])
 
 
-@test()
+@test(
+    als_settings={
+        # Disable indexing to avoid wasting computation resources and risking test
+        # timeouts
+        "enableIndexing": False
+    }
+)
 async def do_testing(lsp: ALSLanguageClient) -> None:
     # Set configuration file
     lsp.didChangeConfig(

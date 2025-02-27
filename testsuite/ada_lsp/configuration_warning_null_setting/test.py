@@ -18,7 +18,13 @@ EXPECTED = [
 ]
 
 
-@test()
+@test(
+    als_settings={
+        # Disable indexing to avoid wasting computation resources and risking test
+        # timeouts
+        "enableIndexing": False
+    }
+)
 async def main(lsp: ALSLanguageClient) -> None:
     # There is no config file
     lsp.didOpenVirtual()
