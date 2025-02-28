@@ -152,22 +152,34 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       elsif Is_Alire_Crate then
          Tracer.Trace ("Workspace is an Alire crate");
-         Tracer.Trace ("Determining project from 'alr show' output");
 
-         LSP.Alire.Determine_Alire_Project
-           (Root      => Self.Client.Root_Directory.Display_Full_Name,
-            Error     => Alire_Error,
-            Project   => Project_File);
+         Tracer.Trace ("Performing minimal Alire sync");
+         LSP.Alire.Conservative_Alire_Sync
+           (Self.Client.Root_Directory.Display_Full_Name, Alire_Error);
 
          if not Alire_Error.Is_Empty then
             Tracer.Trace_Text ("Encountered errors: " & Alire_Error);
             Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
          else
-            --  Report how we found the project
-            Self.Project_Status.Set_Project_Type
-              (LSP.Ada_Project_Loading.Alire_Project);
-            Self.Project_Status.Set_Alire_Messages ([]);
+            Tracer.Trace ("Determining project from 'alr show' output");
+
+            LSP.Alire.Determine_Alire_Project
+              (Root    => Self.Client.Root_Directory.Display_Full_Name,
+               Error   => Alire_Error,
+               Project => Project_File);
+
+            if not Alire_Error.Is_Empty then
+               Tracer.Trace_Text ("Encountered errors: " & Alire_Error);
+               Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
+            else
+               --  Report how we found the project
+               Self.Project_Status.Set_Project_Type
+                 (LSP.Ada_Project_Loading.Alire_Project);
+               Self.Project_Status.Set_Alire_Messages ([]);
+            end if;
+
          end if;
+
       end if;
 
       --  If still haven't found a project, try to find a unique project at the root

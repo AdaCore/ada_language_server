@@ -23,8 +23,7 @@ with LSP.Ada_Client_Capabilities;
 
 with VSS.Strings;
 
-private
-package LSP.Alire is
+private package LSP.Alire is
 
    function Is_Alire_Crate
      (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean;
@@ -36,6 +35,23 @@ package LSP.Alire is
    --  environment variable ALIRE = "True". The latter variable indicates that
    --  we are in a context where the Alire environment has already been
    --  set up.
+
+   procedure Conservative_Alire_Sync
+     (Root : String; Error : out VSS.Strings.Virtual_String);
+   --  Perform a conservative Alire sync action. The goal is to ensure a state
+   --  where the crate's dependencies have been deployed, and the config/
+   --  directory has been generated, such that the pre-requisites for loading
+   --  the crate's GPR project are satisfied.
+   --
+   --  Currently that action is `alr --non-interactive build --stop-after=generation`.
+   --
+   --  If the workspace is a fresh crate checkout where Alire has never been
+   --  called before, this action will deploy dependencies and generate the
+   --  config/ directory which are both needed for loading the project.
+   --
+   --  Otherwise if the workspace is not a fresh checkout, the action will not
+   --  alter existing dependencies to avoid taking drastic actions without User
+   --  confirmation.
 
    procedure Determine_Alire_Project
      (Root    : String;
