@@ -3,8 +3,8 @@
 import datetime
 import logging
 import os
+from shutil import which
 import sys
-from distutils.spawn import find_executable
 
 from drivers.basic import JsonTestDriver
 from drivers.gnatcov import GNATcov
@@ -80,15 +80,14 @@ min_diff: on the fly computed diff of the different values
             return path + ".exe"
 
         # Otherwise, look for the requested program name in the PATH.
-        #
-        # TODO (S710-005): for some reason, on Windows we need to strip the
-        # ".exe" suffix for the tester-run program to be able to spawn ALS.
-        result = find_executable(os.path.basename(path))
+        result = which(os.path.basename(path))
         if result is None:
             raise RuntimeError(
                 "Could not find executable for {}".format(os.path.basename(path))
             )
-        return result[: -len(".exe")] if result.endswith(".exe") else result
+        # TODO (S710-005): for some reason, on Windows we need to strip the
+        # ".exe" suffix for the tester-run program to be able to spawn ALS.
+        return result[: -len(".exe")] if result.lower().endswith(".exe") else result
 
     def set_up(self):
         # Root directory for the "ada_language_server" repository
@@ -96,7 +95,7 @@ min_diff: on the fly computed diff of the different values
             os.path.join(os.path.dirname(__file__), "..")
         )
 
-        self.env.wait_factor = 1
+        self.env.wait_factor = int(os.environ.get("ALS_WAIT_FACTOR", "1"))
 
         # Absolute paths to programs that test drivers can use
         if self.env.options.valgrind_memcheck:

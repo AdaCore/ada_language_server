@@ -100,6 +100,7 @@ class PyLSP(ALSTestDriver):
             env = {
                 "ALS": self.env.als,
                 "ALS_HOME": self.env.als_home,
+                "ALS_WAIT_FACTOR": str(self.env.wait_factor),
                 "PYTHONPATH": os.path.dirname(os.path.dirname(__file__)),
             }
 
@@ -657,8 +658,13 @@ def test(
 
             LOG.info("Running test function: %s", func.__name__)
 
+            actual_timeout = timeout
+            if "ALS_WAIT_FACTOR" in os.environ:
+                factor = int(os.environ["ALS_WAIT_FACTOR"])
+                actual_timeout *= factor
+
             # Run the test with a timeout
-            async with asyncio.timeout(timeout):
+            async with asyncio.timeout(actual_timeout):
                 await func(client)
 
             if assert_no_lsp_errors:
