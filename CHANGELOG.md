@@ -5,6 +5,8 @@ section below it for the last release. -->
 
 ## \<next>
 
+* Fix a bug that caused the ALS to hang when trying to complete partially qualified invisible symbols
+
 ## 26.0.202502240
 
 * Support single-line (`//`) and multi-line (`/* */`) comments in ALS JSON configuration files
