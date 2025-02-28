@@ -3,10 +3,9 @@ import {
     Disposable,
     ExecuteCommandParams,
     ExecuteCommandRequest,
-    LanguageClient,
 } from 'vscode-languageclient/node';
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
-import { createClient } from './clients';
+import { AdaLanguageClient, createClient } from './clients';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { logger } from './extension';
 import { existsSync } from 'fs';
@@ -43,8 +42,8 @@ export type ALSSourceDirDescription = {
  * wherever needed.
  */
 export class ExtensionState {
-    public readonly adaClient: LanguageClient;
-    public readonly gprClient: LanguageClient;
+    public readonly adaClient: AdaLanguageClient;
+    public readonly gprClient: AdaLanguageClient;
     public readonly context: vscode.ExtensionContext;
     public readonly dynamicDebugConfigProvider: {
         provideDebugConfigurations(

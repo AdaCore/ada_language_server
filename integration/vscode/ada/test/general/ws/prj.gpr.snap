@@ -166,6 +166,42 @@
 #       ^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.package.gpr entity.name.package.gpr
 #                    ^ source.gpr meta.project.gpr meta.package.gpr punctuation.gpr
 >
+>   --  This is only used to test that environment updates are taken into
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr comment.line.double-dash.gpr
+>   --  account when restarting language servers.
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr comment.line.double-dash.gpr
+>   Archive_Suffix_Var := external ("ARCHIVE_SUFFIX", ".a");
+#^^^ source.gpr meta.project.gpr
+#   ^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr variable.name.gpr entity.name.gpr
+#                     ^ source.gpr meta.project.gpr meta.declaration.variable.gpr
+#                      ^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr punctuation.gpr
+#                        ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr
+#                         ^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr variable.language.gpr
+#                                 ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr
+#                                  ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                   ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                    ^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                  ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                   ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                                    ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr
+#                                                     ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                      ^^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr
+#                                                        ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr string.quoted.double.gpr punctuation.definition.string.gpr
+#                                                         ^ source.gpr meta.project.gpr meta.declaration.variable.gpr meta.assignment.gpr meta.external.gpr meta.string_list.gpr punctuation.gpr
+#                                                          ^ source.gpr meta.project.gpr meta.declaration.variable.gpr punctuation.gpr
+>   for Archive_Suffix use Archive_Suffix_Var;
+#^^^ source.gpr meta.project.gpr
+#   ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#      ^ source.gpr meta.project.gpr meta.attribute.gpr
+#       ^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr entity.other.attribute-name.gpr
+#                     ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                      ^^^ source.gpr meta.project.gpr meta.attribute.gpr keyword.gpr
+#                         ^ source.gpr meta.project.gpr meta.attribute.gpr
+#                          ^^^^^^^^^^^^^^^^^^ source.gpr meta.project.gpr meta.attribute.gpr variable.name.gpr
+#                                            ^ source.gpr meta.project.gpr meta.attribute.gpr punctuation.gpr
+>
 >end Prj;
 #^^^ source.gpr meta.project.gpr keyword.gpr
 #   ^ source.gpr meta.project.gpr

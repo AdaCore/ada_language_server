@@ -781,6 +781,11 @@
         ],
         "commands": [
             {
+                "command": "ada.restartLanguageServers",
+                "title": "Ada: Restart Language Servers",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
                 "command": "ada.createNewAdaMainUnit",
                 "title": "Ada: Create Main Unit",
                 "shortTitle": "Ada Main Unit"

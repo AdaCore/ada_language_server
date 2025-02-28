@@ -2,7 +2,10 @@
 
 <!-- Do not change the title of this section. After a release create a new
 section below it for the last release. -->
+
 ## \<next>
+
+## 26.0.202502240
 
 * Support single-line (`//`) and multi-line (`/* */`) comments in ALS JSON configuration files
 * Fix the reporting of test results in the Testing view when the test tree is not expanded
@@ -16,6 +19,7 @@ section below it for the last release. -->
   been added, all available under the `File->New File...` menu
 * Add VS Code command `ada: GNATcoverage - Load an existing XML coverage report` for importing coverage reports
 * Support running GNATtest tests in coverage mode
+* Add command to restart the Ada Language Server instances
 
 ## 26.0.202412190
 

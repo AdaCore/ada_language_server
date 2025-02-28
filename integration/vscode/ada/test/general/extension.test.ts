@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { adaExtState } from '../../src/extension';
-import { getObjectDir } from '../../src/helpers';
+import { getObjectDir, TERMINAL_ENV_SETTING_NAME } from '../../src/helpers';
 import { activate, assertEqualToFileContent } from '../utils';
 
 import { readFileSync, writeFileSync } from 'fs';
@@ -104,6 +104,72 @@ suite('Extensions Test Suite', function () {
                 `We should have a package declaration snippet at the beginning ` +
                     `of the new editor, but instead we have:\n\n${text}`,
             );
+        }
+    });
+
+    test('Restart Language Server Commands', async () => {
+        if (vscode.workspace.workspaceFolders !== undefined) {
+            const initialEnvSettings = vscode.workspace
+                .getConfiguration()
+                .get(TERMINAL_ENV_SETTING_NAME);
+
+            try {
+                // Update the environment ARCHIVE_SUFFIX environment variable which
+                // controls the 'Archive_Suffix' GPR project attribute of the test
+                // workspace's project.
+
+                await vscode.workspace.getConfiguration().update(
+                    TERMINAL_ENV_SETTING_NAME,
+                    {
+                        ...(initialEnvSettings ?? {}),
+                        ARCHIVE_SUFFIX: '.b',
+                    },
+                    vscode.ConfigurationTarget.Workspace,
+                );
+
+                // Check that the 'Archive_Suffix' project attribute to
+                // make sure it's set to its default value ('.a') before setting
+                // the ARCHIVE_SUFFIX environment variable to '.b'.
+                assert.strictEqual(
+                    await adaExtState.getProjectAttributeValue('Archive_Suffix'),
+                    '.a',
+                    'Environment updates were not taken into account when restarting ALS',
+                );
+
+                // Restart the server and check that we still have the same project
+                // loaded on ALS side
+                const oldAlsUri = await adaExtState.getProjectUri();
+                await vscode.commands.executeCommand('ada.restartLanguageServers');
+                const newAlsUri = await adaExtState.getProjectUri();
+                assert.deepStrictEqual(
+                    oldAlsUri?.fsPath,
+                    newAlsUri?.fsPath,
+                    'Wrong project URI received after Ada server restarted',
+                );
+
+                // Check that environment updates are taken into account after restarting:
+                // 'Archive_Suffix' GPR project attribute should now be equal to '.b'
+                assert.strictEqual(
+                    await adaExtState.getProjectAttributeValue('Archive_Suffix'),
+                    '.b',
+                    'Environment updates were not taken into account when restarting ALS',
+                );
+
+                // Check that the GPR server runs correctly after restarting it
+                assert.ok(
+                    adaExtState.gprClient.isRunning(),
+                    'The ALS instance for GPR files should be running after restarting it',
+                );
+            } finally {
+                // Restore the terminal.integrate.env.* settings for the workspace
+                await vscode.workspace
+                    .getConfiguration()
+                    .update(
+                        TERMINAL_ENV_SETTING_NAME,
+                        undefined,
+                        vscode.ConfigurationTarget.Workspace,
+                    );
+            }
         }
     });
 
