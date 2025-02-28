@@ -965,6 +965,10 @@
                 "editor.tabSize": 3,
                 "editor.detectIndentation": false
             },
+            "[gpr]": {
+                "editor.tabSize": 3,
+                "editor.detectIndentation": false
+            },
             "files.associations": {
                 ".als.json": "jsonc"
             }
