@@ -480,6 +480,11 @@ class ALSLanguageClient(LanguageClient):
         """
         assertLocationsList(actual, expected)
 
+    async def sleep(self, seconds: float) -> None:
+        """Wait for the given amount of seconds multiplied by ALS_WAIT_FACTOR."""
+        wait_factor: int = int(os.environ.get("ALS_WAIT_FACTOR", "1"))
+        await asyncio.sleep(seconds * wait_factor)
+
 
 def als_client_factory() -> ALSLanguageClient:
     """This function is an ugly copy-paste of pytest_lsp.make_test_lsp_client. It is
