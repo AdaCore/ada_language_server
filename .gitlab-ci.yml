@@ -194,3 +194,7 @@ als:windows:
     # In GitLab CI tests timeout more often on Windows, so we multiply
     # testsuite timeouts by the following factor
     ALS_WAIT_FACTOR: "2"
+
+vscode-extension:windows:
+  variables:
+    MOCHA_TIMEOUT: "30000"
