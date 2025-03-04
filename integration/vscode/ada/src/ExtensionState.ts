@@ -57,6 +57,7 @@ export class ExtensionState {
     public readonly codelensProvider = new AdaCodeLensProvider();
     public readonly testController: vscode.TestController;
     public readonly testData: Map<vscode.TestItem, object> = new Map();
+    public readonly statusBar: vscode.StatusBarItem;
 
     /**
      * The following fields are caches for ALS requests or costly properties.
@@ -107,6 +108,8 @@ export class ExtensionState {
         this.initialDebugConfigProvider = result.providerInitial;
         this.dynamicDebugConfigProvider = result.providerDynamic;
         this.testController = initializeTesting(context);
+        this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+        this.context.subscriptions.push(this.statusBar);
     }
 
     public start = async () => {
@@ -115,6 +118,7 @@ export class ExtensionState {
         this.context.subscriptions.push(
             vscode.languages.registerCodeLensProvider('ada', this.codelensProvider),
         );
+        this.updateStatusBarVisibility(undefined);
     };
 
     public dispose = () => {
@@ -145,6 +149,139 @@ export class ExtensionState {
                 await openSARIFViewerIfNeeded(task);
             }),
         ];
+    };
+
+    /**
+     * Update the status bar item's visibility according to the current context.
+     */
+    public updateStatusBarVisibility = (editor: vscode.TextEditor | undefined) => {
+        const activeEditor = editor ?? vscode.window.activeTextEditor;
+
+        // Show the status bar if the active editor is on an Ada or a GPR source, or
+        // if it's the Output view that is focused (i.e: when the active editor's
+        // document scheme is set to 'output') and showing Ada & SPARK extension's logs.
+        if (
+            activeEditor &&
+            ((activeEditor.document.uri.scheme == 'output' &&
+                activeEditor.document.fileName.includes('AdaCore')) ||
+                ['ada', 'gpr'].includes(activeEditor.document.languageId))
+        ) {
+            this.statusBar.show();
+        } else {
+            this.statusBar.hide();
+        }
+    };
+
+    /**
+     * Update the status bar item's content according to currently displayed
+     * diagnostics.
+     */
+    public updateStatusBarItem = () => {
+        // Use markdown for the status bar item tiooltip. This allows to have
+        // hyperlinks that run actual commands.
+        this.statusBar.tooltip = new vscode.MarkdownString('', true);
+        this.statusBar.tooltip.isTrusted = true;
+
+        // Show the Problems view by default when clicking on the status
+        // bar item.
+        this.statusBar.command = 'workbench.panel.markers.view.focus';
+        let alireProjectLoaded = false;
+
+        // Monitor diagnostics related to project-loading in general, including
+        // potential issues reported by Alire.
+        const PROJECT_DIAGS_SOURCE = 'ada.project';
+        const ALIRE_DIAGS_SOURCE = 'ada.alire';
+        const diagnosticSources = [PROJECT_DIAGS_SOURCE, ALIRE_DIAGS_SOURCE];
+
+        // Gather all the diagnostics from the interesting ALS diagnostics' sources.
+        // For the status bar we are interested only in project-related diagnostics.
+        const alsDiagnostics: vscode.Diagnostic[] = vscode.languages
+            .getDiagnostics()
+            .flatMap(([, diagnostics]) => diagnostics)
+            .filter((diag) => diagnosticSources.includes(diag.source ?? ''));
+
+        // Update the status bar according to the ALS project-related diagnostics
+        if (alsDiagnostics.length > 0) {
+            // Get the highest severity of the currently displayed project-diagnostics, to
+            // update the status bar's colors accordingly.
+            const statusBarSeverity: vscode.DiagnosticSeverity = alsDiagnostics
+                .map((a) => a.severity)
+                .reduce((a, b) => (a < b ? a : b));
+            this.statusBar.text = 'Ada & SPARK';
+
+            switch (statusBarSeverity) {
+                case vscode.DiagnosticSeverity.Error:
+                    this.statusBar.tooltip.appendMarkdown(
+                        'Project loading has issued errors, see the [Problems]' +
+                            '(command:workbench.panel.markers.view.focus) view' +
+                            ' for more information.',
+                    );
+                    this.statusBar.backgroundColor = new vscode.ThemeColor(
+                        'statusBarItem.errorBackground',
+                    );
+                    this.statusBar.color = new vscode.ThemeColor('statusBarItem.errorForeground');
+                    break;
+
+                case vscode.DiagnosticSeverity.Warning:
+                    this.statusBar.tooltip.appendMarkdown(
+                        'Project loading has issued warnings, see the [Problems]' +
+                            '(command:workbench.panel.markers.view.focus) view' +
+                            ' for more information.',
+                    );
+                    this.statusBar.backgroundColor = new vscode.ThemeColor(
+                        'statusBarItem.warningBackground',
+                    );
+                    this.statusBar.color = new vscode.ThemeColor('statusBarItem.warningForeground');
+                    break;
+
+                default:
+                    this.statusBar.backgroundColor = undefined;
+                    this.statusBar.color = undefined;
+
+                    // Check if we have successfully loaded the project through Alire
+                    // and adapt the status bar item's text contents if it's the case, to
+                    // mention that Alire was used for project-loading.
+                    alireProjectLoaded = alsDiagnostics.some(
+                        (diagnostic) =>
+                            diagnostic.source == PROJECT_DIAGS_SOURCE &&
+                            diagnostic.message.includes('Alire'),
+                    );
+
+                    if (alireProjectLoaded) {
+                        this.statusBar.text += ' (Alire)';
+                        this.statusBar.tooltip.appendMarkdown(
+                            'Project was loaded successfully through Alire',
+                        );
+                    } else {
+                        this.statusBar.tooltip.appendMarkdown('Project was loaded successfully.');
+                    }
+            }
+        } else {
+            // We don't have any project-related diagnostics, just clear any color/background color
+            // of the status bar.
+            this.statusBar.tooltip.appendMarkdown('Project was loaded successfully.');
+            this.statusBar.backgroundColor = undefined;
+            this.statusBar.color = undefined;
+        }
+
+        if (this.statusBar.tooltip.value) {
+            this.statusBar.tooltip.appendMarkdown('\n\n---\n\n');
+        }
+        this.statusBar.tooltip.appendMarkdown(
+            `[$(terminal) Open Extension Logs](command:ada.showExtensionOutput
+ "Show Ada Extension Output")
+
+[$(terminal) Open Logs for Ada & SPARK](command:ada.showAdaLSOutput
+ "Show Ada Language Server for Ada & SPARK Output")
+
+[$(terminal) Open Logs for GPR](command:ada.showGprLSOutput
+ "Show Ada Language Server for GPR Output")
+
+[$(refresh) Reload Project](command:als-reload-project "Reload Project")
+
+[$(debug-restart) Restart Language Servers](command:ada.restartLanguageServers
+ "Restart Ada Language Servers")`,
+        );
     };
 
     /**
