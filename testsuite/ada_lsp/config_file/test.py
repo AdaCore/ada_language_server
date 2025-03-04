@@ -23,13 +23,19 @@ from lsprotocol.types import (
 subprocess.check_call(["gprconfig", "--batch", "--config=Ada,,light,,GNAT"])
 
 
-@test()
+@test(
+    als_settings={
+        # Disable indexing to avoid wasting computation resources and risking test
+        # timeouts
+        "enableIndexing": False
+    },
+    timeout=30,
+)
 async def do_testing(lsp: ALSLanguageClient) -> None:
     # Set configuration file
     lsp.didChangeConfig(
         {"projectFile": URI("main.gpr"), "gprConfigurationFile": URI("default.cgpr")}
     )
-    await lsp.awaitIndexingEnd()
 
     # Send a didOpen for main.adb
     open_params, main_adb_uri = didOpenTextDocumentParams("main.adb")
@@ -49,7 +55,6 @@ async def do_testing(lsp: ALSLanguageClient) -> None:
     lsp.didChangeConfig(
         {"projectFile": "main1.gpr", "gprConfigurationFile": "default.cgpr"}
     )
-    await lsp.awaitIndexingEnd()
 
     # Send a didOpen for main.adb
     open_params, main_adb_uri = didOpenTextDocumentParams("main.adb")
