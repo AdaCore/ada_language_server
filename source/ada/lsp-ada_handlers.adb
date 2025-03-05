@@ -3076,50 +3076,53 @@ package body LSP.Ada_Handlers is
 
             if not Errors.Is_Empty then
                declare
-                  Template    : constant
-                    VSS.Strings.Templates.Virtual_String_Template :=
+                  use type LSP.Ada_Documents.Document_Access;
+                  Template :
+                    constant VSS.Strings.Templates.Virtual_String_Template :=
                       "Can't rename identifier '{}'";
-                  Message     : constant VSS.Strings.Virtual_String :=
+                  Message  : constant VSS.Strings.Virtual_String :=
                     Template.Format
                       (LSP.Formatters.Texts.Image (Name_Node.Text));
 
-                  Diag_Params : LSP.Structures.PublishDiagnosticsParams;
                   Diagnostic  : LSP.Structures.Diagnostic;
-
+                  Loc         : constant LSP.Structures.Location :=
+                    Self.To_LSP_Location (Name_Node);
+                  Document    : constant LSP.Ada_Documents.Document_Access :=
+                    Get_Open_Document (Self, Loc.uri);
                begin
-                  Diagnostic.a_range :=
-                    Self.To_LSP_Location (Name_Node).a_range;
-                  Diagnostic.severity := LSP.Constants.Error;
-                  Diagnostic.source := "Ada";
+                  if Document /= null then
+                     Diagnostic.a_range := Loc.a_range;
+                     Diagnostic.severity := LSP.Constants.Error;
+                     Diagnostic.source := "Ada";
 
-                  if Self.Client.Supports_Related_Diagnostics then
+                     if Self.Client.Supports_Related_Diagnostics then
 
-                     Diagnostic.message := Message;
+                        Diagnostic.message := Message;
 
-                     for Problem of Errors loop
-                        Diagnostic.relatedInformation.Append
-                          (LSP.Structures.DiagnosticRelatedInformation'
-                             (location =>
-                                LSP.Ada_Handlers.Locations.To_LSP_Location
-                                (Self,
-                                 C.all,
-                                 Problem.Filename,
-                                 Problem.Location),
+                        for Problem of Errors loop
+                           Diagnostic.relatedInformation.Append
+                             (LSP.Structures.DiagnosticRelatedInformation'
+                                (location =>
+                                   LSP.Ada_Handlers.Locations.To_LSP_Location
+                                     (Self,
+                                      C.all,
+                                      Problem.Filename,
+                                      Problem.Location),
 
-                              message  =>
-                                VSS.Strings.Conversions.To_Virtual_String
-                                  (Problem.Info)));
-                     end loop;
-                  else
-                     Diagnostic.message :=
-                       VSS.Strings.Conversions.To_Virtual_String
-                         (Errors.First_Element.Info);
+                                 message  =>
+                                   VSS.Strings.Conversions.To_Virtual_String
+                                     (Problem.Info)));
+                        end loop;
+                     else
+                        Diagnostic.message :=
+                          VSS.Strings.Conversions.To_Virtual_String
+                            (Errors.First_Element.Info);
 
+                     end if;
+                     Self.Publish_Diagnostics
+                       (Document          => Document,
+                        Other_Diagnostics => [Diagnostic]);
                   end if;
-
-                  Diag_Params.uri := Value.textDocument.uri;
-                  Diag_Params.diagnostics.Append (Diagnostic);
-                  Self.Sender.On_PublishDiagnostics_Notification (Diag_Params);
                   exit;
                end;
             end if;
@@ -3819,44 +3822,50 @@ package body LSP.Ada_Handlers is
 
       if Result_Kind in Libadalang.Common.Error then
          declare
+            use type LSP.Ada_Documents.Document_Access;
             Err_Msg     : constant String :=
               "Failed to resolve " & Name_Node.Image;
-            Diag_Params : LSP.Structures.PublishDiagnosticsParams;
             Diagnostic  : LSP.Structures.Diagnostic;
             Loc         : constant LSP.Structures.Location :=
               Self.To_LSP_Location (Name_Node);
+            Document    : constant LSP.Ada_Documents.Document_Access :=
+              Get_Open_Document (Self, Loc.uri);
          begin
-            --  Internal tracing of failed resolution with context info
-            Self.Tracer.Trace
-              (Err_Msg
-               & " in context "
-               & VSS.Strings.Conversions.To_UTF_8_String (Context.Id)
-               & " for request "
-               & Id_Image);
+            if Document /= null then
+               --  Internal tracing of failed resolution with context info
+               Self.Tracer.Trace
+                 (Err_Msg
+                  & " in context "
+                  & VSS.Strings.Conversions.To_UTF_8_String (Context.Id)
+                  & " for request "
+                  & Id_Image);
 
-            --  Send a diagnostic for the user
-            Diagnostic.a_range := Loc.a_range;
-            Diagnostic.severity := LSP.Constants.Error;
-            Diagnostic.source := "Ada";
-            --  Diagnostics are shown to the user so show a simple
-            --  representation of Namer_Node
-            Diagnostic.message :=
-              VSS.Strings.Conversions.To_Virtual_String
-                ("Failed to resolve "
-                 & Langkit_Support.Text.To_UTF8 (Name_Node.Text)
-                 & Ada.Characters.Latin_1.LF
-                 & "Please check the output of the following command:"
-                 & Ada.Characters.Latin_1.LF
-                 & "   lal_nameres -P "
-                 & String
-                   (Self.Project_Tree.Root_Project.Path_Name.Filesystem_String)
-                 & " --all --only-show-failures "
-                 & VSS.Strings.Conversions.To_UTF_8_String (Loc.uri));
+               --  Send a diagnostic for the user
+               Diagnostic.a_range := Loc.a_range;
+               Diagnostic.severity := LSP.Constants.Error;
+               Diagnostic.source := "Ada";
+               --  Diagnostics are shown to the user so show a simple
+               --  representation of Namer_Node
+               Diagnostic.message :=
+                 VSS.Strings.Conversions.To_Virtual_String
+                   ("Failed to resolve "
+                    & Langkit_Support.Text.To_UTF8 (Name_Node.Text)
+                    & Ada.Characters.Latin_1.LF
+                    & "Please check the output of the following command:"
+                    & Ada.Characters.Latin_1.LF
+                    & "   lal_nameres -P "
+                    & String
+                        (Self
+                           .Project_Tree
+                           .Root_Project
+                           .Path_Name
+                           .Filesystem_String)
+                    & " --all --only-show-failures "
+                    & VSS.Strings.Conversions.To_UTF_8_String (Loc.uri));
 
-            Diag_Params.uri := Loc.uri;
-            Diag_Params.diagnostics.Append (Diagnostic);
-            Self.Sender.On_PublishDiagnostics_Notification (Diag_Params);
-
+               Self.Publish_Diagnostics
+                 (Document => Document, Other_Diagnostics => [Diagnostic]);
+            end if;
             --  Inform the client that the request failed
             Self.Sender.On_Error_Response
               (Id,

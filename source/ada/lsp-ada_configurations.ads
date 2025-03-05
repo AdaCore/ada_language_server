@@ -94,8 +94,8 @@ package LSP.Ada_Configurations is
 
    function GPR_File_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
-   --  Wheter to publish gpr file related diagnostics. This is used by the
-   --  GLS only and is different from Project_Diagnostics_Enabled.
+   --  Whether to publish diagnostics related to GPR files' edition. This
+   --  is used by GLS only and is different from Project_Diagnostics_Enabled.
 
    function Project_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
