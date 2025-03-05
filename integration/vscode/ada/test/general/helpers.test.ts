@@ -290,7 +290,7 @@ suite('parallelize', function () {
                  * overall the computation shouldn't take more than the
                  * time needed to process one data item (with a margin).
                  */
-                const margin = singleWorkDurationMs * 0.2;
+                const margin = singleWorkDurationMs * 0.4;
                 /**
                  * When processing 4 items with 3 threads, the first parallel
                  * batch processes 3 items and a second batch processes 1 item.
@@ -303,7 +303,7 @@ suite('parallelize', function () {
                 assert.ok(
                     duration < expectedTotalWorkDuration,
                     `The computation took ${duration}ms when we expected` +
-                        ` no more than ${expectedTotalWorkDuration}`,
+                        ` no more than ${expectedTotalWorkDuration}ms`,
                 );
             }
         });

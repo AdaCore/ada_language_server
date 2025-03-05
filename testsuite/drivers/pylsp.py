@@ -100,6 +100,7 @@ class PyLSP(ALSTestDriver):
             env = {
                 "ALS": self.env.als,
                 "ALS_HOME": self.env.als_home,
+                "ALS_WAIT_FACTOR": str(self.env.wait_factor),
                 "PYTHONPATH": os.path.dirname(os.path.dirname(__file__)),
             }
 
@@ -118,6 +119,9 @@ class PyLSP(ALSTestDriver):
                 if r.status != 0:
                     raise TestAbortWithFailure("non-zero status code")
             else:
+                # Usually we specify a timeout here, however a test file may
+                # contain multiple tests. So instead we apply a timeout to each
+                # test in async_wrapper()
                 p: ProcessResult = self.shell(
                     cmd,
                     # Start the test process directly in the test work dir. This way
@@ -125,7 +129,6 @@ class PyLSP(ALSTestDriver):
                     cwd=str(wd),
                     env=env,
                     ignore_environ=False,
-                    timeout=15,  # seconds
                     stdin=None,
                 )
 
@@ -477,6 +480,11 @@ class ALSLanguageClient(LanguageClient):
         """
         assertLocationsList(actual, expected)
 
+    async def sleep(self, seconds: float) -> None:
+        """Wait for the given amount of seconds multiplied by ALS_WAIT_FACTOR."""
+        wait_factor: int = int(os.environ.get("ALS_WAIT_FACTOR", "1"))
+        await asyncio.sleep(seconds * wait_factor)
+
 
 def als_client_factory() -> ALSLanguageClient:
     """This function is an ugly copy-paste of pytest_lsp.make_test_lsp_client. It is
@@ -591,6 +599,8 @@ def test(
     initialize: bool = True,
     shutdown: bool = True,
     assert_no_lsp_errors: bool = True,
+    als_settings: ALSSettings | None = None,
+    timeout=15,
 ) -> Callable:
     """A decorator to mark a function as a test entry point. The function must receive a
     single parameter of type LanguageClient.
@@ -618,6 +628,9 @@ def test(
     of the test function.
     :param assert_no_lsp_errors: automatically assert that no LSP log message of level
     error were received after the end of the test function.
+    :param als_settings: ALS settings to send as 'initializationOptions' with the
+    'initialize' request. Only applicable if initialize=True (which is the default).
+    :param timeout: test timeout in seconds
     """
 
     async def async_wrapper(
@@ -642,13 +655,22 @@ def test(
                         # ALS doesn't support the newer workspaceFolders property so we
                         # have to use the older rootURI property.
                         root_uri=URI(os.getcwd()),
+                        initialization_options=(
+                            {"ada": als_settings} if als_settings is not None else None
+                        ),
                     )
                 )
 
             LOG.info("Running test function: %s", func.__name__)
 
-            # Run the test
-            await func(client)
+            actual_timeout = timeout
+            if "ALS_WAIT_FACTOR" in os.environ:
+                factor = int(os.environ["ALS_WAIT_FACTOR"])
+                actual_timeout *= factor
+
+            # Run the test with a timeout
+            async with asyncio.timeout(actual_timeout):
+                await func(client)
 
             if assert_no_lsp_errors:
                 # Assert the absence of Error LSP log messages

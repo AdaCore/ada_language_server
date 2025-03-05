@@ -26,7 +26,8 @@ import {
 import { runTaskAndGetResult } from '../../src/taskProviders';
 
 suite('Task Providers', function () {
-    this.timeout('15s');
+    // Set timeout to 15 seconds unless already configured to more
+    this.timeout(Math.max(this.timeout(), 15000));
 
     let projectPath: string;
 

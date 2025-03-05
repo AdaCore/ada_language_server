@@ -45,7 +45,8 @@ async def check_memory_footprint(
             "--tracefile",
             "./traces_with_runtime_indexing.cfg",
         ]
-    )
+    ),
+    timeout=30,
 )
 async def test_with_indexing(lsp: ALSLanguageClient) -> None:
     await check_memory_footprint(

@@ -1,7 +1,7 @@
 def build_(qualifier={}):
     with defaults(qualifier=qualifier):
         anod_build("als")
-        anod_build("vscode-extension")
+        anod_build("vscode-extension", qualifier={"mono-plat": True})
 
 
 def test_als_(qualifier={}):
@@ -19,10 +19,10 @@ def test_als_cov_(qualifier={}):
 
 
 def test_vscode_extension_(qualifier={}):
-    with defaults(qualifier=qualifier):
-        # Install the component built in the preceding CI build job
-        anod_install("vscode-extension")
-        anod_test("vscode-extension", qualifier=qualifier | {"coverage": True})
+    component_qual = qualifier | {"mono-plat": True}
+    # Install the component built in the preceding CI build job
+    anod_install("vscode-extension", qualifier=component_qual)
+    anod_test("vscode-extension", qualifier=component_qual | {"coverage": True})
 
 
 def build_test_gs_(qualifier={}):
@@ -62,14 +62,29 @@ def build_test_gs_edge():
 
 
 def test_integration_testsuite():
-    # The two components below have been built by the build job of the CI
+    # These two components have been built by the build job of the CI, install them.
     anod_install("als")
-    anod_install("vscode-extension")
-    # Install gps component to avoid it getting rebuilt. We are only interested in
-    # vscode tests in the integration-testsuite, not gps.
-    anod_install("gps")
+    anod_install("vscode-extension", qualifier={"mono-plat": True})
+
+    # For the following components, we'd like to install with latest=True to be
+    # resilient to failures in nightly builds.
+    #
+    # We need to do this instead of running the whole plan with --latest because
+    # currently --latest bypasses the local offline Cathod component cache and prevents
+    # installing components built in the same CI pipeline.
+    for dep in (
+        # Install gps component to avoid it getting rebuilt. Here we are only interested
+        # in vscode tests in the integration-testsuite, not gps.
+        "gps",
+        "gnat",
+        "gnatdas",
+        "gnatsas",
+        "spark2014",
+    ):
+        anod_install(dep, latest=True)
+
     # Run the subset of integration-testsuite that uses VS Code
     anod_test(
         "integration-testsuite",
-        qualifier={"run-tools": "vscode", "cleanup-mode": "none"},
+        qualifier={"run-tools": "vscode", "cleanup-mode": "none", "mono-plat": True},
     )

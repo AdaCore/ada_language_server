@@ -145,9 +145,21 @@ async function activateExtension(context: vscode.ExtensionContext) {
     adaExtState = new ExtensionState(context);
     context.subscriptions.push(adaExtState);
 
-    // Subscribe to the didChangeConfiguration event
+    // Subscribe to the didChangeConfiguration event to react to changes
+    // in settings
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(adaExtState.configChanged),
+    );
+
+    // Subscribe to the didChangeActiveTextEditor event to update the status bar
+    // item's visibility
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(adaExtState.updateStatusBarVisibility),
+    );
+
+    // Subscribe to the didChangeDiagnostics event to update the status bar item's content
+    context.subscriptions.push(
+        vscode.languages.onDidChangeDiagnostics(adaExtState.updateStatusBarItem),
     );
 
     const alsMiddleware: Middleware = {
