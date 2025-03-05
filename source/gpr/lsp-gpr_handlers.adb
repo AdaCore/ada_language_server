@@ -410,6 +410,8 @@ package body LSP.GPR_Handlers is
 
       Self.Client.Initialize (Value);
 
+      LSP.GPR_Files.Set_Environment (Self.Client);
+
       Capabilities.hoverProvider := LSP.Constants.True;
       Capabilities.definitionProvider := LSP.Constants.True;
       Capabilities.declarationProvider := LSP.Constants.True;

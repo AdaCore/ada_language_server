@@ -17,8 +17,10 @@
 
 with Ada.Streams;
 with GNAT.OS_Lib;
+with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with LSP.GNATCOLL_Tracers;
 with VSS.Stream_Element_Vectors;
 with VSS.Strings.Conversions;
 with VSS.Strings.Converters.Decoders;
@@ -31,94 +33,106 @@ with Spawn.Processes;
 with Spawn.Processes.Monitor_Loop;
 with Spawn.Process_Listeners;
 with Spawn.String_Vectors;
+with VSS.Strings.Formatters.Strings;
+with VSS.Strings.Templates;
 
 package body LSP.Alire is
+
+   Trace : constant GNATCOLL_Tracers.Tracer :=
+     GNATCOLL_Tracers.Create ("ALS.ALIRE", GNATCOLL.Traces.On);
+
+   Alire_Verbose : constant GNATCOLL_Tracers.Tracer :=
+     GNATCOLL_Tracers.Create ("ALS.ALIRE.VERBOSE", GNATCOLL.Traces.From_Config);
 
    Fallback_Msg : constant VSS.Strings.Virtual_String :=
      "falling back to other methods to load a project";
 
    type Process_Listener is limited
-     new Spawn.Process_Listeners.Process_Listener with record
+     new Spawn.Process_Listeners.Process_Listener
+   with record
       Process : Spawn.Processes.Process;
       Stdout  : VSS.Stream_Element_Vectors.Stream_Element_Vector;
       Stderr  : VSS.Stream_Element_Vectors.Stream_Element_Vector;
       Error   : Integer := 0;  --  Error_Occurred argument
       Text    : VSS.Strings.Virtual_String;  --  Stdout as a text
-     end record;
+   end record;
 
-   overriding procedure Standard_Output_Available
-     (Self : in out Process_Listener);
+   overriding
+   procedure Standard_Output_Available (Self : in out Process_Listener);
 
-   overriding procedure Standard_Error_Available
-     (Self : in out Process_Listener);
+   overriding
+   procedure Standard_Error_Available (Self : in out Process_Listener);
 
-   overriding procedure Error_Occurred
-     (Self  : in out Process_Listener;
-      Error : Integer);
+   overriding
+   procedure Error_Occurred (Self : in out Process_Listener; Error : Integer);
 
    procedure Start_Alire
-     (ALR      : String;
-      Option_1 : String;
-      Option_2 : String;
-      Root     : String;
-      Error    : out VSS.Strings.Virtual_String;
-      Lines    : out VSS.String_Vectors.Virtual_String_Vector);
+     (Options : VSS.String_Vectors.Virtual_String_Vector;
+      Root    : String;
+      Error   : out VSS.Strings.Virtual_String;
+      Lines   : out VSS.String_Vectors.Virtual_String_Vector);
 
    Anchored : constant VSS.Regular_Expressions.Match_Options :=
      (VSS.Regular_Expressions.Anchored_Match => True);
+
+   Crate_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
+     VSS.Regular_Expressions.To_Regular_Expression ("^([^= ]+)=");
+
+   Project_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
+     VSS.Regular_Expressions.To_Regular_Expression
+       (" +Project_File: ([^\n]+)");
+
+   Export_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
+     VSS.Regular_Expressions.To_Regular_Expression
+       ("export ([^=]+)=""([^\n]+)""");
 
    --------------------
    -- Error_Occurred --
    --------------------
 
-   overriding procedure Error_Occurred
-     (Self  : in out Process_Listener;
-      Error : Integer) is
+   overriding
+   procedure Error_Occurred (Self : in out Process_Listener; Error : Integer)
+   is
    begin
       Self.Error := Error;
    end Error_Occurred;
+
+   -----------------------------
+   -- Conservative_Alire_Sync --
+   -----------------------------
+
+   procedure Conservative_Alire_Sync
+     (Root : String; Error : out VSS.Strings.Virtual_String)
+   is
+      Lines : VSS.String_Vectors.Virtual_String_Vector;
+   begin
+      Start_Alire
+        (Options => ["--non-interactive", "build", "--stop-after=generation"],
+         Root    => Root,
+         Error   => Error,
+         Lines   => Lines);
+   end Conservative_Alire_Sync;
 
    ---------------
    -- Run_Alire --
    ---------------
 
    procedure Determine_Alire_Project
-     (Root        : String;
-      Error       : out VSS.Strings.Virtual_String;
-      Project     : out VSS.Strings.Virtual_String)
+     (Root    : String;
+      Error   : out VSS.Strings.Virtual_String;
+      Project : out VSS.Strings.Virtual_String)
    is
-      use type GNAT.OS_Lib.String_Access;
-      use type VSS.Strings.Virtual_String;
-
-      ALR : GNAT.OS_Lib.String_Access :=
-        GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
-
-      Crate_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
-        VSS.Regular_Expressions.To_Regular_Expression ("^([^=]+)=");
-
-      Project_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
-        VSS.Regular_Expressions.To_Regular_Expression
-          (" +Project_File: ([^\n]+)");
-
-      Lines    : VSS.String_Vectors.Virtual_String_Vector;
+      Lines : VSS.String_Vectors.Virtual_String_Vector;
    begin
       Project.Clear;
 
-      if ALR = null then
-         Error := "Alire executable ('alr') not found in PATH: " & Fallback_Msg;
-         return;
-      end if;
-
       Start_Alire
-        (ALR      => ALR.all,
-         Option_1 => "--non-interactive",
-         Option_2 => "show",
-         Root     => Root,
-         Error    => Error,
-         Lines    => Lines);
+        (Options => ["--non-interactive", "show"],
+         Root    => Root,
+         Error   => Error,
+         Lines   => Lines);
 
       if not Error.Is_Empty then
-         GNAT.OS_Lib.Free (ALR);
          return;
       end if;
 
@@ -142,8 +156,9 @@ package body LSP.Alire is
       for Line of Lines loop
          declare
             --  We should keep copy of regexp subject string while we have a match
-            Match : constant VSS.Regular_Expressions.Regular_Expression_Match :=
-            Crate_Pattern.Match (Line);
+            Match :
+              constant VSS.Regular_Expressions.Regular_Expression_Match :=
+                Crate_Pattern.Match (Line);
          begin
             if Match.Has_Match then
                Project := Match.Captured (1);
@@ -156,8 +171,9 @@ package body LSP.Alire is
       --  Next check if there is a Project_File line, take the first one.
       for Line of Lines loop
          declare
-            Match : constant VSS.Regular_Expressions.Regular_Expression_Match
-              := Project_Pattern.Match (Line, Anchored);
+            Match :
+              constant VSS.Regular_Expressions.Regular_Expression_Match :=
+                Project_Pattern.Match (Line, Anchored);
          begin
             if Match.Has_Match then
                Project := Match.Captured (1);
@@ -167,10 +183,9 @@ package body LSP.Alire is
       end loop;
 
       if Project.Is_Empty then
-         Error.Append ("No project file could be determined from the output of `alr show`:");
-         for Line of Lines loop
-            Error.Append (Line);
-         end loop;
+         Error.Append
+           ("No project file could be determined from the output of `alr show`:");
+         Error.Append (Lines.Join_Lines (VSS.Strings.LF));
       end if;
 
    end Determine_Alire_Project;
@@ -184,42 +199,29 @@ package body LSP.Alire is
       Error       : out VSS.Strings.Virtual_String;
       Environment : in out GPR2.Environment.Object)
    is
-      use type GNAT.OS_Lib.String_Access;
-      use type VSS.Strings.Virtual_String;
+      use VSS.Strings.Conversions;
 
-      ALR : GNAT.OS_Lib.String_Access :=
-        GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
-
-      Export_Pattern : constant VSS.Regular_Expressions.Regular_Expression :=
-        VSS.Regular_Expressions.To_Regular_Expression
-          ("export ([^=]+)=""([^\n]+)""");
-
-      Lines    : VSS.String_Vectors.Virtual_String_Vector;
+      Lines : VSS.String_Vectors.Virtual_String_Vector;
    begin
 
-      if ALR = null then
-         Error := "No 'alr' in the PATH: " & Fallback_Msg;
+      Start_Alire (["--non-interactive", "printenv"], Root, Error, Lines);
+
+      if not Error.Is_Empty then
          return;
       end if;
-
-      Start_Alire
-        (ALR.all, "--non-interactive", "printenv", Root, Error, Lines);
-
-      GNAT.OS_Lib.Free (ALR);
 
       --  Find variables in `alr printenv` output
 
       for Line of Lines loop
          declare
-            Match : constant VSS.Regular_Expressions.Regular_Expression_Match
-              := Export_Pattern.Match (Line, Anchored);
+            Match :
+              constant VSS.Regular_Expressions.Regular_Expression_Match :=
+                Export_Pattern.Match (Line, Anchored);
          begin
             if Match.Has_Match then
                Environment.Insert
-                 (Key   => VSS.Strings.Conversions.To_UTF_8_String
-                             (Match.Captured (1)),
-                  Value => VSS.Strings.Conversions.To_UTF_8_String
-                             (Match.Captured (2)));
+                 (Key   => To_UTF_8_String (Match.Captured (1)),
+                  Value => To_UTF_8_String (Match.Captured (2)));
             end if;
          end;
       end loop;
@@ -230,29 +232,66 @@ package body LSP.Alire is
    -----------------
 
    procedure Start_Alire
-     (ALR      : String;
-      Option_1 : String;
-      Option_2 : String;
-      Root     : String;
-      Error    : out VSS.Strings.Virtual_String;
-      Lines    : out VSS.String_Vectors.Virtual_String_Vector)
+     (Options : VSS.String_Vectors.Virtual_String_Vector;
+      Root    : String;
+      Error   : out VSS.Strings.Virtual_String;
+      Lines   : out VSS.String_Vectors.Virtual_String_Vector)
    is
       use type Spawn.Process_Exit_Code;
       use type Spawn.Process_Exit_Status;
       use type Spawn.Process_Status;
+      use type VSS.Strings.Virtual_String;
+      use VSS.Strings.Formatters.Strings;
+      use VSS.Strings.Conversions;
 
-      Item     : aliased Process_Listener;
-      Process  : Spawn.Processes.Process renames Item.Process;
-      Options  : Spawn.String_Vectors.UTF_8_String_Vector;
-      Decoder  : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
-      Text     : VSS.Strings.Virtual_String;
+      Item       : aliased Process_Listener;
+      Process    : Spawn.Processes.Process renames Item.Process;
+      Full_Options : VSS.String_Vectors.Virtual_String_Vector := Options;
+      Sp_Options : Spawn.String_Vectors.UTF_8_String_Vector;
+      Decoder    : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
+      Text       : VSS.Strings.Virtual_String;
    begin
-      Options.Append (Option_1);
-      Options.Append (Option_2);
-      Process.Set_Arguments (Options);
+
+      declare
+         use type GNAT.OS_Lib.String_Access;
+         ALR : GNAT.OS_Lib.String_Access :=
+           GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
+      begin
+         if ALR = null then
+            Error :=
+              "Alire executable ('alr') not found in PATH: " & Fallback_Msg;
+            return;
+         end if;
+
+         Process.Set_Program (ALR.all);
+         GNAT.OS_Lib.Free (ALR);
+      end;
+
+      if Alire_Verbose.Is_Active then
+         Full_Options.Prepend ("-v");
+      end if;
+
+      for Op of Full_Options loop
+         Sp_Options.Append (To_UTF_8_String (Op));
+      end loop;
+
+      Process.Set_Arguments (Sp_Options);
       Process.Set_Working_Directory (Root);
-      Process.Set_Program (ALR);
       Process.Set_Listener (Item'Unchecked_Access);
+
+      if Trace.Is_Active then
+         declare
+            Template : VSS.Strings.Templates.Virtual_String_Template :=
+              "(in {}) {} {}";
+         begin
+            Trace.Trace_Text
+              (Template.Format
+                 (Image (To_Virtual_String (Process.Working_Directory)),
+                  Image (To_Virtual_String (Process.Program)),
+                  Image (Full_Options.Join (" "))));
+         end;
+      end if;
+
       Process.Start;
 
       loop
@@ -260,6 +299,21 @@ package body LSP.Alire is
 
          exit when Item.Process.Status = Spawn.Not_Running;
       end loop;
+
+      if Trace.Is_Active then
+         Trace.Trace
+           ("Alire exit code "
+            & Item.Process.Exit_Code'Image
+            & " with output:");
+
+         if not Item.Stdout.Is_Empty then
+            Trace.Trace (Item.Stdout);
+         end if;
+
+         if not Item.Stderr.Is_Empty then
+            Trace.Trace (Item.Stderr);
+         end if;
+      end if;
 
       Decoder.Initialize ("utf-8");
 
@@ -280,7 +334,7 @@ package body LSP.Alire is
 
          for Arg of Item.Process.Arguments loop
             Error.Append (" ");
-            Error.Append (VSS.Strings.Conversions.To_Virtual_String (Arg));
+            Error.Append (To_Virtual_String (Arg));
          end loop;
 
          Error.Append ("' failed: ");
@@ -305,19 +359,18 @@ package body LSP.Alire is
 
          if Item.Error /= 0 then
             Error.Append
-              (VSS.Strings.Conversions.To_Virtual_String
-                 (GNAT.OS_Lib.Errno_Message (Item.Error)));
+              (To_Virtual_String (GNAT.OS_Lib.Errno_Message (Item.Error)));
          end if;
       end if;
+
    end Start_Alire;
 
    ------------------------------
    -- Standard_Error_Available --
    ------------------------------
 
-   overriding procedure Standard_Error_Available
-     (Self : in out Process_Listener)
-   is
+   overriding
+   procedure Standard_Error_Available (Self : in out Process_Listener) is
       use type Ada.Streams.Stream_Element_Count;
 
       Data    : Ada.Streams.Stream_Element_Array (1 .. 256);
@@ -338,9 +391,8 @@ package body LSP.Alire is
    -- Standard_Output_Available --
    -------------------------------
 
-   overriding procedure Standard_Output_Available
-     (Self : in out Process_Listener)
-   is
+   overriding
+   procedure Standard_Output_Available (Self : in out Process_Listener) is
       use type Ada.Streams.Stream_Element_Count;
 
       Data    : Ada.Streams.Stream_Element_Array (1 .. 256);
@@ -364,10 +416,9 @@ package body LSP.Alire is
    function Is_Alire_Crate
      (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean
    is
-      Alire_TOML  : constant GNATCOLL.VFS.Virtual_File :=
-                      (if Client.Root.Is_Empty then GNATCOLL.VFS.No_File
-                       else Client.Root_Directory.Create_From_Dir
-                         ("alire.toml"));
+      Alire_TOML : constant GNATCOLL.VFS.Virtual_File :=
+        (if Client.Root.Is_Empty then GNATCOLL.VFS.No_File
+         else Client.Root_Directory.Create_From_Dir ("alire.toml"));
    begin
       return Alire_TOML.Is_Regular_File;
    end Is_Alire_Crate;
@@ -379,7 +430,8 @@ package body LSP.Alire is
    function Should_Setup_Alire_Env
      (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean is
    begin
-      return Is_Alire_Crate (Client)
+      return
+        Is_Alire_Crate (Client)
         and Spawn.Environments.System_Environment.Value ("ALIRE") /= "True";
    end Should_Setup_Alire_Env;
 

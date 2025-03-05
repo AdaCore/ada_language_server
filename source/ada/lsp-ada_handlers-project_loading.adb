@@ -59,23 +59,24 @@ package body LSP.Ada_Handlers.Project_Loading is
      LSP.GNATCOLL_Tracers.Create ("ALS.PROJECT", GNATCOLL.Traces.On);
 
    Runtime_Indexing : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.RUNTIME_INDEXING",
-                             GNATCOLL.Traces.On);
+     GNATCOLL.Traces.Create ("ALS.RUNTIME_INDEXING", GNATCOLL.Traces.On);
    --  Trace to enable/disable runtime indexing. Useful for the testsuite.
 
    type GPR2_Reporter is new GPR2.Reporter.Object with record
       Log : GPR2.Log.Object;
    end record;
 
-   overriding procedure Internal_Report
-     (Self : in out GPR2_Reporter;
-      Msg  : GPR2.Message.Object);
+   overriding
+   procedure Internal_Report
+     (Self : in out GPR2_Reporter; Msg : GPR2.Message.Object);
 
-   overriding function Verbosity
+   overriding
+   function Verbosity
      (Self : GPR2_Reporter) return GPR2.Reporter.Verbosity_Level
    is (GPR2.Reporter.Regular);
 
-   LF : VSS.Characters.Virtual_Character renames VSS.Characters.Latin.Line_Feed;
+   LF : VSS.Characters.Virtual_Character
+     renames VSS.Characters.Latin.Line_Feed;
 
    procedure Load_Project
      (Self            : in out Message_Handler'Class;
@@ -106,8 +107,7 @@ package body LSP.Ada_Handlers.Project_Loading is
      (Self : in out Message_Handler'Class);
    --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
 
-   procedure Enqueue_Indexing_Job
-     (Self : in out Message_Handler'Class);
+   procedure Enqueue_Indexing_Job (Self : in out Message_Handler'Class);
    --  Enqueue the indexing job, which indexes all the project's sources.
    --  This also indexes immediately any already opened document, creating
    --  the handler's fallback context before for that purpose.
@@ -152,22 +152,34 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       elsif Is_Alire_Crate then
          Tracer.Trace ("Workspace is an Alire crate");
-         Tracer.Trace ("Determining project from 'alr show' output");
 
-         LSP.Alire.Determine_Alire_Project
-           (Root      => Self.Client.Root_Directory.Display_Full_Name,
-            Error     => Alire_Error,
-            Project   => Project_File);
+         Tracer.Trace ("Performing minimal Alire sync");
+         LSP.Alire.Conservative_Alire_Sync
+           (Self.Client.Root_Directory.Display_Full_Name, Alire_Error);
 
          if not Alire_Error.Is_Empty then
             Tracer.Trace_Text ("Encountered errors: " & Alire_Error);
             Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
          else
-            --  Report how we found the project
-            Self.Project_Status.Set_Project_Type
-              (LSP.Ada_Project_Loading.Alire_Project);
-            Self.Project_Status.Set_Alire_Messages ([]);
+            Tracer.Trace ("Determining project from 'alr show' output");
+
+            LSP.Alire.Determine_Alire_Project
+              (Root    => Self.Client.Root_Directory.Display_Full_Name,
+               Error   => Alire_Error,
+               Project => Project_File);
+
+            if not Alire_Error.Is_Empty then
+               Tracer.Trace_Text ("Encountered errors: " & Alire_Error);
+               Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
+            else
+               --  Report how we found the project
+               Self.Project_Status.Set_Project_Type
+                 (LSP.Ada_Project_Loading.Alire_Project);
+               Self.Project_Status.Set_Alire_Messages ([]);
+            end if;
+
          end if;
+
       end if;
 
       --  If still haven't found a project, try to find a unique project at the root
@@ -216,8 +228,7 @@ package body LSP.Ada_Handlers.Project_Loading is
                then
                  VSS.Strings.Virtual_String'
                    ("utf-8")  --  Alire projects tend to prefer utf-8
-               else
-                 "iso-8859-1");
+               else "iso-8859-1");
 
          begin
             --  We have an Alire crate and we did not encounter any issue
@@ -249,7 +260,8 @@ package body LSP.Ada_Handlers.Project_Loading is
                  VSS.Strings.Conversions.To_Virtual_String
                    (URIs.Conversions.To_File
                       (VSS.Strings.Conversions.To_UTF_8_String
-                         (GPR_Configuration_File), True));
+                         (GPR_Configuration_File),
+                       True));
             end if;
 
             Load_Project
@@ -288,9 +300,9 @@ package body LSP.Ada_Handlers.Project_Loading is
    -- Internal_Report --
    ---------------------
 
-   overriding procedure Internal_Report
-     (Self : in out GPR2_Reporter;
-      Msg  : GPR2.Message.Object) is
+   overriding
+   procedure Internal_Report
+     (Self : in out GPR2_Reporter; Msg : GPR2.Message.Object) is
    begin
       Self.Log.Append (Msg);
    end Internal_Report;
@@ -309,12 +321,11 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       C : constant Context_Access := new Context (Self.Tracer);
 
-      Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
-        (Self'Unchecked_Access);
+      Reader :
+        LSP.Ada_Handlers.File_Readers.LSP_File_Reader (Self'Unchecked_Access);
       Root   : GNATCOLL.VFS.Virtual_File;
    begin
-      Tracer.Trace
-        ("Loading the implicit project because " & Status'Image);
+      Tracer.Trace ("Loading the implicit project because " & Status'Image);
 
       LSP.Ada_Project_Loading.Set_Project_Type
         (Self.Project_Status, LSP.Ada_Project_Loading.Implicit_Project);
@@ -388,12 +399,12 @@ package body LSP.Ada_Handlers.Project_Loading is
       use type VSS.Strings.Virtual_String;
       use type GNATCOLL.VFS.Virtual_File;
 
-      Project_File    : GNATCOLL.VFS.Virtual_File :=
+      Project_File : GNATCOLL.VFS.Virtual_File :=
         LSP.Utils.To_Virtual_File (Project_Path);
 
       GPR_Config_File : GNATCOLL.VFS.Virtual_File;
 
-      Root            : GNATCOLL.VFS.Virtual_File;
+      Root : GNATCOLL.VFS.Virtual_File;
 
       procedure Create_Context_For_Non_Aggregate
         (View     : GPR2.Project.View.Object;
@@ -416,11 +427,12 @@ package body LSP.Ada_Handlers.Project_Loading is
          use LSP.Ada_Context_Sets;
          use LSP.Ada_Contexts;
 
-         C                   : constant Context_Access :=
+         C : constant Context_Access :=
            new LSP.Ada_Contexts.Context (Self.Tracer);
 
-         Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
-           (Self'Unchecked_Access);
+         Reader :
+           LSP.Ada_Handlers.File_Readers.LSP_File_Reader
+             (Self'Unchecked_Access);
 
          Default_Config : Libadalang.Preprocessing.File_Config;
          File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map;
@@ -473,8 +485,9 @@ package body LSP.Ada_Handlers.Project_Loading is
             Tree     => Self.Project_Tree,
             Charset  => VSS.Strings.Conversions.To_UTF_8_String (Charset));
 
-         Tracer.Trace ("Prepend Context Id: "
-                       & VSS.Strings.Conversions.To_UTF_8_String (C.Id));
+         Tracer.Trace
+           ("Prepend Context Id: "
+            & VSS.Strings.Conversions.To_UTF_8_String (C.Id));
          Self.Contexts.Prepend (C);
       end Create_Context_For_Non_Aggregate;
 
@@ -484,7 +497,7 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       procedure Log_GPR2_Diagnostics is
          Log : constant GPR2.Log.Object'Class :=
-            GPR2_Reporter (Self.Project_Tree.Reporter.Element.all).Log;
+           GPR2_Reporter (Self.Project_Tree.Reporter.Element.all).Log;
       begin
          Tracer.Increase_Indent;
          if Log.Is_Empty then
@@ -492,7 +505,8 @@ package body LSP.Ada_Handlers.Project_Loading is
          else
             for Msg of Log loop
                declare
-                  Message : constant String := Msg.Format (Full_Path_Name => True);
+                  Message : constant String :=
+                    Msg.Format (Full_Path_Name => True);
                begin
                   Tracer.Trace (Message);
                end;
@@ -544,11 +558,12 @@ package body LSP.Ada_Handlers.Project_Loading is
       end if;
 
       --  Set Valid Status for now, it can be overwritten in case of errors
-      Self.Project_Status.Set_Load_Status (LSP.Ada_Project_Loading.Valid_Project);
+      Self.Project_Status.Set_Load_Status
+        (LSP.Ada_Project_Loading.Valid_Project);
 
       declare
-         Opts     : GPR2.Options.Object;
-         Success  : Boolean;
+         Opts    : GPR2.Options.Object;
+         Success : Boolean;
 
          Reporter : GPR2_Reporter;
          --  This reporter object is passed to the GPR2 Load function, but it
@@ -567,18 +582,20 @@ package body LSP.Ada_Handlers.Project_Loading is
 
          Tracer.Trace ("Loading project with GPR2");
 
-         Success := Self.Project_Tree.Load
-           (Opts,
-            Reporter         => Reporter,
-            With_Runtime     => True,
-            Absent_Dir_Error => GPR2.No_Error,
-            Environment      => Environment);
+         Success :=
+           Self.Project_Tree.Load
+             (Opts,
+              Reporter         => Reporter,
+              With_Runtime     => True,
+              Absent_Dir_Error => GPR2.No_Error,
+              Environment      => Environment);
 
          Tracer.Trace ("GPR2 messages after load:");
          Log_GPR2_Diagnostics;
 
          if not Success then
-            Self.Project_Status.Set_Load_Status (LSP.Ada_Project_Loading.Invalid_Project);
+            Self.Project_Status.Set_Load_Status
+              (LSP.Ada_Project_Loading.Invalid_Project);
          end if;
 
          if Success then
@@ -595,7 +612,8 @@ package body LSP.Ada_Handlers.Project_Loading is
       exception
          when E : others =>
             Tracer.Trace_Exception (E);
-            Self.Project_Status.Set_Load_Status (LSP.Ada_Project_Loading.Invalid_Project);
+            Self.Project_Status.Set_Load_Status
+              (LSP.Ada_Project_Loading.Invalid_Project);
       end;
 
       if Self.Project_Status.Is_Project_Loaded then
@@ -605,11 +623,11 @@ package body LSP.Ada_Handlers.Project_Loading is
               Self.Project_Tree.Root_Project;
          begin
             --  Only check runtime issues for Ada
-            Self.Project_Status.Set_Missing_Ada_Runtime (
-               Value   =>
+            Self.Project_Status.Set_Missing_Ada_Runtime
+              (Value =>
                  (not Root.Is_Defined
                   or else Root.Language_Ids.Contains (GPR2.Ada_Language))
-               and then not Self.Project_Tree.Has_Runtime_Project);
+                 and then not Self.Project_Tree.Has_Runtime_Project);
          end;
 
          Update_Project_Predefined_Sources (Self);
@@ -632,9 +650,10 @@ package body LSP.Ada_Handlers.Project_Loading is
          else
             declare
                Provider : GPR2_Provider_And_Projects :=
-                 (Provider => Create_Project_Unit_Provider
-                    (Tree    => Self.Project_Tree,
-                     Project => Self.Project_Tree.Root_Project),
+                 (Provider =>
+                    Create_Project_Unit_Provider
+                      (Tree    => Self.Project_Tree,
+                       Project => Self.Project_Tree.Root_Project),
                   Projects => <>);
             begin
                Provider.Projects.Append (Self.Project_Tree.Root_Project);
@@ -645,7 +664,8 @@ package body LSP.Ada_Handlers.Project_Loading is
          end if;
       end if;
 
-      Tracer.Trace ("Project status after loading: " & Self.Project_Status'Image);
+      Tracer.Trace
+        ("Project status after loading: " & Self.Project_Status'Image);
 
       --  We have successfully loaded a real project: monitor the filesystem
       --  for any changes on the sources of the project
@@ -660,9 +680,7 @@ package body LSP.Ada_Handlers.Project_Loading is
    -- Enqueue_Indexing_Job --
    --------------------------
 
-   procedure Enqueue_Indexing_Job
-     (Self : in out Message_Handler'Class)
-   is
+   procedure Enqueue_Indexing_Job (Self : in out Message_Handler'Class) is
       procedure Create_Fallback_Context (Self : in out Message_Handler'Class);
       --  Create a fallback context for the given handler's contexts' set.
 
@@ -764,13 +782,12 @@ package body LSP.Ada_Handlers.Project_Loading is
    -- Reload_Implicit_Project_Dirs --
    ----------------------------------
 
-   procedure Reload_Implicit_Project_Dirs
-     (Self : in out Message_Handler'Class)
+   procedure Reload_Implicit_Project_Dirs (Self : in out Message_Handler'Class)
    is
       Project : GPR2.Project.Tree.View_Builder.Object :=
-                  GPR2.Project.Tree.View_Builder.Create
-                    (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
-                     Name        => "default");
+        GPR2.Project.Tree.View_Builder.Create
+          (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
+           Name        => "default");
       Values  : GPR2.Containers.Value_List;
       Opts    : GPR2.Options.Object;
       Success : Boolean;
@@ -785,15 +802,15 @@ package body LSP.Ada_Handlers.Project_Loading is
       end loop;
 
       Project.Set_Attribute
-        (GPR2.Project.Registry.Attribute.Source_Dirs,
-        Values);
+        (GPR2.Project.Registry.Attribute.Source_Dirs, Values);
 
       --  First we load the fallback project
-      Success := Self.Project_Tree.Load_Virtual_View
-         (Project,
-          Opts,
-          With_Runtime     => True,
-          Absent_Dir_Error => GPR2.No_Error);
+      Success :=
+        Self.Project_Tree.Load_Virtual_View
+          (Project,
+           Opts,
+           With_Runtime     => True,
+           Absent_Dir_Error => GPR2.No_Error);
 
       if not Success then
          for C in Self.Project_Tree.Log_Messages.Iterate loop
@@ -818,7 +835,8 @@ package body LSP.Ada_Handlers.Project_Loading is
 
    procedure Reload_Project (Self : in out Message_Handler'CLass) is
    begin
-      Tracer.Trace ("Reload_Project was called. Releasing current project context.");
+      Tracer.Trace
+        ("Reload_Project was called. Releasing current project context.");
       Release_Contexts_And_Project_Info (Self);
       Self.Project_Status := LSP.Ada_Project_Loading.No_Project_Status;
       Ensure_Project_Loaded (Self);
@@ -828,8 +846,7 @@ package body LSP.Ada_Handlers.Project_Loading is
    -- Reload_Implicit_Project --
    -----------------------------
 
-   procedure Reload_Implicit_Project
-     (Self : in out Message_Handler'Class) is
+   procedure Reload_Implicit_Project (Self : in out Message_Handler'Class) is
    begin
       Load_Implicit_Project (Self, Self.Project_Status.Get_Load_Status);
    end Reload_Implicit_Project;
