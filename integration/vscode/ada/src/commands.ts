@@ -86,9 +86,35 @@ export const CMD_SPARK_LIMIT_SUBP_ARG = 'ada.spark.limitSubpArg';
 export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
 export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
 
+/**
+ * Identifier for the command that shows the extension's output in the Output panel.
+ */
+export const CMD_SHOW_EXTENSION_LOGS = 'ada.showExtensionOutput';
+
+/**
+ * Identifier for the command that shows the output of the ALS for Ada in the Output panel.
+ */
+export const CMD_SHOW_ADA_LS_OUTPUT = 'ada.showAdaLSOutput';
+
+/**
+ * Identifier for the command that shows the output of the ALS for GPR in the Output panel.
+ */
+export const CMD_SHOW_GPR_LS_OUTPUT = 'ada.showGprLSOutput';
+
+/**
+ * Identifier for the command that reloads the currently loaded project on server-side.
+ */
+export const CMD_RELOAD_PROJECT = 'als-reload-project';
+
+/**
+ * Identifier for the command that restarts all the language servers spawned by the extension
+ * (Ada and GPR).
+ */
+export const CMD_RESTART_LANG_SERVERS = 'ada.restartLanguageServers';
+
 export function registerCommands(context: vscode.ExtensionContext, clients: ExtensionState) {
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.restartLanguageServers', restartLanguageServers),
+        vscode.commands.registerCommand(CMD_RESTART_LANG_SERVERS, restartLanguageServers),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.createHelloWorldProject', createHelloWorldProject),
@@ -116,15 +142,15 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand('ada.subprogramBox', addSubprogramBoxCommand),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.showExtensionOutput', () => mainOutputChannel.show()),
+        vscode.commands.registerCommand(CMD_SHOW_EXTENSION_LOGS, () => mainOutputChannel.show()),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.showAdaLSOutput', () =>
+        vscode.commands.registerCommand(CMD_SHOW_ADA_LS_OUTPUT, () =>
             clients.adaClient.outputChannel.show(),
         ),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand('ada.showGprLSOutput', () =>
+        vscode.commands.registerCommand(CMD_SHOW_GPR_LS_OUTPUT, () =>
             clients.gprClient.outputChannel.show(),
         ),
     );

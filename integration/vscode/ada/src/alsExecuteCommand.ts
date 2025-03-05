@@ -40,6 +40,7 @@ import {
     ReplaceTypeCommandArgs,
 } from './refactoring/alsReplaceTypeCommand';
 import { adaExtState } from './extension';
+import { CMD_RELOAD_PROJECT } from './commands';
 
 /**
  * Type alias for a function that intercepts a command and executes it by return a promise that
@@ -90,7 +91,7 @@ export const alsCommandExecutor = (client: LanguageClient): CommandExecutor => {
                 args[0] as ReplaceTypeCommandArgs,
             );
             if (!proceedWithExecution) return Promise.resolve(undefined);
-        } else if (command === 'als-reload-project') {
+        } else if (command === CMD_RELOAD_PROJECT) {
             // Clear the cache and the predefined tasks when the project
             // has been reloaded.
             adaExtState.clearCacheAndTasks('project is being reloaded: clearing caches and tasks');
