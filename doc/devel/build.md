@@ -7,7 +7,7 @@
 
 1. Disable dependency sharing in Alire
 
-       alr settings --global --set dependencies.shared false
+       alr config --global --set dependencies.shared false
 
 1. Clone repository
 
