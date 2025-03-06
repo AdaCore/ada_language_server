@@ -197,7 +197,7 @@ by providing extra tool command line options via the `args` property of the obje
             "-gargs",
             "-vh"
          ],
-         "problemMatcher": ["$ada"],
+         "problemMatcher": ["$ada-error", "$ada-warning", "$ada-info"],
          "group": "build",
          "label": "ada: Build current project"
       }
@@ -225,7 +225,7 @@ You can also customize the working directory of the task or the environment vari
                "MY_ENV_VAR": "value"
             }
          },
-         "problemMatcher": ["$ada"],
+         "problemMatcher": ["$ada-error", "$ada-warning", "$ada-info"],
          "group": "build",
          "label": "ada: Build current project"
       }

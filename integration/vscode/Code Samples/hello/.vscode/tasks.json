@@ -14,7 +14,9 @@
                ]
             },
             "problemMatcher": [
-                "$ada"
+                "$ada-error",
+                "$ada-warning",
+                "$ada-info"
             ],
             "group": "build",
             "label": "ada: Build project",

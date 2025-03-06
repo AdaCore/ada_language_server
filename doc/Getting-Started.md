@@ -189,7 +189,9 @@ Your new `tasks.json` file should look similar to the JSON below:
             "-gnatef"
          ],
          "problemMatcher": [
-            "$ada"
+            "$ada-error",
+            "$ada-warning",
+            "$ada-info"
          ],
          "group": {
             "kind": "build",

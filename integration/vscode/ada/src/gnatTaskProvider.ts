@@ -18,7 +18,7 @@
 import commandExists from 'command-exists';
 import * as vscode from 'vscode';
 import { getProjectFromConfigOrALS, sparkLimitRegionArg, sparkLimitSubpArg } from './commands';
-import { DEFAULT_PROBLEM_MATCHER, WarningMessageExecution } from './taskProviders';
+import { DEFAULT_PROBLEM_MATCHERS, WarningMessageExecution } from './taskProviders';
 
 /**
  * Callback to provide an extra argument for a tool
@@ -238,7 +238,7 @@ export class GnatTaskProvider implements vscode.TaskProvider<vscode.Task> {
                     msg,
                     GnatTaskProvider.gnatType,
                     this.obsoleteWarningExecution,
-                    DEFAULT_PROBLEM_MATCHER,
+                    DEFAULT_PROBLEM_MATCHERS,
                 ),
             ];
         } else {
@@ -269,7 +269,7 @@ export class GnatTaskProvider implements vscode.TaskProvider<vscode.Task> {
             task.name,
             GnatTaskProvider.gnatType,
             this.obsoleteWarningExecution,
-            DEFAULT_PROBLEM_MATCHER,
+            DEFAULT_PROBLEM_MATCHERS,
         );
     }
 }
