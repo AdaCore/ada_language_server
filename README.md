@@ -41,7 +41,6 @@ extension at
 - [Ada Language Server](#ada-language-server)
   - [Table of Contents](#table-of-contents)
   - [Install](#install)
-    - [Dependencies](#dependencies)
   - [Usage](#usage)
     - [Memory Consumption](#memory-consumption)
   - [Supported LSP Server Requests](#supported-lsp-server-requests)
