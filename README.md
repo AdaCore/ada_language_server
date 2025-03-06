@@ -77,7 +77,12 @@ extension at
 
 ## Install
 
-You can build language server from sources. See [build.md](doc/devel/build.md) for details.
+The official [releases][releases] contains ready-built packages for
+various platforms and architectures and should be your first choice when trying out the language server.
+
+You can also build the language server from source. See [build.md](doc/devel/build.md) for details.
+
+[releases]: https://github.com/AdaCore/ada_language_server/releases
 
 ## Usage
 
