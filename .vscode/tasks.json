@@ -32,7 +32,15 @@
          "args": ["GPRBUILD_CARGS=-cargs:ada -gnatef"],
          "problemMatcher": ["$ada"],
          "group": "build",
-         "label": "ada: Build current project"
+         "label": "ada: Build current project",
+         "presentation": {
+            "echo": true,
+            "reveal": "silent",
+            "focus": false,
+            "panel": "shared",
+            "showReuseMessage": true,
+            "clear": false
+         }
       }
    ]
 }
