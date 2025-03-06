@@ -6,6 +6,7 @@ section below it for the last release. -->
 ## \<next>
 
 * Fix a bug that caused the ALS to hang when trying to complete partially qualified invisible symbols
+* Support loading a fresh checkout of an Alire crate by automatically performing the necessary Alire workspace initializations
 
 ## 26.0.202502240
 
