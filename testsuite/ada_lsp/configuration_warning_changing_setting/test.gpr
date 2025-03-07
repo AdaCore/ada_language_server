@@ -1,0 +1,5 @@
+project Testo is
+
+   for Main use ("foo.adb");
+
+end Testo;

@@ -117,6 +117,10 @@ package LSP.Raw_Clients is
    function Server_PID (Self : Raw_Client'Class) return String;
    --  Return server process id (pid) if the server has been started.
 
+   function Server_Language
+     (Self : Raw_Client) return VSS.Strings.Virtual_String;
+   --  Return the language name handled by the server
+
    procedure Kill_Process (Self : in out Raw_Client'Class);
    --  Kill current server process. Process will exit immediately.
    --

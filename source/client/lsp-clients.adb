@@ -144,24 +144,28 @@ package body LSP.Clients is
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
          .Client_Notification_Receiver'Class;
+         Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Log_Message
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
          .Client_Notification_Receiver'Class;
+         Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Publish_Diagnostics
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
          .Client_Notification_Receiver'Class;
+         Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String);
 
       procedure Progress
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
          .Client_Notification_Receiver'Class;
+         Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String);
 
    end Decoders;
@@ -467,13 +471,14 @@ package body LSP.Clients is
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
          .Client_Notification_Receiver'Class;
+         Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String)
       is
          pragma Unreferenced (Token);
          Message : LogMessage_Notification;
       begin
          LogMessage_Notification'Read (Stream, Message);
-         Handler.On_Log_Message (Message.params);
+         Handler.On_Log_Message (Message.params, Client.Server_Language);
       end Log_Message;
 
       -------------------------
@@ -484,13 +489,15 @@ package body LSP.Clients is
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
          .Client_Notification_Receiver'Class;
+         Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String)
       is
          pragma Unreferenced (Token);
          Message : PublishDiagnostics_Notification;
       begin
          PublishDiagnostics_Notification'Read (Stream, Message);
-         Handler.On_Publish_Diagnostics (Message.params);
+         Handler.On_Publish_Diagnostics
+           (Message.params, Client.Server_Language);
       end Publish_Diagnostics;
 
       ------------------
@@ -501,13 +508,14 @@ package body LSP.Clients is
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
          .Client_Notification_Receiver'Class;
+         Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String)
       is
          pragma Unreferenced (Token);
          Message : ShowMessage_Notification;
       begin
          ShowMessage_Notification'Read (Stream, Message);
-         Handler.On_Show_Message (Message.params);
+         Handler.On_Show_Message (Message.params, Client.Server_Language);
       end Show_Message;
 
       --------------
@@ -518,7 +526,9 @@ package body LSP.Clients is
         (Stream  : access Ada.Streams.Root_Stream_Type'Class;
          Handler : access LSP.Client_Notification_Receivers
          .Client_Notification_Receiver'Class;
+         Client  : LSP.Raw_Clients.Raw_Client'Class;
          Token   : LSP.Types.LSP_Number_Or_String) is
+         pragma Unreferenced (Client);
       begin
          case Handler.Get_Progress_Type (Token) is
             when LSP.Client_Notification_Receivers.ProgressParams =>
@@ -878,7 +888,7 @@ package body LSP.Clients is
          begin
             if Notification_Maps.Has_Element (Position) then
                Notification_Maps.Element (Position).all
-                 (Stream'Access, Self.Notification, Token);
+                 (Stream'Access, Self.Notification, Self, Token);
             end if;
          end;
       end if;

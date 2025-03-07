@@ -94,6 +94,8 @@ package LSP.Ada_Job_Contexts is
 
    procedure Reload_Project (Self : in out Ada_Job_Context) is abstract;
 
+   procedure Refresh_Diagnostics (Self : in out Ada_Job_Context) is abstract;
+
    function Get_Open_Document
      (Self : in out Ada_Job_Context;
       URI  : LSP.Structures.DocumentUri)
@@ -109,6 +111,7 @@ package LSP.Ada_Job_Contexts is
       Other_Diagnostics : LSP.Structures.Diagnostic_Vector :=
         LSP.Structures.Empty;
       Force             : Boolean := False) is abstract;
+   --  Publish document diagnostics
 
    function Contexts_For_File
      (Self : Ada_Job_Context;

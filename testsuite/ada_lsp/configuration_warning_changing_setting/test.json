@@ -1,0 +1,1045 @@
+[
+   {
+      "comment": [
+         "Test publishDiagnostics when changing the settings for the sources"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Main is\nbegin\n   null\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": null
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "ada.project",
+                        "message": "The project file was loaded but contains warnings.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'test' expected"
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 17
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 17
+                                    }
+                                 }
+                              },
+                              "message": "foo.adb is not a source of project Testo"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 3,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 3
+                           }
+                        },
+                        "source": "libadalang",
+                        "message": "Missing ';'"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": true,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": true,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 3,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 3
+                           }
+                        },
+                        "source": "libadalang",
+                        "message": "Missing ';'"
+                     }
+                  ]
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "ada.project",
+                        "message": "The project file was loaded but contains warnings.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'test' expected"
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 17
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 17
+                                    }
+                                 }
+                              },
+                              "message": "foo.adb is not a source of project Testo"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 3,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 3
+                           }
+                        },
+                        "source": "libadalang",
+                        "message": "Missing ';'"
+                     }
+                  ]
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "ada.project",
+                        "message": "The project file was loaded but contains warnings.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'test' expected"
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 17
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 17
+                                    }
+                                 }
+                              },
+                              "message": "foo.adb is not a source of project Testo"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": false,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 3,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 3
+                           }
+                        },
+                        "source": "libadalang",
+                        "message": "Missing ';'"
+                     }
+                  ]
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "ada.project",
+                        "message": "The project file was loaded but contains warnings.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'test' expected"
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 17
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 17
+                                    }
+                                 }
+                              },
+                              "message": "foo.adb is not a source of project Testo"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": false,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": false,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "ada.project",
+                        "message": "The project file was loaded but contains warnings.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'test' expected"
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 17
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 17
+                                    }
+                                 }
+                              },
+                              "message": "foo.adb is not a source of project Testo"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": false,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 3,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 3
+                           }
+                        },
+                        "source": "libadalang",
+                        "message": "Missing ';'"
+                     }
+                  ]
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "ada.project",
+                        "message": "The project file was loaded but contains warnings.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'test' expected"
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 17
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 17
+                                    }
+                                 }
+                              },
+                              "message": "foo.adb is not a source of project Testo"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": false,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": false,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 3,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 3
+                           }
+                        },
+                        "source": "libadalang",
+                        "message": "Missing ';'"
+                     }
+                  ]
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": false,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 3,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 3,
+                              "character": 3
+                           }
+                        },
+                        "source": "libadalang",
+                        "message": "Missing ';'"
+                     }
+                  ]
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "ada.project",
+                        "message": "The project file was loaded but contains warnings.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'test' expected"
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 17
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 17
+                                    }
+                                 }
+                              },
+                              "message": "foo.adb is not a source of project Testo"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": false,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": false,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 0,
+                              "character": 0
+                           },
+                           "end": {
+                              "line": 0,
+                              "character": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "ada.project",
+                        "message": "The project file was loaded but contains warnings.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 0,
+                                       "character": 8
+                                    },
+                                    "end": {
+                                       "line": 0,
+                                       "character": 8
+                                    }
+                                 }
+                              },
+                              "message": "project name 'test' expected"
+                           },
+                           {
+                              "location": {
+                                 "uri": "$URI{test.gpr}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 17
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 17
+                                    }
+                                 }
+                              },
+                              "message": "foo.adb is not a source of project Testo"
+                           }
+                        ]
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": false,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": false,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": false,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               }
+            },
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{test.gpr}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
