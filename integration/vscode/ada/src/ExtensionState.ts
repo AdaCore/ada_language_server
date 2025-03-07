@@ -23,6 +23,13 @@ import {
     createSparkTaskProvider,
 } from './taskProviders';
 import { isAbsolute } from 'path';
+import {
+    CMD_SHOW_EXTENSION_LOGS,
+    CMD_SHOW_ADA_LS_OUTPUT,
+    CMD_SHOW_GPR_LS_OUTPUT,
+    CMD_RELOAD_PROJECT,
+    CMD_RESTART_LANG_SERVERS,
+} from './commands';
 
 /**
  * Return type of the 'als-source-dirs' LSP request.
@@ -268,18 +275,18 @@ export class ExtensionState {
             this.statusBar.tooltip.appendMarkdown('\n\n---\n\n');
         }
         this.statusBar.tooltip.appendMarkdown(
-            `[$(terminal) Open Extension Logs](command:ada.showExtensionOutput
+            `[$(terminal) Open Extension Logs](command:${CMD_SHOW_EXTENSION_LOGS}
  "Show Ada Extension Output")
 
-[$(terminal) Open Logs for Ada & SPARK](command:ada.showAdaLSOutput
+[$(terminal) Open Logs for Ada & SPARK](command:${CMD_SHOW_ADA_LS_OUTPUT}
  "Show Ada Language Server for Ada & SPARK Output")
 
-[$(terminal) Open Logs for GPR](command:ada.showGprLSOutput
+[$(terminal) Open Logs for GPR](command:${CMD_SHOW_GPR_LS_OUTPUT}
  "Show Ada Language Server for GPR Output")
 
-[$(refresh) Reload Project](command:als-reload-project "Reload Project")
+[$(refresh) Reload Project](command:${CMD_RELOAD_PROJECT} "Reload Project")
 
-[$(debug-restart) Restart Language Servers](command:ada.restartLanguageServers
+[$(debug-restart) Restart Language Servers](command:${CMD_RESTART_LANG_SERVERS}
  "Restart Ada Language Servers")`,
         );
     };

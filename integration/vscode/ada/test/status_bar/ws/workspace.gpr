@@ -1,0 +1,3 @@
+project Workspace is
+   for Languages use ("ada");
+end Workspace;

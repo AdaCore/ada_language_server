@@ -7,6 +7,7 @@ section below it for the last release. -->
 
 * Fix a bug that caused the ALS to hang when trying to complete partially qualified invisible symbols
 * Support loading a fresh checkout of an Alire crate by automatically performing the necessary Alire workspace initializations
+* VS Code status bar now displays an item showing the project-loading status and useful commands provided by the extension when hovering on it
 
 ## 26.0.202502240
 
