@@ -218,7 +218,7 @@
                      },
                      {
                         "language": "plaintext",
-                        "value": "This aspect is equivalent to *note pragma SPARK_Mode: eb. and may be\nspecified for either or both of the specification and body of a\nsubprogram or package."
+                        "value": "This aspect is equivalent to *note pragma SPARK_Mode: f9. and may be\nspecified for either or both of the specification and body of a\nsubprogram or package."
                      }
                   ]
                }
@@ -288,7 +288,7 @@
                      },
                      {
                         "language": "plaintext",
-                        "value": "For every scalar subtype S:\n\n\nS'Image denotes a function with the following specification:\n\n\nfunction S'Image(Arg : S'Base)\nreturn String\n\n\nThe function returns an image of the value of Arg as a String.\nSee 3.5."
+                        "value": "For every subtype S of a type T:\n\n\nS'Image denotes a function with the following specification:\n\n\nfunction S'Image(Arg : S'Base)\nreturn String\n\n\nS'Image calls S'Put_Image passing Arg (which will typically\nstore a sequence of character values in a text buffer) and\nthen returns the result of retrieving the contents of that\nbuffer with function Get. See 4.10."
                      }
                   ]
                }
