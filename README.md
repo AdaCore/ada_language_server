@@ -140,7 +140,7 @@ Here are some links that will help you get familiar with the VS Code extension f
 You can configure the extension via the `.vscode/settings.json` workspace settings file or the [multi-root workspace file](https://code.visualstudio.com/docs/editor/multi-root-workspaces).
 More information about settings and the different ways that can be used to specify them can be found [here](doc/settings.md).
 
-Here is an example config file that sets the project file to use and the scenario variables, as long as other useful settings (charset, whether we should show file diagnostics etc.):
+Here is an example config file that sets the project file to use and the scenario variables, as well as other useful settings (charset, whether we should show file diagnostics etc.):
 
 ```json
 {
