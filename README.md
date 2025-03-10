@@ -243,6 +243,12 @@ For example, if the project defines a `main1.adb` and `main2.adb` located under 
 
 Same thing for all the predefined tasks that can have a main specified in their command line.
 
+### Status Bar
+
+A status bar item displaying the project-loading status and various useful commands provided by the Ada & SPARK extension (e.g `Ada: Reload Project` to reload a project after modifying it) is displayed on the left-side of the VS Code Status Bar.
+
+  <img src="doc/media/status_bar.gif" width="650" alt="Ada & SPARK Status Bar Item"/>
+
 ### Alire Support
 
 When the workspace is an Alire crate (i.e. it contains an `alire.toml` file), the extension uses Alire to determine the GPR project that should be loaded and to obtain an environment where the crate's dependencies have been provisioned.
