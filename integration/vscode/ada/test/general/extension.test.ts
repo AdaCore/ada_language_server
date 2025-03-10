@@ -5,6 +5,7 @@ import { activate, assertEqualToFileContent } from '../utils';
 
 import { readFileSync, writeFileSync } from 'fs';
 import * as vscode from 'vscode';
+import { CMD_RESTART_LANG_SERVERS } from '../../src/commands';
 
 suite('Extensions Test Suite', function () {
     // Make sure the extension is activated
@@ -139,7 +140,7 @@ suite('Extensions Test Suite', function () {
                 // Restart the server and check that we still have the same project
                 // loaded on ALS side
                 const oldAlsUri = await adaExtState.getProjectUri();
-                await vscode.commands.executeCommand('ada.restartLanguageServers');
+                await vscode.commands.executeCommand(CMD_RESTART_LANG_SERVERS);
                 const newAlsUri = await adaExtState.getProjectUri();
                 assert.deepStrictEqual(
                     oldAlsUri?.fsPath,

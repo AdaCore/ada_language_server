@@ -509,6 +509,8 @@ private
 
    overriding procedure Reload_Project (Self : in out Message_Handler);
 
+   overriding procedure Refresh_Diagnostics (Self : in out Message_Handler);
+
    overriding function Get_Best_Context
      (Self : Message_Handler;
       URI  : LSP.Structures.DocumentUri)

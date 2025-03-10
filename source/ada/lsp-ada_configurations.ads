@@ -90,11 +90,17 @@ package LSP.Ada_Configurations is
 
    function Ada_File_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
-   --  Whether to publish file related diagnostics
+   --  Whether to publish ada file related diagnostics
+
+   function GPR_File_Diagnostics_Enabled
+     (Self : Configuration'Class) return Boolean;
+   --  Whether to publish diagnostics related to GPR files' edition. This
+   --  is used by GLS only and is different from Project_Diagnostics_Enabled.
 
    function Project_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
-   --  Whether to publish project related diagnostics
+   --  Whether to publish project related diagnostics. This is used by the
+   --  ALS only.
 
    function Alire_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
@@ -167,6 +173,7 @@ private
       Named_Notation_Threshold     : Natural := 3;
       Log_Threshold                : Natural := 10;
       Ada_File_Diagnostics_Enabled : Boolean := True;
+      GPR_File_Diagnostics_Enabled : Boolean := True;
       Project_Diagnostics_Enabled  : Boolean := True;
       Alire_Diagnostics_Enabled    : Boolean := True;
       Indexing_Enabled             : Boolean := True;
@@ -215,6 +222,11 @@ private
      (Self : Configuration'Class)
       return Boolean is
       (Self.Ada_File_Diagnostics_Enabled);
+
+   function GPR_File_Diagnostics_Enabled
+     (Self : Configuration'Class)
+      return Boolean is
+      (Self.GPR_File_Diagnostics_Enabled);
 
    function Project_Diagnostics_Enabled
      (Self : Configuration'Class)

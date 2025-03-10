@@ -27,7 +27,7 @@ package LSP.Messages.Client_Notifications is
 
    procedure Visit
      (Self    : Client_Notification;
-      Reciver : access Client_Notification_Receiver'Class) is abstract;
+      Receiver : access Client_Notification_Receiver'Class) is abstract;
 
    package LogMessages is new LSP.Generic_Notifications
      (Client_Notification,
@@ -39,7 +39,7 @@ package LSP.Messages.Client_Notifications is
 
    overriding procedure Visit
      (Self    : LogMessage_Notification;
-      Reciver : access Client_Notification_Receiver'Class);
+      Receiver : access Client_Notification_Receiver'Class);
 
    package ShowMessages is new LSP.Generic_Notifications
      (Client_Notification,
@@ -51,7 +51,7 @@ package LSP.Messages.Client_Notifications is
 
    overriding procedure Visit
      (Self    : ShowMessage_Notification;
-      Reciver : access Client_Notification_Receiver'Class);
+      Receiver : access Client_Notification_Receiver'Class);
 
    package PublishDiagnostics is new LSP.Generic_Notifications
      (Client_Notification,
@@ -63,7 +63,7 @@ package LSP.Messages.Client_Notifications is
 
    overriding procedure Visit
      (Self    : PublishDiagnostics_Notification;
-      Reciver : access Client_Notification_Receiver'Class);
+      Receiver : access Client_Notification_Receiver'Class);
 
    package Progress_Params is new LSP.Generic_Notifications
      (Client_Notification,

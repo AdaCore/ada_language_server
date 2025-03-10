@@ -22,11 +22,12 @@ package body LSP.Messages.Client_Notifications is
    -----------
 
    overriding procedure Visit
-     (Self    : LogMessage_Notification;
-      Reciver : access Client_Notification_Receiver'Class)
+     (Self     : LogMessage_Notification;
+      Receiver : access Client_Notification_Receiver'Class)
    is
    begin
-      Reciver.On_Log_Message (Self.params);
+      Receiver.On_Log_Message
+        (Self.params, VSS.Strings.Empty_Virtual_String);
    end Visit;
 
    -----------
@@ -34,11 +35,12 @@ package body LSP.Messages.Client_Notifications is
    -----------
 
    overriding procedure Visit
-     (Self    : ShowMessage_Notification;
-      Reciver : access Client_Notification_Receiver'Class)
+     (Self     : ShowMessage_Notification;
+      Receiver : access Client_Notification_Receiver'Class)
    is
    begin
-      Reciver.On_Show_Message (Self.params);
+      Receiver.On_Show_Message
+        (Self.params, VSS.Strings.Empty_Virtual_String);
    end Visit;
 
    -----------
@@ -46,11 +48,12 @@ package body LSP.Messages.Client_Notifications is
    -----------
 
    overriding procedure Visit
-     (Self    : PublishDiagnostics_Notification;
-      Reciver : access Client_Notification_Receiver'Class)
+     (Self     : PublishDiagnostics_Notification;
+      Receiver : access Client_Notification_Receiver'Class)
    is
    begin
-      Reciver.On_Publish_Diagnostics (Self.params);
+      Receiver.On_Publish_Diagnostics
+        (Self.params, VSS.Strings.Empty_Virtual_String);
    end Visit;
 
    -----------

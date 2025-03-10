@@ -1,0 +1,225 @@
+[
+   {
+      "comment": [
+         "Test publishDiagnostics request when doing a didChangeConfiguration"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Test is\nend Test;",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{default.gpr}",
+                  "diagnostics": [
+                     {
+                        "message": "project name 'default' expected",
+                        "range": {
+                           "end": {
+                              "character": 8,
+                              "line": 0
+                           },
+                           "start": {
+                              "character": 8,
+                              "line": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "gpr.project"
+                     },
+                     {
+                        "message": "there are no sources of language \"Ada\" in this project",
+                        "range": {
+                           "end": {
+                              "character": 0,
+                              "line": 0
+                           },
+                           "start": {
+                              "character": 0,
+                              "line": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "gpr.project"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": false,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{default.gpr}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": false,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": true,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "projectDiagnostics": false,
+                     "projectFile": "$URI{test.gpr}",
+                     "scenarioVariables": {},
+                     "useGnatformat": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{default.gpr}",
+                  "diagnostics": [
+                     {
+                        "message": "project name 'default' expected",
+                        "range": {
+                           "end": {
+                              "character": 8,
+                              "line": 0
+                           },
+                           "start": {
+                              "character": 8,
+                              "line": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "gpr.project"
+                     },
+                     {
+                        "message": "there are no sources of language \"Ada\" in this project",
+                        "range": {
+                           "end": {
+                              "character": 0,
+                              "line": 0
+                           },
+                           "start": {
+                              "character": 0,
+                              "line": 0
+                           }
+                        },
+                        "severity": 2,
+                        "source": "gpr.project"
+                     }
+                  ]
+               }
+            }
+         ]
+       }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

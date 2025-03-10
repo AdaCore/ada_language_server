@@ -426,7 +426,7 @@
                         "scope": "window",
                         "type": "boolean",
                         "default": null,
-                        "description": "Controls whether or not the Ada Language Server should emit project diagnostics into the VS Code Problems view."
+                        "description": "Controls whether or not the Ada Language Server should emit diagnostics related to project loading into the VS Code Problems view."
                     },
                     "ada.alireDiagnostics": {
                         "scope": "window",
@@ -438,7 +438,13 @@
                         "scope": "window",
                         "type": "boolean",
                         "default": null,
-                        "description": "Controls whether or not the Ada Language Server should emit diagnostics related to Ada files into the VS Code Problems view."
+                        "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of Ada files into the VS Code Problems view."
+                    },
+                    "ada.gprFileDiagnostics": {
+                        "scope": "window",
+                        "type": "boolean",
+                        "default": null,
+                        "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of GPR files into the VS Code Problems view."
                     }
                 }
             },

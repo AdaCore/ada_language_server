@@ -139,6 +139,16 @@ package body LSP.Raw_Clients is
       return Self.Server.Identifier;
    end Server_PID;
 
+   ---------------------
+   -- Server_Language --
+   ---------------------
+
+   function Server_Language
+     (Self : Raw_Client) return VSS.Strings.Virtual_String is
+   begin
+      return VSS.Strings.Empty_Virtual_String;
+   end Server_Language;
+
    ------------------
    -- Kill_Process --
    ------------------
