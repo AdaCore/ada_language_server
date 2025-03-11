@@ -28,7 +28,7 @@ with VSS.Strings.Conversions;
 with VSS.Transformers.Caseless;
 
 with LSP.Enumerations;
-with LSP.Predefined_Completion.Ada2012;
+with LSP.Predefined_Completion.Ada2022;
 with Libadalang.Common;
 
 package body LSP.Predefined_Completion is
@@ -121,15 +121,15 @@ package body LSP.Predefined_Completion is
       --  TODO: load the proper database once we have one for each Ada version
       case Version is
          when Ada_83 =>
-            Root := Read (LSP.Predefined_Completion.Ada2012.Db);
+            Root := Read (LSP.Predefined_Completion.Ada2022.Db);
          when Ada_95 =>
-            Root := Read (LSP.Predefined_Completion.Ada2012.Db);
+            Root := Read (LSP.Predefined_Completion.Ada2022.Db);
          when Ada_2005 =>
-            Root := Read (LSP.Predefined_Completion.Ada2012.Db);
+            Root := Read (LSP.Predefined_Completion.Ada2022.Db);
          when Ada_2012 =>
-            Root := Read (LSP.Predefined_Completion.Ada2012.Db);
+            Root := Read (LSP.Predefined_Completion.Ada2022.Db);
          when Ada_2020 =>
-            Root := Read (LSP.Predefined_Completion.Ada2012.Db);
+            Root := Read (LSP.Predefined_Completion.Ada2022.Db);
       end case;
 
       Root := Root.Get ("PREDEFINED_ADA");
