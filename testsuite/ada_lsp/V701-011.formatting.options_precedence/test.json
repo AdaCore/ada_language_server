@@ -181,7 +181,7 @@
                            "character": 0
                         }
                      },
-                     "newText": "          procedure Free is new\n            Ada.Unchecked_Deallocation (My_Type, My_Type_Access);\n"
+                     "newText": "          procedure Free is new\n                   Ada.Unchecked_Deallocation (My_Type, My_Type_Access);\n"
                   },
                   {
                      "range": {
