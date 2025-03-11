@@ -138,9 +138,9 @@ Here are some links that will help you get familiar with the VS Code extension f
 ### Configuration
 
 You can configure the extension via the `.vscode/settings.json` workspace settings file or the [multi-root workspace file](https://code.visualstudio.com/docs/editor/multi-root-workspaces).
-See the setting list [here](doc/settings.md).
+More information about settings and the different ways that can be used to specify them can be found [here](doc/settings.md).
 
-Here is an example config file:
+Here is an example config file that sets the project file to use and the scenario variables, as well as other useful settings (charset, whether we should show file diagnostics etc.):
 
 ```json
 {
@@ -242,6 +242,12 @@ For example, if the project defines a `main1.adb` and `main2.adb` located under 
 * `ada: Run main - src/main1.adb`
 
 Same thing for all the predefined tasks that can have a main specified in their command line.
+
+### Status Bar
+
+A status bar item displaying the project-loading status and various useful commands provided by the Ada & SPARK extension (e.g `Ada: Reload Project` to reload a project after modifying it) is displayed on the left-side of the VS Code Status Bar.
+
+  <img src="doc/media/status_bar.gif" width="650" alt="Ada & SPARK Status Bar Item"/>
 
 ### Alire Support
 
