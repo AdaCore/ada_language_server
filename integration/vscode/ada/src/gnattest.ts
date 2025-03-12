@@ -886,7 +886,7 @@ async function buildTestDriverAndReportErrors(
 
         buildTasks.push(instTask, buildTask);
     } else {
-        const task = await findTaskByName(`${TASK_BUILD_TEST_DRIVER}`);
+        const task = await findTaskByName(`${TASK_TYPE_ADA}: ${TASK_BUILD_TEST_DRIVER}`);
         buildTasks.push(task);
     }
 
