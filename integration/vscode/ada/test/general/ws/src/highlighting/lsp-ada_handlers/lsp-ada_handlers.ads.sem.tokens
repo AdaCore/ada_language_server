@@ -104,12 +104,12 @@ line 211: column  7 - 19: enumMember    [declaration, static]            : Add_P
 line 211: column 22 - 43: enumMember    [declaration, static]            : Change_Parameters_Type
 line 211: column 46 - 76: enumMember    [declaration, static]            : Change_Parameters_Default_Value
 line 212: column  7 - 18: enumMember    [declaration, static]            : Replace_Type
-line 215: column  9 - 42: type          [declaration, static]            : Advanced_Refactorings_Capabilities
+line 215: column  9 - 42: type          [declaration]                    : Advanced_Refactorings_Capabilities
 line 216: column 13 - 33: enum          [static]                         : Advanced_Refactorings
 line 216: column 39 - 45: enum          [static, defaultLibrary]         : Boolean
 line 219: column  9 - 40: struct        [declaration]                    : Experimental_Client_Capabilities
 line 220: column  7 - 27: property      [declaration]                    : Advanced_Refactorings
-line 220: column 31 - 64: type          [static]                         : Advanced_Refactorings_Capabilities
+line 220: column 31 - 64: type                                           : Advanced_Refactorings_Capabilities
 line 225: column 13 - 17: function      [declaration]                    : Parse
 line 226: column  7 - 11: parameter     [declaration, readonly]          : Value
 line 227: column 14 - 45: struct                                         : Experimental_Client_Capabilities
