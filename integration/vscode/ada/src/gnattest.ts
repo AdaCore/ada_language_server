@@ -9,11 +9,10 @@ import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
 import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
-import { escapeRegExp, exe, getObjectDir, setTerminalEnvironment, slugify } from './helpers';
+import { escapeRegExp, exe, setTerminalEnvironment, slugify } from './helpers';
 import {
     DEFAULT_PROBLEM_MATCHER,
     findTaskByName,
-    runTaskAndGetResult,
     runTaskSequence,
     SimpleTaskDef,
     TASK_BUILD_TEST_DRIVER,
@@ -160,10 +159,21 @@ export async function refreshTestItemTree() {
 /**
  * @returns the full path to the GNATtest XML file.
  */
-async function getGnatTestXmlPath(): Promise<string> {
-    const objDir = await getObjectDir();
-    const gnatTestXmlPath = path.join(objDir, 'gnattest', 'harness', 'gnattest.xml');
+export async function getGnatTestXmlPath(): Promise<string> {
+    const gnatTestXmlPath = path.join(await getHarnessDir(), 'gnattest.xml');
     return gnatTestXmlPath;
+}
+
+export async function getHarnessDir() {
+    return await adaExtState
+        .getProjectAttributeValue('Harness_Dir', 'Gnattest')
+        .catch(
+            /**
+             * default to gnattest/harness if Harness_Dir is unspecified
+             */
+            () => path.join('gnattest', 'harness'),
+        )
+        .then(async (value) => path.join(await adaExtState.getObjectDir(), value as string));
 }
 
 /**
@@ -171,8 +181,7 @@ async function getGnatTestXmlPath(): Promise<string> {
  * @returns the full path to the GNATtest test driver GPR project.
  */
 export async function getGnatTestDriverProjectPath(): Promise<string> {
-    const objDir = await getObjectDir();
-    const testDriverPath = path.join(objDir, 'gnattest', 'harness', 'test_driver.gpr');
+    const testDriverPath = path.join(await getHarnessDir(), 'test_driver.gpr');
     return testDriverPath;
 }
 
@@ -181,9 +190,24 @@ export async function getGnatTestDriverProjectPath(): Promise<string> {
  * @returns the full path to the GNATtest test driver executable.
  */
 export async function getGnatTestDriverExecPath(): Promise<string> {
-    const objDir = await getObjectDir();
-    const testDriverPath = path.join(objDir, 'gnattest', 'harness', 'test_runner' + exe);
+    const testDriverPath = path.join(await getHarnessDir(), 'test_runner' + exe);
     return testDriverPath;
+}
+
+/**
+ *
+ * @returns path where GNATcoverage execution traces will be created during a test run
+ */
+async function getTracesDir() {
+    return path.join(await adaExtState.getVSCodeObjectSubdir(), 'test-traces');
+}
+
+/**
+ *
+ * @returns path where GNATcoverage report will be created after a test run
+ */
+async function getGnatCovXMLReportDir() {
+    return path.join(await adaExtState.getVSCodeObjectSubdir(), 'cov-xml');
 }
 
 /**
@@ -330,6 +354,7 @@ async function addTestCaseItem(parentItem: vscode.TestItem, testCase: TestCase) 
     const testFileBasename = test['@_file'];
     const pos = new vscode.Position(parseInt(test['@_line']), parseInt(test['@_column']) - 1);
     const range = new vscode.Range(pos, pos);
+
     const testUri = await findFileInWorkspace(testFileBasename);
 
     // The name of the source file of the tested subprogram is not part of the
@@ -557,7 +582,16 @@ async function handleRunRequestedTests(
             requestedRootTests.push(...request.include);
         } else {
             /**
-             * Consider all tests as included
+             * If the Testing view hasn't been opened yet, the tests may not
+             * have been loaded yet. Check for that and load the tests in that
+             * case.
+             */
+            if (controller.items.size == 0) {
+                await refreshTestItemTree();
+            }
+
+            /**
+             * Consider all tests as included.
              */
             controller.items.forEach((i) => requestedRootTests.push(i));
         }
@@ -606,7 +640,11 @@ async function handleRunRequestedTests(
          * Invoke the test driver for each test
          */
         const execPath = await getGnatTestDriverExecPath();
-        const tracesDir = path.dirname(execPath);
+        const tracesDir = await getTracesDir();
+
+        if (coverage) {
+            fs.mkdirSync(tracesDir, { recursive: true });
+        }
 
         function getTracePath(test: TestItem): string {
             return path.join(tracesDir, slugify(test.id) + '.srctrace');
@@ -684,7 +722,7 @@ async function handleRunRequestedTests(
             /**
              * Produce a GNATcov XML report
              */
-            const outputDir = path.join(await adaExtState.getObjectDir(), 'cov-xml');
+            const outputDir = await getGnatCovXMLReportDir();
             const adaTP = adaExtState.getAdaTaskProvider()!;
             const gnatcovReportTask = (await adaTP.resolveTask(
                 new vscode.Task(
@@ -708,7 +746,7 @@ async function handleRunRequestedTests(
                 ),
             ))!;
             gnatcovReportTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
-            const result = await runTaskAndGetResult(gnatcovReportTask);
+            const result = await runTaskSequence([gnatcovReportTask], new WriteEmitter(run));
             if (result != 0) {
                 const msg =
                     `Error while running coverage analysis.` +
@@ -727,6 +765,20 @@ async function handleRunRequestedTests(
 }
 
 /**
+ * An EventEmitter that forwards data to a a TestRun given at construction
+ * time.
+ */
+class WriteEmitter extends vscode.EventEmitter<string> {
+    constructor(private run: vscode.TestRun) {
+        super();
+    }
+
+    override fire(data: string): void {
+        this.run.appendOutput(data);
+    }
+}
+
+/**
  * Build the test driver and report build failure as errors on the tests
  * requested for execution.
  *
@@ -739,12 +791,6 @@ async function buildTestDriverAndReportErrors(
     testsToRun: vscode.TestItem[],
     coverage: boolean,
 ) {
-    class WriteEmitter extends vscode.EventEmitter<string> {
-        override fire(data: string): void {
-            run.appendOutput(data);
-        }
-    }
-
     const buildTasks = [];
     if (coverage) {
         const adaTP = adaExtState.getAdaTaskProvider();
@@ -836,7 +882,7 @@ async function buildTestDriverAndReportErrors(
         buildTasks.push(task);
     }
 
-    const result = await runTaskSequence(buildTasks, new WriteEmitter());
+    const result = await runTaskSequence(buildTasks, new WriteEmitter(run));
 
     if (result != 0) {
         let msg =

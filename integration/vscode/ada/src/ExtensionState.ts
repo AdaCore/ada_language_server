@@ -1,3 +1,5 @@
+import { existsSync } from 'fs';
+import path, { isAbsolute } from 'path';
 import * as vscode from 'vscode';
 import {
     Disposable,
@@ -6,14 +8,19 @@ import {
 } from 'vscode-languageclient/node';
 import { AdaCodeLensProvider } from './AdaCodeLensProvider';
 import { AdaLanguageClient, createClient } from './clients';
+import {
+    CMD_RELOAD_PROJECT,
+    CMD_RESTART_LANG_SERVERS,
+    CMD_SHOW_ADA_LS_OUTPUT,
+    CMD_SHOW_EXTENSION_LOGS,
+    CMD_SHOW_GPR_LS_OUTPUT,
+} from './commands';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { logger } from './extension';
-import { existsSync } from 'fs';
-import path from 'path';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
-import { getArgValue, TERMINAL_ENV_SETTING_NAME, exe, getEvaluatedTerminalEnv } from './helpers';
+import { TERMINAL_ENV_SETTING_NAME, exe, getArgValue, getEvaluatedTerminalEnv } from './helpers';
 import {
     SimpleTaskDef,
     SimpleTaskProvider,
@@ -22,14 +29,6 @@ import {
     createAdaTaskProvider,
     createSparkTaskProvider,
 } from './taskProviders';
-import { isAbsolute } from 'path';
-import {
-    CMD_SHOW_EXTENSION_LOGS,
-    CMD_SHOW_ADA_LS_OUTPUT,
-    CMD_SHOW_GPR_LS_OUTPUT,
-    CMD_RELOAD_PROJECT,
-    CMD_RESTART_LANG_SERVERS,
-} from './commands';
 
 /**
  * Return type of the 'als-source-dirs' LSP request.
@@ -78,6 +77,7 @@ export class ExtensionState {
     cachedAlireTomls: vscode.Uri[] | undefined;
     cachedDebugServerAddress: string | undefined | null;
     cachedGdb: string | undefined | null = undefined;
+    projectAttributeCache: Map<string, Promise<string | string[]>> = new Map();
 
     private adaTaskProvider?: SimpleTaskProvider;
     private sparkTaskProvider?: SimpleTaskProvider;
@@ -92,6 +92,7 @@ export class ExtensionState {
         this.cachedAlireTomls = undefined;
         this.cachedDebugServerAddress = undefined;
         this.cachedGdb = undefined;
+        this.projectAttributeCache.clear();
     }
 
     constructor(context: vscode.ExtensionContext) {
@@ -367,35 +368,60 @@ export class ExtensionState {
      * an exception when the queried attribute is not known
      * (i.e: not registered in GPR2's knowledge database).
      *
+     * Query results are cached by default so that querying the same attribute
+     * multiple times will result in only one request to the server.
+     *
      * @param attribute - The name of the project attribute (e.g: 'Target')
      * @param pkg - The name of the attribute's package (e.g: 'Compiler').
      * Can be empty for project-level attributes.
      * @param index - Attribute's index, if any. Can be a file or a language
      * (e.g: 'for Runtime ("Ada") use...').
+     * @param useCache - whether to use cached result from previous query. If
+     * set to false, the request will be sent to the server and the result will
+     * be used to update the cache. This allows refreshing a particular project
+     * attribute in the cache.
      * @returns the value of the queried project attribute. Can be either a string or a
      * list of strings, depending on the attribute itself (e.g: 'Main' attribute is
      * specified as a list of strings while 'Target' as a string)
      */
-    public async getProjectAttributeValue(
+    public getProjectAttributeValue(
         attribute: string,
         pkg: string = '',
         index: string = '',
+        useCache = true,
     ): Promise<string | string[]> {
-        const params: ExecuteCommandParams = {
-            command: 'als-get-project-attribute-value',
-            arguments: [
-                {
-                    attribute: attribute,
-                    pkg: pkg,
-                    index: index,
-                },
-            ],
+        const queryArgs = {
+            attribute: attribute,
+            pkg: pkg,
+            index: index,
         };
 
-        const attrValue = (await this.adaClient.sendRequest(ExecuteCommandRequest.type, params)) as
-            | string
-            | string[];
-        return attrValue;
+        /**
+         * In the JS Map class, keys are compared using something equivalent to
+         * ===. So two distinct objects with the same deep content will
+         * constitute different keys. A common way of using objects as Map keys
+         * is to stringify them.
+         */
+        const mapKey = JSON.stringify(queryArgs);
+        const cachedPromise = useCache ? this.projectAttributeCache.get(mapKey) : undefined;
+
+        if (cachedPromise === undefined) {
+            const params: ExecuteCommandParams = {
+                command: 'als-get-project-attribute-value',
+                arguments: [queryArgs],
+            };
+
+            const queryPromise = this.adaClient.sendRequest(
+                ExecuteCommandRequest.type,
+                params,
+            ) as Promise<string | string[]>;
+
+            this.projectAttributeCache.set(mapKey, queryPromise);
+
+            return queryPromise;
+        } else {
+            return cachedPromise;
+        }
     }
 
     /**
@@ -647,6 +673,15 @@ export class ExtensionState {
      */
     public getAdaTaskProvider() {
         return this.adaTaskProvider;
+    }
+
+    /**
+     *
+     * @returns path under the project object dir where the VS Code extension can
+     * store temporary state
+     */
+    public async getVSCodeObjectSubdir(): Promise<string> {
+        return path.join(await this.getObjectDir(), 'vscode-ada');
     }
 }
 
