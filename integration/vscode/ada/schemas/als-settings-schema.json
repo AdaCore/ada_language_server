@@ -25,12 +25,12 @@
         "projectDiagnostics": {
             "type": "boolean",
             "default": true,
-            "description": "Controls whether or not the Ada Language Server should emit project diagnostics into the VS Code Problems view."
+            "description": "Controls whether or not the Ada Language Server should emit diagnostics about project loading."
         },
         "alireDiagnostics": {
             "type": "boolean",
             "default": true,
-            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to alire into the VS Code Problems view."
+            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to Alire."
         },
         "defaultCharset": {
             "type": "string",
@@ -88,12 +88,12 @@
         "adaFileDiagnostics": {
             "type": "boolean",
             "default": true,
-            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of Ada Files into the VS Code Problems view."
+            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of Ada files."
         },
         "gprFileDiagnostics": {
             "type": "boolean",
             "default": true,
-            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of GPR Files into the VS Code Problems view."
+            "description": "Controls whether or not the Ada Language Server should emit diagnostics related to the edition of GPR files."
         },
         "foldComments": {
             "type": "boolean",
