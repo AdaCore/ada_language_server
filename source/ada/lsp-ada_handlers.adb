@@ -3121,7 +3121,10 @@ package body LSP.Ada_Handlers is
                      end if;
                      Self.Publish_Diagnostics
                        (Document          => Document,
-                        Other_Diagnostics => [Diagnostic]);
+                        Other_Diagnostics =>
+                            (LSP.Structures.Diagnostic_Vectors.Vector'
+                               ([Diagnostic])
+                             with null record));
                   end if;
                   exit;
                end;
@@ -3864,7 +3867,10 @@ package body LSP.Ada_Handlers is
                     & VSS.Strings.Conversions.To_UTF_8_String (Loc.uri));
 
                Self.Publish_Diagnostics
-                 (Document => Document, Other_Diagnostics => [Diagnostic]);
+                 (Document          => Document,
+                  Other_Diagnostics =>
+                    (LSP.Structures.Diagnostic_Vectors.Vector'([Diagnostic])
+                     with null record));
             end if;
             --  Inform the client that the request failed
             Self.Sender.On_Error_Response
