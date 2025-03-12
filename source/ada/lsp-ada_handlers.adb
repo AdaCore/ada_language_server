@@ -2537,30 +2537,27 @@ package body LSP.Ada_Handlers is
      (Self  : in out Message_Handler;
       Value : LSP.Structures.InitializedParams) is
    begin
-      --  The client is notifying us that it has initialized. If a project was
-      --  provided with the initialize request, we can load it and start
-      --  communicating with the client.
+      --  The client is notifying us that it has initialized. It is good at
+      --  this stage to load a project so that subsequent requests, e.g.
+      --  project attribute requests to support VS Code integration, work on a
+      --  valid project.
       --
-      --  We only perform loading in case ada.projectFile was provided with the
-      --  initialize request. That's because some clients don't provide
-      --  settings in the initialize request, and instead send a
-      --  onDidChangeConfiguration notification immediately after
-      --  initialization. In this scenario, loading a project unconditionally
-      --  here would result in automatically searching for a project (unique
-      --  project at the root, or implicit fallback) and loading it, only to
-      --  load another project shortly after, upon receiving
-      --  onDidChangeConfiguration. To avoid the first useless load, we only
-      --  load a project here if it was specified in the initialize request.
-      --
-      --  Moreover, there is an impact on legacy tests. The prior project
+      --  However, there is an impact on legacy tests. The prior project
       --  loading policy was to wait for the first onDidChangeConfiguration
       --  notification to obtain settings and load a project. Many existing
       --  tests do not set the project in the initialize request and don't
       --  expect messages pertaining to project loading after the initialize
-      --  request.  If we were to always load the project here, tests would
-      --  receive different messages and potentially fail. So the conditional
-      --  project loading here is backwards compatible with existing tests.
-      if not Self.Configuration.Project_File.Is_Empty then
+      --  request. If we were to always load the project here, tests would
+      --  receive different messages and potentially fail.
+      --
+      --  To mitigate that, we perform project loading conditionally to
+      --  Base_Configuration_Received. If Base_Configuration_Received is True,
+      --  it means that we received non-empty initializationOptions which is
+      --  the typical case in IDEs like GNAT Studio and VS Code.
+      --
+      --  This conditional load allows us to load a project early while
+      --  remaining backwards compatible with legacy tests.
+      if Self.Base_Configuration_Received then
          LSP.Ada_Handlers.Project_Loading.Ensure_Project_Loaded (Self);
       end if;
    end On_Initialized_Notification;
