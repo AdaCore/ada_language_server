@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -21,6 +21,7 @@ with GNAT.Strings;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 with Gnatformat.Configuration;
+with Gnatformat.Edits;
 with Gnatformat.Formatting;
 
 with Langkit_Support.Symbols;
@@ -1450,7 +1451,7 @@ package body LSP.Ada_Documents is
 
       declare
          Range_Formatted_Document :
-           constant Gnatformat.Formatting.Formatted_Edits :=
+           constant Gnatformat.Edits.Formatting_Edit_Type :=
              Gnatformat.Formatting.Range_Format
                (Self.Unit (Context),
                 Self.To_Source_Location_Range (Span),
@@ -1458,9 +1459,9 @@ package body LSP.Ada_Documents is
 
       begin
          return
-           (Self.To_A_Range (Range_Formatted_Document.Edit.Location),
+           (Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
             VSS.Strings.Conversions.To_Virtual_String
-              (Range_Formatted_Document.Edit.Text));
+              (Range_Formatted_Document.Text_Edit.Text));
       end;
    end Range_Format;
 
