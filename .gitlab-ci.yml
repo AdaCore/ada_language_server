@@ -198,3 +198,7 @@ als:windows:
 vscode-extension:windows:
   variables:
     MOCHA_TIMEOUT: "30000"
+
+integration-testsuite:windows:
+  variables:
+    MOCHA_TIMEOUT: "30000"
