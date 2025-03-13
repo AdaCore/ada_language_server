@@ -172,7 +172,7 @@ function build_langkit_raw() {
 
       # Export the environment needed to use langkit into a file for later
       # usage
-      python manage.py setenv >"$LANGKIT_SETENV"
+      python manage.py printenv >"$LANGKIT_SETENV"
 
       if [[ $NODE_ARCH_PLATFORM == "x64/win32" ]]; then
          # Fix setenv.sh to be bash script for MSYS2 by replacing
