@@ -404,8 +404,14 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
         }
 
         const result: vscode.Task[] = [];
-        const targetPrefix = await adaExtState.getTargetPrefix();
-        const isNativeProject = await adaExtState.isNativeProject();
+        const targetPrefix = await adaExtState.getTargetPrefix().catch((err) => {
+            logger.error('Error in task provider:\n' + err);
+            return '';
+        });
+        const isNativeProject = await adaExtState.isNativeProject().catch((err) => {
+            logger.error('Error in task provider:\n' + err);
+            return true;
+        });
 
         /**
          * Start with the list of predefined tasks.
@@ -417,7 +423,12 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
              * Add tasks based on the Mains of the project.
              */
             taskDeclsToOffer.push(
-                ...(await getAdaMains()).flatMap((main) => {
+                ...(
+                    await getAdaMains().catch((err) => {
+                        logger.error('Error in task provider:\n' + err);
+                        return [];
+                    })
+                ).flatMap((main) => {
                     if (token?.isCancellationRequested) {
                         throw new vscode.CancellationError();
                     }
