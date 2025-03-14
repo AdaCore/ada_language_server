@@ -1,0 +1,5 @@
+project Prj is
+   package Gnattest is
+      for Harness_Dir use "myharness";
+   end Gnattest;
+end Prj;

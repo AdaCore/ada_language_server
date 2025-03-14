@@ -485,6 +485,27 @@ class ALSLanguageClient(LanguageClient):
         wait_factor: int = int(os.environ.get("ALS_WAIT_FACTOR", "1"))
         await asyncio.sleep(seconds * wait_factor)
 
+    async def getProjectAttributeValue(
+        self, attribute: str, pkg: str = "", index: str = ""
+    ) -> str | list[str]:
+        """Send a workspace/executeCommand request with command
+        'als-get-project-attribute-value' to retrieve an attribute of the loaded
+        project.
+        """
+        result = await self.workspace_execute_command_async(
+            ExecuteCommandParams(
+                command="als-get-project-attribute-value",
+                arguments=[{"attribute": attribute, "pkg": pkg, "index": index}],
+            )
+        )
+
+        assert isinstance(result, str) or (
+            isinstance(result, list)
+            and all(lambda x: isinstance(x, str) for x in result)
+        ), f"Unexpected type of result: {result}"
+
+        return result
+
 
 def als_client_factory() -> ALSLanguageClient:
     """This function is an ugly copy-paste of pytest_lsp.make_test_lsp_client. It is
@@ -634,7 +655,7 @@ def test(
     """
 
     async def async_wrapper(
-        func: Callable[[ALSLanguageClient], Awaitable[object]]
+        func: Callable[[ALSLanguageClient], Awaitable[object]],
     ) -> None:
         als = os.environ.get("ALS", "ada_language_server")
         command = [als]
