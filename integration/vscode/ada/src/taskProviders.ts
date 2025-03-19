@@ -86,7 +86,7 @@ const TASK_CLEAN_PROJECT = {
         command: 'gprclean',
         args: ['${command:ada.gprProjectArgs}'],
     },
-    problemMatchers: '',
+    problemMatchers: [],
     taskGroup: vscode.TaskGroup.Clean,
 };
 
@@ -168,7 +168,7 @@ const predefinedTasks: PredefinedTask[] = [
          * with a problem matcher. Results should be viewed with the
          * `gnatsas report` task below
          */
-        problemMatchers: '',
+        problemMatchers: [],
     },
     {
         label: 'Analyze the current file with GNAT SAS',
@@ -184,7 +184,7 @@ const predefinedTasks: PredefinedTask[] = [
          * the file URIs in the SARIF file are relative to the workspace root
          * folder and SARIF-viewer extensions can correctly resolve them.
          */
-        problemMatchers: '',
+        problemMatchers: [],
     },
     {
         label: 'Create a report after a GNAT SAS analysis',
@@ -205,7 +205,7 @@ const predefinedTasks: PredefinedTask[] = [
          * Analysis results are not printed on stdio so no need to parse them
          * with a problem matcher.
          */
-        problemMatchers: '',
+        problemMatchers: [],
     },
     {
         label: 'Analyze the project with GNAT SAS and produce a report',
@@ -220,7 +220,7 @@ const predefinedTasks: PredefinedTask[] = [
          * Analysis results are not printed on stdio so no need to parse them
          * with a problem matcher.
          */
-        problemMatchers: '',
+        problemMatchers: [],
     },
     {
         label: 'Analyze the current file with GNAT SAS and produce a report',
@@ -235,7 +235,7 @@ const predefinedTasks: PredefinedTask[] = [
          * Analysis results are not printed on stdio so no need to parse them
          * with a problem matcher.
          */
-        problemMatchers: '',
+        problemMatchers: [],
     },
     {
         label: 'Generate documentation from the project',
@@ -244,7 +244,7 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnatdoc',
             args: ['${command:ada.gprProjectArgs}'],
         },
-        problemMatchers: '',
+        problemMatchers: [],
     },
     {
         label: 'Create or update GNATtest test framework',
@@ -253,7 +253,7 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnattest',
             args: ['${command:ada.gprProjectArgs}'],
         },
-        problemMatchers: '',
+        problemMatchers: [],
     },
     /**
      * SPARK
@@ -265,7 +265,7 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnatprove',
             args: ['${command:ada.gprProjectArgs}', '--clean'],
         },
-        problemMatchers: '',
+        problemMatchers: [],
     },
     {
         label: 'Examine project',
@@ -468,7 +468,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             type: this.taskType,
                             compound: [buildTask.label, runTask.label],
                         },
-                        problemMatchers: '',
+                        problemMatchers: [],
                     };
 
                     const tasks = [buildTask, runTask, buildAndRunTask];
@@ -498,7 +498,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             // This task is run before some debug tasks.
                             // Problem is, it's a watch script, and since it never exits, VSCode
                             // complains. All this is needed so VSCode just lets it run.
-                            problemMatchers: '',
+                            problemMatchers: [],
                         };
 
                         const buildAndRunGNATemulatorTask: PredefinedTask = {
@@ -507,7 +507,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                                 type: this.taskType,
                                 compound: [buildTask.label, runGNATemulatorTask.label],
                             },
-                            problemMatchers: '',
+                            problemMatchers: [],
                         };
 
                         const buildAndRunGNATemulatorTaskForDebug: PredefinedTask = {
@@ -516,7 +516,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                                 type: this.taskType,
                                 compound: [buildTask.label, runGNATemulatorTaskForDebug.label],
                             },
-                            problemMatchers: '',
+                            problemMatchers: [],
                         };
 
                         tasks.push(
