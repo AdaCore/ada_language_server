@@ -171,7 +171,15 @@ export async function getHarnessDir() {
             /**
              * default to gnattest/harness if Harness_Dir is unspecified
              */
-            () => path.join('gnattest', 'harness'),
+            (err) => {
+                if (err instanceof Error && err.message == 'The queried attribute is not known') {
+                    return path.join('gnattest', 'harness');
+                } else {
+                    // Reject the promise with the same error.
+                    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+                    return Promise.reject(err);
+                }
+            },
         )
         .then(async (value) => path.join(await adaExtState.getObjectDir(), value as string));
 }
@@ -878,7 +886,7 @@ async function buildTestDriverAndReportErrors(
 
         buildTasks.push(instTask, buildTask);
     } else {
-        const task = await findTaskByName(`${TASK_BUILD_TEST_DRIVER}`);
+        const task = await findTaskByName(`${TASK_TYPE_ADA}: ${TASK_BUILD_TEST_DRIVER}`);
         buildTasks.push(task);
     }
 
