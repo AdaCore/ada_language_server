@@ -14,9 +14,9 @@ tags = ["process", "launch", "pipe"]
 disabled = true
 
 [gpr-externals]
-OS = ["unix", "osx", "Windows_NT"]
+SPAWN_OS = ["unix", "osx", "Windows_NT"]
 
 [gpr-set-externals.'case(os)']
-linux   = { OS = "unix" } # Compact table syntax is convenient in this case
-windows = { OS = "Windows_NT" }  # to see all enumeration values, one per row.
-macos   = { OS = "osx" }
+linux   = { SPAWN_OS = "unix" } # Compact table syntax is convenient in this case
+windows = { SPAWN_OS = "Windows_NT" }  # to see all enumeration values, one per row.
+macos   = { SPAWN_OS = "osx" }

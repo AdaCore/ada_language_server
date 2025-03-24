@@ -13,11 +13,11 @@ tags = ["lsp", "vscode"]
 ADA_PROJECT_PATH.set= "${CRATE_ROOT}/subprojects/stubs"
 
 [gpr-set-externals."case(os)".linux]
-OS = "unix"
+LSP_OS = "unix"
 [gpr-set-externals."case(os)".macos]
-OS = "osx"
+LSP_OS = "osx"
 [gpr-set-externals."case(os)".windows]
-OS = "Windows_NT"
+LSP_OS = "Windows_NT"
 
 [[depends-on]]
 gnatcoll         = "^24.0.0"
