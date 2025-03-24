@@ -9,6 +9,7 @@ section below it for the last release. -->
 * Support loading a fresh checkout of an Alire crate by automatically performing the necessary Alire workspace initializations
 * VS Code status bar now displays an item showing the project-loading status and useful commands provided by the extension when hovering on it
 * Consider the `Gnattest.Harness_Dir` project attribute in the GNATtest integration in VS Code
+* New source information diagnostics for opened Ada files
 
 ## 26.0.202502240
 
