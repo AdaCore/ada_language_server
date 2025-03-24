@@ -19,3 +19,16 @@ async def func(lsp: ALSLanguageClient) -> None:
     response = await lsp.getCurrentProject()
     assert response
     assertEqual(response, URI("non-root/p2.gpr"))
+
+
+@test(als_settings={})
+async def test_init_override(lsp: ALSLanguageClient) -> None:
+    # In this test we want to check that settings obtained in the initializationOptions
+    # of the 'initialize' request are interpreted on top of the file-based
+    # configuration.
+    #
+    # To check that we send an empty dictionary of settings in the initialize request
+    # (the 'als_settings' argument above), and we check that the applicable project is
+    # still the one specified in .als.json, i.e. the initialize request did not
+    # overwrite the file settings.
+    assertEqual(await lsp.getCurrentProject(), URI("non-root/p2.gpr"))

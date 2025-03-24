@@ -94,6 +94,9 @@ with LSP.Utils;
 
 package body LSP.Ada_Handlers is
 
+   Tracer_Config : constant LSP.GNATCOLL_Tracers.Tracer :=
+     LSP.GNATCOLL_Tracers.Create ("ALS.CONFIG", GNATCOLL.Traces.On);
+
    pragma Style_Checks ("o");  --  check subprogram bodies in alphabetical ordr
 
    subtype AlsReferenceKind_Array is LSP.Structures.AlsReferenceKind_Set;
@@ -2486,6 +2489,8 @@ package body LSP.Ada_Handlers is
       if not Value.initializationOptions.Is_Empty then
          Self.Tracer.Trace
            ("Processing initializationOptions from initialize request");
+         Tracer_Config.Trace
+           ("initializationOptions = " & Value.initializationOptions'Image);
          --  The expected structure is this:
          --     "initializationOptions": {
          --        "ada": {
@@ -2495,7 +2500,12 @@ package body LSP.Ada_Handlers is
          --        }
          --     }
          declare
-            New_Configuration : LSP.Ada_Configurations.Configuration;
+            New_Configuration : LSP.Ada_Configurations.Configuration :=
+              Self.Configuration;
+            --  Start from the existing configuration so that settings parsed
+            --  from configuration files are preserved, and the settings from
+            --  initialize request are applied on top.
+
             Messages : VSS.String_Vectors.Virtual_String_Vector;
          begin
             --  Parse the configuration.
@@ -3932,6 +3942,8 @@ package body LSP.Ada_Handlers is
      (Self  : in out Message_Handler;
       Value : LSP.Ada_Configurations.Configuration'Class) is
    begin
+      Tracer_Config.Trace ("Setting configuration: " & Value'Image);
+
       Self.Configuration := LSP.Ada_Configurations.Configuration (Value);
 
       --  The base configuration is still the default one, meaning that
