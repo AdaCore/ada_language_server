@@ -14,12 +14,13 @@ PROCESSORS ?= 0
 ifeq ($(OS),Windows_NT)
    PYTHON=python.exe
    EXE=.exe
+   LSP_OS=$(OS)
 else
    UNAME_S := $(shell uname -s)
    ifeq ($(UNAME_S),Linux)
-      OS=unix
+      LSP_OS=unix
    else ifeq ($(UNAME_S),Darwin)
-      OS=osx
+      LSP_OS=osx
    endif
    PYTHON=python3
    EXE=
@@ -77,7 +78,7 @@ endif
 VSCE=npx vsce
 
 LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)	\
-              -XOS=$(OS)			\
+              -XLSP_OS=$(LSP_OS)		\
               -XLIBRARY_TYPE=$(LIBRARY_TYPE)	\
               -XXMLADA_BUILD=$(LIBRARY_TYPE)	\
 	      -XGPR_BUILD=$(LIBRARY_TYPE)

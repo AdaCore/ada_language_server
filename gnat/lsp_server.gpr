@@ -26,8 +26,7 @@ project LSP_Server is
    Library_Type : Library_Kind := external("ALS_LIBRARY_TYPE",
                                   external("LIBRARY_TYPE", "relocatable"));
 
-   type OS_KIND is ("Windows_NT", "unix", "osx");
-   OS : OS_KIND := external("OS", "unix");
+   OS : LSP_Common.OS_API_KIND := LSP_Common.OS_API;
 
    for Source_Dirs use
      ("../source/server",
