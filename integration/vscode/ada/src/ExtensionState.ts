@@ -411,12 +411,15 @@ export class ExtensionState {
                 arguments: [queryArgs],
             };
 
-            const queryPromise = this.adaClient.sendRequest(
-                ExecuteCommandRequest.type,
-                params,
-            ) as Promise<string | string[]>;
-
-            this.projectAttributeCache.set(mapKey, queryPromise);
+            const queryPromise = this.adaClient
+                .sendRequest(ExecuteCommandRequest.type, params)
+                .then((value) => {
+                    /**
+                     * Only cache the promise if it was fulfilled.
+                     */
+                    this.projectAttributeCache.set(mapKey, queryPromise);
+                    return value as string | string[];
+                });
 
             return queryPromise;
         } else {
