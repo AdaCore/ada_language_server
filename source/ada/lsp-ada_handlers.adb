@@ -3696,13 +3696,11 @@ package body LSP.Ada_Handlers is
       Changed : Boolean := False;
       Diag    : LSP.Structures.PublishDiagnosticsParams;
    begin
-      if Self.Configuration.Ada_File_Diagnostics_Enabled then
-         Document.Get_Errors
-           (Context => Self.Contexts.Get_Best_Context (Document.URI).all,
-            Changed => Changed,
-            Errors  => Diag.diagnostics,
-            Force   => Force);
-      end if;
+      Document.Get_Errors
+        (Context => Self.Contexts.Get_Best_Context (Document.URI).all,
+         Changed => Changed,
+         Errors  => Diag.diagnostics,
+         Force   => Force);
 
       if Force or else Changed or else not Other_Diagnostics.Is_Empty then
          Diag.uri := Document.URI;
