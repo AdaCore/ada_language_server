@@ -50,6 +50,7 @@ with URIs;
 
 with VSS.Characters;
 with VSS.Characters.Latin;
+with VSS.String_Vectors;
 with VSS.Strings;
 with VSS.Strings.Conversions;
 
@@ -118,8 +119,9 @@ package body LSP.Ada_Handlers.Project_Loading is
 
    procedure Ensure_Project_Loaded (Self : in out Message_Handler'Class) is
       use type VSS.Strings.Virtual_String;
+      use VSS.Strings.Conversions;
 
-      GPRs_Found             : Natural := 0;
+      Candidates             : VSS.String_Vectors.Virtual_String_Vector;
       Project_File           : VSS.Strings.Virtual_String :=
         Self.Configuration.Project_File;
       GPR_Configuration_File : VSS.Strings.Virtual_String :=
@@ -188,20 +190,17 @@ package body LSP.Ada_Handlers.Project_Loading is
          declare
             Files : GNATCOLL.VFS.File_Array_Access :=
               Self.Client.Root_Directory.Read_Dir (GNATCOLL.VFS.Files_Only);
-            Found : GNATCOLL.VFS.Virtual_File;
          begin
             for X of Files.all loop
                if X.Has_Suffix (".gpr") then
-                  GPRs_Found := GPRs_Found + 1;
-                  exit when GPRs_Found > 1;
-                  Found := X;
+                  Candidates.Append (LSP.Utils.To_Virtual_String (X));
                end if;
             end loop;
 
             GNATCOLL.VFS.Unchecked_Free (Files);
 
-            if GPRs_Found = 1 then
-               Project_File := LSP.Utils.To_Virtual_String (Found);
+            if Candidates.Length = 1 then
+               Project_File := Candidates.First_Element;
 
                --  Report how we found the project
                Self.Project_Status.Set_Project_Type
@@ -209,8 +208,12 @@ package body LSP.Ada_Handlers.Project_Loading is
 
                Tracer.Trace_Text ("Found unique project: " & Project_File);
             else
-               Tracer.Trace
-                 ("Found " & GPRs_Found'Image & " projects at the root");
+               Tracer.Trace_Text
+                 ("Found "
+                  & To_Virtual_String (Candidates.Length'Image)
+                  & " projects at the root:"
+                  & VSS.Characters.Latin.Line_Feed
+                  & Candidates.Join (VSS.Characters.Latin.Line_Feed));
             end if;
          end;
       end if;
@@ -276,12 +279,12 @@ package body LSP.Ada_Handlers.Project_Loading is
          --  We didn't find a project file. Let's load an implicit project. We
          --  reach this point either because there are no GPR projects at the
          --  root, or there are more than one.
-         pragma Assert (GPRs_Found = 0 or GPRs_Found > 1);
+         pragma Assert (Candidates.Length = 0 or Candidates.Length > 1);
 
          Load_Implicit_Project
            (Self,
-            (if GPRs_Found = 0 then LSP.Ada_Project_Loading.No_Project
-             elsif GPRs_Found > 1
+            (if Candidates.Length = 0 then LSP.Ada_Project_Loading.No_Project
+             elsif Candidates.Length > 1
              then LSP.Ada_Project_Loading.Multiple_Projects
              else LSP.Ada_Project_Loading.Project_Not_Found));
       end if;

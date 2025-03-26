@@ -1,6 +1,6 @@
 """
-The goal of this test is to check that when --config CONFIG_FILE is given, that
-configuration is loaded.
+The goal of the tests below is to check the priority with which the ALS considers
+configuration files and the initialize request.
 
 To test that we create a unique p1.gpr at the root. If there was no configuration,
 p1.gpr would be loaded automatically. It's a failure sentinel.
