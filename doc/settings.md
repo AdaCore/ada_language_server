@@ -4,7 +4,7 @@
 
 The ALS loads configuration settings from different sources. All configuration sources are loaded in the following order:
 
-1. A global user configuration file `$XDG_CONFIG_HOME/als/config.json`, if it exists.
+1. A global user configuration file `$XDG_CONFIG_HOME/als/config.json`, if it exists. The path [defaults](https://specifications.freedesktop.org/basedir-spec/0.8/#variables) to `$HOME/.config/als/config.json` if `XDG_CONFIG_HOME` is not set.
 
 1. A workspace-specific `.als.json` file in the directory where ALS is spawned, if it exists.
 

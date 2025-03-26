@@ -137,10 +137,32 @@ Here are some links that will help you get familiar with the VS Code extension f
 
 ### Configuration
 
-You can configure the extension via the `.vscode/settings.json` workspace settings file or the [multi-root workspace file](https://code.visualstudio.com/docs/editor/multi-root-workspaces).
-More information about settings and the different ways that can be used to specify them can be found [here](doc/settings.md).
+[ALS settings](doc/settings.md) can be specified in various ways. For example:
+
+- A `.als.json` file at the root of the workspace.
+- A global user configuration file `$HOME/.config/als/config.json`
+- The `.vscode/settings.json` VS Code workspace settings file.
+- A [multi-root VS Code workspace file](https://code.visualstudio.com/docs/editor/multi-root-workspaces)
+- The User or Remote or other VS Code [scopes of of settings](https://code.visualstudio.com/docs/configure/settings#_settings-precedence)
+
+The `.als.json` file is the preferred method of defining workspace-specific settings because it applies in any IDE or editor that uses ALS. More information about configuration files can be found [here](doc/settings.md).
 
 Here is an example config file that sets the project file to use and the scenario variables, as well as other useful settings (charset, whether we should show file diagnostics etc.):
+
+```json
+{
+   "projectFile": "gnatcov.gpr",
+   "scenarioVariables": {
+      "BINUTILS_BUILD_DIR": "/null",
+      "BINUTILS_SRC_DIR": "/null"
+   },
+   "defaultCharset": "utf-8",
+   "adaFileDiagnostics": false,
+   "renameInComments": false
+}
+```
+
+Alternatively, the ALS can be configured in the VS Code settings UI or in the JSON settings files. For example:
 
 ```json
 {
@@ -450,6 +472,8 @@ configure the Ada Language Server with `:CocConfig`:
 }
 ```
 
+Alternatively to the above settings section, workspace-specific [ALS Settings](doc/settings.md) such as the `projectFile` can be provided in a `.als.json` file at the root of the workspace.
+
 ### Integration with vim-lsp
 
 If you want to integrate the Ada Language Server into vim, you can use the
@@ -464,12 +488,11 @@ if executable('ada_language_server')
         \ 'name': 'ada_language_server',
         \ 'cmd': ['ada_language_server'],
         \ 'allowlist': ['ada'],
-        \ 'workspace_config': {'ada': {
-        \     'projectFile': "project.gpr",
-        \     'scenarioVariables': {"ARCH": "x86_64-pc-linux-gnu"}}},
         \ })
 endif
 ```
+
+Workspace-specific [ALS Settings](doc/settings.md) such as the `projectFile` can be provided in a `.als.json` file at the root of the workspace.
 
 ### Integration with LanguageClient-Neovim
 
@@ -487,33 +510,7 @@ let g:LanguageClient_serverCommands = {
 " if you already have LanguageClient_serverCommands, just add a line for ada.
 ```
 
-To configure the Ada Language Server for a specific workspace/project, you can
-use the `.vim/settings.json` file. It is mandatory as soon as you want to use a
-specific `.gpr` project file.
-
-This is the way to specify a project file, eg. you cannot open a project file
-another way.
-See the setting list [here](doc/settings.md).
-
-Here is an example of a settings file:
-
-```json
-{
-    "ada.projectFile": "project.gpr",
-    "ada.scenarioVariables": {
-        "GLFW_Version": "3",
-        "GLFW_Lib": "-lglfw",
-        "Windowing_System": "x11"
-    }
-}
-```
-
-The location where the `.vim` folder is located will determine the relative
-path of the project file (so no need to prefix with `..`). When vim is opened
-in the folder containing this `.vim` directory, it will use those settings for
-the language server *even for files which might have nothing to do with that
-specific project*, so this needs to be taken into account. Ultimately what this
-means is that the configuration is determined by where you open vim.
+Workspace-specific [ALS Settings](doc/settings.md) such as the `projectFile` can be provided in a `.als.json` file at the root of the workspace.
 
 ### Integration with Neovim's built-in LSP client
 
@@ -533,7 +530,7 @@ the lsp client an absolute path to the ALS executable:
 require('lspconfig').ada_ls.setup{ cmd = "/path/to/als/executable" }
 ```
 
-Configuring the language server's settings can be achieved like this:
+Configuring the language server's settings globally can be achieved like this:
 
 ```lua
 require('lspconfig').ada_ls.setup{
@@ -546,13 +543,16 @@ require('lspconfig').ada_ls.setup{
 }
 ```
 
-The Ada Language Server's settings are described [here](doc/settings.md).
-Configuring neovim to use project-specific settings is described neovim's
+Workspace-specific [ALS Settings](doc/settings.md) such as the `projectFile` can be provided in a `.als.json` file at the root of the workspace.
+
+Alternatively, workspace-specific settings can also be configured as per the
 [lspconfig wiki](https://github.com/neovim/nvim-lspconfig/wiki/Project-local-settings)
 
 ### Integration with emacs lsp-mode
 
-The configuration for each project can be provided using a `.dir-locals.el`
+Workspace-specific [ALS Settings](doc/settings.md) such as the `projectFile` can be provided in a `.als.json` file at the root of the workspace.
+
+Alternatively the configuration for each project can be provided using a `.dir-locals.el`
 file defined at the root of each project.
 
 The scenario variables should be declared in your `.emacs` or any loaded
@@ -595,10 +595,9 @@ Starting with version `4.9`, QtCreator supports a LSP plugin. Follow
 [the official documentation](https://doc.qt.io/qtcreator/creator-language-servers.html)
 to configure the Ada Language Server in this plugin. Make sure to set `Startup behavior`
 to `Start Server per Project`, otherwise QtCreator won't provide the project root to
-the Ada Language Server. QtCreator doesn't send any configuration request to the language server, so the only
-option to enable project support is to have a single `.gpr` file in the QtCreator
-project folder. For a projectless configuration, you could also place all Ada sources in
-the project root folder, this should work as well.
+the Ada Language Server.
+
+Workspace-specific [ALS Settings](doc/settings.md) such as the `projectFile` can be provided in a `.als.json` file at the root of the workspace.
 
 ## Refactoring Tools
 
