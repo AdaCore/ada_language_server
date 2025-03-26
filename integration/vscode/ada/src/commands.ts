@@ -10,7 +10,7 @@ import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigPr
 import { adaExtState, logger, mainOutputChannel } from './extension';
 import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
 import {
-    DEFAULT_PROBLEM_MATCHER,
+    DEFAULT_PROBLEM_MATCHERS,
     SimpleTaskDef,
     TASK_PROVE_FILE_PLAIN_NAME,
     TASK_PROVE_LINE_PLAIN_NAME,
@@ -1026,7 +1026,7 @@ async function sparkProveSubprogram(
          * empty problem matcher list which would hide problems from the
          * Problems view.
          */
-        task.problemMatchers.length > 0 ? task.problemMatchers : [DEFAULT_PROBLEM_MATCHER],
+        task.problemMatchers.length > 0 ? task.problemMatchers : DEFAULT_PROBLEM_MATCHERS,
     );
 
     /**

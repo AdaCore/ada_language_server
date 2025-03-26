@@ -1,0 +1,15 @@
+project main_with_problem is
+
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj";
+   for Main use ("main.adb");
+
+   package Compiler is
+      for Default_Switches ("Ada") use ("-gnatwa", "-gnaty");
+   end Compiler;
+
+   package Builder is
+      for Default_Switches ("Ada") use ("-k", "-f");
+   end Builder;
+
+end main_with_problem;

@@ -18,7 +18,7 @@
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/node';
 import { getMains, getExecutables, getProjectFile } from './helpers';
-import { DEFAULT_PROBLEM_MATCHER, WarningMessageExecution } from './taskProviders';
+import { DEFAULT_PROBLEM_MATCHERS, WarningMessageExecution } from './taskProviders';
 
 /**
  *
@@ -62,7 +62,7 @@ export class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
                     msg,
                     GprTaskProvider.gprTaskType,
                     this.obsoleteWarningExecution,
-                    DEFAULT_PROBLEM_MATCHER,
+                    DEFAULT_PROBLEM_MATCHERS,
                 ),
             ];
         } else {
@@ -91,7 +91,7 @@ export class GprTaskProvider implements vscode.TaskProvider<vscode.Task> {
             task.name,
             GprTaskProvider.gprTaskType,
             this.obsoleteWarningExecution,
-            DEFAULT_PROBLEM_MATCHER,
+            DEFAULT_PROBLEM_MATCHERS,
         );
     }
 }
