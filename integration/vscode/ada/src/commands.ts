@@ -726,6 +726,7 @@ async function buildAndDebugSpecifiedMain(
     const adaMain = await findAdaMain(main.fsPath);
     const target = await adaExtState.getTargetPrefix();
     const debugServerAddress = await adaExtState.getDebugServerAddress(useGNATemulator);
+
     if (adaMain) {
         /**
          * The vscode API doesn't provide a way to list both automatically
@@ -761,6 +762,17 @@ async function buildAndDebugSpecifiedMain(
 
         if (matchingConfig) {
             logger.debug('Found matching config: ' + JSON.stringify(matchingConfig, null, 2));
+
+            // No debug server address specified in matching debug configuration: fallback
+            // to 'localhost:1234' to match GNATemulator's default debug port.
+            if (!matchingConfig.miDebuggerServerAddress && useGNATemulator) {
+                const fallbackDebugServerAddress = 'localhost:1234';
+                logger.debug(
+                    `No debug server address specified in debug configuration for GNATemulator:
+ use '${fallbackDebugServerAddress}' as a fallback`,
+                );
+                matchingConfig.miDebuggerServerAddress = 'localhost:1234';
+            }
 
             // Trying to debug via GNATemulator: run the main via GNATemulator in debug mode
             // before starting the debug session
