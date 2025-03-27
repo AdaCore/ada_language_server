@@ -1,0 +1,19 @@
+Compile
+   [Ada]          main.adb
+main.adb:4:14: warning: procedure "Hello" is not referenced [-gnatwu]
+main.adb:6:14: (style) bad casing of "Hello" declared at line 4 [-gnatyr]
+main.adb:9:08: (style) bad casing of "Hello" declared at line 4 [-gnatyr]
+main.adb:11:01: (style) incorrect layout [-gnatyl]
+main.adb:12:04: (style) "begin" in wrong column, should be in column 1 [-gnatyl]
+main.adb:13:02: (style) bad indentation [-gnaty0]
+main.adb:14:04: warning: possibly useless assignment to "X", value might not be referenced [-gnatwm]
+main.adb:14:09: warning: "X" may be referenced before it has a value [enabled by default]
+main.adb:14:14: error: missing ";"
+
+   compilation of main.adb failed
+
+gprbuild: *** compilation phase failed
+
+main.adb:4:5: (info) this is an extra message
+main.adb:4:6: info: hello world (trying: to confuse the regexp here)
+main.adb:14:7: low: this is a low warning

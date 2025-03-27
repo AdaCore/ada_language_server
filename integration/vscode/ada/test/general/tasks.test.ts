@@ -9,6 +9,7 @@ import {
     SimpleTaskDef,
     TASK_TYPE_ADA,
     createAdaTaskProvider,
+    DEFAULT_PROBLEM_MATCHERS,
     findTaskByName,
     getConventionalTaskLabel,
     isFromWorkspace,
@@ -269,6 +270,57 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
              */
             await assert.rejects(prov.resolveTask(invalidTask));
         }
+    });
+
+    test('problemMatchers severities', async () => {
+        const prov = createAdaTaskProvider();
+
+        /**
+         * Build a project containing a main with style issues, warning and errors.
+         */
+        const def: SimpleTaskDef = {
+            type: 'ada',
+            command: 'cat',
+            args: ['main_with_problem' + path.sep + 'compiler_messages.txt'],
+        };
+        const task = new vscode.Task(
+            def,
+            vscode.TaskScope.Workspace,
+            'Fake Compile Main With Error',
+            'ada',
+        );
+        task.problemMatchers = DEFAULT_PROBLEM_MATCHERS;
+        const resolved = await prov.resolveTask(task);
+        assert(resolved);
+        assert(resolved.execution);
+
+        const execStatus: number | undefined = await runTaskAndGetResult(resolved);
+
+        /**
+         * Wait for the problemMatchers
+         */
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const alsDiagnostics: vscode.Diagnostic[] = vscode.languages
+            .getDiagnostics()
+            .flatMap(([, diagnostics]) => diagnostics)
+            .filter((diag) => ['ada'].includes(diag.source ?? ''));
+
+        assert.equal(
+            alsDiagnostics.map((d) => `${d.severity}: ${d.message}`).join('\n'),
+            `
+1: procedure "Hello" is not referenced [-gnatwu]
+1: bad casing of "Hello" declared at line 4 [-gnatyr]
+1: bad casing of "Hello" declared at line 4 [-gnatyr]
+1: incorrect layout [-gnatyl]
+1: "begin" in wrong column, should be in column 1 [-gnatyl]
+1: bad indentation [-gnaty0]
+1: possibly useless assignment to "X", value might not be referenced [-gnatwm]
+1: "X" may be referenced before it has a value [enabled by default]
+1: this is a low warning
+0: missing ";"
+2: this is an extra message
+2: hello world (trying: to confuse the regexp here)`.trim(),
+        );
     });
 });
 

@@ -17,7 +17,7 @@
                 "-cargs",
                 "-gnatef"
             ],
-            "problemMatcher": ["$ada"],
+            "problemMatcher": ["$ada-error", "$ada-warning", "$ada-info"],
             "group": {
                 "kind": "build",
                 "isDefault": true

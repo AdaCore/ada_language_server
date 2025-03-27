@@ -1,10 +1,12 @@
 import { existsSync } from 'fs';
 import * as vscode from 'vscode';
 import {
+    DidChangeConfigurationNotification,
     LanguageClient,
     LanguageClientOptions,
     MessageSignature,
     ServerOptions,
+    State,
 } from 'vscode-languageclient/node';
 import { logger } from './extension';
 import { logErrorAndThrow, setTerminalEnvironment } from './helpers';
@@ -124,16 +126,69 @@ export function createClient(
         // Register the server for ada sources documents
         documentSelector: [{ scheme: 'file', language: id }],
         synchronize: {
-            // Synchronize the setting section 'ada' to the server
-            configurationSection: 'ada',
             // Notify the server about file changes to Ada files contain in the workspace
             fileEvents: vscode.workspace.createFileSystemWatcher(pattern),
         },
-        // Include the ada.* settings in the initialize request sent to the server
-        initializationOptions: () => ({ ada: vscode.workspace.getConfiguration('ada') }),
+        initializationOptions: () =>
+            /**
+             * Only include the settings that are explicitly set in one of the
+             * VS Code scopes to avoid unintentionally overriding ALS settings
+             * from .als.json or other applicable configuration files.
+             */
+            ({ ada: getExplicitlySetConfiguration() }),
     };
+
     // Create the language client
     const client = new AdaLanguageClient(id, name, serverOptions, clientOptions);
+
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(async (e) => {
+            if (e.affectsConfiguration('ada') && client.state === State.Running) {
+                await client.sendNotification(DidChangeConfigurationNotification.type, {
+                    settings: {
+                        ada: getExplicitlySetConfiguration(),
+                    },
+                });
+            }
+        }),
+    );
+
     client.serverEnv = serverEnv;
     return client;
+}
+
+/**
+ * ALS settings can come from configuration files (e.g. .als.json) and from VS
+ * Code.
+ *
+ * Settings from config files are loaded first. To avoid overwriting them
+ * unintentionally, settings from VS Code should only be sent if they were
+ * explicitly set in one of the VS Code configuration scopes.
+ *
+ * This function returns that set of settings.
+ *
+ * @returns a dictionary of ada.* settings that have been explicitly set in one
+ * of the VS Code configuration scopes.
+ */
+function getExplicitlySetConfiguration(): { [k: string]: unknown } {
+    // Get all ada.* settings
+    const adaConfig = vscode.workspace.getConfiguration('ada');
+    const explicitSettings = Object.fromEntries(
+        Object.entries(adaConfig).filter(([key]) => {
+            // Filter to settings that are explicitly set
+            const info = adaConfig.inspect(key);
+            return (
+                info &&
+                [
+                    info.globalValue,
+                    info.workspaceValue,
+                    info.workspaceFolderValue,
+                    info.globalLanguageValue,
+                    info.workspaceLanguageValue,
+                    info.workspaceFolderLanguageValue,
+                ].some((v) => v !== undefined)
+            );
+        }),
+    );
+    return explicitSettings;
 }

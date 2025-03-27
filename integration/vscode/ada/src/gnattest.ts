@@ -11,7 +11,7 @@ import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
 import { escapeRegExp, exe, setTerminalEnvironment, slugify } from './helpers';
 import {
-    DEFAULT_PROBLEM_MATCHER,
+    DEFAULT_PROBLEM_MATCHERS,
     findTaskByName,
     runTaskSequence,
     SimpleTaskDef,
@@ -750,7 +750,7 @@ async function handleRunRequestedTests(
                     `Create GNATcoverage XML report`,
                     TASK_TYPE_ADA,
                     undefined,
-                    DEFAULT_PROBLEM_MATCHER,
+                    DEFAULT_PROBLEM_MATCHERS,
                 ),
             ))!;
             gnatcovReportTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
@@ -841,7 +841,7 @@ async function buildTestDriverAndReportErrors(
                     instTaskName,
                     TASK_TYPE_ADA,
                     undefined,
-                    DEFAULT_PROBLEM_MATCHER,
+                    DEFAULT_PROBLEM_MATCHERS,
                 ),
             ))!;
             instTask.presentationOptions.reveal =
@@ -878,7 +878,7 @@ async function buildTestDriverAndReportErrors(
                     buildTaskName,
                     TASK_TYPE_ADA,
                     undefined,
-                    DEFAULT_PROBLEM_MATCHER,
+                    DEFAULT_PROBLEM_MATCHERS,
                 ),
             ))!;
             buildTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;

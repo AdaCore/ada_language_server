@@ -94,6 +94,9 @@ with LSP.Utils;
 
 package body LSP.Ada_Handlers is
 
+   Tracer_Config : constant LSP.GNATCOLL_Tracers.Tracer :=
+     LSP.GNATCOLL_Tracers.Create ("ALS.CONFIG", GNATCOLL.Traces.On);
+
    pragma Style_Checks ("o");  --  check subprogram bodies in alphabetical ordr
 
    subtype AlsReferenceKind_Array is LSP.Structures.AlsReferenceKind_Set;
@@ -2486,6 +2489,8 @@ package body LSP.Ada_Handlers is
       if not Value.initializationOptions.Is_Empty then
          Self.Tracer.Trace
            ("Processing initializationOptions from initialize request");
+         Tracer_Config.Trace
+           ("initializationOptions = " & Value.initializationOptions'Image);
          --  The expected structure is this:
          --     "initializationOptions": {
          --        "ada": {
@@ -2495,7 +2500,12 @@ package body LSP.Ada_Handlers is
          --        }
          --     }
          declare
-            New_Configuration : LSP.Ada_Configurations.Configuration;
+            New_Configuration : LSP.Ada_Configurations.Configuration :=
+              Self.Configuration;
+            --  Start from the existing configuration so that settings parsed
+            --  from configuration files are preserved, and the settings from
+            --  initialize request are applied on top.
+
             Messages : VSS.String_Vectors.Virtual_String_Vector;
          begin
             --  Parse the configuration.
@@ -2537,30 +2547,27 @@ package body LSP.Ada_Handlers is
      (Self  : in out Message_Handler;
       Value : LSP.Structures.InitializedParams) is
    begin
-      --  The client is notifying us that it has initialized. If a project was
-      --  provided with the initialize request, we can load it and start
-      --  communicating with the client.
+      --  The client is notifying us that it has initialized. It is good at
+      --  this stage to load a project so that subsequent requests, e.g.
+      --  project attribute requests to support VS Code integration, work on a
+      --  valid project.
       --
-      --  We only perform loading in case ada.projectFile was provided with the
-      --  initialize request. That's because some clients don't provide
-      --  settings in the initialize request, and instead send a
-      --  onDidChangeConfiguration notification immediately after
-      --  initialization. In this scenario, loading a project unconditionally
-      --  here would result in automatically searching for a project (unique
-      --  project at the root, or implicit fallback) and loading it, only to
-      --  load another project shortly after, upon receiving
-      --  onDidChangeConfiguration. To avoid the first useless load, we only
-      --  load a project here if it was specified in the initialize request.
-      --
-      --  Moreover, there is an impact on legacy tests. The prior project
+      --  However, there is an impact on legacy tests. The prior project
       --  loading policy was to wait for the first onDidChangeConfiguration
       --  notification to obtain settings and load a project. Many existing
       --  tests do not set the project in the initialize request and don't
       --  expect messages pertaining to project loading after the initialize
-      --  request.  If we were to always load the project here, tests would
-      --  receive different messages and potentially fail. So the conditional
-      --  project loading here is backwards compatible with existing tests.
-      if not Self.Configuration.Project_File.Is_Empty then
+      --  request. If we were to always load the project here, tests would
+      --  receive different messages and potentially fail.
+      --
+      --  To mitigate that, we perform project loading conditionally to
+      --  Base_Configuration_Received. If Base_Configuration_Received is True,
+      --  it means that we received non-empty initializationOptions which is
+      --  the typical case in IDEs like GNAT Studio and VS Code.
+      --
+      --  This conditional load allows us to load a project early while
+      --  remaining backwards compatible with legacy tests.
+      if Self.Base_Configuration_Received then
          LSP.Ada_Handlers.Project_Loading.Ensure_Project_Loaded (Self);
       end if;
    end On_Initialized_Notification;
@@ -3935,6 +3942,8 @@ package body LSP.Ada_Handlers is
      (Self  : in out Message_Handler;
       Value : LSP.Ada_Configurations.Configuration'Class) is
    begin
+      Tracer_Config.Trace ("Setting configuration: " & Value'Image);
+
       Self.Configuration := LSP.Ada_Configurations.Configuration (Value);
 
       --  The base configuration is still the default one, meaning that

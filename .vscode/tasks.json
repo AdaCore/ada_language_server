@@ -5,7 +5,7 @@
          "label": "Run tests",
          "type": "shell",
          "command": "make check",
-         "problemMatcher": ["$ada"],
+         "problemMatcher": ["$ada-error", "$ada-warning", "$ada-info"],
          "group": "test"
       },
       {
@@ -30,7 +30,7 @@
          "type": "ada",
          "command": "make",
          "args": ["GPRBUILD_CARGS=-cargs:ada -gnatef"],
-         "problemMatcher": ["$ada"],
+         "problemMatcher": ["$ada-error", "$ada-warning", "$ada-info"],
          "group": "build",
          "label": "ada: Build current project",
          "presentation": {

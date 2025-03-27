@@ -26,7 +26,7 @@ import { AdaMain, getAdaMains, showErrorMessageWithOpenLogButton } from './helpe
 
 export const TASK_TYPE_ADA = 'ada';
 export const TASK_TYPE_SPARK = 'spark';
-export const DEFAULT_PROBLEM_MATCHER = '$ada';
+export const DEFAULT_PROBLEM_MATCHERS = ['$ada-error', '$ada-warning', '$ada-info'];
 
 /**
  * A type representing task definitions as they appear in tasks.json files.
@@ -73,7 +73,7 @@ const TASK_BUILD_PROJECT: PredefinedTask = {
         command: 'gprbuild',
         args: ['${command:ada.gprProjectArgs}', "'-cargs:ada'", '-gnatef'],
     },
-    problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     taskGroup: vscode.TaskGroup.Build,
 };
 // eslint-disable-next-line max-len
@@ -103,7 +103,7 @@ export const TASK_GNATCOV_SETUP: PredefinedTask = {
         command: 'gnatcov',
         args: ['setup'],
     },
-    problemMatchers: DEFAULT_PROBLEM_MATCHER,
+    problemMatchers: DEFAULT_PROBLEM_MATCHERS,
 };
 
 const gnatCovTasks: PredefinedTask[] = [TASK_GNATCOV_SETUP];
@@ -136,7 +136,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatef',
             ],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: 'Compile current file',
@@ -154,7 +154,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatef',
             ],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: 'Analyze the project with GNAT SAS',
@@ -274,7 +274,7 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnatprove',
             args: ['${command:ada.gprProjectArgs}', '-j0', '--mode=flow', '-cargs', '-gnatef'],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: 'Examine file',
@@ -291,7 +291,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatef',
             ],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: 'Examine subprogram',
@@ -307,7 +307,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatef',
             ],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: 'Prove project',
@@ -316,7 +316,7 @@ const predefinedTasks: PredefinedTask[] = [
             command: 'gnatprove',
             args: ['${command:ada.gprProjectArgs}', '-j0', '-cargs', '-gnatef'],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: TASK_PROVE_FILE_PLAIN_NAME,
@@ -332,7 +332,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatef',
             ],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: TASK_PROVE_SUPB_PLAIN_NAME,
@@ -347,7 +347,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatef',
             ],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: TASK_PROVE_REGION_PLAIN_NAME,
@@ -364,7 +364,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatef',
             ],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
     {
         label: TASK_PROVE_LINE_PLAIN_NAME,
@@ -381,7 +381,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-gnatef',
             ],
         },
-        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
 ].concat(gnatCovTasks);
 
@@ -445,7 +445,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                                 '-gnatef',
                             ],
                         },
-                        problemMatchers: DEFAULT_PROBLEM_MATCHER,
+                        problemMatchers: DEFAULT_PROBLEM_MATCHERS,
                         taskGroup: vscode.TaskGroup.Build,
                     };
 
@@ -565,7 +565,7 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                         command: 'gprbuild',
                         args: ['-P', harnessPrj, "'-cargs:ada'", '-gnatef'],
                     },
-                    problemMatchers: DEFAULT_PROBLEM_MATCHER,
+                    problemMatchers: DEFAULT_PROBLEM_MATCHERS,
                     taskGroup: vscode.TaskGroup.Build,
                 });
             }
