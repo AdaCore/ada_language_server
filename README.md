@@ -355,8 +355,8 @@ program using GNATemulator.
 <img src="doc/media/gnatemu-debug-codelens.gif" width="800" alt="Debug with GNATemulator CodeLens" />
 
 The port used by the debugger launched by VS Code to connect to the running GNATemulator instance
-is the one specified via the `Emulator'Debug_Port` project attribute, so make sure it is set before
-running the dedicated GNATemulator command/CodeLens.
+is the one specified via the `Emulator'Debug_Port` project attribute: when not set, the extension
+will fallback on `localhost:1234` (GNATemulator's default debug port).
 
 Note that GNATemulator is not available for all GNAT embedded toolchains. For more information about GNATemulator itself and its availabilty please refer to the [GNATemulator User's Guide](https://docs.adacore.com/gnatemulator-docs/gnatemulator.html).
 
