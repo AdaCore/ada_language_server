@@ -33,13 +33,11 @@ This extension **does not include a compiler nor additional tools**. Nonetheless
 | | Debug                | ✅ |
 | **GNAT DAS** | | |
 | | Test                | ✅ |
-| | Code Coverage       | 🚧 |
+| | Code Coverage       | ✅ |
 | **GNAT SAS** | | |
 | | Static Analysis     |       ✅            |
 | **SPARK** | | |
 | | Formal Proof        |       ✅          |
-
-🚧 _= The integration of this tool feature in Visual Studio Code is in progress._
 
 ## Getting Additional Tools
 
