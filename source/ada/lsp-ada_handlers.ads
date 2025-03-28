@@ -110,6 +110,10 @@ package LSP.Ada_Handlers is
      (Self : Message_Handler'Class) return Boolean;
    --  Return True when diagnostics are enabled for Ada files
 
+   function Source_Info_Diagnostics_Enabled
+     (Self : Message_Handler'Class) return Boolean;
+   --  Return True when source information diagnostics are enabled.
+
    -----------------------------
    --  Open Document Manager  --
    -----------------------------
@@ -132,6 +136,8 @@ package LSP.Ada_Handlers is
 
    type Project_Stamp is private;
 
+   No_Project_Stamp : constant Project_Stamp;
+
    function Get_Project_Stamp
      (Self : Message_Handler'Class) return Project_Stamp;
    --  Return stamp of the state of the project. Stamp is changed each time
@@ -145,8 +151,15 @@ package LSP.Ada_Handlers is
    --  If the document is not opened, then it returns a
    --  OptionalVersionedTextDocumentIdentifier with a null version.
 
+   function Get_Project_Status
+     (Self : Message_Handler'Class)
+      return LSP.Ada_Project_Loading.Project_Status_Type;
+   --  Indicates whether a project has been successfully loaded and
+   --  how.
+
 private
    type Project_Stamp is mod 2**32;
+   No_Project_Stamp : constant Project_Stamp := 0;
 
    type Internal_Document_Access is access all LSP.Ada_Documents.Document;
 

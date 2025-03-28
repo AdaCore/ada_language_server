@@ -1,0 +1,96 @@
+[
+   {
+      "comment": [
+         "Test for source information diagnostics. This test also checks that ",
+         "these diagnostics are recomputed when project source files change."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 0,
+                  "text": "procedure Main is\nbegin\n       null;\nend Main;"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "message": "No project tree currently loaded: some features might be imprecise (e.g: Find All References) or not available (e.g: Rename).",
+                        "range": {
+                           "end": {
+                              "character": 0,
+                              "line": 0
+                           },
+                           "start": {
+                              "character": 0,
+                              "line": 0
+                           }
+                        },
+                        "severity": 4,
+                        "source": "ada.sourceInformation"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

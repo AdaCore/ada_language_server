@@ -109,6 +109,7 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [enableDiagnostics](#enableddiagnostics)
 * [adaFileDiagnostics](#adafilediagnostics)
 * [gprFileDiagnostics](#gprfilediagnostics)
+* [sourceInfoDiagnostics](#sourceinfodiagnostics)
 * [projectDiagnostics](#projectdiagnostics)
 * [alireDiagnostics](#alirediagnostics)
 * [enableIndexing](#enableindexing)
@@ -246,6 +247,17 @@ The value is a boolean.
 
 ```javascript
     'gprFileDiagnostics': false
+```
+
+### sourceInfoDiagnostics
+
+You can explicitly deactivate the emission of source infomration diagnostics
+when opening Ada files via the `sourceInfoDiagnostics` key. By default,
+diagnostics are enabled.
+The value is a boolean.
+
+```javascript
+    'sourceInfoDiagnostics': false
 ```
 
 ### projectDiagnostics
