@@ -559,6 +559,26 @@
                         "default": null,
                         "markdownDescription": "Controls whether or not the Ada Language Server should emit diagnostics related to alire into the VS Code Problems view.\n\nIf not set in VS Code, this setting takes its value from the [`.als.json`](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md) file at the root of the workspace, if that file exists. Otherwise it defaults to `true`."
                     },
+                    "ada.sourceInfoDiagnostics": {
+                        "scope": "window",
+                        "enum": [
+                            true,
+                            false,
+                            null
+                        ],
+                        "enumItemLabels": [
+                            null,
+                            null,
+                            "Provided by .als.json (default: true)"
+                        ],
+                        "markdownEnumDescriptions": [
+                            "true",
+                            "false",
+                            "Provided by [`.als.json`](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md) if it exists at the workspace root, otherwise defaults to `true`."
+                        ],
+                        "default": null,
+                        "markdownDescription": "Controls whether or not the Ada Language Server should emit source information diagnostics (e.g: for opened files that do not belong to the loaded project tree).\n\nIf not set in VS Code, this setting takes its value from the [`.als.json`](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md) file at the root of the workspace, if that file exists. Otherwise it defaults to `true`."
+                    },
                     "ada.adaFileDiagnostics": {
                         "scope": "window",
                         "enum": [
@@ -693,23 +713,23 @@
             }
         ],
         "problemMatchers": [
-             {
+            {
                 "name": "ada",
                 "label": "Gnat Ada Problem Matcher (obsolete)",
-                 "fileLocation": [
-                     "autoDetect",
-                     "${workspaceRoot}"
-                 ],
-                 "pattern": [
-                     {
+                "fileLocation": [
+                    "autoDetect",
+                    "${workspaceRoot}"
+                ],
+                "pattern": [
+                    {
                         "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+(?:([a-z]+):\\s+)?(.*)$",
-                         "file": 1,
-                         "line": 2,
-                         "column": 3,
-                         "severity": 4,
-                         "message": 5
-                     }
-                 ]
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "severity": 4,
+                        "message": 5
+                    }
+                ]
             },
             {
                 "name": "ada-error",
@@ -760,14 +780,14 @@
                 "severity": "info",
                 "pattern": [
                     {
-                       "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+[\\(:]?(info|[Nn]ote|check)[\\):]?\\s+(.*)$",
+                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+[\\(:]?(info|[Nn]ote|check)[\\):]?\\s+(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
                         "message": 5
                     }
                 ]
-             }
+            }
         ],
         "taskDefinitions": [
             {

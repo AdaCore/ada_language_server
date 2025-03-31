@@ -341,6 +341,11 @@ package body LSP.Ada_Configurations is
                Self.Charset := JSON (Index).String_Value;
 
             elsif Check_Variable
+              (Name, JSON (Index).Kind, "sourceInfoDiagnostics", Boolean_Value)
+            then
+               Self.Source_Info_Diagnostics_Enabled := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
               (Name, JSON (Index).Kind, "adaFileDiagnostics", Boolean_Value)
             then
                Self.Ada_File_Diagnostics_Enabled := JSON (Index).Boolean_Value;

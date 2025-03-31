@@ -92,6 +92,10 @@ package LSP.Ada_Configurations is
      (Self : Configuration'Class) return Boolean;
    --  Whether to publish ada file related diagnostics
 
+   function Source_Info_Diagnostics_Enabled
+     (Self : Configuration'Class) return Boolean;
+   --  Whether to publish source information diagnostics
+
    function GPR_File_Diagnostics_Enabled
      (Self : Configuration'Class) return Boolean;
    --  Whether to publish diagnostics related to GPR files' edition. This
@@ -165,37 +169,38 @@ private
    use type VSS.Strings.Virtual_String;
 
    type Configuration is tagged record
-      Project_File                 : VSS.Strings.Virtual_String;
-      GPR_Configuration_File       : VSS.Strings.Virtual_String;
-      Charset                      : VSS.Strings.Virtual_String;
-      Relocate_Build_Tree          : VSS.Strings.Virtual_String;
-      Relocate_Root                : VSS.Strings.Virtual_String;
-      Named_Notation_Threshold     : Natural := 3;
-      Log_Threshold                : Natural := 10;
-      Ada_File_Diagnostics_Enabled : Boolean := True;
-      GPR_File_Diagnostics_Enabled : Boolean := True;
-      Project_Diagnostics_Enabled  : Boolean := True;
-      Alire_Diagnostics_Enabled    : Boolean := True;
-      Indexing_Enabled             : Boolean := True;
-      Rename_In_Comments           : Boolean := False;
-      Folding_Comments             : Boolean := True;
-      Use_Completion_Snippets      : Boolean := True;
-      Use_Gnatformat               : Boolean := True;
-      Indent_Only                  : Boolean := True;
-      Follow_Symlinks              : Boolean := True;
-      Insert_With_Clauses          : Boolean := True;
+      Project_File                    : VSS.Strings.Virtual_String;
+      GPR_Configuration_File          : VSS.Strings.Virtual_String;
+      Charset                         : VSS.Strings.Virtual_String;
+      Relocate_Build_Tree             : VSS.Strings.Virtual_String;
+      Relocate_Root                   : VSS.Strings.Virtual_String;
+      Named_Notation_Threshold        : Natural := 3;
+      Log_Threshold                   : Natural := 10;
+      Ada_File_Diagnostics_Enabled    : Boolean := True;
+      GPR_File_Diagnostics_Enabled    : Boolean := True;
+      Project_Diagnostics_Enabled     : Boolean := True;
+      Source_Info_Diagnostics_Enabled : Boolean := True;
+      Alire_Diagnostics_Enabled       : Boolean := True;
+      Indexing_Enabled                : Boolean := True;
+      Rename_In_Comments              : Boolean := False;
+      Folding_Comments                : Boolean := True;
+      Use_Completion_Snippets         : Boolean := True;
+      Use_Gnatformat                  : Boolean := True;
+      Indent_Only                     : Boolean := True;
+      Follow_Symlinks                 : Boolean := True;
+      Insert_With_Clauses             : Boolean := True;
 
-      Documentation_Style      : GNATdoc.Comments.Options.Documentation_Style
-        := GNATdoc.Comments.Options.GNAT;
+      Documentation_Style : GNATdoc.Comments.Options.Documentation_Style :=
+        GNATdoc.Comments.Options.GNAT;
 
-      Method_Ancestry_Policy   :
+      Method_Ancestry_Policy :
         LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy :=
           LSP.Enumerations.Usage_And_Abstract_Only;
 
-      Variables_Names          : VSS.String_Vectors.Virtual_String_Vector;
-      Variables_Values         : VSS.String_Vectors.Virtual_String_Vector;
+      Variables_Names  : VSS.String_Vectors.Virtual_String_Vector;
+      Variables_Values : VSS.String_Vectors.Virtual_String_Vector;
 
-      Context                  : GPR2.Context.Object;
+      Context : GPR2.Context.Object;
    end record;
 
    function Project_File
@@ -222,6 +227,11 @@ private
      (Self : Configuration'Class)
       return Boolean is
       (Self.Ada_File_Diagnostics_Enabled);
+
+   function Source_Info_Diagnostics_Enabled
+     (Self : Configuration'Class)
+      return Boolean is
+      (Self.Source_Info_Diagnostics_Enabled);
 
    function GPR_File_Diagnostics_Enabled
      (Self : Configuration'Class)

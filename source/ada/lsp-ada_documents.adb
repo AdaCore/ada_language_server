@@ -45,6 +45,7 @@ with LSP.Ada_Completions.Filters;
 with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
+with LSP.Ada_Documents.Source_Info_Diagnostics;
 with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Id_Iterators;
@@ -1324,10 +1325,13 @@ package body LSP.Ada_Documents is
       LSP.Text_Documents.Constructors.Initialize (Self, URI, Text, Version);
 
       Self.Refresh_Symbol_Cache := True;
-      Self.Diagnostic_Sources.Append
-        (new LSP.Ada_Documents.LAL_Diagnostics.Diagnostic_Source
-           (Handler  => Handler'Unrestricted_Access,
-            Document => Self'Unchecked_Access));
+      Self.Diagnostic_Sources :=
+        [new LSP.Ada_Documents.LAL_Diagnostics.Diagnostic_Source
+               (Handler => Handler'Unrestricted_Access,
+                Document => Self'Unrestricted_Access),
+         new LSP.Ada_Documents.Source_Info_Diagnostics.Diagnostic_Source
+               (Handler => Handler'Unrestricted_Access,
+                Document => Self'Unrestricted_Access)];
    end Initialize;
 
    ----------------------

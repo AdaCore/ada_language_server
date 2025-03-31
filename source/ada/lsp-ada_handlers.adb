@@ -232,6 +232,7 @@ package body LSP.Ada_Handlers is
       Diag : LSP.Structures.PublishDiagnosticsParams;
    begin
       if Self.Configuration.Ada_File_Diagnostics_Enabled
+        or else Self.Configuration.Source_Info_Diagnostics_Enabled
         or else Self.Configuration.Project_Diagnostics_Enabled
       then
          Diag.uri := Document.URI;
@@ -396,6 +397,15 @@ package body LSP.Ada_Handlers is
          return Document.Identifier;
       end if;
    end Get_Open_Document_Version;
+
+   ------------------------
+   -- Get_Project_Status --
+   ------------------------
+
+   function Get_Project_Status
+     (Self : Message_Handler'Class)
+      return LSP.Ada_Project_Loading.Project_Status_Type
+   is (Self.Project_Status);
 
    ----------------------------
    -- Imprecise_Resolve_Name --
@@ -3954,6 +3964,16 @@ package body LSP.Ada_Handlers is
          Self.Base_Configuration_Received := True;
       end if;
    end Set_Configuration;
+
+   -------------------------------------
+   -- Source_Info_Diagnostics_Enabled --
+   -------------------------------------
+
+   function Source_Info_Diagnostics_Enabled
+     (Self : Message_Handler'Class) return Boolean is
+   begin
+      return Self.Configuration.Source_Info_Diagnostics_Enabled;
+   end Source_Info_Diagnostics_Enabled;
 
    -----------------------
    -- To_Workspace_Edit --

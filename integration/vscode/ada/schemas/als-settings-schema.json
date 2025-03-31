@@ -85,6 +85,11 @@
             "default": "usage_and_abstract_only",
             "description": "Controls the policy for displaying overriding and overridden subprograms on navigation requests such as 'Go To Definition' or 'Go To Implementations'."
         },
+        "sourceInfoDiagnostics": {
+            "type": "boolean",
+            "default": true,
+            "description": "Controls whether or not the Ada Language Server should emit source information diagnostics for opened Ada files."
+        },
         "adaFileDiagnostics": {
             "type": "boolean",
             "default": true,
