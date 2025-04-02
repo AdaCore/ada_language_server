@@ -1,11 +1,12 @@
+import assert from 'assert';
 import { X2jOptions, XMLParser } from 'fast-xml-parser';
 import * as fs from 'fs';
+import { cpus } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
+import { adaExtState } from './extension';
 import { parallelize, staggerProgress } from './helpers';
-import { cpus } from 'os';
-import { assert } from 'console';
 
 /**
  * TypeScript types to represent data from GNATcoverage XML reports
@@ -299,31 +300,170 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
             progress.report({
                 message: `${done} / ${totalFiles} source files`,
             });
+
+            let posixForeignPrefix: string | undefined;
+            let posixLocalPrefix: string | undefined;
+
+            const procs = process.env.PROCESSORS ? Number(process.env.PROCESSORS) : 0;
             const fileCovs = (
                 await parallelize(
                     array,
-                    Math.min(cpus().length, 8),
+                    Math.min(procs == 0 ? cpus().length : procs, 8),
                     async (file) => {
                         if (token.isCancellationRequested) {
                             throw new vscode.CancellationError();
                         }
 
                         assert(file['@_name']);
+                        const foreignPath = file['@_name'];
+                        /**
+                         * The foreign machine may have a different path
+                         * format, so we normalize to POSIX which is valid on
+                         * both Windows and POSIX OS-es.
+                         */
+                        const posixForeignPath = toPosix(foreignPath);
 
-                        let srcUri: vscode.Uri;
-                        if (path.isAbsolute(file['@_name']!)) {
-                            srcUri = vscode.Uri.file(file['@_name']!);
-                        } else {
+                        let srcUri: vscode.Uri | undefined = undefined;
+
+                        /**
+                         * The goal here is to find the file in the workspace
+                         * corresponding to the name attribute in the GNATcov
+                         * report.
+                         *
+                         * The name could be a basename (older GNATcov
+                         * versions) or an absolute path (newer GNATcov
+                         * versions).
+                         *
+                         * In the case of a basename, the only course of action
+                         * is to do a file lookup in the workspace.
+                         *
+                         * In the case of an absolute path, the path
+                         * corresponds to the machine where the report was
+                         * created which might be a foreign machine or the
+                         * local host. We can't know in which situation we are
+                         * so it's best to assume that it's a foreign machine.
+                         *
+                         * Then the logic consists of searching for the first
+                         * file by basename, which gives a local absolute path.
+                         * Then by comparing the local absolute path and the
+                         * foreign absolute path, we can find a foreign prefix
+                         * path that should be mapped to the local prefix path
+                         * to compute local absolute paths. Subsequent files
+                         * can use the computed prefixes directly without a
+                         * workspace lookup.
+                         */
+
+                        if (path.posix.isAbsolute(posixForeignPath)) {
+                            let localFullPath;
+                            if (posixLocalPrefix && posixForeignPrefix) {
+                                /**
+                                 * The prefixes have already been determined, so
+                                 * use them directly.
+                                 */
+
+                                if (posixForeignPath.startsWith(posixForeignPrefix)) {
+                                    // Extract the relative path based on the foreign prefix
+                                    const posixForeignRelPath = path.relative(
+                                        posixForeignPrefix,
+                                        posixForeignPath,
+                                    );
+
+                                    // Resolve the relative path with the local prefix
+                                    localFullPath = path.join(
+                                        posixLocalPrefix,
+                                        posixForeignRelPath,
+                                    );
+                                }
+                            }
+
+                            // Fallback to using the input path as is
+                            localFullPath = localFullPath ?? foreignPath;
+
+                            if (fs.existsSync(localFullPath)) {
+                                srcUri = vscode.Uri.file(localFullPath);
+                            }
+                        }
+
+                        if (srcUri === undefined) {
+                            /**
+                             * If the prefixes haven't been found yet, or
+                             * the last prefixes used were not successful,
+                             * try a workspace lookup of the basename.
+                             */
                             const found = await vscode.workspace.findFiles(
-                                `**/${file['@_name']!}`,
-                                null,
+                                `**/${path.posix.basename(posixForeignPath)}`,
+                                /**
+                                 * Avoid searching in the object dir because we
+                                 * might land on gnatcov-instrumented versions
+                                 * of the sources.
+                                 */
+                                `${await adaExtState
+                                    .getObjectDir()
+                                    .then((objDir) => `${objDir}/**/*`)
+                                    .catch(() => null)}`,
                                 1,
+                                token,
                             );
                             if (found.length == 0) {
                                 return undefined;
                             }
 
                             srcUri = found[0];
+                        }
+
+                        if (
+                            posixForeignPrefix === undefined &&
+                            posixLocalPrefix === undefined &&
+                            path.posix.isAbsolute(posixForeignPath)
+                        ) {
+                            /**
+                             * If the prefixes haven't been calculated, and the
+                             * foreign path is absolute, let's try to compute
+                             * the prefixes based on the workspace URI that was
+                             * found.
+                             */
+
+                            const localAbsPath = srcUri.fsPath;
+                            const posixLocalAbsPath = toPosix(localAbsPath);
+
+                            /**
+                             * Find the longest common prefix between both
+                             * paths by starting to compare the characters
+                             * from the end of each string and iterating
+                             * backwards.
+                             */
+                            let revIndex = 0;
+                            while (
+                                revIndex < posixForeignPath.length &&
+                                revIndex < posixLocalAbsPath.length &&
+                                posixForeignPath[posixForeignPath.length - revIndex] ==
+                                    posixLocalAbsPath[posixLocalAbsPath.length - revIndex]
+                            ) {
+                                revIndex++;
+                            }
+
+                            // Now the index points to the first different
+                            // character, so move it back to the last identical
+                            // character to make the slice operations below
+                            // more natural.
+                            revIndex--;
+
+                            if (
+                                revIndex < posixForeignPath.length &&
+                                revIndex < posixLocalAbsPath.length
+                            ) {
+                                posixLocalPrefix = posixLocalAbsPath.slice(
+                                    0,
+                                    posixLocalAbsPath.length - revIndex,
+                                );
+                                posixForeignPrefix = posixForeignPath.slice(
+                                    0,
+                                    posixForeignPath.length - revIndex,
+                                );
+                            } else {
+                                // Could not find a common prefix so don't
+                                // do anything
+                            }
                         }
 
                         const total = file.metric.find(
@@ -334,14 +474,15 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                         ];
 
                         const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
-                            (inc) => inc['@_href'] == `${path.basename(file['@_name']!)}.xml`,
+                            (inc) =>
+                                inc['@_href'] == `${path.posix.basename(posixForeignPath)}.xml`,
                         )!['@_href'];
                         const fileReportPath = path.join(covDir, fileReportBasename);
 
                         if (covered > total) {
                             throw Error(
                                 `Got ${covered} covered lines for a` +
-                                    ` total of ${total} in ${file['@_name']!}`,
+                                    ` total of ${total} in ${file['@_name']}`,
                             );
                         }
 
@@ -432,6 +573,27 @@ export class GnatcovFileCoverage extends vscode.FileCoverage {
         const data = parseGnatcovFileXml(this.sourceFileXmlReport);
         return Promise.resolve(convertSourceReport(data, token));
     }
+}
+
+/**
+ *
+ * @param p - a path
+ * @returns a POSIX version of the same path obtained by replacing occurences
+ * of `\` with `/`. If the input path was a Windows absolute path, a `/` is
+ * prepended to the output to make it also an absolute path.
+ */
+function toPosix(p: string) {
+    let posixPath = p.replace(RegExp(`\\${path.win32.sep}`, 'g'), path.posix.sep);
+
+    /**
+     * If it was an absolute path from Windows, we have to
+     * manually make it a POSIX absolute path.
+     */
+    if (path.win32.isAbsolute(p) && !path.posix.isAbsolute(posixPath)) {
+        posixPath = `/${posixPath}`;
+    }
+
+    return posixPath;
 }
 
 export function convertSourceReport(
