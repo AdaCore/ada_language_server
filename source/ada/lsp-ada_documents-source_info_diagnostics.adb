@@ -43,12 +43,12 @@ package body LSP.Ada_Documents.Source_Info_Diagnostics is
       return False;
    end Has_New_Diagnostic;
 
-   --------------------
+   ---------------------
    -- Get_Diagnostics --
-   --------------------
+   ---------------------
 
    overriding
-   procedure Get_Diagnostic
+   procedure Get_Diagnostics
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector)
@@ -78,7 +78,7 @@ package body LSP.Ada_Documents.Source_Info_Diagnostics is
                   others   => <>));
          end;
       end if;
-   end Get_Diagnostic;
+   end Get_Diagnostics;
 
    ----------------
    -- Is_Enabled --
