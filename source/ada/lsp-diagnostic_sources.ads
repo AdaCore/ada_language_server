@@ -33,7 +33,7 @@ package LSP.Diagnostic_Sources is
         LSP.Diagnostic_Sources.Diagnostic_Source_Access,
         LSP.Diagnostic_Sources."=");
 
-   procedure Get_Diagnostic
+   procedure Get_Diagnostics
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector) is abstract;

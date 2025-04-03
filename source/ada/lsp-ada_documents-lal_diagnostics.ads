@@ -26,7 +26,7 @@ package LSP.Ada_Documents.LAL_Diagnostics is
       Document : not null LSP.Ada_Documents.Document_Access)
    is limited new LSP.Diagnostic_Sources.Diagnostic_Source with private;
 
-   overriding procedure Get_Diagnostic
+   overriding procedure Get_Diagnostics
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector);

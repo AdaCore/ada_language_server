@@ -32,6 +32,8 @@ package body LSP.Ada_Documents.Source_Info_Diagnostics is
 
       Current_Project_Stamp : constant LSP.Ada_Handlers.Project_Stamp :=
         Self.Handler.Get_Project_Stamp;
+      Is_Enabled : constant Boolean :=
+        Self.Handler.Source_Info_Diagnostics_Enabled;
    begin
       --  The project has been reloaded: compute source information diagnostics
       --  again since the set of source files might have been changed.
@@ -40,15 +42,23 @@ package body LSP.Ada_Documents.Source_Info_Diagnostics is
          return True;
       end if;
 
+      --  The 'sourceInfoDiagnostics' option has just changed: always return
+      --  True in this case (e.g: to clear any existing diagnostic when the
+      --  option gets disabled)
+      if Self.Enabled /= Is_Enabled then
+         Self.Enabled := Is_Enabled;
+         return True;
+      end if;
+
       return False;
    end Has_New_Diagnostic;
 
-   --------------------
+   ---------------------
    -- Get_Diagnostics --
-   --------------------
+   ---------------------
 
    overriding
-   procedure Get_Diagnostic
+   procedure Get_Diagnostics
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector)
@@ -57,7 +67,7 @@ package body LSP.Ada_Documents.Source_Info_Diagnostics is
       --  If the unit associated to the document belongs to the fallback context
       --  it means that the document's file does not belong the loaded project:
       --  emit a hint diagnostic in that case.
-      if Context.Is_Fallback_Context then
+      if Self.Is_Enabled and then Context.Is_Fallback_Context then
          declare
             Diag_Msg : constant String :=
               (if Self.Handler.Get_Project_Status.Is_Project_Loaded
@@ -78,7 +88,7 @@ package body LSP.Ada_Documents.Source_Info_Diagnostics is
                   others   => <>));
          end;
       end if;
-   end Get_Diagnostic;
+   end Get_Diagnostics;
 
    ----------------
    -- Is_Enabled --
