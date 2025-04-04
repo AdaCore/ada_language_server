@@ -28,7 +28,7 @@ package LSP.Ada_Documents.Source_Info_Diagnostics is
       Document : not null LSP.Ada_Documents.Document_Access)
    is limited new LSP.Diagnostic_Sources.Diagnostic_Source with private;
 
-   overriding procedure Get_Diagnostic
+   overriding procedure Get_Diagnostics
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector);
@@ -51,6 +51,10 @@ private
       --  Used to detect when the project has been reloaded.
       --  We want to update source information diagnostics only after
       --  project reloade.
+
+      Enabled : Boolean := True;
+      --  Used to keep track of the 'sourceInfoDiagnostics' option, which
+      --  enables/disables source information diagnostics.
    end record;
 
 end LSP.Ada_Documents.Source_Info_Diagnostics;

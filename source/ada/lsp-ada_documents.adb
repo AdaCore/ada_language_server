@@ -966,7 +966,7 @@ package body LSP.Ada_Documents is
 
       if Changed or else Force then
          for Source of Self.Diagnostic_Sources loop
-            Source.Get_Diagnostic (Context, Errors);
+            Source.Get_Diagnostics (Context, Errors);
          end loop;
       end if;
    end Get_Errors;

@@ -113,6 +113,31 @@
       }
    },
    {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "sourceInfoDiagnostics": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
       "stop": {
          "exit_code": 0
       }

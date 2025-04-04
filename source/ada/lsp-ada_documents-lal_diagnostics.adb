@@ -29,7 +29,7 @@ package body LSP.Ada_Documents.LAL_Diagnostics is
    -- Get_Diagnostic --
    --------------------
 
-   overriding procedure Get_Diagnostic
+   overriding procedure Get_Diagnostics
      (Self    : in out Diagnostic_Source;
       Context : LSP.Ada_Contexts.Context;
       Errors  : out LSP.Structures.Diagnostic_Vector)
@@ -49,7 +49,7 @@ package body LSP.Ada_Documents.LAL_Diagnostics is
 
          Errors.Append (Item);
       end loop;
-   end Get_Diagnostic;
+   end Get_Diagnostics;
 
    ------------------------
    -- Has_New_Diagnostic --
