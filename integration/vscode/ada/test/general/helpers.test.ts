@@ -2,10 +2,13 @@ import assert from 'assert';
 import {
     envHasExec,
     findAdaMain,
+    getLengthCommonSuffix,
+    getMatchingPrefixes,
     getSymbols,
     parallelize,
     slugify,
     staggerProgress,
+    toPosix,
     which,
 } from '../../src/helpers';
 import {
@@ -348,5 +351,65 @@ suite('staggerProgress', function () {
     test('slugify', function () {
         assert.equal(slugify('file<>:"/\\|?*name'), 'file_________name');
         assert.equal(slugify('file<>:"/\\|?*name'), 'file' + '_'.repeat(9) + 'name');
+    });
+});
+
+suite('getLengthCommonSuffix', function () {
+    test('empty', function () {
+        assert.equal(getLengthCommonSuffix('', ''), 0);
+    });
+
+    test('one char', function () {
+        assert.equal(getLengthCommonSuffix('a', ''), 0);
+        assert.equal(getLengthCommonSuffix('', 'b'), 0);
+        assert.equal(getLengthCommonSuffix('a', 'a'), 1);
+        assert.equal(getLengthCommonSuffix('a', 'b'), 0);
+    });
+    test('two char', function () {
+        assert.equal(getLengthCommonSuffix('ab', ''), 0);
+        assert.equal(getLengthCommonSuffix('', 'ab'), 0);
+        assert.equal(getLengthCommonSuffix('ab', 'a'), 0);
+        assert.equal(getLengthCommonSuffix('ab', 'b'), 1);
+        assert.equal(getLengthCommonSuffix('ab', 'ab'), 2);
+        assert.equal(getLengthCommonSuffix('ab', 'cd'), 0);
+    });
+    test('more', function () {
+        assert.equal(getLengthCommonSuffix('abcdefg', ''), 0);
+        assert.equal(getLengthCommonSuffix('abcdefg', 'g'), 1);
+        assert.equal(getLengthCommonSuffix('abcdefg', 'x'), 0);
+        assert.equal(getLengthCommonSuffix('abcdefg', 'fg'), 2);
+        assert.equal(getLengthCommonSuffix('abcdefg', 'abcdefg'), 7);
+    });
+});
+
+suite('toPosix', function () {
+    test('Windows paths', function () {
+        assert.equal(toPosix('C:\\some\\path'), '/C:/some/path');
+        assert.equal(toPosix('C:\\some\\path\\'), '/C:/some/path/');
+        assert.equal(toPosix(''), '');
+        assert.equal(toPosix('C:\\'), '/C:/');
+        assert.equal(toPosix('c:\\'), '/c:/');
+        assert.equal(toPosix('a\\relative\\path'), 'a/relative/path');
+    });
+    test('POSIX paths', function () {
+        assert.equal(toPosix('/'), '/');
+        assert.equal(toPosix('/some/path'), '/some/path');
+        assert.equal(toPosix('/some/path/'), '/some/path/');
+        assert.equal(toPosix('a/relative/path'), 'a/relative/path');
+    });
+});
+
+suite('getMatchingPrefixes', function () {
+    test('cases', function () {
+        assert.deepStrictEqual(
+            getMatchingPrefixes('/C:/a/b/common/part.adb', '/other/path/common/part.adb'),
+            ['/C:/a/b', '/other/path'],
+        );
+        assert.deepStrictEqual(
+            getMatchingPrefixes('/C:/a/b/d/e', '/other/path/with/no/common/part'),
+            [undefined, undefined],
+        );
+        assert.deepStrictEqual(getMatchingPrefixes('', ''), [undefined, undefined]);
+        assert.deepStrictEqual(getMatchingPrefixes('a', 'a'), ['', '']);
     });
 });
