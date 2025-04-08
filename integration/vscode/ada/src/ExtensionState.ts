@@ -165,14 +165,19 @@ export class ExtensionState {
     public updateStatusBarVisibility = (editor: vscode.TextEditor | undefined) => {
         const activeEditor = editor ?? vscode.window.activeTextEditor;
 
-        // Show the status bar if the active editor is on an Ada or a GPR source, or
+        // Show the status bar if the active editor is on an Ada or a GPR source,
+        // a JSON configuration file that might have an impact on the running ALS
+        // instance (config.json, als.json, settings.json...) or
         // if it's the Output view that is focused (i.e: when the active editor's
         // document scheme is set to 'output') and showing Ada & SPARK extension's logs.
         if (
             activeEditor &&
-            ((activeEditor.document.uri.scheme == 'output' &&
-                activeEditor.document.fileName.includes('AdaCore')) ||
-                ['ada', 'gpr'].includes(activeEditor.document.languageId))
+            (['ada', 'gpr'].includes(activeEditor.document.languageId) ||
+                activeEditor.document.fileName.endsWith('config.json') ||
+                activeEditor.document.fileName.endsWith('als.json') ||
+                activeEditor.document.fileName.endsWith('settings.json') ||
+                (activeEditor.document.uri.scheme == 'output' &&
+                    activeEditor.document.fileName.includes('AdaCore')))
         ) {
             this.statusBar.show();
         } else {
