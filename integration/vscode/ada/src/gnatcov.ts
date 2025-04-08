@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
 import { adaExtState } from './extension';
-import { parallelize, staggerProgress } from './helpers';
+import { getMatchingPrefixes, parallelize, staggerProgress, toPosix } from './helpers';
 
 /**
  * TypeScript types to represent data from GNATcoverage XML reports
@@ -426,44 +426,10 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                             const localAbsPath = srcUri.fsPath;
                             const posixLocalAbsPath = toPosix(localAbsPath);
 
-                            /**
-                             * Find the longest common prefix between both
-                             * paths by starting to compare the characters
-                             * from the end of each string and iterating
-                             * backwards.
-                             */
-                            let revIndex = 0;
-                            while (
-                                revIndex < posixForeignPath.length &&
-                                revIndex < posixLocalAbsPath.length &&
-                                posixForeignPath[posixForeignPath.length - revIndex] ==
-                                    posixLocalAbsPath[posixLocalAbsPath.length - revIndex]
-                            ) {
-                                revIndex++;
-                            }
-
-                            // Now the index points to the first different
-                            // character, so move it back to the last identical
-                            // character to make the slice operations below
-                            // more natural.
-                            revIndex--;
-
-                            if (
-                                revIndex < posixForeignPath.length &&
-                                revIndex < posixLocalAbsPath.length
-                            ) {
-                                posixLocalPrefix = posixLocalAbsPath.slice(
-                                    0,
-                                    posixLocalAbsPath.length - revIndex,
-                                );
-                                posixForeignPrefix = posixForeignPath.slice(
-                                    0,
-                                    posixForeignPath.length - revIndex,
-                                );
-                            } else {
-                                // Could not find a common prefix so don't
-                                // do anything
-                            }
+                            [posixForeignPrefix, posixLocalPrefix] = getMatchingPrefixes(
+                                posixForeignPath,
+                                posixLocalAbsPath,
+                            );
                         }
 
                         const total = file.metric.find(
@@ -573,27 +539,6 @@ export class GnatcovFileCoverage extends vscode.FileCoverage {
         const data = parseGnatcovFileXml(this.sourceFileXmlReport);
         return Promise.resolve(convertSourceReport(data, token));
     }
-}
-
-/**
- *
- * @param p - a path
- * @returns a POSIX version of the same path obtained by replacing occurences
- * of `\` with `/`. If the input path was a Windows absolute path, a `/` is
- * prepended to the output to make it also an absolute path.
- */
-function toPosix(p: string) {
-    let posixPath = p.replace(RegExp(`\\${path.win32.sep}`, 'g'), path.posix.sep);
-
-    /**
-     * If it was an absolute path from Windows, we have to
-     * manually make it a POSIX absolute path.
-     */
-    if (path.win32.isAbsolute(p) && !path.posix.isAbsolute(posixPath)) {
-        posixPath = `/${posixPath}`;
-    }
-
-    return posixPath;
 }
 
 export function convertSourceReport(
