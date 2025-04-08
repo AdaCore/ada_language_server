@@ -190,6 +190,9 @@ export class ExtensionState {
      * diagnostics.
      */
     public updateStatusBarItem = () => {
+        // Set the status bar item's default text ('Ada & SPARK')
+        this.statusBar.text = 'Ada & SPARK';
+
         // Use markdown for the status bar item tiooltip. This allows to have
         // hyperlinks that run actual commands.
         this.statusBar.tooltip = new vscode.MarkdownString('', true);
@@ -220,7 +223,6 @@ export class ExtensionState {
             const statusBarSeverity: vscode.DiagnosticSeverity = alsDiagnostics
                 .map((a) => a.severity)
                 .reduce((a, b) => (a < b ? a : b));
-            this.statusBar.text = 'Ada & SPARK';
 
             switch (statusBarSeverity) {
                 case vscode.DiagnosticSeverity.Error:
