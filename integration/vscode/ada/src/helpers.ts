@@ -644,3 +644,71 @@ export function staggerProgress(
 export function slugify(arg: string): string {
     return arg.replace(/[<>:"/\\|?*]/g, '_');
 }
+/**
+ * @returns the length of the common suffix between the given strings. If there
+ * is no common suffix, the result is `0`.
+ */
+export function getLengthCommonSuffix(str1: string, str2: string): number {
+    /**
+     * Compare characters from the end of each string and iterating backwards.
+     */
+    let len = 0;
+    while (
+        len < str1.length &&
+        len < str2.length &&
+        str1[str1.length - 1 - len] == str2[str2.length - 1 - len]
+    ) {
+        len++;
+    }
+
+    return len;
+}
+
+/**
+ *
+ * @param p - a path
+ * @returns a POSIX version of the same path obtained by replacing occurences
+ * of `\` with `/`. If the input path was a Windows absolute path, a `/` is
+ * prepended to the output to make it also an absolute path.
+ */
+export function toPosix(p: string) {
+    let posixPath = p.replace(RegExp(`\\${path.win32.sep}`, 'g'), path.posix.sep);
+
+    /**
+     * If it was an absolute path from Windows, we have to
+     * manually make it a POSIX absolute path.
+     */
+    if (path.win32.isAbsolute(p) && !path.posix.isAbsolute(posixPath)) {
+        posixPath = `/${posixPath}`;
+    }
+
+    return posixPath;
+}
+
+/**
+ *
+ * @param path1 - a path
+ * @param path2 - another path
+ * @returns if the given paths end with a common suffix, the remaining prefixes
+ * are returned as a tuple by this function. Otherwise, undefined prefixes are
+ * returned.
+ */
+export function getMatchingPrefixes(
+    path1: string,
+    path2: string,
+): [string | undefined, string | undefined] {
+    const lenCommonSuffix = getLengthCommonSuffix(path1, path2);
+
+    let prefix1;
+    let prefix2;
+
+    if (lenCommonSuffix > 0) {
+        prefix1 = path1.slice(0, path1.length - lenCommonSuffix);
+        prefix2 = path2.slice(0, path2.length - lenCommonSuffix);
+    } else {
+        // Could not find a common suffix
+        prefix1 = prefix2 = undefined;
+    }
+
+    return [prefix1, prefix2];
+}
