@@ -1,5 +1,5 @@
-package Bar is
+package Foo is
 
    procedure Hello;
 
-end Hello;
+end Foo;

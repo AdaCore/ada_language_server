@@ -72,7 +72,7 @@
             "method": "textDocument/didOpen",
             "params": {
                "textDocument": {
-                  "uri": "$URI{foo.adb}",
+                  "uri": "$URI{debug.adb}",
                   "languageId": "Ada",
                   "version": 0,
                   "text": "with -- context_clause_start\n Ada.Text_IO;\n\nprocedure Debug\nis begin\n  null;\nend Debug;\n"
@@ -90,7 +90,7 @@
             "method": "textDocument/rangeFormatting",
             "params": {
                "textDocument": {
-                  "uri": "$URI{foo.adb}"
+                  "uri": "$URI{debug.adb}"
                },
                "options": {
                   "tabSize": 8,
@@ -140,7 +140,7 @@
             "method": "textDocument/didClose",
             "params": {
                "textDocument": {
-                  "uri": "$URI{foo.adb}"
+                  "uri": "$URI{debug.adb}"
                }
             }
          },

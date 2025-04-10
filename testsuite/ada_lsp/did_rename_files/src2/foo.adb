@@ -1,8 +1,8 @@
-package body Bar is
+package body Foo is
 
    procedure Hello is
    begin
       null;
    end Hello;
 
-end Bar;
+end Foo;
