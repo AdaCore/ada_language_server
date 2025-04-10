@@ -1,0 +1,157 @@
+[
+   {
+      "comment": [
+         "This test checks out-of-project file has GPR2 context by executing a rename request."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "renameProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{proc.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Proc is\nbegin\n   Proc;\nend Proc;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "rename-1",
+            "method": "textDocument/rename",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{proc.adb}"
+               },
+               "position": {
+                  "line": 0,
+                  "character": 11
+               },
+               "newName": "Proc2"
+            }
+         },
+         "wait": [
+            {
+               "id": "rename-1",
+               "result": {
+                  "changes": {
+                     "$URI{proc.adb}": [
+                        {
+                           "newText": "Proc2",
+                           "range": {
+                              "end": {
+                                 "character": 14,
+                                 "line": 0
+                              },
+                              "start": {
+                                 "character": 10,
+                                 "line": 0
+                              }
+                           }
+                        },
+                        {
+                           "newText": "Proc2",
+                           "range": {
+                              "end": {
+                                 "character": 7,
+                                 "line": 2
+                              },
+                              "start": {
+                                 "character": 3,
+                                 "line": 2
+                              }
+                           }
+                        },
+                        {
+                           "newText": "Proc2",
+                           "range": {
+                              "end": {
+                                 "character": 8,
+                                 "line": 3
+                              },
+                              "start": {
+                                 "character": 4,
+                                 "line": 3
+                              }
+                           }
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
