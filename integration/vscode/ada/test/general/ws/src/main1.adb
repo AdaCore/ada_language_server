@@ -7,10 +7,10 @@ with Foo;
 -- Main --
 ----------
 
-procedure Main is
+procedure Main1 is
 
 begin
 
    null;
    
-end Main;
+end Main1;
