@@ -1,14 +1,18 @@
 [
    {
       "comment": [
-         "Test didRenameFiles notification"
-         ]
+         "Test didRenameFiles notification when files renamed outside of ",
+         "the ALS (e.g: via a shell command). All the subsequent requests are expected ",
+         "to have null results since GPR2 does not support units that do not match ",
+         "source names."
+      ]
    },
    {
       "start": {
          "cmd": ["${ALS}"]
       }
-   },   {
+   },
+   {
       "send": {
          "request": {
             "jsonrpc": "2.0",
@@ -66,7 +70,7 @@
                   "uri": "$URI{main.adb}",
                   "languageId": "ada",
                   "version": 1,
-                  "text": "with Bar;\nprocedure Main is\nbegin\n   Bar.Hello;\nend Main;\n"
+                  "text": "with Foo;\nprocedure Main is\nbegin\n   Foo.Hello;\nend Main;\n"
                }
             }
          },
@@ -110,14 +114,18 @@
       }
    },
    {
-      "shell": ["mv",
-                "${DIR}${DIR_SEP}src1${DIR_SEP}foo.1.ada",
-                "${DIR}${DIR_SEP}src1${DIR_SEP}bar.1.ada"]
+      "shell": [
+         "mv",
+         "${DIR}${DIR_SEP}src1${DIR_SEP}foo.1.ada",
+         "${DIR}${DIR_SEP}src1${DIR_SEP}bar.1.ada"
+      ]
    },
    {
-      "shell": ["mv",
-                "${DIR}${DIR_SEP}src2${DIR_SEP}foo.adb",
-                "${DIR}${DIR_SEP}src2${DIR_SEP}bar.adb"]
+      "shell": [
+         "mv",
+         "${DIR}${DIR_SEP}src2${DIR_SEP}foo.adb",
+         "${DIR}${DIR_SEP}src2${DIR_SEP}bar.adb"
+      ]
    },
    {
       "send": {
@@ -141,68 +149,52 @@
       }
    },
    {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": 5,
-                "method":"workspace/executeCommand",
-                "params":{
-                    "command": "als-other-file",
-                    "arguments": [
-                        {
-                            "uri": "$URI{src1/bar.1.ada}"
-                        }
-                    ]
-                }
-            },
-            "wait":[
-                {
-                    "jsonrpc": "2.0",
-                    "method": "window/showDocument",
-                    "params": {
-                        "uri": "$URI{src2/bar.adb}",
-                        "takeFocus": true
-                    }
-                },
-                {
-                    "jsonrpc": "2.0",
-                    "id": 5,
-                    "result": null
-                }
-            ]
-        }
-    },
-    {
-        "send": {
-            "request": {
-                "jsonrpc":"2.0",
-                "id": 6,
-                "method":"workspace/executeCommand",
-                "params":{
-                    "command": "als-other-file",
-                    "arguments": [
-                        {
-                            "uri": "$URI{src1/bar.1.ada}"
-                        }
-                    ]
-                }
-            },
-            "wait":[
-                {
-                    "jsonrpc": "2.0",
-                    "method": "window/showDocument",
-                    "params": {
-                        "uri": "$URI{src2/bar.adb}",
-                        "takeFocus": true
-                    }
-                },
-                {
-                    "jsonrpc": "2.0",
-                    "id": 6,
-                    "result": null
-                }
-            ]
-        }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-other-file",
+               "arguments": [
+                  {
+                     "uri": "$URI{src1/bar.1.ada}"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 5,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-other-file",
+               "arguments": [
+                  {
+                     "uri": "$URI{src1/bar.1.ada}"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 6,
+               "result": null
+            }
+         ]
+      }
    },
    {
       "send": {
@@ -220,24 +212,7 @@
                }
             }
          },
-         "wait": [
-            {
-               "id": 4,
-               "result": {
-                  "uri": "$URI{src1/bar.1.ada}",
-                  "range": {
-                     "start": {
-                        "line": 2,
-                        "character": 13
-                     },
-                     "end": {
-                        "line": 2,
-                        "character": 18
-                     }
-                  }
-               }
-            }
-         ]
+         "wait": []
       }
    },
    {
