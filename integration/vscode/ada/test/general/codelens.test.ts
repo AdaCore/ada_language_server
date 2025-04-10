@@ -23,7 +23,7 @@ suite('CodeLens', function () {
         const codelenses = await getCodeLenses('src', 'main1.adb');
         assert.deepEqual(simplifyCodelenses(codelenses), [
             {
-                range: '9:0 -> 15:9',
+                range: '9:0 -> 15:10',
                 command: {
                     title: '$(run) Run',
                     command: 'ada.buildAndRunMain',
@@ -31,7 +31,7 @@ suite('CodeLens', function () {
                 },
             },
             {
-                range: '9:0 -> 15:9',
+                range: '9:0 -> 15:10',
                 command: {
                     title: '$(debug-alt-small) Debug',
                     command: 'ada.buildAndDebugMain',
