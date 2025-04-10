@@ -75,9 +75,7 @@ package body LSP.Ada_Context_Sets is
       return Context_Access is
    begin
       for Context of Self.Contexts loop
-         if not Context.Is_Fallback_Context
-           and then Context.Is_Part_Of_Project (URI)
-         then
+         if Context.Is_Part_Of_Project (URI) then
             return Context;
          end if;
       end loop;
