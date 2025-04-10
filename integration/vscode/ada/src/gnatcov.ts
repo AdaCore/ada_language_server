@@ -386,21 +386,24 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
 
                         if (srcUri === undefined) {
                             /**
+                             * Avoid searching in the object dir because we
+                             * might land on gnatcov-instrumented versions
+                             * of the sources.
+                             */
+                            const exclude = `${await adaExtState
+                                .getObjectDir()
+                                .then(vscode.workspace.asRelativePath)
+                                .then((objDir) => `${objDir}/**/*`)
+                                .catch(() => null)}`;
+
+                            /**
                              * If the prefixes haven't been found yet, or
                              * the last prefixes used were not successful,
                              * try a workspace lookup of the basename.
                              */
                             const found = await vscode.workspace.findFiles(
                                 `**/${path.posix.basename(posixForeignPath)}`,
-                                /**
-                                 * Avoid searching in the object dir because we
-                                 * might land on gnatcov-instrumented versions
-                                 * of the sources.
-                                 */
-                                `${await adaExtState
-                                    .getObjectDir()
-                                    .then((objDir) => `${objDir}/**/*`)
-                                    .catch(() => null)}`,
+                                exclude,
                                 1,
                                 token,
                             );
