@@ -869,7 +869,14 @@ async function buildTestDriverAndReportErrors(
                     await getGnatTestDriverProjectPath(),
                 ]
                     .concat(getScenarioArgs())
-                    .concat(['-cargs', '-g', '-fdump-scos', '-fpreserve-control-flow']),
+                    .concat([
+                        "'-cargs:ada'",
+                        '-gnatef',
+                        '-cargs',
+                        '-g',
+                        '-fdump-scos',
+                        '-fpreserve-control-flow',
+                    ]),
             };
             buildTask = (await adaTP.resolveTask(
                 new vscode.Task(
