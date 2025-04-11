@@ -2,14 +2,17 @@
    {
       "comment": [
          "Test the context after a DidRenameFiles notification. ",
-         "The references requests should work before and after."
+         "The references requests should work before and after.",
+         "If the unit name does not match teh source name (which is ",
+         "usually the case after renaming sources outside of the ALS), ",
+         "references are expected to be unaccurate: these units are now ",
+         "ignored by GPR2. The user should make sure unit and source names ",
+         "always match, and reload the project once it's the case."
       ]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -26,9 +29,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "rename"
-                        ]
+                        "resourceOperations": ["rename"]
                      },
                      "fileOperations": {
                         "didRename": true
@@ -40,15 +41,9 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": false,
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "resolveSupport": {
-                              "properties": [
-                                 "detail",
-                                 "documentation"
-                              ]
+                              "properties": ["detail", "documentation"]
                            }
                         }
                      },
@@ -75,9 +70,7 @@
                      }
                   },
                   "experimental": {
-                     "advanced_refactorings": [
-                        "add_parameter"
-                     ]
+                     "advanced_refactorings": ["add_parameter"]
                   }
                }
             }
@@ -89,12 +82,7 @@
                   "capabilities": {
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [
-                           ".",
-                           ",",
-                           "'",
-                           "("
-                        ],
+                        "triggerCharacters": [".", ",", "'", "("],
                         "resolveProvider": true
                      },
                      "renameProvider": {
@@ -207,9 +195,7 @@
                            "character": 14
                         }
                      },
-                     "alsKind": [
-                        "reference"
-                     ]
+                     "alsKind": ["reference"]
                   },
                   {
                      "uri": "$URI{main.adb}",
@@ -223,9 +209,7 @@
                            "character": 13
                         }
                      },
-                     "alsKind": [
-                        "call"
-                     ]
+                     "alsKind": ["call"]
                   }
                ]
             }
@@ -641,11 +625,11 @@
       }
    },
    {
-    "shell": [
-        "mv",
-        "${DIR}${DIR_SEP}foo-bar1.ads",
-        "${DIR}${DIR_SEP}foo-bar2.ads"
-    ]
+      "shell": [
+         "mv",
+         "${DIR}${DIR_SEP}foo-bar1.ads",
+         "${DIR}${DIR_SEP}foo-bar2.ads"
+      ]
    },
    {
       "send": {
@@ -699,25 +683,7 @@
                            "character": 14
                         }
                      },
-                     "alsKind": [
-                        "reference"
-                     ]
-                  },
-                  {
-                     "uri": "$URI{main.adb}",
-                     "range": {
-                        "start": {
-                           "line": 4,
-                           "character": 12
-                        },
-                        "end": {
-                           "line": 4,
-                           "character": 13
-                        }
-                     },
-                     "alsKind": [
-                        "call"
-                     ]
+                     "alsKind": ["reference"]
                   }
                ]
             }
