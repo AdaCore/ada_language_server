@@ -104,15 +104,6 @@ package body LSP.Ada_Handlers.Project_Loading is
    --  Reload as project source dirs the directories in
    --  Self.Project_Dirs_Loaded.
 
-   procedure Create_In_Memory_Project
-     (Name         : GPR2.Name_Type;
-      Dirs         : File_Sets.Set;
-      Project_Tree : in out GPR2.Project.Tree.Object;
-      Success      : out Boolean);
-   --  Unload Project_Tree then construct a new project in memory with given
-   --  Name and source Dirs. Return Success=True and resulting Project_Tree
-   --  if everything is fine. Return Success=False otherwise.
-
    procedure Update_Project_Predefined_Sources
      (Self : in out Message_Handler'Class);
    --  Fill Self.Project_Predefined_Sources with loaded project tree runtime
@@ -121,68 +112,6 @@ package body LSP.Ada_Handlers.Project_Loading is
    --  Enqueue the indexing job, which indexes all the project's sources.
    --  This also indexes immediately any already opened document, creating
    --  the handler's fallback context before for that purpose.
-
-   procedure Create_Fallback_Context (Self : in out Message_Handler'Class);
-   --  Create a fallback context for the given handler's contexts' set.
-
-   -----------------------------
-   -- Create_Fallback_Context --
-   -----------------------------
-
-   procedure Create_Fallback_Context (Self : in out Message_Handler'Class) is
-      use LSP.Ada_Context_Sets;
-      use LSP.Ada_Contexts;
-      use type GNATCOLL.VFS.Virtual_File;
-
-      C : constant Context_Access := new Context (Self.Tracer);
-
-      Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
-        (Self'Unchecked_Access);
-
-      Dirs : File_Sets.Set;
-
-      Project_Tree : GPR2.Project.Tree.Object;
-
-      Success : Boolean;
-   begin
-      Self.Tracer.Trace_Text ("Creating fallback context");
-
-      C.Initialize
-        (File_Reader         => Reader,
-         Follow_Symlinks     => Self.Configuration.Follow_Symlinks,
-         Style               => Self.Configuration.Documentation_Style,
-         As_Fallback_Context => True);
-
-      if Self.Client.Root_Directory /= GNATCOLL.VFS.No_File then
-         Dirs.Insert (Self.Client.Root_Directory);
-      end if;
-
-      Create_In_Memory_Project
-        ("fallback_context", Dirs, Project_Tree, Success);
-
-      pragma Assert
-        (Success, "Can't create an empty project for the fallback context");
-
-      --  Create a basic GPR2_Provider_And_Projects containing only the
-      --  implicit project and load it.
-      declare
-         Provider : Libadalang.Project_Provider.GPR2_Provider_And_Projects :=
-           (Provider =>
-              Libadalang.Project_Provider.Create_Project_Unit_Provider
-                (Tree    => Project_Tree,
-                 Project => Project_Tree.Root_Project),
-            Projects => <>);
-      begin
-         Provider.Projects.Append (Project_Tree.Root_Project);
-
-         C.Load_Project
-           (Provider => Provider,
-            Tree     => Project_Tree,
-            Charset  => "iso-8859-1");
-      end;
-
-      Self.Contexts.Prepend (C);
-   end Create_Fallback_Context;
 
    ---------------------------
    -- Ensure_Project_Loaded --
@@ -755,6 +684,35 @@ package body LSP.Ada_Handlers.Project_Loading is
    --------------------------
 
    procedure Enqueue_Indexing_Job (Self : in out Message_Handler'Class) is
+      procedure Create_Fallback_Context (Self : in out Message_Handler'Class);
+      --  Create a fallback context for the given handler's contexts' set.
+
+      -----------------------------
+      -- Create_Fallback_Context --
+      -----------------------------
+
+      procedure Create_Fallback_Context (Self : in out Message_Handler'Class)
+      is
+         use LSP.Ada_Context_Sets;
+         use LSP.Ada_Contexts;
+      begin
+         declare
+            C      : constant Context_Access := new Context (Self.Tracer);
+            Reader :
+              LSP.Ada_Handlers.File_Readers.LSP_File_Reader
+                (Self'Unchecked_Access);
+         begin
+            Self.Tracer.Trace_Text ("Creating fallback context");
+
+            C.Initialize
+              (File_Reader         => Reader,
+               Follow_Symlinks     => Self.Configuration.Follow_Symlinks,
+               Style               => Self.Configuration.Documentation_Style,
+               As_Fallback_Context => True);
+            Self.Contexts.Prepend (C);
+         end;
+      end Create_Fallback_Context;
+
       Files : LSP.Ada_Indexing.File_Sets.Set;
    begin
       --  Create a fallback context before indexing. This allows to
@@ -829,43 +787,20 @@ package body LSP.Ada_Handlers.Project_Loading is
 
    procedure Reload_Implicit_Project_Dirs (Self : in out Message_Handler'Class)
    is
-      Success : Boolean;
-   begin
-      Release_Contexts_And_Project_Info (Self);
-
-      Create_In_Memory_Project
-        (Name         => "default",
-         Dirs         => Self.Project_Dirs_Loaded,
-         Project_Tree => Self.Project_Tree,
-         Success      => Success);
-
-      if not Success then
-         LSP.Ada_Project_Loading.Set_Load_Status
-           (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
-      end if;
-   end Reload_Implicit_Project_Dirs;
-
-   ------------------------------
-   -- Create_In_Memory_Project --
-   ------------------------------
-
-   procedure Create_In_Memory_Project
-     (Name         : GPR2.Name_Type;
-      Dirs         : File_Sets.Set;
-      Project_Tree : in out GPR2.Project.Tree.Object;
-      Success      : out Boolean)
-   is
       Project : GPR2.Project.Tree.View_Builder.Object :=
         GPR2.Project.Tree.View_Builder.Create
           (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
-           Name        => Name);
+           Name        => "default");
       Values  : GPR2.Containers.Value_List;
       Opts    : GPR2.Options.Object;
+      Success : Boolean;
    begin
-      Project_Tree.Unload;
+      Release_Contexts_And_Project_Info (Self);
+      Self.Project_Tree.Unload;
+
       --  Load all the dirs
 
-      for Dir of Dirs loop
+      for Dir of Self.Project_Dirs_Loaded loop
          Values.Append (Dir.Display_Full_Name);
       end loop;
 
@@ -874,25 +809,28 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       --  First we load the fallback project
       Success :=
-        Project_Tree.Load_Virtual_View
+        Self.Project_Tree.Load_Virtual_View
           (Project,
            Opts,
            With_Runtime     => True,
            Absent_Dir_Error => GPR2.No_Error);
 
-      if Success then
-         Project_Tree.Update_Sources;
-      else
-         for C in Project_Tree.Log_Messages.Iterate loop
+      if not Success then
+         for C in Self.Project_Tree.Log_Messages.Iterate loop
             Tracer.Trace (C.Element.Format);
          end loop;
+         LSP.Ada_Project_Loading.Set_Load_Status
+           (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
       end if;
+
+      Self.Project_Tree.Update_Sources;
 
    exception
       when E : others =>
-         Tracer.Trace_Exception (E, "Create_In_Memory_Project");
-         Success := False;
-   end Create_In_Memory_Project;
+         Tracer.Trace_Exception (E, "Reload_Implicit_Project_Dirs");
+         LSP.Ada_Project_Loading.Set_Load_Status
+           (Self.Project_Status, LSP.Ada_Project_Loading.Invalid_Project);
+   end Reload_Implicit_Project_Dirs;
 
    --------------------
    -- Reload_Project --
