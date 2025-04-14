@@ -62,6 +62,16 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Status : out LSP.Server_Jobs.Execution_Status);
 
+   use type Libadalang.Analysis.Basic_Decl;
+
+   function Is_Derived_From
+     (Child  : Libadalang.Analysis.Type_Decl;
+      Parent : Libadalang.Analysis.Basic_Decl) return Boolean
+   is
+     (for some Item of Child.P_Base_Types => Item.P_Canonical_Part = Parent);
+   --
+   --  Check if Child id a direct childr of Parent.
+
    ----------------
    -- Create_Job --
    ----------------
@@ -142,7 +152,9 @@ package body LSP.Ada_Type_Hierarchy_Subtypes is
 
                Loc := Self.Parent.Context.To_LSP_Location (Name.P_Basic_Decl);
 
-               if not Self.Filter.Contains (Loc) then
+               if not Self.Filter.Contains (Loc)
+                 and Is_Derived_From (Tipe, Self.Decl.P_Canonical_Part)
+               then
                   Item :=
                     (name           => VSS.Strings.To_Virtual_String
                        (Name.Text),
