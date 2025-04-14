@@ -524,7 +524,7 @@ async function restartLanguageServers() {
  * @param snippetName - the name of the snippet to insert in the newly created editor.
  */
 async function createNewFile(langId: string, snippetName: string) {
-    const doc = await vscode.workspace.openTextDocument({ language: 'ada' });
+    const doc = await vscode.workspace.openTextDocument({ language: langId });
     await vscode.window.showTextDocument(doc);
     await vscode.commands.executeCommand('editor.action.insertSnippet', {
         langId: langId,

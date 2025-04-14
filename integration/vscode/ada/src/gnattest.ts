@@ -869,7 +869,14 @@ async function buildTestDriverAndReportErrors(
                     await getGnatTestDriverProjectPath(),
                 ]
                     .concat(getScenarioArgs())
-                    .concat(['-cargs', '-g', '-fdump-scos', '-fpreserve-control-flow']),
+                    .concat([
+                        "'-cargs:ada'",
+                        '-gnatef',
+                        '-cargs',
+                        '-g',
+                        '-fdump-scos',
+                        '-fpreserve-control-flow',
+                    ]),
             };
             buildTask = (await adaTP.resolveTask(
                 new vscode.Task(
@@ -893,32 +900,40 @@ async function buildTestDriverAndReportErrors(
     const result = await runTaskSequence(buildTasks, new WriteEmitter(run));
 
     if (result != 0) {
-        let msg =
-            `Error while building the test harness project.` +
+        let markdownMsg =
+            `Failed to build the test harness project.` +
             ` Check the [Problems](command:workbench.panel.markers.view.focus) view` +
             ` and the [Terminal](command:terminal.focus) view for more information.`;
 
         if (coverage) {
             const taskName = `${TASK_TYPE_ADA}: ${TASK_GNATCOV_SETUP.label}`;
             const taskNameEncoded = taskName.replace(/:/g, '%3A').replace(/ /g, '%20');
-            msg +=
+            markdownMsg +=
                 `\n\nIf the errors relate to the GNATcoverage runtime library,` +
                 ` remember to set it up using the` +
                 ` [${taskName}]` +
                 `(command:workbench.action.tasks.runTask?%22${taskNameEncoded}%22) task.`;
         }
 
-        prepareAndAppendOutput(run, msg);
+        // Display a simple error message in the Tests Results view
+        prepareAndAppendOutput(
+            run,
+            'Failed to build the test harness project: check the ' +
+                'Problems and the Terminal views for more information.',
+        );
 
-        const md = new vscode.MarkdownString(msg);
-        md.isTrusted = true;
-        const testMsg = new vscode.TestMessage(md);
         /**
          * Mark each test as errored, not failed, since the tests can't run
          * because of the build error.
+         * Attach a proper markdown message to each failed test, with hyperlinks
+         * pointing the user to the Problems and the Terminal views.
          */
+        const md = new vscode.MarkdownString(markdownMsg);
+        md.isTrusted = true;
+        const testMsg = new vscode.TestMessage(md);
         testsToRun.forEach((test) => run.errored(test, testMsg));
-        throw Error(msg);
+
+        throw Error(markdownMsg);
     }
 }
 
