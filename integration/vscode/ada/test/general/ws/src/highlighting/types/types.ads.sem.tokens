@@ -43,25 +43,25 @@ line  30: column 10 - 17: type          [declaration, static]            : Page_
 line  31: column 10 - 18: type          [declaration]                    : Line_Size
 line  34: column 13 - 21: type          [declaration, static]            : Small_Int
 line  34: column 28 - 34: type          [static, defaultLibrary]         : Integer
-line  35: column 13 - 22: type          [declaration, static]            : Column_Ptr
+line  35: column 13 - 22: type          [declaration]                    : Column_Ptr
 line  35: column 28 - 36: type                                           : Line_Size
 line  36: column 13 - 23: type          [declaration]                    : Buffer_Size
 line  36: column 28 - 34: type          [static, defaultLibrary]         : Integer
 line  38: column 10 - 13: type          [declaration, static]            : Byte
 line  39: column 10 - 19: type          [declaration, static]            : Hash_Index
-line  42: column 10 - 15: type          [declaration, static]            : Vector
+line  42: column 10 - 15: type          [declaration]                    : Vector
 line  42: column 30 - 36: type          [static, defaultLibrary]         : Integer
-line  43: column 10 - 15: type          [declaration, static]            : Matrix
+line  43: column 10 - 15: type          [declaration]                    : Matrix
 line  44: column 15 - 21: type          [static, defaultLibrary]         : Integer
 line  44: column 34 - 40: type          [static, defaultLibrary]         : Integer
-line  45: column 10 - 19: type          [declaration, static]            : Bit_Vector
+line  45: column 10 - 19: type          [declaration]                    : Bit_Vector
 line  47: column 13 - 19: type          [static, defaultLibrary]         : Integer
 line  48: column 14 - 20: enum          [static, defaultLibrary]         : Boolean
-line  49: column 10 - 14: type          [declaration, static]            : Roman
+line  49: column 10 - 14: type          [declaration]                    : Roman
 line  49: column 30 - 37: type          [static, defaultLibrary]         : Positive
-line  50: column 10 - 14: type          [declaration, static]            : Table
+line  50: column 10 - 14: type          [declaration]                    : Table
 line  50: column 40 - 46: type          [static, defaultLibrary]         : Integer
-line  51: column 10 - 17: type          [declaration, static]            : Schedule
+line  51: column 10 - 17: type          [declaration]                    : Schedule
 line  51: column 28 - 30: enum          [static]                         : Day
 line  51: column 36 - 42: enum          [static, defaultLibrary]         : Boolean
 line  52: column 10 - 13: type          [declaration]                    : Line

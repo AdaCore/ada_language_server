@@ -70,7 +70,7 @@
             "method": "textDocument/didOpen",
             "params": {
                "textDocument": {
-                  "uri": "$URI{foo.adb}",
+                  "uri": "$URI{debug.adb}",
                   "version": 0,
                   "languageId": "Ada",
                   "text": "procedure Debug\n   is\n\nbegin\n   E := (1 =>                   --\n           'A');\nend Debug;\n"
@@ -88,7 +88,7 @@
             "method": "textDocument/rangeFormatting",
             "params": {
                "textDocument": {
-                  "uri": "$URI{foo.adb}"
+                  "uri": "$URI{debug.adb}"
                },
                "options": {
                   "tabSize": 8,

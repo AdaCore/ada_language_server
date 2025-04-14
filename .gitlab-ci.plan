@@ -1,7 +1,7 @@
 def build_(qualifier={}):
     with defaults(qualifier=qualifier):
         anod_build("als")
-        anod_build("vscode-extension", qualifier={"mono-plat": True})
+        anod_build("vscode-extension", qualifier={"mono-plat": True} | qualifier)
 
 
 def test_als_(qualifier={}):

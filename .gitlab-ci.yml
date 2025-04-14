@@ -70,9 +70,9 @@ include:
       disk: 80
       windows: true
       rules:
-        # Does not work on edge
-        - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_TARGET_BRANCH_NAME != 'edge'
-          allow_failure: true
+        # integration-testsuite cannot work with edge builds
+        - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_TARGET_BRANCH_NAME == 'edge'
+          when: never
 
   # Optional testing of GNAT Studio
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
