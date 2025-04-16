@@ -477,7 +477,10 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                         label: getBuildAndRunTaskPlainName(main),
                         taskDef: {
                             type: this.taskType,
-                            compound: [buildTask.label, runTask.label],
+                            compound: [
+                                getConventionalTaskLabel(buildTask),
+                                getConventionalTaskLabel(runTask),
+                            ],
                         },
                         problemMatchers: [],
                     };
@@ -516,7 +519,10 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             label: getBuildAndRunGNATemulatorTaskPlainName(main),
                             taskDef: {
                                 type: this.taskType,
-                                compound: [buildTask.label, runGNATemulatorTask.label],
+                                compound: [
+                                    getConventionalTaskLabel(buildTask),
+                                    getConventionalTaskLabel(runGNATemulatorTask),
+                                ],
                             },
                             problemMatchers: [],
                         };
@@ -525,7 +531,10 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                             label: getBuildAndRunGNATemulatorTaskPlainName(main, true),
                             taskDef: {
                                 type: this.taskType,
-                                compound: [buildTask.label, runGNATemulatorTaskForDebug.label],
+                                compound: [
+                                    getConventionalTaskLabel(buildTask),
+                                    getConventionalTaskLabel(runGNATemulatorTaskForDebug),
+                                ],
                             },
                             problemMatchers: [],
                         };
@@ -1213,13 +1222,17 @@ export function isFromWorkspace(task: vscode.Task): boolean {
 /**
  *
  * @param task - a task
- * @returns the label typically generated for that task by vscode. For tasks not
- * defined explicitly in the workspace, this is `ada: <task name>`. For tasks
- * defined in the workspace simply return the name which should already include
- * the convention.
+ * @returns the label typically generated for that task by vscode. For tasks
+ * not defined explicitly in the workspace, this is `<task type>: <task name>`.
+ * For tasks defined in the workspace simply return the name which should
+ * already include the convention.
  */
-export function getConventionalTaskLabel(task: vscode.Task): string {
-    return isFromWorkspace(task) ? task.name : `${task.source}: ${task.name}`;
+export function getConventionalTaskLabel(task: vscode.Task | PredefinedTask): string {
+    if (task instanceof vscode.Task) {
+        return isFromWorkspace(task) ? task.name : `${task.source}: ${task.name}`;
+    } else {
+        return `${task.taskDef.type}: ${task.label}`;
+    }
 }
 
 /**
