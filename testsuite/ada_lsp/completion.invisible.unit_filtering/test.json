@@ -144,7 +144,7 @@
                                  "qualifier": "",
                                  "where": {
                                     "position": {
-                                       "character": 7,
+                                       "character": 6,
                                        "line": 7
                                     },
                                     "textDocument": {
@@ -173,7 +173,7 @@
                                  "qualifier": "",
                                  "where": {
                                     "position": {
-                                       "character": 7,
+                                       "character": 6,
                                        "line": 7
                                     },
                                     "textDocument": {
