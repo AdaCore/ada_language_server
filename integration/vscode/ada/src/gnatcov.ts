@@ -5,7 +5,6 @@ import { cpus } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
-import { adaExtState } from './extension';
 import { getMatchingPrefixes, parallelize, staggerProgress, toPosix } from './helpers';
 
 /**
@@ -386,15 +385,25 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
 
                         if (srcUri === undefined) {
                             /**
-                             * Avoid searching in the object dir because we
-                             * might land on gnatcov-instrumented versions
-                             * of the sources.
+                             * GNATcov generates instrumented versions of the
+                             * sources with the same basenames. We want to
+                             * avoid associating coverage data with the
+                             * instrumented sources, so we exclude any paths
+                             * containing the special directory
+                             * `gnatcov-instr`. Ideally it would have been nice
+                             * to exclude precisely `<obj-dir>/gnatcov-instr`
+                             * but that would need to be repeated for each obj
+                             * dir of each project in the closure. As we don't
+                             * have access to that information, we ignore all
+                             * paths containing a `gnatcov-instr` component.
+                             *
+                             * Note that a previous version excluded the entire
+                             * object dir which did not work well on projects
+                             * that use '.' as the object dir. In that case
+                             * excluding the object dir would exclude the
+                             * entire workspace and prevent finding any files.
                              */
-                            const exclude = `${await adaExtState
-                                .getObjectDir()
-                                .then(vscode.workspace.asRelativePath)
-                                .then((objDir) => `${objDir}/**/*`)
-                                .catch(() => null)}`;
+                            const exclude = `**/gnatcov-instr/**/*`;
 
                             /**
                              * If the prefixes haven't been found yet, or
