@@ -168,13 +168,13 @@ async function activateExtension(context: vscode.ExtensionContext) {
     adaExtState.adaClient.clientOptions.middleware = alsMiddleware;
     adaExtState.adaClient.registerFeature(new ALSClientFeatures());
 
-    await adaExtState.start();
-
     /**
      * Register commands first so that commands such as displaying the extension
      * Output become available even if the language servers fail to start.
      */
     registerCommands(context, adaExtState);
+
+    await adaExtState.start();
 
     await vscode.commands.executeCommand('setContext', ADA_CONTEXT, true);
 

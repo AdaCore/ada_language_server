@@ -44,9 +44,6 @@ package body LSP.Alire is
    Alire_Verbose : constant GNATCOLL_Tracers.Tracer :=
      GNATCOLL_Tracers.Create ("ALS.ALIRE.VERBOSE", GNATCOLL.Traces.From_Config);
 
-   Fallback_Msg : constant VSS.Strings.Virtual_String :=
-     "falling back to other methods to load a project";
-
    type Process_Listener is limited
      new Spawn.Process_Listeners.Process_Listener
    with record
@@ -258,8 +255,7 @@ package body LSP.Alire is
            GNAT.OS_Lib.Locate_Exec_On_Path ("alr");
       begin
          if ALR = null then
-            Error :=
-              "Alire executable ('alr') not found in PATH: " & Fallback_Msg;
+            Error := "Alire executable ('alr') not found in PATH";
             return;
          end if;
 
@@ -337,8 +333,7 @@ package body LSP.Alire is
             Error.Append (To_Virtual_String (Arg));
          end loop;
 
-         Error.Append ("' failed: ");
-         Error.Append (Fallback_Msg);
+         Error.Append ("' failed:");
          Error.Append (VSS.Characters.Latin.Line_Feed);
 
          if Decoder.Has_Error then

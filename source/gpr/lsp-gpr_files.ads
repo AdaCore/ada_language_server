@@ -292,7 +292,8 @@ package LSP.GPR_Files is
    --  Type_Id/String conversions
 
    procedure Set_Environment
-     (Client : LSP.Ada_Client_Capabilities.Client_Capability);
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability;
+      Error  : out VSS.Strings.Virtual_String);
    --  Set environment to be used when parsing GPR files
 
    function Environment return GPR2.Environment.Object;
