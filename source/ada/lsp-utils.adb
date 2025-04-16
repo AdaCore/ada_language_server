@@ -24,6 +24,7 @@ with Libadalang.Sources;
 with Langkit_Support.Diagnostics;
 with Langkit_Support.Symbols;
 with Langkit_Support.Token_Data_Handlers;
+with Langkit_Support.Types;
 with Pp.Actions;
 
 with VSS.Strings.Character_Iterators;
@@ -202,7 +203,7 @@ package body LSP.Utils is
 
       procedure Tokenize_Output is
          Input : constant Libadalang.Lexer.Lexer_Input :=
-           (Kind     => Libadalang.Common.Bytes_Buffer,
+           (Kind     => Langkit_Support.Types.Bytes_Buffer,
             Charset  => Ada.Strings.Unbounded.To_Unbounded_String ("utf-8"),
             Read_BOM => False,
             Bytes    => To_Unbounded_String (Output));
