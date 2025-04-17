@@ -5,6 +5,10 @@ section below it for the last release. -->
 
 ## \<next>
 
+* Various improvements and bug fixes related to the GNATcoverage integration
+* Fix the display of the `Ada & SPARK` status bar item when there is no project-related diagnostic
+* Better handling of Ada files that do not belong to the loaded project tree
+
 ## 26.0.202504012
 
 * Fix a bug that caused the ALS to hang when trying to complete partially qualified invisible symbols
