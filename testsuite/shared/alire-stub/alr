@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# This is a dummy Alire stub for testing purposes. It works by determining the
+# Alire subcommand (e.g. build, show, printenv) and echo-ing stub output from
+# .alr_<subcommand> files after replacing CRATE_DIR with the directory where
+# Alire was invoked, and GNAT with the location of the `gnat` executable. This
+# creates for the ALS a realistic Alire output suitable for the purposes of
+# testing.
+
+set -e
+
+# Skip parameters starting with '-' until the Alire action is reached
+while [ $# -gt 1 ] && [[ $1 == -* ]]; do shift; done
+
+SUBCOMMAND=$1
+
+STUB_DIR=$(
+    cd "$(dirname "$(realpath "$0")")"
+    pwd
+)
+CRATE_DIR="$PWD"
+GNAT=$(dirname "$(which gnat)")
+sed -e "s#\${CRATE_DIR}#${CRATE_DIR}#g" -e "s#\${GNAT}#${GNAT}#g" "${STUB_DIR}/.alr_$SUBCOMMAND"

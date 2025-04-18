@@ -469,6 +469,10 @@ class ALSLanguageClient(LanguageClient):
         """Raise an AssertionError if actual != expected."""
         assertEqual(actual, expected)
 
+    def assertNotEqual(self, actual: Any, expected: Any) -> None:
+        """Raise an AssertionError if actual == expected."""
+        assertNotEqual(actual, expected)
+
     def assertLocationsList(
         self,
         actual: Sequence[CallHierarchyItem | CallHierarchyIncomingCall],
@@ -905,7 +909,22 @@ def find_ALS_process():
 def assertEqual(actual: Any, expected: Any) -> None:
     """Raise an AssertionError if actual != expected."""
     if actual != expected:
-        msg = f"\n### Actual ###\n{actual}\n### Expected ###\n{expected}"
+        msg = (
+            "Expected actual == expected"
+            f"\n### Actual ###\n{actual}"
+            f"\n### Expected ###\n{expected}"
+        )
+        raise AssertionError(msg)
+
+
+def assertNotEqual(actual: Any, expected: Any) -> None:
+    """Raise an AssertionError if actual == expected."""
+    if actual == expected:
+        msg = (
+            "Expected actual != expected"
+            f"\n### Actual ###\n{actual}"
+            f"\n### Expected ###\n{expected}"
+        )
         raise AssertionError(msg)
 
 
