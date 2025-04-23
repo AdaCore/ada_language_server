@@ -4,9 +4,7 @@
         "lineComment": "-- "
     },
     // symbols used as brackets
-    "brackets": [
-        ["(", ")"]
-    ],
+    "brackets": [["(", ")"]],
     // symbols that are auto closed when typing
     "autoClosingPairs": [
         ["<<", ">>"],
@@ -23,5 +21,22 @@
         ["(", ")"],
         ["\"", "\""],
         ["'", "'"]
+    ],
+    // Used to split long comments easily: when a user presses ENTER
+    // in the middle of an Ada comment, '--  ' will automatically be added
+    // to the next line.
+    "onEnterRules": [
+        {
+            "beforeText": {
+                "pattern": "--\\s+"
+            },
+            "afterText": {
+                "pattern": "\\S+"
+            },
+            "action": {
+                "indent": "none",
+                "appendText": "--  "
+            }
+        }
     ]
 }

@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { adaExtState } from '../../src/extension';
 import { getObjectDir, TERMINAL_ENV_SETTING_NAME } from '../../src/helpers';
-import { activate, assertEqualToFileContent } from '../utils';
+import { activate, assertEqualToFileContent, showTextDocument } from '../utils';
 
 import { readFileSync, writeFileSync } from 'fs';
 import * as vscode from 'vscode';
@@ -210,6 +210,32 @@ suite('Extensions Test Suite', function () {
             assert.strictEqual(await adaExtState.getObjectDir(), originalObjDir);
         } else {
             throw new Error('No workspace folder found for the specified URI');
+        }
+    });
+
+    test('Split long comments on ENTER', async () => {
+        if (vscode.workspace.workspaceFolders !== undefined) {
+            // Get a file with a long comment (>80 chars)
+            const srcRelPath = ['src', 'split_comment.ads'];
+            const textEditor = await showTextDocument(...srcRelPath);
+
+            // Set the cursor in the middle of the long comment
+            const insertPos = new vscode.Position(0, 69);
+            textEditor.selection = new vscode.Selection(insertPos, insertPos);
+
+            // Simulate a keypress on the ENTER key
+            const inputText = '\n';
+            await vscode.commands.executeCommand('type', { text: inputText });
+
+            // Check that we now have two lines, and that the second line
+            // starts with the '--  ' comment tag
+            const text = textEditor.document.getText() ?? '';
+            assert.strictEqual(
+                text,
+                "--  Used to test the VS Code extension 'onEnterRule' that splits long\n" +
+                    '--   comments when pressing ENTER\n',
+                `Wrong text in the editor after pressing ENTER in the middle of a comment`,
+            );
         }
     });
 });
