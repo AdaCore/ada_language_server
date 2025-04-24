@@ -37,7 +37,7 @@ async def test(lsp: pylsp.ALSLanguageClient) -> None:
                 "context": pylsp.URI("default.gpr"),
                 "where": {
                     "textDocument": {"uri": file_uri},
-                    "position": {"line": 1, "character": 23},
+                    "position": {"line": 1, "character": 22},
                 },
                 "import": "P1.P2.Subp",
                 "qualifier": "",

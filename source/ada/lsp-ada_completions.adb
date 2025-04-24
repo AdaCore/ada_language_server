@@ -116,6 +116,7 @@ package body LSP.Ada_Completions is
       Context                  : LSP.Ada_Contexts.Context;
       Document                 : LSP.Ada_Documents.Document;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
+      Token                    : Libadalang.Common.Token_Reference;
       Node                     : Libadalang.Analysis.Ada_Node;
       Names                    : Completion_Maps.Map;
       Named_Notation_Threshold : Natural;
@@ -131,6 +132,10 @@ package body LSP.Ada_Completions is
       Seen   : String_Sets.Set;
       --  Set of found visible names in canonical form
       Length : constant Natural := Natural (Names.Length);
+      From   : constant Langkit_Support.Slocs.Source_Location :=
+        Langkit_Support.Slocs.Start_Sloc
+          (Libadalang.Common.Sloc_Range (Libadalang.Common.Data (Token)));
+
    begin
 
       --  Write Result in two pases. Firstly append all visible names and
@@ -166,6 +171,7 @@ package body LSP.Ada_Completions is
                        (Handler                  => Handler,
                         Context                  => Context,
                         Sloc                     => Sloc,
+                        From                     => From,
                         Node                     => Node,
                         BD                       => Name.P_Basic_Decl,
                         Label                    => Label,
