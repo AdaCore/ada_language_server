@@ -342,8 +342,6 @@ procedure LSP.Ada_Driver is
 
    ALS_Log_Dir                : Virtual_File := LSP.Env.ALS_Log_Dir;
    Clean_ALS_Dir          : Boolean := False;
-   GNATdebug              : constant Virtual_File := Create_From_Base
-     (".gnatdebug");
 
    Traces_File : Virtual_File;
 
@@ -424,7 +422,6 @@ begin
    begin
       --  Look for a traces file, in this order:
       --     - passed on the command line via --tracefile,
-      --     - in a .gnatdebug file locally
       --     - in "traces.cfg" in the ALS home directory
       if VSS.Command_Line.Is_Specified (Trace_File_Option) then
          Traces_File :=
@@ -436,8 +433,6 @@ begin
             GNAT.OS_Lib.OS_Exit (1);
          end if;
 
-      elsif GNATdebug.Is_Regular_File then
-         Traces_File := GNATdebug;
       else
          --  No $HOME/.als directory: create one first
          if not ALS_Log_Dir.Is_Directory then

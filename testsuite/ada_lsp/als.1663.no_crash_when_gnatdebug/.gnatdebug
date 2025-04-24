@@ -1,0 +1,4 @@
+# .gnatdebug file that makes the ALS to crash when parsed, since
+# it emits logs directly on the standard output
++
+PROCESS_MANAGER=yes
