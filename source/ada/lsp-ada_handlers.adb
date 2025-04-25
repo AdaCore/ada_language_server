@@ -924,21 +924,23 @@ package body LSP.Ada_Handlers is
                return;
             end if;
 
-            for Suggestion of Import_Suggestions loop
-               declare
-                  Name_Location : constant LSP.Structures.Location :=
-                    LSP.Utils.Get_Node_Location (Name);
-                  Command       :
-                    LSP.Ada_Handlers.Refactor.Auto_Import.Command;
+            declare
+               Name_Location : constant LSP.Structures.Location :=
+                 LSP.Utils.Get_Node_Location (Name);
+            begin
+               for Suggestion of Import_Suggestions loop
+                  declare
+                     Command : LSP.Ada_Handlers.Refactor.Auto_Import.Command;
 
-               begin
-                  Command.Append_Suggestion
-                    (Context         => Context,
-                     Where           => Name_Location,
-                     Commands_Vector => Result,
-                     Suggestion      => Suggestion);
-               end;
-            end loop;
+                  begin
+                     Command.Append_Suggestion
+                       (Context         => Context,
+                        Where           => Name_Location,
+                        Commands_Vector => Result,
+                        Suggestion      => Suggestion);
+                  end;
+               end loop;
+            end;
 
             if not Import_Suggestions.Is_Empty then
                Found := True;
@@ -1625,6 +1627,7 @@ package body LSP.Ada_Handlers is
          Context                  => Context.all,
          Document                 => Document.all,
          Sloc                     => Sloc,
+         Token                    => Token,
          Node                     => Node,
          Names                    => Names,
          Named_Notation_Threshold =>

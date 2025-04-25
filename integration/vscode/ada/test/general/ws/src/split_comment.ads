@@ -1,0 +1,1 @@
+--  Used to test the VS Code extension 'onEnterRule' that splits long comments when pressing ENTER

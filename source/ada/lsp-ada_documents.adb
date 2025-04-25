@@ -107,6 +107,7 @@ package body LSP.Ada_Documents is
       Handler                  : in out LSP.Ada_Handlers.Message_Handler;
       Context                  : LSP.Ada_Contexts.Context;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
+      From                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
       BD                       : Libadalang.Analysis.Basic_Decl;
       Label                    : VSS.Strings.Virtual_String;
@@ -276,7 +277,7 @@ package body LSP.Ada_Documents is
            (Context     => Context,
             Where       =>
               ((uri => Document.URI),
-               Document.To_LSP_Position (Sloc)),
+               Document.To_LSP_Position (From)),
             With_Clause => Missing_Unit_Name,
             Prefix      => Missing_Qualifier);
 
@@ -875,14 +876,12 @@ package body LSP.Ada_Documents is
          return Token;
       end Completion_Token;
    begin
-      Sloc := Self.To_Source_Location (Position);
+      Sloc  := Self.To_Source_Location (Position);
       Token := Completion_Token (Sloc);
       declare
          From : constant Langkit_Support.Slocs.Source_Location :=
            Langkit_Support.Slocs.Start_Sloc
-             (Libadalang.Common.Sloc_Range
-                (Libadalang.Common.Data (Token)));
-
+             (Libadalang.Common.Sloc_Range (Libadalang.Common.Data (Token)));
          Root : constant Libadalang.Analysis.Ada_Node :=
            Self.Unit (Context).Root;
       begin

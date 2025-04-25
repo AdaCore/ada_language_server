@@ -5,6 +5,8 @@ section below it for the last release. -->
 
 ## \<next>
 
+* Added `onEnterRules` for Ada/GPR files to split long comments by adding automatically a comment tag to the next line
+
 ## 26.0.202504171
 
 * Various improvements and bug fixes related to the GNATcoverage integration

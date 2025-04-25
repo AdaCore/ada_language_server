@@ -246,6 +246,7 @@ package LSP.Ada_Documents is
       Handler                  : in out LSP.Ada_Handlers.Message_Handler;
       Context                  : LSP.Ada_Contexts.Context;
       Sloc                     : Langkit_Support.Slocs.Source_Location;
+      From                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
       BD                       : Libadalang.Analysis.Basic_Decl;
       Label                    : VSS.Strings.Virtual_String;
