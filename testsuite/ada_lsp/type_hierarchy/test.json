@@ -143,20 +143,6 @@
                      }
                   },
                   {
-                     "name": "Abstract_Shape",
-                     "kind": 5,
-                     "detail": "at base_types.ads (3:9)",
-                     "uri": "$URI{base_types.ads}",
-                     "range": {
-                        "start": { "line": 2, "character": 3 },
-                        "end": { "line": 2, "character": 23 }
-                     },
-                     "selectionRange": {
-                        "start": { "line": 2, "character": 8 },
-                        "end": { "line": 2, "character": 22 }
-                     }
-                  },
-                  {
                      "name": "Circle",
                      "kind": 5,
                      "detail": "at other.ads (9:9)",
@@ -250,20 +236,6 @@
                      "selectionRange": {
                         "start": { "line": 3, "character": 8 },
                         "end": { "line": 3, "character": 24 }
-                     }
-                  },
-                  {
-                     "name": "Private_Type",
-                     "kind": 5,
-                     "detail": "at base_types.ads (9:9)",
-                     "uri": "$URI{base_types.ads}",
-                     "range": {
-                        "start": { "line": 8, "character": 3 },
-                        "end": { "line": 8, "character": 32 }
-                     },
-                     "selectionRange": {
-                        "start": { "line": 8, "character": 8 },
-                        "end": { "line": 8, "character": 20 }
                      }
                   },
                   {
@@ -538,20 +510,6 @@
                      "selectionRange": {
                         "start": { "line": 3, "character": 8 },
                         "end": { "line": 3, "character": 24 }
-                     }
-                  },
-                  {
-                     "name": "Private_Type",
-                     "kind": 5,
-                     "detail": "at base_types.ads (9:9)",
-                     "uri": "$URI{base_types.ads}",
-                     "range": {
-                        "start": { "line": 8, "character": 3 },
-                        "end": { "line": 8, "character": 32 }
-                     },
-                     "selectionRange": {
-                        "start": { "line": 8, "character": 8 },
-                        "end": { "line": 8, "character": 20 }
                      }
                   },
                   {
