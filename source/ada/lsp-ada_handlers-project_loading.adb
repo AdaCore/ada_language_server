@@ -855,12 +855,13 @@ package body LSP.Ada_Handlers.Project_Loading is
       Project_Tree : in out GPR2.Project.Tree.Object;
       Success      : out Boolean)
    is
-      Project : GPR2.Project.Tree.View_Builder.Object :=
+      Project  : GPR2.Project.Tree.View_Builder.Object :=
         GPR2.Project.Tree.View_Builder.Create
           (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
            Name        => Name);
-      Values  : GPR2.Containers.Value_List;
-      Opts    : GPR2.Options.Object;
+      Values   : GPR2.Containers.Value_List;
+      Opts     : GPR2.Options.Object;
+      Reporter : GPR2_Reporter;
    begin
       Project_Tree.Unload;
       --  Load all the dirs
@@ -878,7 +879,8 @@ package body LSP.Ada_Handlers.Project_Loading is
           (Project,
            Opts,
            With_Runtime     => True,
-           Absent_Dir_Error => GPR2.No_Error);
+           Absent_Dir_Error => GPR2.No_Error,
+           Reporter         => Reporter);
 
       if Success then
          Project_Tree.Update_Sources;
