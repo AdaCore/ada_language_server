@@ -311,22 +311,22 @@ export class ExtensionState {
     };
 
     /**
-     * Show a popup asking the user to reload the VS Code window after
-     * changes made in the VS Code environment settings
-     * (e.g: terminal.integrated.env.linux).
+     * Show a popup asking the user to restart the Ada and GPR language
+     * servers when some changes are made in the VS Code environment
+     * settings (e.g: terminal.integrated.env.linux).
      */
-    public showReloadWindowPopup = async () => {
+    public showRestartLanguageServersPopup = async () => {
         const selection = await vscode.window.showWarningMessage(
-            `The workspace environment has changed: the VS Code window needs
-            to be reloaded in order for the Ada Language Server to take the
+            `The workspace environment has changed: the Ada Language Server instances
+            need to be restarted in order to take the
             new environment into account.
-            Do you want to reload the VS Code window?`,
-            'Reload Window',
+            Do you want to restart the Ada Language Server instances?`,
+            'Restart Language Servers',
         );
 
-        // Reload the VS Code window if the user selected 'Yes'
-        if (selection == 'Reload Window') {
-            void vscode.commands.executeCommand('workbench.action.reloadWindow');
+        // Restart the Ada and GPR language servers if the user asks for it
+        if (selection == 'Restart Language Servers') {
+            void vscode.commands.executeCommand(CMD_RESTART_LANG_SERVERS);
         }
     };
 
@@ -346,13 +346,13 @@ export class ExtensionState {
 
         //  React to changes made in the environment variables, showing
         //  a popup to reload the VS Code window and thus restart the
-        //  Ada extension.
+        //  Ada and GPR language servers.
         if (e.affectsConfiguration(TERMINAL_ENV_SETTING_NAME)) {
             const new_value = vscode.workspace.getConfiguration().get(TERMINAL_ENV_SETTING_NAME);
             logger.info(`${TERMINAL_ENV_SETTING_NAME} has changed: show reload popup`);
             logger.info(`${TERMINAL_ENV_SETTING_NAME}: ${JSON.stringify(new_value, undefined, 2)}`);
 
-            void this.showReloadWindowPopup();
+            void this.showRestartLanguageServersPopup();
         }
     };
 
