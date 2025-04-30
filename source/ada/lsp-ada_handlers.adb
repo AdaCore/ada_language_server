@@ -3459,7 +3459,6 @@ package body LSP.Ada_Handlers is
    is
       use type Ada.Containers.Count_Type;
       use type LSP.Search.Search_Kind;
-      use type VSS.Strings.Character_Count;
 
       procedure Send_Partial_Response;
 
@@ -3537,17 +3536,6 @@ package body LSP.Ada_Handlers is
       Response : LSP.Structures.Symbol_Result (LSP.Structures.Variant_1);
 
    begin
-      if Pattern.Get_Kind /= LSP.Enumerations.Start_Word_Text
-        and then Pattern.Get_Canonical_Pattern.Character_Length < 2
-      then
-         --  Do not process too small pattern because
-         --  this produces a huge response that is useless
-         --  and costs a while.
-
-         Self.Sender.On_Symbol_Response (Id, Response);
-         return;
-      end if;
-
       for Context of Self.Contexts.Each_Context loop
          Context.Get_Any_Symbol
            (Pattern     => Pattern,
