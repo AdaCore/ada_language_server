@@ -33,7 +33,6 @@ with VSS.Strings.Templates;
 with Laltools.Common;
 with Laltools.Partial_GNATPP;
 
-with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with LAL_Refactor.Extract_Subprogram;
@@ -162,6 +161,13 @@ package body LSP.Ada_Handlers is
       Token : Libadalang.Common.Token_Reference)
       return LSP.Structures.A_Range is
         (LSP.Ada_Handlers.Locations.To_LSP_Range (Self, Unit, Token));
+
+   overriding function From_LSP_Range
+     (Self : in out Message_Handler;
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+      return Langkit_Support.Slocs.Source_Location_Range is
+        (LSP.Ada_Handlers.Locations.From_LSP_Range (Self, Unit, Sloc));
 
    overriding function Get_Node_At
      (Self     : in out Message_Handler;

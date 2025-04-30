@@ -418,6 +418,7 @@ package body LSP.Ada_Client_Capabilities is
          Result.foldingRangeProvider            := LSP.Constants.True;
          Result.hoverProvider                   := LSP.Constants.True;
          Result.implementationProvider          := LSP.Constants.True;
+         Result.inlineValueProvider             := LSP.Constants.True;
          Result.referencesProvider              := LSP.Constants.True;
          Result.selectionRangeProvider          := LSP.Constants.True;
          Result.typeDefinitionProvider          := LSP.Constants.True;

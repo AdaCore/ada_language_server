@@ -23,6 +23,7 @@ with Ada.Exceptions;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with Langkit_Support.Slocs;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
@@ -169,6 +170,12 @@ package LSP.Ada_Job_Contexts is
       Unit  : Libadalang.Analysis.Analysis_Unit;
       Token : Libadalang.Common.Token_Reference)
       return LSP.Structures.A_Range is abstract;
+
+   function From_LSP_Range
+     (Self : in out Ada_Job_Context;
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+      return Langkit_Support.Slocs.Source_Location_Range is abstract;
 
    procedure Append_Location
      (Self   : in out Ada_Job_Context;
