@@ -684,6 +684,20 @@
                         }
                      },
                      "alsKind": ["reference"]
+                  },
+                  {
+                     "uri": "$URI{main.adb}",
+                     "range": {
+                        "start": {
+                           "line": 4,
+                           "character": 12
+                        },
+                        "end": {
+                           "line": 4,
+                           "character": 13
+                        }
+                     },
+                     "alsKind": ["call"]
                   }
                ]
             }
