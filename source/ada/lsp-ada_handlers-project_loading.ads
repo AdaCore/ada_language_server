@@ -33,6 +33,9 @@ package LSP.Ada_Handlers.Project_Loading is
    --  4. else if there are multiple projects at the root, warn about it and
    --     load the implicit project
    --  5. else load the implicit project
+   --
+   --  Initially this function guaranteed that the Message_Handler would have
+   --  the project loaded on return, but this is no longer the case.
 
    procedure Reload_Project (Self : in out Message_Handler'CLass);
    --  Clear the current project context and call Ensure_Project_Loaded to

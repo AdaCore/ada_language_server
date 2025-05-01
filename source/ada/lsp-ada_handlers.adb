@@ -254,10 +254,10 @@ package body LSP.Ada_Handlers is
       --  Check if the given file belongs to the runtime.
 
       function Is_A_Source (Self : LSP.Ada_Contexts.Context) return Boolean is
-        ((Is_Runtime_File and then not Self.Is_Fallback_Context)
-         or else Self.Is_Part_Of_Project (File));
+        (not Self.Is_Fallback_Context and then
+           (Is_Runtime_File or else Self.Is_Part_Of_Project (File)));
       --  Return True if File is a source of the project held by Context
-      --  Avoid considering runtime files as sources for the fallback context,
+      --  Avoid considering runtime files as sources and the fallback context,
       --  if there is no context available for this file then we will still
       --  use the fallback later.
 
@@ -3459,7 +3459,6 @@ package body LSP.Ada_Handlers is
    is
       use type Ada.Containers.Count_Type;
       use type LSP.Search.Search_Kind;
-      use type VSS.Strings.Character_Count;
 
       procedure Send_Partial_Response;
 
@@ -3537,17 +3536,6 @@ package body LSP.Ada_Handlers is
       Response : LSP.Structures.Symbol_Result (LSP.Structures.Variant_1);
 
    begin
-      if Pattern.Get_Kind /= LSP.Enumerations.Start_Word_Text
-        and then Pattern.Get_Canonical_Pattern.Character_Length < 2
-      then
-         --  Do not process too small pattern because
-         --  this produces a huge response that is useless
-         --  and costs a while.
-
-         Self.Sender.On_Symbol_Response (Id, Response);
-         return;
-      end if;
-
       for Context of Self.Contexts.Each_Context loop
          Context.Get_Any_Symbol
            (Pattern     => Pattern,
