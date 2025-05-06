@@ -1,0 +1,164 @@
+[
+   {
+      "comment": ["This test checks inline_value request"]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "inlineValueProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{iv_test.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Iv_Test is\n   S : constant String := \"abc\";\n   X : constant := 23;\n   Y : constant Integer := S'Length;\n   Z : Integer := X + Y;\n\nbegin\n   while Z > 0 loop\n      Z := Z - 10;\n   end loop;\nend Iv_Test;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "iv-1",
+            "method": "textDocument/inlineValue",
+            "params": {
+               "textDocument": { "uri": "$URI{iv_test.adb}" },
+               "range": {
+                  "start": { "line": 0, "character": 0 },
+                  "end": { "line": 11, "character": 0 }
+               },
+               "context": {
+                  "frameId": 1000,
+                  "stoppedLocation": {
+                     "start": { "line": 8, "character": 1 },
+                     "end": { "line": 8, "character": 1 }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "iv-1",
+               "result": [
+                  {
+                     "range": {
+                        "start": { "line": 3, "character": 27 },
+                        "end": { "line": 3, "character": 28 }
+                     },
+                     "text": "S = abc"
+                  },
+                  {
+                     "range": {
+                        "start": { "line": 4, "character": 18 },
+                        "end": { "line": 4, "character": 19 }
+                     },
+                     "text": "X = 23"
+                  },
+                  {
+                     "range": {
+                        "start": { "line": 4, "character": 22 },
+                        "end": { "line": 4, "character": 23 }
+                     },
+                     "text": "Y = 3"
+                  },
+                  {
+                     "range": {
+                        "start": { "line": 7, "character": 9 },
+                        "end": { "line": 7, "character": 10 }
+                     },
+                     "caseSensitiveLookup": false
+                  },
+                  {
+                     "range": {
+                        "start": { "line": 8, "character": 6 },
+                        "end": { "line": 8, "character": 7 }
+                     },
+                     "caseSensitiveLookup": false
+                  },
+                  {
+                     "range": {
+                        "start": { "line": 8, "character": 11 },
+                        "end": { "line": 8, "character": 12 }
+                     },
+                     "caseSensitiveLookup": false
+                  },
+                  {
+                     "range": {
+                        "start": { "line": 8, "character": 11 },
+                        "end": { "line": 8, "character": 17 }
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
