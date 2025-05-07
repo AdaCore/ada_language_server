@@ -28,6 +28,7 @@ with GNATCOLL.VFS;
 with GPR2.Build.Source.Sets;
 with GPR2.Project.Tree;
 
+with Langkit_Support.Slocs;
 with Libadalang.Analysis;
 with Libadalang.Common;
 
@@ -556,6 +557,12 @@ private
      (Self  : in out Message_Handler;
       Node   : Libadalang.Analysis.Ada_Node'Class)
       return LSP.Structures.A_Range;
+
+   overriding function From_LSP_Range
+     (Self : in out Message_Handler;
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+      return Langkit_Support.Slocs.Source_Location_Range;
 
    overriding procedure Append_Location
      (Self   : in out Message_Handler;
