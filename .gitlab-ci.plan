@@ -1,7 +1,14 @@
+vscode_qual = {
+    "mono-plat": True,
+    "npm-online": True,
+    "npm-package": True,
+}
+
+
 def build_(qualifier={}):
     with defaults(qualifier=qualifier):
         anod_build("als")
-        anod_build("vscode-extension", qualifier={"mono-plat": True} | qualifier)
+        anod_build("vscode-extension", qualifier=vscode_qual | qualifier)
 
 
 def test_als_(qualifier={}):
@@ -19,7 +26,7 @@ def test_als_cov_(qualifier={}):
 
 
 def test_vscode_extension_(qualifier={}):
-    component_qual = qualifier | {"mono-plat": True}
+    component_qual = qualifier | vscode_qual
     # Install the component built in the preceding CI build job
     anod_install("vscode-extension", qualifier=component_qual)
     anod_test("vscode-extension", qualifier=component_qual | {"coverage": True})
@@ -64,7 +71,7 @@ def build_test_gs_edge():
 def test_integration_testsuite():
     # These two components have been built by the build job of the CI, install them.
     anod_install("als")
-    anod_install("vscode-extension", qualifier={"mono-plat": True})
+    anod_install("vscode-extension", qualifier=vscode_qual)
 
     # For the following components, we'd like to install with latest=True to be
     # resilient to failures in nightly builds.
@@ -86,5 +93,9 @@ def test_integration_testsuite():
     # Run the subset of integration-testsuite that uses VS Code
     anod_test(
         "integration-testsuite",
-        qualifier={"run-tools": "vscode", "cleanup-mode": "none", "mono-plat": True},
+        qualifier={
+            "run-tools": "vscode",
+            "cleanup-mode": "none",
+        }
+        | vscode_qual,
     )
