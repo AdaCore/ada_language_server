@@ -31,6 +31,11 @@ package body LSP.Ada_Handlers.Locations is
       Sloc : Langkit_Support.Slocs.Source_Location_Range)
         return LSP.Structures.A_Range;
 
+   function From_LSP_Range
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+        return Langkit_Support.Slocs.Source_Location_Range;
+
    ---------------------
    -- Append_Location --
    ---------------------
@@ -79,6 +84,99 @@ package body LSP.Ada_Handlers.Locations is
                kind    => Kind));
       end if;
    end Append_Location;
+
+   --------------------
+   -- From_LSP_Range --
+   --------------------
+
+   function From_LSP_Range
+     (Self : in out Message_Handler'Class;
+      Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+      return Langkit_Support.Slocs.Source_Location_Range
+   is
+      use type LSP.Ada_Documents.Document_Access;
+
+      URI : constant LSP.Structures.DocumentUri :=
+        (VSS.Strings.Conversions.To_Virtual_String
+           (URIs.Conversions.From_File (Unit.Get_Filename))
+         with null record);
+
+      Doc : constant LSP.Ada_Documents.Document_Access :=
+        Self.Get_Open_Document (URI);
+
+   begin
+      if Doc /= null then
+         return Doc.To_Source_Location_Range (Sloc);
+
+      else
+         return From_LSP_Range (Unit, Sloc);
+      end if;
+   end From_LSP_Range;
+
+   --------------------
+   -- From_LSP_Range --
+   --------------------
+
+   function From_LSP_Range
+     (Unit : Libadalang.Analysis.Analysis_Unit;
+      Sloc : LSP.Structures.A_Range)
+        return Langkit_Support.Slocs.Source_Location_Range
+   is
+      use type Langkit_Support.Slocs.Column_Number;
+
+      Result : Langkit_Support.Slocs.Source_Location_Range :=
+        (Start_Line => Positive'Pos (Sloc.start.line + 1),
+         End_Line   => Positive'Pos (Sloc.an_end.line + 1),
+         others => 0);
+   begin
+      declare
+         Line : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (Unit.Get_Line (Sloc.start.line + 1));
+
+         Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.Before_First_Character;
+
+      begin
+         while Cursor.Forward and then
+           Natural (Cursor.First_UTF16_Offset) <= Sloc.start.character
+         loop
+            Result.Start_Column := @ + 1;
+         end loop;
+
+         if Sloc.start.line = Sloc.an_end.line then
+
+            Result.End_Column := Result.Start_Column;
+
+            while Cursor.Forward and then
+              Natural (Cursor.First_UTF16_Offset) <= Sloc.an_end.character
+            loop
+               Result.End_Column := @ + 1;
+            end loop;
+
+            return Result;
+         end if;
+      end;
+
+      declare
+         Line : constant VSS.Strings.Virtual_String :=
+           VSS.Strings.To_Virtual_String
+             (Unit.Get_Line (Sloc.an_end.line + 1));
+
+         Cursor : VSS.Strings.Character_Iterators.Character_Iterator :=
+           Line.Before_First_Character;
+
+      begin
+         while Cursor.Forward and then
+           Natural (Cursor.First_UTF16_Offset) <= Sloc.an_end.character
+         loop
+            Result.End_Column := @ + 1;
+         end loop;
+
+         return Result;
+      end;
+   end From_LSP_Range;
 
    -----------------
    -- Get_Node_At --

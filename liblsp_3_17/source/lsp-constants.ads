@@ -36,6 +36,14 @@ package LSP.Constants is
        is (Is_Set => True, Value => True);
 
    function True
+     return LSP.Structures.inlineValueProvider_OfServerCapabilities
+       is (Kind => LSP.Structures.Variant_1, Variant_1 => True);
+
+   function True
+     return LSP.Structures.inlineValueProvider_OfServerCapabilities_Optional
+       is (Is_Set => True, Value => True);
+
+   function True
      return LSP.Structures.declarationProvider_OfServerCapabilities
        is (Kind => LSP.Structures.Variant_1, Variant_1 => True);
 

@@ -6,6 +6,7 @@ section below it for the last release. -->
 ## \<next>
 
 * Added `onEnterRules` for Ada/GPR files to split long comments by adding automatically a comment tag to the next line
+* Added support for new LSP request `textDocument/inlineValue`
 
 ## 26.0.202504171
 
