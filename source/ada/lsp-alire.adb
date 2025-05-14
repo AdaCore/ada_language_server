@@ -15,7 +15,9 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
 with Ada.Streams;
+with GNAT.Lock_Files;
 with GNAT.OS_Lib;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
@@ -42,7 +44,8 @@ package body LSP.Alire is
      GNATCOLL_Tracers.Create ("ALS.ALIRE", GNATCOLL.Traces.On);
 
    Alire_Verbose : constant GNATCOLL_Tracers.Tracer :=
-     GNATCOLL_Tracers.Create ("ALS.ALIRE.VERBOSE", GNATCOLL.Traces.From_Config);
+     GNATCOLL_Tracers.Create
+       ("ALS.ALIRE.VERBOSE", GNATCOLL.Traces.From_Config);
 
    type Process_Listener is limited
      new Spawn.Process_Listeners.Process_Listener
@@ -63,11 +66,31 @@ package body LSP.Alire is
    overriding
    procedure Error_Occurred (Self : in out Process_Listener; Error : Integer);
 
-   procedure Start_Alire
+   procedure Start_Alire_Sync
      (Options : VSS.String_Vectors.Virtual_String_Vector;
       Root    : String;
       Error   : out VSS.Strings.Virtual_String;
       Lines   : out VSS.String_Vectors.Virtual_String_Vector);
+   --  This procedure uses a cross-process lock based on the current directory
+   --  before starting Alire. This ensures that all ALS processes spawned in
+   --  the same directory make Alire invocations in sequence and not in
+   --  parallel, since concurrent Alire invocations on the same workspace can
+   --  clash with each other on shared temporary files.
+   --
+   --  The actual invocation of Alire is delegated to Start_Alire_Unsynced.
+   --
+   --  This is necessary in contexts where two ALS processes are spawned in the
+   --  same workspace, one acting as an Ada language server and the other
+   --  acting as a GPR language server. Both make Alire invocations to set up
+   --  the environment, hence the need for synchronization.
+
+   procedure Start_Alire_Unsynced
+     (Options : VSS.String_Vectors.Virtual_String_Vector;
+      Root    : String;
+      Error   : out VSS.Strings.Virtual_String;
+      Lines   : out VSS.String_Vectors.Virtual_String_Vector);
+   --  This procedure starts Alire immediately with no synchronization
+   --  mechanism.
 
    Anchored : constant VSS.Regular_Expressions.Match_Options :=
      (VSS.Regular_Expressions.Anchored_Match => True);
@@ -103,7 +126,7 @@ package body LSP.Alire is
    is
       Lines : VSS.String_Vectors.Virtual_String_Vector;
    begin
-      Start_Alire
+      Start_Alire_Sync
         (Options => ["--non-interactive", "build", "--stop-after=generation"],
          Root    => Root,
          Error   => Error,
@@ -123,7 +146,7 @@ package body LSP.Alire is
    begin
       Project.Clear;
 
-      Start_Alire
+      Start_Alire_Sync
         (Options => ["--non-interactive", "show"],
          Root    => Root,
          Error   => Error,
@@ -201,7 +224,7 @@ package body LSP.Alire is
       Lines : VSS.String_Vectors.Virtual_String_Vector;
    begin
 
-      Start_Alire (["--non-interactive", "printenv"], Root, Error, Lines);
+      Start_Alire_Sync (["--non-interactive", "printenv"], Root, Error, Lines);
 
       if not Error.Is_Empty then
          return;
@@ -224,11 +247,73 @@ package body LSP.Alire is
       end loop;
    end Setup_Alire_Env;
 
-   -----------------
-   -- Start_Alire --
-   -----------------
+   ----------------------
+   -- Start_Alire_Sync --
+   ----------------------
 
-   procedure Start_Alire
+   procedure Start_Alire_Sync
+     (Options : VSS.String_Vectors.Virtual_String_Vector;
+      Root    : String;
+      Error   : out VSS.Strings.Virtual_String;
+      Lines   : out VSS.String_Vectors.Virtual_String_Vector)
+   is
+      use VSS.Strings;
+      use VSS.Strings.Conversions;
+
+      Lock_File    : constant GNAT.Lock_Files.Path_Name :=
+        GNATCOLL.VFS.Get_Current_Dir.Create_From_Dir (".als-alire")
+          .Display_Full_Name;
+      Lock_File_VS : constant Virtual_String := To_Virtual_String (Lock_File);
+   begin
+
+      begin
+         Trace.Trace_Text ("Acquiring Alire lock file: " & Lock_File_VS);
+         GNAT.Lock_Files.Lock_File (Lock_File_Name => Lock_File, Wait => 0.2);
+      exception
+         when E : GNAT.Lock_Files.Lock_Error =>
+            Trace.Trace_Exception (E);
+            Error :=
+              "Could not acquire Alire lock file. Try deleting the lock file manually: ";
+            Error.Append (Lock_File_VS);
+            return;
+      end;
+
+      begin
+         begin
+            Start_Alire_Unsynced
+              (Options => Options,
+               Root    => Root,
+               Error   => Error,
+               Lines   => Lines);
+         exception
+            when E : others =>
+               Trace.Trace_Exception (E);
+               Error := "Error running Alire: ";
+               Error.Append
+                 (To_Virtual_String
+                    (Ada.Exceptions.Exception_Information (E)));
+               Trace.Trace_Text ("Releasing Alire lock file: " & Lock_File_VS);
+               GNAT.Lock_Files.Unlock_File (Lock_File);
+               return;
+         end;
+
+         Trace.Trace_Text ("Releasing Alire lock file: " & Lock_File_VS);
+         GNAT.Lock_Files.Unlock_File (Lock_File);
+      exception
+         when E : others =>
+            Trace.Trace_Exception (E);
+            Error.Append
+              (VSS.Characters.Latin.Line_Feed
+               & "Could not release Alire lock file. Try deleting the lock files manually: ");
+            Error.Append
+              (Lock_File_VS
+               & VSS.Characters.Latin.Line_Feed
+               & To_Virtual_String (Ada.Exceptions.Exception_Information (E)));
+            return;
+      end;
+   end Start_Alire_Sync;
+
+   procedure Start_Alire_Unsynced
      (Options : VSS.String_Vectors.Virtual_String_Vector;
       Root    : String;
       Error   : out VSS.Strings.Virtual_String;
@@ -241,14 +326,13 @@ package body LSP.Alire is
       use VSS.Strings.Formatters.Strings;
       use VSS.Strings.Conversions;
 
-      Item       : aliased Process_Listener;
-      Process    : Spawn.Processes.Process renames Item.Process;
+      Item         : aliased Process_Listener;
+      Process      : Spawn.Processes.Process renames Item.Process;
       Full_Options : VSS.String_Vectors.Virtual_String_Vector := Options;
-      Sp_Options : Spawn.String_Vectors.UTF_8_String_Vector;
-      Decoder    : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
-      Text       : VSS.Strings.Virtual_String;
+      Sp_Options   : Spawn.String_Vectors.UTF_8_String_Vector;
+      Decoder      : VSS.Strings.Converters.Decoders.Virtual_String_Decoder;
+      Text         : VSS.Strings.Virtual_String;
    begin
-
       declare
          use type GNAT.OS_Lib.String_Access;
          ALR : GNAT.OS_Lib.String_Access :=
@@ -358,7 +442,7 @@ package body LSP.Alire is
          end if;
       end if;
 
-   end Start_Alire;
+   end Start_Alire_Unsynced;
 
    ------------------------------
    -- Standard_Error_Available --
@@ -412,7 +496,8 @@ package body LSP.Alire is
      (Client : LSP.Ada_Client_Capabilities.Client_Capability) return Boolean
    is
       Alire_TOML : constant GNATCOLL.VFS.Virtual_File :=
-        (if Client.Root.Is_Empty then GNATCOLL.VFS.No_File
+        (if Client.Root.Is_Empty
+         then GNATCOLL.VFS.No_File
          else Client.Root_Directory.Create_From_Dir ("alire.toml"));
    begin
       return Alire_TOML.Is_Regular_File;
