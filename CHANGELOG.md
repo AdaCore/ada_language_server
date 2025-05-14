@@ -7,6 +7,10 @@ section below it for the last release. -->
 
 * Added `onEnterRules` for Ada/GPR files to split long comments by adding automatically a comment tag to the next line
 * Added support for new LSP request `textDocument/inlineValue`
+* Resolved a bug where the Ada and GPR language servers made concurrent Alire
+  invocations in the same workspace, causing sporadic errors. Alire invocations
+  are now made sequentially using file-based synchronization across ALS
+  processes.
 
 ## 26.0.202504171
 
