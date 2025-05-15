@@ -17,3 +17,4 @@ tsconfig.json
 xfail.yaml
 vscode-test-win-workaround.py
 convert-mocha-junit-report.py
+unresolve.js
