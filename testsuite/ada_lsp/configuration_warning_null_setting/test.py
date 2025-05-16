@@ -41,8 +41,10 @@ async def main(lsp: ALSLanguageClient) -> None:
         }
     )
 
-    # Wait for didChangeConfig to be handled
-    await lsp.sleep(2)
+    # We want to wait until the configuration change was handled before asserting test
+    # results. didChangeConfig is handled in "Fence" priority on the ALS side, so if we
+    # send any other request, it will be processed after the configuration change.
+    await lsp.getCurrentProject()
 
     total_log_msg = len(lsp.log_messages)
     total_show_msg = len(lsp.messages)
@@ -52,8 +54,8 @@ async def main(lsp: ALSLanguageClient) -> None:
 
     lsp.didChangeConfig({"logThreshold": None, "insertWithClauses": None})
 
-    # Wait for didChangeConfig to be handled
-    await lsp.sleep(2)
+    # Wait for didChangeConfig to be handled by sending any other request
+    await lsp.getCurrentProject()
 
     # Check that no messages were sent after using None/null as the value for
     # a setting

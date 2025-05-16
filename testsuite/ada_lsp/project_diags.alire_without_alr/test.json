@@ -93,7 +93,7 @@
                "params": {
                   "diagnostics": [
                      {
-                        "message": "Alire executable ('alr') not found in PATH: falling back to other methods to load a project",
+                        "message": "Alire executable ('alr') not found in PATH: Falling back to other methods to load a project",
                         "range": {
                            "end": {
                               "character": 0,

@@ -136,6 +136,11 @@ export function createClient(
              * from .als.json or other applicable configuration files.
              */
             ({ ada: getExplicitlySetConfiguration() }),
+        /**
+         * Include a workDoneToken property in the 'initialize' request for the
+         * server to report progress.
+         */
+        progressOnInitialization: true,
     };
 
     // Create the language client

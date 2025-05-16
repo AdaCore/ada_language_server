@@ -1,0 +1,5 @@
+export ALIRE="True"
+export GPR_PROJECT_PATH="${CRATE_DIR}:${CRATE_DIR}/alire/cache/dependencies/libhello_1.0.1_3c15bc7f"
+export HELLO_ALIRE_PREFIX="${CRATE_DIR}"
+export LIBHELLO_ALIRE_PREFIX="${CRATE_DIR}/alire/cache/dependencies/libhello_1.0.1_3c15bc7f"
+export PATH="${GNAT}:/usr/sbin:/usr/bin:/sbin:/bin"

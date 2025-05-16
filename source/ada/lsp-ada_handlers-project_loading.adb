@@ -63,6 +63,9 @@ package body LSP.Ada_Handlers.Project_Loading is
      GNATCOLL.Traces.Create ("ALS.RUNTIME_INDEXING", GNATCOLL.Traces.On);
    --  Trace to enable/disable runtime indexing. Useful for the testsuite.
 
+   Fallback_Msg : constant VSS.Strings.Virtual_String :=
+     "Falling back to other methods to load a project";
+
    type GPR2_Reporter is new GPR2.Reporter.Object with record
       Log : GPR2.Log.Object;
    end record;
@@ -136,8 +139,8 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       C : constant Context_Access := new Context (Self.Tracer);
 
-      Reader : LSP.Ada_Handlers.File_Readers.LSP_File_Reader
-        (Self'Unchecked_Access);
+      Reader :
+        LSP.Ada_Handlers.File_Readers.LSP_File_Reader (Self'Unchecked_Access);
 
       Dirs : File_Sets.Set;
 
@@ -160,8 +163,9 @@ package body LSP.Ada_Handlers.Project_Loading is
       Create_In_Memory_Project
         ("fallback_context", Dirs, Project_Tree, Success);
 
-      pragma Assert
-        (Success, "Can't create an empty project for the fallback context");
+      pragma
+        Assert
+          (Success, "Can't create an empty project for the fallback context");
 
       --  Create a basic GPR2_Provider_And_Projects containing only the
       --  implicit project and load it.
@@ -169,8 +173,7 @@ package body LSP.Ada_Handlers.Project_Loading is
          Provider : Libadalang.Project_Provider.GPR2_Provider_And_Projects :=
            (Provider =>
               Libadalang.Project_Provider.Create_Project_Unit_Provider
-                (Tree    => Project_Tree,
-                 Project => Project_Tree.Root_Project),
+                (Tree => Project_Tree, Project => Project_Tree.Root_Project),
             Projects => <>);
       begin
          Provider.Projects.Append (Project_Tree.Root_Project);
@@ -224,34 +227,54 @@ package body LSP.Ada_Handlers.Project_Loading is
            (LSP.Ada_Project_Loading.Configured_Project);
 
       elsif Is_Alire_Crate then
-         Tracer.Trace ("Workspace is an Alire crate");
+         declare
 
-         Tracer.Trace ("Performing minimal Alire sync");
-         LSP.Alire.Conservative_Alire_Sync
-           (Self.Client.Root_Directory.Display_Full_Name, Alire_Error);
+            procedure Report_Alire_Errors;
 
-         if not Alire_Error.Is_Empty then
-            Tracer.Trace_Text ("Encountered errors: " & Alire_Error);
-            Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
-         else
-            Tracer.Trace ("Determining project from 'alr show' output");
+            procedure Report_Alire_Errors is
+            begin
+               --  If the error is multi-line, use a separate line for the
+               --  fallback message. Otherwise, keep a single line.
+               if Alire_Error.Split_Lines.Length > 1 then
+                  Alire_Error.Append (VSS.Characters.Latin.Line_Feed);
+               else
+                  Alire_Error.Append (": ");
+               end if;
+               Alire_Error.Append (Fallback_Msg);
 
-            LSP.Alire.Determine_Alire_Project
-              (Root    => Self.Client.Root_Directory.Display_Full_Name,
-               Error   => Alire_Error,
-               Project => Project_File);
-
-            if not Alire_Error.Is_Empty then
                Tracer.Trace_Text ("Encountered errors: " & Alire_Error);
                Self.Project_Status.Set_Alire_Messages ([Alire_Error]);
-            else
-               --  Report how we found the project
-               Self.Project_Status.Set_Project_Type
-                 (LSP.Ada_Project_Loading.Alire_Project);
-               Self.Project_Status.Set_Alire_Messages ([]);
-            end if;
+            end Report_Alire_Errors;
 
-         end if;
+         begin
+
+            Tracer.Trace ("Workspace is an Alire crate");
+
+            Tracer.Trace ("Performing minimal Alire sync");
+            LSP.Alire.Conservative_Alire_Sync
+              (Self.Client.Root_Directory.Display_Full_Name, Alire_Error);
+
+            if not Alire_Error.Is_Empty then
+               Report_Alire_Errors;
+            else
+               Tracer.Trace ("Determining project from 'alr show' output");
+
+               LSP.Alire.Determine_Alire_Project
+                 (Root    => Self.Client.Root_Directory.Display_Full_Name,
+                  Error   => Alire_Error,
+                  Project => Project_File);
+
+               if not Alire_Error.Is_Empty then
+                  Report_Alire_Errors;
+               else
+                  --  Report how we found the project
+                  Self.Project_Status.Set_Project_Type
+                    (LSP.Ada_Project_Loading.Alire_Project);
+                  Self.Project_Status.Set_Alire_Messages ([]);
+               end if;
+
+            end if;
+         end;
 
       end if;
 
@@ -354,7 +377,8 @@ package body LSP.Ada_Handlers.Project_Loading is
 
          Load_Implicit_Project
            (Self,
-            (if Candidates.Length = 0 then LSP.Ada_Project_Loading.No_Project
+            (if Candidates.Length = 0
+             then LSP.Ada_Project_Loading.No_Project
              elsif Candidates.Length > 1
              then LSP.Ada_Project_Loading.Multiple_Projects
              else LSP.Ada_Project_Loading.Project_Not_Found));
@@ -857,8 +881,7 @@ package body LSP.Ada_Handlers.Project_Loading is
    is
       Project  : GPR2.Project.Tree.View_Builder.Object :=
         GPR2.Project.Tree.View_Builder.Create
-          (Project_Dir => GPR2.Path_Name.Create_Directory ("."),
-           Name        => Name);
+          (Project_Dir => GPR2.Path_Name.Create_Directory ("."), Name => Name);
       Values   : GPR2.Containers.Value_List;
       Opts     : GPR2.Options.Object;
       Reporter : GPR2_Reporter;

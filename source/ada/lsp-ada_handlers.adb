@@ -2485,6 +2485,15 @@ package body LSP.Ada_Handlers is
       Token_Types     : LSP.Structures.Virtual_String_Vector;
       Token_Motifiers : LSP.Structures.Virtual_String_Vector;
    begin
+      if Value.workDoneToken.Is_Set then
+         Self.Sender.On_ProgressBegin_Work_Done
+           (Value.workDoneToken.Value,
+            (title       => "Initializing Ada Language Server",
+             cancellable => (Is_Set => True, Value => False),
+             message     => VSS.Strings.Empty_Virtual_String,
+             percentage  => (Is_Set => False)));
+      end if;
+
       Self.Client.Initialize (Value);
 
       Self.Highlighter.Initialize
@@ -2548,6 +2557,12 @@ package body LSP.Ada_Handlers is
          --  We don't load the project here because we can't send progress
          --  notifications to the client before receiving the 'initialized'
          --  notification. See On_Initialized_Notification.
+      end if;
+
+      if Value.workDoneToken.Is_Set then
+         Self.Sender.On_ProgressEnd_Work_Done
+            (Value.workDoneToken.Value,
+            (message => VSS.Strings.Empty_Virtual_String));
       end if;
 
       Self.Sender.On_Initialize_Response (Id, Response);

@@ -1,3 +1,4 @@
 title: 'project_config.alire'
+use-alire-stub: True
 control:
     - ['SKIP', 'env.build.os.name not in ("linux")']

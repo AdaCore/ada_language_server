@@ -37,6 +37,7 @@ with LSP.Utils;
 
 with Gpr_Parser.Common;
 with VSS.String_Vectors;
+with VSS.Strings;
 
 package body LSP.GPR_Handlers is
 
@@ -410,7 +411,23 @@ package body LSP.GPR_Handlers is
 
       Self.Client.Initialize (Value);
 
-      LSP.GPR_Files.Set_Environment (Self.Client);
+      declare
+         Alire_Error : VSS.Strings.Virtual_String;
+      begin
+         LSP.GPR_Files.Set_Environment (Self.Client, Alire_Error);
+
+         if not Alire_Error.Is_Empty then
+
+            Alire_Error.Prepend ("Error while setting up environment: ");
+
+            Self.Tracer.Trace_Text (Alire_Error);
+
+            Self.Sender.On_ShowMessage_Notification
+              ((LSP.Enumerations.Error, Alire_Error));
+
+         end if;
+
+      end;
 
       Capabilities.hoverProvider := LSP.Constants.True;
       Capabilities.definitionProvider := LSP.Constants.True;
