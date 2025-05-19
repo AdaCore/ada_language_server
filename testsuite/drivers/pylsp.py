@@ -6,7 +6,7 @@ import inspect
 import json
 import logging
 import os
-import psutil
+import re
 import shlex
 import sys
 import urllib
@@ -19,6 +19,7 @@ from typing import Any, Awaitable, Callable, Literal, Sequence, Type, TypedDict
 import attrs
 import lsprotocol.converters
 import lsprotocol.types
+import psutil
 from drivers import ALSTestDriver
 from e3.os.process import Run, command_line_image
 from e3.testsuite.driver.classic import ProcessResult, TestAbortWithFailure
@@ -469,6 +470,10 @@ class ALSLanguageClient(LanguageClient):
         """Raise an AssertionError if actual != expected."""
         assertEqual(actual, expected)
 
+    def assertNotEqual(self, actual: Any, expected: Any) -> None:
+        """Raise an AssertionError if actual == expected."""
+        assertNotEqual(actual, expected)
+
     def assertLocationsList(
         self,
         actual: Sequence[CallHierarchyItem | CallHierarchyIncomingCall],
@@ -696,6 +701,24 @@ def test(
             if assert_no_lsp_errors:
                 # Assert the absence of Error LSP log messages
                 client.assertNoLSPErrors()
+        except Exception:
+            # In case of test failure in CI, include the ALS log file
+            if "CI" in os.environ and client:
+                LOG_FILE_PATTERN = r"Log file is: (.*)"
+                log_file_message = [
+                    m
+                    for m in client.log_messages
+                    if re.search(LOG_FILE_PATTERN, m.message)
+                ]
+                if log_file_message:
+                    m = re.search(LOG_FILE_PATTERN, log_file_message[0].message)
+                    if m:
+                        log_path = Path(m.group(1))
+                        LOG.info(
+                            "Content of log file %s:\n%s",
+                            log_path,
+                            log_path.read_text(),
+                        )
         finally:
             try:
                 if client:
@@ -905,7 +928,22 @@ def find_ALS_process():
 def assertEqual(actual: Any, expected: Any) -> None:
     """Raise an AssertionError if actual != expected."""
     if actual != expected:
-        msg = f"\n### Actual ###\n{actual}\n### Expected ###\n{expected}"
+        msg = (
+            "Expected actual == expected"
+            f"\n### Actual ###\n{actual}"
+            f"\n### Expected ###\n{expected}"
+        )
+        raise AssertionError(msg)
+
+
+def assertNotEqual(actual: Any, expected: Any) -> None:
+    """Raise an AssertionError if actual == expected."""
+    if actual == expected:
+        msg = (
+            "Expected actual != expected"
+            f"\n### Actual ###\n{actual}"
+            f"\n### Expected ###\n{expected}"
+        )
         raise AssertionError(msg)
 
 

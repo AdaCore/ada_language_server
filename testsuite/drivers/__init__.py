@@ -38,7 +38,30 @@ class ALSTestDriver(ClassicTestDriver):
         if self.env.gnatcov:
             kwargs = self.env.gnatcov.decorate_run(self, kwargs)
 
+        kwargs = self.add_alire_stub(kwargs)
+
         return super().shell(*args, **kwargs)
+
+    def add_alire_stub(self, kwargs) -> dict:
+        """Optionally add an Alire stub to the environment used for a e3.os.process.Run
+        call, if the test.yaml sets 'use-alire-stub: True'.
+        """
+        if self.test_env.get("use-alire-stub", False):
+            kwargs = dict(kwargs)
+            env = kwargs.setdefault("env", {})
+            alire_stub = self.alire_stub_path
+            path = env.get("PATH", os.environ["PATH"])
+            env["PATH"] = os.pathsep.join([alire_stub, path])
+
+            # Default to merging the above env with the parent env
+            kwargs.setdefault("ignore_environ", False)
+
+        return kwargs
+
+    @property
+    def alire_stub_path(self):
+        """Path to the Alire stub provided by the testsuite"""
+        return os.path.join(self.env.root_dir, "shared", "alire-stub")
 
     def run_and_log(self, cmd, **kwargs):
         """
@@ -53,6 +76,8 @@ class ALSTestDriver(ClassicTestDriver):
         # code coverage.
         if self.env.gnatcov:
             kwargs = self.env.gnatcov.decorate_run(self, kwargs)
+
+        kwargs = self.add_alire_stub(kwargs)
 
         process = Run(cmd, **kwargs)
 

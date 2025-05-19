@@ -1710,21 +1710,20 @@ package body LSP.GPR_Files is
    ---------------------
 
    procedure Set_Environment
-     (Client : LSP.Ada_Client_Capabilities.Client_Capability)
+     (Client : LSP.Ada_Client_Capabilities.Client_Capability;
+      Error  : out VSS.Strings.Virtual_String)
    is
    begin
       Env := GPR2.Environment.Process_Environment;
 
       if LSP.Alire.Should_Setup_Alire_Env (Client) then
-         declare
-            Error : VSS.Strings.Virtual_String;
-         begin
-            --  set Environment from Alire
-            LSP.Alire.Setup_Alire_Env
-              (Root        => Client.Root_Directory.Display_Full_Name,
-               Error       => Error,
-               Environment => Env);
-         end;
+         --  set Environment from Alire
+         LSP.Alire.Setup_Alire_Env
+           (Root        => Client.Root_Directory.Display_Full_Name,
+            Error       => Error,
+            Environment => Env);
+      else
+         Error := "";
       end if;
    end Set_Environment;
 
