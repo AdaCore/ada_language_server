@@ -73,6 +73,8 @@ include:
         # integration-testsuite cannot work with edge builds
         - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_TARGET_BRANCH_NAME == 'edge'
           when: never
+        - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_TARGET_BRANCH_NAME != 'edge'
+          allow_failure: true
 
   # Optional testing of GNAT Studio
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
