@@ -1075,7 +1075,7 @@ abstract class SequentialExecution extends vscode.CustomExecution {
  * @throws an Error if the task is not found.
  */
 export async function findTaskByName(
-    taskName: string,
+    taskFullName: string,
     tasks?: vscode.Task[],
 ): Promise<vscode.Task> {
     if (!tasks) {
@@ -1088,7 +1088,7 @@ export async function findTaskByName(
     }
 
     if (tasks.length == 0) {
-        throw Error('The task list is empty.' + ` Cannot find task '${taskName}'`);
+        throw Error('The task list is empty.' + ` Cannot find task '${taskFullName}'`);
     }
 
     // Sort the given tasks to put the workspace-defined ones first
@@ -1097,12 +1097,12 @@ export async function findTaskByName(
     tasks = tasks.sort(workspaceTasksFirst);
 
     const task = tasks.find((v) => {
-        return taskName == getConventionalTaskLabel(v) || taskName == v.name;
+        return taskFullName == getConventionalTaskLabel(v) || taskFullName == v.name;
     });
     if (task) {
         return task;
     } else {
-        const msg = `Could not find a task named '${taskName}' among the tasks:\n${tasks
+        const msg = `Could not find a task named '${taskFullName}' among the tasks:\n${tasks
             .map((t) => t.name)
             .join('\n')}`;
         throw Error(msg);
@@ -1384,4 +1384,51 @@ export async function runTaskAndGetResult(task: vscode.Task): Promise<number | u
         // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
         return Promise.reject(reason);
     });
+}
+
+/**
+ *
+ * Search for a task of a given name, or create one if no matching existing task is found.
+ *
+ * @param taskPlainName - plain name of the task (without the task type prefix)
+ * @param taskDef - callback to create a task definition if a matching existing task is not found
+ * @param taskType - type identifier of the task
+ * @returns an existing task with a matching name if found, otherwise creates a
+ * task of that name using the callback to create the definition
+ */
+export async function getOrCreateTask(
+    taskPlainName: string,
+    taskDef: () => Promise<vscode.TaskDefinition>,
+    taskType = TASK_TYPE_ADA,
+): Promise<vscode.Task> {
+    const adaTP = adaExtState.getAdaTaskProvider();
+    assert(adaTP);
+    const existingTask = await findTaskByName(`${taskType}: ${taskPlainName}`).then(
+        undefined,
+        /**
+         * Return undefined in case of errors when searching for the task.
+         */
+        () => undefined,
+    );
+    let task;
+    if (existingTask) {
+        task = existingTask;
+    } else {
+        /**
+         * If there's no existing task of that name, create one on the fly.
+         */
+        task = (await adaTP.resolveTask(
+            new vscode.Task(
+                await taskDef(),
+                vscode.TaskScope.Workspace,
+                taskPlainName,
+                taskType,
+                undefined,
+                DEFAULT_PROBLEM_MATCHERS,
+            ),
+        ))!;
+        task.presentationOptions.reveal =
+            task.presentationOptions.reveal ?? vscode.TaskRevealKind.Never;
+    }
+    return task;
 }
