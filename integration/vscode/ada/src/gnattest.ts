@@ -11,11 +11,9 @@ import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
 import { escapeRegExp, exe, setTerminalEnvironment, slugify } from './helpers';
 import {
-    DEFAULT_PROBLEM_MATCHERS,
     findTaskByName,
     getOrCreateTask,
     runTaskSequence,
-    SimpleTaskDef,
     TASK_BUILD_TEST_DRIVER,
     TASK_GNATCOV_SETUP,
     TASK_TYPE_ADA,
@@ -732,29 +730,38 @@ async function handleRunRequestedTests(
              * Produce a GNATcov XML report
              */
             const outputDir = await getGnatCovXMLReportDir();
-            const adaTP = adaExtState.getAdaTaskProvider()!;
-            const gnatcovReportTask = (await adaTP.resolveTask(
-                new vscode.Task(
-                    {
-                        type: TASK_TYPE_ADA,
-                        command: 'gnatcov',
-                        args: [
-                            'coverage',
-                            '-P',
-                            await getGnatTestDriverProjectPath(),
-                            '--level=stmt',
-                            '--annotate=xml',
-                            `--output-dir=${outputDir}`,
-                        ].concat(testsToRun.map(getTracePath)),
-                    },
-                    vscode.TaskScope.Workspace,
-                    `Create GNATcoverage XML report`,
-                    TASK_TYPE_ADA,
-                    undefined,
-                    DEFAULT_PROBLEM_MATCHERS,
-                ),
-            ))!;
-            gnatcovReportTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
+            /**
+             * Use a trace list file with gnatcov for 2 reasons:
+             *
+             * 1. Avoid any potential limitation on the number of process
+             * arguments in case we are dealing with a large number of traces.
+             *
+             * 2. Keep a constant command line instead of having a different
+             * command line for every run. Different command lines would create
+             * multiple copies of the task with the same name in the VS Code
+             * UI.
+             */
+            const traceListFile = path.join(
+                await adaExtState.getVSCodeObjectSubdir(),
+                'traces.list',
+            );
+            fs.writeFileSync(traceListFile, testsToRun.map(getTracePath).join('\n'));
+            const gnatcovReportTask = await getOrCreateTask(
+                `Create GNATcoverage XML report`,
+                async () => ({
+                    type: TASK_TYPE_ADA,
+                    command: 'gnatcov',
+                    args: [
+                        'coverage',
+                        '-P',
+                        await getGnatTestDriverProjectPath(),
+                        '--level=stmt',
+                        '--annotate=xml',
+                        `--output-dir=${outputDir}`,
+                        `--trace=@${traceListFile}`,
+                    ],
+                }),
+            );
             const result = await runTaskSequence([gnatcovReportTask], new WriteEmitter(run));
             if (result != 0) {
                 const msg =
