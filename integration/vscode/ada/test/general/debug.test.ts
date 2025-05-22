@@ -33,7 +33,7 @@ suite('Dbg Cfgs', function () {
                     },
                     {
                         description: 'Disable questions on multiple matches',
-                        ignoreFailures: false,
+                        ignoreFailures: true,
                         text: 'set multiple-symbols cancel',
                     },
                 ],
@@ -54,7 +54,7 @@ suite('Dbg Cfgs', function () {
                     },
                     {
                         description: 'Disable questions on multiple matches',
-                        ignoreFailures: false,
+                        ignoreFailures: true,
                         text: 'set multiple-symbols cancel',
                     },
                 ],
@@ -79,7 +79,7 @@ suite('Dbg Cfgs', function () {
                     },
                     {
                         description: 'Disable questions on multiple matches',
-                        ignoreFailures: false,
+                        ignoreFailures: true,
                         text: 'set multiple-symbols cancel',
                     },
                 ],
@@ -100,7 +100,7 @@ suite('Dbg Cfgs', function () {
                     },
                     {
                         description: 'Disable questions on multiple matches',
-                        ignoreFailures: false,
+                        ignoreFailures: true,
                         text: 'set multiple-symbols cancel',
                     },
                 ],

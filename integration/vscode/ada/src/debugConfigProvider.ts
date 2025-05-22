@@ -270,7 +270,7 @@ const setupCmd = [
     {
         description: 'Disable questions on multiple matches',
         text: 'set multiple-symbols cancel',
-        ignoreFailures: false,
+        ignoreFailures: true,
     },
 ];
 
