@@ -390,12 +390,13 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                              * avoid associating coverage data with the
                              * instrumented sources, so we exclude any paths
                              * containing the special directory
-                             * `gnatcov-instr`. Ideally it would have been nice
-                             * to exclude precisely `<obj-dir>/gnatcov-instr`
-                             * but that would need to be repeated for each obj
-                             * dir of each project in the closure. As we don't
-                             * have access to that information, we ignore all
-                             * paths containing a `gnatcov-instr` component.
+                             * `*gnatcov-instr`. Ideally it would have been
+                             * nice to exclude precisely
+                             * `<obj-dir>/<prj-name>-gnatcov-instr` but that
+                             * would need to be computed for each project in
+                             * the closure. As we don't have access to that
+                             * information, we ignore all paths containing a
+                             * `*gnatcov-instr` component.
                              *
                              * Note that a previous version excluded the entire
                              * object dir which did not work well on projects
@@ -403,7 +404,7 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                              * excluding the object dir would exclude the
                              * entire workspace and prevent finding any files.
                              */
-                            const exclude = `**/gnatcov-instr/**/*`;
+                            const exclude = `**/*gnatcov-instr/**/*`;
 
                             /**
                              * If the prefixes haven't been found yet, or
