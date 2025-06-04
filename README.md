@@ -321,6 +321,8 @@ GNATcoverage coverage reports can be imported in VS Code as follows:
 
 Note that importing coverage reports does not require GNATcoverage to be installed. In particular, this enables a workflow where the coverage report is produced in CI and downloaded and imported into VS Code for visualization and analysis.
 
+Since VS Code does not support reporting MC/DC level coverage natively, that information is imported as branch coverage.
+
 The GNATtest integration in VS Code also supports running tests in coverage mode, if GNATcoverage is installed on the development machine.
 
 1. Run the task `ada: GNATcoverage - Setup runtime library` once to set up the GNATcoverage runtime library

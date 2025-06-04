@@ -11,10 +11,9 @@ import { addCoverageData, GnatcovFileCoverage } from './gnatcov';
 import { getScenarioArgs } from './gnatTaskProvider';
 import { escapeRegExp, exe, setTerminalEnvironment, slugify } from './helpers';
 import {
-    DEFAULT_PROBLEM_MATCHERS,
     findTaskByName,
+    getOrCreateTask,
     runTaskSequence,
-    SimpleTaskDef,
     TASK_BUILD_TEST_DRIVER,
     TASK_GNATCOV_SETUP,
     TASK_TYPE_ADA,
@@ -731,29 +730,38 @@ async function handleRunRequestedTests(
              * Produce a GNATcov XML report
              */
             const outputDir = await getGnatCovXMLReportDir();
-            const adaTP = adaExtState.getAdaTaskProvider()!;
-            const gnatcovReportTask = (await adaTP.resolveTask(
-                new vscode.Task(
-                    {
-                        type: TASK_TYPE_ADA,
-                        command: 'gnatcov',
-                        args: [
-                            'coverage',
-                            '-P',
-                            await getGnatTestDriverProjectPath(),
-                            '--level=stmt',
-                            '--annotate=xml',
-                            `--output-dir=${outputDir}`,
-                        ].concat(testsToRun.map(getTracePath)),
-                    },
-                    vscode.TaskScope.Workspace,
-                    `Create GNATcoverage XML report`,
-                    TASK_TYPE_ADA,
-                    undefined,
-                    DEFAULT_PROBLEM_MATCHERS,
-                ),
-            ))!;
-            gnatcovReportTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
+            /**
+             * Use a trace list file with gnatcov for 2 reasons:
+             *
+             * 1. Avoid any potential limitation on the number of process
+             * arguments in case we are dealing with a large number of traces.
+             *
+             * 2. Keep a constant command line instead of having a different
+             * command line for every run. Different command lines would create
+             * multiple copies of the task with the same name in the VS Code
+             * UI.
+             */
+            const traceListFile = path.join(
+                await adaExtState.getVSCodeObjectSubdir(),
+                'traces.list',
+            );
+            fs.writeFileSync(traceListFile, testsToRun.map(getTracePath).join('\n'));
+            const gnatcovReportTask = await getOrCreateTask(
+                `Create GNATcoverage XML report`,
+                async () => ({
+                    type: TASK_TYPE_ADA,
+                    command: 'gnatcov',
+                    args: [
+                        'coverage',
+                        '-P',
+                        await getGnatTestDriverProjectPath(),
+                        '--level=stmt',
+                        '--annotate=xml',
+                        `--output-dir=${outputDir}`,
+                        `--trace=@${traceListFile}`,
+                    ],
+                }),
+            );
             const result = await runTaskSequence([gnatcovReportTask], new WriteEmitter(run));
             if (result != 0) {
                 const msg =
@@ -801,30 +809,14 @@ async function buildTestDriverAndReportErrors(
 ) {
     const buildTasks = [];
     if (coverage) {
-        const adaTP = adaExtState.getAdaTaskProvider();
-        assert(adaTP);
-
-        const instTaskName = `GNATcoverage - Generate instrumented sources for coverage analysis`;
         /**
          * First try to fetch an existing task of the corresponding name. The
          * User may have defined a homonym in tasks.json to customize this
          * step.
          */
-        const instExistingTask = await findTaskByName(`${TASK_TYPE_ADA}: ${instTaskName}`).then(
-            undefined,
-            /**
-             * Return undefined in case of errors when searching for the task.
-             */
-            () => undefined,
-        );
-        let instTask;
-        if (instExistingTask) {
-            instTask = instExistingTask;
-        } else {
-            /**
-             * If there's no existing task of that name, create one on the fly.
-             */
-            const instTaskDef: SimpleTaskDef = {
+        const instTask = await getOrCreateTask(
+            `GNATcoverage - Generate instrumented sources for coverage analysis`,
+            async () => ({
                 type: TASK_TYPE_ADA,
                 command: 'gnatcov',
                 args: [
@@ -833,31 +825,12 @@ async function buildTestDriverAndReportErrors(
                     '-P',
                     await getGnatTestDriverProjectPath(),
                 ].concat(getScenarioArgs()),
-            };
-            instTask = (await adaTP.resolveTask(
-                new vscode.Task(
-                    instTaskDef,
-                    vscode.TaskScope.Workspace,
-                    instTaskName,
-                    TASK_TYPE_ADA,
-                    undefined,
-                    DEFAULT_PROBLEM_MATCHERS,
-                ),
-            ))!;
-            instTask.presentationOptions.reveal =
-                instTask.presentationOptions.reveal ?? vscode.TaskRevealKind.Never;
-        }
-
-        const buildTaskName = `GNATcoverage - Build GNATtest harness project in coverage mode`;
-        const buildExistingTask = await findTaskByName(`${TASK_TYPE_ADA}: ${buildTaskName}`).then(
-            undefined,
-            () => undefined,
+            }),
         );
-        let buildTask;
-        if (buildExistingTask) {
-            buildTask = buildExistingTask;
-        } else {
-            const buildTaskDef: SimpleTaskDef = {
+
+        const buildTask = await getOrCreateTask(
+            `GNATcoverage - Build GNATtest harness project in coverage mode`,
+            async () => ({
                 type: TASK_TYPE_ADA,
                 command: 'gprbuild',
                 args: [
@@ -877,20 +850,8 @@ async function buildTestDriverAndReportErrors(
                         '-fdump-scos',
                         '-fpreserve-control-flow',
                     ]),
-            };
-            buildTask = (await adaTP.resolveTask(
-                new vscode.Task(
-                    buildTaskDef,
-                    vscode.TaskScope.Workspace,
-                    buildTaskName,
-                    TASK_TYPE_ADA,
-                    undefined,
-                    DEFAULT_PROBLEM_MATCHERS,
-                ),
-            ))!;
-            buildTask.presentationOptions.reveal = vscode.TaskRevealKind.Never;
-        }
-
+            }),
+        );
         buildTasks.push(instTask, buildTask);
     } else {
         const task = await findTaskByName(`${TASK_TYPE_ADA}: ${TASK_BUILD_TEST_DRIVER}`);
