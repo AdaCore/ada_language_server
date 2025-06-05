@@ -11,6 +11,8 @@ section below it for the last release. -->
   invocations in the same workspace, causing sporadic errors. Alire invocations
   are now made sequentially using file-based synchronization across ALS
   processes.
+* Support customizing GNATcoverage tasks, e.g. to select a coverage level
+* Support importing MC/DC reports from GNATcoverage
 
 ## 26.0.202504171
 
