@@ -59,9 +59,9 @@ jobs:
             # Alire 2.1.0 was built for ubuntu 24.04, doesn't work on 22.04
             ZIP=nightly/alr-nightly-bin-aarch64-linux.zip
           elif [[ "$RUNNER_ARCH" == ARM64 ]] ; then
-            ZIP=v2.0.2/alr-2.0.2-bin-aarch64-${RUNNER_OS}.zip
+            ZIP=v2.1.0/alr-2.1.0-bin-aarch64-${RUNNER_OS}.zip
           else
-            ZIP=v2.0.2/alr-2.0.2-bin-x86_64-${RUNNER_OS}.zip
+            ZIP=v2.1.0/alr-2.1.0-bin-x86_64-${RUNNER_OS}.zip
           fi
           curl -L -O https://github.com/alire-project/alire/releases/download/$ZIP
           unzip $(basename $ZIP)
