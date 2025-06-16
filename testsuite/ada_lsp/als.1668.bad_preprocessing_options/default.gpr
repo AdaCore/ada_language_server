@@ -1,0 +1,6 @@
+project Default is
+   package Compiler is
+      for Switches ("Ada") use
+        ("-gnatep=" & Default'Project_Dir & "prep.def");
+   end Compiler;
+end Default;
