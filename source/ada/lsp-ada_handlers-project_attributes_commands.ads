@@ -29,9 +29,9 @@ package LSP.Ada_Handlers.Project_Attributes_Commands is
 private
 
    type Command is new LSP.Ada_Commands.Command with record
-      Pkg          : VSS.Strings.Virtual_String;
-      Attribute    : VSS.Strings.Virtual_String;
-      Index        : VSS.Strings.Virtual_String;
+      Pkg       : VSS.Strings.Virtual_String;
+      Attribute : VSS.Strings.Virtual_String;
+      Index     : VSS.Strings.Virtual_String;
    end record;
 
    overriding function Create
