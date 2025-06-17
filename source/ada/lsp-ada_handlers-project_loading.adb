@@ -34,6 +34,7 @@ with GPR2.Reporter;
 pragma Warnings (Off, "unit ""GPR2.Build.Source.Sets"" is not referenced");
 with GPR2.Build.Source.Sets;
 
+with Langkit_Support.Errors;
 with Libadalang.Preprocessing;
 with Libadalang.Project_Provider;
 with LSP.Ada_Contexts;
@@ -558,20 +559,42 @@ package body LSP.Ada_Handlers.Project_Loading is
          --  and create the file reader which will preprocess the files
          --  accordingly.
 
-         Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
-           (Tree           => Self.Project_Tree,
-            Project        => View,
-            Default_Config => Default_Config,
-            File_Configs   => File_Configs);
+         begin
+            Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
+              (Tree           => Self.Project_Tree,
+               Project        => View,
+               Default_Config => Default_Config,
+               File_Configs   => File_Configs);
 
-         Libadalang.Preprocessing.Iterate
-           (Default_Config => Default_Config,
-            File_Configs   => File_Configs,
-            Process        => Set_Line_Mode'Access);
+            Libadalang.Preprocessing.Iterate
+              (Default_Config => Default_Config,
+               File_Configs   => File_Configs,
+               Process        => Set_Line_Mode'Access);
 
-         Reader.Preprocessing_Data :=
-           Libadalang.Preprocessing.Create_Preprocessor_Data
-             (Default_Config, File_Configs);
+            Reader.Preprocessing_Data :=
+              Libadalang.Preprocessing.Create_Preprocessor_Data
+                (Default_Config, File_Configs);
+         exception
+            --  Fallback to a degraded mode when failing to parse preprocessing
+            --  options.
+            when E : Langkit_Support.Errors.Syntax_Error =>
+            Self.Send_Messages
+              (Show     => True,
+               Messages =>
+                 ["Failed to load preprocessing options: please ensure"
+                  & " your preprocessing definitions are syntactically correct."],
+               Severity => LSP.Enumerations.Error,
+               File     => GNATCOLL.VFS.No_File);
+            Tracer.Trace_Exception
+              (Error   => E,
+               Message =>
+                 "Failed to parse preprocessing options for Context Id: "
+                 & (C.Id)
+                 & ", fallback to a degraded mode without support for "
+                 & "preprocessing directives");
+               Reader.Preprocessing_Data :=
+                 Libadalang.Preprocessing.No_Preprocessor_Data;
+         end;
 
          C.Initialize
            (Reader,
