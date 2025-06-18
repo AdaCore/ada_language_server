@@ -166,7 +166,7 @@ package body LSP.Ada_Handlers.File_Readers is
          end if;
       end if;
 
-      --  If we have preprocessing data, use LAL's API to preoprocess the file.
+      --  If we have preprocessing data, use LAL's API to preprocess the file.
       --  Otherwise, just decode the contents of the document/file.
 
       if Self.Preprocessing_Data /= No_Preprocessor_Data then

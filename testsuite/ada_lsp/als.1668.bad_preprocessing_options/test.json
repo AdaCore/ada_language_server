@@ -1,0 +1,119 @@
+[
+   {
+      "comment": [
+         "This test checks that we fallback to a degraded mode when failing to parse ",
+         "preprocessing options, warning the user via a message when it's the case."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "initializationOptions": {
+                  "ada": {
+                     "projectFile": "$URI{default.gpr}",
+                     "showNotificationsOnErrors": true
+                  }
+               },
+               "capabilities": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": [
+            {
+               "method": "window/showMessage",
+               "params": {
+                  "type": 1,
+                  "message": "Failed to load preprocessing options: please ensure your preprocessing definitions are syntactically correct."
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Ada.Text_IO;\nprocedure Main is\n    Var : constant Integer := 10;\nbegin\n  # if VERSION = \"1\" then\n   Ada.Text_IO.Put_Line (\"Version 1\");\n  # else\n   Ada.Text_IO.Put_Line (\"Version 2\");\n  # end if;\n   Ada.Text_IO.Put_Line (\"Var = \" & Var'Img);\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": "Check that basic navigation still works in degraded mode",
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/definition",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 9,
+                  "character": 36
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 7,
+               "result": {
+                  "uri": "$URI{main.adb}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 4
+                     },
+                     "end": {
+                        "line": 2,
+                        "character": 7
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "shutdown"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
