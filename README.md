@@ -69,6 +69,7 @@ extension at
     - [Integration with Neovim's built-in LSP client](#integration-with-neovims-built-in-lsp-client)
     - [Integration with emacs lsp-mode](#integration-with-emacs-lsp-mode)
     - [Integration with QtCreator](#integration-with-qtcreator)
+    - [Integration with IntelliJ](#integration-with-intellij)
   - [Refactoring Tools](#refactoring-tools)
   - [Authors \& Contributors](#authors--contributors)
   - [Contribute](#contribute)
@@ -600,6 +601,13 @@ to `Start Server per Project`, otherwise QtCreator won't provide the project roo
 the Ada Language Server.
 
 Workspace-specific [ALS Settings](doc/settings.md) such as the `projectFile` can be provided in a `.als.json` file at the root of the workspace.
+
+### Integration with IntelliJ
+
+The [LSP4IJ](https://plugins.jetbrains.com/plugin/23257-lsp4ij) IntelliJ plugin
+provides a template for Ada since version `0.14.0`, allowing users tu use the Ada Language Server from IntelliJ.
+
+Follow the [dedicated LSP4J documentation](https://github.com/redhat-developer/lsp4ij/blob/main/docs/user-defined-ls/ada_language_server.md) for more information.
 
 ## Refactoring Tools
 
