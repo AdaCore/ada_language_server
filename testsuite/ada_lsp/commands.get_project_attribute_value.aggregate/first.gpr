@@ -1,0 +1,3 @@
+project First is
+  for Main use ("main_1.adb");
+end First;

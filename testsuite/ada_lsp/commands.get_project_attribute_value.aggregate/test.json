@@ -1,0 +1,162 @@
+[
+   {
+      "comment": [
+         "Test for the 'als-get-project-attribute-value' command on aggregate projects. ",
+         "Check that we aggregate the values coming from the aggregated projects for project attributes ",
+         "that can't be defined in the aggregate root project"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-get-project-attribute-value"]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{aggr.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw1",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-get-project-attribute-value",
+               "arguments": [
+                  {
+                     "attribute": "main"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "id": "sw1",
+               "jsonrpc": "2.0",
+               "result": ["main_1.adb", "main_2.adb"]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw3",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-get-project-attribute-value",
+               "arguments": [
+                  {
+                     "attribute": "target"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw3",
+               "result": "arm-eabi"
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw4",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-get-project-attribute-value",
+               "arguments": [
+                  {
+                     "attribute": "languages"
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw4",
+               "result": ["Ada"]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
