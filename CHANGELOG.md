@@ -4,6 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
+* New refactoring: Extract Variable(https://github.com/AdaCore/ada_language_server/blob/master/doc/refactoring_tools.md#extract-variable)
 * Added a `Ada: Report Issue` command that opens the [VS Code Issue Reporter](https://code.visualstudio.com/docs/supporting/FAQ#_report-an-issue-with-a-vs-code-extension) with an extension-specific template
 * Add `begin` and `private` destinations to `texDocument/definition` response triggered 
   respectively on subprograms and packages (e.g: ctrl-click on a subprogram name will 
