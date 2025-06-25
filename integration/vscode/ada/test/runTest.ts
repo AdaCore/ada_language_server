@@ -10,7 +10,13 @@ async function main() {
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
-    const testsuites = ['general', 'gnattest', 'workspace_missing_dirs', 'status_bar'];
+    const testsuites = [
+        'general',
+        'gnattest',
+        'workspace_missing_dirs',
+        'status_bar',
+        'aggregate_projects',
+    ];
 
     let someTestsuiteFailed = false;
 
