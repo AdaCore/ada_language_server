@@ -18,6 +18,7 @@
 with Ada.Containers.Indefinite_Vectors;
 with GPR2.Project.View;
 
+with GPR2.Project.View.Set;
 with VSS.JSON.Streams;
 
 package body LSP.Ada_Handlers.Mains_Commands is
@@ -47,6 +48,9 @@ package body LSP.Ada_Handlers.Mains_Commands is
       Response : in out LSP.Structures.LSPAny_Or_Null;
       Error    : in out LSP.Errors.ResponseError_Optional)
    is
+      function Get_Main_Paths
+        (Views : GPR2.Project.View.Set.Object) return Main_Vectors.Vector;
+
       procedure Append (Item : VSS.JSON.Streams.JSON_Stream_Element);
 
       ------------
@@ -58,28 +62,47 @@ package body LSP.Ada_Handlers.Mains_Commands is
          Response.Value.Append (Item);
       end Append;
 
-      Element    : GPR2.Project.View.Object;
+      --------------------
+      -- Get_Main_Paths --
+      --------------------
+
+      function Get_Main_Paths
+        (Views : GPR2.Project.View.Set.Object) return Main_Vectors.Vector
+      is
+         Main_Paths : Main_Vectors.Vector;
+      begin
+         for View of Views loop
+            if View.Has_Mains then
+               for Main of View.Mains loop
+                  declare
+                     Main_Path : constant String := String (Main.Source.Value);
+                  begin
+                     --  Avoid duplicates coming from GPR2
+                     --  Workaround for eng/ide/gpr-issues#417
+                     if not Main_Paths.Contains (Main_Path) then
+                        Main_Paths.Append (Main_Path);
+                     end if;
+                  end;
+               end loop;
+            end if;
+         end loop;
+
+         return Main_Paths;
+      end Get_Main_Paths;
+
+      Views      : GPR2.Project.View.Set.Object;
       Main_Paths : Main_Vectors.Vector;
    begin
       Response := (Is_Null => False, Value => <>);
       Append ((Kind => VSS.JSON.Streams.Start_Array));
 
+      --  If the project was correctly loaded, iterate over each
+      --  subtree to get their list of mains.
+      --  This is needed to handle aggregate projects: we want to
+      --  combine the mains of each aggregated project in this case.
       if Handler.Project_Tree.Is_Defined then
-         Element := Handler.Project_Tree.Root_Project;
-
-         if Element.Has_Mains then
-            for Main of Element.Mains loop
-               declare
-                  Main_Path : constant String := String (Main.Source.Value);
-               begin
-                  --  Avoid duplicates coming from GPR2
-                  --  Workaround for eng/ide/gpr-issues#417
-                  if not Main_Paths.Contains (Main_Path) then
-                     Main_Paths.Append (Main_Path);
-                  end if;
-               end;
-            end loop;
-         end if;
+         Views := Handler.Project_Tree.Namespace_Root_Projects;
+         Main_Paths := Get_Main_Paths (Views);
       end if;
 
       for Main_Path of Main_Paths loop

@@ -1,0 +1,110 @@
+[
+   {
+      "comment": [
+         "Check als-mains command for aggregate projects.  ",
+         "The result should combine all the mains of all the projects being aggregated."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "executeCommandProvider": {
+                        "commands": ["<HAS>", "als-mains"]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "$URI{aggr.gpr}"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "sw1",
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-mains"
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": "sw1",
+               "result": [
+                  "$FILE{main_1.adb}",
+                  "$FILE{main_2.adb}",
+                  "$FILE{main_3.adb}"
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
