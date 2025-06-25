@@ -1,0 +1,7 @@
+project Project_2 is
+   for Main use ("main_3.adb");
+
+   package Builder is
+      for Executable_Suffix use "";
+   end Builder;
+end Project_2;

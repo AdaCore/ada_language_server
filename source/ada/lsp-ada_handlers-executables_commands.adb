@@ -55,18 +55,21 @@ package body LSP.Ada_Handlers.Executables_Commands is
       end Append;
 
       Value   : VSS.Strings.Virtual_String;
-      Element : GPR2.Project.View.Object;
    begin
       Response := (Is_Null => False, Value => <>);
       Append ((Kind => VSS.JSON.Streams.Start_Array));
 
       if Handler.Project_Tree.Is_Defined then
-         Element := Handler.Project_Tree.Root_Project;
-
-         for Exec of Element.Executables loop
-            Value := VSS.Strings.Conversions.To_Virtual_String
-              (String (Exec.Value));
-            Append ((VSS.JSON.Streams.String_Value, Value));
+         --  Iterate over all the root projects defined in the project tree
+         --  to handle aggregate projects properly (i.e: by combining the
+         --  executables defined for each aggregated project).
+         for View of Handler.Project_Tree.Namespace_Root_Projects loop
+            for Exec of View.Executables loop
+               Value :=
+                 VSS.Strings.Conversions.To_Virtual_String
+                   (String (Exec.Value));
+               Append ((VSS.JSON.Streams.String_Value, Value));
+            end loop;
          end loop;
       end if;
 
