@@ -710,6 +710,21 @@
                         "description": "Enable experimental features still in development."
                     }
                 }
+            },
+            {
+                "title": "e3-testsuite",
+                "properties": {
+                    "e3-testsuite.testsuitePath": {
+                        "type": "string",
+                        "description": "Path to testsuite.py",
+                        "default": "testsuite.py"
+                    },
+                    "e3-testsuite.python": {
+                        "type": "string",
+                        "description": "Path to python interpreter, useful when you want to use a specific venv",
+                        "default": "python"
+                    }
+                }
             }
         ],
         "jsonValidation": [
