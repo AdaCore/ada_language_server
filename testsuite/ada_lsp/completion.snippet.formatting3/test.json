@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "Test the formatting of snippet via GNATPP for package generic",
+         "Test the formatting of snippet via GNATFormat for package generic",
          "instantiation"
       ]
    },
@@ -171,7 +171,7 @@
                                  "character": 32
                               }
                            },
-                           "newText": "Foo_Bar\n     (A      => ${1:A      : Integer;},\n      BBBBBB => ${2:BBBBBB : Float;},\n      CCCC   => ${3:CCCC   : String;},\n      Bar    => ${4:with procedure Bar (X : Integer);})$0"
+                           "newText": "Foo_Bar (A => ${1:A      : Integer;}, BBBBBB => ${2:BBBBBB : Float;}, CCCC => ${3:CCCC   : String;}, Bar => ${4:with procedure Bar (X : Integer);})$0"
                         },
                         "data": {
                            "uri": "$URI{foo.adb}",

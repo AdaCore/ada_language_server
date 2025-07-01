@@ -1,5 +1,0 @@
-project Default is
-   package Pretty_Printer is
-      for Switches ("Ada") use ("--name-lower-case");
-   end Pretty_Printer;
-end Default;
