@@ -1,0 +1,9 @@
+project Project_1 is
+   for Source_Dirs use ("src");
+   for Main use ("main_1.adb", "main_2.adb");
+
+   package Builder is
+      for Executable ("main_1.adb") use "main1exec";
+      for Executable ("main_2.adb") use "main2exec";
+   end Builder;
+end Project_1;
