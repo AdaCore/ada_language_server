@@ -22,16 +22,15 @@
                "rootUri": "$URI{.}",
                "initializationOptions": {
                   "ada": {
-                     "adaFileDiagnostics": true,
-                     "alireDiagnostics": true,
-                     "defaultCharset": "ISO-8859-1",
+                     "adaFileDiagnostics": false,
+                     "alireDiagnostics": false,
                      "documentationStyle": "gnat",
                      "foldComments": false,
                      "followSymlinks": false,
-                     "gprFileDiagnostics": true,
+                     "gprFileDiagnostics": false,
                      "insertWithClauses": true,
                      "namedNotationThreshold": 3,
-                     "projectDiagnostics": true,
+                     "projectDiagnostics": false,
                      "scenarioVariables": {},
                      "useGnatformat": true
                   }
@@ -44,9 +43,6 @@
                         "resourceOperations": [
                            "rename"
                         ]
-                     },
-                     "fileOperations": {
-                        "didRename": true
                      }
                   },
                   "textDocument": {
@@ -100,9 +96,6 @@
                      },
                      "onTypeFormatting": {
                         "dynamicRegistration": false
-                     },
-                     "publishDiagnostics": {
-                        "relatedInformation": true
                      },
                      "foldingRange": {
                         "lineFoldingOnly": true
@@ -175,9 +168,7 @@
                "settings": {
                   "ada": {
                      "projectFile": "default.gpr",
-                     "scenarioVariables": {},
-                      "adaFileDiagnostics": false,
-                     "defaultCharset": "ISO-8859-1"
+                      "adaFileDiagnostics": false
                   }
                }
             },
@@ -185,25 +176,6 @@
             "method": "workspace/didChangeConfiguration"
          },
          "wait": [
-            {
-               "jsonrpc":"2.0",
-               "id":1,
-               "method":"window/workDoneProgress/create",
-               "params":{
-                  "token":"<ANY>"
-               }
-            },
-            {
-               "params": {
-                  "token": "<ANY>",
-                  "value": {
-                     "kind": "begin",
-                     "percentage": 0,
-                     "title": "Indexing"
-                  }
-               },
-               "method": "$/progress"
-            },
             {
                "params": {
                   "token": "<ANY>",
