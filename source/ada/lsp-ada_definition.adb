@@ -248,14 +248,12 @@ package body LSP.Ada_Definition is
             Manual_Fallback := Laltools.Common.Find_Other_Part_Fallback
               (Definition, Trace);
 
-            if not Manual_Fallback.Is_Null then
-               --  We have found a result using the imprecise heuristics.
-               --  We'll warn the user and send the result.
-               Self.Parent.Context.Append_Location
-                 (Self.Response,
-                  Self.Filter,
-                  Manual_Fallback);
-            end if;
+            --  If we have found a result using the imprecise heuristics then
+            --  append it.
+            Self.Parent.Context.Append_Location
+              (Self.Response,
+               Self.Filter,
+               Manual_Fallback);
          else
             Self.Parent.Context.Append_Location
               (Self.Response,

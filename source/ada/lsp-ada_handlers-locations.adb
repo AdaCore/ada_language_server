@@ -47,7 +47,7 @@ package body LSP.Ada_Handlers.Locations is
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
    begin
-      if not LSP.Utils.Is_Synthetic (Node) then
+      if not Node.Is_Null and then not LSP.Utils.Is_Synthetic (Node) then
          declare
             Value : constant LSP.Structures.Location :=
               To_LSP_Location (Self, Node, Kinds);

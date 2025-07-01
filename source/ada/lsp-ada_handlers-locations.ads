@@ -80,6 +80,7 @@ package LSP.Ada_Handlers.Locations is
       Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
+   --  Null Node is ignored.
 
    procedure Append_Location
      (Result   : in out LSP.Structures.DocumentHighlight_Vector;
