@@ -174,7 +174,7 @@ endif
 ifeq ($(COVERAGE),)
   NPM_TEST_ARGS?=
 else
-  NPM_TEST_ARGS?=-- --coverage --coverage-reporter text-summary --coverage-reporter html --coverage-reporter cobertura --label 0
+  NPM_TEST_ARGS?=-- --coverage --coverage-reporter text-summary --coverage-reporter html --coverage-reporter cobertura
 endif
 
 vscode-test:
