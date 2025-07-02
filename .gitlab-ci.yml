@@ -48,6 +48,9 @@ include:
       # with the build job.
       needs: []
       stage: test
+      rules:
+        - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+        - if: $CI_PIPELINE_SOURCE == "schedule"
 
   # Testing of the VSCode extension
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
@@ -139,7 +142,17 @@ als-cov:linux:
       - coverage/cobertura.xml
       - coverage/xml/
 
+build:linux:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    # Enable just the linux build in scheduled pipelines for TypeScript coverage
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
 vscode-extension:linux:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    # Trigger just the Linux coverage run in scheduled pipelines
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   after_script:
     # Source the env prepared by generic_anod_ci
     - cat /tmp/ci_env.sh
