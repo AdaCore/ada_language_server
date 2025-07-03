@@ -1140,6 +1140,10 @@
             {
                 "command": "ada.loadGnatCovXMLReport",
                 "title": "ada: GNATcoverage - Load an existing XML coverage report"
+            },
+            {
+                "command": "ada.issueReporter",
+                "title": "Ada: Report Issue"
             }
         ],
         "keybindings": [
@@ -1183,6 +1187,11 @@
                 {
                     "command": "ada.subprogramBox",
                     "when": "editorLangId == ada"
+                }
+            ],
+            "issue/reporter": [
+                {
+                    "command": "ada.issueReporter"
                 }
             ],
             "editor/context": [

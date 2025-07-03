@@ -1,6 +1,6 @@
 import assert from 'assert';
-import { existsSync } from 'fs';
-import { basename } from 'path';
+import { existsSync, readFileSync } from 'fs';
+import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import { SymbolKind, commands } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
@@ -228,6 +228,10 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         commands.registerCommand('ada.loadGnatCovXMLReport', loadGnatCovXMLReport),
     );
 
+    context.subscriptions.push(
+        vscode.commands.registerCommand('ada.issueReporter', openReportIssue),
+    );
+
     registerTaskWrappers(context);
 }
 
@@ -359,6 +363,21 @@ function getTaskLabel(task: vscode.Task): string {
 
 interface TaskQuickPickItem extends vscode.QuickPickItem {
     task: vscode.Task;
+}
+
+/**
+ * Display the VS Code Issue Reporter, providing a default template
+ * for reporing issues on the Ada & SPARK VS Code extension.
+ */
+async function openReportIssue() {
+    const EXTENSION_ROOT_DIR = adaExtState.context.extensionPath;
+    const templatePath = path.join(EXTENSION_ROOT_DIR, 'media', 'report_issue_template.md');
+    const template = readFileSync(templatePath, 'utf8');
+
+    await vscode.commands.executeCommand('workbench.action.openIssueReporter', {
+        extensionId: 'adacore.ada',
+        issueBody: template,
+    });
 }
 
 /**
