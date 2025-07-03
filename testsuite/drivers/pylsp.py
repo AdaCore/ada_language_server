@@ -719,6 +719,9 @@ def test(
                             log_path,
                             log_path.read_text(),
                         )
+
+            # Re-raise the exception to signify test failure!
+            raise
         finally:
             try:
                 if client:
