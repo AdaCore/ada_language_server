@@ -27,7 +27,7 @@ export class AdaCodeLensProvider implements CodeLensProvider {
         document: TextDocument,
         token?: CancellationToken,
     ): ProviderResult<CodeLens[]> {
-        const symbols = commands.executeCommand<DocumentSymbol[]>(
+        const symbols = commands.executeCommand<DocumentSymbol[] | undefined>(
             'vscode.executeDocumentSymbolProvider',
             document.uri,
         );
@@ -47,6 +47,10 @@ export class AdaCodeLensProvider implements CodeLensProvider {
                 ) {
                     // It's a main file, so let's offer Run and Debug actions on the main subprogram
                     return symbols.then((symbols) => {
+                        if (!symbols) {
+                            return [];
+                        }
+
                         const functions = symbols.filter((s) => s.kind == SymbolKind.Function);
                         if (functions.length > 0) {
                             /**
@@ -103,6 +107,10 @@ export class AdaCodeLensProvider implements CodeLensProvider {
              * This is tentative deactivated code in preparation of SPARK support.
              */
             res2 = symbols.then<CodeLens[]>((symbols) => {
+                if (!symbols) {
+                    return [];
+                }
+
                 const symbolKinds = [SymbolKind.Function];
                 const recurseInto = [SymbolKind.Module, SymbolKind.Package, SymbolKind.Function];
 

@@ -1791,9 +1791,9 @@ package body LSP.Ada_Handlers is
          --  Contexts wont be empty, and all we need to do is check if
          --  there's an open document. If there is, it takes precedence over
          --  the filesystem.
-         --  If Contexts is empty, then we need to check if is a new source
+         --  If Contexts is empty, then we need to check if it's a new source
          --  that needs to be added. For instance, a source that was moved
-         --  to the the project source directories.
+         --  to the project source directories.
 
          if Contexts.Is_Empty then
             for Context of Self.Contexts.Each_Context
