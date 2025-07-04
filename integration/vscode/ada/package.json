@@ -22,6 +22,7 @@
         "workspaceContains:*.ad[bs]",
         "workspaceContains:*/*.ad[bs]",
         "workspaceContains:alire.toml",
+        "workspaceContains:testsuite.py",
         "onDebugDynamicConfigurations:ada"
     ],
     "main": "./out/src/extension",

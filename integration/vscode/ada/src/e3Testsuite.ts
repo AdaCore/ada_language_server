@@ -1,9 +1,13 @@
 import { spawn } from 'child_process';
+import { assert } from 'console';
 import { existsSync, readFileSync } from 'fs';
+import { EOL } from 'os';
 import path from 'path';
+import split from 'split2';
 import { tmpNameSync } from 'tmp';
 import * as vscode from 'vscode';
 import * as yaml from 'yaml';
+import { NotificationType, TestsuiteNotification } from './e3TestsuiteNotifications';
 import { setTerminalEnvironment } from './helpers';
 
 interface Testsuite {
@@ -43,7 +47,12 @@ type ReportIndex = {
 };
 
 type TestResult = {
+    test_name: string;
+    status: TestStatus;
+    msg?: string;
     log?: string;
+    out?: string;
+    expected?: string;
 };
 
 const showLoadTestListErrorCmdId = 'e3-testsuite.showLoadTestListError';
@@ -66,6 +75,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
 
     const testData: Map<vscode.TestItem, TestInfo> = new Map();
 
+    let rootItem: vscode.TestItem;
     controller.refreshHandler = async function () {
         controller.items.replace([]);
         testData.clear();
@@ -76,7 +86,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             return;
         }
 
-        const rootItem = this.createTestItem(
+        rootItem = this.createTestItem(
             getRootItemId(),
             vscode.workspace.asRelativePath(ts.uri),
             ts.uri,
@@ -87,7 +97,8 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         const cmd = [ts.python, ts.uri.fsPath, `--list-json=${jsonFname}`];
 
         console.log(`Loading tests from: ${ts.uri.fsPath}`);
-        const testList: TestInfo[] = await new Promise((resolve, reject) => {
+        rootItem.busy = true;
+        await new Promise<TestInfo[]>((resolve, reject) => {
             const output: Buffer[] = [];
             const fullOutput: Buffer[] = [];
             const p = spawn(cmd[0], [...cmd].splice(1), {
@@ -122,21 +133,25 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
                 resolve(JSON.parse(readFileSync(jsonFname, { encoding: 'utf-8' })) as TestInfo[]);
             });
             p.on('error', reject);
-        });
+        })
+            .then((testList) => {
+                for (const test of testList) {
+                    const testYaml = path.join(test.test_dir, 'test.yaml');
+                    const isYamlTest = existsSync(testYaml);
 
-        for (const test of testList) {
-            const testYaml = path.join(test.test_dir, 'test.yaml');
-            const isYamlTest = existsSync(testYaml);
-
-            const item = this.createTestItem(
-                test.test_name,
-                test.test_name,
-                vscode.Uri.file(isYamlTest ? testYaml : test.test_dir),
-            );
-            item.range = isYamlTest ? new vscode.Range(0, 0, 0, 0) : undefined;
-            testData.set(item, test);
-            rootItem.children.add(item);
-        }
+                    const item = this.createTestItem(
+                        test.test_name,
+                        test.test_name,
+                        vscode.Uri.file(isYamlTest ? testYaml : test.test_dir),
+                    );
+                    item.range = isYamlTest ? new vscode.Range(0, 0, 0, 0) : undefined;
+                    testData.set(item, test);
+                    rootItem.children.add(item);
+                }
+            })
+            .finally(() => {
+                rootItem.busy = false;
+            });
     };
 
     const profile = controller.createRunProfile(
@@ -144,15 +159,16 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         vscode.TestRunProfileKind.Run,
         async function (request, token) {
             const ts = getTestsuite();
+
+            const enableEventSystem: boolean =
+                vscode.workspace.getConfiguration('e3-testsuite').get('enableEventSystem') ?? true;
+
             const cmd = [ts.python, ts.uri.fsPath, '--failure-exit-code=0'];
 
             const remainingSet: Set<vscode.TestItem> = new Set();
-            function appendLeafs(i: vscode.TestItem) {
-                if (i.children.size > 0) {
-                    i.children.forEach(appendLeafs);
-                } else {
-                    remainingSet.add(i);
-                }
+            function collectAll(i: vscode.TestItem) {
+                remainingSet.add(i);
+                i.children.forEach(collectAll);
             }
 
             function onlyRootSelected(rq: vscode.TestRunRequest) {
@@ -160,28 +176,48 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             }
 
             if (request.include && !onlyRootSelected(request)) {
-                request.include.forEach(appendLeafs);
+                const testIds = new Set<string>();
+                request.include.forEach(collectAll);
                 remainingSet.forEach((item) => {
-                    const data = testData.get(item)!;
-                    cmd.push(data.test_matcher ?? data.test_dir);
+                    const data =
+                        testData.get(item) ??
+                        // If item is a sub-result, it doesn't have data. So use its parent.
+                        (item.parent ? testData.get(item.parent) : undefined);
+                    if (data) {
+                        testIds.add(data.test_matcher ?? data.test_dir);
+                    }
                 });
+
+                assert(testIds.size > 0);
+                cmd.push(...testIds);
             } else {
                 /**
                  * Do not append tests to the command line. Just run everything.
                  */
-                controller.items.forEach(appendLeafs);
+                controller.items.forEach(collectAll);
             }
-
-            const remainingArray = [...remainingSet];
 
             const run = controller.createTestRun(request, 'e3-testsuite');
             run.appendOutput(`Running: ${cmd.map((c) => '"' + c + '"').join(' ')}\n\r`);
+
+            const env = getEnv();
+            if (enableEventSystem) {
+                const modulePath = context.asAbsolutePath('media');
+                const module = 'e3_notify_vscode';
+                const hook = 'init_callback';
+                env['PYTHONPATH'] = (env['PYTHONPATH'] ?? '')
+                    .split(path.delimiter)
+                    .filter((v) => !!v)
+                    .concat(modulePath)
+                    .join(path.delimiter);
+                cmd.push(`--notify-events=python:${module}:${hook}`);
+            }
 
             const cwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
             await new Promise<void>((resolve, reject) => {
                 const p = spawn(cmd[0], cmd.splice(1), {
                     cwd: cwd,
-                    env: getEnv(),
+                    env: env,
                 });
                 token.onCancellationRequested(() => {
                     p.kill();
@@ -191,37 +227,23 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
                     );
                     resolve();
                 });
-                remainingSet.forEach((t) => run.started(t));
-                function handleChunk(chunk: string | Buffer) {
-                    const decoded: string =
-                        typeof chunk === 'string' ? chunk : chunk.toLocaleString();
-                    run.appendOutput(decoded.replace(/\n/g, '\n\r'));
 
-                    const statusLineReStr = `^INFO\\s+(${TestStatuses.join(
-                        '|',
-                    )})\\s+(([^ \\t\\n\\r:])+)(:\\s*(.*))?`;
-                    const statusLineRe = RegExp(statusLineReStr);
-                    const match = decoded.match(statusLineRe);
-                    if (match) {
-                        const status = match[1] as TestStatus;
-                        const testName = match[2];
-                        const message = match[5];
-                        if (testName) {
-                            const item = remainingArray.find((v) => v.id === testName);
+                if (!enableEventSystem) {
+                    remainingSet.forEach((t) => run.started(t));
+                }
 
-                            if (item) {
-                                reportResult(
-                                    status,
-                                    item,
-                                    message ? [new vscode.TestMessage(message)] : undefined,
-                                );
-                                remainingSet.delete(item);
-                            }
-                        }
+                function handleLine(line: string | Buffer) {
+                    const decodedLine: string =
+                        typeof line === 'string' ? line : line.toLocaleString();
+
+                    if (enableEventSystem) {
+                        handleTestsuiteEvents(run, decodedLine, remainingSet);
+                    } else {
+                        handleTestsuiteOutput(run, decodedLine, remainingSet);
                     }
                 }
-                p.stdout.on('data', handleChunk);
-                p.stderr.on('data', handleChunk);
+                p.stdout.pipe(split()).on('data', handleLine);
+                p.stderr.pipe(split()).on('data', handleLine);
                 p.on('error', reject);
                 p.on('close', (code) => {
                     if (code === 0) {
@@ -232,56 +254,210 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
                 });
             });
 
-            const indexPath = path.join(cwd, 'out', 'new', '_index.json');
-            if (existsSync(indexPath)) {
-                const index = loadReportIndex(indexPath);
-                for (const entry of index.entries) {
-                    const item = remainingArray.find((i) => i.id === entry.test_name);
-                    if (item) {
-                        const testResultPath = path.join(path.dirname(indexPath), entry.filename);
-
-                        if (existsSync(testResultPath)) {
-                            const result = loadTestResult(testResultPath);
-                            reportResult(
-                                entry.status,
-                                item,
-                                result.log ? [new vscode.TestMessage(result.log)] : undefined,
-                            );
-                        }
-                    }
-                }
+            if (!enableEventSystem) {
+                const e3ResultsPath = path.join(cwd, 'out', 'new');
+                processTestsuiteResultIndex(e3ResultsPath, run);
             }
 
             run.end();
-
-            function reportResult(
-                status: string,
-                item: vscode.TestItem,
-                messages: vscode.TestMessage[] = [],
-            ) {
-                switch (status) {
-                    case 'PASS':
-                    case 'XFAIL':
-                        run.passed(item);
-                        break;
-
-                    case 'FAIL':
-                    case 'XPASS':
-                    case 'VERIFY':
-                        run.failed(item, messages);
-                        break;
-                    case 'SKIP':
-                        run.skipped(item);
-                        break;
-                    case 'NOT_APPLICABLE':
-                    case 'ERROR':
-                        run.errored(item, messages);
-                        break;
-                }
-            }
         },
     );
 
+    function processTestsuiteResultIndex(e3ResultsPath: string, run: vscode.TestRun) {
+        const indexPath = path.join(e3ResultsPath, '_index.json');
+        if (existsSync(indexPath)) {
+            const index = loadReportIndex(indexPath);
+            for (const entry of index.entries) {
+                let item = rootItem.children.get(entry.test_name);
+                if (!item) {
+                    /**
+                     * This result does not match an existing test name so
+                     * create a test for it on the fly.
+                     */
+                    item = controller.createTestItem(entry.test_name, entry.test_name);
+                    rootItem.children.add(item);
+                }
+
+                const testResultPath = path.join(e3ResultsPath, entry.filename);
+                if (existsSync(testResultPath)) {
+                    const result = loadTestResult(testResultPath);
+                    reportResult(
+                        run,
+                        entry.status,
+                        item,
+                        result.log ? [new vscode.TestMessage(result.log)] : undefined,
+                    );
+                }
+            }
+        }
+    }
+
+    function reportResult(
+        run: vscode.TestRun,
+        status: string,
+        item: vscode.TestItem,
+        messages: vscode.TestMessage[] = [],
+    ) {
+        switch (status) {
+            case 'PASS':
+            case 'XFAIL':
+                run.passed(item);
+                break;
+
+            case 'FAIL':
+            case 'XPASS':
+            case 'VERIFY':
+                run.failed(item, messages);
+                break;
+            case 'SKIP':
+                run.skipped(item);
+                break;
+            case 'NOT_APPLICABLE':
+            case 'ERROR':
+                run.errored(item, messages);
+                break;
+        }
+    }
+
+    function handleTestsuiteOutput(
+        run: vscode.TestRun,
+        line: string,
+        remainingSet: Set<vscode.TestItem>,
+    ) {
+        run.appendOutput(line + '\r\n');
+
+        const statusLineReStr = `^INFO\\s+(${TestStatuses.join(
+            '|',
+        )})\\s+(([^ \\t\\n\\r:])+)(:\\s*(.*))?`;
+        const statusLineRe = RegExp(statusLineReStr);
+        const match = line.match(statusLineRe);
+        if (match) {
+            const status = match[1] as TestStatus;
+            const testName = match[2];
+            const message = match[5];
+            if (testName) {
+                const item = rootItem.children.get(testName);
+
+                if (item) {
+                    reportResult(
+                        run,
+                        status,
+                        item,
+                        message ? [new vscode.TestMessage(message)] : undefined,
+                    );
+                    remainingSet.delete(item);
+                }
+            }
+        }
+    }
+
+    const resultsMap: Map<vscode.TestItem, TestResult> = new Map();
+    function handleTestsuiteEvents(
+        run: vscode.TestRun,
+        line: string,
+        remainingSet: Set<vscode.TestItem>,
+    ) {
+        let notif: TestsuiteNotification | undefined;
+        try {
+            /**
+             * Try to parse the line as JSON matching TestsuiteNotification
+             */
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            notif = JSON.parse(line);
+        } catch {
+            notif = undefined;
+        }
+
+        if (notif?.kind) {
+            const test = rootItem.children.get(notif.testName);
+            if (!test) {
+                nonFatalError(
+                    `Received ${notif.kind} notification of a ` +
+                        `non-existing test: ${notif.testName}`,
+                );
+                return;
+            }
+            switch (notif.kind) {
+                case NotificationType.TestQueue: {
+                    run.enqueued(test);
+                    test.children.forEach((c) => run.enqueued(c));
+                    break;
+                }
+                case NotificationType.TestStart: {
+                    run.started(test);
+                    test.children.forEach((c) => run.started(c));
+                    break;
+                }
+                case NotificationType.TestResult: {
+                    const result = loadTestResult(notif.resultPath);
+                    if (result.test_name == test.id) {
+                        /**
+                         * The result is for the main test. However we can't
+                         * know if this test also produces other sub-results.
+                         * So we must delay reporting this result until we
+                         * receive the notification of the end of the test. We
+                         * store the test result in a map until then.
+                         */
+                        resultsMap.set(test, result);
+                    } else {
+                        /**
+                         * Get or create a sub-result
+                         */
+                        let targetItem = test.children.get(result.test_name);
+                        if (!targetItem) {
+                            targetItem = controller.createTestItem(
+                                result.test_name,
+                                result.test_name,
+                                test.uri,
+                            );
+                            test.children.add(targetItem);
+                        }
+
+                        /**
+                         * Report the sub-result immediately
+                         */
+                        reportE3Result(run, result, targetItem);
+                    }
+
+                    break;
+                }
+                case NotificationType.TestEnd: {
+                    const result = resultsMap.get(test);
+                    if (result) {
+                        /**
+                         * A result has already been reported. Report it!
+                         */
+                        resultsMap.delete(test);
+                        reportE3Result(run, result, test);
+                    } else {
+                        /**
+                         * No result has been received for this test
+                         * specifically. Either only sub-results were reported,
+                         * or no results at all. Both cases are valid in
+                         * e3-testsuite, and it's okay not to report a result
+                         * for the test. Here's why.
+                         *
+                         * If only sub-results were reported, the test icon in
+                         * the Test Explorer will reflect the status of its
+                         * children sub-results.
+                         *
+                         * If no sub-results were reported, the test icon in
+                         * the Test Explorer will remain blank, as if the test
+                         * was not run. But this doesn't impact the computation
+                         * of the icon of parent nodes so that's fine.
+                         */
+                    }
+                    remainingSet.delete(test);
+                    break;
+                }
+            }
+        } else {
+            /**
+             * Normal non-notification output
+             */
+            run.appendOutput(line + '\r\n');
+        }
+    }
     context.subscriptions.push(profile);
 
     vscode.window.withProgress(
@@ -290,9 +466,42 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             title: 'Loading e3-testsuite tests',
         },
         async (_, token) => {
-            await controller.refreshHandler!(token);
+            if (controller.refreshHandler) {
+                await controller.refreshHandler(token);
+            }
         },
     );
+
+    function reportE3Result(run: vscode.TestRun, result: TestResult, targetItem: vscode.TestItem) {
+        const messages = [];
+
+        let diff;
+        if (result.expected != undefined && result.out != undefined) {
+            diff = new vscode.TestMessage(result.msg ?? 'Diff');
+            diff.actualOutput = result.out;
+            diff.expectedOutput = result.expected;
+            messages.push(diff);
+
+            if (result.log) {
+                /**
+                 * If there's a log, add it as a separate message
+                 */
+                messages.push(new vscode.TestMessage('Test Log' + EOL + result.log));
+            }
+        } else {
+            /**
+             * Combine short message and log into one message
+             */
+            messages.push(
+                new vscode.TestMessage(
+                    [result.msg, result.log].filter((v) => !!v).join(EOL + EOL) ||
+                        'No message in test result',
+                ),
+            );
+        }
+
+        reportResult(run, result.status, targetItem, messages);
+    }
 }
 
 function getRootItemId(): string {
@@ -312,7 +521,7 @@ function getTestsuite() {
     return ts;
 }
 
-function getEnv(): NodeJS.ProcessEnv | undefined {
+function getEnv(): NodeJS.ProcessEnv {
     const env = { ...process.env };
     setTerminalEnvironment(env);
     return env;
@@ -341,4 +550,8 @@ function loadTestResult(testResultPath: string) {
         customTags: [testResultTag, testStatusTag],
     }) as TestResult;
     return result;
+}
+
+function nonFatalError(msg: string) {
+    void vscode.window.showErrorMessage(msg);
 }
