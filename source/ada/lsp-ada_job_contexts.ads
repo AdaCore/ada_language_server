@@ -187,6 +187,15 @@ package LSP.Ada_Job_Contexts is
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
 
+   procedure Append_Location
+     (Self   : in out Ada_Job_Context;
+      Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Unit   : Libadalang.Analysis.Analysis_Unit;
+      Token  : Libadalang.Common.Token_Reference)
+        is abstract;
+   --  Append given token location to the Result.
+
    procedure Trace_Exception
      (Self    : Ada_Job_Context;
       Error   : Ada.Exceptions.Exception_Occurrence;

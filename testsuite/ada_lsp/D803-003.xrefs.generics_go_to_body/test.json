@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "test that textDocument/definition works well with generics"
-      ]
+      "comment": ["test that textDocument/definition works well with generics"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -39,12 +35,7 @@
                      "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
+                        "triggerCharacters": [".", ",", "'", "("],
                         "resolveProvider": true
                      },
                      "documentSymbolProvider": true
@@ -130,8 +121,7 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
    {
@@ -153,20 +143,19 @@
          "wait": [
             {
                "id": 2,
-               "result":
-                  {
-                     "range": {
-                        "start": {
-                           "line": 2,
-                           "character": 13
-                        },
-                        "end": {
-                           "line": 2,
-                           "character": 16
-                        }
+               "result": {
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 13
                      },
-                     "uri": "$URI{gen.ads}"
-                  }
+                     "end": {
+                        "line": 2,
+                        "character": 16
+                     }
+                  },
+                  "uri": "$URI{gen.ads}"
+               }
             }
          ]
       }
@@ -190,7 +179,7 @@
          "wait": [
             {
                "id": 3,
-               "result":
+               "result": [
                   {
                      "range": {
                         "start": {
@@ -203,7 +192,21 @@
                         }
                      },
                      "uri": "$URI{gen.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 8
+                        }
+                     },
+                     "uri": "$URI{gen.adb}"
                   }
+               ]
             }
          ]
       }
@@ -227,20 +230,19 @@
          "wait": [
             {
                "id": 4,
-               "result":
-                  {
-                     "range": {
-                        "start": {
-                           "line": 5,
-                           "character": 13
-                        },
-                        "end": {
-                           "line": 5,
-                           "character": 14
-                        }
+               "result": {
+                  "range": {
+                     "start": {
+                        "line": 5,
+                        "character": 13
                      },
-                     "uri": "$URI{main.adb}"
-                  }
+                     "end": {
+                        "line": 5,
+                        "character": 14
+                     }
+                  },
+                  "uri": "$URI{main.adb}"
+               }
             }
          ]
       }

@@ -6,9 +6,7 @@
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -52,7 +50,7 @@
                      "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
                         "reference",
-                         "access",
+                        "access",
                         "write",
                         "call",
                         "dispatching call",
@@ -67,12 +65,7 @@
                      "declarationProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
+                        "triggerCharacters": [".", ",", "'", "("],
                         "resolveProvider": true
                      },
                      "documentSymbolProvider": true
@@ -143,7 +136,9 @@
          "wait": []
       }
    },
-   {"comment":   "--------------- check 'definition' on the root class, verify that child and 2 grandchildren are listed -------------"},
+   {
+      "comment": "--------------- check 'definition' on the root class, verify that child and 2 grandchildren are listed -------------"
+   },
    {
       "send": {
          "request": {
@@ -175,9 +170,7 @@
                            "character": 30
                         }
                      },
-                     "alsKind": [
-                        "child"
-                     ],
+                     "alsKind": ["child"],
                      "uri": "$URI{pack.ads}"
                   },
                   {
@@ -191,9 +184,7 @@
                            "character": 30
                         }
                      },
-                     "alsKind": [
-                        "child"
-                     ],
+                     "alsKind": ["child"],
                      "uri": "$URI{pack.ads}"
                   },
                   {
@@ -207,9 +198,7 @@
                            "character": 30
                         }
                      },
-                     "alsKind": [
-                        "child"
-                     ],
+                     "alsKind": ["child"],
                      "uri": "$URI{pack.ads}"
                   }
                ]
@@ -217,7 +206,9 @@
          ]
       }
    },
-   {"comment":   "--------------- check 'definition' on the child class, verify that parent and 2 grandchildren are listed -------------"},
+   {
+      "comment": "--------------- check 'definition' on the child class, verify that parent and 2 grandchildren are listed -------------"
+   },
    {
       "send": {
          "request": {
@@ -237,25 +228,26 @@
          "wait": [
             {
                "id": 4,
-               "result":
-                  {
-                     "range": {
-                        "start": {
-                           "line": 2,
-                           "character": 24
-                        },
-                        "end": {
-                           "line": 2,
-                           "character": 30
-                        }
+               "result": {
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 24
                      },
-                     "uri": "$URI{pack.adb}"
-                  }
+                     "end": {
+                        "line": 2,
+                        "character": 30
+                     }
+                  },
+                  "uri": "$URI{pack.adb}"
+               }
             }
          ]
       }
    },
-   {"comment":   "--------------- check 'definition' on the grandchild class, verify that child and root are listed as parent -------------"},
+   {
+      "comment": "--------------- check 'definition' on the grandchild class, verify that child and root are listed as parent -------------"
+   },
    {
       "send": {
          "request": {
@@ -280,7 +272,9 @@
          ]
       }
    },
-   {"comment":   "--------------- check 'definition' on the other_grandchild class, verify that child and root are listed as parent -------------"},
+   {
+      "comment": "--------------- check 'definition' on the other_grandchild class, verify that child and root are listed as parent -------------"
+   },
    {
       "send": {
          "request": {
@@ -300,7 +294,7 @@
          "wait": [
             {
                "id": 10,
-               "result":
+               "result": [
                   {
                      "range": {
                         "start": {
@@ -313,12 +307,28 @@
                         }
                      },
                      "uri": "$URI{pack.adb}"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 3
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 8
+                        }
+                     },
+                     "uri": "$URI{pack.adb}"
                   }
+               ]
             }
          ]
       }
    },
-   {"comment":   "--------------- check 'definition' on the call to Method in p.adb -------------"},
+   {
+      "comment": "--------------- check 'definition' on the call to Method in p.adb -------------"
+   },
    {
       "send": {
          "request": {
@@ -350,9 +360,7 @@
                            "character": 19
                         }
                      },
-                     "alsKind": [
-                        "parent"
-                     ],
+                     "alsKind": ["parent"],
                      "uri": "$URI{pack.ads}"
                   },
                   {
@@ -379,9 +387,7 @@
                            "character": 30
                         }
                      },
-                     "alsKind": [
-                        "child"
-                     ],
+                     "alsKind": ["child"],
                      "uri": "$URI{pack.ads}"
                   },
                   {
@@ -395,9 +401,7 @@
                            "character": 30
                         }
                      },
-                     "alsKind": [
-                        "child"
-                     ],
+                     "alsKind": ["child"],
                      "uri": "$URI{pack.ads}"
                   }
                ]

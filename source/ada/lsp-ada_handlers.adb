@@ -184,6 +184,14 @@ package body LSP.Ada_Handlers is
       Kinds  : AlsReferenceKind_Array := LSP.Constants.Empty)
         renames LSP.Ada_Handlers.Locations.Append_Location;
 
+   overriding procedure Append_Location
+     (Self   : in out Message_Handler;
+      Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Unit   : Libadalang.Analysis.Analysis_Unit;
+      Token  : Libadalang.Common.Token_Reference)
+        renames LSP.Ada_Handlers.Locations.Append_Location;
+
    function Project_Predefined_Units
      (Self : in out Message_Handler; Context : LSP.Ada_Contexts.Context)
       return Libadalang.Analysis.Analysis_Unit_Array;

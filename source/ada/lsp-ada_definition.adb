@@ -105,6 +105,9 @@ package body LSP.Ada_Definition is
       procedure Append_Overrides (Decl : Libadalang.Analysis.Basic_Decl);
       --  Append overloaded subprograms for given declaration
 
+      procedure Append_Prev_Token (Node : Libadalang.Analysis.Ada_Node'Class);
+      --  Find a token before Node and append its location to Result
+
       Message : LSP.Server_Requests.Definition.Request
         renames LSP.Server_Requests.Definition.Request (Self.Message.all);
 
@@ -198,6 +201,28 @@ package body LSP.Ada_Definition is
             end;
          end if;
       end Append_Overrides;
+
+      -----------------------
+      -- Append_Prev_Token --
+      -----------------------
+
+      procedure Append_Prev_Token
+        (Node : Libadalang.Analysis.Ada_Node'Class) is
+      begin
+         if not Node.Is_Null then
+            declare
+               Prev  : constant Libadalang.Common.Token_Reference :=
+                 Libadalang.Common.Previous (Node.Token_Start, True);
+
+            begin
+               Self.Parent.Context.Append_Location
+                 (Result => Self.Response,
+                  Filter => Self.Filter,
+                  Unit   => Node.Unit,
+                  Token  => Prev);
+            end;
+         end if;
+      end Append_Prev_Token;
 
    begin
       if Self.Contexts.Is_Empty then
@@ -299,6 +324,49 @@ package body LSP.Ada_Definition is
          then
             Decl_For_Find_Overrides := Declaration;
          end if;
+
+         --  Append private part, begin destinations to result
+         for Part of Definition.P_Basic_Decl.P_All_Parts loop
+            case Part.Kind is
+
+               when Libadalang.Common.Ada_Package_Body_Range =>
+                  Append_Prev_Token
+                    (Part.As_Package_Body.F_Stmts);
+
+               when Libadalang.Common.Ada_Subp_Body_Range =>
+                  Append_Prev_Token
+                    (Part.As_Subp_Body.F_Stmts);
+
+               when Libadalang.Common.Ada_Task_Body_Range =>
+                  Append_Prev_Token
+                    (Part.As_Task_Body.F_Stmts);
+
+               when Libadalang.Common.Ada_Base_Package_Decl =>
+                  Append_Prev_Token
+                    (Part.As_Base_Package_Decl.F_Private_Part);
+
+               when Libadalang.Common.Ada_Protected_Type_Decl_Range =>
+                  Append_Prev_Token
+                    (Part.As_Protected_Type_Decl.F_Definition.F_Private_Part);
+
+               when Libadalang.Common.Ada_Single_Protected_Decl_Range =>
+                  Append_Prev_Token
+                    (Part.As_Single_Protected_Decl.F_Definition.
+                       F_Private_Part);
+
+               when Libadalang.Common.Ada_Task_Type_Decl_Range =>
+                  Append_Prev_Token
+                    (Part.As_Task_Type_Decl.F_Definition.F_Private_Part);
+
+               when Libadalang.Common.Ada_Single_Task_Decl_Range =>
+                  Append_Prev_Token
+                    (Part.As_Single_Task_Decl.F_Task_Type.F_Definition.
+                       F_Private_Part);
+
+               when others =>
+                  null;
+            end case;
+         end loop;
       end if;
 
       Append_Overrides (Decl_For_Find_Overrides);
