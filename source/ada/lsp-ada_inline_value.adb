@@ -331,18 +331,20 @@ package body LSP.Ada_Inline_Value is
      (Id : Libadalang.Analysis.Identifier) return Boolean
    is
       Decl : Libadalang.Analysis.Basic_Decl;
-      Tipe : Libadalang.Analysis.Base_Type_Decl;
+      Decl_Type : Libadalang.Analysis.Base_Type_Decl;
    begin
       Decl := Id.P_Referenced_Decl (Imprecise_Fallback => False);
-      Tipe := Id.P_Expression_Type;
+      Decl_Type := Id.P_Expression_Type;
 
-      if Id.P_Is_Defining or else Decl.Is_Null or else Tipe.Is_Null then
+      if Id.P_Is_Defining or else Decl.Is_Null or else Decl_Type.Is_Null then
          return False;
-      else
-         Tipe := Tipe.P_Full_View;
+      elsif not Decl_Type.P_Full_View.Is_Null then
+         Decl_Type := Decl_Type.P_Full_View;
       end if;
 
-      if not Tipe.P_Is_Scalar_Type (Tipe) and then not Is_String (Tipe) then
+      if not Decl_Type.P_Is_Scalar_Type (Decl_Type)
+        and then not Is_String (Decl_Type)
+      then
          --  Let's display only variables of elementary and string types for
          --  now.
          return False;
