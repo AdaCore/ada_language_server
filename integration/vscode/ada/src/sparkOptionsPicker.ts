@@ -1,4 +1,5 @@
 import { CancellationError, QuickPickItem } from 'vscode';
+import { adaExtState } from './extension';
 import { InputFlowAction, MultiStepInput } from './multiStepInput';
 
 interface SPARKOption extends QuickPickItem {
@@ -28,7 +29,15 @@ interface PickerState {
     options: SPARKOption[];
 }
 
-let lastState: Partial<PickerState> = {};
+interface SavedPickerState {
+    proofLevelLabel: string;
+    optionLabels: string[];
+}
+
+/**
+ * Key for storing picker state in the workspace state map.
+ */
+const WS_STATE_KEY_PICKER = 'ada.spark.lastPickerState';
 
 export async function askSPARKOptions(): Promise<string[]> {
     const title = 'Select GNATprove Options';
@@ -58,13 +67,21 @@ export async function askSPARKOptions(): Promise<string[]> {
         state.options = choice;
     }
 
+    const savedState =
+        adaExtState.context.workspaceState.get<Partial<SavedPickerState>>(WS_STATE_KEY_PICKER) ??
+        {};
+    const pickerState: Partial<PickerState> = {
+        proofLevel: proofLevels.find((v) => v.label == savedState?.proofLevelLabel),
+        options: options.filter((o) => savedState?.optionLabels?.find((v) => v == o.label)),
+    };
     try {
-        const tmpState = { ...lastState };
-        await MultiStepInput.run((input) => pickProofLevel(input, tmpState));
+        await MultiStepInput.run((input) => pickProofLevel(input, pickerState));
         /**
          * Save chosen selection for next usage
          */
-        lastState = tmpState;
+        savedState.proofLevelLabel = pickerState.proofLevel?.label;
+        savedState.optionLabels = pickerState.options?.map((o) => o.label);
+        adaExtState.context.workspaceState.update(WS_STATE_KEY_PICKER, savedState);
     } catch (err) {
         if (err == InputFlowAction.cancel) {
             // Selection was cancelled, interrupt the process
@@ -72,7 +89,7 @@ export async function askSPARKOptions(): Promise<string[]> {
         }
     }
 
-    return toCLIArgs(lastState);
+    return toCLIArgs(pickerState);
 }
 
 function toCLIArgs(choices: Partial<PickerState>): string[] {
