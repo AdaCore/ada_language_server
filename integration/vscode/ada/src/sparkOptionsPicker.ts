@@ -30,7 +30,7 @@ interface PickerState {
 
 let lastState: Partial<PickerState> = {};
 
-export async function askSPARKOptions() {
+export async function askSPARKOptions(): Promise<string[]> {
     const title = 'Select GNATprove Options';
     async function pickProofLevel(input: MultiStepInput, state: Partial<PickerState>) {
         const choice: SPARKOption = await input.showQuickPick({

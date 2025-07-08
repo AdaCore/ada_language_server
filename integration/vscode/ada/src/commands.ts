@@ -88,6 +88,7 @@ export const CMD_GET_PROJECT_FILE = 'ada.getProjectFile';
 export const CMD_SPARK_LIMIT_SUBP_ARG = 'ada.spark.limitSubpArg';
 export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
 export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
+const CMD_SPARK_ASK_OPTIONS = 'ada.spark.askSPARKOptions';
 
 /**
  * Identifier for the command that shows the extension's output in the Output panel.
@@ -246,6 +247,8 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram),
     );
+
+    context.subscriptions.push(commands.registerCommand(CMD_SPARK_ASK_OPTIONS, askSPARKOptions));
 
     context.subscriptions.push(
         commands.registerCommand('ada.loadGnatCovXMLReport', loadGnatCovXMLReport),
@@ -1052,15 +1055,11 @@ async function sparkProveSubprogram(
     uri: vscode.Uri,
     range: vscode.Range,
 ): Promise<vscode.TaskExecution> {
-    const [tasks, cliArgs] = await Promise.all([
-        vscode.tasks.fetchTasks({ type: TASK_TYPE_SPARK }),
-        askSPARKOptions(),
-    ]);
-
     /**
      * Get the 'Prove subprogram' task. Prioritize workspace tasks so that User
      * customization of the task takes precedence.
      */
+    const tasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_SPARK });
     const task = tasks
         .sort(workspaceTasksFirst)
         .find(
@@ -1094,7 +1093,7 @@ async function sparkProveSubprogram(
      */
     const taskDef = newTask.definition as SimpleTaskDef;
     assert(taskDef.args);
-    const regionArg = '${command:ada.spark.limitSubpArg}';
+    const regionArg = `\${command:${CMD_SPARK_LIMIT_SUBP_ARG}}`;
     const regionArgIdx = taskDef.args.findIndex((arg) => arg == regionArg);
     if (regionArgIdx >= 0) {
         const fileBasename = basename(uri.fsPath);
@@ -1106,9 +1105,15 @@ async function sparkProveSubprogram(
         newTask.name = `${task.name} - ${fileBasename}:${range.start.line + 1}`;
 
         /**
-         * Add the options chosen by the User
+         * Add a command to ask the User for options. We do this instead of
+         * pre-evaluating the options so that all invocations on the same
+         * subprogram have the same set of (unevaluated) arguments, which means
+         * that only one task shows up in the task history for each subprogram.
+         * If we pre-evaluated the options, then each different set of User
+         * choices would yield a different entry in the task history which is
+         * noisy.
          */
-        taskDef.args.splice(regionArgIdx + 1, 0, ...cliArgs);
+        taskDef.args.splice(regionArgIdx + 1, 0, `\${command:${CMD_SPARK_ASK_OPTIONS}}`);
     } else {
         throw Error(
             `Task '${getConventionalTaskLabel(task)}' is missing a '${regionArg}' argument`,

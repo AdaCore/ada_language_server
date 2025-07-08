@@ -682,6 +682,10 @@ export class SimpleTaskProvider implements vscode.TaskProvider {
                     await evaluateArgs(args);
                 execution = new vscode.ShellExecution(taskDef.command, evaluatedArgs);
             } catch (err) {
+                if (err instanceof vscode.CancellationError) {
+                    // It's just a cancellation, propagate as is
+                    throw err;
+                }
                 let msg = 'Error while evaluating task arguments.';
                 logger.error(msg);
                 logger.error(err);
