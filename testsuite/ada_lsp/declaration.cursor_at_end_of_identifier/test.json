@@ -1,0 +1,125 @@
+[
+   {
+      "comment": [
+         "This test checks that textDocument/declaration works fine when the ",
+         "cursor is positioned at the very end of an identifier (e.g: 'Aaa^')."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "declarationProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{aaa.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Ada.Text_IO;\nprocedure Aaa is\nbegin\n   Ada.Text_IO.New_Line;\n   Aaa;\nend Aaa;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "defname-1",
+            "method": "textDocument/declaration",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{aaa.adb}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 6
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "defname-1",
+               "result": {
+                  "uri": "$URI{aaa.adb}",
+                  "range": {
+                     "start": {
+                        "line": 1,
+                        "character": 10
+                     },
+                     "end": {
+                        "line": 1,
+                        "character": 13
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [{ "id": "shutdown", "result": null }]
+      }
+   },
+   {
+      "send": {
+         "request": { "jsonrpc": "2.0", "method": "exit" },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
