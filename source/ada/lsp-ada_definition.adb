@@ -99,6 +99,12 @@ package body LSP.Ada_Definition is
    is
       use all type LSP.Enumerations.AlsDisplayMethodAncestryOnNavigationPolicy;
 
+      procedure Append_Accept_Statements (Decl : Libadalang.Analysis.Basic_Decl);
+      --  Search for accept statements if we are on an entry
+
+      procedure Append_Overrides (Decl : Libadalang.Analysis.Basic_Decl);
+      --  Append overloaded subprograms for given declaration
+
       Message : LSP.Server_Requests.Definition.Request
         renames LSP.Server_Requests.Definition.Request (Self.Message.all);
 
@@ -119,11 +125,80 @@ package body LSP.Ada_Definition is
       Name_Node               : Libadalang.Analysis.Name;
       Definition              : Libadalang.Analysis.Defining_Name;
       Other_Part              : Libadalang.Analysis.Defining_Name;
-      Manual_Fallback         : Libadalang.Analysis.Defining_Name;
-      Definition_Node         : Libadalang.Analysis.Basic_Decl;
+      Declaration             : Libadalang.Analysis.Basic_Decl;
       Decl_For_Find_Overrides : Libadalang.Analysis.Basic_Decl;
 
       Ignore : Boolean;
+
+      ------------------------------
+      -- Append_Accept_Statements --
+      ------------------------------
+
+      procedure Append_Accept_Statements
+        (Decl : Libadalang.Analysis.Basic_Decl) is
+      begin
+         --  Search for accept statements only if we are on an entry
+         if not Decl.Is_Null
+           and then Decl.Kind in Libadalang.Common.Ada_Entry_Decl_Range
+         then
+            declare
+               Entry_Decl_Node   : constant Libadalang.Analysis.Entry_Decl :=
+                 Decl.As_Entry_Decl;
+               Entry_Parent_Node : constant Libadalang.Analysis.Basic_Decl :=
+                 Entry_Decl_Node.P_Parent_Basic_Decl;
+            begin
+               --  P_Accept_Stmts is only valid for entries declared in tasks
+               if Entry_Parent_Node.Kind in
+                 Libadalang.Common.Ada_Task_Type_Decl_Range
+               then
+                  for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
+                     Self.Parent.Context.Append_Location
+                       (Self.Response,
+                        Self.Filter,
+                        Accept_Node.F_Body_Decl.F_Name);
+                  end loop;
+               end if;
+            end;
+         end if;
+      end Append_Accept_Statements;
+
+      ----------------------
+      -- Append_Overrides --
+      ----------------------
+
+      procedure Append_Overrides (Decl : Libadalang.Analysis.Basic_Decl) is
+      begin
+         if not Decl.Is_Null then
+            declare
+               Overridings : constant Libadalang.Analysis.Basic_Decl_Array :=
+                 Context.Find_All_Overrides
+                   (Decl,
+                    Imprecise_Results => Ignore);
+
+               Bases       : constant Libadalang.Analysis.Basic_Decl_Array :=
+                 Context.Find_All_Base_Declarations
+                   (Decl,
+                    Imprecise_Results => Ignore);
+            begin
+               for Subp of Bases loop
+                  Self.Parent.Context.Append_Location
+                    (Self.Response,
+                     Self.Filter,
+                     Subp.P_Defining_Name,
+                     Is_Parent);
+               end loop;
+
+               for Subp of Overridings loop
+                  Self.Parent.Context.Append_Location
+                    (Self.Response,
+                     Self.Filter,
+                     Subp.P_Defining_Name,
+                     Is_Child);
+               end loop;
+            end;
+         end if;
+      end Append_Overrides;
+
    begin
       if Self.Contexts.Is_Empty then
          --  No more contexts to process, sort and return collected results
@@ -151,10 +226,16 @@ package body LSP.Ada_Definition is
          return;
       end if;
 
+      --  We distinguish two cases here. When we navigate from the usage_name,
+      --  we simply go to the defining_name. When we are already at the
+      --  defining_name, we try to go to completion and add additional
+      --  destinations, such as overrides, accept_statements, etc.
+
       --  Check if we are on some defining name
       Definition := Laltools.Common.Get_Name_As_Defining (Name_Node);
 
       if Definition.Is_Null then
+         --  If we are on a usage_name, go to defining_name
          Definition := Self.Parent.Context.Imprecise_Resolve_Name (Name_Node);
 
          if not Definition.Is_Null then
@@ -167,72 +248,22 @@ package body LSP.Ada_Definition is
                Decl_For_Find_Overrides := Definition.P_Basic_Decl;
             end if;
          end if;
-      else  --  If we are on a defining_name already
-         Other_Part := Laltools.Common.Find_Next_Part (Definition, Trace);
+      else  --  If we are on a defining_name already, find other_part
 
-         Definition_Node := Definition.P_Basic_Decl;
+         Declaration := Definition.P_Basic_Decl;
 
-         --  Search for overriding subprograms only if we are on an
-         --  abstract subprogram.
-         if Display_Method_Policy /= Never
-           and then
-             (Display_Method_Policy /= Usage_And_Abstract_Only
-              or else Definition_Node.Kind in
-                Libadalang.Common.Ada_Abstract_Subp_Decl_Range)
-         then
-            Decl_For_Find_Overrides := Definition_Node;
-         end if;
-
-         --  Search for accept statements only if we are on an entry
-         if Definition_Node.Kind in Libadalang.Common.Ada_Entry_Decl_Range then
-            declare
-               Entry_Decl_Node   : constant Libadalang.Analysis.Entry_Decl :=
-                 Definition_Node.As_Entry_Decl;
-               Entry_Parent_Node : constant Libadalang.Analysis.Basic_Decl :=
-                 Entry_Decl_Node.P_Parent_Basic_Decl;
-            begin
-               --  P_Accept_Stmts is only valid for entries declared in tasks
-               if Entry_Parent_Node.Kind in
-                 Libadalang.Common.Ada_Task_Type_Decl_Range
-               then
-                  for Accept_Node of Entry_Decl_Node.P_Accept_Stmts loop
-                     Self.Parent.Context.Append_Location
-                       (Self.Response,
-                        Self.Filter,
-                        Accept_Node.F_Body_Decl.F_Name);
-                  end loop;
-
-               --  Others entries are are handled as simple subprograms
-               else
-                  declare
-                     Other_Part_For_Decl : constant
-                       Libadalang.Analysis.Basic_Decl :=
-                       Laltools.Common.Find_Next_Part_For_Decl
-                         (Definition_Node, Trace);
-                  begin
-                     if not Other_Part_For_Decl.Is_Null then
-                        Other_Part := Other_Part_For_Decl.P_Defining_Name;
-                     end if;
-                  end;
-               end if;
-            end;
-
-         elsif Definition_Node.Kind in
-           Libadalang.Common.Ada_Single_Task_Type_Decl_Range |
-           Libadalang.Common.Ada_Protected_Type_Decl_Range
-         then
-            --  These node types are not handled by Find_Next_Part
-            --  (LAL design limitations)
-            declare
-               Other_Part_For_Decl : constant Libadalang.Analysis.Basic_Decl :=
-                 Laltools.Common.Find_Next_Part_For_Decl
-                   (Definition_Node, Trace);
-            begin
-               if not Other_Part_For_Decl.Is_Null then
-                  Other_Part := Other_Part_For_Decl.P_Defining_Name;
-               end if;
-            end;
-         end if;
+         --  Some node types are not handled by Find_Next_Part
+         --  (LAL design limitations), so we use Find_Next_Part_For_Decl
+         --  instead.
+         declare
+            Other_Part_For_Decl : constant Libadalang.Analysis.Basic_Decl :=
+              Laltools.Common.Find_Next_Part_For_Decl
+                (Declaration, Trace);
+         begin
+            if not Other_Part_For_Decl.Is_Null then
+               Other_Part := Other_Part_For_Decl.P_Defining_Name;
+            end if;
+         end;
 
          if Other_Part.Is_Null then
             --  No next part is found. Check first defining name
@@ -245,53 +276,32 @@ package body LSP.Ada_Definition is
             --  an answer using Find_Next_Part / Find_Canonical_Part.
             --  Use the manual fallback to attempt to find a good enough
             --  result.
-            Manual_Fallback := Laltools.Common.Find_Other_Part_Fallback
+            Other_Part := Laltools.Common.Find_Other_Part_Fallback
               (Definition, Trace);
+         end if;
 
-            --  If we have found a result using the imprecise heuristics then
-            --  append it.
-            Self.Parent.Context.Append_Location
-              (Self.Response,
-               Self.Filter,
-               Manual_Fallback);
-         else
+         if not Other_Part.Is_Null then
             Self.Parent.Context.Append_Location
               (Self.Response,
                Self.Filter,
                Other_Part);
+         end if;
 
+         Append_Accept_Statements (Declaration);
+
+         --  Search for overriding subprograms only if we are on an
+         --  abstract subprogram.
+         if Display_Method_Policy /= Never
+           and then
+             (Display_Method_Policy /= Usage_And_Abstract_Only
+              or else Declaration.Kind in
+                Libadalang.Common.Ada_Abstract_Subp_Decl_Range)
+         then
+            Decl_For_Find_Overrides := Declaration;
          end if;
       end if;
 
-      if not Decl_For_Find_Overrides.Is_Null then
-         declare
-            Overridings : constant Libadalang.Analysis.Basic_Decl_Array :=
-              Context.Find_All_Overrides
-                (Decl_For_Find_Overrides,
-                 Imprecise_Results => Ignore);
-
-            Bases       : constant Libadalang.Analysis.Basic_Decl_Array :=
-              Context.Find_All_Base_Declarations
-                (Decl_For_Find_Overrides,
-                 Imprecise_Results => Ignore);
-         begin
-            for Subp of Bases loop
-               Self.Parent.Context.Append_Location
-                 (Self.Response,
-                  Self.Filter,
-                  Subp.P_Defining_Name,
-                  Is_Parent);
-            end loop;
-
-            for Subp of Overridings loop
-               Self.Parent.Context.Append_Location
-                 (Self.Response,
-                  Self.Filter,
-                  Subp.P_Defining_Name,
-                  Is_Child);
-            end loop;
-         end;
-      end if;
+      Append_Overrides (Decl_For_Find_Overrides);
    end Execute_Ada_Request;
 
 end LSP.Ada_Definition;
