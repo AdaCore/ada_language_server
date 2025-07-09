@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+* Added a `Ada: Report Issue` command that opens the [VS Code Issue Reporter](https://code.visualstudio.com/docs/supporting/FAQ#_report-an-issue-with-a-vs-code-extension) with an extension-specific template
+
 ## 26.0.202507021
 
 * Added `onEnterRules` for Ada/GPR files to split long comments by adding automatically a comment tag to the next line
