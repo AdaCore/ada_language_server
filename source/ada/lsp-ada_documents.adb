@@ -1237,13 +1237,10 @@ package body LSP.Ada_Documents is
             return Initial_Sloc;
          end if;
 
-         --  The current token is an identifier and its start SLOC and
-         --  the previous one's end SLOC are equal: consider that the query is
-         --  being done on the previous identifier token.
          declare
-            Token_Data : constant Libadalang.Common.Token_Data_Type :=
+            Token_Data       : constant Libadalang.Common.Token_Data_Type :=
               Libadalang.Common.Data (Token);
-            Token_Range :
+            Token_Range      :
               constant Libadalang.Slocs.Source_Location_Range :=
                 Token_Data.Sloc_Range;
             Prev_Token_Data  : constant Libadalang.Common.Token_Data_Type :=
@@ -1252,6 +1249,9 @@ package body LSP.Ada_Documents is
               constant Libadalang.Slocs.Source_Location_Range :=
                 Prev_Token_Data.Sloc_Range;
          begin
+            --  The current token is an identifier and its start SLOC and
+            --  the previous one's end SLOC are equal: consider that the query
+            --  is being done on the previous identifier token.
             if Prev_Token_Data.Kind = Ada_Identifier
               and then Initial_Sloc = Token_Range.Start_Sloc
               and then Initial_Sloc = Prev_Token_Range.End_Sloc

@@ -3370,6 +3370,8 @@ package body LSP.Ada_Handlers is
       ----------------------
 
       procedure Compute_Response is
+         use Libadalang.Common;
+
          Context  : constant LSP.Ada_Context_Sets.Context_Access :=
            Self.Contexts.Get_Best_Context (Value.textDocument.uri);
          Document : constant LSP.Ada_Documents.Document_Access :=
@@ -3379,15 +3381,9 @@ package body LSP.Ada_Handlers is
 
          Position : LSP.Structures.Position := Value.position;
          Node     : Libadalang.Analysis.Ada_Node;
-
+         Token    : Libadalang.Common.Token_Reference :=
+           Document.Get_Token_At (Context.all, Position);
       begin
-         --  Move the cursor to the previous character: this is more resilient
-         --  to invalid code.
-
-         if Position.character > 0 then
-            Position.character := @ - 1;
-         end if;
-
          Node := Document.Get_Node_At (Context.all, Position);
 
          declare
@@ -3414,8 +3410,8 @@ package body LSP.Ada_Handlers is
             end if;
          end;
 
-         --  Try to get signatures before the cursor location
-         --  i.e "Foo (1,|" => "Foo (1|,"
+         --  Try to get signatures at the the cursor location
+         --  i.e "Foo (1,|"
 
          LSP.Ada_Completions.Parameters.Propose_Signatures
            (Context         => Context,
@@ -3424,37 +3420,41 @@ package body LSP.Ada_Handlers is
             Prev_Signatures => Value.context,
             Res             => Response.Value);
 
-         --  Retry to get signature in the previous non whitespace token
-         --  i.e. "Foo (1, 2 + |" => "Foo (1, 2 +|"
-
          if Response.Value.signatures.Is_Empty then
-            declare
-               use all type Libadalang.Common.Token_Kind;
-               use type Libadalang.Common.Token_Reference;
 
-               Token : Libadalang.Common.Token_Reference :=
-                 Document.Get_Token_At (Context.all, Position);
+            --  Retry to get matching signatures from the previous non whitespace/non comma
+            --  token.
+            --  This is more resilient on invalid code, since we'll have more chances to
+            --  retrieve a valid CallExpr node, rather than an ErrorStmt one.
+            --  i.e. "Foo (1, 2 + |" => "Foo (1, 2 +|" or "Foo (1, 2,|" => "Foo (1, 2|,"
 
-            begin
-               if Token /= Libadalang.Common.No_Token
-                 and then Libadalang.Common.Kind
-                            (Libadalang.Common.Data (Token)) = Ada_Whitespace
-               then
+            if Token /= No_Token
+              and then Position.character > 0
+              and then (Token.Data.Is_Trivia
+                        or else Token.Data.Kind = Ada_Comma)
+            then
+               declare
+                  Prev_Token : constant Token_Reference :=
+                    Libadalang.Common.Previous (Token, Exclude_Trivia => True);
+               begin
                   Token :=
-                    Libadalang.Common.Previous
-                      (Token, Exclude_Trivia => True);
-               end if;
+                    (if Prev_Token /= No_Token then Prev_Token else Token);
 
-               Position := LSP.Ada_Handlers.Locations.Start_Position (Token);
-            end;
+                  --  Recompute the position from the new token and retrieve
+                  --  the corresponding node.
+                  Position :=
+                    LSP.Ada_Handlers.Locations.Start_Position (Token);
+                  Node := Document.Get_Node_At (Context.all, Position);
 
-            Node := Document.Get_Node_At (Context.all, Position);
-            LSP.Ada_Completions.Parameters.Propose_Signatures
-              (Context         => Context,
-               Node            => Node,
-               Cursor          => Location,
-               Prev_Signatures => Value.context,
-               Res             => Response.Value);
+                  --  Get the matching signatures
+                  LSP.Ada_Completions.Parameters.Propose_Signatures
+                    (Context         => Context,
+                     Node            => Node,
+                     Cursor          => Location,
+                     Prev_Signatures => Value.context,
+                     Res             => Response.Value);
+               end;
+            end if;
          end if;
 
          --  Retry to get signatures in the cursor position.

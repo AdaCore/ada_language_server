@@ -52,14 +52,14 @@ async def test_help_active_parameter(lsp: ALSLanguageClient) -> None:
     assert res is not None and res.active_parameter == 0
 
     # Send a textDocument/didChange request
-    text_document_did_change(1, main_adb, Pos(14, 10), Pos(14, 11), ",")
+    text_document_did_change(1, main_adb, Pos(14, 10), Pos(14, 10), ",")
 
     res = await lsp.text_document_signature_help_async(
         SignatureHelpParams(main_adb_textdoc_id, Pos(14, 11))
     )
     assert res is not None and res.active_parameter == 1
 
-    text_document_did_change(2, main_adb, Pos(14, 11), Pos(14, 13), "4,")
+    text_document_did_change(2, main_adb, Pos(14, 11), Pos(14, 11), "4,")
 
     res = await lsp.text_document_signature_help_async(
         SignatureHelpParams(main_adb_textdoc_id, Pos(14, 14))
