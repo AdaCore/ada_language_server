@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-         "Test the formatting of snippet via GNATPP => when adding",
+         "Test the formatting of snippet via GNATFormat => when adding",
          "parameters in a call it should reformat the existing parameters"
       ]
    },
@@ -170,7 +170,7 @@
                                  "character": 8
                               }
                            },
-                           "newText": "Bar\n     (A       => ${1:Integer},\n      BBBBB   => ${2:Integer},\n      CCCCCCC => ${3:Integer},\n      DDD     => ${4:Float})$0"
+                           "newText": "Bar (A => ${1:Integer}, BBBBB => ${2:Integer}, CCCCCCC => ${3:Integer}, DDD => ${4:Float})$0"
                         },
                         "data": {
                            "uri": "$URI{foo.adb}",
@@ -352,7 +352,7 @@
                                  "character": 15
                               }
                            },
-                           "newText": "Bar\n     (A       => 1,\n      BBBBB   => ${2:Integer},\n      CCCCCCC => ${3:Integer},\n      DDD     => ${4:Float})$0"
+                           "newText": "Bar (A => 1, BBBBB => ${2:Integer}, CCCCCCC => ${3:Integer}, DDD => ${4:Float})$0"
                         },
                         "data": {
                            "uri": "$URI{foo.adb}",

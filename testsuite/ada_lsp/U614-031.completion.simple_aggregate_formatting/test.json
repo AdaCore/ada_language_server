@@ -170,7 +170,7 @@
                                  "character": 33
                               }
                            },
-                           "newText": "My_Record'\n                        (I => ${1:Integer},\n                         J => ${2:Integer},\n                         F => ${3:Float})$0"
+                           "newText": "My_Record'(I => ${1:Integer}, J => ${2:Integer}, F => ${3:Float})$0"
                         },
                         "data": {
                            "uri": "$URI{src/foo.adb}",
@@ -320,7 +320,7 @@
                                  "character": 23
                               }
                            },
-                           "newText": "(I => ${1:Integer},\n                       J => ${2:Integer},\n                       F => ${3:Float})$0"
+                           "newText": "(I => ${1:Integer}, J => ${2:Integer}, F => ${3:Float})$0"
                         },
                         "data": {
                            "uri": "$URI{src/foo.adb}",

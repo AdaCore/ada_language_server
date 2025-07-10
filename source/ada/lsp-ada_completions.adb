@@ -17,7 +17,11 @@
 
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
+with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;   use Ada.Strings.Unbounded;
 
+with Gnatformat;
+with Gnatformat.Formatting;
 with VSS.Characters.Latin;
 with VSS.Regular_Expressions;
 with VSS.Strings;              use VSS.Strings;
@@ -25,6 +29,7 @@ with VSS.Strings.Conversions;
 with VSS.Strings.Cursors.Iterators.Characters;
 with VSS.Strings.Cursors.Markers;
 with VSS.Strings.Hash;
+with VSS.String_Vectors;
 with VSS.Transformers.Casing;
 
 with LSP.Ada_Configurations;
@@ -33,12 +38,7 @@ with LSP.Ada_Documents;
 with LSP.Enumerations;
 with LSP.Utils;
 
-with Pp.Actions;
-with Pp.Command_Lines;
 with Pp.Scanner;
-with Utils.Command_Lines;
-with Utils.Command_Lines.Common;
-with Utils.Char_Vectors;
 
 package body LSP.Ada_Completions is
    pragma Warnings (Off);
@@ -208,10 +208,6 @@ package body LSP.Ada_Completions is
       --  {"foobar_1" : "$1", "foobar_2" : "${2: Integer}"}
       --  $0 will not be replaced
 
-      procedure Set_PP_Switches
-        (Cmd : in out Standard.Utils.Command_Lines.Command_Line);
-      --  Force switches not enabled by default by GNATpp
-
       function Encode_String (S : Virtual_String) return Virtual_String;
       --  Create pseudo code for the snippet
 
@@ -236,38 +232,6 @@ package body LSP.Ada_Completions is
       function Post_Pretty_Print (S : Virtual_String) return Virtual_String;
       --  Indent the block using the initial location and add back $0 (it has
       --  been removed to not generate invalid pseudo code)
-
-      ---------------------
-      -- Set_PP_Switches --
-      ---------------------
-
-      procedure Set_PP_Switches
-        (Cmd : in out Standard.Utils.Command_Lines.Command_Line) is
-
-      begin
-         --  If not set by the user: align parameters and aggregates
-
-         if not Pp.Command_Lines.Pp_Nat_Switches.Explicit
-           (Cmd, Pp.Command_Lines.Call_Threshold)
-         then
-            Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
-              (Cmd, Pp.Command_Lines.Call_Threshold, 1);
-         end if;
-
-         if not Pp.Command_Lines.Pp_Nat_Switches.Explicit
-           (Cmd, Pp.Command_Lines.Par_Threshold)
-         then
-            Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
-              (Cmd, Pp.Command_Lines.Par_Threshold, 1);
-         end if;
-
-         if not Pp.Command_Lines.Pp_Boolean_Switches.Explicit
-           (Cmd, Pp.Command_Lines.Vertical_Named_Aggregates)
-         then
-            Pp.Command_Lines.Pp_Boolean_Switches.Set_Arg
-              (Cmd, Pp.Command_Lines.Vertical_Named_Aggregates);
-         end if;
-      end Set_PP_Switches;
 
       -------------------
       -- Encode_String --
@@ -433,6 +397,31 @@ package body LSP.Ada_Completions is
             Res := S;
          end if;
 
+         --  Add the offset for each lines except the first one which is
+         --  already aligned with the cursor
+         declare
+            Lines : constant VSS.String_Vectors.Virtual_String_Vector :=
+              Res.Split_Lines
+                (Terminators     =>
+                   (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
+                    others => False),
+                 Keep_Terminator => True);
+            First : Boolean := True;
+         begin
+            Res := Empty_Virtual_String;
+            for Line of Lines loop
+               if First then
+                  First := False;
+                  Res.Append (Line);
+               else
+                  Res.Append
+                    (VSS.Strings.Conversions.To_Virtual_String
+                       (Ada.Strings.Fixed."*" (Offset, " "))
+                     & Line);
+               end if;
+            end loop;
+         end;
+
          --  Add back snippet terminator
          Append (Res, "$0");
          return Res;
@@ -446,40 +435,27 @@ package body LSP.Ada_Completions is
         and then Result.insertTextFormat.Value = LSP.Enumerations.Snippet
       then
          declare
-            Input       : Standard.Utils.Char_Vectors.Char_Vector;
-            Output      : Standard.Utils.Char_Vectors.Char_Vector;
+            Output      : Unbounded_String;
             PP_Messages : Pp.Scanner.Source_Message_Vector;
             S           : Virtual_String;
             Tmp_Unit    : Libadalang.Analysis.Analysis_Unit;
-            Cmd         : Standard.Utils.Command_Lines.Command_Line :=
-              Context.Get_PP_Options;
             Tmp_Context : constant Libadalang.Analysis.Analysis_Context :=
-              Libadalang.Analysis.Create_Context
-                (Charset => Standard.Utils.Command_Lines.Common.
-                   Wide_Character_Encoding (Cmd));
+              Libadalang.Analysis.Create_Context;
          begin
-            Set_PP_Switches (Cmd);
-
             declare
                Full : constant String :=
                  VSS.Strings.Conversions.To_UTF_8_String
                    (Prefix & Encode_String (Result.insertText));
             begin
-               Input.Append (Full);
                Tmp_Unit :=
                  Libadalang.Analysis.Get_From_Buffer
                    (Context  => Tmp_Context,
                     Filename => "",
                     Buffer   => Full,
                     Rule     => Rule);
-               Pp.Actions.Format_Vector
-                 (Cmd                 => Cmd,
-                  Input               => Input,
-                  Node                => Libadalang.Analysis.Root (Tmp_Unit),
-                  Output              => Output,
-                  Messages            => PP_Messages,
-                  Initial_Indentation => Offset,
-                  Partial_GNATPP      => True);
+               Output := Gnatformat.Formatting.Format
+                 (Unit           => Tmp_Unit,
+                  Format_Options => Context.Get_Format_Options);
             exception
                when E : others =>
                   --  Failed to pretty print the snippet, keep the previous
@@ -488,7 +464,8 @@ package body LSP.Ada_Completions is
                   return;
             end;
 
-            S := VSS.Strings.Conversions.To_Virtual_String (Output.To_Array);
+            S :=
+              VSS.Strings.Conversions.To_Virtual_String (To_String (Output));
 
             if not S.Is_Empty then
                --  The text is already formatted, don't try to indent it
