@@ -219,8 +219,8 @@ package body LSP.Ada_Declaration is
            (Self.Response,
             Self.Filter,
             Prev_Part);
-      elsif not Definition.Is_Null then
-         --  No previous part, return definition itself.
+      else
+         --  No previous part, return definition itself, if not null.
          Self.Parent.Context.Append_Location
            (Self.Response,
             Self.Filter,

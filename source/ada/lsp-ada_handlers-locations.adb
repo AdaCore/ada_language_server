@@ -44,10 +44,43 @@ package body LSP.Ada_Handlers.Locations is
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
       Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Unit   : Libadalang.Analysis.Analysis_Unit;
+      Token  : Libadalang.Common.Token_Reference)
+   is
+      use type Libadalang.Common.Token_Reference;
+   begin
+      if Token /= Libadalang.Common.No_Token then
+         declare
+            URI : constant LSP.Structures.DocumentUri :=
+              (VSS.Strings.Conversions.To_Virtual_String
+                 (URIs.Conversions.From_File (Unit.Get_Filename))
+                   with null record);
+
+            Value : constant LSP.Structures.Location :=
+              (uri     => URI,
+               a_range => Locations.To_LSP_Range (Self, Unit, Token),
+               alsKind => LSP.Constants.Empty);
+         begin
+            if not Filter.Contains (Value) then
+               Result.Append (Value);
+               Filter.Insert (Value);
+            end if;
+         end;
+      end if;
+   end Append_Location;
+
+   ---------------------
+   -- Append_Location --
+   ---------------------
+
+   procedure Append_Location
+     (Self   : in out Message_Handler;
+      Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty) is
    begin
-      if not LSP.Utils.Is_Synthetic (Node) then
+      if not Node.Is_Null and then not LSP.Utils.Is_Synthetic (Node) then
          declare
             Value : constant LSP.Structures.Location :=
               To_LSP_Location (Self, Node, Kinds);
