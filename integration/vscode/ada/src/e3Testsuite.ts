@@ -213,6 +213,13 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
                 cmd.push(`--notify-events=python:${module}:${hook}`);
             }
 
+            /**
+             * Append CLI args defined in settings
+             */
+            cmd.push(
+                ...(vscode.workspace.getConfiguration('e3-testsuite').get<string[]>('args') ?? []),
+            );
+
             const cwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
             await new Promise<void>((resolve, reject) => {
                 const p = spawn(cmd[0], cmd.splice(1), {

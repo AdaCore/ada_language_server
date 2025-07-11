@@ -724,6 +724,11 @@
                         "type": "string",
                         "description": "Path to python interpreter, useful when you want to use a specific venv",
                         "default": "python"
+                    },
+                    "e3-testsuite.args": {
+                        "type": "array",
+                        "description": "Command line arguments to pass to testsuite.py when running tests",
+                        "default": []
                     }
                 }
             }
