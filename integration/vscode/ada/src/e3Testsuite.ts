@@ -57,6 +57,8 @@ type TestResult = {
 
 const showLoadTestListErrorCmdId = 'e3-testsuite.showLoadTestListError';
 let lastLoadError: string = '';
+export let controller: vscode.TestController;
+export let runProfile: vscode.TestRunProfile;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -70,7 +72,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         }),
     );
 
-    const controller = vscode.tests.createTestController('e3-testsuite', 'e3-testsuite');
+    controller = vscode.tests.createTestController('e3-testsuite', 'e3-testsuite');
     context.subscriptions.push(controller);
 
     const testData: Map<vscode.TestItem, TestInfo> = new Map();
@@ -154,7 +156,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             });
     };
 
-    const profile = controller.createRunProfile(
+    runProfile = controller.createRunProfile(
         'e3-testsuite',
         vscode.TestRunProfileKind.Run,
         async function (request, token) {
@@ -480,7 +482,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             run.appendOutput(line + '\r\n');
         }
     }
-    context.subscriptions.push(profile);
+    context.subscriptions.push(runProfile);
 
     vscode.window.withProgress(
         {

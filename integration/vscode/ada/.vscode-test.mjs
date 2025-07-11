@@ -51,6 +51,7 @@ const testsuites = [
     'dot-als-json',
     'status_bar',
     'aggregate_projects',
+    'e3-testsuite',
 ];
 
 export default defineConfig(
