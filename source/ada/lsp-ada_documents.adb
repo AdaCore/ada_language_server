@@ -1202,10 +1202,70 @@ package body LSP.Ada_Documents is
       Context  : LSP.Ada_Contexts.Context;
       Position : LSP.Structures.Position) return Libadalang.Analysis.Ada_Node
    is
-      Unit : constant Libadalang.Analysis.Analysis_Unit := Self.Unit (Context);
+      use Langkit_Support.Slocs;
+
+      Unit         : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.Unit (Context);
+
+      function Get_Sloc return Langkit_Support.Slocs.Source_Location;
+      --  Return the source location corresponding to Position.
+      --  This function handles properly the case where the position is
+      --  at the end of an indentifier token and at the start of the next
+      --  token (e.g: 'An_Identifier^;' where '^' is the cursor's position):
+      --  in that case we want to retrieve the node corresponding to
+      --  the previous identifier token.
+
+      --------------
+      -- Get_Sloc --
+      --------------
+
+      function Get_Sloc return Langkit_Support.Slocs.Source_Location is
+         use type Langkit_Support.Slocs.Source_Location;
+         use Libadalang.Common;
+
+         Initial_Sloc : constant Langkit_Support.Slocs.Source_Location :=
+           Self.To_Source_Location (Position);
+         Token        : constant Libadalang.Common.Token_Reference :=
+           Self.Get_Token_At (Context, Position);
+         Prev_Token : constant Libadalang.Common.Token_Reference :=
+           (if Token /= No_Token
+            then Libadalang.Common.Previous (Token)
+            else No_Token);
+      begin
+         --  No previous token, return the initial SLOC
+         if Prev_Token = No_Token then
+            return Initial_Sloc;
+         end if;
+
+         declare
+            Token_Data       : constant Libadalang.Common.Token_Data_Type :=
+              Libadalang.Common.Data (Token);
+            Token_Range      :
+              constant Libadalang.Slocs.Source_Location_Range :=
+                Token_Data.Sloc_Range;
+            Prev_Token_Data  : constant Libadalang.Common.Token_Data_Type :=
+              Libadalang.Common.Data (Prev_Token);
+            Prev_Token_Range :
+              constant Libadalang.Slocs.Source_Location_Range :=
+                Prev_Token_Data.Sloc_Range;
+         begin
+            --  The current token is an identifier and its start SLOC and
+            --  the previous one's end SLOC are equal: consider that the query
+            --  is being done on the previous identifier token.
+            if Prev_Token_Data.Kind = Ada_Identifier
+              and then Initial_Sloc = Token_Range.Start_Sloc
+              and then Initial_Sloc = Prev_Token_Range.End_Sloc
+            then
+               return Prev_Token_Range.Start_Sloc;
+            else
+               return Initial_Sloc;
+            end if;
+         end;
+      end Get_Sloc;
+
    begin
       return (if Unit.Root.Is_Null then Libadalang.Analysis.No_Ada_Node
-              else Unit.Root.Lookup (Self.To_Source_Location (Position)));
+              else Unit.Root.Lookup (Get_Sloc));
    end Get_Node_At;
 
    --------------------------
