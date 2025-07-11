@@ -29,6 +29,17 @@ include:
       save-component: true
       save-anod-logs: true
 
+  # Offline sentinel build/test of vscode-extension
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/build@~latest
+    inputs:
+      job-name: offline-sentinel
+      anod-args: run offline_sentinel
+      needs: [build:linux]
+      cpus: 4
+      disk: 80
+      image: systemgtk
+      save-anod-logs: true
+
   # Testing of the ALS
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
     inputs:
