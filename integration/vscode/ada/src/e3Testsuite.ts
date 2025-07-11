@@ -256,17 +256,32 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
                     if (code === 0) {
                         resolve();
                     } else {
-                        reject(Error(''));
+                        const md = new vscode.MarkdownString(
+                            `Test run failed, see ` +
+                                `[Output](command:testing.showMostRecentOutput)`,
+                        );
+                        md.isTrusted = true;
+                        const msg = new vscode.TestMessage(md);
+                        remainingSet.forEach((t) => run.errored(t, msg));
+                        run.end();
+                        reject(
+                            Error('Test run failed, see Test Results view for testsuite output.'),
+                        );
                     }
                 });
-            });
-
-            if (!enableEventSystem) {
-                const e3ResultsPath = path.join(cwd, 'out', 'new');
-                processTestsuiteResultIndex(e3ResultsPath, run);
-            }
-
-            run.end();
+            })
+                .then(() => {
+                    if (!enableEventSystem) {
+                        const e3ResultsPath = path.join(cwd, 'out', 'new');
+                        processTestsuiteResultIndex(e3ResultsPath, run);
+                    }
+                })
+                .finally(() => {
+                    /**
+                     * Always end the run, be it a nominal or an error end.
+                     */
+                    run.end();
+                });
         },
     );
 
