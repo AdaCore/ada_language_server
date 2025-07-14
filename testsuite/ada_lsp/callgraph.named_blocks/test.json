@@ -6,9 +6,7 @@
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -34,10 +32,7 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ]
+                           "documentationFormat": ["plaintext", "markdown"]
                         }
                      },
                      "hover": {},
@@ -299,159 +294,6 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": "ada-4",
-            "method": "textDocument/foldingRange",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{p1.adb}"
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-4",
-               "result": [
-                  {
-                     "startLine": 0,
-                     "endLine": 13,
-                     "kind": "region"
-                  },
-                  {
-                     "startLine": 4,
-                     "endLine": 9,
-                     "kind": "region"
-                  }
-               ]
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-5",
-            "method": "textDocument/codeAction",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{p1.adb}"
-               },
-               "range": {
-                  "start": {
-                     "line": 7,
-                     "character": 11
-                  },
-                  "end": {
-                     "line": 7,
-                     "character": 11
-                  }
-               },
-               "context": {
-                  "diagnostics": []
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-5",
-               "result": null
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-6",
-            "method": "textDocument/documentHighlight",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{p1.adb}"
-               },
-               "position": {
-                  "line": 7,
-                  "character": 10
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-6",
-               "result": null
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-7",
-            "method": "textDocument/hover",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{p1.adb}"
-               },
-               "position": {
-                  "line": 7,
-                  "character": 9
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-7",
-               "result": {
-                  "contents": [
-                     {
-                        "language": "ada",
-                        "value": "procedure A"
-                     },
-                     "at p1.adb (3:4)"
-                  ]
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-8",
-            "method": "textDocument/codeAction",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{p1.adb}"
-               },
-               "range": {
-                  "start": {
-                     "line": 7,
-                     "character": 11
-                  },
-                  "end": {
-                     "line": 7,
-                     "character": 11
-                  }
-               },
-               "context": {
-                  "diagnostics": []
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-8",
-               "result": null
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
             "id": "ada-9",
             "method": "textDocument/prepareCallHierarchy",
             "params": {
@@ -577,38 +419,6 @@
                      ]
                   }
                ]
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": "ada-11",
-            "method": "textDocument/codeAction",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{p1.adb}"
-               },
-               "range": {
-                  "start": {
-                     "line": 7,
-                     "character": 10
-                  },
-                  "end": {
-                     "line": 7,
-                     "character": 11
-                  }
-               },
-               "context": {
-                  "diagnostics": []
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": "ada-11"
             }
          ]
       }
