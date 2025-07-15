@@ -1422,7 +1422,8 @@
         "cilint": "eslint \"./src/**/*.{js,ts,tsx}\" \"./test/**/*.{js,ts,tsx}\"",
         "test": "vscode-test",
         "resolve-backtrace": "npx stacktracify",
-        "clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\""
+        "clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\"",
+        "unresolve": "node unresolve.js"
     },
     "dependencies": {
         "command-exists": "1.2.9",

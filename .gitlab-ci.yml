@@ -18,6 +18,7 @@ include:
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/build@~latest
     inputs:
       anod-args: run build_$ACI_TRACK
+      artifacts: [vscode-extension-npm-deps-*-*.tar.gz]
       cpus: 16
       disk: 80
       image: systemgtk
@@ -26,6 +27,18 @@ include:
       # 8GB of memory leads to heap exhaustion during compilation. We need more.
       windows-mem: 16
       save-component: true
+      save-anod-logs: true
+
+  # Offline sentinel build/test of vscode-extension
+  - component: $CI_SERVER_FQDN/eng/gitlab-templates/build@~latest
+    inputs:
+      job-name: offline-sentinel
+      anod-args: run offline_sentinel
+      needs: [build:linux]
+      cpus: 4
+      disk: 80
+      image: systemgtk
+      save-anod-logs: true
 
   # Testing of the ALS
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest
@@ -68,6 +81,7 @@ include:
       # components, but we can't because it breaks the transfer of built
       # components between jobs using anod-copy-components.
       anod-args: run test_integration_testsuite
+      artifacts: [integration-testsuite-npm-deps-*-*.tar.gz]
       image: systemgtk
       cpus: 4
       disk: 80
@@ -92,6 +106,22 @@ include:
         - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
           when: manual
           allow_failure: true
+
+.build:common:
+  after_script:
+    - . /tmp/ci_env.sh
+    # Copy the NPM artifacts archive
+    - bs=$(anod info vscode-extension --show working_dir -Q mono-plat,npm-online,npm-package)
+    - |
+      cp "$bs/tmp"/vscode-extension-npm-deps-*-*.tar.gz "$CI_PROJECT_DIR"
+
+.integration-testsuite:common:
+  after_script:
+    - . /tmp/ci_env.sh
+    # Copy the NPM artifacts archive
+    - bs=$(anod info test integration-testsuite --show working_dir -Q run-tools=vscode,cleanup-mode=none,mono-plat,npm-online,npm-package)
+    - |
+      cp "$bs/tmp"/integration-testsuite-npm-deps-*-*.tar.gz "$CI_PROJECT_DIR"
 
 als-cov:linux:
   variables:
