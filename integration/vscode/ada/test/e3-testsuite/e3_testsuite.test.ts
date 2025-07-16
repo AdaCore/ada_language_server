@@ -1,5 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import assert from 'assert';
-import { commands, TestItem, TestItemCollection, Uri, workspace } from 'vscode';
+import { anything, instance, mock, reset, spy, when } from 'ts-mockito';
+import {
+    commands,
+    TestItem,
+    TestItemCollection,
+    TestMessage,
+    TestRun,
+    Uri,
+    workspace,
+} from 'vscode';
 import { CancellationTokenSource } from 'vscode-languageclient';
 import * as e3 from '../../src/e3Testsuite';
 import { activate } from '../utils';
@@ -180,6 +190,185 @@ suite('e3-testsuite', function () {
                 ],
             },
         ]);
+    });
+
+    test('Capturing test results', async function () {
+        await e3.controller.refreshHandler!(new CancellationTokenSource().token);
+
+        const spyCtrl = spy(e3.controller);
+        try {
+            const mockRun = mock<TestRun>();
+            let consoleOutput = '';
+            when(mockRun.appendOutput(anything())).thenCall((output: string) => {
+                consoleOutput += output.replace(/(\r+\n|\n\r+)/g, '\n');
+            });
+
+            const enqueued: string[] = [];
+            const started: string[] = [];
+            const passed: string[] = [];
+            const failed: { id: string; message: TestMessage[] }[] = [];
+            const errors: { id: string; message: TestMessage[] }[] = [];
+
+            when(mockRun.enqueued(anything())).thenCall((item: TestItem) => {
+                enqueued.push(item.id);
+            });
+            when(mockRun.started(anything())).thenCall((item: TestItem) => {
+                started.push(item.id);
+            });
+            when(mockRun.passed(anything())).thenCall((item: TestItem) => {
+                passed.push(item.id);
+            });
+            when(mockRun.failed(anything(), anything())).thenCall(
+                (item: TestItem, message?: TestMessage | TestMessage[]) => {
+                    let messages: TestMessage[] = [];
+                    if (Array.isArray(message)) {
+                        messages = message;
+                    } else if (message) {
+                        messages = [message];
+                    }
+                    failed.push({ id: item.id, message: messages });
+                },
+            );
+            when(mockRun.errored(anything(), anything())).thenCall(
+                (item: TestItem, message?: TestMessage | TestMessage[]) => {
+                    let messages: TestMessage[] = [];
+                    if (Array.isArray(message)) {
+                        messages = message;
+                    } else if (message) {
+                        messages = [message];
+                    }
+                    errors.push({ id: item.id, message: messages });
+                },
+            );
+
+            const run = instance(mockRun);
+
+            when(spyCtrl.createTestRun(anything())).thenReturn(run);
+            when(spyCtrl.createTestRun(anything(), anything())).thenReturn(run);
+            when(spyCtrl.createTestRun(anything(), anything(), anything())).thenReturn(run);
+
+            await e3.runHandler(
+                { include: undefined, exclude: undefined, profile: undefined },
+                new CancellationTokenSource().token,
+            );
+
+            const workspaceRoot = workspace.workspaceFolders![0].uri.fsPath;
+            const testsuitePath = `${workspaceRoot}/testsuite.py`;
+            const pythonPathRegex =
+                /Running: "(.+python)" ".+testsuite\.py" "--failure-exit-code=0"\n/;
+
+            // Extract the python path from the output
+            const pythonMatch = consoleOutput.match(pythonPathRegex);
+            assert.ok(pythonMatch, 'Python path not found in console output');
+            const pythonPath = pythonMatch[1];
+
+            // Check that the console output contains the expected command and results
+            const expectedCommand =
+                `Running: "${pythonPath}" "${testsuitePath}" ` + '"--failure-exit-code=0"';
+            assert.ok(consoleOutput.includes(expectedCommand), 'Expected command not found');
+
+            // Check for expected test results (order-independent)
+            const expectedResults = [
+                'INFO     FAIL            06-test-with-diff: Failure short message',
+                'INFO     PASS            01-test-one-result',
+                'INFO     PASS            04-test-only-passing-sub-results.sub3',
+                'INFO     PASS            04-test-only-passing-sub-results.sub2',
+                'INFO     PASS            04-test-only-passing-sub-results.sub1',
+                'INFO     PASS            05-test-only-sub-results-one-failing.sub3',
+                'INFO     FAIL            05-test-only-sub-results-one-failing.sub2',
+                'INFO     PASS            05-test-only-sub-results-one-failing.sub1',
+                'INFO     PASS            03-test-multiple-passing-results',
+                'INFO     PASS            03-test-multiple-passing-results.sub3',
+                'INFO     PASS            03-test-multiple-passing-results.sub2',
+                'INFO     PASS            03-test-multiple-passing-results.sub1',
+                'INFO     PASS            02-test-multiple-results',
+                'INFO     FAIL            02-test-multiple-results.sub3: Failure message',
+                'INFO     FAIL            02-test-multiple-results.sub2: Failure message',
+                'INFO     PASS            02-test-multiple-results.sub1',
+            ];
+
+            for (const result of expectedResults) {
+                assert.ok(consoleOutput.includes(result), `Expected result not found: ${result}`);
+            }
+
+            // Check for the summary section
+            const expectedSummary = 'INFO     Summary:\n  PASS         12\n  FAIL         4';
+            assert.ok(consoleOutput.includes(expectedSummary), 'Expected summary not found');
+
+            assert.deepStrictEqual(enqueued.sort(), [
+                '01-test-one-result',
+                '02-test-multiple-results',
+                '03-test-multiple-passing-results',
+                '04-test-only-passing-sub-results',
+                '05-test-only-sub-results-one-failing',
+                '06-test-with-diff',
+                '07-test-with-no-results',
+            ]);
+            assert.deepStrictEqual(started.sort(), [
+                '01-test-one-result',
+                '02-test-multiple-results',
+                '03-test-multiple-passing-results',
+                '04-test-only-passing-sub-results',
+                '05-test-only-sub-results-one-failing',
+                '06-test-with-diff',
+                '07-test-with-no-results',
+            ]);
+            assert.deepStrictEqual(passed.sort(), [
+                '01-test-one-result',
+                '02-test-multiple-results',
+                '02-test-multiple-results.sub1',
+                '03-test-multiple-passing-results',
+                '03-test-multiple-passing-results.sub1',
+                '03-test-multiple-passing-results.sub2',
+                '03-test-multiple-passing-results.sub3',
+                '04-test-only-passing-sub-results.sub1',
+                '04-test-only-passing-sub-results.sub2',
+                '04-test-only-passing-sub-results.sub3',
+                '05-test-only-sub-results-one-failing.sub1',
+                '05-test-only-sub-results-one-failing.sub3',
+            ]);
+            // Sort failed tests by ID to make assertion order-independent
+            const sortedFailed = failed.sort((a, b) => a.id.localeCompare(b.id));
+
+            // Extract only the relevant properties from TestMessage objects
+            const extractedFailed = sortedFailed.map((f) => ({
+                id: f.id,
+                message: f.message.map((msg) => ({
+                    message: msg.message,
+                    ...(msg.actualOutput ? { actualOutput: msg.actualOutput } : {}),
+                    ...(msg.expectedOutput ? { expectedOutput: msg.expectedOutput } : {}),
+                })),
+            }));
+
+            assert.deepStrictEqual(extractedFailed, [
+                {
+                    id: '02-test-multiple-results.sub2',
+                    message: [{ message: 'Failure message' }],
+                },
+                {
+                    id: '02-test-multiple-results.sub3',
+                    message: [{ message: 'Failure message\n\nLong\nExecution\nLog' }],
+                },
+                {
+                    id: '05-test-only-sub-results-one-failing.sub2',
+                    message: [{ message: 'No message in test result' }],
+                },
+                {
+                    id: '06-test-with-diff',
+                    message: [
+                        {
+                            message: 'Failure short message',
+                            actualOutput: 'Actual\nOutput\nText',
+                            expectedOutput: 'Expected\nOutput\nText content',
+                        },
+                        { message: 'Test Log\nLong\nExecution\nLog' },
+                    ],
+                },
+            ]);
+            assert.deepStrictEqual(errors, []);
+        } finally {
+            reset(spyCtrl);
+        }
     });
 });
 

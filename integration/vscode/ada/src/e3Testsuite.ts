@@ -59,6 +59,10 @@ const showLoadTestListErrorCmdId = 'e3-testsuite.showLoadTestListError';
 let lastLoadError: string = '';
 export let controller: vscode.TestController;
 export let runProfile: vscode.TestRunProfile;
+export let runHandler: (
+    request: vscode.TestRunRequest,
+    token: vscode.CancellationToken,
+) => Promise<void>;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -156,135 +160,136 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             });
     };
 
+    runHandler = async (
+        request: vscode.TestRunRequest,
+        token: vscode.CancellationToken,
+    ): Promise<void> => {
+        const ts = getTestsuite();
+
+        const enableEventSystem: boolean =
+            vscode.workspace.getConfiguration('e3-testsuite').get('enableEventSystem') ?? true;
+
+        const cmd = [ts.python, ts.uri.fsPath, '--failure-exit-code=0'];
+
+        const remainingSet: Set<vscode.TestItem> = new Set();
+        function collectAll(i: vscode.TestItem) {
+            remainingSet.add(i);
+            i.children.forEach(collectAll);
+        }
+
+        function onlyRootSelected(rq: vscode.TestRunRequest) {
+            return rq.include?.length === 1 && rq.include[0].id === getRootItemId();
+        }
+
+        if (request.include && !onlyRootSelected(request)) {
+            const testIds = new Set<string>();
+            request.include.forEach(collectAll);
+            remainingSet.forEach((item) => {
+                const data =
+                    testData.get(item) ??
+                    // If item is a sub-result, it doesn't have data. So use its parent.
+                    (item.parent ? testData.get(item.parent) : undefined);
+                if (data) {
+                    testIds.add(data.test_matcher ?? data.test_dir);
+                }
+            });
+
+            assert(testIds.size > 0);
+            cmd.push(...testIds);
+        } else {
+            /**
+             * Do not append tests to the command line. Just run everything.
+             */
+            controller.items.forEach(collectAll);
+        }
+
+        const run = controller.createTestRun(request, 'e3-testsuite');
+        run.appendOutput(`Running: ${cmd.map((c) => '"' + c + '"').join(' ')}\n\r`);
+
+        const env = getEnv();
+        if (enableEventSystem) {
+            const modulePath = context.asAbsolutePath('media');
+            const module = 'e3_notify_vscode';
+            const hook = 'init_callback';
+            env['PYTHONPATH'] = (env['PYTHONPATH'] ?? '')
+                .split(path.delimiter)
+                .filter((v) => !!v)
+                .concat(modulePath)
+                .join(path.delimiter);
+            cmd.push(`--notify-events=python:${module}:${hook}`);
+        }
+
+        /**
+         * Append CLI args defined in settings
+         */
+        cmd.push(
+            ...(vscode.workspace.getConfiguration('e3-testsuite').get<string[]>('args') ?? []),
+        );
+
+        const cwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
+        await new Promise<void>((resolve, reject) => {
+            const p = spawn(cmd[0], cmd.splice(1), {
+                cwd: cwd,
+                env: env,
+            });
+            token.onCancellationRequested(() => {
+                p.kill();
+                run.appendOutput('\r\n*** Test run was cancelled');
+                remainingSet.forEach((item) =>
+                    run.errored(item, new vscode.TestMessage('Test run was cancelled.')),
+                );
+                resolve();
+            });
+
+            if (!enableEventSystem) {
+                remainingSet.forEach((t) => run.started(t));
+            }
+
+            function handleLine(line: string | Buffer) {
+                const decodedLine: string = typeof line === 'string' ? line : line.toLocaleString();
+
+                if (enableEventSystem) {
+                    handleTestsuiteEvents(run, decodedLine, remainingSet);
+                } else {
+                    handleTestsuiteOutput(run, decodedLine, remainingSet);
+                }
+            }
+            p.stdout.pipe(split()).on('data', handleLine);
+            p.stderr.pipe(split()).on('data', handleLine);
+            p.on('error', reject);
+            p.on('close', (code) => {
+                if (code === 0) {
+                    resolve();
+                } else {
+                    const md = new vscode.MarkdownString(
+                        `Test run failed, see ` + `[Output](command:testing.showMostRecentOutput)`,
+                    );
+                    md.isTrusted = true;
+                    const msg = new vscode.TestMessage(md);
+                    remainingSet.forEach((t) => run.errored(t, msg));
+                    run.end();
+                    reject(Error('Test run failed, see Test Results view for testsuite output.'));
+                }
+            });
+        })
+            .then(() => {
+                if (!enableEventSystem) {
+                    const e3ResultsPath = path.join(cwd, 'out', 'new');
+                    processTestsuiteResultIndex(e3ResultsPath, run);
+                }
+            })
+            .finally(() => {
+                /**
+                 * Always end the run, be it a nominal or an error end.
+                 */
+                run.end();
+            });
+    };
+
     runProfile = controller.createRunProfile(
         'e3-testsuite',
         vscode.TestRunProfileKind.Run,
-        async function (request, token) {
-            const ts = getTestsuite();
-
-            const enableEventSystem: boolean =
-                vscode.workspace.getConfiguration('e3-testsuite').get('enableEventSystem') ?? true;
-
-            const cmd = [ts.python, ts.uri.fsPath, '--failure-exit-code=0'];
-
-            const remainingSet: Set<vscode.TestItem> = new Set();
-            function collectAll(i: vscode.TestItem) {
-                remainingSet.add(i);
-                i.children.forEach(collectAll);
-            }
-
-            function onlyRootSelected(rq: vscode.TestRunRequest) {
-                return rq.include?.length === 1 && rq.include[0].id === getRootItemId();
-            }
-
-            if (request.include && !onlyRootSelected(request)) {
-                const testIds = new Set<string>();
-                request.include.forEach(collectAll);
-                remainingSet.forEach((item) => {
-                    const data =
-                        testData.get(item) ??
-                        // If item is a sub-result, it doesn't have data. So use its parent.
-                        (item.parent ? testData.get(item.parent) : undefined);
-                    if (data) {
-                        testIds.add(data.test_matcher ?? data.test_dir);
-                    }
-                });
-
-                assert(testIds.size > 0);
-                cmd.push(...testIds);
-            } else {
-                /**
-                 * Do not append tests to the command line. Just run everything.
-                 */
-                controller.items.forEach(collectAll);
-            }
-
-            const run = controller.createTestRun(request, 'e3-testsuite');
-            run.appendOutput(`Running: ${cmd.map((c) => '"' + c + '"').join(' ')}\n\r`);
-
-            const env = getEnv();
-            if (enableEventSystem) {
-                const modulePath = context.asAbsolutePath('media');
-                const module = 'e3_notify_vscode';
-                const hook = 'init_callback';
-                env['PYTHONPATH'] = (env['PYTHONPATH'] ?? '')
-                    .split(path.delimiter)
-                    .filter((v) => !!v)
-                    .concat(modulePath)
-                    .join(path.delimiter);
-                cmd.push(`--notify-events=python:${module}:${hook}`);
-            }
-
-            /**
-             * Append CLI args defined in settings
-             */
-            cmd.push(
-                ...(vscode.workspace.getConfiguration('e3-testsuite').get<string[]>('args') ?? []),
-            );
-
-            const cwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
-            await new Promise<void>((resolve, reject) => {
-                const p = spawn(cmd[0], cmd.splice(1), {
-                    cwd: cwd,
-                    env: env,
-                });
-                token.onCancellationRequested(() => {
-                    p.kill();
-                    run.appendOutput('\r\n*** Test run was cancelled');
-                    remainingSet.forEach((item) =>
-                        run.errored(item, new vscode.TestMessage('Test run was cancelled.')),
-                    );
-                    resolve();
-                });
-
-                if (!enableEventSystem) {
-                    remainingSet.forEach((t) => run.started(t));
-                }
-
-                function handleLine(line: string | Buffer) {
-                    const decodedLine: string =
-                        typeof line === 'string' ? line : line.toLocaleString();
-
-                    if (enableEventSystem) {
-                        handleTestsuiteEvents(run, decodedLine, remainingSet);
-                    } else {
-                        handleTestsuiteOutput(run, decodedLine, remainingSet);
-                    }
-                }
-                p.stdout.pipe(split()).on('data', handleLine);
-                p.stderr.pipe(split()).on('data', handleLine);
-                p.on('error', reject);
-                p.on('close', (code) => {
-                    if (code === 0) {
-                        resolve();
-                    } else {
-                        const md = new vscode.MarkdownString(
-                            `Test run failed, see ` +
-                                `[Output](command:testing.showMostRecentOutput)`,
-                        );
-                        md.isTrusted = true;
-                        const msg = new vscode.TestMessage(md);
-                        remainingSet.forEach((t) => run.errored(t, msg));
-                        run.end();
-                        reject(
-                            Error('Test run failed, see Test Results view for testsuite output.'),
-                        );
-                    }
-                });
-            })
-                .then(() => {
-                    if (!enableEventSystem) {
-                        const e3ResultsPath = path.join(cwd, 'out', 'new');
-                        processTestsuiteResultIndex(e3ResultsPath, run);
-                    }
-                })
-                .finally(() => {
-                    /**
-                     * Always end the run, be it a nominal or an error end.
-                     */
-                    run.end();
-                });
-        },
+        runHandler,
     );
 
     function processTestsuiteResultIndex(e3ResultsPath: string, run: vscode.TestRun) {
