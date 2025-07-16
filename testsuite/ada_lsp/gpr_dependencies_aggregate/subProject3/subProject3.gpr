@@ -1,0 +1,3 @@
+project SubProject3 is
+   for Main use ("subProject3.adb");
+end SubProject3;
