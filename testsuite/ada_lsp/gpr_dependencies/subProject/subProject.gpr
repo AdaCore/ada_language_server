@@ -1,0 +1,3 @@
+project SubProject extends "../extendedProject/extendedProject.gpr" is
+   for Main use ("sub.adb");
+end SubProject;

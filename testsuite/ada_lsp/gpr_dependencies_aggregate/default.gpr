@@ -1,0 +1,3 @@
+aggregate project Default is
+   for Project_Files use ("subProject1/subProject1.gpr", "subProject2/subProject2.gpr", "subProject3/subProject3.gpr");
+end Default;
