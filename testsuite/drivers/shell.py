@@ -1,5 +1,4 @@
 from drivers import ALSTestDriver
-from e3.testsuite.process import check_call
 
 
 class ShellTestDriver(ALSTestDriver):
@@ -8,13 +7,10 @@ class ShellTestDriver(ALSTestDriver):
     """
 
     def run(self) -> None:
-
         # This takes care of failing the test in case the return code is
         # non-zero
-        p = check_call(
-            self,
-            [self.working_dir("test.sh"), self.env.repo_base],
-            parse_shebang=True,
+        p = self.shell(
+            ["bash", "test.sh", self.env.repo_base],
             env={
                 "ALS": self.env.als,
                 "ALS_HOME": self.env.als_home,

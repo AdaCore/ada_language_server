@@ -1,0 +1,3 @@
+project ExtendedProject is
+   for Main use ("extended.adb");
+end ExtendedProject;
