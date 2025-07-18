@@ -188,7 +188,7 @@ vscode-extension:linux:
     - cat /tmp/ci_env.sh
     - . /tmp/ci_env.sh
 
-    - VSCODE_BUILD_SPACE=$(anod info test vscode-extension -Q coverage,mono-plat $ACI_TRACK_QUALIFIER --show working_dir)
+    - VSCODE_BUILD_SPACE=$(anod info test vscode-extension -Q coverage,mono-plat,npm-online,npm-package $ACI_TRACK_QUALIFIER --show working_dir)
 
     # Include Anod logs
     - cp -rv $ANOD_DEFAULT_SANDBOX_DIR/log $CI_PROJECT_DIR/anod-logs
