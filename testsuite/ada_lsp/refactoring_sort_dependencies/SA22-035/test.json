@@ -46,7 +46,8 @@
                                  "refactor",
                                  "refactor.extract",
                                  "refactor.inline",
-                                 "refactor.rewrite"
+                                 "refactor.rewrite",
+                                 "source.organizeImports"
                               ]
                            }
                         }
@@ -69,7 +70,7 @@
                      "codeActionProvider": {
                         "codeActionKinds": [
                            "<HAS>",
-                           "refactor.rewrite"
+                           "source.organizeImports"
                         ]
                      },
                      "executeCommandProvider": {
@@ -177,7 +178,7 @@
                "result": [
                   {
                      "title": "Sort Dependencies",
-                     "kind": "refactor",
+                     "kind": "source.organizeImports",
                      "command": {
                         "title": "",
                         "command": "als-refactor-sort_dependencies",

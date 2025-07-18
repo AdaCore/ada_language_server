@@ -50,7 +50,7 @@ package body LSP.Ada_Handlers.Refactor.Sort_Dependencies is
         (title       => "Sort Dependencies",
          kind        =>
            (Is_Set => True,
-            Value  => LSP.Enumerations.Refactor),
+            Value  => LSP.Enumerations.SourceOrganizeImports),
          diagnostics => <>,
          edit        => (Is_Set => False),
          isPreferred => (Is_Set => False),
