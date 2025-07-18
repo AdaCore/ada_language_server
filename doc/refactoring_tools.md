@@ -12,6 +12,7 @@
 * [Change Parameter Type](#change-parameter-type)
 * [Change Parameter Default Value](#change-parameter-default-value)
 * [Extract Subprogram](#extract-subprogram)
+* [Extract Variable](#extract-variable)
 * [Pull Up Declaration](#pull-up-declaration)
 * [Suppress Separate](#suppress-separate)
 * [Introduce Parameter](#introduce-parameter)
@@ -131,6 +132,16 @@ See `src/lal_refactor-extract_subprogram.ads` in [LAL Refactor repository](https
 Demo source is `extract_subprogram/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
 ![extract_subprogram](media/extract_subprogram.gif)
+
+## Extract Variable
+
+**Command name:** `als-refactor-extract-variable`
+
+* Extract an expression to the new variable.
+* The new variable is created in the nearest declarative part.
+* The assignment is done as close to the original location as possible.
+
+See `src/lal_refactor-extract_variable.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
 ## Pull Up Declaration
 
