@@ -106,6 +106,7 @@ with LSP.Server_Notifications.DidDeleteFiles;
 with LSP.Server_Notifications.DidOpen;
 with LSP.Server_Notifications.DidRenameFiles;
 with LSP.Server_Notifications.Exits;
+with LSP.Server_Notifications.Initialized;
 with LSP.Server_Requests.Declaration;
 with LSP.Server_Requests.Definition;
 with LSP.Server_Requests.DocumentSymbol;
@@ -632,6 +633,10 @@ begin
 
          Server.Register_Handler
            (LSP.Server_Requests.Initialize.Request'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.Initialized.Notification'Tag,
             Ada_Fence_Message_Handler'Unchecked_Access);
 
          Server.Register_Handler
