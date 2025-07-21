@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2023, AdaCore                       --
+--                     Copyright (C) 2023-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -178,22 +178,55 @@ package body LSP.Text_Documents is
       Old_First_Line : Natural;
       New_First_Line : Natural;
 
-      Old_Lines, New_Lines   : VSS.String_Vectors.Virtual_String_Vector;
+      type Virtual_String_Array is
+        array (Positive range <>) of VSS.Strings.Virtual_String;
+
+      type Virtual_String_Array_Access is access all Virtual_String_Array;
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation
+          (Virtual_String_Array, Virtual_String_Array_Access);
+
+      Old_Lines, New_Lines   : Virtual_String_Array_Access;
       Old_Length, New_Length : Natural;
 
    begin
-      Old_Lines :=
-        Self.Text.Split_Lines
-          (Terminators     => LSP_New_Line_Function_Set,
-           Keep_Terminator => True);
-      New_Lines :=
-        New_Text.Split_Lines
-          (Terminators     => LSP_New_Line_Function_Set,
-           Keep_Terminator => True);
+      --  Populate arrays of old and new content.
+      --
+      --  As of 20250720, `Virtual_String_Vector`.`Element` takes a lot of time
+      --  to construct object to return and to finalize object after check of
+      --  lines equality. Standard `Ada.Containers.Vectors.Element` works a bit
+      --  faster, however, use of arrays speed up execution many times.
+
+      declare
+         Aux_Old_Lines : VSS.String_Vectors.Virtual_String_Vector;
+         Aux_New_Lines : VSS.String_Vectors.Virtual_String_Vector;
+
+      begin
+         Aux_Old_Lines :=
+           Self.Text.Split_Lines
+             (Terminators     => LSP_New_Line_Function_Set,
+              Keep_Terminator => True);
+         Old_Lines     := new Virtual_String_Array (1 .. Aux_Old_Lines.Length);
+
+         for J in Old_Lines'Range loop
+            Old_Lines (J) := Aux_Old_Lines (J);
+         end loop;
+
+         Aux_New_Lines :=
+           New_Text.Split_Lines
+             (Terminators     => LSP_New_Line_Function_Set,
+              Keep_Terminator => True);
+         New_Lines     := new Virtual_String_Array (1 .. Aux_New_Lines.Length);
+
+         for J in New_Lines'Range loop
+            New_Lines (J) := Aux_New_Lines (J);
+         end loop;
+      end;
 
       if Old_Span = Empty_Range then
          Old_First_Line := 1;
-         Old_Length     := Old_Lines.Length;
+         Old_Length     := Old_Lines'Length;
 
       else
          Old_First_Line := Natural (Old_Span.start.line + 1);
@@ -203,7 +236,7 @@ package body LSP.Text_Documents is
 
       if New_Span = Empty_Range then
          New_First_Line := 1;
-         New_Length     := New_Lines.Length;
+         New_Length     := New_Lines'Length;
       else
          New_First_Line := Natural (New_Span.start.line + 1);
          New_Length :=
@@ -336,8 +369,8 @@ package body LSP.Text_Documents is
             then
                --  both has lines
 
-               if New_Lines.Element (New_First_Line + New_Index - 1) =
-                 Old_Lines.Element (Old_First_Line + Old_Index - 1)
+               if New_Lines (New_First_Line + New_Index - 1) =
+                 Old_Lines (Old_First_Line + Old_Index - 1)
                then
                   --  lines are equal, add Text_Edit after current line
                   --  if any is already prepared
@@ -348,7 +381,7 @@ package body LSP.Text_Documents is
                   --  the beginning of the next line
                   Prepare
                     (Old_Natural,
-                     New_Lines.Element (New_First_Line + New_Index - 1));
+                     New_Lines (New_First_Line + New_Index - 1));
                end if;
 
                --  move lines cursor backward
@@ -376,7 +409,7 @@ package body LSP.Text_Documents is
                --  additional line not present in the old document
                Prepare
                  (Old_Natural,
-                  New_Lines.Element (New_First_Line + New_Index - 1));
+                  New_Lines (New_First_Line + New_Index - 1));
 
                New_Index := New_Index - 1;
             end if;
@@ -396,7 +429,7 @@ package body LSP.Text_Documents is
 
             Prepare
               (Old_Natural,
-               New_Lines.Element (New_First_Line + New_Index - 1));
+               New_Lines (New_First_Line + New_Index - 1));
 
             New_Index := New_Index - 1;
          end loop;
@@ -416,7 +449,7 @@ package body LSP.Text_Documents is
             declare
                Element   : LSP.Structures.TextEdit := Edit.Last_Element;
                Last_Line : constant VSS.Strings.Virtual_String :=
-                 Old_Lines (Old_Lines.Length);
+                 Old_Lines (Old_Lines'Last);
                Iterator  :
                  constant VSS.Strings.Character_Iterators.Character_Iterator :=
                    Last_Line.At_Last_Character;
@@ -425,15 +458,21 @@ package body LSP.Text_Documents is
                --  Replace the wrong location by the end of the buffer
 
                Element.a_range.an_end :=
-                 (line      => Old_Lines.Length - 1,
+                 (line      => Old_Lines'Length - 1,
                   character => Natural (Iterator.Last_UTF16_Offset) + 1);
                Edit.Replace_Element (Edit.Last, Element);
             end;
          end if;
 
+         Free (Old_Lines);
+         Free (New_Lines);
+
       exception
          when others =>
             Free (LCS);
+            Free (Old_Lines);
+            Free (New_Lines);
+
             raise;
       end;
    end Diff;
