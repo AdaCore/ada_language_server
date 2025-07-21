@@ -36,6 +36,7 @@ with Laltools.Partial_GNATPP;
 with Langkit_Support.Text;
 
 with LAL_Refactor.Extract_Subprogram;
+with LAL_Refactor.Extract_Variable;
 with LAL_Refactor.Introduce_Parameter;
 with LAL_Refactor.Pull_Up_Declaration;
 with LAL_Refactor.Auto_Import;
@@ -70,6 +71,7 @@ with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+with LSP.Ada_Handlers.Refactor.Extract_Variable;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
@@ -742,6 +744,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Extract Subprogram refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Extract_Variable_Code_Action;
+         --  Checks if the Extract Variable refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          procedure Introduce_Parameter_Code_Action;
          --  Checks if the Introduce Parameter refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
@@ -901,6 +907,49 @@ package body LSP.Ada_Handlers is
                end if;
             end if;
          end Extract_Subprogram_Code_Action;
+
+         ------------------------------------
+         -- Extract_Variable_Code_Action --
+         ------------------------------------
+
+         procedure Extract_Variable_Code_Action
+         is
+            use LSP.Ada_Handlers.Refactor.Extract_Variable;
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Extract_Variable;
+            use type LSP.Structures.Position;
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+
+            SLOC            : Source_Location_Range :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.an_end.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1,
+               Column_Number (Value.a_range.an_end.character) + 1);
+
+            Extract_Variable_Command : Command;
+
+         begin
+            if not Single_Location
+              and then Is_Extract_Variable_Available (Node.Unit, SLOC)
+            then
+               Extract_Variable_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (Value.textDocument.uri,
+                     ((Natural (SLOC.Start_Line) - 1,
+                       Natural (SLOC.Start_Column) - 1),
+                      (Natural (SLOC.End_Line) - 1,
+                       Natural (SLOC.End_Column) - 1)),
+                     LSP.Constants.Empty));
+
+               Found := True;
+            end if;
+         end Extract_Variable_Code_Action;
 
          --------------------------------
          -- Import_Package_Code_Action --
@@ -1187,6 +1236,9 @@ package body LSP.Ada_Handlers is
 
          --  Extract Subprogram
          Extract_Subprogram_Code_Action;
+
+         --  Extract Variable
+         Extract_Variable_Code_Action;
 
          --  Pull Up Declaration
          Pull_Up_Declaration_Code_Action;

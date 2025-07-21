@@ -173,6 +173,7 @@
                 {
                     "id": 2,
                     "result": [
+                        "<HAS>",
                         {
                             "title": "Extract Procedure",
                             "kind": "refactor.extract",

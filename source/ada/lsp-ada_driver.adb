@@ -68,6 +68,7 @@ with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
+with LSP.Ada_Handlers.Refactor.Extract_Variable;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
@@ -106,6 +107,7 @@ with LSP.Server_Notifications.DidDeleteFiles;
 with LSP.Server_Notifications.DidOpen;
 with LSP.Server_Notifications.DidRenameFiles;
 with LSP.Server_Notifications.Exits;
+with LSP.Server_Notifications.Initialized;
 with LSP.Server_Requests.Declaration;
 with LSP.Server_Requests.Definition;
 with LSP.Server_Requests.DocumentSymbol;
@@ -217,6 +219,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Refactor.Suppress_Seperate.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Extract_Subprogram.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Refactor.Extract_Variable.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Introduce_Parameter.Command'Tag);
       LSP.Ada_Commands.Register
@@ -632,6 +636,10 @@ begin
 
          Server.Register_Handler
            (LSP.Server_Requests.Initialize.Request'Tag,
+            Ada_Fence_Message_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Notifications.Initialized.Notification'Tag,
             Ada_Fence_Message_Handler'Unchecked_Access);
 
          Server.Register_Handler
