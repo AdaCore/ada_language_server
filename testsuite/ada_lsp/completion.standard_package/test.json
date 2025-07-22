@@ -101,7 +101,6 @@
                      "documentSymbolProvider": true,
                      "codeActionProvider": {
                         "workDoneProgress": false,
-                        "codeActionKinds": ["quickfix", "refactor.rewrite"],
                         "resolveProvider": false
                      },
                      "workspaceSymbolProvider": true,
