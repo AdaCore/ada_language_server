@@ -19,9 +19,11 @@ with Ada.Unchecked_Deallocation;
 
 with VSS.Characters.Latin;
 with VSS.Strings.Character_Iterators;
+with VSS.Strings.Conversions;
 with VSS.Strings.Line_Iterators;
 with VSS.String_Vectors;
 with VSS.Unicode;
+with Ada_XDiff;
 
 package body LSP.Text_Documents is
 
@@ -161,11 +163,78 @@ package body LSP.Text_Documents is
 
    end Constructors;
 
-   ----------
-   -- Diff --
-   ----------
+   ------------
+   -- Diff_C --
+   ------------
 
-   procedure Diff
+   procedure Diff_C
+     (Self     : Text_Document'Class;
+      New_Text : VSS.Strings.Virtual_String;
+      Edit     : out LSP.Structures.TextEdit_Vector)
+   is
+      C_Edit    : constant Ada_XDiff.Edits := Ada_XDiff.XDiff
+        (VSS.Strings.Conversions.To_UTF_8_String (Self.Text),
+         VSS.Strings.Conversions.To_UTF_8_String (New_Text),
+         Ada_XDiff.XDF_NEED_MINIMAL);
+      Cur       : Ada_XDiff.Edits := C_Edit;
+      New_Lines : constant VSS.String_Vectors.Virtual_String_Vector :=
+        New_Text.Split_Lines
+          (Terminators     => LSP_New_Line_Function_Set,
+           Keep_Terminator => False);
+
+      function Get_Slice
+        (Lines      : VSS.String_Vectors.Virtual_String_Vector;
+         Start_Line : Integer;
+         End_Line   : Integer)
+         return VSS.Strings.Virtual_String;
+
+      ---------------
+      -- Get_Slice --
+      ---------------
+
+      function Get_Slice
+        (Lines      : VSS.String_Vectors.Virtual_String_Vector;
+         Start_Line : Integer;
+         End_Line   : Integer)
+         return VSS.Strings.Virtual_String
+      is
+         use VSS.Strings;
+         Res : VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
+      begin
+         for I in Start_Line .. End_Line loop
+            Res.Append (Lines (I) & VSS.Characters.Latin.Line_Feed);
+         end loop;
+         return Res;
+      end Get_Slice;
+   begin
+
+      loop
+         --  Discard the first node which is fake and will have -1 for all its
+         --  value. Only Delete_Line_Start is allowed to have -1 to indicate
+         --  that nothing should be deleted.
+         if Ada_XDiff.Delete_Line_End (Cur) /= -1 then
+            Edit.Append
+              (LSP.Structures.TextEdit'
+                 (a_range => (((if Ada_XDiff.Delete_Line_Start (Cur) = -1
+                              then Ada_XDiff.Delete_Line_End (Cur)
+                              else Ada_XDiff.Delete_Line_Start (Cur) - 1), 0),
+                              (Ada_XDiff.Delete_Line_End (Cur), 0)),
+                  newText => Get_Slice (New_Lines,
+                    Ada_XDiff.Insert_Line_Start (Cur),
+                    Ada_XDiff.Insert_Line_End (Cur))));
+         end if;
+         exit when not Ada_XDiff.Has_Next (Cur);
+         Cur := Ada_XDiff.Next_Edit (Cur);
+      end loop;
+
+      Ada_XDiff.Free_Edits (C_Edit);
+   end Diff_C;
+
+   --------------------
+   -- Needleman_Diff --
+   --------------------
+
+   procedure Needleman_Diff
      (Self     : Text_Document'Class;
       New_Text : VSS.Strings.Virtual_String;
       Old_Span : LSP.Structures.A_Range := Empty_Range;
@@ -475,7 +544,7 @@ package body LSP.Text_Documents is
 
             raise;
       end;
-   end Diff;
+   end Needleman_Diff;
 
    ------------------
    -- Diff_Symbols --
