@@ -279,8 +279,8 @@
                            "character": 0
                         },
                         "end": {
-                           "line": 2,
-                           "character": 42
+                           "line": 3,
+                           "character": 0
                         }
                      },
                      "newText": "   procedure Put (E : UI_Element);\nend UI;\n"
