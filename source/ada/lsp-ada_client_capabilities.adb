@@ -383,7 +383,8 @@ package body LSP.Ada_Client_Capabilities is
       function Supported_Code_Action_Kinds
         return LSP.Structures.CodeActionKind_Vectors.Vector is
           [LSP.Enumerations.QuickFix,
-           LSP.Enumerations.RefactorRewrite];
+           LSP.Enumerations.RefactorRewrite,
+           LSP.Enumerations.SourceOrganizeImports];
 
       function Full_codeActionProvider
         return LSP.Structures.Boolean_Or_CodeActionOptions_Optional is
