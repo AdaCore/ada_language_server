@@ -612,38 +612,27 @@
          },
          "wait": [
             {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{hello.ads}",
                   "diagnostics": [
                      {
+                        "message": "Expected 'end', got Termination",
                         "range": {
-                           "start": {
-                              "line": 0,
-                              "character": 0
-                           },
                            "end": {
-                              "line": 0,
-                              "character": 7
+                              "character": 0,
+                              "line": 5
+                           },
+                           "start": {
+                              "character": 0,
+                              "line": 5
                            }
                         },
-                        "message": "Skipped token package"
-                     },
-                     {
-                        "range": {
-                           "start": {
-                              "line": 0,
-                              "character": 8
-                           },
-                           "end": {
-                              "line": 0,
-                              "character": 13
-                           }
-                        },
-                        "message": "Skipped token hello"
+                        "source": "libadalang"
                      }
-                  ]
-               },
-               "method": "textDocument/publishDiagnostics"
+                  ],
+                  "uri": "$URI{hello.ads}"
+               }
             }
          ]
       }
