@@ -6,7 +6,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -32,12 +34,10 @@
                      "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
                         "reference",
-                        "access",
+                         "access",
                         "write",
                         "call",
-                        "dispatching call",
-                        "parent",
-                        "child",
+                        "dispatching call", "parent", "child",
                         "overriding"
                      ],
                      "hoverProvider": true,
@@ -46,7 +46,12 @@
                      "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [".", ",", "'", "("],
+                        "triggerCharacters": [
+                            ".",
+                            ",",
+                            "'",
+                            "("
+                        ],
                         "resolveProvider": true
                      },
                      "documentSymbolProvider": true
@@ -119,19 +124,20 @@
          "wait": [
             {
                "id": 2,
-               "result": {
-                  "range": {
-                     "start": {
-                        "line": 6,
-                        "character": 13
+               "result":
+                  {
+                     "range": {
+                        "start": {
+                           "line": 6,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 6,
+                           "character": 16
+                        }
                      },
-                     "end": {
-                        "line": 6,
-                        "character": 16
-                     }
-                  },
-                  "uri": "$URI{p.adb}"
-               }
+                     "uri": "$URI{p.adb}"
+                  }
             }
          ]
       }
@@ -153,9 +159,7 @@
          "wait": []
       }
    },
-   {
-      "comment": "--------- expecting an empty result for the definition of a procedure which 'is null' -------"
-   },
+   {"comment": "--------- expecting an empty result for the definition of a procedure which 'is null' -------"},
    {
       "send": {
          "request": {

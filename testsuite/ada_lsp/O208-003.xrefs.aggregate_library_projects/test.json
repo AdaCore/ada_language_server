@@ -6,7 +6,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -37,7 +39,12 @@
                      "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [".", ",", "'", "("],
+                        "triggerCharacters": [
+                            ".",
+                            ",",
+                            "'",
+                            "("
+                        ],
                         "resolveProvider": true
                      },
                      "documentSymbolProvider": true
@@ -72,7 +79,8 @@
             "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
          },
-         "wait": []
+         "wait": [
+         ]
       }
    },
    {
@@ -89,7 +97,8 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
          },
-         "wait": []
+         "wait": [
+         ]
       }
    },
    {
@@ -111,19 +120,20 @@
          "wait": [
             {
                "id": 2,
-               "result": {
-                  "range": {
-                     "start": {
-                        "line": 1,
-                        "character": 13
+               "result":
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 13
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 23
+                        }
                      },
-                     "end": {
-                        "line": 1,
-                        "character": 23
-                     }
-                  },
-                  "uri": "$URI{srclib/sublib.ads}"
-               }
+                     "uri": "$URI{srclib/sublib.ads}"
+                  }
             }
          ]
       }
@@ -142,7 +152,8 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
          },
-         "wait": []
+         "wait": [
+         ]
       }
    },
    {
@@ -164,7 +175,7 @@
          "wait": [
             {
                "id": 4,
-               "result": [
+               "result":
                   {
                      "range": {
                         "start": {
@@ -177,21 +188,7 @@
                         }
                      },
                      "uri": "$URI{srclib/sublib.adb}"
-                  },
-                  {
-                     "range": {
-                        "start": {
-                           "line": 2,
-                           "character": 3
-                        },
-                        "end": {
-                           "line": 2,
-                           "character": 8
-                        }
-                     },
-                     "uri": "$URI{srclib/sublib.adb}"
                   }
-               ]
             }
          ]
       }
@@ -210,7 +207,8 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
          },
-         "wait": []
+         "wait": [
+         ]
       }
    },
    {
