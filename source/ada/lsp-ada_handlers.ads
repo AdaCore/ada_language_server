@@ -571,13 +571,6 @@ private
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
 
-   overriding procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Token  : Libadalang.Common.Token_Reference);
-
    overriding procedure Trace_Exception
      (Self    : Message_Handler;
       Error   : Ada.Exceptions.Exception_Occurrence;

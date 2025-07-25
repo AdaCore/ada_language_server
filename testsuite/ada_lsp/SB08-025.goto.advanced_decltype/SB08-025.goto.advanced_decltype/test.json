@@ -6,7 +6,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -25,8 +27,7 @@
             "id": 1,
             "method": "initialize"
          },
-         "wait": [
-            {
+         "wait": [{
                "id": 1,
                "result": {
                   "capabilities": {
@@ -34,18 +35,27 @@
                      "referencesProvider": true,
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [".", ",", "'", "("],
+                        "triggerCharacters": [
+                            ".",
+                            ",",
+                            "'",
+                            "("
+                        ],
                         "resolveProvider": true
                      },
                      "signatureHelpProvider": {
-                        "triggerCharacters": [",", "("],
-                        "retriggerCharacters": ["\b"]
+                        "triggerCharacters": [
+                           ",",
+                           "("
+                        ],
+                        "retriggerCharacters": [
+                           "\b"
+                        ]
                      },
                      "definitionProvider": true
                   }
                }
-            }
-         ]
+            }]
       }
    },
    {
@@ -63,18 +73,18 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "$URI{default.gpr}",
+                     "projectFile": "$URI{default.gpr}", 
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1"
                   }
                }
-            },
-            "jsonrpc": "2.0",
+            }, 
+            "jsonrpc": "2.0", 
             "method": "workspace/didChangeConfiguration"
-         },
+         }, 
          "wait": []
       }
-   },
+   }, 
    {
       "send": {
          "request": {
@@ -112,7 +122,7 @@
          "wait": [
             {
                "id": 4,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -125,21 +135,7 @@
                            "character": 16
                         }
                      }
-                  },
-                  {
-                     "uri": "$URI{foo.adb}",
-                     "range": {
-                        "start": {
-                           "line": 6,
-                           "character": 3
-                        },
-                        "end": {
-                           "line": 6,
-                           "character": 8
-                        }
-                     }
                   }
-               ]
             }
          ]
       }
@@ -164,7 +160,7 @@
          "wait": [
             {
                "id": 6,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -177,21 +173,7 @@
                            "character": 11
                         }
                      }
-                  },
-                  {
-                     "uri": "$URI{foo.adb}",
-                     "range": {
-                        "start": {
-                           "line": 6,
-                           "character": 3
-                        },
-                        "end": {
-                           "line": 6,
-                           "character": 8
-                        }
-                     }
                   }
-               ]
             }
          ]
       }
@@ -216,20 +198,7 @@
          "wait": [
             {
                "id": 8,
-               "result": [
-                  {
-                     "uri": "$URI{foo.adb}",
-                     "range": {
-                        "start": {
-                           "line": 12,
-                           "character": 3
-                        },
-                        "end": {
-                           "line": 12,
-                           "character": 10
-                        }
-                     }
-                  },
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -243,7 +212,6 @@
                         }
                      }
                   }
-               ]
             }
          ]
       }
@@ -268,7 +236,7 @@
          "wait": [
             {
                "id": 10,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -281,21 +249,7 @@
                            "character": 16
                         }
                      }
-                  },
-                  {
-                     "uri": "$URI{foo.adb}",
-                     "range": {
-                        "start": {
-                           "line": 12,
-                           "character": 3
-                        },
-                        "end": {
-                           "line": 12,
-                           "character": 10
-                        }
-                     }
                   }
-               ]
             }
          ]
       }
@@ -320,7 +274,7 @@
          "wait": [
             {
                "id": 12,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -333,21 +287,7 @@
                            "character": 18
                         }
                      }
-                  },
-                  {
-                     "uri": "$URI{foo.adb}",
-                     "range": {
-                        "start": {
-                           "line": 18,
-                           "character": 6
-                        },
-                        "end": {
-                           "line": 18,
-                           "character": 11
-                        }
-                     }
                   }
-               ]
             }
          ]
       }
@@ -372,7 +312,7 @@
          "wait": [
             {
                "id": 14,
-               "result": [
+               "result":
                   {
                      "uri": "$URI{foo.adb}",
                      "range": {
@@ -385,21 +325,7 @@
                            "character": 18
                         }
                      }
-                  },
-                  {
-                     "uri": "$URI{foo.adb}",
-                     "range": {
-                        "start": {
-                           "line": 18,
-                           "character": 6
-                        },
-                        "end": {
-                           "line": 18,
-                           "character": 11
-                        }
-                     }
                   }
-               ]
             }
          ]
       }

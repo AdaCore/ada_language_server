@@ -76,19 +76,10 @@ package LSP.Ada_Handlers.Locations is
      (Self   : in out Message_Handler;
       Result : in out LSP.Structures.Location_Vector;
       Filter : in out LSP.Locations.File_Span_Sets.Set;
-      Unit   : Libadalang.Analysis.Analysis_Unit;
-      Token  : Libadalang.Common.Token_Reference);
-   --  Append the location corresponding to the given token to the Result.
-
-   procedure Append_Location
-     (Self   : in out Message_Handler;
-      Result : in out LSP.Structures.Location_Vector;
-      Filter : in out LSP.Locations.File_Span_Sets.Set;
       Node   : Libadalang.Analysis.Ada_Node'Class;
       Kinds  : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty);
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
-   --  Null Node is ignored.
 
    procedure Append_Location
      (Result   : in out LSP.Structures.DocumentHighlight_Vector;
