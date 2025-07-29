@@ -23,6 +23,7 @@ with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
 
+with LAL_Refactor.Sort_Case;
 with LSP.Env;
 with VSS.Characters.Latin;
 with VSS.Strings;
@@ -80,6 +81,7 @@ with LSP.Ada_Handlers.Refactor.Move_Parameter;
 with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
 with LSP.Ada_Handlers.Refactor.Remove_Parameter;
 with LSP.Ada_Handlers.Refactor.Replace_Type;
+with LSP.Ada_Handlers.Refactor.Sort_Case;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Renaming;
@@ -766,6 +768,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Replace Type refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Sort_Case_Action;
+         --  Checks if the Sort Case refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          procedure Sort_Dependencies_Code_Action;
          --  Checks if the Sort Dependencies refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
@@ -1232,6 +1238,58 @@ package body LSP.Ada_Handlers is
             end if;
          end Replace_Type_Code_Action;
 
+         ----------------------
+         -- Sort_Case_Action --
+         ----------------------
+
+         procedure Sort_Case_Action
+         is
+            use LSP.Ada_Handlers.Refactor.Sort_Case;
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Sort_Case;
+            use type LSP.Structures.Position;
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+            Location : Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Alphabetical : Alphabetical_Command;
+            Declaration  : Declaration_Command;
+
+         begin
+            if Single_Location then
+               if Is_Sort_Alphabetically_Available (Node.Unit, Location) then
+                  Alphabetical.Append_Code_Action
+                    (Context         => Context,
+                     Commands_Vector => Result,
+                     Where           =>
+                       (Value.textDocument.uri,
+                        ((Natural (Location.Line) - 1,
+                         Natural (Location.Column) - 1),
+                         (Natural (Location.Line) - 1,
+                          Natural (Location.Column) - 1)),
+                        LSP.Constants.Empty));
+
+               elsif Is_Sort_Declaration_Available (Node.Unit, Location) then
+                  Declaration.Append_Code_Action
+                    (Context         => Context,
+                     Commands_Vector => Result,
+                     Where           =>
+                       (Value.textDocument.uri,
+                        ((Natural (Location.Line) - 1,
+                         Natural (Location.Column) - 1),
+                         (Natural (Location.Line) - 1,
+                          Natural (Location.Column) - 1)),
+                        LSP.Constants.Empty));
+               end if;
+
+               Found := True;
+            end if;
+         end Sort_Case_Action;
+
          -----------------------------------
          -- Sort_Dependencies_Code_Action --
          -----------------------------------
@@ -1265,6 +1323,8 @@ package body LSP.Ada_Handlers is
 
       begin
          Named_Parameters_Code_Action;
+
+         Sort_Case_Action;
 
          Sort_Dependencies_Code_Action;
 
