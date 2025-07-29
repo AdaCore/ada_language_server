@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import * as yaml from 'yaml';
 import { NotificationType, TestsuiteNotification } from './e3TestsuiteNotifications';
 import { setTerminalEnvironment } from './helpers';
+import { logger } from './extension';
 
 interface Testsuite {
     uri: vscode.Uri;
@@ -102,7 +103,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         const jsonFname = tmpNameSync({ postfix: '.json' });
         const cmd = [ts.python, ts.uri.fsPath, `--list-json=${jsonFname}`];
 
-        console.log(`Loading tests from: ${ts.uri.fsPath}`);
+        logger.info(`Loading tests from: ${ts.uri.fsPath}`);
         rootItem.busy = true;
         await new Promise<TestInfo[]>((resolve, reject) => {
             const output: Buffer[] = [];
