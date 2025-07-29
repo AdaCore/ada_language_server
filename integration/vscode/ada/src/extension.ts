@@ -195,7 +195,10 @@ function setUpLogging(context: vscode.ExtensionContext) {
      * used both for logging to the output channel and to the console.
      */
     const printfFormatter = format.printf((info) => {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         return `${info.timestamp} [${info.label}] ${info.level.toUpperCase()} ${info.message} ${
+            // eslint-disable-next-line max-len
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
             info.stack ?? ''
         }`;
     });

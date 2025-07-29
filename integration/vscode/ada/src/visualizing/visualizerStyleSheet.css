@@ -1,0 +1,523 @@
+.visualizer__colors {
+    --visualizer-border-color: gray;
+    --visualizer-item-selected: var(--vscode-activityBar-foreground);
+    --visualizer-item-background-selected: var(--vscode-activityBar-background);
+    --visualizer-item-background: var(--vscode-sideBar-background);
+    --visualizer-text-color: var(--vscode-editor-foreground);
+    --visualizer-viewport-background: var(--vscode-editor-background);
+    --visualizer-border-color-focused: var(--vscode-focusBorder);
+    --visualizer-foreground-color: var(--vscode-foreground);
+    --visualizer-control-button-color: var(--vscode-panelTitle-activeForeground);
+    --visualizer-control-button-separator: var(--vscode-button-secondaryBackground);
+    --visualizer-control-button-hover-background: var(--vscode-panelSection-border);
+    --visualizer-search-bar-shadow: var(--vscode-activityBar-dropBorder);
+    --visualizer-out-of-project-background: var(--vscode-editorGroup-dropBackground);
+    --visualizer-out-of-project-default: var(--vscode-editorGroup-dropIntoPromptBackground);
+    --visualizer-out-of-project-hovered: var(--vscode-diffEditor-removedLineBackground);
+    --visualizer-group-node: var(--vscode-editorGroup-dropBackground);
+}
+
+:root {
+    --visualizer-icon-underline: none;
+}
+/* Make sure the viewPort takes all the possible space. */
+body {
+    padding: 0%;
+}
+/* Style the outer shape of the node. */
+.visualizer__basic_node {
+    --border-width: 1px;
+    height: calc(100% - var(--border-width));
+    width: calc(100% - var(--border-width));
+    position: relative;
+    border: solid var(--border-width) var(--visualizer-border-color);
+    border-radius: 6px;
+    background: var(--visualizer-item-background);
+    color: var(--visualizer-text-color);
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Style the outer shape of the node when selected. */
+.visualizer__basic_node.visualizer__selected,
+.visualizer__basic_node:hover,
+.visualizer__basic_node:focus {
+    transition: all 0.1s ease-in-out;
+    border-color: var(--visualizer-border-color-focused);
+    color: var(--visualizer-item-selected);
+    background-color: var(--visualizer-item-background-selected);
+    outline: none;
+}
+
+/* Style the color of a subFlow node (node that contains other nodes). */
+.react-flow__node-groupedNode {
+    background-color: var(--visualizer-group-node) !important;
+    border: 2px solid var(--visualizer-border-color);
+}
+
+.react-flow__node-groupedNode:focus,
+.react-flow__node-groupedNode:hover {
+    border: 3px solid var(--visualizer-border-color-focused);
+}
+
+/* Style the base container of the node provided by Reactflow. */
+.react-flow__node {
+    background-color: var(--visualizer-viewport-background);
+}
+
+/* Style the lower part of the node. */
+.visualizer__node-body {
+    vertical-align: middle;
+    position: absolute;
+    display: inline-block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    transform: translateY(-50%);
+    top: 50%;
+    left: 0;
+    padding: 12.5%;
+    width: 75%;
+    z-index: 1000;
+    margin: 0 auto;
+    font-size: 16px;
+}
+
+/* Style the upper part of the node. */
+.visualizer__node-title {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    font-size: larger;
+    padding: 5% 5% 0% 5%;
+    border-bottom: inherit;
+}
+
+/* Style the title of grouped nodes. */
+.visualizer__grouped_node-title {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    font-size: x-large;
+    padding: 5% 5% 0% 5%;
+    border-bottom: inherit;
+}
+
+/* Style the text in the body of the node. */
+.visualizer__text {
+    margin-left: 3px;
+    margin-bottom: 10px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* Center the icons with the text. */
+.visualizer__icon {
+    transform: translateY(15%);
+}
+
+/* Make sure the text doesn't overflow out of its container */
+.visualizer__ellipsis-text {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* Make the node handle invisible and retract them a bit in the node so that the edge goes into it*/
+.visualizer__invis {
+    height: 0;
+    width: 0;
+    opacity: 0;
+}
+
+.visualizer__invis:hover {
+    cursor: grab;
+}
+
+/* Style the node that represents the symbols that are out of project. */
+.visualizer__hierarchy-button.visualizer__out-of-project,
+.visualizer__out-of-project {
+    transition: all 0.1s ease-in-out;
+    background: var(
+        --visualizer-out-of-project-background,
+        var(--visualizer-out-of-project-default)
+    );
+    border-style: dashed;
+    border-width: medium;
+    border-color: var(--visualizer-border-color);
+}
+
+/* Add an hover effect to the style above. */
+.visualizer__hierarchy-button.visualizer__out-of-project:hover,
+.visualizer__out-of-project:hover,
+.visualizer__out-of-project.visualizer__selected,
+.visualizer__out-of-project:focus {
+    background: var(--visualizer-out-of-project-hovered);
+    color: var(--visualizer-border-color-focused);
+}
+
+/* The out of project is slightly bigger than its normal counterpart
+so reduce its size a little. */
+.visualizer__basic_node.visualizer__out-of-project {
+    width: 98%;
+    height: 98%;
+    font-style: italic;
+}
+
+/* Highlight the selected or hovered edge. */
+.visualizer__highlight,
+.react-flow__edge.selectable:hover,
+.react-flow__edge-path:hover,
+.react-flow__edge.selectable.selected .react-flow__edge-path {
+    stroke: var(--visualizer-border-color-focused);
+    stroke-width: 4px;
+}
+
+/* Style the background. */
+.visualizer__background {
+    background-color: var(--visualizer-viewport-background);
+    cursor: default;
+}
+
+/* Base style for the two node buttons that allow to querying the hierarchy. */
+.visualizer__hierarchy-button {
+    position: absolute;
+    border-radius: 50%;
+    border: solid 1px var(--visualizer-border-color);
+    width: 20%;
+    aspect-ratio: 1 / 1;
+    background: var(--visualizer-item-background);
+    z-index: 1000;
+    color: var(--visualizer-text-color);
+    cursor: pointer;
+    outline: none;
+}
+
+/* Add and underline effect on certain codicons that are in buttons to signify they
+have additional effect when ctrl key is pressed */
+.codicon-call-incoming:before,
+.codicon-file:before,
+.codicon-call-outgoing:before {
+    border-bottom: var(--visualizer-icon-underline);
+}
+
+/* Highlight those buttons on hover. */
+.visualizer__context-button:hover,
+.visualizer__hierarchy-button:focus,
+.visualizer__hierarchy-button:hover {
+    transition: all 0.1s ease-in-out;
+    border-color: var(--visualizer-border-color-focused);
+    color: var(--visualizer-item-selected);
+    background-color: color-mix(
+        in srgb,
+        var(--visualizer-item-background-selected) 80%,
+        var(--visualizer-foreground-color) 20%
+    );
+    outline: none;
+}
+
+/* Add a background to the buttons to allow transparent colors. */
+.visualizer__button-background {
+    background-color: var(--visualizer-viewport-background);
+    border-radius: 50%;
+    width: 20%;
+    aspect-ratio: 1/1;
+    position: absolute;
+    border: none;
+}
+
+/* Position the button to the bottom of the node. */
+.visualizer__sub-button-down {
+    left: 40%;
+    bottom: -10%;
+}
+
+/* Position the button to the right of the node. */
+.visualizer__sub-button-right {
+    right: -10%;
+    top: 40%;
+}
+
+/* Position the button to the top of the node. */
+.visualizer__super-button-up {
+    left: 40%;
+    top: -10%;
+}
+
+/* Position the button to the left of the node. */
+.visualizer__super-button-left {
+    top: 40%;
+    left: -10%;
+}
+
+/* Style the context menu opened on node right click. */
+.visualizer__node-context-menu {
+    position: absolute;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    background: var(--visualizer-item-background);
+    z-index: 10000;
+    width: initial;
+    display: flex;
+    flex-direction: column;
+    border-radius: 6px;
+    width: fit-content;
+}
+
+/* Style the buttons in the above context menu. */
+.visualizer__context-button {
+    display: flex;
+    border: none;
+    background: var(--visualizer-item-background);
+    color: var(--visualizer-text-color);
+    text-align: left;
+    border-radius: 6px;
+    width: 100%;
+    padding: 0.5em;
+    outline: none;
+    white-space: nowrap;
+    cursor: grab;
+}
+
+/* Style the multi-selection rectangle provided by Reactflow (shift + right click). */
+.react-flow__nodesselection-rect {
+    color: transparent;
+    background-color: transparent;
+    border: transparent;
+}
+
+/* Style the control buttons box provided by Reactflow. */
+.react-flow__controls {
+    box-shadow: none;
+}
+
+/* Style the individual control button provided by Reactflow. */
+.react-flow__controls-button {
+    background: var(--visualizer-item-background-selected);
+    color: var(--visualizer-control-button-color);
+    border-bottom: 1px solid var(--visualizer-control-button-separator);
+    box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Add additional style on hover. */
+.react-flow__controls-button:hover,
+.react-flow__controls-button:focus {
+    transition: all 0.1s ease-in-out;
+    background: var(--visualizer-control-button-hover-background);
+    color: var(--visualizer-item-selected);
+    outline: none;
+}
+
+/* Style the first button to add a rounded edge. */
+.react-flow__controls-zoomin {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+/* Likewise style the last button to add a rounded edge. */
+.visualizer__bottom-button {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* Style the node search bar. */
+#visualizer__node-search-bar {
+    border-radius: 6px;
+    border: solid 1px var(--visualizer-border-color);
+    padding-left: 5%;
+    height: 100%;
+    width: 100%;
+}
+
+/* Add additional style on hover. */
+#visualizer__node-search-bar:hover,
+#visualizer__node-search-bar:focus {
+    transition: all 0.1s ease-in-out;
+    border: solid 1px var(--visualizer-item-selected);
+    box-shadow: 0px 0px 0px 2.5px var(--visualizer-search-bar-shadow);
+    outline: 1px solid var(--visualizer-item-selected);
+}
+
+/* Style the search results items. */
+.visualizer__node-search-item {
+    padding: 1%;
+    padding-left: 5%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    border-radius: inherit;
+    height: 100%;
+    cursor: grab;
+}
+
+/* Add additional style on hover or select. */
+.visualizer__node-search-item:hover,
+.visualizer__references-picker-item:hover:not(.visualizer__references-picker-header),
+.visualizer__references-picker-item-selected:not(.visualizer__references-picker-header),
+.visualizer__node-search-selected {
+    color: var(--visualizer-item-selected);
+    background-color: color-mix(
+        in srgb,
+        var(--visualizer-item-background-selected) 80%,
+        var(--visualizer-foreground-color) 20%
+    );
+}
+
+/* Style the overall search list. */
+#visualizer__node-search-list {
+    position: relative;
+    list-style: none;
+    color: var(--visualizer-text-color);
+    padding: 2%;
+    padding-top: 3%;
+    margin: 0px;
+    border-radius: 6px;
+    max-height: 15vh;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+/* Only add background if the list has at least one li child. */
+#visualizer__node-search-list:has(li) {
+    background: var(--visualizer-item-background);
+}
+
+/* Wrap the entire search structure. */
+.visualizer__node-search {
+    width: 100%;
+}
+
+/* Style the context menu opened on edge right click. */
+.visualizer__references-picker-menu {
+    --visualizer__references-picker-size: 200px;
+    position: absolute;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    border-radius: 6px;
+    width: var(--visualizer__references-picker-size);
+    padding-bottom: 5px;
+}
+
+/* Style the references picker edge menu opened when hovering on an edge. */
+.visualizer__references-picker-edge-menu {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-50%) scale(0);
+    transform-origin: center center;
+    transition:
+        transform 0.3s ease,
+        opacity 0.3s ease;
+}
+
+/* Style the references picker menu open from the context menu. */
+.visualizer__references-picker-node-menu {
+    padding-top: 5px;
+    transform: translateY(50%);
+}
+
+/* Only add background and shadow if the list has at least one li child. */
+.visualizer__references-picker-menu:has(li) {
+    box-shadow: 0px 0px 10px #ccc;
+    background: var(--visualizer-item-background);
+}
+
+/* Open the references picker menu by transitioning the scale and opacity from 0 to 1 */
+.visualizer__references-picker-menu.visualizer__open {
+    transform: translateX(-50%) translateY(-50%) scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Close the references picker menu by transitioning the scale and opacity from 1 to 0 */
+.visualizer__references-picker-menu.visualizer__close {
+    transform: translateX(-50%) translateY(-50%) scale(0);
+    opacity: 0;
+    visibility: visible;
+}
+
+/* Style the references picker menu title. */
+.visualizer__references-picker-title {
+    --visualizer__references-picker-title-padding: 5px;
+    font-weight: bold;
+    color: var(--visualizer-border-color-focused);
+    width: fit-content;
+    padding: var(--visualizer__references-picker-title-padding);
+    width: calc(
+        var(--visualizer__references-picker-size) - 2 *
+            var(--visualizer__references-picker-title-padding)
+    );
+    align-self: center;
+    text-align: center;
+    border-bottom: 1px solid var(--visualizer-border-color-focused);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-bottom: 5px;
+}
+/* Style the list of locations in the references picker menu. */
+#visualizer__references-picker-list {
+    position: relative;
+    list-style: none;
+    color: var(--visualizer-text-color);
+    padding-left: 2%;
+    margin: 0px;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: none;
+    scroll-padding-top: 40px;
+}
+
+/* Style the header present in the references picker when more than one location are registered. */
+.visualizer__references-picker-item.visualizer__references-picker-header {
+    position: sticky;
+    top: -2px;
+    color: var(--visualizer-border-color-focused);
+    background: var(--visualizer-item-background);
+    border-radius: 0;
+    font-size: 1.1em;
+    z-index: 100;
+    margin-bottom: 3px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Style the list item of the references picker menu. */
+.visualizer__references-picker-item {
+    padding: 1%;
+    padding-left: 5%;
+    padding-right: 5%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    border-radius: inherit;
+    cursor: grab;
+}
+
+/* Style the scrollbar. */
+.visualizer__scrollbar {
+    scrollbar-width: thin;
+}
+
+/* Add a small rectangle that goes back and forth in a container to signify the user to wait. */
+.visualizer__wait {
+    position: absolute;
+    --visualizer-load-width: 100px;
+    width: var(--visualizer-load-width);
+    background-color: var(--visualizer-border-color-focused);
+    height: 3px;
+    z-index: 1000000;
+    animation: linear infinite;
+    animation-name: run;
+    animation-duration: 5s;
+}
+
+/* The animation keyframes for the wait rectangle. */
+@keyframes run {
+    0% {
+        left: 0%;
+    }
+    50% {
+        left: calc(100% - var(--visualizer-load-width));
+    }
+    100% {
+        left: 0%;
+    }
+}
