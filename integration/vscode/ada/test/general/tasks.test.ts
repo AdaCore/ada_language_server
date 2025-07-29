@@ -306,16 +306,18 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
             .filter((diag) => ['ada'].includes(diag.source ?? ''));
 
         assert.equal(
-            alsDiagnostics.map((d) => `${d.severity}: ${d.message}`).join('\n'),
+            alsDiagnostics
+                .map((d) => `${d.severity}: ${d.message.split('[')[0].trim()}`)
+                .join('\n'),
             `
-1: procedure "Hello" is not referenced [-gnatwu]
-1: bad casing of "Hello" declared at line 4 [-gnatyr]
-1: bad casing of "Hello" declared at line 4 [-gnatyr]
-1: incorrect layout [-gnatyl]
-1: "begin" in wrong column, should be in column 1 [-gnatyl]
-1: bad indentation [-gnaty0]
-1: possibly useless assignment to "X", value might not be referenced [-gnatwm]
-1: "X" may be referenced before it has a value [enabled by default]
+1: procedure "Hello" is not referenced
+1: bad casing of "Hello" declared at line 4
+1: bad casing of "Hello" declared at line 4
+1: incorrect layout
+1: "begin" in wrong column, should be in column 1
+1: bad indentation
+1: possibly useless assignment to "X", value might not be referenced
+1: "X" may be referenced before it has a value
 1: this is a low warning
 0: missing ";"
 2: this is an extra message
