@@ -1046,104 +1046,125 @@
         "commands": [
             {
                 "command": "ada.restartLanguageServers",
-                "title": "Ada: Restart Language Servers",
+                "title": "Restart Language Servers",
+                "category": "Ada",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.createNewAdaMainUnit",
-                "title": "Ada: Create Main Unit",
+                "title": "Create Main Unit",
+                "category": "Ada",
                 "shortTitle": "Ada Main Unit"
             },
             {
                 "command": "ada.createNewAdaPackage",
-                "title": "Ada: Create Package",
+                "title": "Create Package",
+                "category": "Ada",
                 "shortTitle": "Ada Package"
             },
             {
                 "command": "ada.createNewGPRProjectFile",
-                "title": "Ada: Create GPR Project File",
+                "title": "Create GPR Project File",
+                "category": "Ada",
                 "shortTitle": "GPR Project File"
             },
             {
                 "command": "ada.otherFile",
-                "title": "Ada: Go to other file"
+                "title": "Go to other file",
+                "category": "Ada"
             },
             {
                 "command": "als-reload-project",
-                "title": "Ada: Reload project",
+                "title": "Reload project",
+                "category": "Ada",
                 "icon": "$(refresh)"
             },
             {
                 "command": "als-open-project-file",
-                "title": "Ada: Edit current project file"
+                "title": "Edit current project file",
+                "category": "Ada"
             },
             {
                 "command": "als-open-log-file",
-                "title": "Ada: Open Ada Language Server log file"
+                "title": "Open Ada Language Server log file",
+                "category": "Ada"
             },
             {
                 "command": "ada.subprogramBox",
-                "title": "Ada: Add subprogram box"
+                "title": "Add subprogram box",
+                "category": "Ada"
             },
             {
                 "command": "ada.showExtensionOutput",
-                "title": "Ada: Show extension output",
+                "title": "Show extension output",
+                "category": "Ada",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.showAdaLSOutput",
-                "title": "Ada: Show Ada Language Server output",
+                "title": "Show Ada Language Server output",
+                "category": "Ada",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.showGprLSOutput",
-                "title": "Ada: Show GPR Language Server output",
+                "title": "Show GPR Language Server output",
+                "category": "Ada",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.addMissingDirsToWorkspace",
-                "title": "Ada: Add Missing Source Directories To Workspace",
+                "title": "Add Missing Source Directories To Workspace",
+                "category": "Ada",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.buildAndRunMainAsk",
-                "title": "Ada: Build and run project main...",
+                "title": "Build and run project main...",
+                "category": "Ada",
                 "icon": "$(run-all)",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.buildAndRunMainLast",
-                "title": "Ada: Build and run last used main",
+                "title": "Build and run last used main",
+                "category": "Ada",
                 "icon": "$(run)",
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.spark.tasks.proveFile",
-                "title": "spark: Prove file (task wrapper)",
+                "title": "Prove file (task wrapper)",
+                "category": "SPARK",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
                 "command": "ada.spark.tasks.proveSubprogram",
-                "title": "spark: Prove subprogram (task wrapper)",
+                "title": "Prove subprogram (task wrapper)",
+                "category": "SPARK",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
                 "command": "ada.spark.tasks.proveSelectedRegion",
-                "title": "spark: Prove selected region (task wrapper)",
+                "title": "Prove selected region (task wrapper)",
+                "category": "SPARK",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
                 "command": "ada.spark.tasks.proveLine",
-                "title": "spark: Prove line (task wrapper)",
+                "title": "Prove line (task wrapper)",
+                "category": "SPARK",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
                 "command": "ada.loadGnatCovXMLReport",
-                "title": "ada: GNATcoverage - Load an existing XML coverage report"
+                "category": "Ada",
+                "title": "GNATcoverage - Load an existing XML coverage report"
             },
             {
                 "command": "ada.issueReporter",
-                "title": "Ada: Report Issue"
+                "category": "Ada",
+                "title": "Report Issue"
             }
         ],
         "keybindings": [
