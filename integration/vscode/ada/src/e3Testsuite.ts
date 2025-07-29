@@ -8,8 +8,8 @@ import { tmpNameSync } from 'tmp';
 import * as vscode from 'vscode';
 import * as yaml from 'yaml';
 import { NotificationType, TestsuiteNotification } from './e3TestsuiteNotifications';
-import { setTerminalEnvironment } from './helpers';
 import { logger } from './extension';
+import { setTerminalEnvironment } from './helpers';
 
 interface Testsuite {
     uri: vscode.Uri;
@@ -110,6 +110,13 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             const fullOutput: Buffer[] = [];
             const p = spawn(cmd[0], [...cmd].splice(1), {
                 cwd: vscode.workspace.workspaceFolders![0].uri.fsPath,
+                /**
+                 * This environment influences the resolution of the spawned
+                 * executable. If it's a basename 'python', then the PATH
+                 * variable in the environment given by getEnv() will decide
+                 * which Python gets used.
+                 */
+                env: getEnv(),
             });
             p.stdout.on('data', (chunk) => {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -120,14 +127,21 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             p.stderr.on('data', (chunk) => fullOutput.push(chunk));
             p.on('close', (code) => {
-                if (!existsSync(jsonFname)) {
-                    reject(new Error(`Expected JSON file not found: ${jsonFname}`));
-                }
+                lastLoadError = '';
 
                 if (code !== 0) {
-                    lastLoadError = `Error getting test list from testsuite.py, ran: ${cmd.join(
-                        ' ',
-                    )}\n${Buffer.concat(fullOutput).toString()}`;
+                    lastLoadError = `Error getting test list from testsuite.py`;
+                } else if (!existsSync(jsonFname)) {
+                    lastLoadError = `Expected JSON file not found: ${jsonFname}`;
+                }
+
+                if (lastLoadError.length > 0) {
+                    // Append command output
+                    lastLoadError += `\n$ ${cmd.join(' ')}\n${Buffer.concat(
+                        fullOutput,
+                    ).toString()}`;
+
+                    // Create an item in the test tree to hold the error
                     const errorItem = this.createTestItem('error', 'Error');
                     errorItem.error = new vscode.MarkdownString(
                         `[Failed to load test list](command:${showLoadTestListErrorCmdId})`,
@@ -292,6 +306,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         vscode.TestRunProfileKind.Run,
         runHandler,
     );
+    context.subscriptions.push(runProfile);
 
     function processTestsuiteResultIndex(e3ResultsPath: string, run: vscode.TestRun) {
         const indexPath = path.join(e3ResultsPath, '_index.json');
@@ -488,19 +503,6 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             run.appendOutput(line + '\r\n');
         }
     }
-    context.subscriptions.push(runProfile);
-
-    vscode.window.withProgress(
-        {
-            location: vscode.ProgressLocation.Notification,
-            title: 'Loading e3-testsuite tests',
-        },
-        async (_, token) => {
-            if (controller.refreshHandler) {
-                await controller.refreshHandler(token);
-            }
-        },
-    );
 
     function reportE3Result(run: vscode.TestRun, result: TestResult, targetItem: vscode.TestItem) {
         const messages = [];
@@ -531,6 +533,20 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         }
 
         reportResult(run, result.status, targetItem, messages);
+    }
+
+    if (existsSync(getTestsuite().uri.fsPath)) {
+        void vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: 'Loading e3-testsuite tests',
+            },
+            async (_, token) => {
+                if (controller.refreshHandler) {
+                    await controller.refreshHandler(token);
+                }
+            },
+        );
     }
 }
 
