@@ -452,6 +452,10 @@ package body LSP.Ada_Configurations is
                --  The settings-doc test relies on the fact that each setting has
                --  a dedicated if-branch.
                null;
+            elsif Name = "enableExperimentalFeatures"
+            then
+               --  Same as above
+               null;
 
             else
                Messages.Append

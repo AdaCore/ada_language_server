@@ -1,0 +1,13 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "module": "commonjs",
+        "types": ["node", "@wdio/mocha-framework", "wdio-vscode-service", "@wdio/globals/types"],
+        "target": "ES2020",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "experimentalDecorators": true
+    },
+    "include": ["specs", "./wdio.conf.ts"],
+    "exclude": []
+}

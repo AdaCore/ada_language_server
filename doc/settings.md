@@ -430,3 +430,8 @@ Controls the maximum number of trace files preserved in the ALS log directory (w
 When this threshold is reached, old trace files get deleted automatically.
 The default number of preserved trace files is `10`.
 See the documentation on [ALS Traces](traces.md) for more information.
+
+### enableExperimentalFeatures
+
+This option enable the use of experimental features which are still under development.
+

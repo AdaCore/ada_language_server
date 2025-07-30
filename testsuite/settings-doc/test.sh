@@ -48,7 +48,7 @@ diff -u impl.txt doc.txt
 # Before comparing with the schema, we need to filter out VSCode-only settings
 # which are not defined in the schema and shouldn't be because we don't want to
 # allow such values in .als.json files.
-vscode_only="trace.server showNotificationsOnErrors"
+vscode_only="trace.server showNotificationsOnErrors enableExperimentalFeatures"
 for s in $vscode_only; do
     echo "$(grep -v "$s" impl.txt)" >impl.txt
     echo "$(grep -v "$s" doc.txt)" >doc.txt
