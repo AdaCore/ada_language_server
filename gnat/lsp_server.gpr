@@ -1,5 +1,5 @@
 --
---  Copyright (C) 2018-2024, AdaCore
+--  Copyright (C) 2018-2025, AdaCore
 --
 --  SPDX-License-Identifier: Apache-2.0
 --
@@ -12,6 +12,7 @@ with "ada_libfswatch.gpr";
 with "libgnatdoc.gpr";
 with "spawn.gpr";
 with "gnatformat.gpr";
+with "vss_os.gpr";
 
 with "lsp_3_17";
 with "lsp_common";
