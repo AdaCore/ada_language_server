@@ -18,3 +18,5 @@ xfail.yaml
 vscode-test-win-workaround.py
 convert-mocha-junit-report.py
 unresolve.js
+!node_modules/@vscode/codicons/dist/codicon.css
+!node_modules/@vscode/codicons/dist/codicon.ttf
