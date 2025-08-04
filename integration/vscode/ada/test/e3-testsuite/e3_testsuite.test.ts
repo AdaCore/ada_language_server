@@ -1,15 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import assert from 'assert';
+import { EOL } from 'os';
+import path from 'path';
 import { anything, instance, mock, reset, spy, when } from 'ts-mockito';
-import {
-    commands,
-    TestItem,
-    TestItemCollection,
-    TestMessage,
-    TestRun,
-    Uri,
-    workspace,
-} from 'vscode';
+import { TestItem, TestItemCollection, TestMessage, TestRun, Uri, workspace } from 'vscode';
 import { CancellationTokenSource } from 'vscode-languageclient';
 import * as e3 from '../../src/e3Testsuite';
 import { activate } from '../utils';
@@ -69,127 +63,161 @@ suite('e3-testsuite', function () {
 
     test('Test list after run', async function () {
         await e3.controller.refreshHandler!(new CancellationTokenSource().token);
-        await commands.executeCommand('testing.runAll');
 
-        assert.deepStrictEqual(toTestResult(e3.controller.items), [
-            {
-                id: Uri.joinPath(workspace.workspaceFolders![0].uri, 'testsuite.py').toString(),
-                label: 'testsuite.py',
-                children: [
-                    {
-                        id: '01-test-one-result',
-                        label: '01-test-one-result',
-                        children: [],
-                    },
-                    {
-                        id: '02-test-multiple-results',
-                        label: '02-test-multiple-results',
-                        /**
-                         * We expect these sub-results to appear after the test run
-                         */
-                        children: [
-                            {
-                                id: '02-test-multiple-results.sub3',
-                                label: '02-test-multiple-results.sub3',
-                                children: [],
-                            },
-                            {
-                                id: '02-test-multiple-results.sub2',
-                                label: '02-test-multiple-results.sub2',
-                                children: [],
-                            },
-                            {
-                                id: '02-test-multiple-results.sub1',
-                                label: '02-test-multiple-results.sub1',
-                                children: [],
-                            },
-                        ],
-                    },
-                    {
-                        id: '03-test-multiple-passing-results',
-                        label: '03-test-multiple-passing-results',
-                        /**
-                         * We expect these sub-results to appear after the test run
-                         */
-                        children: [
-                            {
-                                id: '03-test-multiple-passing-results.sub3',
-                                label: '03-test-multiple-passing-results.sub3',
-                                children: [],
-                            },
-                            {
-                                id: '03-test-multiple-passing-results.sub2',
-                                label: '03-test-multiple-passing-results.sub2',
-                                children: [],
-                            },
-                            {
-                                id: '03-test-multiple-passing-results.sub1',
-                                label: '03-test-multiple-passing-results.sub1',
-                                children: [],
-                            },
-                        ],
-                    },
-                    {
-                        id: '04-test-only-passing-sub-results',
-                        label: '04-test-only-passing-sub-results',
-                        /**
-                         * We expect these sub-results to appear after the test run
-                         */
-                        children: [
-                            {
-                                id: '04-test-only-passing-sub-results.sub3',
-                                label: '04-test-only-passing-sub-results.sub3',
-                                children: [],
-                            },
-                            {
-                                id: '04-test-only-passing-sub-results.sub2',
-                                label: '04-test-only-passing-sub-results.sub2',
-                                children: [],
-                            },
-                            {
-                                id: '04-test-only-passing-sub-results.sub1',
-                                label: '04-test-only-passing-sub-results.sub1',
-                                children: [],
-                            },
-                        ],
-                    },
-                    {
-                        id: '05-test-only-sub-results-one-failing',
-                        label: '05-test-only-sub-results-one-failing',
-                        /**
-                         * We expect these sub-results to appear after the test run
-                         */
-                        children: [
-                            {
-                                id: '05-test-only-sub-results-one-failing.sub3',
-                                label: '05-test-only-sub-results-one-failing.sub3',
-                                children: [],
-                            },
-                            {
-                                id: '05-test-only-sub-results-one-failing.sub2',
-                                label: '05-test-only-sub-results-one-failing.sub2',
-                                children: [],
-                            },
-                            {
-                                id: '05-test-only-sub-results-one-failing.sub1',
-                                label: '05-test-only-sub-results-one-failing.sub1',
-                                children: [],
-                            },
-                        ],
-                    },
-                    {
-                        id: '06-test-with-diff',
-                        label: '06-test-with-diff',
-                        children: [],
-                    },
-                    {
-                        id: '07-test-with-no-results',
-                        label: '07-test-with-no-results',
-                        children: [],
-                    },
-                ],
-            },
-        ]);
+        const spyCtrl = spy(e3.controller);
+        try {
+            const mockRun = mock<TestRun>();
+            let consoleOutput = '';
+            when(mockRun.appendOutput(anything())).thenCall((output: string) => {
+                consoleOutput += output.replace(/(\r+\n|\n\r+)/g, '\n');
+            });
+
+            const run = instance(mockRun);
+
+            when(spyCtrl.createTestRun(anything())).thenReturn(run);
+            when(spyCtrl.createTestRun(anything(), anything())).thenReturn(run);
+            when(spyCtrl.createTestRun(anything(), anything(), anything())).thenReturn(run);
+
+            await e3.runHandler(
+                { include: undefined, exclude: undefined, profile: undefined },
+                new CancellationTokenSource().token,
+            );
+
+            const expectedResult = [
+                {
+                    id: Uri.joinPath(workspace.workspaceFolders![0].uri, 'testsuite.py').toString(),
+                    label: 'testsuite.py',
+                    children: [
+                        {
+                            id: '01-test-one-result',
+                            label: '01-test-one-result',
+                            children: [],
+                        },
+                        {
+                            id: '02-test-multiple-results',
+                            label: '02-test-multiple-results',
+                            /**
+                             * We expect these sub-results to appear after the test run
+                             */
+                            children: [
+                                {
+                                    id: '02-test-multiple-results.sub3',
+                                    label: '02-test-multiple-results.sub3',
+                                    children: [],
+                                },
+                                {
+                                    id: '02-test-multiple-results.sub2',
+                                    label: '02-test-multiple-results.sub2',
+                                    children: [],
+                                },
+                                {
+                                    id: '02-test-multiple-results.sub1',
+                                    label: '02-test-multiple-results.sub1',
+                                    children: [],
+                                },
+                            ],
+                        },
+                        {
+                            id: '03-test-multiple-passing-results',
+                            label: '03-test-multiple-passing-results',
+                            /**
+                             * We expect these sub-results to appear after the test run
+                             */
+                            children: [
+                                {
+                                    id: '03-test-multiple-passing-results.sub3',
+                                    label: '03-test-multiple-passing-results.sub3',
+                                    children: [],
+                                },
+                                {
+                                    id: '03-test-multiple-passing-results.sub2',
+                                    label: '03-test-multiple-passing-results.sub2',
+                                    children: [],
+                                },
+                                {
+                                    id: '03-test-multiple-passing-results.sub1',
+                                    label: '03-test-multiple-passing-results.sub1',
+                                    children: [],
+                                },
+                            ],
+                        },
+                        {
+                            id: '04-test-only-passing-sub-results',
+                            label: '04-test-only-passing-sub-results',
+                            /**
+                             * We expect these sub-results to appear after the test run
+                             */
+                            children: [
+                                {
+                                    id: '04-test-only-passing-sub-results.sub3',
+                                    label: '04-test-only-passing-sub-results.sub3',
+                                    children: [],
+                                },
+                                {
+                                    id: '04-test-only-passing-sub-results.sub2',
+                                    label: '04-test-only-passing-sub-results.sub2',
+                                    children: [],
+                                },
+                                {
+                                    id: '04-test-only-passing-sub-results.sub1',
+                                    label: '04-test-only-passing-sub-results.sub1',
+                                    children: [],
+                                },
+                            ],
+                        },
+                        {
+                            id: '05-test-only-sub-results-one-failing',
+                            label: '05-test-only-sub-results-one-failing',
+                            /**
+                             * We expect these sub-results to appear after the test run
+                             */
+                            children: [
+                                {
+                                    id: '05-test-only-sub-results-one-failing.sub3',
+                                    label: '05-test-only-sub-results-one-failing.sub3',
+                                    children: [],
+                                },
+                                {
+                                    id: '05-test-only-sub-results-one-failing.sub2',
+                                    label: '05-test-only-sub-results-one-failing.sub2',
+                                    children: [],
+                                },
+                                {
+                                    id: '05-test-only-sub-results-one-failing.sub1',
+                                    label: '05-test-only-sub-results-one-failing.sub1',
+                                    children: [],
+                                },
+                            ],
+                        },
+                        {
+                            id: '06-test-with-diff',
+                            label: '06-test-with-diff',
+                            children: [],
+                        },
+                        {
+                            id: '07-test-with-no-results',
+                            label: '07-test-with-no-results',
+                            children: [],
+                        },
+                    ],
+                },
+            ];
+
+            const actualResult = toTestResult(e3.controller.items);
+
+            try {
+                assert.deepStrictEqual(actualResult, expectedResult);
+            } catch (error) {
+                // Include console output in the error message for debugging
+                const errorMessage =
+                    `Test structure assertion failed.\n\n` +
+                    `Console output:\n${consoleOutput}\n\n` +
+                    `Original error:\n${String(error)}`;
+                throw new Error(errorMessage);
+            }
+        } finally {
+            reset(spyCtrl);
+        }
     });
 
     test('Capturing test results', async function () {
@@ -253,19 +281,23 @@ suite('e3-testsuite', function () {
             );
 
             const workspaceRoot = workspace.workspaceFolders![0].uri.fsPath;
-            const testsuitePath = `${workspaceRoot}/testsuite.py`;
+            const testsuitePath = `${workspaceRoot}${path.sep}testsuite.py`;
             const pythonPathRegex =
-                /Running: "(.+python)" ".+testsuite\.py" "--failure-exit-code=0"\n/;
+                /Running: "(.*python)" ".+testsuite\.py" "--failure-exit-code=0"/;
 
             // Extract the python path from the output
             const pythonMatch = consoleOutput.match(pythonPathRegex);
-            assert.ok(pythonMatch, 'Python path not found in console output');
+            assert.ok(pythonMatch, `Python path not found in console output: ${consoleOutput}`);
             const pythonPath = pythonMatch[1];
 
             // Check that the console output contains the expected command and results
             const expectedCommand =
                 `Running: "${pythonPath}" "${testsuitePath}" ` + '"--failure-exit-code=0"';
-            assert.ok(consoleOutput.includes(expectedCommand), 'Expected command not found');
+            assert.ok(
+                consoleOutput.includes(expectedCommand),
+                `Expected command '${expectedCommand}' not` +
+                    ` found in console output: ${consoleOutput}`,
+            );
 
             // Check for expected test results (order-independent)
             const expectedResults = [
@@ -288,12 +320,18 @@ suite('e3-testsuite', function () {
             ];
 
             for (const result of expectedResults) {
-                assert.ok(consoleOutput.includes(result), `Expected result not found: ${result}`);
+                assert.ok(
+                    consoleOutput.includes(result),
+                    `Expected result not found: ${result}\nActual console output: ${consoleOutput}`,
+                );
             }
 
             // Check for the summary section
             const expectedSummary = 'INFO     Summary:\n  PASS         12\n  FAIL         4';
-            assert.ok(consoleOutput.includes(expectedSummary), 'Expected summary not found');
+            assert.ok(
+                consoleOutput.includes(expectedSummary),
+                `Expected summary not found in console output: ${consoleOutput}`,
+            );
 
             assert.deepStrictEqual(enqueued.sort(), [
                 '01-test-one-result',
@@ -347,7 +385,7 @@ suite('e3-testsuite', function () {
                 },
                 {
                     id: '02-test-multiple-results.sub3',
-                    message: [{ message: 'Failure message\n\nLong\nExecution\nLog' }],
+                    message: [{ message: `Failure message${EOL + EOL}Long\nExecution\nLog` }],
                 },
                 {
                     id: '05-test-only-sub-results-one-failing.sub2',
@@ -361,7 +399,7 @@ suite('e3-testsuite', function () {
                             actualOutput: 'Actual\nOutput\nText',
                             expectedOutput: 'Expected\nOutput\nText content',
                         },
-                        { message: 'Test Log\nLong\nExecution\nLog' },
+                        { message: `Test Log${EOL}Long\nExecution\nLog` },
                     ],
                 },
             ]);
