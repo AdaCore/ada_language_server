@@ -3,7 +3,7 @@
 .vscode-test/
 advanced/
 node_modules/
-out/test/
+out/
 src/
 test/
 .eslintrc.json
@@ -20,3 +20,6 @@ convert-mocha-junit-report.py
 unresolve.js
 !node_modules/@vscode/codicons/dist/codicon.css
 !node_modules/@vscode/codicons/dist/codicon.ttf
+!out/src/visualizing/AppMain.js
+!out/src/extension.js
+!out/src/extension.js.map
