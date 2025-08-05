@@ -2,180 +2,211 @@
 
 # Code Visualizer for Visual Studio Code
 
-This extension provide a tool allowing to display the code base as an interactive graph using LSP requests.
+The Ada & SPARK VS Code extension provides commands to display code information as interactive graphs using Language Server Protocol (LSP) requests.
 
 ## Features
 
-This extension relies on LSP to gather data for the graphs which means most of the extension should work on any language as long as there is a Language Server implemented for it and linked to VS Code.
+The extension uses LSP to collect data for graphs, which means it works with any language that has a Language Server connected to VS Code.
 
-/!\ All Languages Servers differs in their implementation of the Language Server Protocol which means that some features might not work optimally for all languages, the implementation being made to work on _most language_.
+**Note:** Language Servers implement the Language Server Protocol differently, so some features may not work perfectly for all languages. The extension is designed to work with *most languages*.
 
-To counter this issue, it is possible to add [language-specific features](#multi-language-handler).
+To address these differences, you can add [language-specific features](#multi-language-support).
 
-### Graph
+### Graph Types
 
-The main feature of this extension is the graph.
-
-There are several kinds of graphs available:
+All the different commands display interactive graphs. Several types of graphs are available:
 
 #### Call Graph
 
-The most basic kind of graph is the Call Graph, which allows the user to visualize the relationship between the different function calls of the project.
+The Call Graph shows the relationships between function calls in your project.
 
-To use it, you can simply right-click on the function symbol you wish to visualize and select the option `Show Call Hierarchy (graph)`.
+**How to use:**
 
-This will open a new tab on the side of your IDE with a view containing the created graph. You can then interact with it, move the nodes around and use the different features listed below.
+1. Right-click on a function symbol
+2. Select `Show Call Hierarchy (graph)`
+
+This opens a new tab with an interactive graph. You can move nodes around and use the features described below.
+
+![Opening the graph](media/openGraph.png)
+
+In this example, the graph starts from the `Load_Config_Files` function and shows an `Initialize` node, which is a parent (meaning `Initialize` calls `Load_Config_Files`).
 
 #### Type Graph
 
-You can also generate Type Graph which allow the user to visualize the hierarchies between the different types of your project.
+The Type Graph shows hierarchies between different types in your project.
 
-To use it, the process is the same as with the Call Graph: right-click on the type symbol you wish to visualize and select the option `Show Type Hierarchy (graph)`.
+**How to use:**
+
+1. Right-click on a type symbol
+2. Select `Show Type Hierarchy (graph)`
 
 #### File Dependency Graph (Ada)
 
-Some graph types can also be available to specific languages. For example, when on an Ada file, you can right-click anywhere in the editor and then on `Show File Dependency (graph)` to generate a graph representing the different files of your project and their relationship between them.
+Some graph types are language-specific. For Ada files, you can:
+
+1. Right-click anywhere in the editor
+2. Select `Show File Dependency (graph)`
+
+This creates a graph showing relationships between Ada files.
 
 #### GPR Dependency Graph (GPR)
 
-The last kind of graph available allows you to see the relationships between the different GPR files composing a project. Again, to use it, you can click anywhere in a GPR file and then click on `Show GPR Dependency (graph)`.
+For GPR files, you can visualize relationships between GPR files:
 
-The graph generated will be composed of different kinds of nodes and edges:
-For imported projects, the edges will be dotted.
+1. Click anywhere in a GPR file
+2. Select `Show GPR Dependency (graph)`
 
-For extended projects, the edges will be plain.
+The graph uses different visual styles:
 
-For aggregated projects, the node representing the aggregate project will be transformed into a sub-graph containing its aggregated project to better understand their relationship.
+- **Dotted edges**: Imported projects
+- **Solid edges**: Extended projects
+- **Sub-graphs**: Aggregated projects are shown as containers with their aggregated projects inside
 
-### ViewPort
+### Viewport Navigation
 
-The nodes are placed on a viewport that the user can interact with.
+You can interact with the graph viewport in several ways:
 
-It is possible to move around by dragging the viewport, zoom in and out by using the scroll wheel.
+- **Move around**: Drag the viewport
+- **Zoom**: Use the scroll wheel
+- **Control buttons** (bottom left corner):
+  - Zoom in/out buttons
+  - Fit entire graph in view
+  - Lock graph (prevents moving nodes)
+  - Return to center (0,0)
+  - Change layout direction (right-facing or downward)
 
-On the bottom left corner of the viewport, the user has access to a set of buttons that summarize its features.
+### Expanding the Graph
 
--   A button to zoom in.
--   A button to zoom out.
--   A button to fit the whole graph into the view.
--   A button to lock the graph interactivity, preventing the user from moving the nodes around.
--   A button that takes the user back to the center of the graph (0,0) in case he went too far and can't find the graph on the port.
--   Additionally, a button can be found allowing the user to layout the graph, toggling between orienting the graph to the right or downside.
+To avoid performance issues, graphs initially show only the main symbols and their direct connections. You can expand the graph by:
 
-### Expansion
+- **Single expansion**: Click buttons on each node to show parents or children
+- **Recursive expansion**: Hold the `Control` key while clicking to expand multiple levels at once
 
-To prevent lag or slowness, the graph initially only displays the required symbols and their direct relations, but you can then interact with the buttons on the side of each node to either get the parent symbols or the child symbols for a specific node.
+During recursive expansion, you'll see the graph grow in real-time. You can stop this process by clicking the cancel notification.
 
-If you want to discover a large part of the graph, you can hold the _Control Key_ to recursively unravel the graph and see the graph expand in real time.
-This process can be stopped at any moment by clicking the cancel notification at the bottom right of the window.
+![Expanding the graph](media/expansion.gif)
 
-### Folding
+### Folding Nodes
 
-Once a node has children, the button to get those children is replaced by a button used to fold the children in the node, hiding them from the user view.
+Once a node has children, you can:
 
-When folded, the user can re-click on the button to redisplay the nodes stored in the parent node.
+- **Fold**: Hide the children by clicking the fold button
+- **Unfold**: Show hidden children again by clicking the same button
 
-### Layouting
+![Folding the graph](media/folding.gif)
 
-When nodes are added to the graph, it is automatically layouted to make sure each node is visible to the user and well placed.
-If the graph is disconnected, the program will try to re-layout only the sub-part that was modified.
-In either case, when adding nodes, the overall order of the nodes in the graph may be drastically reordered, but the view will be focused on the node from which the other nodes were added to help the user keep track of its position in the graph.
+### Automatic Layout
 
-You can also manually trigger the layout by clicking the `Layout Graph` button on the bottom left side, which will also change the direction of the graph on screen (toggling between top-bottom to left-right).
+When you add nodes, the graph automatically rearranges itself to keep everything visible and well-organized. If parts of the graph are disconnected, only the modified section is re-arranged.
 
-### Search Bar
+You can also manually trigger layout changes using the `Layout Graph` button (bottom left), which also toggles between horizontal and vertical orientations.
 
-As the graph grows bigger, the user might find it hard to locate himself in the graph or to find specific nodes.
-To help with that, he has access to a search bar on the top right corner allowing him to find nodes based on their name and to be taken to them.
+### Search Functionality
 
-Once some characters have been entered, a list of node names will appear.
-The user can then either click on a list item or use the `arrow` key or the `tab` key to go through the list.
-When going through the list, the graph will focus on the node linked to the current list item.
-When satisfied, the user can either press the `Enter` key or click outside the search bar range to close it.
+As graphs grow larger, finding specific nodes becomes difficult. The search bar (top right corner) helps you locate nodes by name.
+
+**How to use:**
+
+1. Type characters in the search bar
+2. A list of matching node names appears
+3. Navigate with arrow keys or `Tab`
+4. The graph automatically focuses on the highlighted node
+5. Press `Enter` or click outside to close the search
+
+![Search the graph](media/searchGraph.png)
 
 ### Node Context Menu
 
-When right clicking on a node, you can get access to a menu summarizing all the requests that can be made from a node.
-You can find the following features :
+Right-clicking on any node opens a menu with these options:
 
--   `Refresh node`: Refresh the information of a node, [see Node Refresh](#node-refresh)
--   `Go To Definition`: Take the user to the definition of the symbol represented by the node, [see Go To Definition](#go-to-definition)
--   `Go To Implementation`: Take the user to the implementation of the symbol represented by the node, [see Go To Implementation](#go-to-implementation)
--   `Delete Node`: Delete the node associated with the context menu, [see Node Deletion](#node-deletion)
--   `Get Super Hierarchy`: The label of this button changes on the hierarchy of the graph and allows the user to request the parents of the node to be added to the graph, [see Expansion](#expansion)
--   `Get Sub Hierarchy`: The label of this button changes on the hierarchy of the graph and allows the user to request the children of the node to be added to the graph, [see Expansion](#expansion)
--   `Go To References`: Lists the references of the symbol in the code base and then takes the user to the chosen reference of the symbol in the code base, [see Go To Implementation](#go-to-implementation)
+- **Refresh node**: Update the node's information
+- **Go To Definition**: Jump to where the symbol is defined
+- **Go To Implementation**: Jump to the symbol's implementation
+- **Delete Node**: Remove the node from the graph
+- **Get Parents** (the actual label differs depending on the feature): Add parent nodes (e.g: outgoing calls for Call Graphs)
+- **Get Children** (the actual label differs depending on the feature): Add child nodes (e.g: incoming calls for Call Graphs)
+- **Go To References**: List and navigate to all references of the symbol
 
-### Node Selection
+![Context Menu](media/context.png)
 
-The user can select nodes by either clicking on one, holding the `control` key and clicking on multiple nodes for multiple selections or holding the `shift` key and then dragging the mouse to select an area of the graph.
+### Selecting Nodes
 
-### Node Deletion
+You can select nodes in multiple ways:
 
-The user also has the option to delete nodes from the graph by selecting nodes and then pressing the `Backspace` key or the `Del` key.
-This will remove the nodes from the graph and from the extension internal storage, along with all the edges connected to them.
+- **Single selection**: Click on a node
+- **Multiple selection**: Hold `Control` and click multiple nodes
+- **Area selection**: Hold `Shift` and drag to select a region
 
-The user can also hold the `Control` key while deleting nodes to also delete all of their children recursively.
-In case of a cycle, only the node not connected to any parent of a deleted node will be deleted.
-For example in a configuration `A -> B -> C -> A`, recursively deleting node B will only remove B as C is a parent of A which is a parent of B.
+### Deleting Nodes
 
-### Node Refresh
+Remove nodes from the graph using:
 
-When modifying the code base while the graph is open, the location of some symbol might change, invalidating the node as LSP requests depends on location.
+- **Select nodes** and press `Backspace` or `Delete`
+- **Recursive deletion**: Hold `Control` while deleting to also remove all children
 
-To fix this issue the user can refresh the node by accessing it from the context menu under the label `Refresh Node`.
+**Note:** In circular references (A → B → C → A), recursive deletion only removes nodes that aren't parents of the deleted node.
 
-/!\ The tool was mainly developed as a way to visualize a code base, understand how different parts of the code interact with each other,...
-It was not thought as a way to assist during active development so modifying the code base while the graph is open might invalidate a lot of nodes causing a part of the graph to not respond to requests anymore.
+### Refreshing Nodes
 
-### Jump To Code
+When you modify code while the graph is open, some symbols may move, making nodes invalid.
 
-When using the graph the user might want to see to which part of the code the node is related.
+**Solution**: Right-click on affected nodes and select `Refresh Node` from the context menu.
 
-To help with that, the application provides a few ways to access the code from the graph.
+**Important:** This tool is designed for code visualization and understanding, not active development. Making extensive code changes while the graph is open may invalidate many nodes.
+
+### Navigating to Code
+
+The graph provides several ways to jump to related code:
 
 #### Go To Definition
 
-First, by `double clicking` (or through the context menu), the user will be taken to the definition of the symbol in the code base.
-If the editor is already open, it will only be focused on the right position.
-If the editor was not open, it will first be opened in a column next to the graph view.
+- **Double-click** on a node (or use context menu)
+- Opens the symbol's definition in an editor
+- If already open, focuses on the correct position
+- If not open, opens in a column next to the graph
 
 #### Go To Implementation
 
-In the same vein, the user can also jump to the implementation of a symbol in a code base by holding the `control` key while double-clicking on a node (or, once again, through the context menu).
+- **Control + double-click** on a node (or use context menu)
+- Jumps to the symbol's implementation
 
 #### Go To References
 
-Finally, the user can also jump to the references of a symbol in the code base.
+Two ways to access references:
 
-This can be achieved through two ways with a slight difference:
+1. **Edge references**: Hover or click on an edge between nodes
+   - Shows a popup with references in the specific context
+   - Example: Edge from `Bar` to `Foo` shows all calls to `Foo` within `Bar`
 
--   First, the user can hover or click on an edge to open a popup containing a list representing all the references of the symbol at the destination of the edge in the context of the symbol at the source of the edge.
-    If we take the Call Graph as an example (which is the most interesting), hovering an edge linking `Bar` to `Foo` would create a list of all the function calls of `Foo` in the `Bar` function.
--   The user can also use the context menu from a node to get a list of all the references of the symbol in the code base, divided by a header indicating the name of the function and the file they can be found in.
+2. **All references**: Use the context menu on a node
+   - Shows all references to the symbol across the codebase
+   - Organized by function name and file location
 
-In both cases, the user can move using either the `arrows` key or the `Tab` key and then press `Enter` to be taken to the references. It is also possible to click on a list item.
-When going through the list, the user will see in a column on the side of the graph view, the code symbol represented by the list item revealed in real time, giving him context about what the symbol refers to.
+**Navigation**: Use arrow keys or `Tab` to move through the list, then press `Enter` to jump to a reference. You can also click directly on list items.
 
-This feature is only available for the Type Graph and the Call Graph as GPR and Files Graph don't really have references.
+As you navigate the list, the relevant code appears in a side panel, giving you context about each reference.
 
-### Out of Project Node
+**Note**: This feature works for Call Graphs and Type Graphs only, as GPR and File graphs don't have meaningful references.
 
-When requesting data from the LSP, you can sometimes get symbols not directly present in the code base but from the diverse standard, shared, static libraries of your project.
+![References Picker](media/references.gif)
 
-Those symbols, when detected, are still placed on the graph but in a different color from the regular node and have the border dotted to indicate to the user that it is not code present in the project.
+### External Nodes
 
-/!\ The symbols that do not belong to the project might not have all the information necessary for the node to work correctly, so some features might not work as the extension might not be able to build the LSP request or the LSP might not be able to respond.
+Sometimes LSP requests return symbols from external libraries (standard library, shared libraries, etc.) rather than your project code.
 
-### Multi Language Handler
+These external nodes are displayed with:
 
-The goal of the extension was to provide a tool that would work on any language if they implemented a Language Server.
+- **Different colors** from regular project nodes
+- **Dotted borders** to indicate they're external
 
-Unfortunately, each Language Server has its own implementation, which might differ from the others.
-Furthermore, each language has specificities that are not covered by the standard request of the LSP.
+**Limitation**: External symbols may not have complete information, so some features might not work properly with these nodes.
 
-To handle those problems, this extension provides a _generic interface_ containing some feature implementations that should work for most languages.
-Those implementations can then be overloaded in sub-classes, allowing to handle behavior differently depending on the language the user is currently using.
+### Multi-Language Support
 
-This also allows implementing specific features for a specific language.
-For example, the _generic interface_ provides the Call Graph and the Type Graph, but when overloaded with an Ada class, it will additionally provide the File Dependency Graph.
+This extension aims to work with any language that has a Language Server implementation.
+
+However, each Language Server implements features differently, and each language has unique characteristics not covered by standard LSP requests.
+
+**Solution**: The extension provides a *generic interface* with implementations that work for most languages. These can be customized for specific languages through sub-classes.
+
+**Example**: The generic interface provides Call Graphs and Type Graphs for all languages, but the Ada-specific implementation adds the File Dependency Graph feature.

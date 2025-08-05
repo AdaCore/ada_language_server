@@ -16,5 +16,6 @@ Ada & SPARK VS Code Extension User's Guide
    Refactoring Tools <refactoring_tools.md>
    Tips and Tricks <tips_and_tricks.rst>
    Ada Language Server Settings <settings.md>
+   Code Visualizer <code_visualizer.md>
    ALS Traces <traces.md>
    Language Server Protocol Extensions <extensions.md>

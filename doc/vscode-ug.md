@@ -216,6 +216,38 @@ Moreover when working with an Alire crate, VS Code tasks automatically use stand
 
 All other tasks use `alr exec -- ...` to execute the command in the environment provided by Alire.
 
+## Code Visualizer
+
+The Ada & SPARK VS Code extension can display your code structure as interactive graphs. These graphs help you understand relationships in your codebase by using Language Server Protocol (LSP) requests.
+
+### Available Graph Types
+
+The extension provides four types of interactive graphs:
+
+**For all languages with Language Server support:**
+
+* `Calls: Show Call Hierarchy Graph` - Shows how functions call each other in your project
+* `Types: Show Type Hierarchy Graph` - Shows relationships between different data types
+
+**Specific to Ada and GPR files:**
+
+* `Ada: Show File Dependencies Graph` - Shows how Ada source files depend on each other
+* `Ada: Show GPR Dependencies Graph` - Shows relationships between GPR project files
+
+### How to Use
+
+To create a graph:
+
+1. Right-click on a function, type, or anywhere in an Ada/GPR file
+2. Select the appropriate "Show ... Graph" command from the context menu
+3. An interactive graph opens in a new tab where you can:
+   - Move nodes around by dragging
+   - Zoom in and out
+   - Expand or collapse parts of the graph
+   - Navigate directly to your code
+
+For detailed instructions and advanced features, see the [complete documentation](ShowGraphDoc.md).
+
 ## GNATtest Support
 
 If you install GNATtest, the Ada & SPARK extension for VS Code will provide the following functionalities:
