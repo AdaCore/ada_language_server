@@ -1507,9 +1507,10 @@
     },
     "scripts": {
         "check-licenses": "npx license-checker-rseidelsohn --summary --onlyAllow \"0BSD;Apache-2.0;BSD-2-Clause;BSD-3-Clause;BlueOak-1.0.0;CC0-1.0;GPL-3.0;GPL-3.0-or-later;ISC;MIT;Python-2.0;Zlib;EPL-2.0\" --excludePackages \"@vscode/vsce-sign-linux-x64;@vscode/vsce-sign-win32-x64;@vscode/vsce-sign\"",
-        "vscode:prepublish": "npm run esbuild-base -- --minify --sourcemap",
+        "vscode:prepublish": "npm run compile && npm run esbuild-base -- --minify --sourcemap",
         "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/src/extension.js --external:vscode --format=cjs --platform=node",
-        "compile": "npm run copy && node ./node_modules/typescript/bin/tsc && webpack",
+        "compile": "node ./node_modules/typescript/bin/tsc && npm run compile-webview",
+        "compile-webview": "npm run copy && webpack",
         "watch": "npm run copy && node ./node_modules/typescript/bin/tsc -watch",
         "copy": "node -e \"fs.mkdirSync('out/src/visualizing', {recursive: true}); fs.copyFileSync('src/visualizing/visualizerStyleSheet.css','out/src/visualizing/visualizerStyleSheet.css')\"",
         "pretest": "npm run compile",
