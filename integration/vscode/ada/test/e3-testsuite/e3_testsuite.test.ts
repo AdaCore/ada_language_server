@@ -1,12 +1,118 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import assert from 'assert';
 import { EOL } from 'os';
 import path from 'path';
 import { anything, instance, mock, reset, spy, when } from 'ts-mockito';
-import { TestItem, TestItemCollection, TestMessage, TestRun, Uri, workspace } from 'vscode';
+import {
+    TestController,
+    TestItem,
+    TestItemCollection,
+    TestMessage,
+    TestRun,
+    Uri,
+    workspace,
+} from 'vscode';
 import { CancellationTokenSource } from 'vscode-languageclient';
 import * as e3 from '../../src/e3Testsuite';
 import { activate } from '../utils';
+
+/**
+ * Interface for capturing test execution results
+ */
+interface TestResults {
+    enqueued: string[];
+    started: string[];
+    passed: string[];
+    failed: { id: string; message: TestMessage[] }[];
+    errors: { id: string; message: TestMessage[] }[];
+}
+
+/**
+ * Class for managing mocking setup with mutable state
+ */
+class MockSetup {
+    public spyCtrl: TestController;
+    public mockRun: TestRun;
+    public consoleOutput: string = '';
+    public results?: TestResults;
+
+    constructor(mode: 'basic' | 'full' = 'basic') {
+        this.spyCtrl = spy(e3.controller);
+        const mockRun = mock<TestRun>();
+
+        /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
+        // Console output capture (common to both modes)
+        when(mockRun.appendOutput(anything())).thenCall((output: string) => {
+            this.consoleOutput += output.replace(/(\r+\n|\n\r+)/g, '\n');
+        });
+
+        // Set up test result capture for full mode
+        if (mode === 'full') {
+            const enqueued: string[] = [];
+            const started: string[] = [];
+            const passed: string[] = [];
+            const failed: { id: string; message: TestMessage[] }[] = [];
+            const errors: { id: string; message: TestMessage[] }[] = [];
+
+            when(mockRun.enqueued(anything())).thenCall((item: TestItem) => {
+                enqueued.push(item.id);
+            });
+            when(mockRun.started(anything())).thenCall((item: TestItem) => {
+                started.push(item.id);
+            });
+            when(mockRun.passed(anything())).thenCall((item: TestItem) => {
+                passed.push(item.id);
+            });
+            when(mockRun.failed(anything(), anything())).thenCall(
+                (item: TestItem, message?: TestMessage | TestMessage[]) => {
+                    let messages: TestMessage[] = [];
+                    if (Array.isArray(message)) {
+                        messages = message;
+                    } else if (message) {
+                        messages = [message];
+                    }
+                    failed.push({ id: item.id, message: messages });
+                },
+            );
+            when(mockRun.errored(anything(), anything())).thenCall(
+                (item: TestItem, message?: TestMessage | TestMessage[]) => {
+                    let messages: TestMessage[] = [];
+                    if (Array.isArray(message)) {
+                        messages = message;
+                    } else if (message) {
+                        messages = [message];
+                    }
+                    errors.push({ id: item.id, message: messages });
+                },
+            );
+
+            this.results = {
+                enqueued,
+                started,
+                passed,
+                failed,
+                errors,
+            };
+        }
+
+        // Create the mock run instance and set up spy controller mappings
+        this.mockRun = instance(mockRun);
+        when(this.spyCtrl.createTestRun(anything())).thenReturn(this.mockRun);
+        when(this.spyCtrl.createTestRun(anything(), anything())).thenReturn(this.mockRun);
+        when(this.spyCtrl.createTestRun(anything(), anything(), anything())).thenReturn(
+            this.mockRun,
+        );
+
+        /* eslint-enable @typescript-eslint/no-unsafe-argument */
+    }
+
+    /**
+     * Cleans up mocking after test execution
+     */
+    cleanup(): void {
+        reset(this.spyCtrl);
+    }
+}
 
 suite('e3-testsuite', function () {
     this.beforeAll(async function () {
@@ -64,20 +170,8 @@ suite('e3-testsuite', function () {
     test('Test list after run', async function () {
         await e3.controller.refreshHandler!(new CancellationTokenSource().token);
 
-        const spyCtrl = spy(e3.controller);
+        const mockSetup = new MockSetup('basic');
         try {
-            const mockRun = mock<TestRun>();
-            let consoleOutput = '';
-            when(mockRun.appendOutput(anything())).thenCall((output: string) => {
-                consoleOutput += output.replace(/(\r+\n|\n\r+)/g, '\n');
-            });
-
-            const run = instance(mockRun);
-
-            when(spyCtrl.createTestRun(anything())).thenReturn(run);
-            when(spyCtrl.createTestRun(anything(), anything())).thenReturn(run);
-            when(spyCtrl.createTestRun(anything(), anything(), anything())).thenReturn(run);
-
             await e3.runHandler(
                 { include: undefined, exclude: undefined, profile: undefined },
                 new CancellationTokenSource().token,
@@ -211,74 +305,27 @@ suite('e3-testsuite', function () {
                 // Include console output in the error message for debugging
                 const errorMessage =
                     `Test structure assertion failed.\n\n` +
-                    `Console output:\n${consoleOutput}\n\n` +
+                    `Console output:\n${mockSetup.consoleOutput}\n\n` +
                     `Original error:\n${String(error)}`;
                 throw new Error(errorMessage);
             }
         } finally {
-            reset(spyCtrl);
+            mockSetup.cleanup();
         }
     });
 
     test('Capturing test results', async function () {
         await e3.controller.refreshHandler!(new CancellationTokenSource().token);
 
-        const spyCtrl = spy(e3.controller);
+        const mockSetup = new MockSetup('full');
         try {
-            const mockRun = mock<TestRun>();
-            let consoleOutput = '';
-            when(mockRun.appendOutput(anything())).thenCall((output: string) => {
-                consoleOutput += output.replace(/(\r+\n|\n\r+)/g, '\n');
-            });
-
-            const enqueued: string[] = [];
-            const started: string[] = [];
-            const passed: string[] = [];
-            const failed: { id: string; message: TestMessage[] }[] = [];
-            const errors: { id: string; message: TestMessage[] }[] = [];
-
-            when(mockRun.enqueued(anything())).thenCall((item: TestItem) => {
-                enqueued.push(item.id);
-            });
-            when(mockRun.started(anything())).thenCall((item: TestItem) => {
-                started.push(item.id);
-            });
-            when(mockRun.passed(anything())).thenCall((item: TestItem) => {
-                passed.push(item.id);
-            });
-            when(mockRun.failed(anything(), anything())).thenCall(
-                (item: TestItem, message?: TestMessage | TestMessage[]) => {
-                    let messages: TestMessage[] = [];
-                    if (Array.isArray(message)) {
-                        messages = message;
-                    } else if (message) {
-                        messages = [message];
-                    }
-                    failed.push({ id: item.id, message: messages });
-                },
-            );
-            when(mockRun.errored(anything(), anything())).thenCall(
-                (item: TestItem, message?: TestMessage | TestMessage[]) => {
-                    let messages: TestMessage[] = [];
-                    if (Array.isArray(message)) {
-                        messages = message;
-                    } else if (message) {
-                        messages = [message];
-                    }
-                    errors.push({ id: item.id, message: messages });
-                },
-            );
-
-            const run = instance(mockRun);
-
-            when(spyCtrl.createTestRun(anything())).thenReturn(run);
-            when(spyCtrl.createTestRun(anything(), anything())).thenReturn(run);
-            when(spyCtrl.createTestRun(anything(), anything(), anything())).thenReturn(run);
-
             await e3.runHandler(
                 { include: undefined, exclude: undefined, profile: undefined },
                 new CancellationTokenSource().token,
             );
+
+            const consoleOutput = mockSetup.consoleOutput;
+            const { enqueued, started, passed, failed, errors } = mockSetup.results!;
 
             const workspaceRoot = workspace.workspaceFolders![0].uri.fsPath;
             const testsuitePath = `${workspaceRoot}${path.sep}testsuite.py`;
@@ -405,7 +452,7 @@ suite('e3-testsuite', function () {
             ]);
             assert.deepStrictEqual(errors, []);
         } finally {
-            reset(spyCtrl);
+            mockSetup.cleanup();
         }
     });
 
@@ -421,26 +468,15 @@ suite('e3-testsuite', function () {
             const testArgs = ['--verbose', '--show-time-info'];
             await config.update('args', testArgs, false);
 
-            const spyCtrl = spy(e3.controller);
+            const mockSetup = new MockSetup('basic');
             try {
-                const mockRun = mock<TestRun>();
-                let consoleOutput = '';
-                when(mockRun.appendOutput(anything())).thenCall((output: string) => {
-                    consoleOutput += output.replace(/(\r+\n|\n\r+)/g, '\n');
-                });
-
-                const run = instance(mockRun);
-
-                when(spyCtrl.createTestRun(anything())).thenReturn(run);
-                when(spyCtrl.createTestRun(anything(), anything())).thenReturn(run);
-                when(spyCtrl.createTestRun(anything(), anything(), anything())).thenReturn(run);
-
                 // Run the handler
                 await e3.runHandler(
                     { include: undefined, exclude: undefined, profile: undefined },
                     new CancellationTokenSource().token,
                 );
 
+                const consoleOutput = mockSetup.consoleOutput;
                 // Check that the custom args appear in the console output
                 assert.ok(
                     consoleOutput.includes('--verbose'),
@@ -471,7 +507,7 @@ suite('e3-testsuite', function () {
                     `Expected '--show-time-info' not found in command: ${commandLine}`,
                 );
             } finally {
-                reset(spyCtrl);
+                mockSetup.cleanup();
             }
         } finally {
             // Always restore original configuration
