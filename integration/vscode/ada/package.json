@@ -1473,7 +1473,7 @@
         "@vscode/test-cli": "^0.0.10",
         "@vscode/test-electron": "^2.4.1",
         "@vscode/vsce": "3.0.0",
-        "@wdio/cli": "^8.45.0",
+        "@wdio/cli": "^9.18.4",
         "@wdio/local-runner": "^8.45.0",
         "@wdio/mocha-framework": "^8.45.0",
         "@wdio/spec-reporter": "^8.43.0",
