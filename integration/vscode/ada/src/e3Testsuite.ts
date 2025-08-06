@@ -219,7 +219,6 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         }
 
         const run = controller.createTestRun(request, 'e3-testsuite');
-        run.appendOutput(`Running: ${cmd.map((c) => '"' + c + '"').join(' ')}\n\r`);
 
         const env = getEnv();
         if (enableEventSystem) {
@@ -240,6 +239,8 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         cmd.push(
             ...(vscode.workspace.getConfiguration('e3-testsuite').get<string[]>('args') ?? []),
         );
+
+        run.appendOutput(`Running: ${cmd.map((c) => '"' + c + '"').join(' ')}\n\r`);
 
         const cwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
         await new Promise<void>((resolve, reject) => {

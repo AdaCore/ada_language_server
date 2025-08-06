@@ -408,6 +408,76 @@ suite('e3-testsuite', function () {
             reset(spyCtrl);
         }
     });
+
+    test('Settings e3-testsuite.args', async function () {
+        await e3.controller.refreshHandler!(new CancellationTokenSource().token);
+
+        // Get original configuration to restore later
+        const config = workspace.getConfiguration('e3-testsuite');
+        const originalArgs = config.get<string[]>('args');
+
+        try {
+            // Set custom args in workspace configuration
+            const testArgs = ['--verbose', '--show-time-info'];
+            await config.update('args', testArgs, false);
+
+            const spyCtrl = spy(e3.controller);
+            try {
+                const mockRun = mock<TestRun>();
+                let consoleOutput = '';
+                when(mockRun.appendOutput(anything())).thenCall((output: string) => {
+                    consoleOutput += output.replace(/(\r+\n|\n\r+)/g, '\n');
+                });
+
+                const run = instance(mockRun);
+
+                when(spyCtrl.createTestRun(anything())).thenReturn(run);
+                when(spyCtrl.createTestRun(anything(), anything())).thenReturn(run);
+                when(spyCtrl.createTestRun(anything(), anything(), anything())).thenReturn(run);
+
+                // Run the handler
+                await e3.runHandler(
+                    { include: undefined, exclude: undefined, profile: undefined },
+                    new CancellationTokenSource().token,
+                );
+
+                // Check that the custom args appear in the console output
+                assert.ok(
+                    consoleOutput.includes('--verbose'),
+                    `Expected '--verbose' argument not found in console output: ${consoleOutput}`,
+                );
+                assert.ok(
+                    consoleOutput.includes('--show-time-info'),
+                    `Expected '--show-time-info' argument not found in console output: ` +
+                        `${consoleOutput}`,
+                );
+
+                // Verify the command line includes both the failure-exit-code and our custom args
+                const commandLineRegex = /Running: ".*python.*" ".*testsuite\.py" ".*"/;
+                const match = consoleOutput.match(commandLineRegex);
+                assert.ok(match, `Command line not found in console output: ${consoleOutput}`);
+
+                const commandLine = match[0];
+                assert.ok(
+                    commandLine.includes('--failure-exit-code=0'),
+                    `Expected '--failure-exit-code=0' not found in command: ${commandLine}`,
+                );
+                assert.ok(
+                    commandLine.includes('--verbose'),
+                    `Expected '--verbose' not found in command: ${commandLine}`,
+                );
+                assert.ok(
+                    commandLine.includes('--show-time-info'),
+                    `Expected '--show-time-info' not found in command: ${commandLine}`,
+                );
+            } finally {
+                reset(spyCtrl);
+            }
+        } finally {
+            // Always restore original configuration
+            await config.update('args', originalArgs, false);
+        }
+    });
 });
 
 interface TestResultItem {
