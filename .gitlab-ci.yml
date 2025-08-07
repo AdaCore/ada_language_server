@@ -284,6 +284,12 @@ lsif-ada:
   artifacts:
     reports:
       lsif: lsif.lsif
-    # Also archive as a plain file for debugging purposes
-    paths:
-      - lsif.lsif
+
+    # The following also archives the LSIF dump as a plain file. This can be
+    # useful for debugging issues in an MR, but it shouldn't be done in the
+    # actual main branch job because it prevents GitLab from consuming the LSIF
+    # data.
+    #
+    # See https://gitlab.com/gitlab-org/gitlab/-/issues/368395#note_1125694679
+    # paths:
+    #   - lsif.lsif
