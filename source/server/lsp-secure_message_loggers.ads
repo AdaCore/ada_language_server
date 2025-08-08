@@ -60,6 +60,11 @@ package LSP.Secure_Message_Loggers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.FoldingRange_Vector_Or_Null);
 
+   overriding procedure On_Formatting_Response
+     (Self  : in out Client_Response_Logger;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.TextEdit_Vector_Or_Null);
+
    overriding procedure On_References_Response
      (Self  : in out Client_Response_Logger;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
