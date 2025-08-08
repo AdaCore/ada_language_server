@@ -19,6 +19,18 @@ with "lsp_common";
 
 project LSP_Server is
 
+   package LSIF is
+      for Excluded_Project_Files use
+        ("gpr2.gpr",
+         "libadalang.gpr",
+         "lal_tools.gpr",
+         "lal_refactor.gpr",
+         "ada_libfswatch.gpr",
+         "libgnatdoc.gpr",
+         "spawn.gpr",
+         "gnatformat.gpr");
+   end LSIF;
+
    VERSION := external ("VERSION", "latest");
 
    BUILD_DATE := external ("BUILD_DATE", "unknown");

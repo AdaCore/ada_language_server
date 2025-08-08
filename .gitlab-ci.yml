@@ -247,3 +247,49 @@ vscode-extension:windows:
 integration-testsuite:windows:
   variables:
     MOCHA_TIMEOUT: "30000"
+
+lsif-ada:
+  rules:
+    # It is not useful to generate LSIF data on merge requests since GitLab
+    # does not provide navigation there. We only need it on the main branch.
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  needs: []
+  allow_failure: true
+  services:
+    - image:pe-base
+    - mem:4
+  script:
+    - generic_anod_ci
+    - . /tmp/ci_env.sh
+
+    # Install lsif-ada
+    - anod install lsif-ada --latest
+    - eval $(anod printenv lsif-ada)
+
+    # Set up the build env for als
+    - anod build als --deps-only
+    - eval $(anod printenv --build-env als)
+
+    # Add gnatdoc and spawn which are not set up by the above since they are
+    # used in source form in Anod
+    - |
+      for dep in gnatdoc spawn; do
+        git -C subprojects clone git@ssh.gitlab.adacore-it.com:eng/ide/$dep.git
+        GPR_PROJECT_PATH=$PWD/subprojects/$dep/gnat:$GPR_PROJECT_PATH
+      done
+    - export GPR_PROJECT_PATH
+    # Run lsif-ada!
+    - lsif-ada gnat/lsp_server.gpr >lsif.lsif
+
+  artifacts:
+    reports:
+      lsif: lsif.lsif
+
+    # The following also archives the LSIF dump as a plain file. This can be
+    # useful for debugging issues in an MR, but it shouldn't be done in the
+    # actual main branch job because it prevents GitLab from consuming the LSIF
+    # data.
+    #
+    # See https://gitlab.com/gitlab-org/gitlab/-/issues/368395#note_1125694679
+    # paths:
+    #   - lsif.lsif
