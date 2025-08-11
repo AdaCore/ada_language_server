@@ -175,6 +175,24 @@ package body LSP.Secure_Message_Loggers is
       Self.Output.New_Line (Ok);
    end On_FoldingRange_Response;
 
+   ----------------------------
+   -- On_Formatting_Response --
+   ----------------------------
+
+   overriding procedure On_Formatting_Response
+     (Self  : in out Client_Response_Logger;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.TextEdit_Vector_Or_Null) is
+      Ok : Boolean := True;
+   begin
+      Self.Output.Put ("'textDocument/formatting'", Ok);
+      Self.Put_Id (Id, Ok);
+      Self.Output.Put (" result : len=", Ok);
+      Self.Output.Put
+        (VSS.Strings.To_Virtual_String (Value.Length'Wide_Wide_Image), Ok);
+      Self.Output.New_Line (Ok);
+   end On_Formatting_Response;
+
    -------------------------------
    -- On_IncomingCalls_Response --
    -------------------------------

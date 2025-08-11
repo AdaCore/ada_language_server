@@ -1510,17 +1510,17 @@
         "vscode:prepublish": "npm run compile && npm run esbuild-base -- --minify --sourcemap",
         "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/src/extension.js --external:vscode --format=cjs --platform=node",
         "compile": "node ./node_modules/typescript/bin/tsc && npm run compile-webview",
-        "compile-webview": "npm run copy && webpack",
+        "compile-webview": "npm run copy && node ./node_modules/webpack/bin/webpack.js",
         "watch": "npm run copy && node ./node_modules/typescript/bin/tsc -watch",
         "copy": "node -e \"fs.mkdirSync('out/src/visualizing', {recursive: true}); fs.copyFileSync('src/visualizing/visualizerStyleSheet.css','out/src/visualizing/visualizerStyleSheet.css')\"",
         "pretest": "npm run compile",
-        "lint": "eslint \"./src/**/*.{js,ts,tsx}\" \"./test/**/*.{js,ts,tsx}\" --quiet --fix",
-        "cilint": "eslint \"./src/**/*.{js,ts,tsx}\" \"./test/**/*.{js,ts,tsx}\"",
+        "lint": "npm run cilint -- --quiet --fix",
+        "cilint": "node ./node_modules/eslint/bin/eslint.js \"./src/**/*.{js,ts,tsx}\" \"./test/**/*.{js,ts,tsx}\"",
         "test": "vscode-test",
         "resolve-backtrace": "npx stacktracify",
         "clean": "node -e \"fs.rmSync('out',{force:true,recursive:true})\"",
         "unresolve": "node unresolve.js",
-        "wdio": "wdio run ./test/visualizer_test/wdio.conf.ts"
+        "wdio": "node ./node_modules/bin/wdio run ./test/visualizer_test/wdio.conf.ts"
     },
     "dependencies": {
         "@vscode/codicons": "^0.0.36",
