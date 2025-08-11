@@ -740,9 +740,12 @@ begin
          Server.Run
            (Ada_Handler'Unchecked_Access,
             Tracer'Unchecked_Access,
-            In_Logger  => (if In_Trace.Is_Active
+            --  Disable the In/Out additional logger if the global
+            --  ALS.MAIN.LOGGER trace is not active or if the specific
+            --  ALS.IN/ALS.OUT traces are not active.
+            In_Logger  => (if Server_Logger_Trace.Is_Active and then In_Trace.Is_Active
                            then In_Logger'Unchecked_Access else null),
-            Out_Logger => (if Out_Trace.Is_Active
+            Out_Logger => (if Server_Logger_Trace.Is_Active and then Out_Trace.Is_Active
                            then Out_Logger'Unchecked_Access else null),
             Priority   => LSP.Server_Jobs.Low);
       end if;
