@@ -157,8 +157,7 @@ package body LSP.Ada_Folding_Range is
               Ada_Access_To_Subp_Def |
               Ada_Case_Stmt |
               Ada_If_Stmt |
-              Ada_For_Loop_Stmt |
-              Ada_While_Loop_Stmt |
+              Ada_Base_Loop_Stmt |
               Ada_Begin_Block |
               Ada_Decl_Block |
               Ada_Extended_Return_Stmt_Object_Decl |
