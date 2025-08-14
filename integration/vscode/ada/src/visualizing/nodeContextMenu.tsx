@@ -28,6 +28,7 @@ export type NodeContextMenuProps = {
     right: number | undefined;
     bottom: number | undefined;
     locationsMap: Map<string, StringLocation[]>;
+    receivedData: boolean;
     pane: DOMRect;
     onContextClose: () => void;
     deleteNodes: (toDeleteId: string[], recursive: boolean) => void;
@@ -206,6 +207,15 @@ export function NodeContextMenu(props: NodeContextMenuProps) {
     // If no locations have been registered yet create all the list elements.
     if (locations.length === 0 && props.locationsMap.size > 0) {
         referencePickerCreateList(props.locationsMap, locations, onClick, true);
+    }
+    // Else if data was received but the locationsMap is still empty,
+    // add a single element to indicate to the user there are no references.
+    else if (props.receivedData) {
+        locations.push(
+            <li className='"visualizer__references-picker-item' key="No references">
+                <i>No references found</i>
+            </li>,
+        );
     }
 
     let left: number | undefined = undefined;
