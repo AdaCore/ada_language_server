@@ -179,7 +179,7 @@ Demo source is `suppress_separate/` in [Code Samples](https://github.com/AdaCore
 * Any procedure call is also deleted.
 * If call statement is the only one in the statement list, then
   - if it is inside a declare/block/end then the block statement is deleted
-    even if there is exception handlers and declarations in it;
+    even if there are exception handlers and declarations in it.
   - otherwise it will be replaced with `null;` to keep source correct.
 * Non-call references will be reported and prevent the deletion.
 
