@@ -295,10 +295,11 @@ package LSP.Types is
 
    type LSP_URI is private;
    --  Type for LSP URI.
-   --  Please avoind comparing URIs with "=": two URIs can point the same file
-   --  even when they are distinct. In most case we shouldn't compare URIs,
-   --  but find corresponding files using GNATCOLL.VFS and compare their
-   --  normalized names instead.
+   --
+   --  Note that URIs can be different while pointing to the same file. So
+   --  when wanting to determine if two URIs represent the same file, avoid
+   --  comparing them with "=". Instead, the URIs should be converted to
+   --  normalized paths before comparison (e.g. with GNATCOLL.VFS).
 
    function Equal (Left, Right : LSP_URI) return Boolean;
    --  Let's try to avoid URI comparison.
