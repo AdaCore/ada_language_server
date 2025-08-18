@@ -1,0 +1,427 @@
+[
+   {
+      "comment": [
+         "delete entity refactoring on a procedure"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 0,
+                "method": "initialize",
+                "params": {
+                    "processId": 59002,
+                    "locale": "en-gb",
+                    "rootPath": "$URI{.}",
+                    "rootUri": "$URI{.}",
+                    "capabilities": {
+                        "workspace": {
+                            "applyEdit": true,
+                            "workspaceEdit": {
+                                "documentChanges": true,
+                                "resourceOperations": [
+                                    "create",
+                                    "rename",
+                                    "delete"
+                                ]
+                            },
+                            "executeCommand": {
+                                "dynamicRegistration": true
+                            }
+                        },
+                        "textDocument": {
+                            "codeAction": {
+                                "dynamicRegistration": true,
+                                "codeActionLiteralSupport": {
+                                    "codeActionKind": {
+                                        "valueSet": [
+                                            "refactor",
+                                            "refactor.extract",
+                                            "refactor.inline",
+                                            "refactor.rewrite"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "wait": [
+                {
+                    "jsonrpc": "2.0",
+                    "id": 0,
+                    "result": {
+                        "capabilities": {
+                            "codeActionProvider": {
+                                "codeActionKinds": [
+                                    "<HAS>",
+                                    "refactor.rewrite"
+                                ]
+                            },
+                            "executeCommandProvider": {
+                                "commands": [
+                                    "<HAS>",
+                                    "als-refactor-delete-entity"
+                                ]
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {}
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Main is\n   procedure Proc (X : access procedure);\n   procedure Proc_2;\n\n   procedure Proc (X : access procedure) is\n   begin\n      null;\n   end;\n\n   procedure Proc_2 is\n   begin\n      null;\n   end Proc_2;\nbegin\n   Proc (Proc_2'Access);\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 15,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 2,
+                     "character": 16
+                  },
+                  "end": {
+                     "line": 2,
+                     "character": 16
+                  }
+               },
+               "context": {
+                  "diagnostics": [],
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 15,
+               "result": [
+                  {
+                     "title": "Delete Entity and all references",
+                     "kind": "refactor",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-delete-entity",
+                        "arguments": [
+                           {
+                              "context": "$URI{default.gpr}",
+                              "where": {
+                                 "uri": "$URI{main.adb}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 16
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 16
+                                    }
+                                 }
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 21,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-refactor-delete-entity",
+               "arguments": [
+                  {
+                     "context": "$URI{default.gpr}",
+                     "where": {
+                        "uri": "$URI{main.adb}",
+                        "range": {
+                           "start": {
+                              "line": 2,
+                              "character": 16
+                           },
+                           "end": {
+                              "line": 2,
+                              "character": 16
+                           }
+                        }
+                     }
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{main.adb}",
+                  "diagnostics": [
+                     {
+                        "range": {
+                           "start": {
+                              "line": 14,
+                              "character": 9
+                           },
+                           "end": {
+                              "line": 14,
+                              "character": 15
+                           }
+                        },
+                        "severity": 1,
+                        "source": "Ada",
+                        "message": "Failed to execute the Delete Entity and all references refactoring.",
+                        "relatedInformation": [
+                           {
+                              "location": {
+                                 "uri": "$URI{main.adb}",
+                                 "range": {
+                                    "start": {
+                                       "line": 14,
+                                       "character": 9
+                                    },
+                                    "end": {
+                                       "line": 14,
+                                       "character": 15
+                                    }
+                                 }
+                              },
+                              "message": "Usage of \"Proc_2\" that is not safe to delete."
+                           }
+                        ]
+                     }
+                  ]
+               }
+            },
+            {
+               "id": 21,
+               "error": {
+                  "code": -32001,
+                  "message": "Failed to execute the Delete Entity and all references refactoring."
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 22,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 2,
+                     "character": 16
+                  },
+                  "end": {
+                     "line": 2,
+                     "character": 16
+                  }
+               },
+               "context": {
+                  "diagnostics": [],
+                  "triggerKind": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 22,
+               "result": [
+                  {
+                     "title": "Delete Entity and all references",
+                     "kind": "refactor",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-delete-entity",
+                        "arguments": [
+                           {
+                              "context": "$URI{default.gpr}",
+                              "where": {
+                                 "uri": "$URI{main.adb}",
+                                 "range": {
+                                    "start": {
+                                       "line": 2,
+                                       "character": 16
+                                    },
+                                    "end": {
+                                       "line": 2,
+                                       "character": 16
+                                    }
+                                 }
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 28,
+            "method": "workspace/executeCommand",
+            "params": {
+               "command": "als-refactor-delete-entity",
+               "arguments": [
+                  {
+                     "context": "$URI{default.gpr}",
+                     "where": {
+                        "uri": "$URI{main.adb}",
+                        "range": {
+                           "start": {
+                              "line": 1,
+                              "character": 15
+                           },
+                           "end": {
+                              "line": 1,
+                              "character": 15
+                           }
+                        }
+                     }
+                  }
+               ]
+            }
+         },
+         "wait": [
+            {
+               "method": "workspace/applyEdit",
+               "params": {
+                  "label": "Delete Entity and all references",
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "uri": "$URI{main.adb}",
+                              "version": 1
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 1,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 1,
+                                       "character": 41
+                                    }
+                                 },
+                                 "newText": "",
+                                 "annotationId": ""
+                              },
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 4,
+                                       "character": 0
+                                    },
+                                    "end": {
+                                       "line": 8,
+                                       "character": 0
+                                    }
+                                 },
+                                 "newText": "",
+                                 "annotationId": ""
+                              },
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 14,
+                                       "character": 3
+                                    },
+                                    "end": {
+                                       "line": 14,
+                                       "character": 24
+                                    }
+                                 },
+                                 "newText": "null;",
+                                 "annotationId": ""
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               }
+            },
+            {
+               "id": 28,
+               "result": null
+            }
+         ]
+      }
+   },
+    {
+        "send": {
+            "request": {
+                "jsonrpc": "2.0",
+                "id": 16,
+                "method": "shutdown"
+            },
+            "wait": [
+                {
+                    "id": 16,
+                    "result": null
+                }
+            ]
+        }
+    },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
