@@ -294,14 +294,14 @@ package LSP.Types is
    subtype ProgressToken is LSP_Number_Or_String;
 
    type LSP_URI is private;
+   --  Type for LSP URI.
+   --  Please avoind comparing URIs with "=": two URIs can point the same file
+   --  even when they are distinct. In most case we shouldn't compare URIs,
+   --  but find corresponding files using GNATCOLL.VFS and compare their
+   --  normalized names instead.
 
    function Equal (Left, Right : LSP_URI) return Boolean;
    --  Let's try to avoid URI comparison.
-
-   overriding function "=" (Left, Right : LSP_URI) return Boolean is abstract;
-   --  Disable URI comparison with "=". Two URIs can point the same file
-   --  even when they are distinct. In most case we shouldn't compare URIs,
-   --  but find corresponding files and compare their normalized names.
 
    function File_To_URI (File : String) return LSP.Types.LSP_URI;
    --  Turn the File name into an URI
