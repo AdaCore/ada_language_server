@@ -46,14 +46,17 @@ export type ALS_GPR_DependencyItem = {
 };
 ```
 
-And a new command `als-show-dependencies`:
+And a new command `als-gpr-dependencies`:
 
-```txt
+```json
     method: `workspace/executeCommand`
     "params": {
        "command": "als-gpr-dependencies",
        "arguments": [
-          <ALS_GRP_DependenciesParams>
+          {
+            "uri": "default.gpr",
+            "direction": 1
+          }
        ]
     }
 ```
