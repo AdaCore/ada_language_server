@@ -195,7 +195,7 @@ The extension provides a number of auto-detected tasks under the `/Terminal/Run 
 predefined tasks are all prefixed by `ada:` and belong to the `ada` group.
 They can be used to build and run your program (`ada: Build current project` task) or launch external tools such as GNAT SAS, GNATprove and a few others.
 
-<img src="doc/run-task-ada-tasks.png" width="500" alt="GNATtest Test Results"/>
+<img src="doc/media/run-task-ada-tasks.png" width="500" alt="GNATtest Test Results"/>
 
 You can bind keyboard shortcuts to them by adding to the `keybindings.json` file:
 
@@ -297,7 +297,7 @@ If you install GNATtest, the Ada & SPARK extension for VS Code will provide the 
 
 * Tests created with GNATtest will be loaded in the VS Code **Testing** view as follows.
 
-  <img src="doc/gnattest-test-tree.png" width="650" alt="GNATtest Test Tree"/>
+  <img src="doc/media/gnattest-test-tree.png" width="650" alt="GNATtest Test Tree"/>
 
 * Tests can be executed individually or in batch through the available buttons in the interface, or through the `Test: Run All Tests` command or related commands.
 
@@ -305,7 +305,7 @@ If you install GNATtest, the Ada & SPARK extension for VS Code will provide the 
 
 * Test execution results are reflected in the test tree.
 
-  <img src="doc/gnattest-results.png" width="500" alt="GNATtest Test Results"/>
+  <img src="doc/media/gnattest-results.png" width="500" alt="GNATtest Test Results"/>
 
 #### Using multi-root workspaces for test development
 
@@ -330,7 +330,7 @@ GNATcoverage coverage reports can be imported in VS Code as follows:
 2. Invoke the VS Code command `ada: GNATcoverage - Load an existing XML coverage report`
 3. Browse to the location of the GNATcoverage XML report and select the `index.xml` file
 
-<img src="doc/gnatcov-report.png" width="1000" alt="GNATcoverage report in VS Code" />
+<img src="doc/media/gnatcov-report.png" width="1000" alt="GNATcoverage report in VS Code" />
 
 Note that importing coverage reports does not require GNATcoverage to be installed. In particular, this enables a workflow where the coverage report is produced in CI and downloaded and imported into VS Code for visualization and analysis.
 
@@ -349,7 +349,7 @@ The GNATtest integration in VS Code also supports running tests in coverage mode
    1. Invoke [GNATcoverage source coverage analysis](https://docs.adacore.com/live/wave/gnatdas/html/gnatdas_ug/gnatcov/cov_source.html)
    1. Load the GNATcoverage report into VS Code
 
-<img src="doc/gnattest-gnatcov.png" width="1000" alt="GNATtest with GNATcoverage in VS Code" />
+<img src="doc/media/gnattest-gnatcov.png" width="1000" alt="GNATtest with GNATcoverage in VS Code" />
 
 Integrating the steps of source instrumentation and test harness build into the test execution workflow allows for a quick feedback loop: run a test, observe results and coverage, edit the test or the tested code, repeat... In this context invoking the VS Code commands `Test: Rerun Last Run` and `Test: Rerun Last Run with Coverage` with their respective keyboard shortcuts can be valuable.
 
