@@ -68,50 +68,6 @@ Without it, auto-completion and navigation will work only on the sources visible
 
 When running VS Code locally, you can provide these environment variables by exporting them in a terminal, and starting VS Code from that same terminal with the `code` command.
 
-## Settings
-
-This extension can be configured with a set of `ada.*` settings documented [here](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md).
-
-The most prominent one is `ada.projectFile` where you can provide the path to the `.gpr` project file.
-If no project is provided and if your workspace contains a single project file at the root, then that one will be automatically used.
-
-## VS Code Remote
-
-The Ada extension can be used on a remote workspace over SSH thanks to the [Visual Studio Code Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) extension, however there are known pitfalls regarding the environment setup.
-
-The recommended method for environment setup in a remote configuration is to set the `terminal.integrated.env.*` settings. You can set environment variables through the VS Code Workspace or User setting `terminal.integrated.env.[linux|windows|osx]` depending on your platform.
-For example:
-
-```json
-{
-  "terminal.integrated.env.linux": {
-    "PATH": "/path/to/my/gnat/installation/bin:${env:PATH}",
-    "GPR_PROJECT_PATH": "/path/to/some-lib-1:/path/to/some-lib-2"
-  }
-}
-```
-
-Note that after changing this VS Code setting, the extension will display a popup asking you to reload the current window to take the environment changes into account. You can still run the `Developer: Reload Window` command manually to apply the changes later on.
-
-In addition to Workspace and User settings, the Remote settings file can also be used to set the `terminal.integrated.env.*` settings, with standard precedence rules applying between the different setting scopes.
-With this method, changes to the environment can be applied simply with the `Developer: Reload Window` command.
-
-Another method for environment setup is possible.
-According to [VS Code documentation](https://code.visualstudio.com/docs/remote/troubleshooting#_configure-the-environment-for-the-remote-extension-host) the environment of the remote extension host is based on the default shell configuration scripts such as `~/.bashrc` so it is possible to provide your toolchain and project environment setup in your default shell configuration script.
-However to make changes to that environment the typical `Developer: Reload Window` command is not enough and it is necessary to fully restart the VS Code server.
-To do that you must close all VS Code Remote windows, and kill all VS Code server processes on the server (e.g. `killall node` if no other `node` processes are used on the server).
-
-## macOS and Apple Silicon
-
-On macOS with Apple silicon it is possible to use either the native `aarch64` version of the GNAT compiler or the `x86_64` version running seamlessly with [Rosetta](https://support.apple.com/en-us/HT211861).
-If you are using the `aarch64` version, as this is still a relatively new platform for Ada tools, it is necessary to set the following attribute in your main project file to obtain navigation and auto-completion functionalities on the standard runtime:
-
-```ada
-for Target use "aarch64-darwin";
-```
-
-If you encounter issues with the compiler on macOS, it is recommended to consult known issues at Simon Wright's [GitHub project](https://github.com/simonjwright/distributing-gcc/issues) and discussions on the [comp.lang.ada](https://groups.google.com/g/comp.lang.ada) group.
-
 ## Documentation
 
 * [Ada Language Server README.md: VS Code Extension](https://github.com/AdaCore/ada_language_server/blob/master/README.md#vs-code-extension)
