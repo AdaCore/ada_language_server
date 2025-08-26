@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "Ada & SPARK extension for VS Code"
+project = "Ada & SPARK VS Code Extension User's Guide"
 project_copyright = "2024-2025, AdaCore"
 author = "AdaCore"
 
