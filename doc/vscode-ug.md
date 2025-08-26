@@ -1,5 +1,35 @@
 # Ada & SPARK VS Code Extension User's Guide
 
+This extension provides support for the Ada and SPARK programming languages in VS Code via the [Ada Language Server](https://github.com/AdaCore/ada_language_server) based on the [Libadalang library](https://github.com/AdaCore/libadalang).
+
+## Features
+
+Ada and SPARK are compiled languages which means that a compiler (GNAT) is needed to translate the source code into a program that can be executed.
+Other tools are also needed to perform tasks such as testing, static analysis and formal proof of SPARK code.
+
+This extension **does not include a compiler nor additional tools**. Nonetheless it offers a number of features out of the box and more capabilities can be accessed by installing additional tools.
+
+<!-- markdownlint-disable MD033 -->
+| Tool                                         | Feature | Support |
+|----------------------------------------------|---|:-:|
+| **Ada & SPARK Extension**                    |   | |
+| | Syntax Highlighting                          | ✅ |
+| | Navigation<br>(except standard runtime)      | ✅ |
+| | Auto-completion<br>(except standard runtime) | ✅ |
+| | Refactoring                                  | ✅ |
+| **GNAT Compiler** | | |
+| | Full Navigation      | ✅ |
+| | Full Auto-completion | ✅ |
+| | Build                | ✅ |
+| | Debug                | ✅ |
+| **GNAT DAS** | | |
+| | Test                | ✅ |
+| | Code Coverage       | ✅ |
+| **GNAT SAS** | | |
+| | Static Analysis     |       ✅            |
+| **SPARK** | | |
+| | Formal Proof        |       ✅          |
+
 ## Getting Started
 
 Here are some links that will help you get familiar with the VS Code extension for Ada & SPARK:
@@ -47,10 +77,6 @@ Alternatively, the ALS can be configured in the VS Code settings UI or in the JS
    "ada.renameInComments": false
 }
 ```
-
-## Refactoring
-
-See a [dedicated document](./refactoring_tools.md) with the list of available refactorings.
 
 ## VS Code Remote
 
