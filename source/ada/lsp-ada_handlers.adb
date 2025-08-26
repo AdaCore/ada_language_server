@@ -35,6 +35,7 @@ with Laltools.Partial_GNATPP;
 
 with Langkit_Support.Text;
 
+with LAL_Refactor.Delete_Entity;
 with LAL_Refactor.Extract_Subprogram;
 with LAL_Refactor.Extract_Variable;
 with LAL_Refactor.Introduce_Parameter;
@@ -70,6 +71,7 @@ with LSP.Ada_Handlers.Refactor.Add_Parameter;
 with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor.Delete_Entity;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Extract_Variable;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
@@ -732,6 +734,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Change Parameters Default Value refactoring tool is
          --  avaiable, and if so, appends a Code Action with its Command.
 
+         procedure Delete_Entity_Code_Action;
+         --  Checks if the Delete Entity refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          procedure Extract_Subprogram_Code_Action;
          --  Checks if the Extract Subprogram refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
@@ -840,6 +846,46 @@ package body LSP.Ada_Handlers is
                Found := True;
             end if;
          end Change_Parameters_Type_Code_Action;
+
+         -------------------------------
+         -- Delete_Entity_Code_Action --
+         -------------------------------
+
+         procedure Delete_Entity_Code_Action is
+            use Langkit_Support.Slocs;
+            use Libadalang.Analysis;
+            use LAL_Refactor.Delete_Entity;
+            use LSP.Ada_Handlers.Refactor.Delete_Entity;
+            use LSP.Structures;
+
+            --  This code action is not available when a range of text is
+            --  selected.
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+            Location        : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Delete_Entity_Command :
+              LSP.Ada_Handlers.Refactor.Delete_Entity.Command;
+
+         begin
+            if Single_Location
+              and then Is_Delete_Entity_Available (Node.Unit, Location)
+            then
+               Delete_Entity_Command.Append_Code_Action
+                 (Context                     => Context,
+                  Commands_Vector             => Result,
+                  Where                       =>
+                    (uri     => Value.textDocument.uri,
+                     a_range => Value.a_range,
+                     alsKind => LSP.Constants.Empty));
+
+               Found := True;
+            end if;
+         end Delete_Entity_Code_Action;
 
          ------------------------------------
          -- Extract_Subprogram_Code_Action --
@@ -1225,6 +1271,8 @@ package body LSP.Ada_Handlers is
          Import_Package_Code_Action;
 
          --  Refactoring Code Actions
+
+         Delete_Entity_Code_Action;
 
          --  Extract Subprogram
          Extract_Subprogram_Code_Action;

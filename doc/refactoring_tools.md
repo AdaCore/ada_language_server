@@ -15,6 +15,7 @@
 * [Extract Variable](#extract-variable)
 * [Pull Up Declaration](#pull-up-declaration)
 * [Suppress Separate](#suppress-separate)
+* [Delete Entity](#delete-entity)
 * [Introduce Parameter](#introduce-parameter)
 * [Replace Type](#replace-type)
 * [Auto Import](#auto-import)
@@ -169,6 +170,24 @@ See `src/lal_refactor-suppress_separate.ads` in [LAL Refactor repository](https:
 Demo source is `suppress_separate/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
 ![suppress_separate](media/suppress_separate.gif)
+
+## Delete Entity
+
+**Command name:** `als-refactor-delete-entiry`
+
+* Currently works only for procedures.
+* Any procedure call is also deleted.
+* If call statement is the only one in the statement list, then
+  - if it is inside a declare/block/end then the block statement is deleted
+    even if there are exception handlers and declarations in it.
+  - otherwise it will be replaced with `null;` to keep source correct.
+* Non-call references will be reported and prevent the deletion.
+
+See `src/lal_refactor-delete_entity.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
+
+Demo source is `delete_entity/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
+
+![delete_entity](media/delete_entity.gif)
 
 ## Introduce Parameter
 

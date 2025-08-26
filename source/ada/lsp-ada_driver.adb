@@ -67,6 +67,7 @@ with LSP.Ada_Handlers.Refactor.Add_Parameter;
 with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
+with LSP.Ada_Handlers.Refactor.Delete_Entity;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Extract_Variable;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
@@ -217,6 +218,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Refactor.Auto_Import.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Suppress_Seperate.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Refactor.Delete_Entity.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Extract_Subprogram.Command'Tag);
       LSP.Ada_Commands.Register
