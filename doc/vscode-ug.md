@@ -36,6 +36,20 @@ Here are some links that will help you get familiar with the VS Code extension f
 
 * [Tutorial: Using Ada in VS Code](./Getting-Started.md).
 
+
+## Environment Setup
+
+The following environment variables influence the operation of the Ada extension:
+
+* `PATH` should include the path to the GNAT compiler installation in order to benefit from auto-completion and navigation into the standard runtime.
+Without it, auto-completion and navigation will work only on the sources visible in the project closure, but not on the packages of the standard library `Ada.*`.
+
+* `GPR_PROJECT_PATH` provides paths to other `.gpr` Ada projects that your project depends on.
+
+When running VS Code locally, you can provide these environment variables by exporting them in a terminal, and starting VS Code from that same terminal with the `code` command.
+
+If you are running VS Code to develop on a remote machine, please refer to the [dedicated section](#vs-code-remote) to setup your environment properly.
+
 ## Configuration
 
 [ALS settings](./settings.md) can be specified in various ways. For example:

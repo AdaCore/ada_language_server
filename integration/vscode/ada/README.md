@@ -56,17 +56,6 @@ The `gnatprove` crate provides GNATprove.
 Both tools are available for Linux, Windows and macOS (Intel and Apple silicon)
 * On Windows with [msys2](https://www.msys2.org/) you can install the `gcc` and `gprbuild` packages.
 
-## Environment Setup
-
-The following environment variables influence the operation of the Ada extension:
-
-* `PATH` should include the path to the GNAT compiler installation in order to benefit from auto-completion and navigation into the standard runtime.
-Without it, auto-completion and navigation will work only on the sources visible in the project closure, but not on the packages of the standard library `Ada.*`.
-
-* `GPR_PROJECT_PATH` provides paths to other `.gpr` Ada projects that your project depends on.
-
-When running VS Code locally, you can provide these environment variables by exporting them in a terminal, and starting VS Code from that same terminal with the `code` command.
-
 ## Documentation
 
 * [Ada Language Server README.md: VS Code Extension](https://github.com/AdaCore/ada_language_server/blob/master/README.md#vs-code-extension)
