@@ -106,7 +106,7 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [defaultCharset](#defaultcharset)
 * [relocateBuildTree](#relocatebuildtree)
 * [rootDir](#rootdir)
-* [enableDiagnostics](#enableddiagnostics)
+* [enableDiagnostics](#enablediagnostics)
 * [adaFileDiagnostics](#adafilediagnostics)
 * [gprFileDiagnostics](#gprfilediagnostics)
 * [sourceInfoDiagnostics](#sourceinfodiagnostics)
