@@ -31,6 +31,10 @@ This extension **does not include a compiler nor additional tools**. Nonetheless
 | | Full Auto-completion | ✅ |
 | | Build                | ✅ |
 | | Debug                | ✅ |
+| **Cross and Embedded Support** | | |
+| | Build                | ✅ |
+| | GNATemulator Support | ✅ |
+| | Remote Debugging     | ✅ |
 | **GNAT DAS** | | |
 | | Test                | ✅ |
 | | Code Coverage       | ✅ |
