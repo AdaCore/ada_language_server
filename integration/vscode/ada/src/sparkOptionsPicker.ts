@@ -39,6 +39,31 @@ interface SavedPickerState {
  */
 const WS_STATE_KEY_PICKER = 'ada.spark.lastPickerState';
 
+/**
+ * Prompts the user to select GNATprove options through a multi-step input dialog.
+ *
+ * This function presents a two-step selection process:
+ * 1. First step: Choose a proof level from available options
+ * 2. Second step: Select additional SPARK options (multiple selection allowed)
+ *
+ * The function preserves user selections in workspace state for future use and
+ * restores previously saved selections as defaults when the dialog is opened again.
+ *
+ * @returns A promise that resolves to an array of CLI arguments representing the selected options
+ * @throws - {@link CancellationError} When the user cancels the selection process
+ *
+ * @example
+ * ```typescript
+ * try {
+ *   const sparkArgs = await askSPARKOptions();
+ *   console.log('Selected SPARK options:', sparkArgs);
+ * } catch (error) {
+ *   if (error instanceof CancellationError) {
+ *     console.log('User cancelled the selection');
+ *   }
+ * }
+ * ```
+ */
 export async function askSPARKOptions(): Promise<string[]> {
     const title = 'Select GNATprove Options';
     async function pickProofLevel(input: MultiStepInput, state: Partial<PickerState>) {

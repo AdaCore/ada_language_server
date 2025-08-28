@@ -9,7 +9,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * This file is laregely based on the Quick Picker Sample project by Microsoft,
+ * This file is largely based on the Quick Picker Sample project by Microsoft,
  * with some additions and fixes by AdaCore.
  */
 
