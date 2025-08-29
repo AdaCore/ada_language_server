@@ -6,9 +6,12 @@ import { SymbolKind, commands } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
 import { ExecuteCommandRequest } from 'vscode-languageclient';
 import { ALSSourceDirDescription, ExtensionState } from './ExtensionState';
+import { startVisualize } from './alsVisualizer';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
+import { loadGnatCoverageReport } from './gnattest';
 import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
+import { askSPARKOptions } from './sparkOptionsPicker';
 import {
     DEFAULT_PROBLEM_MATCHERS,
     SimpleTaskDef,
@@ -18,19 +21,17 @@ import {
     TASK_PROVE_SUPB_PLAIN_NAME,
     TASK_TYPE_SPARK,
     findBuildAndRunTask,
-    getTasksWithPrefix,
-    getConventionalTaskLabel,
-    isFromWorkspace,
-    workspaceTasksFirst,
     getBuildAndRunTaskName,
-    getRunGNATemulatorTaskName,
     getBuildTaskName,
+    getConventionalTaskLabel,
+    getRunGNATemulatorTaskName,
+    getTasksWithPrefix,
+    isFromWorkspace,
     runTaskAndGetResult,
+    workspaceTasksFirst,
 } from './taskProviders';
-import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
-import { loadGnatCoverageReport } from './gnattest';
-import { startVisualize } from './alsVisualizer';
 import { Hierarchy } from './visualizerTypes';
+import { createHelloWorldProject, walkthroughStartDebugging } from './walkthrough';
 
 /**
  * Identifier for a hidden command used for building and running a project main.
@@ -87,6 +88,7 @@ export const CMD_GET_PROJECT_FILE = 'ada.getProjectFile';
 export const CMD_SPARK_LIMIT_SUBP_ARG = 'ada.spark.limitSubpArg';
 export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
 export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
+const CMD_SPARK_ASK_OPTIONS = 'ada.spark.askSPARKOptions';
 
 /**
  * Identifier for the command that shows the extension's output in the Output panel.
@@ -245,6 +247,8 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram),
     );
+
+    context.subscriptions.push(commands.registerCommand(CMD_SPARK_ASK_OPTIONS, askSPARKOptions));
 
     context.subscriptions.push(
         commands.registerCommand('ada.loadGnatCovXMLReport', loadGnatCovXMLReport),
@@ -1055,7 +1059,8 @@ async function sparkProveSubprogram(
      * Get the 'Prove subprogram' task. Prioritize workspace tasks so that User
      * customization of the task takes precedence.
      */
-    const task = (await vscode.tasks.fetchTasks({ type: TASK_TYPE_SPARK }))
+    const tasks = await vscode.tasks.fetchTasks({ type: TASK_TYPE_SPARK });
+    const task = tasks
         .sort(workspaceTasksFirst)
         .find(
             (t) =>
@@ -1088,7 +1093,7 @@ async function sparkProveSubprogram(
      */
     const taskDef = newTask.definition as SimpleTaskDef;
     assert(taskDef.args);
-    const regionArg = '${command:ada.spark.limitSubpArg}';
+    const regionArg = `\${command:${CMD_SPARK_LIMIT_SUBP_ARG}}`;
     const regionArgIdx = taskDef.args.findIndex((arg) => arg == regionArg);
     if (regionArgIdx >= 0) {
         const fileBasename = basename(uri.fsPath);
@@ -1098,6 +1103,17 @@ async function sparkProveSubprogram(
          * with the same name in the task history.
          */
         newTask.name = `${task.name} - ${fileBasename}:${range.start.line + 1}`;
+
+        /**
+         * Add a command to ask the User for options. We do this instead of
+         * pre-evaluating the options so that all invocations on the same
+         * subprogram have the same set of (unevaluated) arguments, which means
+         * that only one task shows up in the task history for each subprogram.
+         * If we pre-evaluated the options, then each different set of User
+         * choices would yield a different entry in the task history which is
+         * noisy.
+         */
+        taskDef.args.splice(regionArgIdx + 1, 0, `\${command:${CMD_SPARK_ASK_OPTIONS}}`);
     } else {
         throw Error(
             `Task '${getConventionalTaskLabel(task)}' is missing a '${regionArg}' argument`,
