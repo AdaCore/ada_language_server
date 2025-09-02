@@ -741,7 +741,7 @@ package body LSP.Ada_Highlighters is
          end case;
       end To_Kind;
 
-      Failsafe_Def : Libadalang.Analysis.Refd_Def;
+      Failsafe_Decl : Libadalang.Analysis.Refd_Decl;
       Def  : Libadalang.Analysis.Defining_Name;
       Decl : Libadalang.Analysis.Basic_Decl;
       Kind : LSP.Enumerations.SemanticTokenTypes;
@@ -772,8 +772,8 @@ package body LSP.Ada_Highlighters is
                Highlight_Token (Node.Token_Start, declaration);
          end;
       else
-         Failsafe_Def := Node.P_Failsafe_Referenced_Def_Name (True);
-         Def :=  Libadalang.Analysis.Defining_Name (Failsafe_Def.Def_Name);
+         Failsafe_Decl := Node.P_Failsafe_Referenced_Decl (True);
+         Def :=  Libadalang.Analysis.Defining_Name (Failsafe_Decl.Def_Name);
       end if;
 
       if Node.Kind in Libadalang.Common.Ada_Name then
