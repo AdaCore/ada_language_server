@@ -88,7 +88,7 @@ export const CMD_GET_PROJECT_FILE = 'ada.getProjectFile';
 export const CMD_SPARK_LIMIT_SUBP_ARG = 'ada.spark.limitSubpArg';
 export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
 export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
-const CMD_SPARK_ASK_OPTIONS = 'ada.spark.askSPARKOptions';
+const CMD_SPARK_ASK_OPTIONS = 'ada.spark.askGNATproveOptions';
 
 /**
  * Identifier for the command that shows the extension's output in the Output panel.
