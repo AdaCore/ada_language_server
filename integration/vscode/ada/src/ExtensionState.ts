@@ -13,8 +13,8 @@ import {
     CMD_RESTART_LANG_SERVERS,
     CMD_SHOW_ADA_LS_OUTPUT,
     CMD_SHOW_EXTENSION_LOGS,
-    CMD_SHOW_GPR_LS_OUTPUT,
-} from './commands';
+    CMD_SHOW_GPR_LS_OUTPUT
+} from './constants';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';

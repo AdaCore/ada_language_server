@@ -19,7 +19,12 @@ import assert from 'assert';
 import { existsSync } from 'fs';
 import path, { basename } from 'path';
 import * as vscode from 'vscode';
-import { CMD_GPR_PROJECT_ARGS } from './commands';
+import {
+    CMD_GPR_PROJECT_ARGS,
+    CMD_SPARK_ASK_OPTIONS,
+    CMD_SPARK_LIMIT_REGION_ARG,
+    CMD_SPARK_LIMIT_SUBP_ARG,
+} from './constants';
 import { adaExtState, logger } from './extension';
 import { getGnatTestDriverProjectPath } from './gnattest';
 import { AdaMain, getAdaMains, showErrorMessageWithOpenLogButton } from './helpers';
@@ -71,7 +76,7 @@ const TASK_BUILD_PROJECT: PredefinedTask = {
     taskDef: {
         type: TASK_TYPE_ADA,
         command: 'gprbuild',
-        args: ['${command:ada.gprProjectArgs}', "'-cargs:ada'", '-gnatef'],
+        args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, "'-cargs:ada'", '-gnatef'],
     },
     problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     taskGroup: vscode.TaskGroup.Build,
@@ -84,7 +89,7 @@ const TASK_CLEAN_PROJECT = {
     taskDef: {
         type: TASK_TYPE_ADA,
         command: 'gprclean',
-        args: ['${command:ada.gprProjectArgs}'],
+        args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`],
     },
     problemMatchers: [],
     taskGroup: vscode.TaskGroup.Clean,
@@ -130,7 +135,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-c',
                 '-u',
                 '-gnatc',
-                '${command:ada.gprProjectArgs}',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '${fileBasename}',
                 "'-cargs:ada'",
                 '-gnatef',
@@ -148,7 +153,7 @@ const predefinedTasks: PredefinedTask[] = [
                 '-f',
                 '-c',
                 '-u',
-                '${command:ada.gprProjectArgs}',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '${fileBasename}',
                 "'-cargs:ada'",
                 '-gnatef',
@@ -161,7 +166,7 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_ADA,
             command: 'gnatsas',
-            args: ['analyze', '${command:ada.gprProjectArgs}'],
+            args: ['analyze', `\${command:${CMD_GPR_PROJECT_ARGS}}`],
         },
         /**
          * Analysis results are not printed on stdio so no need to parse them
@@ -175,7 +180,7 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_ADA,
             command: 'gnatsas',
-            args: ['analyze', '${command:ada.gprProjectArgs}', '--file=${fileBasename}'],
+            args: ['analyze', `\${command:${CMD_GPR_PROJECT_ARGS}}`, '--file=${fileBasename}'],
         },
         /**
          * Analysis results are not printed on stdio so no need to parse them
@@ -194,7 +199,7 @@ const predefinedTasks: PredefinedTask[] = [
             args: [
                 'report',
                 'sarif',
-                '${command:ada.gprProjectArgs}',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '-o',
                 'report.sarif',
                 '--root',
@@ -242,7 +247,7 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_ADA,
             command: 'gnatdoc',
-            args: ['${command:ada.gprProjectArgs}'],
+            args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`],
         },
         problemMatchers: [],
     },
@@ -251,7 +256,7 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_ADA,
             command: 'gnattest',
-            args: ['${command:ada.gprProjectArgs}'],
+            args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`],
         },
         problemMatchers: [],
     },
@@ -263,7 +268,7 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
-            args: ['${command:ada.gprProjectArgs}', '--clean'],
+            args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, '--clean'],
         },
         problemMatchers: [],
     },
@@ -272,7 +277,13 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
-            args: ['${command:ada.gprProjectArgs}', '-j0', '--mode=flow', '-cargs', '-gnatef'],
+            args: [
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+                '--mode=flow',
+                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
+                '-cargs',
+                '-gnatef',
+            ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
@@ -282,11 +293,11 @@ const predefinedTasks: PredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
-                '${command:ada.gprProjectArgs}',
-                '-j0',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '--mode=flow',
                 '-u',
                 '${fileBasename}',
+                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
@@ -299,10 +310,10 @@ const predefinedTasks: PredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
-                '${command:ada.gprProjectArgs}',
-                '-j0',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '--mode=flow',
-                '${command:ada.spark.limitSubpArg}',
+                `\${command:${CMD_SPARK_LIMIT_SUBP_ARG}}`,
+                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
@@ -314,7 +325,7 @@ const predefinedTasks: PredefinedTask[] = [
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
-            args: ['${command:ada.gprProjectArgs}', '-j0', '-cargs', '-gnatef'],
+            args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, '-j0', '-cargs', '-gnatef'],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     },
@@ -324,10 +335,10 @@ const predefinedTasks: PredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
-                '${command:ada.gprProjectArgs}',
-                '-j0',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '-u',
                 '${fileBasename}',
+                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
@@ -340,8 +351,9 @@ const predefinedTasks: PredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
-                '${command:ada.gprProjectArgs}',
-                '${command:ada.spark.limitSubpArg}',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+                `\${command:${CMD_SPARK_LIMIT_SUBP_ARG}}`,
+                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
@@ -354,11 +366,11 @@ const predefinedTasks: PredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
-                '${command:ada.gprProjectArgs}',
-                '-j0',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '-u',
                 '${fileBasename}',
-                '${command:ada.spark.limitRegionArg}',
+                `\${command:${CMD_SPARK_LIMIT_REGION_ARG}}`,
+                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
@@ -371,11 +383,11 @@ const predefinedTasks: PredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
-                '${command:ada.gprProjectArgs}',
-                '-j0',
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '-u',
                 '${fileBasename}',
                 '--limit-line=${fileBasename}:${lineNumber}',
+                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],

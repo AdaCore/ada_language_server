@@ -3,7 +3,7 @@ import { activate } from '../utils';
 
 import * as vscode from 'vscode';
 import { adaExtState } from '../../src/extension';
-import { CMD_RELOAD_PROJECT } from '../../src/commands';
+import { CMD_RELOAD_PROJECT } from '@/src/constants';
 import { readFileSync, writeFileSync } from 'fs';
 import { integer } from 'vscode-languageclient';
 
