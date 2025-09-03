@@ -186,6 +186,7 @@
                     "jsonrpc": "2.0",
                     "id": "ada-2",
                     "result": [
+                        "<HAS>",
                         {
                             "title": "Name parameters in the call",
                             "kind": "refactor.rewrite",
