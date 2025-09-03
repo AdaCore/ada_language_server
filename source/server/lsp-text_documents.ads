@@ -71,7 +71,13 @@ package LSP.Text_Documents is
       Vector  : LSP.Structures.TextDocumentContentChangeEvent_Vector);
    --  Modify document according to event vector provided by LSP client.
 
-   procedure Diff
+   procedure Diff_C
+     (Self     : Text_Document'Class;
+      New_Text : VSS.Strings.Virtual_String;
+      Edit     : out LSP.Structures.TextEdit_Vector);
+   --  Generate TextEdit using the XDiff library
+
+   procedure Needleman_Diff
      (Self     : Text_Document'Class;
       New_Text : VSS.Strings.Virtual_String;
       Old_Span : LSP.Structures.A_Range := Empty_Range;

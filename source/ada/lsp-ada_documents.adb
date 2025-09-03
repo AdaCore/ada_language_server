@@ -563,7 +563,7 @@ package body LSP.Ada_Documents is
       if Span = LSP.Constants.Empty then
          --  diff for the whole document
 
-         Self.Diff
+         Self.Needleman_Diff
            (VSS.Strings.Conversions.To_Virtual_String (S.all),
             Edit => Edit);
 
@@ -580,7 +580,7 @@ package body LSP.Ada_Documents is
          --  Use line diff if the range is too wide
 
          if Span.an_end.line - Span.start.line > 5 then
-            Self.Diff
+            Self.Needleman_Diff
               (VSS.Strings.Conversions.To_Virtual_String (S.all),
                Span,
                Out_Span,
@@ -629,7 +629,8 @@ package body LSP.Ada_Documents is
            Context.Get_Format_Options));
 
    begin
-      Self.Diff (New_Text => Formatted_Document, Edit => Result);
+      Self.Diff_C (New_Text => Formatted_Document, Edit => Result);
+      --  Self.Needleman_Diff (New_Text => Formatted_Document, Edit => Result);
 
       return Result;
    end Format;
