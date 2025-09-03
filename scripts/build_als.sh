@@ -42,7 +42,9 @@ libgpr2
 markdown
 prettier_ada
 spawn
-vss
+vss_text
+vss_extra
+xdiff
 "
 
 # Pins repo names (crate name by default)
@@ -54,7 +56,9 @@ repo_libadalang_tools=libadalang-tools
 repo_libgpr=gprbuild
 repo_libgpr2=gpr
 repo_prettier_ada=prettier-ada
-repo_vss=VSS
+repo_vss_text=vss-text
+repo_vss_extra=vss-extra
+repo_xdiff=xdiff
 
 # Pins branches (master by default)
 
@@ -63,6 +67,9 @@ branch_lal_refactor=edge
 branch_gnatformat=edge
 branch_libgpr2=main
 branch_prettier_ada=main
+branch_vss_text=main
+branch_vss_extra=main
+branch_xdiff=main
 
 # Repository URLs can be overriden (e.g. to personal forks for experimentation)
 # url_langkit_support=https://github.com/<my-github-login>/langkit.git
@@ -136,7 +143,10 @@ function pin_crates() {
          # remote. So let's do that update.
          git -C "subprojects/$crate" pull origin "${branch:-master}"
       fi
-      cp -v "subprojects/$crate".toml "subprojects/$crate/alire.toml"
+
+      if [ -f "subprojects/$crate.toml" ]; then
+         cp -v "subprojects/$crate".toml "subprojects/$crate/alire.toml"
+      fi
 
       # Instead of calling `alr pin` for each crate, it's more efficient to
       # append the necessary text in alire.toml and call `alr update` once at

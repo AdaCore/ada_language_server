@@ -14,4 +14,4 @@ executables = ["gnatmetric", "gnatpp", "gnatstub", "gnattest"]
 [[depends-on]]
 libadalang = "^24.0.0"
 templates_parser = "^24.0.0"
-vss = "^24.0.0"
+vss_text = "^24.0.0"
