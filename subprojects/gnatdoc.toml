@@ -25,7 +25,7 @@ command = [
 disabled = true
 
 [[depends-on]]
-vss = "^24"
+vss_text = "^24"
 libgpr2 = "^24"
 libadalang = "^24"
 markdown = "^24"
