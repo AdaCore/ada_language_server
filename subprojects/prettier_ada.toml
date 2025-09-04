@@ -17,4 +17,4 @@ append = "${CRATE_ROOT}/lib/relocatable/prod"
 
 [[depends-on]]
 gnatcoll         = "*"
-vss              = "*"
+vss_text         = "*"

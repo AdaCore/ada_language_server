@@ -13,7 +13,7 @@ with "libgnatdoc.gpr";
 with "spawn.gpr";
 with "gnatformat.gpr";
 with "vss_os.gpr";
-with "ada_xdiff.gpr";
+with "xdiff.gpr";
 
 with "lsp_3_17";
 with "lsp_common";
