@@ -712,3 +712,9 @@ export function getMatchingPrefixes(
 
     return [prefix1, prefix2];
 }
+
+/**
+ * This constant indicates whether the code is running in a testing
+ * environment.
+ */
+export const inTesting = process.env['ALS_VSCODE_TEST_ENV'] === '1';

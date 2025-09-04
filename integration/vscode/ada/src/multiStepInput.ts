@@ -21,6 +21,7 @@ import {
     QuickPickItem,
     window,
 } from 'vscode';
+import { inTesting } from './helpers';
 
 // -------------------------------------------------------
 // Helper code that wraps the API for the multi-step case.
@@ -183,6 +184,19 @@ export class MultiStepInput {
                 }
                 this.current = input;
                 this.current.show();
+
+                if (inTesting) {
+                    /**
+                     * In testing, do not wait for User selection and return
+                     * the default selections immediately.
+                     */
+                    this.current.hide();
+                    if (canSelectMany) {
+                        resolve(<any>input.selectedItems.concat());
+                    } else {
+                        resolve(<any>input.selectedItems[0]);
+                    }
+                }
             });
         } finally {
             disposables.forEach((d) => d.dispose());
