@@ -1,6 +1,5 @@
 #!env python
 import sys
-from time import sleep
 from typing import Any, NotRequired, TypedDict
 
 from e3.testsuite import Log, ParsedTest, TestResult, TestStatus
@@ -14,7 +13,6 @@ class BareDriver(TestDriver):
 
     def run(self, prev: dict[str, Any], slot: int) -> None:
         self.test_env: TestEnv  # type: ignore
-        sleep(2)
 
         for r in self.test_env.get("results", []):
             result = TestResult(
