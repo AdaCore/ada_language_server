@@ -76,6 +76,7 @@ with LSP.Ada_Handlers.Refactor.Move_Parameter;
 with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
 with LSP.Ada_Handlers.Refactor.Remove_Parameter;
 with LSP.Ada_Handlers.Refactor.Replace_Type;
+with LSP.Ada_Handlers.Refactor.Sort_Case;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Show_Dependencies_Commands;
@@ -230,6 +231,10 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Replace_Type.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Refactor.Sort_Case.Alphabetical_Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Refactor.Sort_Case.Declaration_Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command'Tag);
 

@@ -7,6 +7,12 @@ import * as dotenv from 'dotenv';
 dotenv.config({ override: true });
 // console.log(process.env);
 
+/**
+ * Set this env variable to tell the VS Code extension we are running in a
+ * testing environment
+ */
+process.env['ALS_VSCODE_TEST_ENV'] = '1';
+
 let baseMochaOptions = {
     ui: 'tdd',
     color: true,
