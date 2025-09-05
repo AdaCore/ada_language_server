@@ -14,6 +14,7 @@
 * [Extract Subprogram](#extract-subprogram)
 * [Extract Variable](#extract-variable)
 * [Pull Up Declaration](#pull-up-declaration)
+* [Sort Case](#sort-case)
 * [Suppress Separate](#suppress-separate)
 * [Delete Entity](#delete-entity)
 * [Introduce Parameter](#introduce-parameter)
@@ -156,6 +157,14 @@ See `src/lal_refactor-pull_up_declaration.ads` in [LAL Refactor repository](http
 Demo source is `pull_up_declaration/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
 ![pull_up_declaration](media/pull_up_declaration.gif)
+
+## Sort Case
+
+**Command names:** `als-refactor-sort-case-alphabetical` `als-refactor-sort-case-declaration`
+
+* Sort `when` and literals inside `when` alphabetically or according to the declaration order.
+
+See `src/lal_refactor-sort_case.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
 ## Suppress Separate
 

@@ -274,7 +274,11 @@ function testSyntax(syntaxPath: string, absFilePath: string, languageId: string)
         cmd.push('--updateSnapshot');
     }
 
-    const proc = spawnSync(cmd[0], cmd.slice(1), { cwd: workDirPath });
+    const proc = spawnSync(cmd[0], cmd.slice(1), {
+        cwd: workDirPath,
+        encoding: 'utf-8',
+        shell: process.platform == 'win32',
+    });
 
     if (proc.error) {
         // proc.error is set if we fail to spawn the child process
@@ -282,18 +286,15 @@ function testSyntax(syntaxPath: string, absFilePath: string, languageId: string)
     }
 
     if (proc.status === null) {
-        const msg =
-            `Null return code for command: ${cmd.join(' ')}\n` +
-            String(proc.stdout) +
-            String(proc.stderr);
+        const msg = `Null return code for command: ${cmd.join(' ')}\n` + proc.stdout + proc.stderr;
         assert.fail(msg);
     } else if (proc.status != 0) {
         const msg =
             `Return code ${proc.status.toString()} for command: cd ${workDirPath}; ${cmd.join(
                 ' ',
             )}\n` +
-            String(proc.stdout) +
-            String(proc.stderr);
+            proc.stdout +
+            proc.stderr;
         assert.fail(msg);
     }
 }
