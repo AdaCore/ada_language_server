@@ -25,5 +25,5 @@ command = [
 disabled = true
 
 [[depends-on]]
-vss = "~24.0.0"
+vss_text = "~24.0.0"
 
