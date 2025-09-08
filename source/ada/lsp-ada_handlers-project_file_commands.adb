@@ -61,8 +61,12 @@ package body LSP.Ada_Handlers.Project_File_Commands is
    begin
       if Handler.Project_Tree.Is_Defined then
          Element := Handler.Project_Tree.Root_Project;
-         Value := VSS.Strings.Conversions.To_Virtual_String
-           (URIs.Conversions.From_File (String (Element.Path_Name.Value)));
+         if Element.Is_Defined then
+            Value :=
+              VSS.Strings.Conversions.To_Virtual_String
+                (URIs.Conversions.From_File
+                   (String (Element.Path_Name.Value)));
+         end if;
       end if;
 
       Response := (Is_Null => False, Value => <>);
