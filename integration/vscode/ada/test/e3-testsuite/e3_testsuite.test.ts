@@ -14,6 +14,7 @@ import {
 import { CancellationTokenSource } from 'vscode-languageclient';
 import * as e3 from '../../src/e3Testsuite';
 import { activate } from '../utils';
+import fs from 'fs';
 
 /**
  * Interface for capturing test execution results
@@ -512,6 +513,62 @@ suite('e3-testsuite', function () {
         } finally {
             // Always restore original configuration
             await config.update('args', originalArgs, false);
+        }
+    });
+
+    test('Auto-detect testsuite.py path', function () {
+        const config = workspace.getConfiguration('e3-testsuite');
+        const originalPath = config.get<string>('testsuitePath');
+
+        try {
+            // Clear any configured path to test auto-detection
+            config.update('testsuitePath', undefined, false);
+
+            const detectedPath = e3.getTestsuite().uri.fsPath;
+            const expectedPath = path.join(
+                workspace.workspaceFolders![0].uri.fsPath,
+                'testsuite.py',
+            );
+
+            assert.strictEqual(
+                detectedPath,
+                expectedPath,
+                `Auto-detected path '${detectedPath}' does not match expected '${expectedPath}'`,
+            );
+
+            // Test with testsuite.py in a subdirectory
+            const originalTestsuitePath = path.join(
+                workspace.workspaceFolders![0].uri.fsPath,
+                'testsuite.py',
+            );
+            const subDirPath = path.join(workspace.workspaceFolders![0].uri.fsPath, 'testsuite');
+            const movedTestsuitePath = path.join(subDirPath, 'testsuite.py');
+
+            // Create subdirectory and move testsuite.py
+            fs.mkdirSync(subDirPath, { recursive: true });
+            fs.renameSync(originalTestsuitePath, movedTestsuitePath);
+
+            try {
+                const detectedPathInSubdir = e3.getTestsuite().uri.fsPath;
+                assert.strictEqual(
+                    detectedPathInSubdir,
+                    movedTestsuitePath,
+                    `Auto-detected path '${detectedPathInSubdir}' does not match ` +
+                        `expected '${movedTestsuitePath}'`,
+                );
+            } finally {
+                // Move testsuite.py back to original location
+                fs.renameSync(movedTestsuitePath, originalTestsuitePath);
+                // Clean up the subdirectory if it's empty
+                try {
+                    fs.rmdirSync(subDirPath);
+                } catch {
+                    // Ignore if directory is not empty or doesn't exist
+                }
+            }
+        } finally {
+            // Restore original configuration
+            config.update('testsuitePath', originalPath, false);
         }
     });
 });
