@@ -82,19 +82,19 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
 
     const testData: Map<vscode.TestItem, TestInfo> = new Map();
 
+    const ts: Testsuite = getTestsuite();
     let rootItem: vscode.TestItem;
+
     controller.refreshHandler = async function () {
         controller.items.replace([]);
         testData.clear();
-
-        const ts: Testsuite = getTestsuite();
 
         if (!existsSync(ts.uri.fsPath)) {
             return;
         }
 
         rootItem = this.createTestItem(
-            getRootItemId(),
+            getRootItemId(ts),
             vscode.workspace.asRelativePath(ts.uri),
             ts.uri,
         );
@@ -179,8 +179,6 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         request: vscode.TestRunRequest,
         token: vscode.CancellationToken,
     ): Promise<void> => {
-        const ts = getTestsuite();
-
         const enableEventSystem: boolean =
             vscode.workspace.getConfiguration('e3-testsuite').get('enableEventSystem') ?? true;
 
@@ -193,7 +191,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         }
 
         function onlyRootSelected(rq: vscode.TestRunRequest) {
-            return rq.include?.length === 1 && rq.include[0].id === getRootItemId();
+            return rq.include?.length === 1 && rq.include[0].id === getRootItemId(ts);
         }
 
         if (request.include && !onlyRootSelected(request)) {
@@ -536,7 +534,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         reportResult(run, result.status, targetItem, messages);
     }
 
-    if (existsSync(getTestsuite().uri.fsPath)) {
+    if (existsSync(ts.uri.fsPath)) {
         void vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -551,13 +549,47 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
     }
 }
 
-function getRootItemId(): string {
-    return getTestsuite().uri.toString();
+function getRootItemId(ts: Testsuite): string {
+    return ts.uri.toString();
 }
 
-function getTestsuite() {
+/**
+ * Retrieves the testsuite configuration for the current workspace.
+ *
+ * This function determines the testsuite path by first checking the user's configuration.
+ * If no path is configured, it automatically searches through predefined candidate locations
+ * and uses the first existing file. It also retrieves the Python executable configuration.
+ *
+ * @returns {Testsuite} An object containing the testsuite URI and Python executable path
+ *
+ * @remarks
+ * The function searches for testsuite files in the following order:
+ * 1. 'testsuite.py' in the workspace root
+ * 2. 'testsuite/testsuite.py' relative to workspace root
+ *
+ * If no testsuite file is found, it defaults to the first candidate path.
+ * The Python executable defaults to 'python' if not configured.
+ *
+ * @throws Will throw an error if no workspace folders are available
+ */
+export function getTestsuite() {
+    const wsPath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+
     const config = vscode.workspace.getConfiguration('e3-testsuite');
-    const tsPath = config.get<string>('testsuitePath') ?? 'testsuite.py';
+    const configuredPath = config.get<string>('testsuitePath');
+
+    let tsPath;
+    if (configuredPath) {
+        tsPath = configuredPath;
+    } else {
+        /**
+         * Automatically look through candidates and return the first one that exists.
+         */
+        const candidates = ['testsuite.py', path.join('testsuite', 'testsuite.py')];
+        tsPath =
+            candidates.map((p) => path.join(wsPath, p)).find((p) => existsSync(p)) ?? candidates[0];
+    }
+
     const python = config.get<string>('python') ?? 'python';
 
     const tsAbsUri: vscode.Uri = path.isAbsolute(tsPath)

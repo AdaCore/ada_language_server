@@ -718,8 +718,7 @@
                 "properties": {
                     "e3-testsuite.testsuitePath": {
                         "type": "string",
-                        "description": "Path to testsuite.py",
-                        "default": "testsuite.py"
+                        "description": "Path to testsuite.py"
                     },
                     "e3-testsuite.python": {
                         "type": "string",
