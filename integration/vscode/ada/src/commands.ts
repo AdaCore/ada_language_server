@@ -12,13 +12,13 @@ import {
     CMD_BUILD_AND_DEBUG_MAIN,
     CMD_BUILD_AND_RUN_GNATEMULATOR,
     CMD_BUILD_AND_RUN_MAIN,
-    CMD_GET_PROJECT_FILE,
     CMD_GPR_PROJECT_ARGS,
     CMD_RESTART_LANG_SERVERS,
     CMD_SHOW_ADA_LS_OUTPUT,
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
     CMD_SPARK_ASK_OPTIONS,
+    CMD_SPARK_CURRENT_GNATPROVE_OPTIONS,
     CMD_SPARK_LIMIT_REGION_ARG,
     CMD_SPARK_LIMIT_SUBP_ARG,
     CMD_SPARK_PROVE_SUBP,
@@ -27,13 +27,11 @@ import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigPr
 import { adaExtState, logger, mainOutputChannel } from './extension';
 import { loadGnatCoverageReport } from './gnattest';
 import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
-import { askSPARKOptions } from './sparkOptionsPicker';
+import { registerSPARKTaskWrappers } from './sparkCommands';
+import { askSPARKOptions, getLastSPARKOptions } from './sparkOptionsPicker';
 import {
     DEFAULT_PROBLEM_MATCHERS,
     SimpleTaskDef,
-    TASK_PROVE_FILE_PLAIN_NAME,
-    TASK_PROVE_LINE_PLAIN_NAME,
-    TASK_PROVE_REGION_PLAIN_NAME,
     TASK_PROVE_SUPB_PLAIN_NAME,
     TASK_TYPE_SPARK,
     findBuildAndRunTask,
@@ -169,9 +167,6 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand(CMD_GPR_PROJECT_ARGS, gprProjectArgs),
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand(CMD_GET_PROJECT_FILE, getProjectFromConfigOrALS),
-    );
-    context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SPARK_LIMIT_SUBP_ARG, sparkLimitSubpArg),
     );
     context.subscriptions.push(
@@ -182,6 +177,9 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
 
     context.subscriptions.push(commands.registerCommand(CMD_SPARK_ASK_OPTIONS, askSPARKOptions));
+    context.subscriptions.push(
+        commands.registerCommand(CMD_SPARK_CURRENT_GNATPROVE_OPTIONS, getLastSPARKOptions),
+    );
 
     context.subscriptions.push(
         commands.registerCommand('ada.loadGnatCovXMLReport', loadGnatCovXMLReport),
@@ -191,36 +189,7 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand('ada.issueReporter', openReportIssue),
     );
 
-    registerTaskWrappers(context);
-}
-
-/**
- * The following commands are wrappers around VS Code tasks that allow setting
- * key shortcuts to the wrapped tasks. Technically it is possible to set
- * shortcuts directly on the `workbench.action.tasks.runTask` command with the
- * target task as a command argument, however in several places the UI doesn't
- * take into consideration the command argument, and thus it becomes impossible
- * to distinguish the different tasks, and worse, our shortcut becomes
- * displayed for the vanilla `Run Task` command.
- *
- * To avoid all that, we provide these commands as wrappers.
- */
-function registerTaskWrappers(context: vscode.ExtensionContext) {
-    const sparkTaskWrappers: { [cmdId: string]: string } = {
-        'ada.spark.tasks.proveFile': `${TASK_TYPE_SPARK}: ${TASK_PROVE_FILE_PLAIN_NAME}`,
-        'ada.spark.tasks.proveSubprogram': `${TASK_TYPE_SPARK}: ${TASK_PROVE_SUPB_PLAIN_NAME}`,
-        // eslint-disable-next-line max-len
-        'ada.spark.tasks.proveSelectedRegion': `${TASK_TYPE_SPARK}: ${TASK_PROVE_REGION_PLAIN_NAME}`,
-        'ada.spark.tasks.proveLine': `${TASK_TYPE_SPARK}: ${TASK_PROVE_LINE_PLAIN_NAME}`,
-    };
-    for (const cmdId of Object.keys(sparkTaskWrappers)) {
-        const taskId = sparkTaskWrappers[cmdId];
-        context.subscriptions.push(
-            commands.registerCommand(cmdId, () =>
-                commands.executeCommand('workbench.action.tasks.runTask', taskId),
-            ),
-        );
-    }
+    registerSPARKTaskWrappers(context);
 }
 
 /**
@@ -823,7 +792,6 @@ async function buildAndDebugSpecifiedMainWithGNATemulator(main: vscode.Uri): Pro
  */
 export async function gprProjectArgs(): Promise<string[]> {
     const scenarioArgs = gprScenarioArgs();
-
     return ['-P', await getProjectFromConfigOrALS()].concat(scenarioArgs);
 }
 
@@ -892,7 +860,7 @@ export async function sparkLimitSubpArg(): Promise<string[]> {
  * zero-based while the `gnatprove` convention is one-based. This function does
  * the conversion.
  */
-function getLimitSubpArg(filename: string, range: vscode.Range) {
+function getLimitSubpArg(filename: string, range: vscode.Range): string {
     return `--limit-subp=${filename}:${range.start.line + 1}`;
 }
 
@@ -1021,8 +989,8 @@ async function sparkProveSubprogram(
     );
 
     /**
-     * Replace the subp-region argument based on the parameter given to the
-     * command.
+     * Replace the subp-region command argument with the --limit-subp argument
+     * pointing to the place where this command was triggered.
      */
     const taskDef = newTask.definition as SimpleTaskDef;
     assert(taskDef.args);
@@ -1036,17 +1004,6 @@ async function sparkProveSubprogram(
          * with the same name in the task history.
          */
         newTask.name = `${task.name} - ${fileBasename}:${range.start.line + 1}`;
-
-        /**
-         * Add a command to ask the User for options. We do this instead of
-         * pre-evaluating the options so that all invocations on the same
-         * subprogram have the same set of (unevaluated) arguments, which means
-         * that only one task shows up in the task history for each subprogram.
-         * If we pre-evaluated the options, then each different set of User
-         * choices would yield a different entry in the task history which is
-         * noisy.
-         */
-        taskDef.args.splice(regionArgIdx + 1, 0, `\${command:${CMD_SPARK_ASK_OPTIONS}}`);
     } else {
         throw Error(
             `Task '${getConventionalTaskLabel(task)}' is missing a '${regionArg}' argument`,
@@ -1058,6 +1015,11 @@ async function sparkProveSubprogram(
      */
     const resolvedTask = await adaExtState.getSparkTaskProvider()?.resolveTask(newTask);
     assert(resolvedTask);
+
+    /**
+     * Ask for GNATprove options
+     */
+    await commands.executeCommand(CMD_SPARK_ASK_OPTIONS);
 
     /**
      * Execute the task.

@@ -55,6 +55,8 @@ export const CMD_SPARK_LIMIT_SUBP_ARG = 'ada.spark.limitSubpArg';
 export const CMD_SPARK_LIMIT_REGION_ARG = 'ada.spark.limitRegionArg';
 export const CMD_SPARK_PROVE_SUBP = 'ada.spark.proveSubprogram';
 export const CMD_SPARK_ASK_OPTIONS = 'ada.spark.askGNATproveOptions';
+export const CMD_SPARK_CURRENT_GNATPROVE_OPTIONS = 'ada.spark.gnatproveOptions';
+
 /**
  * Identifier for the command that shows the extension's output in the Output panel.
  */

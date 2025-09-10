@@ -129,3 +129,14 @@ function toCLIArgs(choices: Partial<PickerState>): string[] {
 
     return args;
 }
+
+export function getLastSPARKOptions(): string[] {
+    const savedState =
+        adaExtState.context.workspaceState.get<Partial<SavedPickerState>>(WS_STATE_KEY_PICKER) ??
+        {};
+    const pickerState: Partial<PickerState> = {
+        proofLevel: proofLevels.find((v) => v.label == savedState?.proofLevelLabel),
+        options: options.filter((o) => savedState?.optionLabels?.find((v) => v == o.label)),
+    };
+    return toCLIArgs(pickerState);
+}

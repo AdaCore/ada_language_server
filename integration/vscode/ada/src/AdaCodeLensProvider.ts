@@ -16,7 +16,7 @@ import {
     CMD_BUILD_AND_DEBUG_MAIN,
     CMD_BUILD_AND_RUN_GNATEMULATOR,
     CMD_BUILD_AND_RUN_MAIN,
-    CMD_SPARK_PROVE_SUBP
+    CMD_SPARK_PROVE_SUBP,
 } from './constants';
 import { envHasExec, getSymbols } from './helpers';
 import { adaExtState } from './extension';

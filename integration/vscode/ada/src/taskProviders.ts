@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /*----------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
@@ -21,7 +22,7 @@ import path, { basename } from 'path';
 import * as vscode from 'vscode';
 import {
     CMD_GPR_PROJECT_ARGS,
-    CMD_SPARK_ASK_OPTIONS,
+    CMD_SPARK_CURRENT_GNATPROVE_OPTIONS,
     CMD_SPARK_LIMIT_REGION_ARG,
     CMD_SPARK_LIMIT_SUBP_ARG,
 } from './constants';
@@ -68,6 +69,17 @@ interface PredefinedTask {
     isBackground?: boolean;
 }
 
+interface SPARKPredefinedTask extends PredefinedTask {
+    /**
+     * A command ID to create a wrapper command for this task.
+     */
+    commandId: string;
+    /**
+     * Disable the options picker that is normally shown before running a SPARK task.
+     */
+    noOptionPicker?: boolean;
+}
+
 /**
  * The main build project task defined as a constant to allow it to be referenced directly.
  */
@@ -81,7 +93,7 @@ const TASK_BUILD_PROJECT: PredefinedTask = {
     problemMatchers: DEFAULT_PROBLEM_MATCHERS,
     taskGroup: vscode.TaskGroup.Build,
 };
-// eslint-disable-next-line max-len
+
 export const BUILD_PROJECT_TASK_NAME = `${TASK_BUILD_PROJECT.taskDef.type}: ${TASK_BUILD_PROJECT.label}`;
 
 const TASK_CLEAN_PROJECT = {
@@ -96,9 +108,6 @@ const TASK_CLEAN_PROJECT = {
 };
 
 export const TASK_PROVE_SUPB_PLAIN_NAME = 'Prove subprogram';
-export const TASK_PROVE_REGION_PLAIN_NAME = 'Prove selected region';
-export const TASK_PROVE_LINE_PLAIN_NAME = 'Prove line';
-export const TASK_PROVE_FILE_PLAIN_NAME = 'Prove file';
 export const TASK_BUILD_TEST_DRIVER = 'Build GNATtest test harness project';
 
 export const TASK_GNATCOV_SETUP: PredefinedTask = {
@@ -118,7 +127,7 @@ const gnatCovTasks: PredefinedTask[] = [TASK_GNATCOV_SETUP];
  * included in this array. They are later on split and provided by different
  * task providers.
  */
-const predefinedTasks: PredefinedTask[] = [
+const adaTasks: PredefinedTask[] = [
     /**
      * Ada
      */
@@ -260,6 +269,9 @@ const predefinedTasks: PredefinedTask[] = [
         },
         problemMatchers: [],
     },
+];
+
+export const sparkTasks: SPARKPredefinedTask[] = [
     /**
      * SPARK
      */
@@ -271,6 +283,8 @@ const predefinedTasks: PredefinedTask[] = [
             args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, '--clean'],
         },
         problemMatchers: [],
+        commandId: 'ada.spark.tasks.cleanProject',
+        noOptionPicker: true,
     },
     {
         label: 'Examine project',
@@ -280,12 +294,13 @@ const predefinedTasks: PredefinedTask[] = [
             args: [
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '--mode=flow',
-                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
+                `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+        commandId: 'ada.spark.tasks.examineProject',
     },
     {
         label: 'Examine file',
@@ -297,12 +312,13 @@ const predefinedTasks: PredefinedTask[] = [
                 '--mode=flow',
                 '-u',
                 '${fileBasename}',
-                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
+                `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+        commandId: 'ada.spark.tasks.examineFile',
     },
     {
         label: 'Examine subprogram',
@@ -313,24 +329,31 @@ const predefinedTasks: PredefinedTask[] = [
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '--mode=flow',
                 `\${command:${CMD_SPARK_LIMIT_SUBP_ARG}}`,
-                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
+                `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+        commandId: 'ada.spark.tasks.examineSubprogram',
     },
     {
         label: 'Prove project',
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
-            args: [`\${command:${CMD_GPR_PROJECT_ARGS}}`, '-j0', '-cargs', '-gnatef'],
+            args: [
+                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+                `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
+                '-cargs',
+                '-gnatef',
+            ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+        commandId: 'ada.spark.tasks.proveProject',
     },
     {
-        label: TASK_PROVE_FILE_PLAIN_NAME,
+        label: 'Prove file',
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
@@ -338,12 +361,13 @@ const predefinedTasks: PredefinedTask[] = [
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '-u',
                 '${fileBasename}',
-                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
+                `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+        commandId: 'ada.spark.tasks.proveFile',
     },
     {
         label: TASK_PROVE_SUPB_PLAIN_NAME,
@@ -353,15 +377,16 @@ const predefinedTasks: PredefinedTask[] = [
             args: [
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 `\${command:${CMD_SPARK_LIMIT_SUBP_ARG}}`,
-                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
+                `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+        commandId: 'ada.spark.tasks.proveSubprogram',
     },
     {
-        label: TASK_PROVE_REGION_PLAIN_NAME,
+        label: 'Prove selected region',
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
@@ -370,15 +395,16 @@ const predefinedTasks: PredefinedTask[] = [
                 '-u',
                 '${fileBasename}',
                 `\${command:${CMD_SPARK_LIMIT_REGION_ARG}}`,
-                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
+                `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+        commandId: 'ada.spark.tasks.proveSelectedRegion',
     },
     {
-        label: TASK_PROVE_LINE_PLAIN_NAME,
+        label: 'Prove line',
         taskDef: {
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
@@ -387,14 +413,17 @@ const predefinedTasks: PredefinedTask[] = [
                 '-u',
                 '${fileBasename}',
                 '--limit-line=${fileBasename}:${lineNumber}',
-                `\${command:${CMD_SPARK_ASK_OPTIONS}}`,
+                `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
                 '-cargs',
                 '-gnatef',
             ],
         },
         problemMatchers: DEFAULT_PROBLEM_MATCHERS,
+        commandId: 'ada.spark.tasks.proveLine',
     },
-].concat(gnatCovTasks);
+];
+
+const predefinedTasks: PredefinedTask[] = adaTasks.concat(sparkTasks, gnatCovTasks);
 
 /**
  * A provider of tasks based on the {@link SimpleTaskDef} task definition.

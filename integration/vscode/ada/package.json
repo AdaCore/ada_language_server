@@ -1184,28 +1184,64 @@
                 "when": "ADA_PROJECT_CONTEXT"
             },
             {
+                "command": "ada.spark.tasks.cleanProject",
+                "title": "Clean project for proof",
+                "category": "SPARK",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.spark.tasks.examineProject",
+                "title": "Examine project",
+                "category": "SPARK",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
+                "command": "ada.spark.tasks.examineFile",
+                "title": "Examine file",
+                "category": "SPARK",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "ada.spark.tasks.examineSubprogram",
+                "title": "Examine subprogram",
+                "category": "SPARK",
+                "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "ada.spark.tasks.proveProject",
+                "title": "Prove project",
+                "category": "SPARK",
+                "when": "ADA_PROJECT_CONTEXT"
+            },
+            {
                 "command": "ada.spark.tasks.proveFile",
-                "title": "Prove file (task wrapper)",
+                "title": "Prove file",
                 "category": "SPARK",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
                 "command": "ada.spark.tasks.proveSubprogram",
-                "title": "Prove subprogram (task wrapper)",
+                "title": "Prove subprogram",
                 "category": "SPARK",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
                 "command": "ada.spark.tasks.proveSelectedRegion",
-                "title": "Prove selected region (task wrapper)",
+                "title": "Prove selected region",
                 "category": "SPARK",
                 "when": "editorLangId == ada && editorTextFocus"
             },
             {
                 "command": "ada.spark.tasks.proveLine",
-                "title": "Prove line (task wrapper)",
+                "title": "Prove line",
                 "category": "SPARK",
                 "when": "editorLangId == ada && editorTextFocus"
+            },
+            {
+                "command": "ada.spark.askGNATproveOptions",
+                "title": "Select GNATprove options...",
+                "category": "SPARK",
+                "when": "ADA_PROJECT_CONTEXT"
             },
             {
                 "command": "ada.loadGnatCovXMLReport",
