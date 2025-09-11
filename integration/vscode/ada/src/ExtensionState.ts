@@ -16,7 +16,7 @@ import {
     CMD_SHOW_GPR_LS_OUTPUT,
 } from './constants';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
-import { logger } from './extension';
+import { adaExtState, logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
 import { initializeTesting } from './gnattest';
 import { GprTaskProvider } from './gprTaskProvider';
@@ -153,10 +153,13 @@ export class ExtensionState {
 
             //  Add a listener on tasks to open the SARIF Viewer when the
             //  task that ends outputs a SARIF file.
-            vscode.tasks.onDidEndTaskProcess(async (e) => {
-                const task = e.execution.task;
-                await openSARIFViewerIfNeeded(task);
-            }),
+            vscode.tasks.onDidEndTaskProcess(openSARIFViewerIfNeeded),
+            /**
+             * Add a listener on tasks start to close SARIF report that might
+             * be overwritten, to avoid parse errors from the SARIF extension
+             * when the report is being deleted/re-written.
+             */
+            vscode.tasks.onDidStartTaskProcess(closeSARIFViewerIfNeeded),
         ];
     };
 
@@ -696,37 +699,110 @@ export class ExtensionState {
     }
 }
 
+const currentlyOpenedSASSarifs: Set<vscode.Uri> = new Set();
+const currentlyOpenedGnatproveSarifs: Set<vscode.Uri> = new Set();
+
+async function closeSARIFViewerIfNeeded(e: vscode.TaskEndEvent) {
+    /**
+     * SARIF reports need to be closed and reopened to refresh their content.
+     *
+     * Moreover, overwritng a SARIF report that is currently opened in the
+     * SARIF Viewer seems to trigger sporadic errors. So it's better to close
+     * the SARIF report at the start of the task.
+     *
+     * Reports must be managed separately for GNATprove and for GNAT
+     * SAS because we don't want an execution of GNAT SAS to close
+     * reports opened for GNATprove and vice versa.
+     */
+
+    const task = e.execution.task;
+    if (task.definition.type == TASK_TYPE_SPARK || isGnatSASSarifTask(task)) {
+        const sarif = await getSarifExtAPI();
+        if (sarif) {
+            const current =
+                task.definition.type == TASK_TYPE_SPARK
+                    ? currentlyOpenedGnatproveSarifs
+                    : currentlyOpenedSASSarifs;
+
+            await sarif.closeLogs([...current]);
+            current.clear();
+        }
+    }
+}
+
+function isGnatSASSarifTask(task: vscode.Task): boolean {
+    return (
+        task.definition.type == TASK_TYPE_ADA &&
+        !!(task.definition as SimpleTaskDef).args?.some((arg) => getArgValue(arg).includes('sarif'))
+    );
+}
+
 /**
  *
  * Open the SARIF Viewer if the given task outputs its results in
  * a SARIF file (e.g: GNAT SAS Report task).
  */
-async function openSARIFViewerIfNeeded(task: vscode.Task) {
+async function openSARIFViewerIfNeeded(e: vscode.TaskStartEvent) {
+    const task = e.execution.task;
     const definition: SimpleTaskDef = task.definition;
 
     if (definition) {
         const args = definition.args;
 
-        if (args?.some((arg) => getArgValue(arg).includes('sarif'))) {
-            const execution = task.execution;
-            let cwd = undefined;
+        if (definition.type == TASK_TYPE_SPARK || isGnatSASSarifTask(task)) {
+            const sarifExtAPI = await getSarifExtAPI();
 
-            if (execution && execution instanceof vscode.ShellExecution) {
-                cwd = execution.options?.cwd;
+            if (!sarifExtAPI) {
+                // Could not access the SARIF Viewer extension API
+                logger.warn(
+                    'Could not access the SARIF Viewer extension API: is the extension installed?',
+                );
+                return;
             }
 
-            if (!cwd && vscode.workspace.workspaceFolders) {
-                cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
-            }
+            if (definition.type == TASK_TYPE_SPARK) {
+                /**
+                 * Find new reports and open them
+                 */
+                const objDir = await adaExtState.getObjectDir();
+                const gnatproveDir = path.join(objDir, 'gnatprove');
+                if (existsSync(gnatproveDir)) {
+                    const gnatProveUri = vscode.Uri.file(gnatproveDir);
+                    const sarifFiles = await vscode.workspace.fs.readDirectory(gnatProveUri);
+                    const sarifUris = sarifFiles
+                        .filter(
+                            ([name, type]) =>
+                                type === vscode.FileType.File && name.endsWith('.sarif'),
+                        )
+                        .map(([name]) => vscode.Uri.joinPath(gnatProveUri, name));
 
-            const sarifExt = vscode.extensions.getExtension('ms-sarifvscode.sarif-viewer');
+                    await sarifExtAPI.openLogs(sarifUris);
+                    sarifUris.forEach((v) => currentlyOpenedGnatproveSarifs.add(v));
+                }
+            } else {
+                const execution = task.execution;
+                let cwd = undefined;
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const sarifExtAPI = sarifExt ? await sarifExt.activate() : undefined;
+                if (execution instanceof vscode.ShellExecution) {
+                    cwd = execution.options?.cwd;
+                }
 
-            if (cwd && sarifExtAPI) {
+                if (!cwd && vscode.workspace.workspaceFolders) {
+                    cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
+                }
+
+                if (!cwd) {
+                    // Could not determine the current working directory
+                    logger.warn('Could not determine the current working directory');
+                    return;
+                }
+
                 const cwdURI = vscode.Uri.file(cwd);
-                const outputFilePathArgRaw = args.find((arg) =>
+
+                /**
+                 * Find the GNAT SAS output file argument
+                 */
+                const outputFilePathArgRaw = args!.find((arg) =>
                     getArgValue(arg).includes('.sarif'),
                 );
 
@@ -739,28 +815,49 @@ async function openSARIFViewerIfNeeded(task: vscode.Task) {
                     const outputFilePath = outputFilePathArg.includes('=')
                         ? outputFilePathArg.split('=').pop()
                         : outputFilePathArg;
-
                     if (outputFilePath) {
                         const sarifFileURI = isAbsolute(outputFilePath)
                             ? vscode.Uri.file(outputFilePath)
                             : vscode.Uri.joinPath(cwdURI, outputFilePath);
-
-                        /**
-                         * If we open a SARIF report that was already open, the
-                         * SARIF Viewer extension does not refresh the
-                         * contents. It is necessary to close the report and
-                         * reopen it.
-                         */
-                        // eslint-disable-next-line max-len
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-                        await sarifExtAPI.closeLogs([sarifFileURI]);
-
-                        // eslint-disable-next-line max-len
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-                        await sarifExtAPI.openLogs([sarifFileURI]);
+                        if (existsSync(sarifFileURI.fsPath)) {
+                            await sarifExtAPI.openLogs([sarifFileURI]);
+                            currentlyOpenedSASSarifs.add(sarifFileURI);
+                        }
                     }
                 }
             }
         }
     }
+}
+
+/**
+ * This is the API of the SARIF extension, as defined at
+ * https://github.com/microsoft/sarif-vscode-extension/blob/main/src/extension/index.d.ts
+ *
+ * Since the package is not available on npmjs.org for direct referencing, we
+ * copy it here to benefit from typing.
+ */
+interface SARIFExtAPI {
+    /**
+     * Note: If a log has been modified after open was opened, a close and
+     * re-open will be required to "refresh" that log.
+     *
+     * @param logs - An array of Uris to open.
+     */
+    openLogs(logs: vscode.Uri[]): Promise<void>;
+    closeLogs(
+        logs: vscode.Uri[],
+        _options?: unknown,
+        cancellationToken?: vscode.CancellationToken,
+    ): Promise<void>;
+    closeAllLogs(): Promise<void>;
+    selectByIndex(uri: vscode.Uri, runIndex: number, resultIndex: number): Promise<void>;
+    uriBases: ReadonlyArray<vscode.Uri>;
+    dispose(): void;
+}
+
+async function getSarifExtAPI(): Promise<SARIFExtAPI | undefined> {
+    const sarifExt = vscode.extensions.getExtension('ms-sarifvscode.sarif-viewer');
+    const sarifExtAPI = sarifExt ? ((await sarifExt.activate()) as SARIFExtAPI) : undefined;
+    return sarifExtAPI;
 }
