@@ -292,6 +292,7 @@ export const sparkTasks: SPARKPredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
+                '--output=oneline',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '--mode=flow',
                 `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
@@ -308,6 +309,7 @@ export const sparkTasks: SPARKPredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
+                '--output=oneline',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '--mode=flow',
                 '-u',
@@ -326,6 +328,7 @@ export const sparkTasks: SPARKPredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
+                '--output=oneline',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '--mode=flow',
                 `\${command:${CMD_SPARK_LIMIT_SUBP_ARG}}`,
@@ -343,6 +346,7 @@ export const sparkTasks: SPARKPredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
+                '--output=oneline',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
                 '-cargs',
@@ -358,6 +362,7 @@ export const sparkTasks: SPARKPredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
+                '--output=oneline',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '-u',
                 '${fileBasename}',
@@ -375,6 +380,7 @@ export const sparkTasks: SPARKPredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
+                '--output=oneline',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 `\${command:${CMD_SPARK_LIMIT_SUBP_ARG}}`,
                 `\${command:${CMD_SPARK_CURRENT_GNATPROVE_OPTIONS}}`,
@@ -391,6 +397,7 @@ export const sparkTasks: SPARKPredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
+                '--output=oneline',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '-u',
                 '${fileBasename}',
@@ -409,6 +416,7 @@ export const sparkTasks: SPARKPredefinedTask[] = [
             type: TASK_TYPE_SPARK,
             command: 'gnatprove',
             args: [
+                '--output=oneline',
                 `\${command:${CMD_GPR_PROJECT_ARGS}}`,
                 '-u',
                 '${fileBasename}',
