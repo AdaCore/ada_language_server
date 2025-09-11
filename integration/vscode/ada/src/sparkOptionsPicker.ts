@@ -14,7 +14,7 @@ const proofLevels: SPARKOption[] = [
     { label: '4', description: 'Slowest, most provers' },
 ].map((v) => ({ ...v, cliArgs: [`--level=${v.label}`] }));
 
-const defaultProofLevel = proofLevels.find((v) => v.description?.includes('default'));
+const defaultProofLevel = proofLevels.find((v) => v.description?.includes('default'))!;
 
 const options: SPARKOption[] = [
     { label: 'Multiprocessing', cliArgs: ['-j0'] },
@@ -28,6 +28,16 @@ interface PickerState {
     proofLevel: SPARKOption;
     options: SPARKOption[];
 }
+
+/**
+ * These are the applicable options when no prior selection has been made.
+ */
+const defaultPickerState: PickerState = {
+    proofLevel: defaultProofLevel,
+    options: [
+        options[0], // Multiprocessing
+    ],
+};
 
 interface SavedPickerState {
     proofLevelLabel: string;
@@ -92,21 +102,16 @@ export async function askSPARKOptions(): Promise<string[]> {
         state.options = choice;
     }
 
-    const savedState =
-        adaExtState.context.workspaceState.get<Partial<SavedPickerState>>(WS_STATE_KEY_PICKER) ??
-        {};
-    const pickerState: Partial<PickerState> = {
-        proofLevel: proofLevels.find((v) => v.label == savedState?.proofLevelLabel),
-        options: options.filter((o) => savedState?.optionLabels?.find((v) => v == o.label)),
-    };
+    const pickerState: PickerState = getSavedPickerState();
     try {
         await MultiStepInput.run((input) => pickProofLevel(input, pickerState));
         /**
          * Save chosen selection for next usage
          */
-        savedState.proofLevelLabel = pickerState.proofLevel?.label;
-        savedState.optionLabels = pickerState.options?.map((o) => o.label);
-        adaExtState.context.workspaceState.update(WS_STATE_KEY_PICKER, savedState);
+        adaExtState.context.workspaceState.update(WS_STATE_KEY_PICKER, {
+            proofLevelLabel: pickerState.proofLevel.label,
+            optionLabels: pickerState.options.map((o) => o.label),
+        } satisfies SavedPickerState);
     } catch (err) {
         if (err == InputFlowAction.cancel) {
             // Selection was cancelled, interrupt the process
@@ -115,6 +120,21 @@ export async function askSPARKOptions(): Promise<string[]> {
     }
 
     return toCLIArgs(pickerState);
+}
+
+function getSavedPickerState() {
+    const savedState: SavedPickerState | undefined =
+        adaExtState.context.workspaceState.get(WS_STATE_KEY_PICKER);
+    const pickerState: PickerState = savedState
+        ? {
+              // The saved proof level necessarily exists in the list of
+              // available levels, so we use the ! operator to convince
+              // TypeScript of that.
+              proofLevel: proofLevels.find((v) => v.label == savedState.proofLevelLabel)!,
+              options: options.filter((o) => savedState.optionLabels?.find((v) => v == o.label)),
+          }
+        : defaultPickerState;
+    return pickerState;
 }
 
 function toCLIArgs(choices: Partial<PickerState>): string[] {
@@ -131,12 +151,5 @@ function toCLIArgs(choices: Partial<PickerState>): string[] {
 }
 
 export function getLastSPARKOptions(): string[] {
-    const savedState =
-        adaExtState.context.workspaceState.get<Partial<SavedPickerState>>(WS_STATE_KEY_PICKER) ??
-        {};
-    const pickerState: Partial<PickerState> = {
-        proofLevel: proofLevels.find((v) => v.label == savedState?.proofLevelLabel),
-        options: options.filter((o) => savedState?.optionLabels?.find((v) => v == o.label)),
-    };
-    return toCLIArgs(pickerState);
+    return toCLIArgs(getSavedPickerState());
 }
