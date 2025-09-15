@@ -117,6 +117,23 @@ class MockSetup {
 
 suite('e3-testsuite', function () {
     this.beforeAll(async function () {
+        /**
+         * Remove 'json-logs' flag from E3_ENABLE_FEATURE because it can change
+         * the log output format of e3-testsuite
+         */
+        if ('E3_ENABLE_FEATURE' in process.env) {
+            const flags = process.env.E3_ENABLE_FEATURE!.split(',');
+            const index = flags.indexOf('json-logs');
+            if (index !== -1) {
+                flags.splice(index, 1);
+                if (flags.length > 0) {
+                    process.env.E3_ENABLE_FEATURE = flags.join(',');
+                } else {
+                    delete process.env.E3_ENABLE_FEATURE;
+                }
+            }
+        }
+
         await activate();
     });
 
@@ -349,28 +366,33 @@ suite('e3-testsuite', function () {
 
             // Check for expected test results (order-independent)
             const expectedResults = [
-                'INFO     FAIL            06-test-with-diff: Failure short message',
-                'INFO     PASS            01-test-one-result',
-                'INFO     PASS            04-test-only-passing-sub-results.sub3',
-                'INFO     PASS            04-test-only-passing-sub-results.sub2',
-                'INFO     PASS            04-test-only-passing-sub-results.sub1',
-                'INFO     PASS            05-test-only-sub-results-one-failing.sub3',
-                'INFO     FAIL            05-test-only-sub-results-one-failing.sub2',
-                'INFO     PASS            05-test-only-sub-results-one-failing.sub1',
-                'INFO     PASS            03-test-multiple-passing-results',
-                'INFO     PASS            03-test-multiple-passing-results.sub3',
-                'INFO     PASS            03-test-multiple-passing-results.sub2',
-                'INFO     PASS            03-test-multiple-passing-results.sub1',
-                'INFO     PASS            02-test-multiple-results',
-                'INFO     FAIL            02-test-multiple-results.sub3: Failure message',
-                'INFO     FAIL            02-test-multiple-results.sub2: Failure message',
-                'INFO     PASS            02-test-multiple-results.sub1',
+                'FAIL            06-test-with-diff: Failure short message',
+                'PASS            01-test-one-result',
+                'PASS            04-test-only-passing-sub-results.sub3',
+                'PASS            04-test-only-passing-sub-results.sub2',
+                'PASS            04-test-only-passing-sub-results.sub1',
+                'PASS            05-test-only-sub-results-one-failing.sub3',
+                'FAIL            05-test-only-sub-results-one-failing.sub2',
+                'PASS            05-test-only-sub-results-one-failing.sub1',
+                'PASS            03-test-multiple-passing-results',
+                'PASS            03-test-multiple-passing-results.sub3',
+                'PASS            03-test-multiple-passing-results.sub2',
+                'PASS            03-test-multiple-passing-results.sub1',
+                'PASS            02-test-multiple-results',
+                'FAIL            02-test-multiple-results.sub3: Failure message',
+                'FAIL            02-test-multiple-results.sub2: Failure message',
+                'PASS            02-test-multiple-results.sub1',
             ];
 
             for (const result of expectedResults) {
+                // Replace all runs of spaces with \s+ for regex matching. This
+                // provides robustness to minor formatting changes
+                const regexStr = result.replace(/ +/g, '\\s+');
+                const regex = new RegExp(regexStr);
                 assert.ok(
-                    consoleOutput.includes(result),
-                    `Expected result not found: ${result}\nActual console output: ${consoleOutput}`,
+                    regex.test(consoleOutput),
+                    `Expected result not found (regex: ${regexStr}): ${result}\n` +
+                        `Actual console output: ${consoleOutput}`,
                 );
             }
 
