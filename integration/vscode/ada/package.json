@@ -22,6 +22,8 @@
         "workspaceContains:*.ad[bs]",
         "workspaceContains:*/*.ad[bs]",
         "workspaceContains:alire.toml",
+        "workspaceContains:testsuite.py",
+        "workspaceContains:*/testsuite.py",
         "onDebugDynamicConfigurations:ada"
     ],
     "main": "./out/src/extension",
@@ -708,6 +710,25 @@
                         "type": "boolean",
                         "default": false,
                         "description": "Enable experimental features still in development."
+                    }
+                }
+            },
+            {
+                "title": "e3-testsuite",
+                "properties": {
+                    "e3-testsuite.testsuitePath": {
+                        "type": "string",
+                        "description": "Path to testsuite.py"
+                    },
+                    "e3-testsuite.python": {
+                        "type": "string",
+                        "description": "Path to python interpreter, useful when you want to use a specific venv",
+                        "default": "python"
+                    },
+                    "e3-testsuite.args": {
+                        "type": "array",
+                        "description": "Command line arguments to pass to testsuite.py when running tests",
+                        "default": []
                     }
                 }
             }
@@ -1465,6 +1486,8 @@
         "@types/node": "^18.0.0",
         "@types/react": "^19.0.10",
         "@types/react-dom": "^19.0.4",
+        "@types/split2": "^4.2.3",
+        "@types/tmp": "^0.2.6",
         "@types/vscode": "~1.88.0",
         "@types/vscode-webview": "^1.57.5",
         "@types/ws": "^8.0.0",
@@ -1532,8 +1555,11 @@
         "process": "0.11.10",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
+        "split2": "^4.2.0",
+        "tmp": "^0.2.3",
         "vscode-languageclient": "9.0.1",
         "winston": "3.14.2",
-        "ws": "^8.18.0"
+        "ws": "^8.18.0",
+        "yaml": "^2.8.0"
     }
 }

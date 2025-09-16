@@ -9,6 +9,7 @@ section below it for the last release. -->
 * `Go to Definition` now jumps respectively on the `begin`, `private` and `body` keywords
   for subprograms, packages and tasks when clicking on the `is` keyword following their declarations
 * New refactoring: [Delete Entity](https://github.com/AdaCore/ada_language_server/blob/master/doc/refactoring_tools.md#delete-entity)
+* Provide an integration of the [e3-testsuite](https://github.com/AdaCore/e3-testsuite) framework with the VS Code testing UI
 
 ## 26.0.202507021
 

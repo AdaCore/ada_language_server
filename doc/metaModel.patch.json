@@ -129,6 +129,23 @@
                "value": 3
             }
          ]
+      },
+      {
+         "name": "SemanticTokenModifiers",
+         "type": {
+            "kind": "base",
+            "name": "string"
+         },
+         "values": [
+            {
+               "name": "globalVariable",
+               "value": "globalVariable"
+            },
+            {
+               "name": "localVariable",
+               "value": "localVariable"
+            }
+         ]
       }
    ],
    "structures": [

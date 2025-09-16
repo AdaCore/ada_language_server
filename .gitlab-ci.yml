@@ -86,6 +86,7 @@ include:
       cpus: 4
       disk: 80
       windows: true
+      windows-cpus: 4
       rules:
         # integration-testsuite cannot work with edge builds
         - if: $CI_PIPELINE_SOURCE == 'merge_request_event' && $CI_TARGET_BRANCH_NAME == 'edge'

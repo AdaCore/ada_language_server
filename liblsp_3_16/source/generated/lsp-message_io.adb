@@ -3529,6 +3529,10 @@ package body LSP.Message_IO is
          V := documentation;
       elsif Text = "defaultLibrary" then
          V := defaultLibrary;
+      elsif Text = "globalVariable" then
+         V := globalVariable;
+      elsif Text = "localVariable" then
+         V := localVariable;
       else
          V := SemanticTokenModifiers'First;
       end if;
@@ -3570,6 +3574,10 @@ package body LSP.Message_IO is
                return "documentation";
             when defaultLibrary =>
                return "defaultLibrary";
+            when globalVariable =>
+               return "globalVariable";
+            when localVariable =>
+               return "localVariable";
          end case;
       end To_Virtual_String;
 

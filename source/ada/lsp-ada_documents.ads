@@ -107,11 +107,6 @@ package LSP.Ada_Documents is
       Result   : out LSP.Structures.DocumentSymbol_Vector);
    --  Populate Result with a symbol hierarchy from the document.
 
-   function Estimate_Indentation
-     (Self : Document; Context : LSP.Ada_Contexts.Context; Line : Positive)
-      return VSS.Strings.Character_Count;
-   --  Estimates the indention a line should have
-
    function Get_Node_At
      (Self     : Document;
       Context  : LSP.Ada_Contexts.Context;
@@ -125,6 +120,13 @@ package LSP.Ada_Documents is
       Position : LSP.Structures.Position)
       return VSS.Strings.Virtual_String;
    --  Get an identifier at given position in the document or an empty string.
+
+   function Get_Text
+     (Self    : Document;
+      From    : LSP.Structures.Position;
+      To      : LSP.Structures.Position)
+      return VSS.Strings.Virtual_String;
+   --  Get the text in the document between From and To
 
    procedure Get_Completion_Node
      (Self     : Document;

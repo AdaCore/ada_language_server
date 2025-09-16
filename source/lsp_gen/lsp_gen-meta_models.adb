@@ -69,8 +69,34 @@ package body LSP_Gen.Meta_Models is
          declare
             Item : constant LSP_Gen.Entities.Enumeration :=
               Patch.enumerations (J);
+            Append : Boolean := True;
          begin
-            Self.Model.enumerations.Append (Item);
+            for I in 1 .. Self.Model.enumerations.Length loop
+               declare
+                  Ref : constant LSP_Gen.Entities.
+                    Enumeration_Variable_Reference :=
+                      Self.Model.enumerations.
+                        Get_Enumeration_Variable_Reference (I);
+               begin
+                  if Ref.name = Item.name then
+                     --  we already have the enum, this means we would like to
+                     --  expand their values
+                     Append := False;
+
+                     for I in 1 .. Item.values.Length loop
+                        Ref.values.Append
+                          (Item.values.
+                             Get_EnumerationEntry_Constant_Reference (I));
+                     end loop;
+
+                     exit;
+                  end if;
+               end;
+            end loop;
+
+            if Append then
+               Self.Model.enumerations.Append (Item);
+            end if;
          end;
       end loop;
 
