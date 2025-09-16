@@ -1988,6 +1988,10 @@ package body LSP.Outputs is
             Handler.String_Value ("documentation");
          when LSP.Enumerations.defaultLibrary =>
             Handler.String_Value ("defaultLibrary");
+         when LSP.Enumerations.globalVariable =>
+            Handler.String_Value ("globalVariable");
+         when LSP.Enumerations.localVariable =>
+            Handler.String_Value ("localVariable");
       end case;
    end Write_SemanticTokenModifiers;
 

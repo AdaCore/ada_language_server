@@ -581,6 +581,10 @@ async function handleRunRequestedTests(
     token?: CancellationToken,
     coverage = false,
 ) {
+    if (!fs.existsSync(await getGnatTestDriverProjectPath())) {
+        return;
+    }
+
     const run = controller.createTestRun(request, undefined, false);
     try {
         const requestedRootTests = [];

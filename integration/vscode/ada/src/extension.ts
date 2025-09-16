@@ -35,6 +35,7 @@ import {
  * This import gives access to the package.json content.
  */
 import * as meta from '../package.json';
+import { activateE3TestsuiteIntegration } from './e3Testsuite';
 
 export const EXTENSION_NAME: string = meta.displayName;
 
@@ -182,6 +183,8 @@ async function activateExtension(context: vscode.ExtensionContext) {
      * This can display a dialog to the User so don't wait on the result.
      */
     void vscode.commands.executeCommand('ada.addMissingDirsToWorkspace', true);
+
+    activateE3TestsuiteIntegration(context);
 }
 
 function setUpLogging(context: vscode.ExtensionContext) {
