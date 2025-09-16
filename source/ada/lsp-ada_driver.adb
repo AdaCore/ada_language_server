@@ -26,8 +26,6 @@ with GNAT.OS_Lib;
 with GNAT.Strings;
 
 pragma Warnings (Off, "is an internal GNAT unit");
-with Gnatformat.Configuration;
-with LSP.Ada_Handlers.Open_ALS_Log_File_Commands;
 with System.Soft_Links;
 with System.Secondary_Stack;
 
@@ -42,35 +40,35 @@ with GNATCOLL.Traces;         use GNATCOLL.Traces;
 with GNATCOLL.VFS;            use GNATCOLL.VFS;
 with GNATCOLL.Utils;
 
+with Gnatformat.Configuration;
+
 with LSP.Ada_Commands;
-with LSP.Ada_Definition;
 with LSP.Ada_Declaration;
-with LSP.Ada_Document_Symbol;
+with LSP.Ada_Definition;
 with LSP.Ada_Did_Change_Configurations;
 with LSP.Ada_Did_Change_Document;
+with LSP.Ada_Document_Symbol;
 with LSP.Ada_Execute_Command;
 with LSP.Ada_Folding_Range;
-with LSP.Ada_Hover;
-with LSP.Ada_Prepare_Type_Hierarchy;
-with LSP.Ada_References;
-with LSP.Ada_Handlers;
 with LSP.Ada_Handlers.Executables_Commands;
+with LSP.Ada_Handlers.GPR_Dependencies_Commands;
 with LSP.Ada_Handlers.Mains_Commands;
 with LSP.Ada_Handlers.Named_Parameters_Commands;
 with LSP.Ada_Handlers.Object_Dir_Commands;
-with LSP.Ada_Handlers.Other_File_Commands;
+with LSP.Ada_Handlers.Open_ALS_Log_File_Commands;
 with LSP.Ada_Handlers.Open_Project_File_Commands;
+with LSP.Ada_Handlers.Other_File_Commands;
 with LSP.Ada_Handlers.Project_Attributes_Commands;
 with LSP.Ada_Handlers.Project_File_Commands;
 with LSP.Ada_Handlers.Project_Reload_Commands;
 with LSP.Ada_Handlers.Refactor.Add_Parameter;
+with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Handlers.Refactor.Change_Parameter_Mode;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Default_Value;
 with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor.Delete_Entity;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Extract_Variable;
-with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Handlers.Refactor.Inline_Variable;
 with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
@@ -82,10 +80,14 @@ with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
 with LSP.Ada_Handlers.Refactor.Swap_If_Else;
 with LSP.Ada_Handlers.Show_Dependencies_Commands;
-with LSP.Ada_Handlers.GPR_Dependencies_Commands;
 with LSP.Ada_Handlers.Source_Dirs_Commands;
 with LSP.Ada_Handlers.Suspend_Executions;
+with LSP.Ada_Handlers;
+with LSP.Ada_Hover;
 with LSP.Ada_Inline_Value;
+with LSP.Ada_Prepare_Type_Hierarchy;
+with LSP.Ada_Projects;
+with LSP.Ada_References;
 with LSP.Ada_Selection_Range;
 with LSP.Ada_Tokens_Full;
 with LSP.Ada_Tokens_Range;
@@ -95,9 +97,9 @@ with LSP.Default_Message_Handlers;
 with LSP.Env;
 with LSP.GNATCOLL_Trace_Streams;
 with LSP.GNATCOLL_Tracers;
-with LSP.GPR_Handlers;
-with LSP.GPR_External_Tools;
 with LSP.GPR_Did_Change_Document;
+with LSP.GPR_External_Tools;
+with LSP.GPR_Handlers;
 with LSP.Memory_Statistics;
 with LSP.Predefined_Completion;
 with LSP.Secure_Message_Loggers;
@@ -592,6 +594,7 @@ begin
    Ada.Text_IO.Set_Output (Ada.Text_IO.Standard_Error);
    --  Protect stdout from pollution by accidental Put_Line calls
 
+   LSP.Ada_Projects.Elaborate_GPR2;
    Gnatformat.Configuration.Elaborate_GPR2;
 
    declare

@@ -1,0 +1,5 @@
+project Default is
+   package IDE is
+      for Excluded_Source_Files use ("main.adb");
+   end IDE;
+end Default;
