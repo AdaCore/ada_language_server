@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -250,7 +250,7 @@ package LSP.Ada_Documents is
       Sloc                     : Langkit_Support.Slocs.Source_Location;
       From                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
-      BD                       : Libadalang.Analysis.Basic_Decl;
+      Name                     : Libadalang.Analysis.Defining_Name;
       Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;
       Compute_Doc_And_Details  : Boolean;
@@ -278,7 +278,7 @@ package LSP.Ada_Documents is
    procedure Set_Completion_Item_Documentation
      (Handler                 : in out LSP.Ada_Handlers.Message_Handler;
       Context                 : LSP.Ada_Contexts.Context;
-      BD                      : Libadalang.Analysis.Basic_Decl;
+      Name                    : Libadalang.Analysis.Defining_Name;
       Item                    : in out LSP.Structures.CompletionItem;
       Compute_Doc_And_Details : Boolean);
    --  Either set the item documentation and details or setup it to produce

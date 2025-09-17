@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2024, AdaCore                     --
+--                     Copyright (C) 2022-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -188,7 +188,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       procedure Generate_Snippets
         (Spec_Designators  : Laltools.Common.Node_Vectors.Vector;
          Param_Types       : Param_To_Type_Maps.Map;
-         Decl              : Basic_Decl;
+         Name              : Defining_Name;
          Title             : VSS.Strings.Virtual_String;
          Snippet_Prefix    : VSS.Strings.Virtual_String;
          Completion_Prefix : VSS.Strings.Virtual_String);
@@ -222,7 +222,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       procedure Generate_Snippets
         (Spec_Designators  : Laltools.Common.Node_Vectors.Vector;
          Param_Types       : Param_To_Type_Maps.Map;
-         Decl              : Basic_Decl;
+         Name              : Defining_Name;
          Title             : VSS.Strings.Virtual_String;
          Snippet_Prefix    : VSS.Strings.Virtual_String;
          Completion_Prefix : VSS.Strings.Virtual_String)
@@ -381,7 +381,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                   LSP.Ada_Documents.Set_Completion_Item_Documentation
                     (Handler                 => Self.Handler.all,
                      Context                 => Self.Context.all,
-                     BD                      => Decl,
+                     Name                    => Name,
                      Item                    => Item,
                      Compute_Doc_And_Details =>
                        Self.Compute_Doc_And_Details);
@@ -439,7 +439,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
                Generate_Snippets
                  (Spec_Designators  => Spec.Param_Vector,
                   Param_Types       => Spec.Param_Types,
-                  Decl              => Spec.Decl,
+                  Name              => Spec.Decl.P_Defining_Name,
                   Title             => Spec.Title,
                   Snippet_Prefix    => Spec.Prefix,
                   Completion_Prefix => Completion_Prefix);
@@ -515,7 +515,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
 
       begin
          LSP.Ada_Documentation.Get_Tooltip_Text
-           (BD                 => Spec.Decl,
+           (Name               => Spec.Decl.P_Defining_Name,
             Style              => Context.Get_Documentation_Style,
             Declaration_Text   => Declaration_Text,
             Qualifier_Text     => Qualifier_Text,

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2024, AdaCore                       --
+--                     Copyright (C) 2024-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -126,7 +126,7 @@ package body LSP.Ada_Hover is
          --  We have resolved the hovered node to its declaration: use
          --  the default tooltip provider, based on GNATdoc.
          LSP.Ada_Documentation.Get_Tooltip_Text
-           (BD                 => Decl,
+           (Name               => Defining_Name_Node,
             Style              => Context.Get_Documentation_Style,
             Declaration_Text   => Decl_Text,
             Qualifier_Text     => Qualifier_Text,
