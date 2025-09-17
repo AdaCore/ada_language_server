@@ -15,7 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to extract variable
+--  Implementation of the refactoring command to swap if/else paths
 
 with VSS.Strings;
 
