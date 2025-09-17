@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2024, AdaCore                       --
+--                     Copyright (C) 2024-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -154,6 +154,13 @@ package LSP.Ada_Job_Contexts is
           (Self.Imprecise_Resolve_Name
             (Laltools.Common.Get_Node_As_Name
                (Self.Get_Node_At (Context, Position))));
+
+   procedure Imprecise_Resolve_Name
+     (Self     : in out Ada_Job_Context'Class;
+      Context  : LSP.Ada_Contexts.Context;
+      Position : LSP.Structures.TextDocumentPositionParams'Class;
+      Name     : out Libadalang.Analysis.Defining_Name;
+      Origin   : out Libadalang.Analysis.Ada_Node);
 
    function To_LSP_Location
      (Self   : in out Ada_Job_Context;
