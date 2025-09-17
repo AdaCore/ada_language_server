@@ -21,7 +21,7 @@
 * [Replace Type](#replace-type)
 * [Auto Import](#auto-import)
 * [Sort Dependencies](#sort-dependencies)
-* [Swap If/else statments](#swap-if)
+* [Swap If/else statments](#swap-ifelse-statments))
 
 ## Named Parameters
 
