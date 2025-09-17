@@ -178,11 +178,11 @@
                            "range": {
                               "start": {
                                  "line": 2,
-                                 "character": 3
+                                 "character": 13
                               },
                               "end": {
                                  "line": 2,
-                                 "character": 40
+                                 "character": 25
                               }
                            }
                         }
