@@ -516,6 +516,7 @@ package body LSP.Ada_Completions.Generic_Assoc is
       begin
          LSP.Ada_Documentation.Get_Tooltip_Text
            (Name               => Spec.Decl.P_Defining_Name,
+            Origin             => Libadalang.Analysis.No_Ada_Node,
             Style              => Context.Get_Documentation_Style,
             Declaration_Text   => Declaration_Text,
             Qualifier_Text     => Qualifier_Text,

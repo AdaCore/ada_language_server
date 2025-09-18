@@ -225,6 +225,7 @@ package body LSP.Ada_Documentation is
 
    procedure Get_Tooltip_Text
      (Name               : Libadalang.Analysis.Defining_Name;
+      Origin             : Libadalang.Analysis.Ada_Node'Class;
       Style              : GNATdoc.Comments.Options.Documentation_Style;
       Declaration_Text   : out VSS.Strings.Virtual_String;
       Qualifier_Text     : out VSS.Strings.Virtual_String;
@@ -250,6 +251,7 @@ package body LSP.Ada_Documentation is
 
       GNATdoc.Comments.Helpers.Get_Plain_Text_Documentation
         (Name          => Name,
+         Origin        => Origin,
          Options       => Options,
          Code_Snippet  => Decl_Lines,
          Documentation => Doc_Lines);

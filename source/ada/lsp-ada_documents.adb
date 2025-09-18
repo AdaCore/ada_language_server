@@ -1385,6 +1385,7 @@ package body LSP.Ada_Documents is
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
               (Name               => Name,
+               Origin             => Libadalang.Analysis.No_Ada_Node,
                Style              => Context.Get_Documentation_Style,
                Declaration_Text   => Decl_Text,
                Qualifier_Text     => Qual_Text,

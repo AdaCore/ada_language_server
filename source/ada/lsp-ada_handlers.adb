@@ -1986,6 +1986,7 @@ package body LSP.Ada_Handlers is
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
               (Name               => Node.As_Defining_Name,
+               Origin             => Libadalang.Analysis.No_Ada_Node,
                Style              => Self.Configuration.Documentation_Style,
                Qualifier_Text     => Qual_Text,
                Location_Text      => Loc_Text,

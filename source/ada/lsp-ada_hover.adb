@@ -87,12 +87,9 @@ package body LSP.Ada_Hover is
       --  For the Hover request, we're only interested in the "best"
       --  response value, not in the list of values for all contexts
 
-      Defining_Name_Node : constant Libadalang.Analysis.Defining_Name :=
-        Self.Parent.Context.Imprecise_Resolve_Name (Context.all, Value);
-      Decl               : constant Libadalang.Analysis.Basic_Decl :=
-        (if Defining_Name_Node.Is_Null
-         then Libadalang.Analysis.No_Basic_Decl
-         else Defining_Name_Node.P_Basic_Decl);
+      Defining_Name_Node : Libadalang.Analysis.Defining_Name;
+      Origin_Node        : Libadalang.Analysis.Ada_Node;
+      Decl               : Libadalang.Analysis.Basic_Decl;
       --  Associated basic declaration, if any
 
       Decl_Text          : VSS.Strings.Virtual_String;
@@ -103,6 +100,16 @@ package body LSP.Ada_Hover is
 
    begin
       Status := LSP.Server_Jobs.Done;
+
+      Self.Parent.Context.Imprecise_Resolve_Name
+        (Context.all,
+         Value,
+         Defining_Name_Node,
+         Origin_Node);
+      Decl :=
+        (if Defining_Name_Node.Is_Null
+         then Libadalang.Analysis.No_Basic_Decl
+         else Defining_Name_Node.P_Basic_Decl);
 
       if Decl.Is_Null then
 
@@ -127,6 +134,7 @@ package body LSP.Ada_Hover is
          --  the default tooltip provider, based on GNATdoc.
          LSP.Ada_Documentation.Get_Tooltip_Text
            (Name               => Defining_Name_Node,
+            Origin             => Origin_Node,
             Style              => Context.Get_Documentation_Style,
             Declaration_Text   => Decl_Text,
             Qualifier_Text     => Qualifier_Text,
