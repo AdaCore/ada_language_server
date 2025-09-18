@@ -55,7 +55,10 @@ with LSP.Formatters.Texts;
 with LSP.GNATFormat_Utils;
 with LSP.Predicates;
 with LSP.Structures.LSPAny_Vectors;
+pragma Warnings
+  (Off, "child unit * hides compilation unit with the same name");
 with LSP.Utils;
+pragma Warnings (On, "child unit * hides compilation unit with the same name");
 
 package body LSP.Ada_Documents is
    pragma Warnings (Off);
