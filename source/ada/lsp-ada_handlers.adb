@@ -23,6 +23,8 @@ with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
 
+with Gnatformat.Configuration;
+
 with LAL_Refactor.Sort_Case;
 with LSP.Env;
 with VSS.Characters.Latin;
@@ -1189,8 +1191,7 @@ package body LSP.Ada_Handlers is
             while not Done and then not Aux_Node.Is_Null loop
                case Aux_Node.Kind is
                   when Libadalang.Common.Ada_Stmt
-                     | Libadalang.Common.Ada_Basic_Decl
-                  =>
+                     | Libadalang.Common.Ada_Basic_Decl       =>
 
                      Done := True;
 
@@ -1201,7 +1202,7 @@ package body LSP.Ada_Handlers is
                         Append_Command (Aux_Node);
                      end if;
 
-                  when Libadalang.Common.Ada_Call_Expr =>
+                  when Libadalang.Common.Ada_Call_Expr        =>
                      declare
                         List : constant Libadalang.Analysis.Ada_Node :=
                           Aux_Node.As_Call_Expr.F_Suffix;
@@ -1217,7 +1218,7 @@ package body LSP.Ada_Handlers is
                         end if;
                      end;
 
-                  when others =>
+                  when others                                 =>
                      null;
                end case;
 
@@ -1301,8 +1302,7 @@ package body LSP.Ada_Handlers is
          -- Sort_Case_Action --
          ----------------------
 
-         procedure Sort_Case_Action
-         is
+         procedure Sort_Case_Action is
             use LSP.Ada_Handlers.Refactor.Sort_Case;
             use Langkit_Support.Slocs;
             use LAL_Refactor.Sort_Case;
@@ -1310,9 +1310,9 @@ package body LSP.Ada_Handlers is
 
             Single_Location : constant Boolean :=
               Value.a_range.start = Value.a_range.an_end;
-            Location : Source_Location :=
-              (Langkit_Support.Slocs.Line_Number
-                 (Value.a_range.start.line) + 1,
+            Location        : Source_Location :=
+              (Langkit_Support.Slocs.Line_Number (Value.a_range.start.line)
+               + 1,
                Column_Number (Value.a_range.start.character) + 1);
 
             Alphabetical : Alphabetical_Command;
@@ -1327,7 +1327,7 @@ package body LSP.Ada_Handlers is
                      Where           =>
                        (Value.textDocument.uri,
                         ((Natural (Location.Line) - 1,
-                         Natural (Location.Column) - 1),
+                          Natural (Location.Column) - 1),
                          (Natural (Location.Line) - 1,
                           Natural (Location.Column) - 1)),
                         LSP.Constants.Empty));
@@ -1340,7 +1340,7 @@ package body LSP.Ada_Handlers is
                      Where           =>
                        (Value.textDocument.uri,
                         ((Natural (Location.Line) - 1,
-                         Natural (Location.Column) - 1),
+                          Natural (Location.Column) - 1),
                          (Natural (Location.Line) - 1,
                           Natural (Location.Column) - 1)),
                         LSP.Constants.Empty));
@@ -1402,8 +1402,7 @@ package body LSP.Ada_Handlers is
             Swap_Command : Command;
 
          begin
-            if Single_Location
-              and then Is_Swap_Available (Node.Unit, Location)
+            if Single_Location and then Is_Swap_Available (Node.Unit, Location)
             then
                Swap_Command.Append_Code_Action
                  (Context         => Context,
@@ -1411,7 +1410,7 @@ package body LSP.Ada_Handlers is
                   Where           =>
                     (Value.textDocument.uri,
                      ((Natural (Location.Line) - 1,
-                      Natural (Location.Column) - 1),
+                       Natural (Location.Column) - 1),
                       (Natural (Location.Line) - 1,
                        Natural (Location.Column) - 1)),
                      LSP.Constants.Empty));
@@ -1662,7 +1661,7 @@ package body LSP.Ada_Handlers is
 
                         return True;
 
-                     when Ada_Array_Type_Def_Range =>
+                     when Ada_Array_Type_Def_Range     =>
                         --  If TD is an array type, then it might be an array
                         --  of accesses to subprograms. Therefore, recursively
                         --  call Process_Type_Expr to check the type of the
@@ -1677,16 +1676,16 @@ package body LSP.Ada_Handlers is
                                .F_Component_Type
                                .F_Type_Expr);
 
-                     when others =>
+                     when others                       =>
                         return False;
                   end case;
 
-               when Ada_Anonymous_Type_Range =>
+               when Ada_Anonymous_Type_Range     =>
                   return
                     TE.As_Anonymous_Type.F_Type_Decl.F_Type_Def.Kind
                     in Ada_Access_To_Subp_Def_Range;
 
-               when others =>
+               when others                       =>
                   return False;
 
             end case;
@@ -1715,7 +1714,7 @@ package body LSP.Ada_Handlers is
                when Libadalang.Common.Ada_Call_Expr =>
                   Name := Expr.As_Call_Expr.F_Name;
 
-               when others =>
+               when others                          =>
                   return False;
             end case;
 
@@ -1732,11 +1731,10 @@ package body LSP.Ada_Handlers is
 
             case Decl.Kind is
                when Libadalang.Common.Ada_Base_Subp_Body
-                  | Libadalang.Common.Ada_Basic_Subp_Decl
-               =>
+                  | Libadalang.Common.Ada_Basic_Subp_Decl      =>
                   return True;
 
-               when Libadalang.Common.Ada_Param_Spec_Range =>
+               when Libadalang.Common.Ada_Param_Spec_Range     =>
                   return Process_Type_Expr (Decl.As_Param_Spec.F_Type_Expr);
 
                when Libadalang.Common.Ada_Component_Decl_Range =>
@@ -1744,13 +1742,13 @@ package body LSP.Ada_Handlers is
                     Process_Type_Expr
                       (Decl.As_Component_Decl.F_Component_Def.F_Type_Expr);
 
-               when Libadalang.Common.Ada_Object_Decl_Range =>
+               when Libadalang.Common.Ada_Object_Decl_Range    =>
                   --  This can either be an object which type is an access
                   --  to a subprogram or an array of accesses to
                   --  subprograms.
                   return Process_Type_Expr (Decl.As_Object_Decl.F_Type_Expr);
 
-               when others =>
+               when others                                     =>
                   return False;
             end case;
          end;
@@ -2539,11 +2537,9 @@ package body LSP.Ada_Handlers is
         (Context  => Context.all,
          Document => Document,
          Span     => LSP.Constants.Empty,
-         Options  => Value.options,
-         Provider =>
-           (if Self.Configuration.Use_Gnatformat
-            then LSP.Ada_Handlers.Formatting.Gnatformat
-            else LSP.Ada_Handlers.Formatting.Gnatpp),
+         Options  =>
+           LSP.Ada_Handlers.Formatting.Get_Formatting_Options
+             (Context.all, Value.options),
          Success  => Success,
          Response => Response,
          Messages => Messages,
@@ -2926,36 +2922,32 @@ package body LSP.Ada_Handlers is
       --  if configured to do so and taking into account where the cursor
       --  is.
 
-      Context      : constant LSP.Ada_Context_Sets.Context_Access :=
+      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
         Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      Document     : constant LSP.Ada_Documents.Document_Access :=
+      Document : constant LSP.Ada_Documents.Document_Access :=
         Self.Get_Open_Document (Value.textDocument.uri);
-      Response     : LSP.Structures.TextEdit_Vector_Or_Null;
-      --  Format_Options : constant Gnatformat.Configuration.Format_Options_Type :=
-      --    Context.Get_Format_Options;
-      --  Indentation              : constant Positive :=
-      --    Gnatformat.Configuration.Get_Indentation
-      --      (Format_Options, Unit.Get_Filename);
-      --  Indentation_Continuation : constant Positive :=
-      --    Gnatformat.Configuration.Get_Indentation_Continuation
-      --      (Format_Options, Unit.Get_Filename);
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+
+      Full_Options : constant Gnatformat.Configuration.Format_Options_Type :=
+        LSP.Ada_Handlers.Formatting.Get_Formatting_Options
+          (Context.all, Value.options);
+
       Indent_Array :
         constant LSP.Formatters.Fallback_Indenter.Indentation_Array :=
-          LSP.Formatters.Fallback_Indenter.Get_Indentation
-          (Buffer          =>
-             VSS.Strings.Conversions.To_UTF_8_String
-               (Document.Get_Text ((0, 0), (Value.position.line + 1, 0))),
-             From            => Value.position.line,
-             To              => Value.position.line + 1,
-             Indent_Level    => 3,
-             Indent_Continue => 2);
+          LSP.Ada_Handlers.Formatting.Get_Indentation
+            (Context  => Context.all,
+             Document => Document,
+             Span     =>
+               ((Value.position.line, 0), (Value.position.line + 1, 0)),
+             Options  => Full_Options);
       Indentation  : constant VSS.Strings.Character_Count :=
         (declare
            Indentation_First_Guess : constant VSS.Strings.Character_Count :=
-           ((if Indent_Array (Value.position.line + 1) = -1
-            then 0
-            else VSS.Strings.Character_Count
-              (Indent_Array (Value.position.line + 1))));
+             ((if Indent_Array (Value.position.line + 1) = -1
+               then 0
+               else
+                 VSS.Strings.Character_Count
+                   (Indent_Array (Value.position.line + 1))));
          begin
            (if Indentation_First_Guess
               >= VSS.Strings.Character_Count (Value.position.character)
@@ -3021,7 +3013,11 @@ package body LSP.Ada_Handlers is
          Response.Append
            (LSP.Structures.TextEdit'
               (a_range => (start => Value.position, an_end => Value.position),
-               newText => Indentation * VSS.Characters.Latin.Space));
+               newText => LSP.Ada_Handlers.Formatting.Handle_Tabs
+                      (Context.all,
+                       Document,
+                       Full_Options,
+                       Indentation * ' ')));
       end Handle_Document_With_Diagnostics;
 
       -----------------------------------------
@@ -3088,7 +3084,12 @@ package body LSP.Ada_Handlers is
               (LSP.Structures.TextEdit'
                  (a_range =>
                     (start => Value.position, an_end => Value.position),
-                  newText => Indentation * ' '));
+                  newText =>
+                    LSP.Ada_Handlers.Formatting.Handle_Tabs
+                      (Context.all,
+                       Document,
+                       Full_Options,
+                       Indentation * ' ')));
 
             return;
          end if;
@@ -3106,7 +3107,12 @@ package body LSP.Ada_Handlers is
               (LSP.Structures.TextEdit'
                  (a_range =>
                     (start => Value.position, an_end => Value.position),
-                  newText => Indentation * ' '));
+                  newText =>
+                    LSP.Ada_Handlers.Formatting.Handle_Tabs
+                      (Context.all,
+                       Document,
+                       Full_Options,
+                       Indentation * ' ')));
 
             return;
          end if;
@@ -3122,11 +3128,7 @@ package body LSP.Ada_Handlers is
               (Context  => Context.all,
                Document => Document,
                Span     => Previous_NWNC_Token_Span,
-               Options  => Value.options,
-               Provider =>
-                 (if Self.Configuration.Use_Gnatformat
-                  then LSP.Ada_Handlers.Formatting.Gnatformat
-                  else LSP.Ada_Handlers.Formatting.Gnatpp),
+               Options  => Full_Options,
                Success  => Success,
                Response => Response,
                Error    => Error);
@@ -3141,7 +3143,12 @@ package body LSP.Ada_Handlers is
               (LSP.Structures.TextEdit'
                  (a_range =>
                     (start => Value.position, an_end => Value.position),
-                  newText => Indentation * ' '));
+                  newText =>
+                    LSP.Ada_Handlers.Formatting.Handle_Tabs
+                      (Context.all,
+                       Document,
+                       Full_Options,
+                       Indentation * ' ')));
          end;
       end Handle_Document_Without_Diagnostics;
 
@@ -3345,34 +3352,32 @@ package body LSP.Ada_Handlers is
 
       Response : LSP.Structures.TextEdit_Vector_Or_Null;
       Error    : LSP.Errors.ResponseError;
-      Success  : Boolean;
+      Success  : Boolean := True;
       Messages : VSS.String_Vectors.Virtual_String_Vector;
 
    begin
-      if LSP.Ada_Configurations.Partial_GNATPP then
-         LSP.Ada_Handlers.Formatting.Range_Format
+      if Document.Has_Diagnostics (Context.all)
+        and then Self.Configuration.Range_Formatting_Fallback
+      then
+         LSP.Ada_Handlers.Formatting.Indent_Lines
            (Context  => Context.all,
             Document => Document,
             Span     => Value.a_range,
-            Options  => Value.options,
-            Provider =>
-              (if Self.Configuration.Use_Gnatformat
-               then LSP.Ada_Handlers.Formatting.Gnatformat
-               else LSP.Ada_Handlers.Formatting.Gnatpp),
+            Options  =>
+              LSP.Ada_Handlers.Formatting.Get_Formatting_Options
+                (Context.all, Value.options),
             Success  => Success,
             Response => Response,
+            Messages => Messages,
             Error    => Error);
-
       else
          LSP.Ada_Handlers.Formatting.Format
            (Context  => Context.all,
             Document => Document,
             Span     => Value.a_range,
-            Options  => Value.options,
-            Provider =>
-              (if Self.Configuration.Use_Gnatformat
-               then LSP.Ada_Handlers.Formatting.Gnatformat
-               else LSP.Ada_Handlers.Formatting.Gnatpp),
+            Options  =>
+              LSP.Ada_Handlers.Formatting.Get_Formatting_Options
+                (Context.all, Value.options),
             Success  => Success,
             Response => Response,
             Messages => Messages,

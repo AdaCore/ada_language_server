@@ -244,6 +244,7 @@ class ALSSettings(
     scenarioVariables: dict[str, str] | None
     useCompletionSnippets: bool | None
     useGnatformat: bool | None
+    rangeFormattingFallback: bool | None
 
 
 class ALSLanguageClient(LanguageClient):

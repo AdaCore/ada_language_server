@@ -25,13 +25,7 @@ async def test_called_by(lsp: ALSLanguageClient):
     lsp.workspace_did_change_configuration(
         DidChangeConfigurationParams({"ada": {"useGnatformat": True}})
     )
-    await sendFormattingRequestsAndAssertErrors(lsp, main_adb_uri, "GNATFORMAT")
-
-    # Test with GNATpp formatting backend
-    lsp.workspace_did_change_configuration(
-        DidChangeConfigurationParams({"ada": {"useGnatformat": False}})
-    )
-    await sendFormattingRequestsAndAssertErrors(lsp, main_adb_uri, "GNATPP")
+    await sendFormattingRequestsAndAssertErrors(lsp, main_adb_uri, "GNATformat")
 
 
 async def sendFormattingRequestsAndAssertErrors(lsp, main_adb_uri, formatter):

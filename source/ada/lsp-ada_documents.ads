@@ -19,15 +19,13 @@
 
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
-with VSS.String_Vectors;
+with Gnatformat.Configuration;
 with VSS.Strings;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
 with Langkit_Support.Slocs;
 with Laltools.Partial_GNATPP;
-
-with Pp.Command_Lines;
 
 limited with LSP.Ada_Contexts;
 limited with LSP.Ada_Handlers;
@@ -168,36 +166,18 @@ package LSP.Ada_Documents is
    --  Given Position, get the region that would be formatted if
    --  Range_Formatting was called.
 
-   function Formatting
-     (Self     : Document;
-      Context  : LSP.Ada_Contexts.Context;
-      Span     : LSP.Structures.A_Range;
-      Cmd      : Pp.Command_Lines.Cmd_Line;
-      Edit     : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector) return Boolean;
-   --  Format document or its part defined in Span
-
    function Format
      (Self    : Document;
-      Context : LSP.Ada_Contexts.Context)
+      Context : LSP.Ada_Contexts.Context;
+      Options : Gnatformat.Configuration.Format_Options_Type)
       return LSP.Structures.TextEdit_Vector;
    --  Format Self with formatting options based on Context
-
-   function Range_Formatting
-     (Self       : Document;
-      Context    : LSP.Ada_Contexts.Context;
-      Span       : LSP.Structures.A_Range;
-      PP_Options : Pp.Command_Lines.Cmd_Line;
-      Edit       : out LSP.Structures.TextEdit_Vector;
-      Messages   : out VSS.String_Vectors.Virtual_String_Vector)
-      return Boolean;
-   --  Format document or its part defined in Span
 
    function Range_Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
-      Options : LSP.Structures.FormattingOptions)
+      Options : Gnatformat.Configuration.Format_Options_Type)
       return LSP.Structures.TextEdit;
    --  Format part of Self defined by Span with formatting options based on
    --  Context.

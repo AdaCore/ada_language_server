@@ -1,0 +1,554 @@
+[
+   {
+      "comment": [
+         "Test rangeFormatting request with Width set to 50"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+  {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "inlineValueProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure T is\n\tfunction Foo (I : Integer)\n\treturn Boolean is (True);\n\n   XXXXXXXXXXXXXX : Integer;\n   YYYYYYYYYYYYYY : Integer;\nbegin\n\tif Foo (XXXXXXXXXXXXXX + XXXXXXXXXXXXXX * YYYYYYYYYYYYYY = YYYYYYYYYYYYYY + YYYYYYYYYYYYYY) then\n      null;\n   end if;\nend T;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/rangeFormatting",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 0,
+                     "character": 0
+                  },
+                  "end": {
+                     "line": 10,
+                     "character": 6
+                  }
+               },
+               "options": {
+                  "tabSize": 3,
+                  "insertSpaces": true,
+                  "trimTrailingWhitespace": true,
+                  "insertFinalNewline": false,
+                  "trimFinalNewlines": true,
+                  "gnatFormatMaxSize": 50,
+                  "gnatFormatContinuationLineIndent": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 3,
+                           "character": 0
+                        }
+                     },
+                     "newText": "   function Foo (I : Integer) return Boolean\n   is (True);\n"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 8,
+                           "character": 0
+                        }
+                     },
+                     "newText": "   if Foo\n        (XXXXXXXXXXXXXX\n         + XXXXXXXXXXXXXX * YYYYYYYYYYYYYY\n         = YYYYYYYYYYYYYY + YYYYYYYYYYYYYY)\n   then\n"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 1
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 92
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 92
+                        }
+                     },
+                     "text": "\n  "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 2
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 57
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 57
+                        }
+                     },
+                     "text": "\n        "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 3
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 23
+                        }
+                     },
+                     "text": "\n        "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 4
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 7
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 7
+                        }
+                     },
+                     "text": "\n       "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 5
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 1
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 1
+                        }
+                     },
+                     "text": "   "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 6
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 7,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 7,
+                           "character": 1
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 7
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 15
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 15
+                        }
+                     },
+                     "text": "\n  "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 8
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 1
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 1
+                        }
+                     },
+                     "text": " "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 9
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 27
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 1
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 10
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 1
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 1
+                        }
+                     },
+                     "text": "   "
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}",
+                  "version": 11
+               },
+               "contentChanges": [
+                  {
+                     "range": {
+                        "start": {
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 1
+                        }
+                     },
+                     "text": ""
+                  }
+               ]
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "textDocument/rangeFormatting",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 0,
+                     "character": 0
+                  },
+                  "end": {
+                     "line": 14,
+                     "character": 6
+                  }
+               },
+               "options": {
+                  "tabSize": 3,
+                  "insertSpaces": true,
+                  "trimTrailingWhitespace": true,
+                  "insertFinalNewline": false,
+                  "trimFinalNewlines": true,
+                  "gnatFormatMaxSize": 50,
+                  "gnatFormatContinuationLineIndent": 2
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 9,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{t.adb}"
+               }
+            }
+         },
+         "wait": [
+            {
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{t.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 11,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
