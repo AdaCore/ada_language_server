@@ -1,6 +1,7 @@
 import { CancellationError, QuickPickItem } from 'vscode';
 import { adaExtState } from './extension';
 import { InputFlowAction, MultiStepInput } from './multiStepInput';
+import assert from 'assert';
 
 interface SPARKOption extends QuickPickItem {
     cliArgs: string[];
@@ -14,7 +15,9 @@ const proofLevels: SPARKOption[] = [
     { label: '4', description: 'Slowest, most provers' },
 ].map((v) => ({ ...v, cliArgs: [`--level=${v.label}`] }));
 
-const defaultProofLevel = proofLevels.find((v) => v.description?.includes('default'))!;
+const tmpDefaultProofLevel = proofLevels.find((v) => v.description?.includes('default'));
+assert(tmpDefaultProofLevel, 'defaultProofLevel should not be null');
+const defaultProofLevel: SPARKOption = tmpDefaultProofLevel;
 
 const options: SPARKOption[] = [
     { label: 'Multiprocessing', cliArgs: ['-j0'] },
@@ -76,7 +79,7 @@ const WS_STATE_KEY_PICKER = 'ada.spark.lastPickerState';
  */
 export async function askSPARKOptions(): Promise<string[]> {
     const title = 'Select GNATprove Options';
-    async function pickProofLevel(input: MultiStepInput, state: Partial<PickerState>) {
+    async function pickProofLevel(input: MultiStepInput, state: PickerState) {
         const choice: SPARKOption = await input.showQuickPick({
             title,
             step: 1,
@@ -89,7 +92,7 @@ export async function askSPARKOptions(): Promise<string[]> {
         return (input: MultiStepInput) => pickOtherOptions(input, state);
     }
 
-    async function pickOtherOptions(input: MultiStepInput, state: Partial<PickerState>) {
+    async function pickOtherOptions(input: MultiStepInput, state: PickerState) {
         const choice: SPARKOption[] = await input.showQuickPick({
             title,
             step: 2,
@@ -137,7 +140,7 @@ function getSavedPickerState() {
     return pickerState;
 }
 
-function toCLIArgs(choices: Partial<PickerState>): string[] {
+function toCLIArgs(choices: PickerState): string[] {
     const args: string[] = [];
 
     if (choices.proofLevel) {
