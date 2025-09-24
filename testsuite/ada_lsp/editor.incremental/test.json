@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "test corner cases of incremental editor changes"
-      ]
+      "comment": ["test corner cases of incremental editor changes"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -27,10 +23,7 @@
                   "textDocument": {
                      "completion": {
                         "completionItem": {
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ],
+                           "documentationFormat": ["markdown", "plaintext"],
                            "commitCharactersSupport": true,
                            "preselectSupport": true,
                            "deprecatedSupport": true,
@@ -38,31 +31,8 @@
                         },
                         "completionItemKind": {
                            "valueSet": [
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                              6,
-                              7,
-                              8,
-                              9,
-                              10,
-                              11,
-                              12,
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                              20,
-                              21,
-                              22,
-                              23,
-                              24,
-                              25
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25
                            ]
                         },
                         "contextSupport": true,
@@ -74,10 +44,7 @@
                      },
                      "signatureHelp": {
                         "signatureInformation": {
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ],
+                           "documentationFormat": ["markdown", "plaintext"],
                            "parameterInformation": {
                               "labelOffsetSupport": true
                            }
@@ -85,10 +52,7 @@
                         "dynamicRegistration": true
                      },
                      "hover": {
-                        "contentFormat": [
-                           "markdown",
-                           "plaintext"
-                        ],
+                        "contentFormat": ["markdown", "plaintext"],
                         "dynamicRegistration": true
                      },
                      "declaration": {
@@ -129,32 +93,8 @@
                      "documentSymbol": {
                         "symbolKind": {
                            "valueSet": [
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                              6,
-                              7,
-                              8,
-                              9,
-                              10,
-                              11,
-                              12,
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                              20,
-                              21,
-                              22,
-                              23,
-                              24,
-                              25,
-                              26
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
                            ]
                         },
                         "hierarchicalDocumentSymbolSupport": true,
@@ -213,43 +153,15 @@
                      "symbol": {
                         "symbolKind": {
                            "valueSet": [
-                              1,
-                              2,
-                              3,
-                              4,
-                              5,
-                              6,
-                              7,
-                              8,
-                              9,
-                              10,
-                              11,
-                              12,
-                              13,
-                              14,
-                              15,
-                              16,
-                              17,
-                              18,
-                              19,
-                              20,
-                              21,
-                              22,
-                              23,
-                              24,
-                              25,
-                              26
+                              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                              16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
                            ]
                         },
                         "dynamicRegistration": true
                      },
                      "workspaceEdit": {
                         "failureHandling": "textOnlyTransactional",
-                        "resourceOperations": [
-                           "create",
-                           "rename",
-                           "delete"
-                        ],
+                        "resourceOperations": ["create", "rename", "delete"],
                         "documentChanges": true
                      }
                   }
@@ -267,7 +179,7 @@
                      "typeDefinitionProvider": true,
                      "alsReferenceKinds": [
                         "reference",
-                         "access",
+                        "access",
                         "write",
                         "call",
                         "dispatching call",
@@ -282,12 +194,7 @@
                      "textDocumentSync": 2,
                      "declarationProvider": true,
                      "completionProvider": {
-                        "triggerCharacters": [
-                            ".",
-                            ",",
-                            "'",
-                            "("
-                        ],
+                        "triggerCharacters": [".", ",", "'", "("],
                         "resolveProvider": true
                      },
                      "documentSymbolProvider": true
@@ -330,7 +237,9 @@
          "wait": []
       }
    },
-   {"comment": "-------------------------------- send initial text ------------------------"},
+   {
+      "comment": "-------------------------------- send initial text ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -345,11 +254,12 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didOpen"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
-   {"comment": "-------------------------------- remove the first character and verify that the diagnostics reflect this ------------------------"},
+   {
+      "comment": "-------------------------------- remove the first character and verify that the diagnostics reflect this ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -418,7 +328,9 @@
          ]
       }
    },
-   {"comment": "-------------------------------- undo this and verify that diagnostics are happy  ------------------------"},
+   {
+      "comment": "-------------------------------- undo this and verify that diagnostics are happy  ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -458,7 +370,9 @@
          ]
       }
    },
-   {"comment": "-------------------------------- remove the last character ------------------------"},
+   {
+      "comment": "-------------------------------- remove the last character ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -512,7 +426,9 @@
          ]
       }
    },
-   {"comment": "-------------------------------- re-add the last character and verify that diagnostics are happy ------------------------"},
+   {
+      "comment": "-------------------------------- re-add the last character and verify that diagnostics are happy ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -552,7 +468,9 @@
          ]
       }
    },
-   {"comment": "-------------------------------- removal of a text range ------------------------"},
+   {
+      "comment": "-------------------------------- removal of a text range ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -619,7 +537,9 @@
          ]
       }
    },
-   {"comment": "-------------------------------- re-addition of one line ------------------------"},
+   {
+      "comment": "-------------------------------- re-addition of one line ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -659,7 +579,9 @@
          ]
       }
    },
-   {"comment": "--------------------------------  removal of the last line ------------------------"},
+   {
+      "comment": "--------------------------------  removal of the last line ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -690,42 +612,34 @@
          },
          "wait": [
             {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
                "params": {
-                  "uri": "$URI{hello.ads}",
                   "diagnostics": [
                      {
+                        "message": "Expected 'end', got Termination",
                         "range": {
-                           "start": {
-                              "line": 0,
-                              "character": 0
-                           },
                            "end": {
-                              "line": 0,
-                              "character": 7
+                              "character": 0,
+                              "line": 5
+                           },
+                           "start": {
+                              "character": 0,
+                              "line": 5
                            }
                         },
-                        "message": "Skipped token package"
-                     },
-                     {
-                        "range": {
-                           "start": {
-                              "line": 0,
-                              "character": 8
-                           },
-                           "end": {
-                              "line": 0,
-                              "character": 13
-                           }
-                        },
-                        "message": "Skipped token hello"
-                     }]
-               },
-               "method": "textDocument/publishDiagnostics"
+                        "source": "libadalang"
+                     }
+                  ],
+                  "uri": "$URI{hello.ads}"
+               }
             }
          ]
       }
    },
-   {"comment": "-------------------------------- re-addition of the last line  ------------------------"},
+   {
+      "comment": "-------------------------------- re-addition of the last line  ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -765,7 +679,9 @@
          ]
       }
    },
-   {"comment": "-------------------------------- text replacement containing line breaks ------------------------"},
+   {
+      "comment": "-------------------------------- text replacement containing line breaks ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -824,14 +740,17 @@
                            }
                         },
                         "message": "Skipped token hello"
-                     }]
+                     }
+                  ]
                },
                "method": "textDocument/publishDiagnostics"
             }
          ]
       }
    },
-   {"comment": "-------------------------------- undo text replacement containing line breaks ------------------------"},
+   {
+      "comment": "-------------------------------- undo text replacement containing line breaks ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -871,7 +790,9 @@
          ]
       }
    },
-   {"comment": "-------------------------------- deleting multiple lines ------------------------"},
+   {
+      "comment": "-------------------------------- deleting multiple lines ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -900,11 +821,12 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didChange"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
-   {"comment": "-------------------------------- re-adding multiple lines ------------------------"},
+   {
+      "comment": "-------------------------------- re-adding multiple lines ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -933,8 +855,7 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didChange"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
    {
@@ -965,11 +886,12 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didChange"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
-   {"comment": "-------------------------------- multiple copies in succession ------------------------"},
+   {
+      "comment": "-------------------------------- multiple copies in succession ------------------------"
+   },
    {
       "send": {
          "request": {
@@ -998,8 +920,7 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didChange"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
    {
@@ -1067,8 +988,7 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didChange"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
    {
@@ -1099,8 +1019,7 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didChange"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
    {
@@ -1131,8 +1050,7 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didChange"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
    {
@@ -1163,11 +1081,12 @@
             "jsonrpc": "2.0",
             "method": "textDocument/didChange"
          },
-         "wait": [
-         ]
+         "wait": []
       }
    },
-   {"comment": "--------------------------------after undo, verify that a hover works ------------------------"},
+   {
+      "comment": "--------------------------------after undo, verify that a hover works ------------------------"
+   },
    {
       "send": {
          "request": {
