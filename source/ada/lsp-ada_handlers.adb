@@ -48,6 +48,7 @@ with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
 with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
 with LAL_Refactor.Suppress_Separate;
+with LAL_Refactor.Swap_If_Not;
 
 with LSP.Ada_Completions.Aspects;
 with LSP.Ada_Completions.Attributes;
@@ -84,6 +85,7 @@ with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Case;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+with LSP.Ada_Handlers.Refactor.Swap_If_Not;
 with LSP.Ada_Handlers.Renaming;
 with LSP.Ada_Handlers.Symbols;
 with LSP.Ada_Commands;
@@ -779,6 +781,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Sort Dependencies refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Swap_If_Not_Code_Action;
+         --  Checks if the Swap_If_Not refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          -------------------------------------------------
          -- Change_Parameters_Default_Value_Code_Action --
          -------------------------------------------------
@@ -1324,6 +1330,45 @@ package body LSP.Ada_Handlers is
             end if;
          end Sort_Dependencies_Code_Action;
 
+         -----------------------------
+         -- Swap_If_Not_Code_Action --
+         -----------------------------
+
+         procedure Swap_If_Not_Code_Action is
+            use LSP.Ada_Handlers.Refactor.Swap_If_Not;
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Swap_If_Not;
+            use type LSP.Structures.Position;
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+
+            Location        : Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Swap_Command : Command;
+
+         begin
+            if Single_Location
+              and then Is_Swap_Available (Node.Unit, Location)
+            then
+               Swap_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Where           =>
+                    (Value.textDocument.uri,
+                     ((Natural (Location.Line) - 1,
+                      Natural (Location.Column) - 1),
+                      (Natural (Location.Line) - 1,
+                       Natural (Location.Column) - 1)),
+                     LSP.Constants.Empty));
+
+               Found := True;
+            end if;
+         end Swap_If_Not_Code_Action;
+
       begin
          Named_Parameters_Code_Action;
 
@@ -1521,6 +1566,8 @@ package body LSP.Ada_Handlers is
          if Self.Client.Refactoring_Replace_Type then
             Replace_Type_Code_Action;
          end if;
+
+         Swap_If_Not_Code_Action;
       end Analyse_Node;
 
       ----------------------------------

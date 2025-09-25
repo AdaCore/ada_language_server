@@ -21,6 +21,7 @@
 * [Replace Type](#replace-type)
 * [Auto Import](#auto-import)
 * [Sort Dependencies](#sort-dependencies)
+* [Swap If/else statments](#swap-ifelse-statments))
 
 ## Named Parameters
 
@@ -247,3 +248,11 @@ See `src/lal_refactor-sort_dependencies.ads` in [LAL Refactor repository](https:
 Demo source is `sort_dependencies/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
 ![replace_type](media/replace_type.gif)
+
+## Swap If/else statments
+
+**Command name:** `als-refactor-swap_if_not`
+
+* Swap If and else code branches and correct condition by adding/deleting `not`.
+
+See `src/lal_refactor-swap_if_not` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).

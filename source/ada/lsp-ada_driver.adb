@@ -79,6 +79,7 @@ with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Case;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
+with LSP.Ada_Handlers.Refactor.Swap_If_Not;
 with LSP.Ada_Handlers.Show_Dependencies_Commands;
 with LSP.Ada_Handlers.GPR_Dependencies_Commands;
 with LSP.Ada_Handlers.Source_Dirs_Commands;
@@ -237,6 +238,8 @@ procedure LSP.Ada_Driver is
         (LSP.Ada_Handlers.Refactor.Sort_Case.Declaration_Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command'Tag);
+      LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Refactor.Swap_If_Not.Command'Tag);
 
       --  Refactoring - Change Subprogram Signature Commands
       LSP.Ada_Commands.Register
