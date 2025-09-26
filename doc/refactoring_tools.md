@@ -251,8 +251,8 @@ Demo source is `sort_dependencies/` in [Code Samples](https://github.com/AdaCore
 
 ## Swap If/else statments
 
-**Command name:** `als-refactor-swap_if_not`
+**Command name:** `als-refactor-swap_if_else`
 
-* Swap If and else code branches and correct condition by adding/deleting `not`.
+* Swap If and else code branches and invert condition.
 
-See `src/lal_refactor-swap_if_not` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
+See `src/lal_refactor-swap_if_else` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
