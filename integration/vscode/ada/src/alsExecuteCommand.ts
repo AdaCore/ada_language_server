@@ -40,7 +40,7 @@ import {
     ReplaceTypeCommandArgs,
 } from './refactoring/alsReplaceTypeCommand';
 import { adaExtState } from './extension';
-import { CMD_RELOAD_PROJECT } from './commands';
+import { CMD_RELOAD_PROJECT } from './constants';
 
 /**
  * Type alias for a function that intercepts a command and executes it by return a promise that

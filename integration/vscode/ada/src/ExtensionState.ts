@@ -14,7 +14,7 @@ import {
     CMD_SHOW_ADA_LS_OUTPUT,
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
-} from './commands';
+} from './constants';
 import { AdaInitialDebugConfigProvider, initializeDebugging } from './debugConfigProvider';
 import { logger } from './extension';
 import { GnatTaskProvider } from './gnatTaskProvider';
