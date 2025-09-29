@@ -1,0 +1,275 @@
+[
+   {
+      "comment": [
+         "test `inline variable` refactoring tool"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 15909,
+               "locale": "en-gb",
+               "rootPath": "$URI{.}",
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": [
+                           "rename"
+                        ]
+                     },
+                     "executeCommand": {
+                        "dynamicRegistration": true
+                     }
+                  },
+                  "textDocument": {
+                     "codeAction": {
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": [
+                                 "",
+                                 "refactor",
+                                 "refactor.extract",
+                                 "refactor.inline",
+                                 "refactor.rewrite"
+                              ]
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "codeActionProvider": {
+                        "workDoneProgress": false,
+                        "codeActionKinds": [
+                           "<HAS>",
+                           "refactor.rewrite"
+                        ]
+                     },
+                     "executeCommandProvider": {
+                        "commands": [
+                           "<HAS>",
+                           "als-refactor-inline_variable"
+                        ]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+       "send": {
+           "request": {
+               "jsonrpc": "2.0",
+               "method": "workspace/didChangeConfiguration",
+               "params": {
+                   "settings": {
+                       "ada": {
+                           "trace": {
+                               "server": "off"
+                           },
+                           "projectFile": "default.gpr",
+                           "scenarioVariables": {},
+                           "defaultCharset": "iso-8859-1",
+                           "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                           "adaFileDiagnostics": true,
+                           "renameInComments": false
+                       }
+                   }
+               }
+           },
+           "wait": []
+       }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "\nwith Ada.Text_IO;\n\nprocedure Main is\n   Inline : Integer := 1;\n   Var    : Integer := 1;\nbegin\n   Var := Var + Inline;\n   Ada.Text_IO.Put_Line (Var'Img);\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 4,
+                     "character": 6
+                  },
+                  "end": {
+                     "line": 4,
+                     "character": 6
+                  }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": [
+                  "<HAS>",
+                  {
+                     "title": "Inline variable",
+                     "kind": "refactor.extract",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-inline_variable",
+                        "arguments": [
+                           {
+                              "context_id": "$URI{default.gpr}",
+                              "location": {
+                                 "uri": "$URI{main.adb}",
+                                 "range": {
+                                    "start": {
+                                       "line": 4,
+                                       "character": 6
+                                    },
+                                    "end": {
+                                       "line": 4,
+                                       "character": 6
+                                    }
+                                 }
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "workspace/executeCommand",
+            "params": {
+               "arguments": [
+                  {
+                     "context_id": "$URI{default.gpr}",
+                     "location": {
+                        "range": {
+                           "end": {
+                              "character": 6,
+                              "line": 4
+                           },
+                           "start": {
+                              "character": 6,
+                              "line": 4
+                           }
+                        },
+                        "uri": "$URI{main.adb}"
+                     }
+                  }
+               ],
+               "command": "als-refactor-inline_variable"
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "label": "Inline variable",
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "uri": "$URI{main.adb}",
+                              "version": 0
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 3,
+                                       "character": 18
+                                    },
+                                    "end": {
+                                       "line": 4,
+                                       "character": 25
+                                    }
+                                 },
+                                 "newText": "",
+                                 "annotationId": ""
+                              },
+                              {
+                                 "range": {
+                                    "start": {
+                                       "line": 7,
+                                       "character": 16
+                                    },
+                                    "end": {
+                                       "line": 7,
+                                       "character": 22
+                                    }
+                                 },
+                                 "newText": "1",
+                                 "annotationId": ""
+                              }
+                           ]
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
