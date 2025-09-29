@@ -121,6 +121,23 @@ export const TERMINAL_ENV_SETTING_NAME =
     (platform() == 'darwin' ? 'osx' : platform() == 'win32' ? 'windows' : 'linux');
 
 /**
+ * Check if VS Code is running in a remote environment.
+ * @returns True if running remotely, false otherwise.
+ */
+export function isRunningOnRemote(): boolean {
+    return vscode.env.remoteName !== undefined;
+}
+
+/**
+ * Check if a VS Code extension is installed.
+ * @param extensionId - The ID of the extension to check.
+ * @returns True if the extension is installed, false otherwise.
+ */
+export function isExtensionInstalled(extensionId: string): boolean {
+    return vscode.extensions.getExtension(extensionId) !== undefined;
+}
+
+/**
  *
  * @returns the value of the applicable `terminal.integrated.env.*` setting,
  * without evaluation of macros such as `${env:...}`.
