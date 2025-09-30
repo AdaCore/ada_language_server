@@ -23,7 +23,7 @@ import { DEFAULT_PROBLEM_MATCHERS, WarningMessageExecution } from './taskProvide
 /**
  * Callback to provide an extra argument for a tool
  */
-type ExtraArgCallback = () => Promise<string[]>;
+type ExtraArgCallback = () => Promise<string[] | string>;
 
 /**
  * Tool description

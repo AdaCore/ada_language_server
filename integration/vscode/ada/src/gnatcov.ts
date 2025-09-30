@@ -5,7 +5,14 @@ import { cpus } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CancellationToken } from 'vscode-languageclient';
-import { getMatchingPrefixes, parallelize, staggerProgress, toPosix } from './helpers';
+import { logger } from './extension';
+import {
+    getMatchingPrefixes,
+    parallelize,
+    showErrorMessageWithOpenLogButton,
+    staggerProgress,
+    toPosix,
+} from './helpers';
 
 /**
  * Parsing GNATcoverage XML reports.
@@ -25,7 +32,8 @@ import { getMatchingPrefixes, parallelize, staggerProgress, toPosix } from './he
  * where we can give the XML paths that should always be parsed as lists, even
  * when one tag is encountered. However if no tags are encountered, the parser
  * simply doesn't create the corresponding property in the result object, and
- * accessing the property yields `undefined`.
+ * accessing the property yields `undefined`. For this reason all array
+ * properties are typed as optional.
  *
  * Similarly, the parser is configured with a function
  * `attributeValueProcessor` allowing to convert attributes to more specific
@@ -55,7 +63,7 @@ type coverage_info_type = {
     traces: traces_type;
 };
 type traces_type = {
-    trace: trace_type[];
+    trace?: trace_type[];
 };
 type trace_type = {
     '@_filename': string;
@@ -66,13 +74,13 @@ type trace_type = {
 };
 type trace_kind_type = 'binary' | 'source';
 type coverage_summary_type = {
-    metric: metric_type[];
-    obligation_stats: obligation_stats_type[];
-    file: file_type[];
+    metric?: metric_type[];
+    obligation_stats?: obligation_stats_type[];
+    file?: file_type[];
 };
 type file_type = {
-    metric: metric_type[];
-    obligation_stats: obligation_stats_type[];
+    metric?: metric_type[];
+    obligation_stats?: obligation_stats_type[];
     '@_name'?: string;
 };
 type coverage_level_type =
@@ -85,7 +93,7 @@ type coverage_level_type =
 
 type sources_type = {
     source?: source_type[];
-    'xi:include': xi_include_type[];
+    'xi:include'?: xi_include_type[];
 };
 
 type xi_include_type = {
@@ -96,13 +104,13 @@ type xi_include_type = {
 export type source_type = {
     '@_file': string;
     '@_coverage_level': coverage_level_type;
-    scope_metric: scope_metric_type[];
-    src_mapping: src_mapping_type[];
+    scope_metric?: scope_metric_type[];
+    src_mapping?: src_mapping_type[];
 };
 type scope_metric_type = {
-    metric: metric_type[];
-    obligation_stats: obligation_stats_type[];
-    scope_metric: scope_metric_type[];
+    metric?: metric_type[];
+    obligation_stats?: obligation_stats_type[];
+    scope_metric?: scope_metric_type[];
     '@_scope_name': string;
     '@_scope_line': number;
 };
@@ -124,18 +132,18 @@ type metric_kind_type =
     | 'exempted_undetermined_coverage'
     | 'exempted';
 type obligation_stats_type = {
-    metric: metric_type[];
+    metric?: metric_type[];
     '@_kind': string;
 };
 export type src_mapping_type = {
     src: src_type;
-    statement: statement_type[] | undefined;
-    decision: decision_type[] | undefined;
-    message: message_type[] | undefined;
+    statement?: statement_type[];
+    decision?: decision_type[];
+    message?: message_type[];
     '@_coverage': coverage_type;
 };
 type src_type = {
-    line: line_type[];
+    line?: line_type[];
 };
 export type line_type = {
     '@_num': number;
@@ -192,7 +200,7 @@ export type coverage_type = (typeof coverage_type_values)[number];
 
 type decision_type = {
     src?: src_type;
-    condition: condition_type[];
+    condition?: condition_type[];
     '@_coverage': coverage_type;
     '@_id': number;
     '@_text': string;
@@ -357,7 +365,7 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
             title: 'Loading GNATcoverage report',
         },
         async (progress, token) => {
-            const array = data.coverage_report.coverage_summary!.file;
+            const array = data.coverage_report.coverage_summary?.file ?? [];
             let done: number = 0;
             let lastProgress = 0;
             const totalFiles = array.length;
@@ -537,9 +545,22 @@ export async function addCoverageData(run: vscode.TestRun, covDir: string) {
                             `Could not find the file in the workspace: ${file['@_name']}`,
                         );
 
-                        const fileReportBasename = data.coverage_report.sources!['xi:include'].find(
+                        const fileReportBasename = data.coverage_report.sources?.[
+                            'xi:include'
+                        ]?.find(
                             (inc) => inc['@_href'] == `${path.posix.basename(srcUri.path)}.xml`,
-                        )!['@_href'];
+                        )?.['@_href'];
+
+                        if (!fileReportBasename) {
+                            const msg = `Malformed GNATcoverage report ${indexPath}`;
+                            void showErrorMessageWithOpenLogButton(msg);
+                            logger.warn(
+                                `${msg}: cannot find <xi:include> element for source file ` +
+                                    `${path.posix.basename(srcUri.path)}`,
+                            );
+                            return undefined;
+                        }
+
                         const fileReportPath = path.join(covDir, fileReportBasename);
 
                         const stmtStats = getStats(file, 'Stmt') ?? { covered: 0, total: 0 };
@@ -661,13 +682,14 @@ function getStats(
     file: file_type,
     level: 'Stmt' | 'Decision' | 'MCDC',
 ): vscode.TestCoverageCount | undefined {
-    const stats = file.obligation_stats.find((s) => s['@_kind'] == level);
+    const stats = file.obligation_stats?.find((s) => s['@_kind'] == level);
     if (stats) {
         const total =
             stats?.metric?.find((m) => m['@_kind'] == 'total_obligations_of_relevance')?.[
                 '@_count'
             ] ?? 0;
-        const covered = stats?.metric?.find((m) => m['@_kind'] == 'fully_covered')!['@_count'] ?? 0;
+        const covered =
+            stats?.metric?.find((m) => m['@_kind'] == 'fully_covered')?.['@_count'] ?? 0;
         return { covered, total };
     } else {
         return undefined;
@@ -678,16 +700,18 @@ export function convertSourceReport(
     data: source_type,
     token?: CancellationToken,
 ): vscode.StatementCoverage[] {
-    return data.src_mapping
-        .flatMap((src_mapping) => {
-            if (token?.isCancellationRequested) {
-                throw new vscode.CancellationError();
-            }
+    return (
+        data.src_mapping
+            ?.flatMap((src_mapping) => {
+                if (token?.isCancellationRequested) {
+                    throw new vscode.CancellationError();
+                }
 
-            return convertSrcMapping(src_mapping);
-        })
-        .flat()
-        .filter((v) => !!v);
+                return convertSrcMapping(src_mapping);
+            })
+            .flat()
+            .filter((v) => !!v) ?? []
+    );
 }
 
 export function convertSrcMapping(src_mapping: src_mapping_type): vscode.StatementCoverage[] {
@@ -785,9 +809,9 @@ export function convertSrcMapping(src_mapping: src_mapping_type): vscode.Stateme
             /**
              * Add <condition> reports as more branches
              */
-            const conditions = decision.condition
-                ?.filter((c) => c['@_coverage'] != '.')
-                ?.flatMap((condition) => {
+            const conditions: vscode.BranchCoverage[] = (decision.condition ?? [])
+                .filter((c) => c['@_coverage'] != '.')
+                .flatMap((condition) => {
                     assert(condition.src);
                     const mergedText = mergeText(condition.src);
                     const messages = getMessages(condition, src_mapping);
@@ -799,7 +823,7 @@ export function convertSrcMapping(src_mapping: src_mapping_type): vscode.Stateme
                             (m) =>
                                 new vscode.BranchCoverage(
                                     m['@_kind'] == 'notice',
-                                    toRange(condition.src!),
+                                    condition.src ? toRange(condition.src) : undefined,
 
                                     `condition ${m['@_kind']}: '${mergedText}' ${m['@_message']}`,
                                 ),
@@ -845,7 +869,7 @@ function getMessages(item: { '@_id': number }, src_mapping: src_mapping_type) {
  * @returns the joined lines spanned by the src object
  */
 function mergeText(src: src_type | undefined): string {
-    return src?.line.map((l) => l['@_src'].trim()).join(' ') ?? '';
+    return src?.line?.map((l) => l['@_src'].trim()).join(' ') ?? '';
 }
 
 /**
@@ -858,9 +882,9 @@ function toRange(src: src_type): vscode.Range {
      * The <src> object may contain multiple <line>s, so we need to compute the
      * region start and end based on the first and last lines.
      */
-    const firstLine = src.line.at(0);
+    const firstLine = src.line?.at(0);
     assert(firstLine);
-    const lastLine = src.line.at(-1);
+    const lastLine = src.line?.at(-1);
     assert(lastLine);
     const range = new vscode.Range(
         firstLine['@_num'] - 1,

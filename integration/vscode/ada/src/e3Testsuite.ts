@@ -560,7 +560,7 @@ function getRootItemId(ts: Testsuite): string {
  * If no path is configured, it automatically searches through predefined candidate locations
  * and uses the first existing file. It also retrieves the Python executable configuration.
  *
- * @returns {Testsuite} An object containing the testsuite URI and Python executable path
+ * @returns An object containing the testsuite URI and Python executable path
  *
  * @remarks
  * The function searches for testsuite files in the following order:
