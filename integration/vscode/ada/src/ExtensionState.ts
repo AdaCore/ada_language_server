@@ -706,7 +706,7 @@ async function closeSARIFViewerIfNeeded(e: vscode.TaskEndEvent) {
     /**
      * SARIF reports need to be closed and reopened to refresh their content.
      *
-     * Moreover, overwritng a SARIF report that is currently opened in the
+     * Moreover, overwriting a SARIF report that is currently opened in the
      * SARIF Viewer seems to trigger sporadic errors. So it's better to close
      * the SARIF report at the start of the task.
      *
@@ -800,7 +800,7 @@ async function openSARIFViewerIfNeeded(e: vscode.TaskStartEvent) {
                 const cwdURI = vscode.Uri.file(cwd);
 
                 /**
-                 * Find the GNAT SAS output file argument
+                 * Find the SARIF output file argument
                  */
                 const outputFilePathArgRaw = args!.find((arg) =>
                     getArgValue(arg).includes('.sarif'),
