@@ -177,6 +177,7 @@
             {
                "id": 1,
                "result": [
+                  "<HAS>",
                   {
                      "title": "Replace Type",
                      "kind": "refactor.rewrite",
