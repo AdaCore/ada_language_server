@@ -6,9 +6,7 @@
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -27,11 +25,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "create",
-                           "rename",
-                           "delete"
-                        ]
+                        "resourceOperations": ["create", "rename", "delete"]
                      },
                      "executeCommand": {
                         "dynamicRegistration": true
@@ -53,9 +47,7 @@
                      }
                   },
                   "experimental": {
-                     "advanced_refactorings": [
-                        "replace_type"
-                     ]
+                     "advanced_refactorings": ["replace_type"]
                   }
                }
             }
@@ -67,16 +59,10 @@
                "result": {
                   "capabilities": {
                      "codeActionProvider": {
-                        "codeActionKinds": [
-                           "<HAS>",
-                           "refactor.rewrite"
-                        ]
+                        "codeActionKinds": ["<HAS>", "refactor.rewrite"]
                      },
                      "executeCommandProvider": {
-                        "commands": [
-                           "<HAS>",
-                           "als-refactor-replace-type"
-                        ]
+                        "commands": ["<HAS>", "als-refactor-replace-type"]
                      }
                   }
                }
@@ -107,15 +93,15 @@
             }
          },
          "wait": [
-                {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "window/workDoneProgress/create",
-                    "params": {
-                        "token": "<ANY>"
-                    }
-                }
-	 ]
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            }
+         ]
       }
    },
    {
