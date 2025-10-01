@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022, AdaCore                          --
+--                     Copyright (C) 2022-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -64,6 +64,8 @@ package LSP.Ada_Completions.Generic_Assoc_Utils is
       Decl         : Libadalang.Analysis.Basic_Decl :=
         Libadalang.Analysis.No_Basic_Decl;
       --  Basic_Decl to retrieve the documentation
+      --
+      --  XXX Defining_Name nodes should be used for documentation extraction
 
       Title        : VSS.Strings.Virtual_String;
       --  Title of the CompletionItem

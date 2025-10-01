@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1929,6 +1929,8 @@ package body LSP.Ada_Handlers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionItem)
    is
+      use all type Libadalang.Common.Ada_Node_Kind_Type;
+
       Context  : LSP.Ada_Context_Sets.Context_Access;
       Node     : Libadalang.Analysis.Ada_Node;
       C        : LSP.Structures.JSON_Event_Vectors.Cursor;
@@ -1956,20 +1958,18 @@ package body LSP.Ada_Handlers is
              (textDocument => (uri => Location.uri),
               position     => Location.a_range.start));
 
-      --  Retrieve the Basic_Decl from the completion item's SLOC
-      while not Node.Is_Null
-        and then Node.Kind not in Libadalang.Common.Ada_Basic_Decl
-      loop
+      if Node.Kind = Libadalang.Common.Ada_Identifier then
+         --  When node is an identifier, take parent node to resolve to
+         --  defining name. It is a case of names of package identifiers.
+
          Node := Node.Parent;
-      end loop;
+      end if;
 
       --  Compute the completion item's details
       if not Node.Is_Null then
          declare
             use type VSS.Strings.Virtual_String;
 
-            BD           : constant Libadalang.Analysis.Basic_Decl :=
-              Node.As_Basic_Decl;
             Qual_Text    : VSS.Strings.Virtual_String;
             Loc_Text     : VSS.Strings.Virtual_String;
             Doc_Text     : VSS.Strings.Virtual_String;
@@ -1978,7 +1978,8 @@ package body LSP.Ada_Handlers is
 
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
-              (BD                 => BD,
+              (Name               => Node.As_Defining_Name,
+               Origin             => Libadalang.Analysis.No_Ada_Node,
                Style              => Self.Configuration.Documentation_Style,
                Qualifier_Text     => Qual_Text,
                Location_Text      => Loc_Text,

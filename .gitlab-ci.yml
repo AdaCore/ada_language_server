@@ -72,6 +72,8 @@ include:
       anod-args: run test_vscode_extension_$ACI_TRACK
       image: systemgtk
       windows: true
+      # 8GB of memory leads to heap exhaustion during compilation. We need more.
+      windows-mem: 16
 
   # Integration testsuite
   - component: $CI_SERVER_FQDN/eng/gitlab-templates/test@~latest

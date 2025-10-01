@@ -184,12 +184,12 @@
                            "uri": "$URI{src/g.ads}",
                            "range": {
                               "start": {
-                                 "line": 2,
-                                 "character": 0
+                                 "line": 5,
+                                 "character": 8
                               },
                               "end": {
-                                 "line": 14,
-                                 "character": 6
+                                 "line": 5,
+                                 "character": 9
                               }
                            }
                         }
@@ -233,12 +233,12 @@
                   "uri": "$URI{src/g.ads}",
                   "range": {
                      "start": {
-                        "line": 2,
-                        "character": 0
+                        "line": 5,
+                        "character": 8
                      },
                      "end": {
-                        "line": 14,
-                        "character": 6
+                        "line": 5,
+                        "character": 9
                      }
                   }
                }
@@ -259,12 +259,12 @@
                      "uri": "$URI{src/g.ads}",
                      "range": {
                         "start": {
-                           "line": 2,
-                           "character": 0
+                           "line": 5,
+                           "character": 8
                         },
                         "end": {
-                           "line": 14,
-                           "character": 6
+                           "line": 5,
+                           "character": 9
                         }
                      }
                   }
@@ -428,12 +428,12 @@
                            "uri": "$URI{src/g.ads}",
                            "range": {
                               "start": {
-                                 "line": 2,
-                                 "character": 0
+                                 "line": 5,
+                                 "character": 8
                               },
                               "end": {
-                                 "line": 14,
-                                 "character": 6
+                                 "line": 5,
+                                 "character": 9
                               }
                            }
                         }
@@ -468,12 +468,12 @@
                   "uri": "$URI{src/g.ads}",
                   "range": {
                      "start": {
-                        "line": 2,
-                        "character": 0
+                        "line": 5,
+                        "character": 8
                      },
                      "end": {
-                        "line": 14,
-                        "character": 6
+                        "line": 5,
+                        "character": 9
                      }
                   }
                }
@@ -494,12 +494,12 @@
                      "uri": "$URI{src/g.ads}",
                      "range": {
                         "start": {
-                           "line": 2,
-                           "character": 0
+                           "line": 5,
+                           "character": 8
                         },
                         "end": {
-                           "line": 14,
-                           "character": 6
+                           "line": 5,
+                           "character": 9
                         }
                      }
                   }

@@ -112,7 +112,7 @@ package body LSP.Ada_Documents is
       Sloc                     : Langkit_Support.Slocs.Source_Location;
       From                     : Langkit_Support.Slocs.Source_Location;
       Node                     : Libadalang.Analysis.Ada_Node;
-      BD                       : Libadalang.Analysis.Basic_Decl;
+      Name                     : Libadalang.Analysis.Defining_Name;
       Label                    : VSS.Strings.Virtual_String;
       Use_Snippets             : Boolean;
       Compute_Doc_And_Details  : Boolean;
@@ -189,7 +189,7 @@ package body LSP.Ada_Documents is
          --  string if we are not completing a dotted name.
 
          Missing_Unit_Root_Decl : constant Libadalang.Analysis.Basic_Decl :=
-           BD.P_Enclosing_Compilation_Unit.P_Decl;
+           Name.P_Enclosing_Compilation_Unit.P_Decl;
          --  The missing unit root declaration for this invisible symbol (e.g:
          --  the "Ada.Text_IO" package declaration for the
          --  "Ada.Text_IO.Put_Line" subprogram).
@@ -231,7 +231,9 @@ package body LSP.Ada_Documents is
          --  the user selects "Ada.Text_IO" in the completion window, we do not
          --  need to add any qualifier) or if he's completing a dotted name.
          Missing_Qualifier :=
-           (if Is_Dotted_Name or else BD = Missing_Unit_Root_Decl then
+           (if Is_Dotted_Name
+                 or else Name.P_Basic_Decl = Missing_Unit_Root_Decl
+            then
                VSS.Strings.Empty_Virtual_String
             else
                Missing_Unit_Name);
@@ -295,7 +297,9 @@ package body LSP.Ada_Documents is
 
    begin
       Item.label := Label;
-      Item.kind := (True, To_Completion_Kind (LSP.Utils.Get_Decl_Kind (BD)));
+      Item.kind :=
+        (True,
+         To_Completion_Kind (LSP.Utils.Get_Decl_Kind (Name.P_Basic_Decl)));
 
       if not Is_Visible then
          Item.insertText := Label;
@@ -318,7 +322,7 @@ package body LSP.Ada_Documents is
       Set_Completion_Item_Documentation
         (Handler                 => Handler,
          Context                 => Context,
-         BD                      => BD,
+         Name                    => Name,
          Item                    => Item,
          Compute_Doc_And_Details => Compute_Doc_And_Details);
 
@@ -331,7 +335,7 @@ package body LSP.Ada_Documents is
       --  Check if we are dealing with a subprogram and return a completion
       --  snippet that lists all the formal parameters if it's the case.
 
-      Subp_Spec_Node := BD.P_Subp_Spec_Or_Null;
+      Subp_Spec_Node := Name.P_Basic_Decl.P_Subp_Spec_Or_Null;
 
       if Subp_Spec_Node.Is_Null then
          return Item;
@@ -1360,7 +1364,7 @@ package body LSP.Ada_Documents is
    procedure Set_Completion_Item_Documentation
      (Handler                 : in out LSP.Ada_Handlers.Message_Handler;
       Context                 : LSP.Ada_Contexts.Context;
-      BD                      : Libadalang.Analysis.Basic_Decl;
+      Name                    : Libadalang.Analysis.Defining_Name;
       Item                    : in out LSP.Structures.CompletionItem;
       Compute_Doc_And_Details : Boolean)
    is
@@ -1370,7 +1374,7 @@ package body LSP.Ada_Documents is
       --  Compute the 'documentation' and 'detail' fields immediately if
       --  requested (i.e: when the client does not support lazy computation
       --  for these fields or if we are dealing with predefined types).
-      if Compute_Doc_And_Details or else LSP.Utils.Is_Synthetic (BD) then
+      if Compute_Doc_And_Details or else LSP.Utils.Is_Synthetic (Name) then
          declare
             Qual_Text    : VSS.Strings.Virtual_String;
             Decl_Text    : VSS.Strings.Virtual_String;
@@ -1380,7 +1384,8 @@ package body LSP.Ada_Documents is
 
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
-              (BD                 => BD,
+              (Name               => Name,
+               Origin             => Libadalang.Analysis.No_Ada_Node,
                Style              => Context.Get_Documentation_Style,
                Declaration_Text   => Decl_Text,
                Qualifier_Text     => Qual_Text,
@@ -1406,7 +1411,7 @@ package body LSP.Ada_Documents is
          --  Set node's location to the 'data' field of the completion item, so
          --  that we can retrieve it in the completionItem/resolve handler.
          LSP.Structures.LSPAny_Vectors.To_Any
-           (LSP.Ada_Handlers.Locations.To_LSP_Location (Handler, BD),
+           (LSP.Ada_Handlers.Locations.To_LSP_Location (Handler, Name),
             Item.data);
       end if;
    end Set_Completion_Item_Documentation;

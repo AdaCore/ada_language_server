@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -173,7 +173,7 @@ package body LSP.Ada_Completions is
                         Sloc                     => Sloc,
                         From                     => From,
                         Node                     => Node,
-                        BD                       => Name.P_Basic_Decl,
+                        Name                     => Name,
                         Label                    => Label,
                         Use_Snippets             => Info.Use_Snippets,
                         Compute_Doc_And_Details  => Compute_Doc_And_Details,

@@ -177,12 +177,12 @@
                            "uri": "$URI{foo.adb}",
                            "range": {
                               "start": {
-                                 "line": 2,
-                                 "character": 3
+                                 "line": 7,
+                                 "character": 11
                               },
                               "end": {
-                                 "line": 14,
-                                 "character": 15
+                                 "line": 7,
+                                 "character": 18
                               }
                            }
                         }
@@ -256,12 +256,12 @@
                   "uri": "$URI{foo.adb}",
                   "range": {
                      "start": {
-                        "line": 2,
-                        "character": 3
+                        "line": 7,
+                        "character": 11
                      },
                      "end": {
-                        "line": 14,
-                        "character": 15
+                        "line": 7,
+                        "character": 18
                      }
                   }
                }
@@ -296,12 +296,12 @@
                      "uri": "$URI{foo.adb}",
                      "range": {
                         "start": {
-                           "line": 2,
-                           "character": 3
+                           "line": 7,
+                           "character": 11
                         },
                         "end": {
-                           "line": 14,
-                           "character": 15
+                           "line": 7,
+                           "character": 18
                         }
                      }
                   }
