@@ -38,7 +38,10 @@ package LSP.Ada_Documentation is
    --  requests) for the given declaration.
    --
    --  @param Name    Defining name's node.
-   --  @param Origin  AST node at the origin.
+   --  @param Origin
+   --    AST node at the origin of the request (location in the source code).
+   --    It is used to determine most visible part of the declaration and
+   --    to construct corresponding documentation.
    --  @param Style
    --    Is used by GNATdoc for extracting the associated comments.
    --  @param Qualifier_Text
