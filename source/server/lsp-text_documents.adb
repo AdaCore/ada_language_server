@@ -23,7 +23,7 @@ with VSS.Strings.Conversions;
 with VSS.Strings.Line_Iterators;
 with VSS.String_Vectors;
 with VSS.Unicode;
-with Ada_XDiff;
+with XDiff;
 
 package body LSP.Text_Documents is
 
@@ -172,11 +172,11 @@ package body LSP.Text_Documents is
       New_Text : VSS.Strings.Virtual_String;
       Edit     : out LSP.Structures.TextEdit_Vector)
    is
-      C_Edit    : constant Ada_XDiff.Edits := Ada_XDiff.XDiff
+      C_Edit    : constant XDiff.Edits := XDiff.XDiff
         (VSS.Strings.Conversions.To_UTF_8_String (Self.Text),
          VSS.Strings.Conversions.To_UTF_8_String (New_Text),
-         Ada_XDiff.XDF_NEED_MINIMAL);
-      Cur       : Ada_XDiff.Edits := C_Edit;
+         XDiff.XDF_NEED_MINIMAL);
+      Cur       : XDiff.Edits := C_Edit;
       New_Lines : constant VSS.String_Vectors.Virtual_String_Vector :=
         New_Text.Split_Lines
           (Terminators     => LSP_New_Line_Function_Set,
@@ -212,22 +212,22 @@ package body LSP.Text_Documents is
          --  Discard the first node which is fake and will have -1 for all its
          --  value. Only Delete_Line_Start is allowed to have -1 to indicate
          --  that nothing should be deleted.
-         if Ada_XDiff.Delete_Line_End (Cur) /= -1 then
+         if XDiff.Delete_Line_End (Cur) /= -1 then
             Edit.Append
               (LSP.Structures.TextEdit'
-                 (a_range => (((if Ada_XDiff.Delete_Line_Start (Cur) = -1
-                              then Ada_XDiff.Delete_Line_End (Cur)
-                              else Ada_XDiff.Delete_Line_Start (Cur) - 1), 0),
-                              (Ada_XDiff.Delete_Line_End (Cur), 0)),
+                 (a_range => (((if XDiff.Delete_Line_Start (Cur) = -1
+                              then XDiff.Delete_Line_End (Cur)
+                              else XDiff.Delete_Line_Start (Cur) - 1), 0),
+                              (XDiff.Delete_Line_End (Cur), 0)),
                   newText => Get_Slice (New_Lines,
-                    Ada_XDiff.Insert_Line_Start (Cur),
-                    Ada_XDiff.Insert_Line_End (Cur))));
+                    XDiff.Insert_Line_Start (Cur),
+                    XDiff.Insert_Line_End (Cur))));
          end if;
-         exit when not Ada_XDiff.Has_Next (Cur);
-         Cur := Ada_XDiff.Next_Edit (Cur);
+         exit when not XDiff.Has_Next (Cur);
+         Cur := XDiff.Next_Edit (Cur);
       end loop;
 
-      Ada_XDiff.Free_Edits (C_Edit);
+      XDiff.Free_Edits (C_Edit);
    end Diff_C;
 
    --------------------
