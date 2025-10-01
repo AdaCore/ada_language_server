@@ -1965,13 +1965,6 @@ package body LSP.Ada_Handlers is
          Node := Node.Parent;
       end if;
 
-      --  Retrieve the Basic_Decl from the completion item's SLOC
-      --  while not Node.Is_Null
-      --    and then Node.Kind not in Libadalang.Common.Ada_Basic_Decl
-      --  loop
-      --     Node := Node.Parent;
-      --  end loop;
-
       --  Compute the completion item's details
       if not Node.Is_Null then
          declare
