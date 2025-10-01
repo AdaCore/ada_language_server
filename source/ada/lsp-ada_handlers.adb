@@ -39,6 +39,7 @@ with Langkit_Support.Text;
 with LAL_Refactor.Delete_Entity;
 with LAL_Refactor.Extract_Subprogram;
 with LAL_Refactor.Extract_Variable;
+with LAL_Refactor.Inline_Variable;
 with LAL_Refactor.Introduce_Parameter;
 with LAL_Refactor.Pull_Up_Declaration;
 with LAL_Refactor.Auto_Import;
@@ -77,6 +78,7 @@ with LSP.Ada_Handlers.Refactor.Delete_Entity;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Extract_Variable;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
+with LSP.Ada_Handlers.Refactor.Inline_Variable;
 with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
 with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
@@ -785,6 +787,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Swap_If_Not refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Inline_Variable_Action;
+         --  Checks if the Inline_Variable refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          -------------------------------------------------
          -- Change_Parameters_Default_Value_Code_Action --
          -------------------------------------------------
@@ -1061,6 +1067,50 @@ package body LSP.Ada_Handlers is
                Found := True;
             end if;
          end Import_Package_Code_Action;
+
+         ----------------------------
+         -- Inline_Variable_Action --
+         ----------------------------
+
+         procedure Inline_Variable_Action
+         is
+            use LSP.Ada_Handlers.Refactor.Inline_Variable;
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Inline_Variable;
+            use type LSP.Structures.Position;
+
+            function Analysis_Units
+              return Libadalang.Analysis.Analysis_Unit_Array is
+              (Context.Analysis_Units);
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+            Location : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Inliner : Command;
+
+         begin
+            if Single_Location then
+               if Is_Inline_Variable_Available
+                 (Node.Unit, Location, Analysis_Units'Access)
+               then
+                  Inliner.Append_Code_Action
+                    (Context         => Context,
+                     Commands_Vector => Result,
+                     Where           =>
+                       (Value.textDocument.uri,
+                        ((Natural (Location.Line) - 1,
+                         Natural (Location.Column) - 1),
+                         (Natural (Location.Line) - 1,
+                          Natural (Location.Column) - 1)),
+                        LSP.Constants.Empty));
+                  Found := True;
+               end if;
+            end if;
+         end Inline_Variable_Action;
 
          -------------------------------------
          -- Introduce_Parameter_Code_Action --
@@ -1377,6 +1427,8 @@ package body LSP.Ada_Handlers is
          Sort_Dependencies_Code_Action;
 
          Import_Package_Code_Action;
+
+         Inline_Variable_Action;
 
          --  Refactoring Code Actions
 
