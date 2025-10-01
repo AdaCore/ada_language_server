@@ -22,12 +22,12 @@ with VSS.Strings;
 with LSP.Ada_Contexts;
 with LSP.Server_Jobs;
 
-package LSP.Ada_Handlers.Refactor.Swap_If_Not is
+package LSP.Ada_Handlers.Refactor.Swap_If_Else is
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with private;
 
    overriding function Name (Self : Command) return String
-   is ("Swap If Not");
+   is ("Swap If Else");
 
    procedure Append_Code_Action
      (Self            : in out Command;
@@ -69,6 +69,6 @@ private
    function Write_Command
      (Self : Command) return LSP.Structures.LSPAny_Vector;
 
-   for Command'External_Tag use "als-refactor-swap_if_not";
+   for Command'External_Tag use "als-refactor-swap_if_else";
 
-end LSP.Ada_Handlers.Refactor.Swap_If_Not;
+end LSP.Ada_Handlers.Refactor.Swap_If_Else;
