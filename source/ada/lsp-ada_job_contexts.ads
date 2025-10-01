@@ -161,6 +161,8 @@ package LSP.Ada_Job_Contexts is
       Position : LSP.Structures.TextDocumentPositionParams'Class;
       Name     : out Libadalang.Analysis.Defining_Name;
       Origin   : out Libadalang.Analysis.Ada_Node);
+   --  Return the defining name (canonical part) of the entity and AST node at
+   --  the given location. If an error happened then return No_Defining_Name.
 
    function To_LSP_Location
      (Self   : in out Ada_Job_Context;

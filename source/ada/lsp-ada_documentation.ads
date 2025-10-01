@@ -37,7 +37,8 @@ package LSP.Ada_Documentation is
    --  Get all the information needed to produce tooltips (hover and completion
    --  requests) for the given declaration.
    --
-   --  @param Name  Defining name's node.
+   --  @param Name    Defining name's node.
+   --  @param Origin  AST node at the origin.
    --  @param Style
    --    Is used by GNATdoc for extracting the associated comments.
    --  @param Qualifier_Text
