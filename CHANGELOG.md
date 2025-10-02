@@ -4,6 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
+* Add `Ada: Open User's Guide` command displaying the HTML version of the Ada & SPARK extension User's Guide using Microsoft's Live Preview extension
 * New refactoring: [Extract Variable](https://github.com/AdaCore/ada_language_server/blob/master/doc/refactoring_tools.md#extract-variable)
 * Added a `Ada: Report Issue` command that opens the [VS Code Issue Reporter](https://code.visualstudio.com/docs/supporting/FAQ#_report-an-issue-with-a-vs-code-extension) with an extension-specific template
 * `Go to Definition` now jumps respectively on the `begin`, `private` and `body` keywords

@@ -39,6 +39,10 @@ import { activateE3TestsuiteIntegration } from './e3Testsuite';
 
 export const EXTENSION_NAME: string = meta.displayName;
 
+/** The context key that is set when the Ada extension has been
+ * activated. This can be used in `when` clauses in `package.json` to enable or
+ * disable commands, menu items, keybindings, etc.
+ */
 const ADA_CONTEXT = 'ADA_PROJECT_CONTEXT';
 
 /**

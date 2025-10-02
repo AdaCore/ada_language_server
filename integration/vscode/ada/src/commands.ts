@@ -14,6 +14,7 @@ import {
     CMD_BUILD_AND_RUN_MAIN,
     CMD_GPR_PROJECT_ARGS,
     CMD_RESTART_LANG_SERVERS,
+    CMD_OPEN_USERS_GUIDE,
     CMD_SHOW_ADA_LS_OUTPUT,
     CMD_SHOW_EXTENSION_LOGS,
     CMD_SHOW_GPR_LS_OUTPUT,
@@ -22,11 +23,18 @@ import {
     CMD_SPARK_LIMIT_REGION_ARG,
     CMD_SPARK_LIMIT_SUBP_ARG,
     CMD_SPARK_PROVE_SUBP,
+    VSCODE_UG_LIVE_DOC_URL,
 } from './constants';
 import { AdaConfig, getOrAskForProgram, initializeConfig } from './debugConfigProvider';
 import { adaExtState, logger, mainOutputChannel } from './extension';
 import { loadGnatCoverageReport } from './gnattest';
-import { findAdaMain, getProjectFileRelPath, getSymbols } from './helpers';
+import {
+    findAdaMain,
+    getProjectFileRelPath,
+    getSymbols,
+    isExtensionInstalled,
+    isRunningOnRemote,
+} from './helpers';
 import { registerSPARKTaskWrappers } from './sparkCommands';
 import { askSPARKOptions, getLastSPARKOptions } from './sparkOptionsPicker';
 import {
@@ -95,6 +103,9 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
     context.subscriptions.push(
         vscode.commands.registerCommand('ada.subprogramBox', addSubprogramBoxCommand),
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(CMD_OPEN_USERS_GUIDE, openUsersGuide),
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(CMD_SHOW_EXTENSION_LOGS, () => mainOutputChannel.show()),
@@ -190,6 +201,117 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
     );
 
     registerSPARKTaskWrappers(context);
+}
+
+/**
+ * Get the extension user's guide URI, if it exists on disk.
+ *
+ * @returns the URI of the extension user's guide, or `null` if the file
+ * does not exist.
+ */
+export function getUsersGuideURI(): vscode.Uri | null {
+    const ug_path = vscode.Uri.joinPath(
+        adaExtState.context.extensionUri,
+        'share',
+        'doc',
+        'als',
+        'html',
+        'users_guide',
+        'index.html',
+    );
+
+    if (existsSync(ug_path.fsPath)) {
+        return ug_path;
+    }
+    return null;
+}
+
+/**
+ * Open the extension user's guide in a new editor tab using LivePreview
+ * if doable.
+ * This requires the "Live Preview" extension by Microsoft to be installed.
+ * The user will be warned if this extension is not installed or if the user's
+ * guide cannot be found on disk.
+ */
+async function openUsersGuide() {
+    const usersGuideURI = getUsersGuideURI();
+
+    // The user's guide is not found on disk, warn the user and propose
+    // to open the online documentation instead.
+    if (!usersGuideURI) {
+        async function showUGNotFoundError() {
+            const action = await vscode.window.showErrorMessage(
+                "The User's Guide was not found under the Ada & SPARK extension installation. " +
+                    'Please consult the online documentation instead.',
+                'Open Online Docs',
+            );
+            if (action === 'Open Online Docs') {
+                void vscode.env.openExternal(vscode.Uri.parse(VSCODE_UG_LIVE_DOC_URL));
+            }
+        }
+
+        void showUGNotFoundError();
+        return;
+    }
+
+    //  Live Preview extension is not installed, warn the user and propose
+    //  to open the user's guide with the default browser instead.
+    if (!isExtensionInstalled('ms-vscode.live-server')) {
+        /** Show the LivePreview extension's page in the marketplace
+         */
+        function showLivePreviewInMarketplace() {
+            void vscode.commands.executeCommand(
+                'workbench.extensions.search',
+                '@id:ms-vscode.live-server',
+            );
+        }
+
+        /** Show an error message proposing to install Live Preview or open the
+         * user's guide with the default browser instead.
+         */
+        async function showNotLivePreviewInstalledError() {
+            // If not running on a remote, propose to open the locally installed
+            // user's guide with the default browser instead.
+            if (!isRunningOnRemote()) {
+                const action = await vscode.window.showErrorMessage(
+                    "Microsoft's Live Preview extension is not installed. " +
+                        "Please install it to open the User's Guide directly in VS Code, " +
+                        'otherwise open it with your system browser.',
+                    'Install Live Preview',
+                    'Open in Browser',
+                );
+                if (action === 'Open in Browser') {
+                    if (usersGuideURI) {
+                        void vscode.env.openExternal(usersGuideURI);
+                    }
+                } else if (action === 'Install Live Preview') {
+                    showLivePreviewInMarketplace();
+                }
+            } else {
+                // If running on a remote, propose to install Live Preview or
+                // open the online documentation instead.
+                const action = await vscode.window.showErrorMessage(
+                    "Microsoft's Live Preview extension is not installed. " +
+                        "Please install it to open the User's Guide directly in VS Code " +
+                        'when connected to a remote machine, or consult ' +
+                        'the online documentation instead.',
+                    'Install Live Preview',
+                    'Open Online Docs',
+                );
+                if (action === 'Open Online Docs') {
+                    void vscode.env.openExternal(vscode.Uri.parse(VSCODE_UG_LIVE_DOC_URL));
+                } else if (action === 'Install Live Preview') {
+                    showLivePreviewInMarketplace();
+                }
+            }
+        }
+
+        void showNotLivePreviewInstalledError();
+        return;
+    }
+
+    // Open the user's guide using Live Preview
+    await vscode.commands.executeCommand('livePreview.start.internalPreview.atFile', usersGuideURI);
 }
 
 /**
