@@ -166,11 +166,11 @@
                            "range": {
                               "start": {
                                  "line": 6,
-                                 "character": 3
+                                 "character": 13
                               },
                               "end": {
                                  "line": 6,
-                                 "character": 34
+                                 "character": 16
                               }
                            }
                         }
@@ -214,11 +214,11 @@
                            "range": {
                               "start": {
                                  "line": 4,
-                                 "character": 3
+                                 "character": 13
                               },
                               "end": {
                                  "line": 4,
-                                 "character": 69
+                                 "character": 16
                               }
                            }
                         }
@@ -283,11 +283,11 @@
                            "range": {
                               "start": {
                                  "line": 2,
-                                 "character": 3
+                                 "character": 13
                               },
                               "end": {
                                  "line": 2,
-                                 "character": 58
+                                 "character": 16
                               }
                            }
                         }

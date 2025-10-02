@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023, AdaCore                          --
+--                     Copyright (C) 2023-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -224,7 +224,8 @@ package body LSP.Ada_Documentation is
    ----------------------
 
    procedure Get_Tooltip_Text
-     (BD                 : Libadalang.Analysis.Basic_Decl;
+     (Name               : Libadalang.Analysis.Defining_Name;
+      Origin             : Libadalang.Analysis.Ada_Node'Class;
       Style              : GNATdoc.Comments.Options.Documentation_Style;
       Declaration_Text   : out VSS.Strings.Virtual_String;
       Qualifier_Text     : out VSS.Strings.Virtual_String;
@@ -232,6 +233,8 @@ package body LSP.Ada_Documentation is
       Documentation_Text : out VSS.Strings.Virtual_String;
       Aspects_Text       : out VSS.Strings.Virtual_String)
    is
+      Decl          : constant Libadalang.Analysis.Basic_Decl :=
+        Name.P_Basic_Decl;
       Options       : constant
         GNATdoc.Comments.Options.Extractor_Options :=
           (Style    => Style,
@@ -247,7 +250,8 @@ package body LSP.Ada_Documentation is
       --  Extract documentation with GNATdoc when supported.
 
       GNATdoc.Comments.Helpers.Get_Plain_Text_Documentation
-        (Name          => BD.P_Defining_Name,
+        (Name          => Name,
+         Origin        => Origin,
          Options       => Options,
          Code_Snippet  => Decl_Lines,
          Documentation => Doc_Lines);
@@ -260,15 +264,15 @@ package body LSP.Ada_Documentation is
 
       if Declaration_Text.Is_Empty then
          Declaration_Text :=
-           Get_Hover_Text_For_Node (BD).Join_Lines
+           Get_Hover_Text_For_Node (Decl).Join_Lines
              (Document_LSP_New_Line_Function, False);
       end if;
 
-      Location_Text := LSP.Utils.Node_Location_Image (BD);
+      Location_Text := LSP.Utils.Node_Location_Image (Decl);
 
       --  For subprograms, do additional analysis and construct qualifier.
 
-      case BD.Kind is
+      case Decl.Kind is
          when Ada_Abstract_Subp_Decl =>
             Qualifier_Text.Append ("abstract");
 
@@ -283,7 +287,7 @@ package body LSP.Ada_Documentation is
 
       declare
          Aspects : constant Libadalang.Analysis.Aspect_Spec :=
-           BD.F_Aspects;
+           Decl.F_Aspects;
 
       begin
          if not Aspects.Is_Null then

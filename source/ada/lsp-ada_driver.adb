@@ -71,6 +71,7 @@ with LSP.Ada_Handlers.Refactor.Delete_Entity;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Extract_Variable;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
+with LSP.Ada_Handlers.Refactor.Inline_Variable;
 with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
 with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
@@ -79,7 +80,7 @@ with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Case;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
-with LSP.Ada_Handlers.Refactor.Swap_If_Not;
+with LSP.Ada_Handlers.Refactor.Swap_If_Else;
 with LSP.Ada_Handlers.Show_Dependencies_Commands;
 with LSP.Ada_Handlers.GPR_Dependencies_Commands;
 with LSP.Ada_Handlers.Source_Dirs_Commands;
@@ -227,6 +228,8 @@ procedure LSP.Ada_Driver is
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Extract_Variable.Command'Tag);
       LSP.Ada_Commands.Register
+        (LSP.Ada_Handlers.Refactor.Inline_Variable.Command'Tag);
+      LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Introduce_Parameter.Command'Tag);
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Pull_Up_Declaration.Command'Tag);
@@ -239,7 +242,7 @@ procedure LSP.Ada_Driver is
       LSP.Ada_Commands.Register
         (LSP.Ada_Handlers.Refactor.Sort_Dependencies.Command'Tag);
       LSP.Ada_Commands.Register
-        (LSP.Ada_Handlers.Refactor.Swap_If_Not.Command'Tag);
+        (LSP.Ada_Handlers.Refactor.Swap_If_Else.Command'Tag);
 
       --  Refactoring - Change Subprogram Signature Commands
       LSP.Ada_Commands.Register

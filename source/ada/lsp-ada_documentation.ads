@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2023, AdaCore                          --
+--                     Copyright (C) 2023-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,7 +26,8 @@ with GNATdoc.Comments.Options;
 package LSP.Ada_Documentation is
 
    procedure Get_Tooltip_Text
-     (BD                 : Libadalang.Analysis.Basic_Decl;
+     (Name               : Libadalang.Analysis.Defining_Name;
+      Origin             : Libadalang.Analysis.Ada_Node'Class;
       Style              : GNATdoc.Comments.Options.Documentation_Style;
       Declaration_Text   : out VSS.Strings.Virtual_String;
       Qualifier_Text     : out VSS.Strings.Virtual_String;
@@ -36,7 +37,11 @@ package LSP.Ada_Documentation is
    --  Get all the information needed to produce tooltips (hover and completion
    --  requests) for the given declaration.
    --
-   --  @param BD        Declaration's node.
+   --  @param Name    Defining name's node.
+   --  @param Origin
+   --    AST node at the origin of the request (location in the source code).
+   --    It is used to determine most visible part of the declaration and
+   --    to construct corresponding documentation.
    --  @param Style
    --    Is used by GNATdoc for extracting the associated comments.
    --  @param Qualifier_Text

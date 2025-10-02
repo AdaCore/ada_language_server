@@ -177,11 +177,11 @@
                            "range": {
                               "start": {
                                  "line": 1,
-                                 "character": 3
+                                 "character": 8
                               },
                               "end": {
-                                 "line": 4,
-                                 "character": 14
+                                 "line": 1,
+                                 "character": 17
                               }
                            }
                         }
@@ -327,11 +327,11 @@
                            "range": {
                               "start": {
                                  "line": 1,
-                                 "character": 3
+                                 "character": 8
                               },
                               "end": {
-                                 "line": 4,
-                                 "character": 14
+                                 "line": 1,
+                                 "character": 17
                               }
                            }
                         }

@@ -121,7 +121,7 @@
                               },
                               "end": {
                                  "line": 3,
-                                 "character": 18
+                                 "character": 7
                               }
                            }
                         }
@@ -137,11 +137,11 @@
                            "range": {
                               "start": {
                                  "line": 6,
-                                 "character": 3
+                                 "character": 13
                               },
                               "end": {
                                  "line": 6,
-                                 "character": 72
+                                 "character": 23
                               }
                            }
                         }
@@ -218,11 +218,11 @@
                            "range": {
                               "start": {
                                  "line": 6,
-                                 "character": 3
+                                 "character": 13
                               },
                               "end": {
                                  "line": 6,
-                                 "character": 72
+                                 "character": 23
                               }
                            }
                         }
@@ -299,11 +299,11 @@
                            "range": {
                               "start": {
                                  "line": 6,
-                                 "character": 3
+                                 "character": 13
                               },
                               "end": {
                                  "line": 6,
-                                 "character": 72
+                                 "character": 23
                               }
                            }
                         }

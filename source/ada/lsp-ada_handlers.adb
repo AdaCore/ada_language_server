@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -39,6 +39,7 @@ with Langkit_Support.Text;
 with LAL_Refactor.Delete_Entity;
 with LAL_Refactor.Extract_Subprogram;
 with LAL_Refactor.Extract_Variable;
+with LAL_Refactor.Inline_Variable;
 with LAL_Refactor.Introduce_Parameter;
 with LAL_Refactor.Pull_Up_Declaration;
 with LAL_Refactor.Auto_Import;
@@ -48,7 +49,7 @@ with LAL_Refactor.Subprogram_Signature.Change_Parameters_Default_Value;
 with LAL_Refactor.Subprogram_Signature.Change_Parameters_Type;
 with LAL_Refactor.Subprogram_Signature.Remove_Parameter;
 with LAL_Refactor.Suppress_Separate;
-with LAL_Refactor.Swap_If_Not;
+with LAL_Refactor.Swap_If_Else;
 
 with LSP.Ada_Completions.Aspects;
 with LSP.Ada_Completions.Attributes;
@@ -77,6 +78,7 @@ with LSP.Ada_Handlers.Refactor.Delete_Entity;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Extract_Variable;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
+with LSP.Ada_Handlers.Refactor.Inline_Variable;
 with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
 with LSP.Ada_Handlers.Refactor.Move_Parameter;
 with LSP.Ada_Handlers.Refactor.Pull_Up_Declaration;
@@ -85,7 +87,7 @@ with LSP.Ada_Handlers.Refactor.Replace_Type;
 with LSP.Ada_Handlers.Refactor.Sort_Case;
 with LSP.Ada_Handlers.Refactor.Sort_Dependencies;
 with LSP.Ada_Handlers.Refactor.Suppress_Seperate;
-with LSP.Ada_Handlers.Refactor.Swap_If_Not;
+with LSP.Ada_Handlers.Refactor.Swap_If_Else;
 with LSP.Ada_Handlers.Renaming;
 with LSP.Ada_Handlers.Symbols;
 with LSP.Ada_Commands;
@@ -785,6 +787,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Swap_If_Not refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Inline_Variable_Action;
+         --  Checks if the Inline_Variable refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          -------------------------------------------------
          -- Change_Parameters_Default_Value_Code_Action --
          -------------------------------------------------
@@ -1062,6 +1068,50 @@ package body LSP.Ada_Handlers is
             end if;
          end Import_Package_Code_Action;
 
+         ----------------------------
+         -- Inline_Variable_Action --
+         ----------------------------
+
+         procedure Inline_Variable_Action
+         is
+            use LSP.Ada_Handlers.Refactor.Inline_Variable;
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Inline_Variable;
+            use type LSP.Structures.Position;
+
+            function Analysis_Units
+              return Libadalang.Analysis.Analysis_Unit_Array is
+              (Context.Analysis_Units);
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+            Location : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number
+                 (Value.a_range.start.line) + 1,
+               Column_Number (Value.a_range.start.character) + 1);
+
+            Inliner : Command;
+
+         begin
+            if Single_Location then
+               if Is_Inline_Variable_Available
+                 (Node.Unit, Location, Analysis_Units'Access)
+               then
+                  Inliner.Append_Code_Action
+                    (Context         => Context,
+                     Commands_Vector => Result,
+                     Where           =>
+                       (Value.textDocument.uri,
+                        ((Natural (Location.Line) - 1,
+                         Natural (Location.Column) - 1),
+                         (Natural (Location.Line) - 1,
+                          Natural (Location.Column) - 1)),
+                        LSP.Constants.Empty));
+                  Found := True;
+               end if;
+            end if;
+         end Inline_Variable_Action;
+
          -------------------------------------
          -- Introduce_Parameter_Code_Action --
          -------------------------------------
@@ -1335,15 +1385,15 @@ package body LSP.Ada_Handlers is
          -----------------------------
 
          procedure Swap_If_Not_Code_Action is
-            use LSP.Ada_Handlers.Refactor.Swap_If_Not;
+            use LSP.Ada_Handlers.Refactor.Swap_If_Else;
             use Langkit_Support.Slocs;
-            use LAL_Refactor.Swap_If_Not;
+            use LAL_Refactor.Swap_If_Else;
             use type LSP.Structures.Position;
 
             Single_Location : constant Boolean :=
               Value.a_range.start = Value.a_range.an_end;
 
-            Location        : Source_Location :=
+            Location        : constant Source_Location :=
               (Langkit_Support.Slocs.Line_Number
                  (Value.a_range.start.line) + 1,
                Column_Number (Value.a_range.start.character) + 1);
@@ -1377,6 +1427,8 @@ package body LSP.Ada_Handlers is
          Sort_Dependencies_Code_Action;
 
          Import_Package_Code_Action;
+
+         Inline_Variable_Action;
 
          --  Refactoring Code Actions
 
@@ -1877,6 +1929,8 @@ package body LSP.Ada_Handlers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionItem)
    is
+      use all type Libadalang.Common.Ada_Node_Kind_Type;
+
       Context  : LSP.Ada_Context_Sets.Context_Access;
       Node     : Libadalang.Analysis.Ada_Node;
       C        : LSP.Structures.JSON_Event_Vectors.Cursor;
@@ -1904,20 +1958,18 @@ package body LSP.Ada_Handlers is
              (textDocument => (uri => Location.uri),
               position     => Location.a_range.start));
 
-      --  Retrieve the Basic_Decl from the completion item's SLOC
-      while not Node.Is_Null
-        and then Node.Kind not in Libadalang.Common.Ada_Basic_Decl
-      loop
+      if Node.Kind = Libadalang.Common.Ada_Identifier then
+         --  When node is an identifier, take parent node to resolve to
+         --  defining name. It is a case of names of package identifiers.
+
          Node := Node.Parent;
-      end loop;
+      end if;
 
       --  Compute the completion item's details
       if not Node.Is_Null then
          declare
             use type VSS.Strings.Virtual_String;
 
-            BD           : constant Libadalang.Analysis.Basic_Decl :=
-              Node.As_Basic_Decl;
             Qual_Text    : VSS.Strings.Virtual_String;
             Loc_Text     : VSS.Strings.Virtual_String;
             Doc_Text     : VSS.Strings.Virtual_String;
@@ -1926,7 +1978,8 @@ package body LSP.Ada_Handlers is
 
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
-              (BD                 => BD,
+              (Name               => Node.As_Defining_Name,
+               Origin             => Libadalang.Analysis.No_Ada_Node,
                Style              => Self.Configuration.Documentation_Style,
                Qualifier_Text     => Qual_Text,
                Location_Text      => Loc_Text,

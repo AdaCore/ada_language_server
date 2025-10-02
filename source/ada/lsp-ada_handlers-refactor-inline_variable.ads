@@ -15,19 +15,22 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 --
---  Implementation of the refactoring command to swap if/else paths
+--  Implementation of the refactoring command to inline variable
 
 with VSS.Strings;
 
 with LSP.Ada_Contexts;
 with LSP.Server_Jobs;
 
-package LSP.Ada_Handlers.Refactor.Swap_If_Not is
+with Libadalang.Analysis;   use Libadalang.Analysis;
+with Langkit_Support.Slocs; use Langkit_Support.Slocs;
+
+package LSP.Ada_Handlers.Refactor.Inline_Variable is
 
    type Command is new LSP.Ada_Handlers.Refactor.Command with private;
 
    overriding function Name (Self : Command) return String
-   is ("Swap If Not");
+   is ("Inline variable");
 
    procedure Append_Code_Action
      (Self            : in out Command;
@@ -69,6 +72,6 @@ private
    function Write_Command
      (Self : Command) return LSP.Structures.LSPAny_Vector;
 
-   for Command'External_Tag use "als-refactor-swap_if_not";
+   for Command'External_Tag use "als-refactor-inline_variable";
 
-end LSP.Ada_Handlers.Refactor.Swap_If_Not;
+end LSP.Ada_Handlers.Refactor.Inline_Variable;

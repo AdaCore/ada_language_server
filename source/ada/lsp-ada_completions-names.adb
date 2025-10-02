@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2024, AdaCore                     --
+--                     Copyright (C) 2018-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -206,6 +206,7 @@ package body LSP.Ada_Completions.Names is
 
                      Names.Include
                        (DN.P_Canonical_Part,
+                        --  XXX Should most visible part be used here ???
                         (Error_Dotted_Recovery or else Is_Dot_Call (Item),
                          Is_Visible (Item),
                          Use_Snippets,

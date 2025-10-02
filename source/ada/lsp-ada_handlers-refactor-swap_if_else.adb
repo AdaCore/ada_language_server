@@ -20,15 +20,15 @@ with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 with Libadalang.Analysis;   use Libadalang.Analysis;
 
 with LAL_Refactor; use LAL_Refactor;
-with LAL_Refactor.Swap_If_Not;
-use LAL_Refactor.Swap_If_Not;
+with LAL_Refactor.Swap_If_Else;
+use LAL_Refactor.Swap_If_Else;
 
 with VSS.JSON.Streams;
 
 with LSP.Enumerations;
 with LSP.Structures.LSPAny_Vectors; use LSP.Structures.LSPAny_Vectors;
 
-package body LSP.Ada_Handlers.Refactor.Swap_If_Not is
+package body LSP.Ada_Handlers.Refactor.Swap_If_Else is
 
    pragma Warnings (Off);
 
@@ -194,4 +194,4 @@ package body LSP.Ada_Handlers.Refactor.Swap_If_Not is
       return Result;
    end Write_Command;
 
-end LSP.Ada_Handlers.Refactor.Swap_If_Not;
+end LSP.Ada_Handlers.Refactor.Swap_If_Else;
