@@ -311,10 +311,35 @@ to connect to your machine or board.
 
 You will also need to run the debugging utility that spawns the remote `gdbserver` before launching the debugger in VS Code ( e.g: `st-util` or `openocd` for STM32F4 boards). This can be done directly through a VS Code `Terminal` or by configuring a custom [VS Code task](https://code.visualstudio.com/docs/editor/tasks) for that purpose.
 
-Once your project is setup, just open the VS Code
+Once your project is set up, just open the VS Code
 `Run and Debug` panel and then click on the `Run and Debug` button.
 
 For more advanced use cases or if your program cannot be debugged remotely via GDB, you can try creating your custom VS Code debug launch configuration following [VS Code User's Guide for Launch Configurations](https://code.visualstudio.com/docs/editor/debugging#_launch-configurations).
+
+## SPARK Support
+
+When working on a project with SPARK code, it is possible to call GNATprove through the following commands:
+
+- `SPARK: Examine project`
+- `SPARK: Examine file`
+- `SPARK: Examine subprogram`
+- `SPARK: Prove project`
+- `SPARK: Prove file`
+- `SPARK: Prove subprogram`
+- `SPARK: Prove selected region`
+- `SPARK: Prove line`
+
+These commands open an interactive picker to choose options before calling GNATprove.
+
+It is also possible to call the options picker directly with the command `SPARK: Select GNATprove options...`.
+
+![Option picker for GNATprove](media/gnatprove-option-picker.png)
+
+If you prefer to invoke GNATprove without choosing options interactively, the `Tasks: Run Task` command offer non-interactive task counterparts of the above commands.
+
+Starting GNATprove 26, a SARIF report is generated and opened automatically in VS Code after execution.
+
+![GNATprove SARIF report](media/gnatprove-sarif.png)
 
 ## Working with Multiple Projects in the Same VS Code Workspace
 
