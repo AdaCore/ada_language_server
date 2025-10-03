@@ -14,7 +14,8 @@
     ],
     "extensionPack": [
         "ms-vscode.cpptools",
-        "ms-sarifvscode.sarif-viewer"
+        "ms-sarifvscode.sarif-viewer",
+        "ms-vscode.live-server"
     ],
     "activationEvents": [
         "workspaceContains:*.gpr",
@@ -1143,6 +1144,11 @@
             {
                 "command": "ada.subprogramBox",
                 "title": "Add subprogram box",
+                "category": "Ada"
+            },
+            {
+                "command": "ada.openUsersGuide",
+                "title": "Open User's Guide",
                 "category": "Ada"
             },
             {
