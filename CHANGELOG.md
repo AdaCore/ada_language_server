@@ -4,7 +4,7 @@
 section below it for the last release. -->
 ## \<next>
 
-* New [Code Visualizer](https://github.com/AdaCore/ada_language_server/blob/master/doc/ShowGraphDoc.md) based on LSP requests displaying code information as interactive graphs (e.g: `Types: Show Type Hierarchy Graph` command).
+* New [Code Visualizer](https://github.com/AdaCore/ada_language_server/blob/master/doc/ShowGraphDoc.md) displaying code information as interactive graphs (e.g. `Types: Show Type Hierarchy Graph` command), for any language with LSP support in VS Code (e.g. Ada, Python, TypeScript).
 * Added `Ada: Open User's Guide` command displaying the HTML version of the Ada & SPARK extension User's Guide using Microsoft's Live Preview extension
 * New refactoring: [Extract Variable](https://github.com/AdaCore/ada_language_server/blob/master/doc/refactoring_tools.md#extract-variable)
 * Added a `Ada: Report Issue` command that opens the [VS Code Issue Reporter](https://code.visualstudio.com/docs/supporting/FAQ#_report-an-issue-with-a-vs-code-extension) with an extension-specific template
