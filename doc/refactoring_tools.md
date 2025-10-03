@@ -17,6 +17,7 @@
 * [Sort Case](#sort-case)
 * [Suppress Separate](#suppress-separate)
 * [Delete Entity](#delete-entity)
+* [Inline variable](#inline-variable)
 * [Introduce Parameter](#introduce-parameter)
 * [Replace Type](#replace-type)
 * [Auto Import](#auto-import)
@@ -146,6 +147,8 @@ Demo source is `extract_subprogram/` in [Code Samples](https://github.com/AdaCor
 
 See `src/lal_refactor-extract_variable.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
+![extract-variable](media/extract_variable.gif)
+
 ## Pull Up Declaration
 
 **Command name:** `als-refactor-pull_up_declaration`
@@ -166,6 +169,8 @@ Demo source is `pull_up_declaration/` in [Code Samples](https://github.com/AdaCo
 * Sort `when` and literals inside `when` alphabetically or according to the declaration order.
 
 See `src/lal_refactor-sort_case.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
+
+![sort-case-alphabetical](media/sort_case_alphabetical.gif)
 
 ## Suppress Separate
 
@@ -198,6 +203,17 @@ See `src/lal_refactor-delete_entity.ads` in [LAL Refactor repository](https://gi
 Demo source is `delete_entity/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
 ![delete_entity](media/delete_entity.gif)
+
+## Inline variable
+
+**Command name:** `als-refactor-inline_variable`
+
+* Delete the variable with the initialization expression and replace all
+  references to this expression.
+
+See `src/lal_refactor-inline_variable.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
+
+![inline_variable](media/inline_variable.gif)
 
 ## Introduce Parameter
 
@@ -256,3 +272,5 @@ Demo source is `sort_dependencies/` in [Code Samples](https://github.com/AdaCore
 * Swap If and else code branches and invert condition.
 
 See `src/lal_refactor-swap_if_else` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
+
+![swap_if_else](media/swap_if_else.gif)

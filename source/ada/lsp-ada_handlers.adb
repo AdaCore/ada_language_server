@@ -1331,8 +1331,9 @@ package body LSP.Ada_Handlers is
                          (Natural (Location.Line) - 1,
                           Natural (Location.Column) - 1)),
                         LSP.Constants.Empty));
+               end if;
 
-               elsif Is_Sort_Declaration_Available (Node.Unit, Location) then
+               if Is_Sort_Declaration_Available (Node.Unit, Location) then
                   Declaration.Append_Code_Action
                     (Context         => Context,
                      Commands_Vector => Result,

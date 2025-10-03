@@ -17,9 +17,9 @@ begin
    case K1 is
       when Blue =>
          Ada.Text_IO.Put_Line ("Blue");
-      when Green =>
-         Ada.Text_IO.Put_Line ("Green");
       when Red =>
          Ada.Text_IO.Put_Line ("Red");
+      when Green =>
+         Ada.Text_IO.Put_Line ("Green");
    end case;
 end Main;

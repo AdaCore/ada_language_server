@@ -138,7 +138,7 @@
                   "uri": "$URI{main.adb}",
                   "languageId": "Ada",
                   "version": 0,
-                  "text": "\nwith Ada.Text_IO;\n\nprocedure Main is\n   type Kind is (Red, Blue, Green);\n   K, K1 : Kind := Red;\nbegin\n   case K is\n      when Red =>\n         Ada.Text_IO.Put_Line (\"Red\");\n      when Blue =>\n         Ada.Text_IO.Put_Line (\"Blue\");\n      when Green =>\n         Ada.Text_IO.Put_Line (\"Green\");\n   end case;\n\n   case K1 is\n      when Blue =>\n         Ada.Text_IO.Put_Line (\"Blue\");\n      when Green =>\n         Ada.Text_IO.Put_Line (\"Green\");\n      when Red =>\n         Ada.Text_IO.Put_Line (\"Red\");\n   end case;\nend Main;\n"
+                  "text": "\nwith Ada.Text_IO;\n\nprocedure Main is\n   type Kind is (Red, Blue, Green);\n   K, K1 : Kind := Red;\nbegin\n   case K is\n      when Red =>\n         Ada.Text_IO.Put_Line (\"Red\");\n      when Blue =>\n         Ada.Text_IO.Put_Line (\"Blue\");\n      when Green =>\n         Ada.Text_IO.Put_Line (\"Green\");\n   end case;\n\n   case K1 is\n      when Blue =>\n         Ada.Text_IO.Put_Line (\"Blue\");\n      when Red =>\n         Ada.Text_IO.Put_Line (\"Red\");\n      when Green =>\n         Ada.Text_IO.Put_Line (\"Green\");\n   end case;\nend Main;\n"
                }
             }
          },
@@ -358,6 +358,32 @@
                            }
                         ]
                      }
+                  },
+                  {
+                     "title": "Sort Cases by Alphabetical Order",
+                     "kind": "refactor.extract",
+                     "command": {
+                        "title": "",
+                        "command": "als-refactor-sort-case-alphabetical",
+                        "arguments": [
+                           {
+                              "context_id": "$URI{default.gpr}",
+                              "location": {
+                                 "uri": "$URI{main.adb}",
+                                 "range": {
+                                    "start": {
+                                       "line": 16,
+                                       "character": 3
+                                    },
+                                    "end": {
+                                       "line": 16,
+                                       "character": 3
+                                    }
+                                 }
+                              }
+                           }
+                        ]
+                     }
                   }
                ]
             }
@@ -394,65 +420,52 @@
          },
          "wait": [
             {
-               "id": 3,
-               "method": "workspace/applyEdit",
-               "params": {
-                  "label": "Sort Cases by Declaration Order",
-                  "edit": {
-                     "documentChanges": [
+              "id": 3,
+              "jsonrpc": "2.0",
+              "method": "workspace/applyEdit",
+              "params": {
+                "edit": {
+                  "documentChanges": [
+                    {
+                      "edits": [
                         {
-                           "textDocument": {
-                              "uri": "$URI{main.adb}",
-                              "version": 0
-                           },
-                           "edits": [
-                              {
-                                 "range": {
-                                    "start": {
-                                       "line": 17,
-                                       "character": 6
-                                    },
-                                    "end": {
-                                       "line": 18,
-                                       "character": 39
-                                    }
-                                 },
-                                 "newText": "when Red =>\n         Ada.Text_IO.Put_Line (\"Red\");",
-                                 "annotationId": ""
-                              },
-                              {
-                                 "range": {
-                                    "start": {
-                                       "line": 19,
-                                       "character": 6
-                                    },
-                                    "end": {
-                                       "line": 20,
-                                       "character": 40
-                                    }
-                                 },
-                                 "newText": "when Blue =>\n         Ada.Text_IO.Put_Line (\"Blue\");",
-                                 "annotationId": ""
-                              },
-                              {
-                                 "range": {
-                                    "start": {
-                                       "line": 21,
-                                       "character": 6
-                                    },
-                                    "end": {
-                                       "line": 22,
-                                       "character": 38
-                                    }
-                                 },
-                                 "newText": "when Green =>\n         Ada.Text_IO.Put_Line (\"Green\");",
-                                 "annotationId": ""
-                              }
-                           ]
+                          "annotationId": "",
+                          "newText": "when Red =>\n         Ada.Text_IO.Put_Line (\"Red\");",
+                          "range": {
+                            "end": {
+                              "character": 39,
+                              "line": 18
+                            },
+                            "start": {
+                              "character": 6,
+                              "line": 17
+                            }
+                          }
+                        },
+                        {
+                          "annotationId": "",
+                          "newText": "when Blue =>\n         Ada.Text_IO.Put_Line (\"Blue\");",
+                          "range": {
+                           "end": {
+                              "character": 38,
+                              "line": 20
+                            },
+                            "start": {
+                              "character": 6,
+                              "line": 19
+                            }
+                          }
                         }
-                     ]
-                  }
-               }
+                      ],
+                      "textDocument": {
+                        "uri": "$URI{main.adb}",
+                        "version": 0
+                      }
+                    }
+                  ]
+                },
+                "label": "Sort Cases by Declaration Order"
+              }
             },
             {
                "id": 9,
