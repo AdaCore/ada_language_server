@@ -134,11 +134,12 @@ package body LSP.GPR_Handlers is
          declare
             Parsed_File : constant Internal_File_Access :=
               new LSP.GPR_Files.File (Self.Tracer);
+            use LSP.GPR_Files;
 
          begin
             Parsed_File.Initialize
               (Path          => Path,
-               File_Provider => Self);
+               File_Provider => File_Provider_Access (Self));
 
             Self.Parsed_Files.Insert (Path, Parsed_File);
 
