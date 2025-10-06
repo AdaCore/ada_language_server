@@ -96,7 +96,7 @@ package body LSP.Default_Message_Handlers is
         LSP.Server_Message_Visitors.Server_Message_Visitor'Class;
       Priority : LSP.Server_Jobs.Job_Priority := LSP.Server_Jobs.Fence) is
    begin
-      Self.Handler := Handler;
+      Self.Handler  := Server_Message_Visitor_Access (Handler);
       Self.Priority := Priority;
    end Initialize;
 
