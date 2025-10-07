@@ -21,6 +21,9 @@ with GNAT.Strings;                 use GNAT.Strings;
 with GNATCOLL.Traces;              use GNATCOLL.Traces;
 with GNATCOLL.VFS;                 use GNATCOLL.VFS;
 
+with GPR2.Path_Name;
+with GPR2.Project.Attribute;
+
 with VSS.Strings;                  use VSS.Strings;
 pragma Warnings
   (Off, "unit ""VSS.Strings.Character_Iterators"" is not referenced");
@@ -31,6 +34,8 @@ with VSS.Strings.Converters.Decoders;
 with VSS.Strings.Conversions;
 
 with LSP.Ada_Documents;            use LSP.Ada_Documents;
+with LSP.Ada_Projects;
+
 with Libadalang.Preprocessing;     use Libadalang.Preprocessing;
 with Langkit_Support.File_Readers; use Langkit_Support.File_Readers;
 with Langkit_Support.Slocs;
@@ -45,7 +50,7 @@ package body LSP.Ada_Handlers.File_Readers is
    Me : constant Trace_Handle := Create ("ALS.FILE_READERS");
 
    procedure Read_And_Decode
-     (Filename : String;
+     (Filename : Virtual_File;
       Charset  : VSS.Strings.Virtual_String;
       Decoded  : out VSS.Strings.Virtual_String;
       Error    : out VSS.Strings.Virtual_String);
@@ -64,12 +69,96 @@ package body LSP.Ada_Handlers.File_Readers is
       --  present
    --  Default flags for the text decoder.
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Self : in out LSP_File_Reader'Class;
+      Tree : GPR2.Project.Tree.Object;
+      View : GPR2.Project.View.Object)
+   is
+      procedure Set_Line_Mode
+        (Config : in out Libadalang.Preprocessing.File_Config);
+      --  Used to force the preprocessing line mode to Blank_Lines, which
+      --  is needed to preserve the number of lines after preprocessing a
+      --  source file, otherwise LSP requests based on SLOCs will fail.
+
+      -------------------
+      -- Set_Line_Mode --
+      -------------------
+
+      procedure Set_Line_Mode
+        (Config : in out Libadalang.Preprocessing.File_Config) is
+      begin
+         if Config.Enabled then
+            Config.Line_Mode := Libadalang.Preprocessing.Blank_Lines;
+         end if;
+      end Set_Line_Mode;
+
+      procedure Read_Excluded_Source_Files;
+      --  Read IDE.Excluded_Source_Files value from the project if any
+
+      --------------------------------
+      -- Read_Excluded_Source_Files --
+      --------------------------------
+
+      procedure Read_Excluded_Source_Files is
+         Attribute : GPR2.Project.Attribute.Object;
+      begin
+         if View.Check_Attribute
+              (Name   => LSP.Ada_Projects.IDE.Excluded_Source_Files,
+               Result => Attribute)
+         then
+            for Value of Attribute.Values loop
+               declare
+                  Name : constant GPR2.Filename_Optional :=
+                    GPR2.Filename_Optional (Value.Text);
+
+                  Source : constant GPR2.Build.Source.Object :=
+                    (if GPR2.Is_Simple_Name (Name)
+                     then Tree.Root_Project.Visible_Source (Name)
+                     else GPR2.Build.Source.Undefined);
+               begin
+                  if Source.Is_Defined then
+                     Self.Excluded_Files.Insert
+                        (Source.Path_Name.Virtual_File);
+                  end if;
+               end;
+            end loop;
+         end if;
+      end Read_Excluded_Source_Files;
+
+      Default_Config : Libadalang.Preprocessing.File_Config;
+      File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map;
+
+   begin
+      Self.Preprocessing_Data := Libadalang.Preprocessing.No_Preprocessor_Data;
+
+      Read_Excluded_Source_Files;  --  Read IDE.Excluded_Source_Files attr
+
+      Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
+        (Tree           => Tree,
+         Project        => View,
+         Default_Config => Default_Config,
+         File_Configs   => File_Configs);
+
+      Libadalang.Preprocessing.Iterate
+        (Default_Config => Default_Config,
+         File_Configs   => File_Configs,
+         Process        => Set_Line_Mode'Access);
+
+      Self.Preprocessing_Data :=
+        Libadalang.Preprocessing.Create_Preprocessor_Data
+          (Default_Config, File_Configs);
+   end Initialize;
+
    ---------------------
    -- Read_And_Decode --
    ---------------------
 
    procedure Read_And_Decode
-     (Filename : String;
+     (Filename : Virtual_File;
       Charset  : VSS.Strings.Virtual_String;
       Decoded  : out VSS.Strings.Virtual_String;
       Error    : out VSS.Strings.Virtual_String)
@@ -80,7 +169,7 @@ package body LSP.Ada_Handlers.File_Readers is
    begin
       --  Read the file (this call uses MMAP)
 
-      Raw := Create_From_UTF8 (Filename).Read_File;
+      Raw := Filename.Read_File;
 
       if Raw = null then
          Decoded.Clear;
@@ -134,6 +223,7 @@ package body LSP.Ada_Handlers.File_Readers is
       URI : constant URIs.URI_String := URIs.Conversions.From_File (Filename);
 
       Doc   : Document_Access;
+      File : constant Virtual_File := Create_From_UTF8 (Filename);
       Text  : VSS.Strings.Virtual_String;
       Error : VSS.Strings.Virtual_String;
 
@@ -150,9 +240,13 @@ package body LSP.Ada_Handlers.File_Readers is
       if Doc /= null then
          Text := Doc.Text;
 
+      elsif Self.Excluded_Files.Contains (File) then
+         Contents :=
+           Langkit_Support.File_Readers.Create_Decoded_File_Contents ("");
+
       else
          Read_And_Decode
-           (Filename => Filename,
+           (Filename => File,
             Charset  => VSS.Strings.Conversions.To_Virtual_String (Charset),
             Decoded  => Text,
             Error    => Error);

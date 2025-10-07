@@ -35,7 +35,6 @@ pragma Warnings (Off, "unit ""GPR2.Build.Source.Sets"" is not referenced");
 with GPR2.Build.Source.Sets;
 
 with Langkit_Support.Errors;
-with Libadalang.Preprocessing;
 with Libadalang.Project_Provider;
 with LSP.Ada_Contexts;
 with LSP.Ada_Context_Sets;
@@ -533,47 +532,11 @@ package body LSP.Ada_Handlers.Project_Loading is
            LSP.Ada_Handlers.File_Readers.LSP_File_Reader
              (Self'Unchecked_Access);
 
-         Default_Config : Libadalang.Preprocessing.File_Config;
-         File_Configs   : Libadalang.Preprocessing.File_Config_Maps.Map;
-
-         procedure Set_Line_Mode
-           (Config : in out Libadalang.Preprocessing.File_Config);
-         --  Used to force the preprocessing line mode to Blank_Lines, which
-         --  is needed to preserve the number of lines after preprocessing a
-         --  source file, otherwise LSP requests based on SLOCs will fail.
-
-         -------------------
-         -- Set_Line_Mode --
-         -------------------
-
-         procedure Set_Line_Mode
-           (Config : in out Libadalang.Preprocessing.File_Config) is
-         begin
-            if Config.Enabled then
-               Config.Line_Mode := Libadalang.Preprocessing.Blank_Lines;
-            end if;
-         end Set_Line_Mode;
-
       begin
-         --  Extract the preprocessing options from the context's project
-         --  and create the file reader which will preprocess the files
-         --  accordingly.
-
          begin
-            Libadalang.Preprocessing.Extract_Preprocessor_Data_From_Project
-              (Tree           => Self.Project_Tree,
-               Project        => View,
-               Default_Config => Default_Config,
-               File_Configs   => File_Configs);
-
-            Libadalang.Preprocessing.Iterate
-              (Default_Config => Default_Config,
-               File_Configs   => File_Configs,
-               Process        => Set_Line_Mode'Access);
-
-            Reader.Preprocessing_Data :=
-              Libadalang.Preprocessing.Create_Preprocessor_Data
-                (Default_Config, File_Configs);
+            Reader.Initialize
+              (Tree => Self.Project_Tree,
+               View => View);
          exception
             --  Fallback to a degraded mode when failing to parse preprocessing
             --  options.
@@ -592,8 +555,6 @@ package body LSP.Ada_Handlers.Project_Loading is
                  & (C.Id)
                  & ", fallback to a degraded mode without support for "
                  & "preprocessing directives");
-               Reader.Preprocessing_Data :=
-                 Libadalang.Preprocessing.No_Preprocessor_Data;
          end;
 
          C.Initialize
