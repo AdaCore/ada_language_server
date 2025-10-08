@@ -106,7 +106,7 @@
                "id": 3,
                "error": {
                   "code": -32803,
-                  "message": "GNATFORMAT: Syntactically invalid code can't be formatted"
+                  "message": "GNATformat: Syntactically invalid code can't be formatted"
                }
             }
          ]

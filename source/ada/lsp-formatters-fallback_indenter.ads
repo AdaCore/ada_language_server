@@ -81,7 +81,6 @@ package LSP.Formatters.Fallback_Indenter is
      (Buffer          : String;
       From, To        : Natural;
       Indent_Level    : Natural := 3;
-      Indent_Continue : Natural := 2)
-      return Indentation_Array;
+      Indent_Continue : Natural := 2) return Indentation_Array;
 
 end LSP.Formatters.Fallback_Indenter;

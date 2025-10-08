@@ -131,6 +131,10 @@ package LSP.Ada_Configurations is
 
    function Indent_Only (Self : Configuration'Class) return Boolean;
 
+   function Range_Formatting_Fallback
+     (Self : Configuration'Class) return Boolean;
+   --  Whether the fallback indenter is enabled for rangeFormatting
+
    function Follow_Symlinks (Self : Configuration'Class) return Boolean;
    --  False if the client disables symlink following. In this case
    --  URIs from client should match file names reported by LAL and
@@ -154,9 +158,6 @@ package LSP.Ada_Configurations is
 
    function Completion_Formatting return Boolean;
    --  Used in LSP.Ada_Completions.Pretty_Print_Snippet
-
-   function Partial_GNATPP return Boolean;
-   --  Whether partial GNATPP is enabled.
 
    function On_Type_Formatting return Boolean;
    --  Whether onTypeFormatting is enabled.
@@ -187,6 +188,7 @@ private
       Use_Completion_Snippets         : Boolean := True;
       Use_Gnatformat                  : Boolean := True;
       Indent_Only                     : Boolean := True;
+      Range_Formatting_Fallback       : Boolean := False;
       Follow_Symlinks                 : Boolean := True;
       Insert_With_Clauses             : Boolean := True;
 
@@ -280,6 +282,10 @@ private
 
    function Indent_Only (Self : Configuration'Class) return Boolean is
      (Self.Indent_Only);
+
+   function Range_Formatting_Fallback
+     (Self : Configuration'Class) return Boolean is
+      (Self.Range_Formatting_Fallback);
 
    function Documentation_Style (Self : Configuration'Class)
      return GNATdoc.Comments.Options.Documentation_Style is

@@ -17,10 +17,7 @@
 
 with Ada.Tags;
 
-with GNAT.Strings;
-with GNATCOLL.Traces;
 with GNATCOLL.VFS;
-with Gnatformat.Configuration;
 with Gnatformat.Edits;
 with Gnatformat.Formatting;
 
@@ -28,8 +25,6 @@ with Langkit_Support.Symbols;
 with Langkit_Support.Text;
 
 with Laltools.Common;
-with Pp.Scanner;
-with Utils.Char_Vectors;
 
 with Libadalang.Iterators;
 with Libadalang.Sources;
@@ -50,9 +45,7 @@ with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Id_Iterators;
 with LSP.Enumerations;
-with LSP.Formatters.File_Names;
 with LSP.Formatters.Texts;
-with LSP.GNATFormat_Utils;
 with LSP.Predicates;
 with LSP.Structures.LSPAny_Vectors;
 pragma Warnings
@@ -62,13 +55,6 @@ pragma Warnings (On, "child unit * hides compilation unit with the same name");
 
 package body LSP.Ada_Documents is
    pragma Warnings (Off);
-
-   package Utils renames Standard.Utils;
-
-   Lal_PP_Output : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create
-       ("ALS.LAL_PP_OUTPUT_ON_FORMATTING", GNATCOLL.Traces.Off);
-   --  Logging lalpp output if On
 
    function To_Completion_Kind (K : LSP.Enumerations.SymbolKind)
      return LSP.Enumerations.CompletionItemKind
@@ -472,160 +458,14 @@ package body LSP.Ada_Documents is
          Self.Tracer.Trace_Exception (E, "in Find_All_References");
    end Find_All_References;
 
-   ----------------
-   -- Formatting --
-   ----------------
-
-   function Formatting
-     (Self     : Document;
-      Context  : LSP.Ada_Contexts.Context;
-      Span     : LSP.Structures.A_Range;
-      Cmd      : Pp.Command_Lines.Cmd_Line;
-      Edit     : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector) return Boolean
-   is
-      use type Libadalang.Slocs.Source_Location_Range;
-      use type LSP.Structures.A_Range;
-
-      Sloc        : constant Libadalang.Slocs.Source_Location_Range :=
-        (if Span = LSP.Constants.Empty
-         then Libadalang.Slocs.No_Source_Location_Range
-         else Self.To_Source_Location_Range (Span));
-      Input       : Utils.Char_Vectors.Char_Vector;
-      Output      : Utils.Char_Vectors.Char_Vector;
-      Out_Span    : LSP.Structures.A_Range;
-      PP_Messages : Pp.Scanner.Source_Message_Vector;
-      Out_Sloc    : Libadalang.Slocs.Source_Location_Range;
-      S           : GNAT.Strings.String_Access;
-
-   begin
-      if Span /= LSP.Constants.Empty then
-         --  Align Span to line bounds
-
-         if Span.start.character /= 0 then
-            return Self.Formatting
-              (Context  => Context,
-               Span     => ((Span.start.line, 0), Span.an_end),
-               Cmd      => Cmd,
-               Edit     => Edit,
-               Messages => Messages);
-
-         elsif Span.an_end.character /= 0 then
-            return Self.Formatting
-              (Context  => Context,
-               Span     => (Span.start, (Span.an_end.line + 1, 0)),
-               Cmd      => Cmd,
-               Edit     => Edit,
-               Messages => Messages);
-         end if;
-      end if;
-
-      S := new String'(VSS.Strings.Conversions.To_UTF_8_String (Self.Text));
-      Input.Append (S.all);
-      GNAT.Strings.Free (S);
-
-      LSP.Utils.Format_Vector
-        (Cmd       => Cmd,
-         Input     => Input,
-         Node      => Self.Unit (Context).Root,
-         In_Sloc   => Sloc,
-         Output    => Output,
-         Out_Sloc  => Out_Sloc,
-         Messages  => PP_Messages);
-
-      --  Properly format the messages received from gnatpp, using the
-      --  the GNAT standard way for messages (i.e: <filename>:<sloc>: <msg>)
-
-      if not PP_Messages.Is_Empty then
-         declare
-            File     : constant GNATCOLL.VFS.Virtual_File :=
-              Context.URI_To_File (Self.URI);
-            Template : constant VSS.Strings.Templates.Virtual_String_Template :=
-              "{}:{}:{}: {}";
-
-         begin
-            for Error of PP_Messages loop
-               Messages.Append
-                 (Template.Format
-                    (LSP.Formatters.File_Names.Image (File),
-                     VSS.Strings.Formatters.Integers.Image (Error.Sloc.Line),
-                     VSS.Strings.Formatters.Integers.Image (Error.Sloc.Col),
-                     VSS.Strings.Formatters.Strings.Image
-                       (VSS.Strings.Conversions.To_Virtual_String
-                            (String
-                                 (Utils.Char_Vectors.Char_Vectors.To_Array
-                                    (Error.Text))))));
-            end loop;
-
-            return False;
-         end;
-      end if;
-
-      S := new String'(Output.To_Array);
-
-      if Lal_PP_Output.Is_Active then
-         Lal_PP_Output.Trace (S.all);
-      end if;
-
-      if Span = LSP.Constants.Empty then
-         --  diff for the whole document
-
-         Self.Needleman_Diff
-           (VSS.Strings.Conversions.To_Virtual_String (S.all),
-            Edit => Edit);
-
-      elsif Out_Sloc = Libadalang.Slocs.No_Source_Location_Range then
-         --  Range formating fails. Do nothing, skip formating altogether
-
-         null;
-
-      else
-         --  diff for a part of the document
-
-         Out_Span := Self.To_A_Range (Out_Sloc);
-
-         --  Use line diff if the range is too wide
-
-         if Span.an_end.line - Span.start.line > 5 then
-            Self.Needleman_Diff
-              (VSS.Strings.Conversions.To_Virtual_String (S.all),
-               Span,
-               Out_Span,
-               Edit);
-
-         else
-            declare
-               Formatted : constant VSS.Strings.Virtual_String :=
-                 VSS.Strings.Conversions.To_Virtual_String (S.all);
-               Slice     : VSS.Strings.Virtual_String;
-
-            begin
-               LSP.Utils.Span_To_Slice (Formatted, Out_Span, Slice);
-
-               Self.Diff_Symbols (Span, Slice, Edit);
-            end;
-         end if;
-      end if;
-
-      GNAT.Strings.Free (S);
-
-      return True;
-
-   exception
-      when E : others =>
-         Lal_PP_Output.Trace (E);
-         GNAT.Strings.Free (S);
-
-         return False;
-   end Formatting;
-
    ------------
    -- Format --
    ------------
 
    function Format
      (Self    : Document;
-      Context : LSP.Ada_Contexts.Context)
+      Context : LSP.Ada_Contexts.Context;
+      Options : Gnatformat.Configuration.Format_Options_Type)
       return LSP.Structures.TextEdit_Vector
    is
       Result : LSP.Structures.TextEdit_Vector;
@@ -633,7 +473,7 @@ package body LSP.Ada_Documents is
       Formatted_Document : constant VSS.Strings.Virtual_String :=
         VSS.Strings.Conversions.To_Virtual_String
           (Gnatformat.Formatting.Format (Self.Unit (Context),
-           Context.Get_Format_Options));
+           Options));
 
    begin
       Self.Diff_C (New_Text => Formatted_Document, Edit => Result);
@@ -1206,101 +1046,6 @@ package body LSP.Ada_Documents is
                 Document => Self'Unrestricted_Access)];
    end Initialize;
 
-   ----------------------
-   -- Range_Formatting --
-   ----------------------
-
-   function Range_Formatting
-     (Self       : Document;
-      Context    : LSP.Ada_Contexts.Context;
-      Span       : LSP.Structures.A_Range;
-      PP_Options : Pp.Command_Lines.Cmd_Line;
-      Edit       : out LSP.Structures.TextEdit_Vector;
-      Messages   : out VSS.String_Vectors.Virtual_String_Vector) return Boolean
-   is
-      use Libadalang.Analysis;
-      use Langkit_Support.Slocs;
-      use Laltools.Partial_GNATPP;
-      use LSP.Structures;
-      use Utils.Char_Vectors;
-      use Utils.Char_Vectors.Char_Vectors;
-
-      procedure Append_PP_Messages
-        (PP_Messages : Pp.Scanner.Source_Message_Vector);
-      --  Append any message of PP_Messages to Messages properly formatting
-      --  them using the GNAT standard way for messages
-      --  (i.e: <filename>:<sloc>: <msg>)
-
-      ------------------------
-      -- Append_PP_Messages --
-      ------------------------
-
-      procedure Append_PP_Messages
-        (PP_Messages : Pp.Scanner.Source_Message_Vector) is
-      begin
-         for Message of PP_Messages loop
-            declare
-               Error : LSP.Structures.DocumentUri := Self.URI;
-            begin
-               Error.Append (":");
-               Error.Append
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (Pp.Scanner.Sloc_Image (Message.Sloc)));
-               Error.Append (": ");
-               Error.Append
-                 (VSS.Strings.Conversions.To_Virtual_String
-                    (String (To_Array (Message.Text))));
-               Messages.Append (Error);
-            end;
-         end loop;
-      end Append_PP_Messages;
-
-   begin
-      Self.Tracer.Trace ("On Range_Formatting");
-
-      Self.Tracer.Trace ("Format_Selection");
-      declare
-         Unit                    : constant Analysis_Unit :=
-           Self.Unit (Context);
-         Input_Selection_Range   : constant Source_Location_Range :=
-           (if Span = LSP.Text_Documents.Empty_Range
-            then No_Source_Location_Range
-            else Self.To_Source_Location_Range (Span));
-         Partial_Formatting_Edit :
-           constant Laltools.Partial_GNATPP.Partial_Formatting_Edit :=
-             Format_Selection (Unit, Input_Selection_Range, PP_Options);
-
-      begin
-         if not Partial_Formatting_Edit.Diagnostics.Is_Empty then
-            Append_PP_Messages (Partial_Formatting_Edit.Diagnostics);
-            Self.Tracer.Trace
-              ("Non empty diagnostics from GNATPP - "
-               & "not continuing with Range_Formatting");
-            return False;
-         end if;
-
-         Self.Tracer.Trace ("Computing Range_Formatting Text_Edits");
-         Edit.Clear;
-         declare
-            Edit_Span : constant LSP.Structures.A_Range :=
-              Self.To_A_Range (Partial_Formatting_Edit.Edit.Location);
-            Edit_Text : constant VSS.Strings.Virtual_String :=
-              VSS.Strings.Conversions.To_Virtual_String
-                (Partial_Formatting_Edit.Edit.Text);
-
-         begin
-            Edit.Append (TextEdit'(Edit_Span, Edit_Text));
-         end;
-
-         return True;
-      end;
-
-   exception
-      when E : others =>
-         Self.Tracer.Trace_Exception (E, "in Range_Formatting");
-         return False;
-   end Range_Formatting;
-
    ------------------
    -- Range_Format --
    ------------------
@@ -1309,21 +1054,16 @@ package body LSP.Ada_Documents is
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
-      Options : LSP.Structures.FormattingOptions)
+      Options : Gnatformat.Configuration.Format_Options_Type)
       return LSP.Structures.TextEdit
    is
       use type LSP.Structures.A_Range;
       use Gnatformat.Configuration;
 
-      Full_Options : Format_Options_Type := Context.Get_Format_Options;
    begin
       if Span = LSP.Text_Documents.Empty_Range then
          return (LSP.Constants.Empty, VSS.Strings.Empty_Virtual_String);
       end if;
-
-      --  Combine the project options with the ones from the request
-      Full_Options.Overwrite
-        (LSP.GNATFormat_Utils.Get_Format_Option (Options));
 
       declare
          Range_Formatted_Document :
@@ -1331,8 +1071,7 @@ package body LSP.Ada_Documents is
              Gnatformat.Formatting.Range_Format
                (Self.Unit (Context),
                 Self.To_Source_Location_Range (Span),
-                Full_Options);
-
+                Options);
       begin
          return
            (Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),

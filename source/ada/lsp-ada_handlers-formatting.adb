@@ -15,32 +15,74 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with GNATCOLL.Traces;
-
-with Pp.Command_Lines;
-with Utils.Command_Lines;
-
 with LSP.Enumerations;
+with VSS.Characters.Latin;
+with VSS.Strings.Cursors.Iterators.Characters;
 
 package body LSP.Ada_Handlers.Formatting is
-
-   Formatting_Trace : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create ("ALS.FORMATTING", GNATCOLL.Traces.On);
-
-   procedure Update_Pp_Formatting_Options
-     (Pp_Options  : in out Utils.Command_Lines.Command_Line;
-      LSP_Options : LSP.Structures.FormattingOptions);
-   --  Update the gnatpp formatting options using the LSP ones.
-   --  Options that are explicitly specified in the .gpr file take precedence
-   --  over LSP options.
 
    GNATformat_Exception_Found_Msg : constant VSS.Strings.Virtual_String :=
      "GNATformat: exception raised when parsing source code";
    --  Error message when an exception is raised in GNATformat.
 
+   Fallback_Exception_Found_Msg : constant VSS.Strings.Virtual_String :=
+     "Exception raised in the fallback indenter";
+   --  Error message when an exception is raised in the fallback indenter
+
    Incorrect_Code_Msg : constant VSS.Strings.Virtual_String :=
-     "Syntactically invalid code can't be formatted";
+     "GNATformat: Syntactically invalid code can't be formatted";
    --  Error message sent when trying to format invalid code.
+
+   function Reindent_Line
+     (Context    : LSP.Ada_Contexts.Context;
+      Document   : not null LSP.Ada_Documents.Document_Access;
+      Options    : Gnatformat.Configuration.Format_Options_Type;
+      Pos        : LSP.Structures.Position;
+      New_Indent : Natural) return LSP.Structures.TextEdit;
+   --  Generate a textEdit to reindent the current line
+
+   -------------------
+   -- Reindent_Line --
+   -------------------
+
+   function Reindent_Line
+     (Context    : LSP.Ada_Contexts.Context;
+      Document   : not null LSP.Ada_Documents.Document_Access;
+      Options    : Gnatformat.Configuration.Format_Options_Type;
+      Pos        : LSP.Structures.Position;
+      New_Indent : Natural) return LSP.Structures.TextEdit
+   is
+      use type VSS.Characters.Virtual_Character;
+      use VSS.Strings;
+
+      Line            : constant Virtual_String :=
+        Document.Get_Text (Pos, (Pos.line + 1, 0));
+      --  Get the full line because we want to remove its existing blank
+      --  characters.
+      New_Prefix      : constant Virtual_String :=
+        VSS.Strings."*" (Character_Count (New_Indent), ' ');
+      Character_It    :
+        VSS.Strings.Cursors.Iterators.Characters.Character_Iterator :=
+          Line.Before_First_Character;
+      First_Non_Blank : Natural := 0;
+   begin
+      --  Count the number of Blank characters at the start
+      while Character_It.Forward loop
+         if Character_It.Element = VSS.Characters.Latin.Space
+           or else Character_It.Element
+                   = VSS.Characters.Latin.Character_Tabulation
+         then
+            First_Non_Blank := First_Non_Blank + 1;
+         else
+            exit;
+         end if;
+      end loop;
+
+      return
+        LSP.Structures.TextEdit'
+          (a_range => (Pos, (Pos.line, First_Non_Blank)),
+           newText => Handle_Tabs (Context, Document, Options, New_Prefix));
+   end Reindent_Line;
 
    ------------
    -- Format --
@@ -50,90 +92,35 @@ package body LSP.Ada_Handlers.Formatting is
      (Context  : LSP.Ada_Contexts.Context;
       Document : not null LSP.Ada_Documents.Document_Access;
       Span     : LSP.Structures.A_Range;
-      Options  : LSP.Structures.FormattingOptions;
-      Provider : Formatting_Provider;
+      Options  : Gnatformat.Configuration.Format_Options_Type;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
-      use VSS.Strings;
-
-      Provider_Msg_Prefix : constant VSS.Strings.Virtual_String :=
-        VSS.Strings.Conversions.To_Virtual_String (Provider'Img & ": ");
-
-      procedure Gnatpp_Format;
-
-      procedure Gnatformat_Format;
-
-      -------------------
-      -- Gnatpp_Format --
-      -------------------
-
-      procedure Gnatpp_Format is
-         PP_Options : Utils.Command_Lines.Command_Line :=
-           Context.Get_PP_Options;
-
-      begin
-         --  Take into account the options set by the request only if the
-         --  corresponding GPR switches are not explicitly set.
-
-         Update_Pp_Formatting_Options
-           (Pp_Options => PP_Options, LSP_Options => Options);
-
-         Success :=
-           Document.Formatting
-             (Context  => Context,
-              Span     => Span,
-              Cmd      => PP_Options,
-              Edit     => Response,
-              Messages => Messages);
-
-         if not Success then
-            Error :=
-              (code    =>
-                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
-               message => Messages.Join (' '));
-            Messages.Clear;
-         end if;
-      end Gnatpp_Format;
-
-      -----------------------
-      -- Gnatformat_Format --
-      -----------------------
-
-      procedure Gnatformat_Format is
-      begin
-         Success := True;
-         Response := Document.Format (Context);
-
-      exception
-         when E : others =>
-            Context.Tracer.Trace_Exception (E, GNATformat_Exception_Found_Msg);
-            Success := False;
-            Error :=
-              (code    =>
-                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
-               message => GNATformat_Exception_Found_Msg);
-      end Gnatformat_Format;
-
+      pragma Unreferenced (Messages, Span);
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
          Error :=
-           (code    => LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
-            message => Provider_Msg_Prefix & Incorrect_Code_Msg);
+           (code    =>
+              LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+            message => Incorrect_Code_Msg);
 
          return;
       end if;
 
-      case Provider is
-         when Gnatformat =>
-            Gnatformat_Format;
+      Response := Document.Format (Context, Options);
+      Success := True;
 
-         when Gnatpp =>
-            Gnatpp_Format;
-      end case;
+   exception
+      when E : others =>
+         Context.Tracer.Trace_Exception (E, GNATformat_Exception_Found_Msg);
+         Success := False;
+         Error :=
+           (code    =>
+              LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+            message => GNATformat_Exception_Found_Msg);
    end Format;
 
    ------------------
@@ -144,144 +131,234 @@ package body LSP.Ada_Handlers.Formatting is
      (Context  : LSP.Ada_Contexts.Context;
       Document : not null LSP.Ada_Documents.Document_Access;
       Span     : LSP.Structures.A_Range;
-      Options  : LSP.Structures.FormattingOptions;
-      Provider : Formatting_Provider;
+      Options  : Gnatformat.Configuration.Format_Options_Type;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Error    : out LSP.Errors.ResponseError)
-   is
-      use VSS.Strings;
-
-      Provider_Msg_Prefix : constant VSS.Strings.Virtual_String :=
-        VSS.Strings.Conversions.To_Virtual_String (Provider'Img & ": ");
-
-      procedure Gnatpp_Range_Format;
-
-      procedure Gnatformat_Range_Format;
-
-      -------------------------
-      -- Gnatpp_Range_Format --
-      -------------------------
-
-      procedure Gnatpp_Range_Format is
-         PP_Options : Utils.Command_Lines.Command_Line :=
-           Context.Get_PP_Options;
-         Messages   : VSS.String_Vectors.Virtual_String_Vector;
-
-      begin
-         --  Take into account the options set by the request only if the
-         --  corresponding GPR switches are not explicitly set.
-
-         Update_Pp_Formatting_Options
-           (Pp_Options => PP_Options, LSP_Options => Options);
-
-         Success :=
-           Document.Range_Formatting
-             (Context    => Context,
-              Span       => Span,
-              PP_Options => PP_Options,
-              Edit       => Response,
-              Messages   => Messages);
-
-         if not Success then
-            Error :=
-              (code    =>
-                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
-               message => Messages.Join (' '));
-         end if;
-      end Gnatpp_Range_Format;
-
-      ----------------------------
-      -- Gnatformat_Range_Format --
-      -----------------------------
-
-      procedure Gnatformat_Range_Format is
-      begin
-         Success := True;
-         Response.Clear;
-         Response.Append
-           (Document.Range_Format (Context, Span, Options => Options));
-
-      exception
-         when E : others =>
-            Context.Tracer.Trace_Exception (E, GNATformat_Exception_Found_Msg);
-            Success := False;
-            Error :=
-              (code    =>
-                 LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
-               message => GNATformat_Exception_Found_Msg);
-      end Gnatformat_Range_Format;
-
+      Error    : out LSP.Errors.ResponseError) is
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
          Error :=
            (code    =>
               LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
-            message => Provider_Msg_Prefix & Incorrect_Code_Msg);
+            message => Incorrect_Code_Msg);
 
          return;
       end if;
+      Response.Clear;
+      Response.Append
+        (Document.Range_Format (Context, Span, Options => Options));
+      Success := True;
 
-      case Provider is
-         when Gnatformat =>
-            Gnatformat_Range_Format;
-
-         when Gnatpp =>
-            Gnatpp_Range_Format;
-      end case;
+   exception
+      when E : others =>
+         Context.Tracer.Trace_Exception (E, GNATformat_Exception_Found_Msg);
+         Success := False;
+         Error :=
+           (code    =>
+              LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+            message => GNATformat_Exception_Found_Msg);
    end Range_Format;
 
-   ----------------------------------
-   -- Update_Pp_Formatting_Options --
-   ----------------------------------
+   ---------------------
+   -- Get_Indentation --
+   ---------------------
 
-   procedure Update_Pp_Formatting_Options
-     (Pp_Options  : in out Utils.Command_Lines.Command_Line;
-      LSP_Options : LSP.Structures.FormattingOptions)
+   function Get_Indentation
+     (Context  : LSP.Ada_Contexts.Context;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Structures.A_Range;
+      Options  : Gnatformat.Configuration.Format_Options_Type)
+      return LSP.Formatters.Fallback_Indenter.Indentation_Array
    is
-      Pp_Indentation : constant Natural :=
-        Pp.Command_Lines.Pp_Nat_Switches.Arg
-          (Pp_Options, Pp.Command_Lines.Indentation);
-      Pp_No_Tab      : constant Boolean :=
-        Pp.Command_Lines.Pp_Flag_Switches.Arg
-          (Pp_Options, Pp.Command_Lines.No_Tab);
-
+      Filename         : constant GNATCOLL.VFS.Virtual_File :=
+        Context.URI_To_File (Document.URI);
+      Indentation      : constant Positive :=
+        Gnatformat.Configuration.Get_Indentation
+          (Options, Filename.Display_Full_Name);
+      Indentation_Cont : constant Positive :=
+        Gnatformat.Configuration.Get_Indentation_Continuation
+          (Options, Filename.Display_Full_Name);
    begin
-      --  Check if intentation and 'no tab' policy options have been explictly
-      --  set in the project.
-      --  If it's not the case, use the LSP options.
+      return
+        LSP.Formatters.Fallback_Indenter.Get_Indentation
+          (Buffer          =>
+             VSS.Strings.Conversions.To_UTF_8_String
+               (Document.Get_Text ((0, 0), Span.an_end)),
+           From            => Span.start.line + 1,
+           To              => Span.an_end.line + 1,
+           Indent_Level    => Indentation,
+           Indent_Continue => Indentation_Cont);
+   end Get_Indentation;
 
-      if not Pp.Command_Lines.Pp_Nat_Switches.Explicit
-               (Pp_Options, Pp.Command_Lines.Indentation)
-      then
-         Pp.Command_Lines.Pp_Nat_Switches.Set_Arg
-           (Pp_Options, Pp.Command_Lines.Indentation, LSP_Options.tabSize);
+   ------------------
+   -- Indent_Lines --
+   ------------------
 
-      elsif Pp_Indentation /= LSP_Options.tabSize then
-         Formatting_Trace.Trace
-           ("Project file defines an indentation "
-            & "of"
-            & Pp_Indentation'Img
-            & ", while LSP defines an "
-            & "indentation of"
-            & LSP_Options.tabSize'Img
-            & ".");
+   procedure Indent_Lines
+     (Context  : LSP.Ada_Contexts.Context;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Span     : LSP.Structures.A_Range;
+      Options  : Gnatformat.Configuration.Format_Options_Type;
+      Success  : out Boolean;
+      Response : out LSP.Structures.TextEdit_Vector;
+      Messages : out VSS.String_Vectors.Virtual_String_Vector;
+      Error    : out LSP.Errors.ResponseError)
+   is
+      pragma Unreferenced (Messages);
+      use VSS.Strings;
+      Indent_Lines :
+        constant LSP.Formatters.Fallback_Indenter.Indentation_Array :=
+          Get_Indentation (Context, Document, Span, Options => Options);
+   begin
+      Context.Tracer.Trace_Text
+        (Incorrect_Code_Msg & ", using the fallback indenter");
+      for Line in Indent_Lines'Range loop
+         if Indent_Lines (Line) /= -1 then
+            Response.Append
+              (Reindent_Line
+                 (Context    => Context,
+                  Document   => Document,
+                  Options    => Options,
+                  Pos        => (Line - 1, 0),
+                  New_Indent => Indent_Lines (Line)));
+         end if;
+      end loop;
+      Success := True;
+   exception
+      when E : others =>
+         Context.Tracer.Trace_Exception (E, Fallback_Exception_Found_Msg);
+         Success := False;
+         Error :=
+           (code    =>
+              LSP.Enumerations.ErrorCodes (LSP.Enumerations.RequestFailed),
+            message => Fallback_Exception_Found_Msg);
+   end Indent_Lines;
+
+   -----------------
+   -- Handle_Tabs --
+   -----------------
+
+   function Handle_Tabs
+     (Context  : LSP.Ada_Contexts.Context;
+      Document : not null LSP.Ada_Documents.Document_Access;
+      Options  : Gnatformat.Configuration.Format_Options_Type;
+      S        : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String
+   is
+      use Gnatformat.Configuration;
+      use type VSS.Characters.Virtual_Character;
+      use VSS.Strings;
+
+      Filename     : constant GNATCOLL.VFS.Virtual_File :=
+        Context.URI_To_File (Document.URI);
+      Indentation  : constant Character_Count :=
+        Character_Count
+          (Get_Indentation (Options, Filename.Display_Full_Name));
+      Use_Tabs     : constant Boolean :=
+        Get_Indentation_Kind (Options, Filename.Display_Full_Name) = Tabs;
+      Res          : VSS.Strings.Virtual_String;
+      Character_It :
+        VSS.Strings.Cursors.Iterators.Characters.Character_Iterator :=
+          S.Before_First_Character;
+   begin
+      if Use_Tabs then
+         declare
+            Count_Space : Character_Count := 0;
+         begin
+            --  Convert spaces to tabs
+            while Character_It.Forward loop
+               if Character_It.Element = VSS.Characters.Latin.Space then
+                  Count_Space := Count_Space + 1;
+                  if Count_Space = Indentation then
+                     Res.Append (VSS.Characters.Latin.Character_Tabulation);
+                     Count_Space := 0;
+                  end if;
+               else
+                  exit;
+               end if;
+            end loop;
+
+            --  Add the remaining spaces
+            if Count_Space > 0 then
+               Res.Append (Count_Space * VSS.Characters.Latin.Space);
+            end if;
+
+            --  Add the rest of the line
+            Res.Append (S.Slice (Character_It, S.At_Last_Character));
+         end;
+      else
+         --  Convert tabs to spaces
+         while Character_It.Forward loop
+            if Character_It.Element = VSS.Characters.Latin.Character_Tabulation
+            then
+               Res.Append (Indentation * VSS.Characters.Latin.Space);
+            else
+               exit;
+            end if;
+         end loop;
+
+         --  Add the rest of the line
+         Res.Append (S.Slice (Character_It, S.At_Last_Character));
       end if;
 
-      if not Pp.Command_Lines.Pp_Flag_Switches.Explicit
-               (Pp_Options, Pp.Command_Lines.No_Tab)
-      then
-         Pp.Command_Lines.Pp_Flag_Switches.Set_Arg
-           (Pp_Options, Pp.Command_Lines.No_Tab, LSP_Options.insertSpaces);
+      return Res;
+   end Handle_Tabs;
 
-      elsif Pp_No_Tab /= LSP_Options.insertSpaces then
-         Formatting_Trace.Trace
-           ("Project file no tab policy is set to "
-            & Pp_No_Tab'Img
-            & ", while LSP is set to "
-            & LSP_Options.insertSpaces'Img);
-      end if;
-   end Update_Pp_Formatting_Options;
+   ----------------------------
+   -- Get_Formatting_Options --
+   ----------------------------
+
+   function Get_Formatting_Options
+     (Context     : LSP.Ada_Contexts.Context;
+      LSP_Options : LSP.Structures.FormattingOptions)
+      return Gnatformat.Configuration.Format_Options_Type
+   is
+      use Gnatformat;
+      use Gnatformat.Configuration;
+
+      function Get_LSP_Options return Format_Options_Type;
+
+      ---------------------
+      -- Get_LSP_Options --
+      ---------------------
+
+      function Get_LSP_Options return Format_Options_Type is
+         Format_Options_Builder : Format_Options_Builder_Type :=
+           Create_Format_Options_Builder;
+      begin
+         if LSP_Options.tabSize /= 0 then
+            --  FormattingOptions is not optional, however in case a client
+            --  forgot to set it try to be resilient.
+            Format_Options_Builder.With_Indentation
+              (LSP_Options.tabSize, Ada_Language);
+         end if;
+         Format_Options_Builder.With_Indentation_Kind
+           ((if LSP_Options.insertSpaces then Spaces else Tabs), Ada_Language);
+
+         if LSP_Options.gnatFormatMaxSize.Is_Set then
+            Format_Options_Builder.With_Width
+              (LSP_Options.gnatFormatMaxSize.Value, Ada_Language);
+         end if;
+
+         if LSP_Options.gnatFormatContinuationLineIndent.Is_Set then
+            Format_Options_Builder.With_Indentation_Continuation
+              (LSP_Options.gnatFormatContinuationLineIndent.Value,
+               Ada_Language);
+         end if;
+
+         return Format_Options_Builder.Build;
+      end Get_LSP_Options;
+
+      Full_Format_Options : Format_Options_Type := Default_Format_Options;
+      --  Start with the default options
+   begin
+      --  Overwrite is lazy and will not affect options which are not
+      --  explicitly defined. By order of precedence use Default then overwrite
+      --  it with the LSP options and finally overwrite them with the project
+      --  options.
+      Full_Format_Options.Overwrite (Get_LSP_Options);
+      Full_Format_Options.Overwrite (Context.Get_Format_Options);
+      return Full_Format_Options;
+   end Get_Formatting_Options;
 
 end LSP.Ada_Handlers.Formatting;
