@@ -1,3 +1,14 @@
+"""
+Tests that we insert auto-import in the right place,
+before the node.
+For example:
+Ada.Text_IO.Put (LFtip);
+                     ^ cursor here
+
+Ada.Text_IO.Put (LFtip);
+                 ^ "A." should be inserted here
+"""
+
 from typing import List
 from drivers import pylsp
 from lsprotocol.types import (
