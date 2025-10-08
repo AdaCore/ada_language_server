@@ -294,7 +294,7 @@ function handleReveal(response: RevealReferencesResponse) {
     if (referencesPickerMenu)
         setReferencesPickerMenu({ ...referencesPickerMenu, locationsMap: locationsMap });
     else if (nodeContextMenu) {
-        setNodeContextMenu({ ...nodeContextMenu, locationsMap: locationsMap });
+        setNodeContextMenu({ ...nodeContextMenu, locationsMap: locationsMap, receivedData: true });
     }
 }
 
@@ -689,6 +689,7 @@ export default function App() {
                                 ? pane.height - event.clientY
                                 : undefined,
                         locationsMap: new Map(),
+                        receivedData: false,
                         pane: pane,
                         onContextClose: onNodeContextClose,
                         deleteNodes: deleteNodes,
@@ -859,6 +860,7 @@ export default function App() {
                     onFocus={onFocus}
                     maxZoom={maxZoom}
                     minZoom={minZoom}
+                    deleteKeyCode={[]}
                     nodeTypes={nodeTypes}
                     edgeTypes={edgeTypes}
                     onKeyDown={onKeyDown}
@@ -881,7 +883,7 @@ export default function App() {
                     onNodeDoubleClick={onNodeDoubleClick}
                     onNodeContextMenu={onNodeContextMenu}
                     selectionMode={SelectionMode.Partial}
-                    deleteKeyCode={[]}
+                    defaultViewport={{ x: 0, y: 0, zoom: 0.4 }}
                     connectionLineComponent={floatingConnectionLine}
                     className="visualizer__colors"
                 >

@@ -259,12 +259,7 @@ function BasicNode(node: NodeProps<DataNode>) {
     );
 
     return (
-        <div
-            tabIndex={0}
-            className={nodeClass}
-            data-node-id={data.id}
-            title={(data.inProject ? '' : '[out of project] ') + data.label}
-        >
+        <div tabIndex={0} className={nodeClass} data-node-id={data.id}>
             {/* Hide the handles in the node and make them invisible as the user does not need to
             connect edges. */}
             <Handle
@@ -287,15 +282,23 @@ function BasicNode(node: NodeProps<DataNode>) {
             />
             {/* The upper part of the node that contains the name of the symbol
             and its kind as an icon. */}
-            <div className="visualizer__node-title">
+            <div
+                className="visualizer__node-title"
+                title={(data.inProject ? '' : '[out of project] ') + data.label}
+            >
                 <span className={iconClass} style={{ color: color }}></span>
                 <div className={'visualizer__text visualizer__ellipsis-text'}>{data.label}</div>
             </div>
             {/* The lower part of the node that contains information about the symbol. */}
             <div className="visualizer__node-body">
-                <div className="visualizer__ellipsis-text">File : {fileName}</div>
-                <div className="visualizer__ellipsis-text">
-                    Position : {data.string_location.position}
+                <div className="visualizer__ellipsis-text" title={'File: ' + fileName}>
+                    <b>File</b>: {fileName}
+                </div>
+                <div
+                    className="visualizer__ellipsis-text"
+                    title={'Position: ' + data.string_location.position}
+                >
+                    <b>Position</b>: {data.string_location.position}
                 </div>
             </div>
             {/* The super class button allows requesting the parents of the node. */}
