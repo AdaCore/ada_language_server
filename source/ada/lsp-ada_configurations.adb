@@ -57,13 +57,6 @@ package body LSP.Ada_Configurations is
        ("ALS.COMPLETION.FORMATTING", Default => GNATCOLL.Traces.On);
    --  Used in Completion_Formatting/LSP.Ada_Completions.Pretty_Print_Snippet
 
-   Partial_Gnatpp_Trace : constant GNATCOLL.Traces.Trace_Handle :=
-     GNATCOLL.Traces.Create
-       (Unit_Name => "ALS.PARTIAL_GNATPP",
-        Default   => GNATCOLL.Traces.On);
-   --  Trace to enable/disable using partial Gnatpp in the rangeFormatting
-   --  request.
-
    On_Type_Formatting_Trace : constant GNATCOLL.Traces.Trace_Handle :=
      GNATCOLL.Traces.Create
        (Unit_Name => "ALS.ON_TYPE_FORMATTING",
@@ -434,6 +427,12 @@ package body LSP.Ada_Configurations is
                end if;
 
             elsif Check_Variable
+               (Name, JSON (Index).Kind, "rangeFormattingFallback",
+                Boolean_Value)
+            then
+               Self.Range_Formatting_Fallback := JSON (Index).Boolean_Value;
+
+            elsif Check_Variable
               (Name, JSON (Index).Kind, "useGnatformat", Boolean_Value)
             then
                Self.Use_Gnatformat := JSON (Index).Boolean_Value;
@@ -474,15 +473,6 @@ package body LSP.Ada_Configurations is
          end;
       end loop;
    end Parse_Ada;
-
-   --------------------
-   -- Partial_GNATPP --
-   --------------------
-
-   function Partial_GNATPP return Boolean is
-   begin
-      return Partial_Gnatpp_Trace.Is_Active;
-   end Partial_GNATPP;
 
    ---------------
    -- Read_File --

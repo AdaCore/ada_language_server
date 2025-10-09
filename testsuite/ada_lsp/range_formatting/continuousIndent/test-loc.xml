@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<Locations>
+  <Project>
+    <vfs_file>/home/boulanger/ancr/src/als/testsuite/ada_lsp/onTypeFormatting/continuousIndent/test.gpr</vfs_file>
+    <file_marker column=" 40" line=" 11717" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/docs/users_guide/GPS/__init__.py</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 23" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/testsuite/tests/gs.541.format_new_buffer/test.py</vfs_file>
+    </file_marker>
+    <file_marker column=" 57" line=" 373" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/kernel/src/gps-kernel-preferences.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 14" line=" 362" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/src_editor/src/src_editor_buffer.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 4905" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/src_editor/src/src_editor_buffer.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 18" line=" 589" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/install/gtkada/include/gtkada/gtkada.relocatable/gtkada/gtk-text_iter.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 21" line=" 116" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/src_editor/src/src_editor_module.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 35" line=" 18" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/lsp_client/src/gps-lsp_client-configurations-als.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 42" line=" 29" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/lsp_client/src/gps-lsp_client-edit_workspace.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 27" line=" 16" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/wave/x86_64-linux/langkit_support_stable/install/include/vss/text/vss_text/vss-strings-cursors-iterators-characters.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 9" line=" 18" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/wave/x86_64-linux/langkit_support_stable/install/include/vss/text/vss_text/vss-characters.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 34" line=" 66" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/wave/x86_64-linux/langkit_support_stable/install/include/vss/text/vss_text/vss-unicode.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 18" line=" 2023" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/share/support/core/diff_match_patch.py</vfs_file>
+    </file_marker>
+    <file_marker column=" 30" line=" 52" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/wave/x86_64-linux/langkit_support_stable/install/include/vss/text/vss_text/vss-strings-cursors.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 338" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/lsp_client/src/gps-lsp_client-editors-formatting.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 24" line=" 256" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/src_editor/src/src_editor_module-editors.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 430" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/install/gtkada/include/gtkada/gtkada.relocatable/gtkada/gtk-text_buffer.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 32" line=" 784" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/install/gtkada/include/gtkada/gtkada.relocatable/gtkada/gtk-text_buffer.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 13" line=" 42" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/lsp_client/src/gps-lsp_client-utilities.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 132" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/gnatstudio/lsp_client/src/gps-lsp_client-utilities.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 7" line=" 328" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/als/liblsp_3_16/source/lsp-messages.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 24" line=" 149" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/als/liblsp_3_16/source/lsp-types.ads</vfs_file>
+    </file_marker>
+    <file_marker column=" 1" line=" 1" >
+      <vfs_project>/home/boulanger/ancr/src/als/testsuite/ada_lsp/onTypeFormatting/continuousIndent/test.gpr</vfs_project>
+      <vfs_file>/home/boulanger/ancr/src/als/testsuite/ada_lsp/onTypeFormatting/continuousIndent/t.adb</vfs_file>
+    </file_marker>
+    <file_marker column=" 3" line=" 14" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/als/testsuite/ada_lsp/onTypeFormatting/continuousIndent/test.json</vfs_file>
+    </file_marker>
+    <file_marker column=" 3" line=" 14" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/als/testsuite/ada_lsp/onTypeFormatting/continuousIndent/test.json</vfs_file>
+    </file_marker>
+    <file_marker column=" 22" line=" 484" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/als/testsuite/ada_lsp/onTypeFormatting/continuousIndent/test.json</vfs_file>
+    </file_marker>
+    <file_marker current="true" column=" 1" line=" 1" >
+      <vfs_project />
+      <vfs_file>/home/boulanger/ancr/src/als/testsuite/ada_lsp/inline_values/test.json</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

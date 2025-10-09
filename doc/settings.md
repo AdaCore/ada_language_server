@@ -121,6 +121,7 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [followSymlinks](#followsymlinks)
 * [documentationStyle](#documentationstyle)
 * [onTypeFormatting.indentOnly](#ontypeformattingindentonly)
+* [rangeFormattingFallback](#rangeFormattingFallback)
 * [useGnatformat](#usegnatformat)
 
 ----
@@ -418,11 +419,16 @@ Conversely, in VS Code this settings can be set without nesting:
 }
 ```
 
+### rangeFormattingFallback
+
+This option controls if the `textDocument/rangeFormatting` request should fallback to another
+indenter in case the code is not syntactically correct. If disabled, `textDocument/rangeFormatting`
+will return an error if the code is not syntactically correct.
+
 ### useGnatformat
 
-This option controls the formatting provider for the `textDocument/formatting`,
-`textDocument/rangeFormatting` and `textDocument/onTypeFormatting` request. By default, this option
-is enabled and ALS uses GNATformat as its formatting provider. If disabled, GNATpp is used instead.
+GNATpp has been removed as a provider for formatting requests. GNATformat is now enabled by default
+and this settings is now obsolete.
 
 ### logThreshold
 
@@ -434,4 +440,3 @@ See the documentation on [ALS Traces](traces.md) for more information.
 ### enableExperimentalFeatures
 
 This option enable the use of experimental features which are still under development.
-

@@ -183,11 +183,11 @@
                            "character": 0
                         },
                         "end": {
-                           "line": 8,
+                           "line": 9,
                            "character": 0
                         }
                      },
-                     "newText": "   "
+                     "newText": "   I : constant Integer := 0;\n"
                   },
                   {
                      "range": {
@@ -196,11 +196,11 @@
                            "character": 0
                         },
                         "end": {
-                           "line": 10,
+                           "line": 11,
                            "character": 0
                         }
                      },
-                     "newText": "   "
+                     "newText": "   B : constant Boolean := False;\n"
                   }
                ]
             }

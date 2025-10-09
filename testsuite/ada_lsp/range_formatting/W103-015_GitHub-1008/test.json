@@ -64,8 +64,7 @@
                      "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
                      "adaFileDiagnostics": true,
                      "useCompletionSnippets": false,
-                     "renameInComments": false,
-                     "useGnatformat": false
+                     "renameInComments": false
                   }
                }
             }
@@ -123,15 +122,41 @@
                   {
                      "range": {
                         "start": {
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 1,
+                           "character": 0
+                        }
+                     },
+                     "newText": "\n"
+                  },
+                  {
+                     "range": {
+                        "start": {
                            "line": 3,
                            "character": 0
                         },
                         "end": {
-                           "line": 7,
-                           "character": 7
+                           "line": 5,
+                           "character": 0
                         }
                      },
-                     "newText": "   procedure You_Say_Hello\n   is\n   begin\n      Ada.Text_IO.Put_Line (\"Hello\");\n   end You_Say_Hello;"
+                     "newText": "   procedure You_Say_Hello is\n"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 8,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 11,
+                           "character": 0
+                        }
+                     },
+                     "newText": "\n   procedure I_Say_Goodbye is\n"
                   }
                ]
             }

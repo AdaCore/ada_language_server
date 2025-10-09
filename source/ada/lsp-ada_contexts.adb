@@ -17,8 +17,6 @@
 
 with Ada.Characters.Handling;     use Ada.Characters.Handling;
 
-with GNAT.Strings;
-
 with GNATCOLL.Traces;             use GNATCOLL.Traces;
 with GNATCOLL.VFS;                use GNATCOLL.VFS;
 
@@ -36,14 +34,10 @@ with VSS.Strings.Conversions;
 with Libadalang.Common;           use Libadalang.Common;
 with Langkit_Support.Slocs;
 
-with Utils.Command_Lines.Common;
-
-with Pp.Actions;
 with Langkit_Support.Text;
 
 with URIs;
 with LSP.Ada_Id_Iterators;
-with LSP.Ada_Projects;
 
 package body LSP.Ada_Contexts is
 
@@ -582,8 +576,6 @@ package body LSP.Ada_Contexts is
    is
       procedure Update_Source_Files;
       --  Update the value of Self.Source_Files
-      procedure Pretty_Printer_Setup;
-      --  Setup PP_Options object
 
       -------------------------
       -- Update_Source_Files --
@@ -709,66 +701,6 @@ package body LSP.Ada_Contexts is
          end loop;
       end Update_Source_Files;
 
-      --------------------------
-      -- Pretty_Printer_Setup --
-      --------------------------
-
-      procedure Pretty_Printer_Setup is
-         Validated : GNAT.Strings.String_List_Access;
-         Index     : Integer := 0;
-         Attribute : GPR2.Project.Attribute.Object;
-         Values    : GPR2.Containers.Value_List;
-
-      begin
-
-         --  Initialize an gnatpp command line object
-
-         if Provider.Projects.First_Element.Check_Attribute
-           (Name   => LSP.Ada_Projects.Pretty_Printer.Switches,
-            Index  => LSP.Ada_Projects.Pretty_Printer.Ada_Index,
-            Result => Attribute)
-         then
-
-            --  Fill 'Values' with non empty value
-
-            for Value of Attribute.Values loop
-               declare
-                  Text : constant String := Value.Text;
-               begin
-                  if Text /= "" then
-                     Values.Append (Text);
-                     Index := Index + 1;
-                  end if;
-               end;
-            end loop;
-
-            Validated := new GNAT.Strings.String_List (1 .. Index);
-
-            if Index > 0 then
-               Index := Validated'First;
-               for Text of Values loop
-                  Validated (Index) := new String'(Text);
-                  Index := Index + 1;
-               end loop;
-            end if;
-         else
-            Validated := new GNAT.Strings.String_List (1 .. 0);
-         end if;
-
-         Utils.Command_Lines.Parse
-           (Validated,
-            Self.PP_Options,
-            Phase              => Utils.Command_Lines.Cmd_Line_1,
-            Callback           => null,
-            Collect_File_Names => False,
-            Ignore_Errors      => True);
-
-         GNAT.Strings.Free (Validated);
-
-         --  Set UTF-8 encoding
-         Utils.Command_Lines.Common.Set_WCEM (Self.PP_Options, "8");
-      end Pretty_Printer_Setup;
-
    begin
       --  Use the full path for the ID to avoid conflict when project are
       --  sharing the same name. For example for GNATTest stubs.
@@ -786,7 +718,6 @@ package body LSP.Ada_Contexts is
       Self.Reload;
       Update_Source_Files;
 
-      Pretty_Printer_Setup;
       --  Choose the first project in case of aggregate context, assuming
       --  they all share the gnatformat options.
       Self.Format_Options :=
@@ -818,9 +749,6 @@ package body LSP.Ada_Contexts is
       Self.Source_Files.Clear;
       Self.Source_Dirs.Clear;
       Self.Tree := GPR2.Project.Tree.Undefined;
-
-      --  Cleanup gnatpp's template tables
-      Pp.Actions.Clear_Template_Tables;
    end Free;
 
    --------

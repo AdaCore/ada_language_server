@@ -53,6 +53,11 @@
             "default": true,
             "markdownDescription": "Enable GNATformat as the formatting provider for Ada source files."
         },
+        "rangeFormattingFallback": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "Enable fallback indenter in case the file is not syntactically correct."
+        },
         "onTypeFormatting": {
             "type": "object",
             "properties": {

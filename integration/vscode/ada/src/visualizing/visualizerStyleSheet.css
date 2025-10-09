@@ -102,7 +102,7 @@ body {
     border-bottom: inherit;
 }
 
-/* Style the text in the body of the node. */
+/* Style the text in the title of the node. */
 .visualizer__text {
     margin-left: 3px;
     margin-bottom: 10px;
@@ -113,6 +113,11 @@ body {
 /* Center the icons with the text. */
 .visualizer__icon {
     transform: translateY(15%);
+}
+
+.visualizer__node-body-elem {
+    padding-top: 5%;
+    padding-bottom: 5%;
 }
 
 /* Make sure the text doesn't overflow out of its container */

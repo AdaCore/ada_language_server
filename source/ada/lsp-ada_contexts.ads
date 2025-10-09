@@ -35,9 +35,6 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Project_Provider;
 
-with Utils.Command_Lines;
-with Pp.Command_Lines;
-
 with VSS.String_Vectors;
 with VSS.Strings;
 
@@ -190,13 +187,12 @@ package LSP.Ada_Contexts is
    function File_Count (Self : Context) return Natural;
    --  Return number of files known to this context.
 
-   function Get_PP_Options
-     (Self : Context) return Utils.Command_Lines.Command_Line;
-   --  Return the command line for the Pretty Printer
-
    function Get_Format_Options
      (Self : Context) return Gnatformat.Configuration.Format_Options_Type;
-   --  Return the formatting options for Gnatformat
+   --  Return the project formatting options for Gnatformat.
+   --  This function should not be called directly most of the time because
+   --  it doesn't take in consideration the request options. Please use
+   --  LSP.Ada_Handlers.Formatting.Get_Formatting_Options
 
    function Get_Documentation_Style
      (Self : Context) return GNATdoc.Comments.Options.Documentation_Style;
@@ -364,10 +360,6 @@ private
       Extension_Set : LSP.Ada_File_Sets.Extension_Sets.Set;
       --  All the ada extensions valid for the current project
 
-      PP_Options : Utils.Command_Lines.Command_Line
-                    (Pp.Command_Lines.Descriptor'Access);
-      --  Object to keep gnatpp options
-
       Format_Options : Gnatformat.Configuration.Format_Options_Type;
 
       Style : GNATdoc.Comments.Options.Documentation_Style :=
@@ -395,9 +387,6 @@ private
 
    function File_Count (Self : Context) return Natural
    is (Self.Source_Files.Length);
-
-   function Get_PP_Options (Self : Context) return
-     Utils.Command_Lines.Command_Line is (Self.PP_Options);
 
    function Get_Format_Options
      (Self : Context)

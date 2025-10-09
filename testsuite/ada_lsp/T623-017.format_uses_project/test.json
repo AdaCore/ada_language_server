@@ -94,11 +94,11 @@
                            "character": 0
                         },
                         "end": {
-                           "line": 2,
+                           "line": 1,
                            "character": 0
                         }
                      },
-                     "newText": "PROCEDURE Main IS\nBEGIN\n    NULL;\nEND Main;\n"
+                     "newText": "procedure Main is\nbegin\n    null;\n"
                   }
                ]
             }

@@ -1,1 +1,2 @@
 title: 'completion.auto_qualifier'
+driver: pylsp

@@ -316,7 +316,7 @@ export function ReferencesPickerMenu(props: ReferencesPickerMenuProps) {
     else {
         locations.push(
             <li className='"visualizer__references-picker-item' key="No references">
-                No references found
+                <i>No references found</i>
             </li>,
         );
     }

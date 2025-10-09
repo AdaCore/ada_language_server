@@ -118,15 +118,28 @@
                   {
                      "range": {
                         "start": {
-                           "line": 0,
+                           "line": 1,
+                           "character": 0
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 0
+                        }
+                     },
+                     "newText": "Ada.Text_IO;\n"
+                  },
+                  {
+                     "range": {
+                        "start": {
+                           "line": 3,
                            "character": 0
                         },
                         "end": {
                            "line": 6,
-                           "character": 10
+                           "character": 0
                         }
                      },
-                     "newText": "with -- context_clause_start\n       Ada.Text_IO;\n\nprocedure Debug\nis begin\n        null;\nend Debug;"
+                     "newText": "procedure Debug is\nbegin\n        null;\n"
                   }
                ]
             }
