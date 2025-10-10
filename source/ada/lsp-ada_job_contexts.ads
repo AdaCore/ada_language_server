@@ -10,7 +10,7 @@
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License for  more details.  You should have  received  a copy of the GNU --
--- General  Public  License  distributed  with  this  software;   see  file --
+-- General  Public  License  distributed  with  this  software;z   see  file --
 -- COPYING3.  If not, go to http://www.gnu.org/licenses for a complete copy --
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
@@ -195,6 +195,15 @@ package LSP.Ada_Job_Contexts is
         is abstract;
    --  Append given Node location to the Result.
    --  Do nothing if the item inside of an synthetic file (like __standard).
+
+   procedure Append_Location
+     (Self   : in out Ada_Job_Context;
+      Result : in out LSP.Structures.Location_Vector;
+      Filter : in out LSP.Locations.File_Span_Sets.Set;
+      Unit   : Libadalang.Analysis.Analysis_Unit;
+      Token  : Libadalang.Common.Token_Reference)
+        is abstract;
+   --  Append given token location to the Result.
 
    procedure Trace_Exception
      (Self    : Ada_Job_Context;
