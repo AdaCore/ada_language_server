@@ -178,7 +178,7 @@ package LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
       Options : Gnatformat.Configuration.Format_Options_Type)
-      return LSP.Structures.TextEdit;
+      return LSP.Structures.TextEdit_Vector;
    --  Format part of Self defined by Span with formatting options based on
    --  Context.
 

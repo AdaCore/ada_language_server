@@ -476,7 +476,10 @@ package body LSP.Ada_Documents is
            Options));
 
    begin
-      Self.Diff_C (New_Text => Formatted_Document, Edit => Result);
+      Self.Diff_C
+        (New_Text => Formatted_Document,
+         Span     => LSP.Text_Documents.Empty_Range,
+         Edit     => Result);
       --  Self.Needleman_Diff (New_Text => Formatted_Document, Edit => Result);
 
       return Result;
@@ -1055,17 +1058,19 @@ package body LSP.Ada_Documents is
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
       Options : Gnatformat.Configuration.Format_Options_Type)
-      return LSP.Structures.TextEdit
+      return LSP.Structures.TextEdit_Vector
    is
       use type LSP.Structures.A_Range;
       use Gnatformat.Configuration;
 
+      Result : LSP.Structures.TextEdit_Vector;
    begin
       if Span = LSP.Text_Documents.Empty_Range then
-         return (LSP.Constants.Empty, VSS.Strings.Empty_Virtual_String);
+         return Result;
       end if;
 
       declare
+
          Range_Formatted_Document :
            constant Gnatformat.Edits.Formatting_Edit_Type :=
              Gnatformat.Formatting.Range_Format
@@ -1073,10 +1078,14 @@ package body LSP.Ada_Documents is
                 Self.To_Source_Location_Range (Span),
                 Options);
       begin
-         return
-           (Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
-            VSS.Strings.Conversions.To_Virtual_String
-              (Range_Formatted_Document.Text_Edit.Text));
+         Self.Diff_C
+           (New_Text =>
+              VSS.Strings.Conversions.To_Virtual_String
+                (Range_Formatted_Document.Text_Edit.Text),
+            Span     =>
+              Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
+            Edit     => Result);
+         return Result;
       end;
    end Range_Format;
 

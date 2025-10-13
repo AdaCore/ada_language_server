@@ -135,11 +135,11 @@
                            "character": 0
                         },
                         "end": {
-                           "line": 6,
+                           "line": 7,
                            "character": 0
                         }
                      },
-                     "newText": "procedure Debug is\nbegin\n        null;\n"
+                     "newText": "procedure Debug is\nbegin\n        null;\nend Debug;\n"
                   }
                ]
             }
