@@ -23,6 +23,12 @@ abstract project LSP_Common is
 
    Superproject := external ("SUPERPROJECT", "");
 
+   Processors := external ("PROCESSORS", "1");
+
+   package Builder is
+      for Switches ("Ada") use ("-m", "-j" & Processors);
+   end Builder;
+
    type Any_Boolean is ("false", "true");
 
    --  By default, treat warnings as errors in dev mode, but not in prod

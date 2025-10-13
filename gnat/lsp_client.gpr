@@ -24,5 +24,6 @@ project LSP_Client is
    for Object_Dir use "../.obj/client";
 
    package Compiler renames LSP.Compiler;
+   package Builder renames LSP.Builder;
 
 end LSP_Client;

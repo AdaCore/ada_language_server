@@ -104,6 +104,7 @@ project LSP_Server is
 
    package Builder is
       for Executable ("lsp-ada_driver") use "ada_language_server";
+      for Switches ("Ada") use Lsp_Common.Builder'Switches ("Ada");
    end Builder;
 
 end LSP_Server;
