@@ -98,7 +98,8 @@ package body LSP.Ada_Handlers.Formatting is
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
-      pragma Unreferenced (Messages, Span);
+      pragma Unreferenced (Messages);
+      use type LSP.Structures.A_Range;
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
@@ -110,7 +111,11 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      Response := Document.Format (Context, Options);
+      if Span /= LSP.Constants.Empty then
+         Response := Document.Range_Format (Context, Span, Options);
+      else
+         Response := Document.Format (Context, Options);
+      end if;
       Success := True;
 
    exception
@@ -252,8 +257,7 @@ package body LSP.Ada_Handlers.Formatting is
       Filename     : constant GNATCOLL.VFS.Virtual_File :=
         Context.URI_To_File (Document.URI);
       Indentation  : constant Character_Count :=
-        Character_Count
-          (Get_Indentation (Options, Filename.Display_Full_Name));
+        Character_Count (Get_Indentation (Options, Filename.Display_Full_Name));
       Use_Tabs     : constant Boolean :=
         Get_Indentation_Kind (Options, Filename.Display_Full_Name) = Tabs;
       Res          : VSS.Strings.Virtual_String;
