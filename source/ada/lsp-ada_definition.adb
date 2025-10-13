@@ -24,6 +24,7 @@ with Libadalang.Common;
 with Laltools.Common;
 
 with LSP.Ada_Context_Sets;
+with LSP.Ada_Documents;
 with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Request_Jobs;
 with LSP.Client_Message_Receivers;
@@ -124,6 +125,132 @@ package body LSP.Ada_Definition is
       Decl_For_Find_Overrides : Libadalang.Analysis.Basic_Decl;
 
       Ignore : Boolean;
+
+      procedure Retrieve_Alternate_Part_Location;
+      --  Retrieve the location of the alternate part of a package, task,
+      --  protected type, or subprogram.
+      --  This is used when the user queries the definition of a token that
+      --  does not belong to a defining name.
+      --  If the queried token is equal to 'is', retrieve the location of the
+      --  private part of the package, task, protected type, or the begin
+      --  of the subprogram body.
+
+      procedure Retrieve_Alternate_Part_Location is
+         use Libadalang.Common;
+
+         procedure Append_Prev_Token_Location
+           (Node : Libadalang.Analysis.Ada_Node'Class);
+         --  Append the previous token's location to the response.
+
+         -----------------------
+         -- Append_Prev_Token --
+         -----------------------
+
+         procedure Append_Prev_Token_Location
+           (Node : Libadalang.Analysis.Ada_Node'Class) is
+         begin
+            if not Node.Is_Null then
+               declare
+                  Prev : constant Libadalang.Common.Token_Reference :=
+                    Libadalang.Common.Previous (Node.Token_Start, True);
+               begin
+                  Self.Parent.Context.Append_Location
+                    (Result => Self.Response,
+                     Filter => Self.Filter,
+                     Unit   => Node.Unit,
+                     Token  => Prev);
+               end;
+            end if;
+         end Append_Prev_Token_Location;
+
+         Document : constant LSP.Ada_Documents.Document_Access :=
+           Self.Parent.Context.Get_Open_Document (Value.textDocument.uri);
+         Token    : Libadalang.Common.Token_Reference :=
+           Document.Get_Token_At (Context.all, Value.position);
+         Node     : Libadalang.Analysis.Ada_Node;
+         Position : LSP.Structures.Position;
+      begin
+         if Token /= No_Token then
+            if Token.Data.Kind = Ada_Is then
+               Node := Document.Get_Node_At (Context => Context.all, Position => Value.position);
+
+               if not Node.Is_Null and then Node.Kind in Ada_Subp_Body_Range
+               then
+                  --  We are on the 'is' of a subprogram body: retrieve the
+                  --  enclosing subprogram's defining name instead of checking
+                  --  for the previous token's node since it might refer to the
+                  --  subprogram's parameter list.
+                  Definition := Node.As_Subp_Body.P_Defining_Name;
+               else
+                  --  We are on the 'is' of a package, task, or protected type: retrieve
+                  --  the previous token's node, which should be the defining name.
+                  Token := Token.Previous (True);
+
+                  if Token = No_Token then
+                     --  Return if there is no previous token.
+                     return;
+                  end if;
+
+                  Position :=
+                    Document.To_A_Range (Token.Data.Sloc_Range).start;
+                  Node :=
+                    Document.Get_Node_At
+                      (Context => Context.all, Position => Position);
+
+                  Definition := Laltools.Common.Resolve_Name_Precisely (Node.As_Name);
+               end if;
+
+               --  Append private part, begin locations to the response
+               for Part of Definition.P_Basic_Decl.P_All_Parts loop
+                  case Part.Kind is
+
+                     when Libadalang.Common.Ada_Package_Body_Range =>
+                        Append_Prev_Token_Location (Part.As_Package_Body.F_Stmts);
+
+                     when Libadalang.Common.Ada_Subp_Body_Range =>
+                        Append_Prev_Token_Location (Part.As_Subp_Body.F_Stmts);
+
+                     when Libadalang.Common.Ada_Task_Body_Range =>
+                        Append_Prev_Token_Location (Part.As_Task_Body.F_Stmts);
+
+                     when Libadalang.Common.Ada_Base_Package_Decl =>
+                        Append_Prev_Token_Location
+                          (Part.As_Base_Package_Decl.F_Private_Part);
+
+                     when Libadalang.Common.Ada_Protected_Type_Decl_Range =>
+                        Append_Prev_Token_Location
+                          (Part
+                             .As_Protected_Type_Decl
+                             .F_Definition
+                             .F_Private_Part);
+
+                     when Libadalang.Common.Ada_Single_Protected_Decl_Range =>
+                        Append_Prev_Token_Location
+                          (Part
+                             .As_Single_Protected_Decl
+                             .F_Definition
+                             .F_Private_Part);
+
+                     when Libadalang.Common.Ada_Task_Type_Decl_Range =>
+                        Append_Prev_Token_Location
+                          (Part.As_Task_Type_Decl.F_Definition.F_Private_Part);
+
+                     when Libadalang.Common.Ada_Single_Task_Decl_Range =>
+                        Append_Prev_Token_Location
+                          (Part
+                             .As_Single_Task_Decl
+                             .F_Task_Type
+                             .F_Definition
+                             .F_Private_Part);
+
+                     when others =>
+                        null;
+                  end case;
+               end loop;
+            end if;
+         end if;
+      end Retrieve_Alternate_Part_Location;
+
    begin
       if Self.Contexts.Is_Empty then
          --  No more contexts to process, sort and return collected results
@@ -148,6 +275,7 @@ package body LSP.Ada_Definition is
         (Self.Parent.Context.Get_Node_At (Context.all, Value));
 
       if Name_Node.Is_Null then
+         Retrieve_Alternate_Part_Location;
          return;
       end if;
 
