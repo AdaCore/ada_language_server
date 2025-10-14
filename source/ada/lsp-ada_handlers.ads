@@ -339,11 +339,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentFormattingParams);
 
-   overriding procedure On_RangeFormatting_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentRangeFormattingParams);
-
    overriding procedure On_Initialized_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.InitializedParams);
@@ -380,11 +375,6 @@ private
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionParams);
-
-   overriding procedure On_OnTypeFormatting_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentOnTypeFormattingParams);
 
    overriding procedure On_SignatureHelp_Request
      (Self  : in out Message_Handler;

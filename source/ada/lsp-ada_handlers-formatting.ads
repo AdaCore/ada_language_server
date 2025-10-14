@@ -27,7 +27,7 @@ with LSP.Formatters.Fallback_Indenter;
 with VSS.Strings;
 with VSS.String_Vectors;
 
-private package LSP.Ada_Handlers.Formatting is
+package LSP.Ada_Handlers.Formatting is
 
    procedure Format
      (Context  : LSP.Ada_Contexts.Context;

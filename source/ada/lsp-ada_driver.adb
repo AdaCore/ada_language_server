@@ -50,6 +50,7 @@ with LSP.Ada_Did_Change_Document;
 with LSP.Ada_Document_Symbol;
 with LSP.Ada_Execute_Command;
 with LSP.Ada_Folding_Range;
+with LSP.Ada_Formatter;
 with LSP.Ada_Handlers.Executables_Commands;
 with LSP.Ada_Handlers.GPR_Dependencies_Commands;
 with LSP.Ada_Handlers.Mains_Commands;
@@ -122,7 +123,9 @@ with LSP.Server_Requests.FoldingRange;
 with LSP.Server_Requests.Hover;
 with LSP.Server_Requests.Initialize;
 with LSP.Server_Requests.InlineValue;
+with LSP.Server_Requests.OnTypeFormatting;
 with LSP.Server_Requests.PrepareTypeHierarchy;
+with LSP.Server_Requests.RangeFormatting;
 with LSP.Server_Requests.References;
 with LSP.Server_Requests.SelectionRange;
 with LSP.Server_Requests.Subtypes;
@@ -309,6 +312,14 @@ procedure LSP.Ada_Driver is
 
    Ada_Hover_Handler      : aliased LSP.Ada_Hover.Ada_Hover_Handler
      (Ada_Handler'Unchecked_Access);
+
+   Ada_Range_Formatter_Handler :
+     aliased LSP.Ada_Formatter.Ada_Range_Formatter_Handler
+               (Ada_Handler'Unchecked_Access);
+
+   Ada_On_Type_Formatter_Handler :
+     aliased LSP.Ada_Formatter.Ada_On_Type_Formatter_Handler
+               (Ada_Handler'Unchecked_Access);
 
    Ada_Definition_Handler : aliased LSP.Ada_Definition.Ada_Definition_Handler
      (Ada_Handler'Unchecked_Access);
@@ -701,6 +712,14 @@ begin
          Server.Register_Handler
            (LSP.Server_Requests.Hover.Request'Tag,
             Ada_Hover_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.RangeFormatting.Request'Tag,
+            Ada_Range_Formatter_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.OnTypeFormatting.Request'Tag,
+            Ada_On_Type_Formatter_Handler'Unchecked_Access);
 
          Server.Register_Handler
            (LSP.Server_Requests.Definition.Request'Tag,
