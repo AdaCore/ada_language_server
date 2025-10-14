@@ -170,23 +170,61 @@ package body LSP.Text_Documents is
    procedure Diff_C
      (Self     : Text_Document'Class;
       New_Text : VSS.Strings.Virtual_String;
+      Span     : LSP.Structures.A_Range;
       Edit     : out LSP.Structures.TextEdit_Vector)
    is
+      use type LSP.Structures.A_Range;
+
       C_Edit    : constant XDiff.Edits := XDiff.XDiff
-        (VSS.Strings.Conversions.To_UTF_8_String (Self.Text),
+        (VSS.Strings.Conversions.To_UTF_8_String
+           (if Span /= LSP.Text_Documents.Empty_Range
+            then Self.Slice (Span)
+            else Self.Text),
          VSS.Strings.Conversions.To_UTF_8_String (New_Text),
          XDiff.XDF_NEED_MINIMAL);
-      Cur       : XDiff.Edits := C_Edit;
+
       New_Lines : constant VSS.String_Vectors.Virtual_String_Vector :=
         New_Text.Split_Lines
           (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => False);
+
+      Cur       : XDiff.Edits := C_Edit;
+
+      function Get_Range
+        (Cur_Edit : XDiff.Edits) return LSP.Structures.A_Range;
 
       function Get_Slice
         (Lines      : VSS.String_Vectors.Virtual_String_Vector;
          Start_Line : Integer;
          End_Line   : Integer)
          return VSS.Strings.Virtual_String;
+
+      ---------------
+      -- Get_Range --
+      ---------------
+
+      function Get_Range (Cur_Edit : XDiff.Edits) return LSP.Structures.A_Range
+      is
+         Start_Line : Natural;
+         End_Line   : Natural;
+         --  Start_Bloc indicates the offset between the current line and the
+         --  first from the buffer
+         Start_Bloc : constant Natural :=
+           (if Span /= LSP.Text_Documents.Empty_Range
+            then Span.start.line
+            else 0);
+      begin
+         if XDiff.Delete_Line_Start (Cur_Edit) = -1 then
+            Start_Line := XDiff.Delete_Line_End (Cur_Edit);
+         else
+            Start_Line := XDiff.Delete_Line_Start (Cur_Edit) - 1;
+         end if;
+
+         End_Line := XDiff.Delete_Line_End (Cur_Edit);
+
+         return (start => (Start_Line + Start_Bloc, 0),
+                 an_end => (End_Line + Start_Bloc, 0));
+      end Get_Range;
 
       ---------------
       -- Get_Slice --
@@ -215,10 +253,7 @@ package body LSP.Text_Documents is
          if XDiff.Delete_Line_End (Cur) /= -1 then
             Edit.Append
               (LSP.Structures.TextEdit'
-                 (a_range => (((if XDiff.Delete_Line_Start (Cur) = -1
-                              then XDiff.Delete_Line_End (Cur)
-                              else XDiff.Delete_Line_Start (Cur) - 1), 0),
-                              (XDiff.Delete_Line_End (Cur), 0)),
+                 (a_range => Get_Range (Cur),
                   newText => Get_Slice (New_Lines,
                     XDiff.Insert_Line_Start (Cur),
                     XDiff.Insert_Line_End (Cur))));

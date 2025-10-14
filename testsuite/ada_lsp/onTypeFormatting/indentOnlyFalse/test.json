@@ -163,11 +163,11 @@
                            "character": 0
                         },
                         "end": {
-                           "line": 3,
-                           "character": 41
+                           "line": 4,
+                           "character": 0
                         }
                      },
-                     "newText": "   Ada.Text_IO.Put_Line (\"Hello, World!\");"
+                     "newText": "   Ada.Text_IO.Put_Line (\"Hello, World!\");\n"
                   },
                   {
                      "range": {

@@ -74,6 +74,7 @@ package LSP.Text_Documents is
    procedure Diff_C
      (Self     : Text_Document'Class;
       New_Text : VSS.Strings.Virtual_String;
+      Span     : LSP.Structures.A_Range;
       Edit     : out LSP.Structures.TextEdit_Vector);
    --  Generate TextEdit using the XDiff library
 
