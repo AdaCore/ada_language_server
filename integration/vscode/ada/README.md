@@ -63,9 +63,9 @@ Both tools are available for Linux, Windows and macOS (Intel and Apple silicon)
 ## Documentation
 
 * [Ada Language Server README.md: VS Code Extension](https://github.com/AdaCore/ada_language_server/blob/master/README.md#vs-code-extension)
-* [Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/wiki/Getting-Started)
+* [Tutorial: Using Ada in VS Code](https://github.com/AdaCore/ada_language_server/blob/master/doc/Getting-Started.md)
 * [Supported refactoring tools](https://github.com/AdaCore/ada_language_server/blob/master/doc/refactoring_tools.md)
-* [Custom colors for Ada sources](https://github.com/AdaCore/ada_language_server/wiki/Custom-colors-in-VS-Code)
+* [Custom colors for Ada sources](https://github.com/AdaCore/ada_language_server/blob/master/doc/Custom-colors-in-VS-Code.md)
 * [Usage in a Remote container](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/Code%20Samples/docker) example
 * [Code Samples](https://github.com/AdaCore/ada_language_server/tree/master/integration/vscode/Code%20Samples) with Build and Debug tasks
 

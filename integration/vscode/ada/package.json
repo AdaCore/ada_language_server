@@ -1476,8 +1476,8 @@
                     },
                     {
                         "id": "als-get-started-more-resources",
-                        "title": "Tutorials and Demos",
-                        "description": "",
+                        "title": "Ada & SPARK Extension User's Guide",
+                        "description": "Discover tutorials, demos, and useful resources in the extension's user guide.\n[Open User's Guide](command:toSide:ada.openUsersGuide)",
                         "media": {
                             "markdown": "media/more-resources.md"
                         }
