@@ -766,7 +766,7 @@ package body LSP.Ada_Highlighters is
             Node_Enclosing_Declarative_Part : constant Declarative_Part :=
                 Laltools.Common.Get_Enclosing_Declarative_Part (Node);
 
-            Decl_Declarative_Part : Declarative_Part;
+            Parent : Ada_Node;
          begin
             if Compare
                (Node_Enclosing_Declarative_Part.Sloc_Range,
@@ -775,29 +775,24 @@ package body LSP.Ada_Highlighters is
                Highlight_Token (Node.Token_Start, localVariable);
 
             else
-               Decl_Declarative_Part :=
-                 Laltools.Common.Get_Enclosing_Declarative_Part (Decl);
+               Parent := Decl.Parent;
+               while not Parent.Is_Null loop
+                  if Parent.Kind in Ada_Subp_Body_Range
+                    or else Parent.Kind in Ada_Entry_Body
+                  then
+                     return;
+                  end if;
+                  Parent := Parent.Parent;
+               end loop;
 
-               if Decl_Declarative_Part.Parent /= No_Ada_Node
-                  and then
-                    (Decl_Declarative_Part.Parent.Kind in
-                         Ada_Package_Body_Range
-                       or else Decl_Declarative_Part.Parent.Kind in
-                         Ada_Base_Package_Decl)
-               then
-                  Highlight_Token (Node.Token_Start, globalVariable);
-               end if;
+               Highlight_Token (Node.Token_Start, globalVariable);
             end if;
          end Investigate_Variable;
 
       begin
          case Decl.Kind is
-            when Ada_Base_Formal_Param_Decl =>
-               if Ada_Base_Formal_Param_Decl'(Decl.Kind) =
-                 Ada_Generic_Formal_Obj_Decl
-               then
-                  Investigate_Variable;
-               end if;
+            when Ada_Generic_Formal_Obj_Decl =>
+               Investigate_Variable;
 
             when Ada_Entry_Index_Spec | Ada_Object_Decl |
                  Ada_Single_Protected_Decl | Ada_Single_Task_Decl =>

@@ -69,6 +69,7 @@ related resources.
  * [Project file](project_file.md)
  * [Source dirs](source_dirs.md)
  * [Workspace symbol params](workspace_symbol_params.md)
+ * [Global/local variables](global_local_variables.md)
 
 ```{toctree}
 :maxdepth: 1
