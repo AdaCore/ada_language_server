@@ -56,9 +56,10 @@ export class AdaVisualizerHandler extends VisualizerHandler {
         hierarchy: Hierarchy,
         languageId: string,
         direction: RelationDirection,
+        token?: vscode.CancellationToken,
     ) {
         if (hierarchy === Hierarchy.CALL || hierarchy === Hierarchy.TYPE)
-            return await super.provideHierarchy(location, hierarchy, languageId, direction);
+            return await super.provideHierarchy(location, hierarchy, languageId, direction, token);
         else if (hierarchy !== Hierarchy.FILE) {
             logger.error('Unknown type of hierarchy for Ada Language');
             return;
