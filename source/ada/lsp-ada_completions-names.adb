@@ -65,7 +65,7 @@ package body LSP.Ada_Completions.Names is
       Error_Dotted_Recovery : constant Boolean :=
         Libadalang.Analysis.Is_Keyword
           (Token   => Token,
-           Version => Libadalang.Common.Ada_2012)
+           Version => Libadalang.Common.Ada_2022)
         and then
           (Previous_Token /= Libadalang.Common.No_Token and then
            Libadalang.Common.Kind (Libadalang.Common.Data (Previous_Token))
