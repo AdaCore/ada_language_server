@@ -60,6 +60,7 @@ with LSP.Ada_Completions.Keywords;
 with LSP.Ada_Completions.Names;
 with LSP.Ada_Completions.Parameters;
 with LSP.Ada_Completions.Pragmas;
+with LSP.Ada_Completions.Record_Representation;
 with LSP.Ada_Completions.Use_Clauses;
 with LSP.Ada_Completions;
 with LSP.Ada_Documentation;
@@ -1874,6 +1875,13 @@ package body LSP.Ada_Handlers is
         aliased LSP.Ada_Completions.End_Names.End_Name_Completion_Provider;
       P9        :
         aliased LSP.Ada_Completions.Use_Clauses.Use_Clause_Completion_Provider;
+
+      PA :
+        aliased LSP
+                  .Ada_Completions
+                  .Record_Representation
+                  .Record_Repr_Completion_Provider;
+
       Providers : constant LSP.Ada_Completions.Completion_Provider_List :=
         [P1'Unchecked_Access,
          P2'Unchecked_Access,
@@ -1883,7 +1891,8 @@ package body LSP.Ada_Handlers is
          P6'Unchecked_Access,
          P7'Unchecked_Access,
          P8'Unchecked_Access,
-         P9'Unchecked_Access];
+         P9'Unchecked_Access,
+         PA'Unchecked_Access];
 
       Sloc  : Langkit_Support.Slocs.Source_Location;
       Token : Libadalang.Common.Token_Reference;
