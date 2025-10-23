@@ -146,7 +146,7 @@ export function SearchBar() {
                     type="search"
                     inputMode="search"
                     autoComplete="off"
-                    placeholder="Search symbol name"
+                    placeholder="Search"
                     id="visualizer__node-search-bar"
                     onChange={onChange}
                     onKeyDown={onKeyDown}

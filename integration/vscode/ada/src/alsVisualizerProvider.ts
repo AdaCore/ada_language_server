@@ -119,6 +119,7 @@ export class VisualizerHandler {
      * @param hierarchy - The type of hierarchy needed.
      * @param languageId - The id of the language the symbol is in.
      * @param direction - The direction of the hierarchy
+     * @param token - Cancellation token to cancel the operation
      * @returns The node linked to the location passed as an argument with
      * possibly children and/or parents added.
      */
@@ -127,6 +128,7 @@ export class VisualizerHandler {
         hierarchy: Hierarchy,
         languageId: string,
         direction: RelationDirection,
+        token?: vscode.CancellationToken,
     ) {
         // -------------------------------- BEGIN NESTED FUNCTIONS ---------------------------------
         /**
@@ -143,6 +145,11 @@ export class VisualizerHandler {
             middleNode: NodeHierarchy,
             hierarchy: Hierarchy,
         ) {
+            // Check for cancellation before starting hierarchy retrieval
+            if (token?.isCancellationRequested) {
+                return;
+            }
+
             const commands = [
                 ['vscode.provideSupertypes', 'vscode.provideIncomingCalls'],
                 ['vscode.provideSubtypes', 'vscode.provideOutgoingCalls'],
@@ -157,6 +164,11 @@ export class VisualizerHandler {
             ).map((item) => ('name' in item ? item : 'from' in item ? item.from : item.to));
 
             for (const item of items) {
+                // Check for cancellation in the loop
+                if (token?.isCancellationRequested) {
+                    return;
+                }
+
                 // Get only the useful information from the item.
                 const symbol = {
                     name: item.name,
@@ -184,6 +196,11 @@ export class VisualizerHandler {
 
         // -------------------------------- END NESTED FUNCTIONS --------------------------------
 
+        // Check for cancellation at the start
+        if (token?.isCancellationRequested) {
+            return;
+        }
+
         // Other types of hierarchy will be called from subclasses of this class.
         if (hierarchy !== Hierarchy.CALL && hierarchy !== Hierarchy.TYPE) {
             logger.error(
@@ -198,6 +215,11 @@ export class VisualizerHandler {
             (vscode.CallHierarchyItem | vscode.TypeHierarchyItem)[]
         >(commands[hierarchy], location.uri, location.range.start);
 
+        // Check for cancellation after the command
+        if (token?.isCancellationRequested) {
+            return;
+        }
+
         if (items.length == 0) return;
 
         // The middle node represents the current main symbol in the graph (the symbol the
@@ -206,6 +228,11 @@ export class VisualizerHandler {
         let middleNode;
 
         for (const item of items) {
+            // Check for cancellation in the loop
+            if (token?.isCancellationRequested) {
+                return;
+            }
+
             const symbol: VisualizerSymbol = {
                 name: item.name,
                 location: new vscode.Location(item.uri, item.selectionRange),
@@ -221,14 +248,27 @@ export class VisualizerHandler {
 
             if (direction === RelationDirection.BOTH || direction === RelationDirection.SUPER) {
                 await getHierarchy(item, RelationDirection.SUPER, middleNode, hierarchy);
+                // Check for cancellation after hierarchy retrieval
+                if (token?.isCancellationRequested) {
+                    return;
+                }
             }
             if (direction === RelationDirection.BOTH || direction === RelationDirection.SUB) {
                 await getHierarchy(item, RelationDirection.SUB, middleNode, hierarchy);
+                // Check for cancellation after hierarchy retrieval
+                if (token?.isCancellationRequested) {
+                    return;
+                }
             }
 
             // The middle node is expanded by default when we are getting its children.
             middleNode.expanded =
                 direction === RelationDirection.SUPER ? middleNode.expanded : true;
+        }
+
+        // Final cancellation check
+        if (token?.isCancellationRequested) {
+            return;
         }
 
         // Get all the nodes that do not have parents
