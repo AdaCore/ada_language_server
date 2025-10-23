@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2018, AdaCore                       --
+--                     Copyright (C) 2025, AdaCore                          --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -15,15 +15,18 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
-with "lsp";
-with "spawn";
+package LSP.Ada_Completions.Record_Representation is
 
-project LSP_Client is
+   type Record_Repr_Completion_Provider is
+     new Completion_Provider with null record;
 
-   for Source_Dirs use ("../source/client");
-   for Object_Dir use "../.obj/client";
+   overriding procedure Propose_Completion
+     (Self   : Record_Repr_Completion_Provider;
+      Sloc   : Langkit_Support.Slocs.Source_Location;
+      Token  : Libadalang.Common.Token_Reference;
+      Node   : Libadalang.Analysis.Ada_Node;
+      Filter : in out LSP.Ada_Completions.Filters.Filter;
+      Names  : in out Ada_Completions.Completion_Maps.Map;
+      Result : in out LSP.Structures.CompletionList);
 
-   package Compiler renames LSP.Compiler;
-   package Builder renames LSP.Builder;
-
-end LSP_Client;
+end LSP.Ada_Completions.Record_Representation;

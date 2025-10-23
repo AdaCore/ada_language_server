@@ -1,0 +1,263 @@
+[
+  {
+    "comment": [
+      "The test for completion in a record representation clause"
+    ]
+  },
+  {
+    "start": {
+      "cmd": [
+        "${ALS}"
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "processId": 29286,
+          "capabilities": {
+            "textDocument": {
+              "completion": {
+                "completionItem": {
+                  "documentationFormat": [
+                    "plaintext",
+                    "markdown"
+                  ],
+                  "snippetSupport": true
+                },
+                "dynamicRegistration": true
+              },
+              "definition": {},
+              "hover": {},
+              "formatting": {
+                "dynamicRegistration": true
+              },
+              "implementation": {},
+              "codeLens": {},
+              "typeDefinition": {},
+              "selectionRange": {},
+              "documentHighlight": {},
+              "documentSymbol": {
+                "hierarchicalDocumentSymbolSupport": true
+              },
+              "synchronization": {},
+              "references": {},
+              "rangeFormatting": {},
+              "onTypeFormatting": {},
+              "declaration": {},
+              "foldingRange": {
+                "lineFoldingOnly": true
+              },
+              "colorProvider": {}
+            },
+            "workspace": {
+              "applyEdit": true,
+              "executeCommand": {},
+              "didChangeWatchedFiles": {},
+              "workspaceEdit": {},
+              "didChangeConfiguration": {}
+            }
+          },
+          "rootUri": "$URI{.}"
+        },
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize"
+      },
+      "wait": [
+        {
+          "id": 1,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 2,
+              "completionProvider": {
+                "triggerCharacters": [
+                  ".",
+                  ",",
+                  "'",
+                  "("
+                ],
+                "resolveProvider": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "initialized"
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "settings": {
+            "ada": {
+              "scenarioVariables": {},
+              "adaFileDiagnostics": false,
+              "defaultCharset": "ISO-8859-1"
+            }
+          }
+        },
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration"
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "textDocument": {
+            "text": "with Interfaces;\n\nprocedure Main is\n\n   type UInt_4 is mod 2**4;\n   type Int_3 is range -4 .. 3;\n\n   type Rec (X2 : Boolean) is record\n      Base : Integer;\n      X0   : Integer;\n      X1   : Integer range 0 .. 3;\n      X3   : Interfaces.Unsigned_8;\n      X4   : Interfaces.Integer_8;\n      X5   : UInt_4;\n      X6   : Int_3;\n   end record;\n\n   for Rec use record\n      Base at 0 range 0 .. 31;\n      X0 at 4 range 0 .. 31;\n      \n   end record;\nbegin\n   null;\nend Main;\n",
+            "version": 0,
+            "uri": "$URI{main.adb}",
+            "languageId": "Ada"
+          }
+        },
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen"
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "contentChanges": [
+            {
+              "text": "X",
+              "range": {
+                "start": {
+                  "line": 20,
+                  "character": 6
+                },
+                "end": {
+                  "line": 20,
+                  "character": 6
+                }
+              }
+            }
+          ],
+          "textDocument": {
+            "version": 1,
+            "uri": "$URI{main.adb}"
+          }
+        },
+        "jsonrpc": "2.0",
+        "method": "textDocument/didChange"
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "position": {
+            "line": 20,
+            "character": 7
+          },
+          "textDocument": {
+            "uri": "$URI{main.adb}"
+          }
+        },
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "textDocument/completion"
+      },
+      "sortReply": { "result": { "items": "label" } },
+      "wait": [
+        {
+          "id": 3,
+          "result": {
+            "isIncomplete": false,
+            "items": [
+              "<HAS>",
+              {
+                "label": "X1 at 8 range 0 .. 1;",
+                "kind": 15,
+                "insertText": "X1 at ${1:8} range ${2:0} .. ${3:1};",
+                "insertTextFormat": 2
+              },
+              {
+                "label": "X2 at 8 range 0 .. 0;",
+                "kind": 15,
+                "insertText": "X2 at ${1:8} range ${2:0} .. ${3:0};",
+                "insertTextFormat": 2
+              },
+              {
+                "label": "X3 at 8 range 0 .. 7;",
+                "kind": 15,
+                "insertText": "X3 at ${1:8} range ${2:0} .. ${3:7};",
+                "insertTextFormat": 2
+              },
+              {
+                "label": "X4 at 8 range 0 .. 7;",
+                "kind": 15,
+                "insertText": "X4 at ${1:8} range ${2:0} .. ${3:7};",
+                "insertTextFormat": 2
+              },
+              {
+                "label": "X5 at 8 range 0 .. 3;",
+                "kind": 15,
+                "insertText": "X5 at ${1:8} range ${2:0} .. ${3:3};",
+                "insertTextFormat": 2
+              },
+              {
+                "label": "X6 at 8 range 0 .. 2;",
+                "kind": 15,
+                "insertText": "X6 at ${1:8} range ${2:0} .. ${3:2};",
+                "insertTextFormat": 2
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "params": {
+          "textDocument": {
+            "uri": "$URI{main.adb}"
+          }
+        },
+        "jsonrpc": "2.0",
+        "method": "textDocument/didClose"
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 7,
+        "method": "shutdown"
+      },
+      "wait": [
+        {
+          "id": 7,
+          "result": null
+        }
+      ]
+    }
+  },
+  {
+    "stop": {
+      "exit_code": 0
+    }
+  }
+]
