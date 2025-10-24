@@ -1101,26 +1101,22 @@
             {
                 "command": "ada.visualizeFiles",
                 "category": "Ada",
-                "title": "Show File Dependencies Graph",
-                "enablement": "config.ada.enableExperimentalFeatures"
+                "title": "Show File Dependencies Graph"
             },
             {
                 "command": "ada.visualizeGPR",
                 "category": "Ada",
-                "title": "Show GPR Dependencies Graph",
-                "enablement": "config.ada.enableExperimentalFeatures"
+                "title": "Show GPR Dependencies Graph"
             },
             {
                 "command": "ada.visualizeTypes",
                 "category": "Types",
-                "title": "Show Type Hierarchy Graph",
-                "enablement": "config.ada.enableExperimentalFeatures"
+                "title": "Show Type Hierarchy Graph"
             },
             {
                 "command": "ada.visualizeCalls",
                 "category": "Calls",
-                "title": "Show Call Hierarchy Graph",
-                "enablement": "config.ada.enableExperimentalFeatures"
+                "title": "Show Call Hierarchy Graph"
             },
             {
                 "command": "ada.createNewAdaMainUnit",

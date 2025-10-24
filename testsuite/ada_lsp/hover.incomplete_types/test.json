@@ -213,7 +213,7 @@
                   "contents": [
                      {
                         "language": "ada",
-                        "value": "type Incomplete is record\n   Y : Integer;\nend record;"
+                        "value": "type Incomplete;\n\ntype Incomplete is record\n   Y : Integer;\nend record;"
                      },
                      "at p.ads (2:4)"
                   ]
@@ -241,7 +241,15 @@
          "wait": [
             {
                "id": 5,
-               "result": null
+               "result": {
+                  "contents": [
+                     {
+                        "language": "ada",
+                        "value": "type Incomplete_2;"
+                     },
+                     "at p.ads (3:4)"
+                  ]
+               }
             }
          ]
       }

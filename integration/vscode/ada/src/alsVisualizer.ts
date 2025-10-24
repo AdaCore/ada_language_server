@@ -44,11 +44,17 @@ let canSendNextData: boolean = true;
  * If cancellable is set to true, it becomes a notification in the bottom right corner with a button
  * allowing the user to stop the task whenever he wants.
  *
- * @param task - The task to launch and wait for while displaying the progress animation.
+ * @param task - The task to launch and wait for while displaying the progress animation. The
+ * `token` parameter can be used to check if the user requested cancellation of the task.
+ * @param message - The message to display alongside the progress animation.
  * @param cancellable - Indicates if the progress should be cancellable, which will put it in
  * a notification instead of the status bar.
  */
-function withVizProgress(task: () => void | Promise<void>, message: string, cancellable = false) {
+function withVizProgress(
+    task: (token?: vscode.CancellationToken) => void | Promise<void>,
+    message: string,
+    cancellable = false,
+) {
     vscode.window.withProgress(
         {
             location: cancellable
@@ -71,7 +77,7 @@ function withVizProgress(task: () => void | Promise<void>, message: string, canc
                 stopProcess = true;
             });
             try {
-                await task();
+                await task(token);
             } catch (error) {
                 logger.error(error);
                 return;
@@ -92,48 +98,85 @@ function withVizProgress(task: () => void | Promise<void>, message: string, canc
  * @param hierarchy - The type of hierarchy to visualize.
  */
 export function startVisualize(context: vscode.ExtensionContext, hierarchy: Hierarchy) {
-    withVizProgress(async () => {
-        if (vscode.window.activeTextEditor) {
-            const input = new vscode.Location(
-                vscode.window.activeTextEditor.document.uri,
-                vscode.window.activeTextEditor.selection.active,
-            );
+    const direction =
+        hierarchy === Hierarchy.CALL
+            ? RelationDirection.SUPER
+            : hierarchy === Hierarchy.GPR
+              ? RelationDirection.SUB
+              : RelationDirection.BOTH;
 
-            const languageId = vscode.window.activeTextEditor.document.languageId;
-            const direction =
-                hierarchy === Hierarchy.CALL
-                    ? RelationDirection.SUPER
-                    : hierarchy === Hierarchy.GPR
-                      ? RelationDirection.SUB
-                      : RelationDirection.BOTH;
-            const middleNode = await createHandler(languageId).provideHierarchy(
-                input,
-                hierarchy,
-                languageId,
-                direction,
-            );
+    const progressLabel = getProgressLabel(hierarchy, true);
 
-            // Create the webView only if there is something to display.
-            if (middleNode) {
-                setupWebView(context, hierarchy);
-                const panel = panels[hierarchy];
-                // Make sure the webView was created and initialized.
-                if (panel) {
-                    // Wait for the webView to notify the end of it's rendering
-                    const receive = panel.webview.onDidReceiveMessage((message: Message) => {
-                        if (message.command === 'rendered') {
-                            // Remove the listener as it will not be used after sending
-                            // the initial request.
-                            sendMessage(middleNode.id, hierarchy);
-                            receive.dispose();
-                        }
-                    });
-                    // Check if the client has already been rendered.
-                    panel.webview.postMessage({ command: 'isRendered' } as IsRenderedMessage);
+    withVizProgress(
+        async (token?: vscode.CancellationToken) => {
+            if (vscode.window.activeTextEditor) {
+                const input = new vscode.Location(
+                    vscode.window.activeTextEditor.document.uri,
+                    vscode.window.activeTextEditor.selection.active,
+                );
+
+                const languageId = vscode.window.activeTextEditor.document.languageId;
+
+                const middleNode = await createHandler(languageId).provideHierarchy(
+                    input,
+                    hierarchy,
+                    languageId,
+                    direction,
+                    token,
+                );
+
+                // Create the webView only if there is something to display and if the
+                // user did not cancel the operation.
+                if (middleNode && !token?.isCancellationRequested) {
+                    setupWebView(context, hierarchy);
+                    const panel = panels[hierarchy];
+                    // Make sure the webView was created and initialized.
+                    if (panel) {
+                        // Wait for the webView to notify the end of it's rendering
+                        const receive = panel.webview.onDidReceiveMessage((message: Message) => {
+                            if (message.command === 'rendered') {
+                                // Remove the listener as it will not be used after sending
+                                // the initial request.
+                                sendMessage(middleNode.id, hierarchy);
+                                receive.dispose();
+                            }
+                        });
+                        // Check if the client has already been rendered.
+                        panel.webview.postMessage({ command: 'isRendered' } as IsRenderedMessage);
+                    }
                 }
             }
-        }
-    }, 'Visualizing');
+        },
+        progressLabel,
+        true,
+    );
+}
+
+/**
+ * Get the label to display in the progress bar depending on the hierarchy type.
+ *
+ * @param hierarchy - The type of hierarchy to visualize.
+ * @param onCreate - Whether the progress is for creation or not.
+ * @returns The updated progress label.
+ */
+function getProgressLabel(hierarchy: Hierarchy, onCreate: boolean = false): string {
+    let hierarchyTypeLabel: string;
+    const headerLabel: string = onCreate ? 'Creating' : 'Updating';
+    switch (hierarchy) {
+        case Hierarchy.TYPE:
+            hierarchyTypeLabel = 'Type Hierarchy';
+            break;
+        case Hierarchy.CALL:
+            hierarchyTypeLabel = 'Call Hierarchy';
+            break;
+        case Hierarchy.GPR:
+            hierarchyTypeLabel = 'GPR Dependencies';
+            break;
+        default:
+            hierarchyTypeLabel = 'File Dependencies';
+            break;
+    }
+    return `${headerLabel} ${hierarchyTypeLabel} Graph`;
 }
 
 /**
@@ -188,7 +231,7 @@ function handleMessage(message: Message) {
             withVizProgress(() => {
                 const data = message;
                 void refreshNodes(data.nodesId);
-            }, 'Visualizing');
+            }, 'Refreshing Graph');
             break;
         }
         // Stop the current loop of process (mostly for the recursive hierarchy).
@@ -218,6 +261,8 @@ function handleMessage(message: Message) {
  * @param data - The data necessary to expand a node.
  */
 function requestHierarchy(data: HierarchyMessage) {
+    const progressLabel = getProgressLabel(data.hierarchy);
+
     withVizProgress(
         async () => {
             stopProcess = false;
@@ -324,7 +369,7 @@ function requestHierarchy(data: HierarchyMessage) {
                 }, 100);
             });
         },
-        data.recursive ? 'Gathering data...' : 'Visualizing',
+        progressLabel,
         data.recursive,
     );
 }
