@@ -56,6 +56,8 @@ Ada Language Server uses next modifiers of tokens:
 | modification   | write access to a name
 | documentation  | ghost code or aspect
 | defaultLibrary | predefined name
+| globalVariable | the variable exists during all time program execution
+| localVariable  | the variable is local for the scope
 
 ## Example
 
@@ -135,6 +137,8 @@ Open `settings.json` and append next:
                 "*.modification": {"bold": true},
                 "*.deprecated": {"strikethrough": true},
                 "*.readonly": "#4FC1FF",
+                "*.globalVariable": "#C92002",
+                "*.localVariable": "#02A322",
                 "property.readonly": "#3E52EB",
                 "typeParameter.readonly": {"foreground": "#3E52EB", "italic": true},
                 "*.documentation": "#6A9955",
