@@ -2,3 +2,4 @@
 # testsuite in CI.
 e3-testsuite
 pytest-lsp
+lsprotocol<2025.0.0
