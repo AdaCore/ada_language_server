@@ -274,16 +274,23 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
         }
     });
 
-    test('problemMatchers severities', async () => {
+    /**
+     * Helper function to test problem matchers with compiler messages
+     */
+    async function testProblemMatchersWithCompilerMessages(
+        fileName: string,
+        expectedMessages: string,
+    ) {
         const prov = createAdaTaskProvider();
         const isWindows = process.platform === 'win32';
+
         /**
-         * Run a task that dumps some compiler messages contained in the 'compiler_messages.txt' file.
+         * Run a task that dumps some compiler messages contained in the specified file.
          */
         const def: SimpleTaskDef = {
             type: 'ada',
             command: isWindows ? 'type' : 'cat',
-            args: ['main_with_problem' + path.sep + 'compiler_messages.txt'],
+            args: ['main_with_problem' + path.sep + fileName],
         };
         const task = new vscode.Task(
             def,
@@ -301,11 +308,22 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
         /**
          * Wait for the problemMatchers
          */
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         const alsDiagnostics: vscode.Diagnostic[] = vscode.languages
             .getDiagnostics()
             .flatMap(([, diagnostics]) => diagnostics)
             .filter((diag) => ['ada'].includes(diag.source ?? ''));
+
+        /**
+         * Extract expected severities from the expected messages for Windows validation
+         */
+        const expectedSeverities = expectedMessages
+            .split('\n')
+            .map((line) => {
+                const match = line.match(/^(\d+):/);
+                return match ? parseInt(match[1], 10) : null;
+            })
+            .filter((severity) => severity !== null);
 
         /**
          * Check that we have the expected number of diagnostics, with the
@@ -316,12 +334,20 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
         if (isWindows) {
             assert.deepEqual(
                 alsDiagnostics.map((d) => d.severity),
-                [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 2],
+                expectedSeverities,
             );
         } else {
             assert.equal(
                 alsDiagnostics.map((d) => `${d.severity}: ${d.message}`).join('\n'),
-                `
+                expectedMessages,
+            );
+        }
+    }
+
+    test('problemMatchers severities', async () => {
+        await testProblemMatchersWithCompilerMessages(
+            'compiler_messages.txt',
+            `
 1: procedure "Hello" is not referenced [-gnatwu]
 1: bad casing of "Hello" declared at line 4 [-gnatyr]
 1: bad casing of "Hello" declared at line 4 [-gnatyr]
@@ -334,8 +360,33 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 0: missing ";"
 2: this is an extra message
 2: hello world (trying: to confuse the regexp here)`.trim(),
-            );
-        }
+        );
+    });
+
+    test('problemMatchers severities (warnings only)', async () => {
+        await testProblemMatchersWithCompilerMessages(
+            'compiler_messages_warnings_only.txt',
+            `
+1: no entities of "Ada.Strings.Fixed" are referenced [-gnatwu]
+1: use clause for package "Fixed" has no effect [-gnatwu]
+1: no entities of "GNAT.Strings" are referenced [-gnatwu]
+1: use clause for package "Strings" has no effect [-gnatwu]
+1: no entities of "GNATCOLL.Utils" are referenced [-gnatwu]
+1: use clause for package "Utils" has no effect [-gnatwu]
+1: no entities of "GPS.Intl" are referenced [-gnatwu]
+1: use clause for package "Intl" has no effect [-gnatwu]
+1: no entities of "GPS.Kernel.Task_Manager" are referenced [-gnatwu]
+1: use clause for package "Task_Manager" has no effect [-gnatwu]
+1: no entities of "Commands" are referenced [-gnatwu]
+1: use clause for package "Commands" has no effect [-gnatwu]
+1: use clause for package "GUI_Utils" has no effect [-gnatwu]
+1: no entities of "Language_Handlers" are referenced [-gnatwu]
+1: use clause for package "Language_Handlers" has no effect [-gnatwu]
+1: no entities of "String_Utils" are referenced [-gnatwu]
+1: use clause for package "String_Utils" has no effect [-gnatwu]
+1: use clause for package "Known" has no effect [-gnatwu]
+1: function "Get_Or_Create_Manager" is not referenced [-gnatwu]`.trim(),
+        );
     });
 });
 
