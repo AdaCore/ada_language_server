@@ -1,0 +1,199 @@
+[
+   {
+      "comment": [
+         "Test that that completionItem/resolve request works for dotted names."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "ada-1",
+            "method": "initialize",
+            "params": {
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["plaintext", "markdown"]
+                        }
+                     },
+                     "documentSymbol": {
+                        "hierarchicalDocumentSymbolSupport": true
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": "ada-1",
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "callHierarchyProvider": true
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "adaFileDiagnostics": false,
+                     "followSymlinks": false
+                  }
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "with Root.Child;\nwith Root.Child.Do_Something;\nprocedure Main is\nbegin\n   Root.Child.Do_Something;\n   Root.;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 42,
+            "method": "completionItem/resolve",
+            "params": {
+               "label": "Child",
+               "insertTextFormat": 1,
+               "kind": 9,
+               "sortText": "100&00001Child",
+               "data": {
+                  "uri": "$URI{src/root-child.ads}",
+                  "range": {
+                     "start": {
+                        "line": 2,
+                        "character": 8
+                     },
+                     "end": {
+                        "line": 2,
+                        "character": 18
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 42,
+               "result": {
+                  "data": {
+                     "range": {
+                        "end": {
+                           "character": 18,
+                           "line": 2
+                        },
+                        "start": {
+                           "character": 8,
+                           "line": 2
+                        }
+                     },
+                     "uri": "$URI{src/root-child.ads}"
+                  },
+                  "detail": "package Root.Child",
+                  "documentation": "at root-child.ads (3:1)\n\nDescription of the Root.Child package",
+                  "insertTextFormat": 1,
+                  "kind": 9,
+                  "label": "Child",
+                  "sortText": "100&00001Child"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didClose",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{src/root-child-do_something.adb}"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 22,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 22,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
