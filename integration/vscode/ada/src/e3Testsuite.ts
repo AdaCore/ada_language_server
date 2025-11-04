@@ -82,14 +82,16 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
 
     const testData: Map<vscode.TestItem, TestInfo> = new Map();
 
-    const ts: Testsuite = getTestsuite();
     let rootItem: vscode.TestItem;
 
     controller.refreshHandler = async function () {
         controller.items.replace([]);
         testData.clear();
 
+        const ts: Testsuite = getTestsuite();
+        logger.info(`Loading e3-testsuite: ${JSON.stringify(ts)}`);
         if (!existsSync(ts.uri.fsPath)) {
+            logger.info(`${ts.uri.fsPath} doesn't exist, doing nothing.`);
             return;
         }
 
@@ -182,6 +184,7 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         const enableEventSystem: boolean =
             vscode.workspace.getConfiguration('e3-testsuite').get('enableEventSystem') ?? true;
 
+        const ts: Testsuite = getTestsuite();
         const cmd = [ts.python, ts.uri.fsPath, '--failure-exit-code=0'];
 
         const remainingSet: Set<vscode.TestItem> = new Set();
@@ -534,7 +537,15 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
         reportResult(run, result.status, targetItem, messages);
     }
 
-    if (existsSync(ts.uri.fsPath)) {
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration((e) => {
+            if (e.affectsConfiguration('e3-testsuite')) {
+                loadTests();
+            }
+        }),
+    );
+
+    function loadTests() {
         void vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -547,6 +558,8 @@ export function activateE3TestsuiteIntegration(context: vscode.ExtensionContext)
             },
         );
     }
+
+    loadTests();
 }
 
 function getRootItemId(ts: Testsuite): string {

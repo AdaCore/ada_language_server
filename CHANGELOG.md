@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+* Reload `e3-testsuite` tests automatically after configuration changes
+
 ## 2026.0.202510141
 
 * New [Code Visualizer](https://github.com/AdaCore/ada_language_server/blob/master/doc/ShowGraphDoc.md) displaying code information as interactive graphs (e.g. `Types: Show Type Hierarchy Graph` command), for any language with LSP support in VS Code (e.g. Ada, Python, TypeScript).
