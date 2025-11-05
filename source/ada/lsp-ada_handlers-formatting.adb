@@ -34,8 +34,8 @@ package body LSP.Ada_Handlers.Formatting is
    --  Error message sent when trying to format invalid code.
 
    function Reindent_Line
-     (Context    : LSP.Ada_Contexts.Context;
-      Document   : not null LSP.Ada_Documents.Document_Access;
+     (Filename   : GNATCOLL.VFS.Virtual_File;
+      Line       : VSS.Strings.Virtual_String;
       Options    : Gnatformat.Configuration.Format_Options_Type;
       Pos        : LSP.Structures.Position;
       New_Indent : Natural) return LSP.Structures.TextEdit;
@@ -46,8 +46,8 @@ package body LSP.Ada_Handlers.Formatting is
    -------------------
 
    function Reindent_Line
-     (Context    : LSP.Ada_Contexts.Context;
-      Document   : not null LSP.Ada_Documents.Document_Access;
+     (Filename   : GNATCOLL.VFS.Virtual_File;
+      Line       : VSS.Strings.Virtual_String;
       Options    : Gnatformat.Configuration.Format_Options_Type;
       Pos        : LSP.Structures.Position;
       New_Indent : Natural) return LSP.Structures.TextEdit
@@ -55,8 +55,6 @@ package body LSP.Ada_Handlers.Formatting is
       use type VSS.Characters.Virtual_Character;
       use VSS.Strings;
 
-      Line            : constant Virtual_String :=
-        Document.Get_Text (Pos, (Pos.line + 1, 0));
       --  Get the full line because we want to remove its existing blank
       --  characters.
       New_Prefix      : constant Virtual_String :=
@@ -81,7 +79,11 @@ package body LSP.Ada_Handlers.Formatting is
       return
         LSP.Structures.TextEdit'
           (a_range => (Pos, (Pos.line, First_Non_Blank)),
-           newText => Handle_Tabs (Context, Document, Options, New_Prefix));
+           newText =>
+             Handle_Tabs
+               (Filename => Filename,
+                Options  => Options,
+                S        => New_Prefix));
    end Reindent_Line;
 
    ------------
@@ -170,14 +172,12 @@ package body LSP.Ada_Handlers.Formatting is
    ---------------------
 
    function Get_Indentation
-     (Context  : LSP.Ada_Contexts.Context;
-      Document : not null LSP.Ada_Documents.Document_Access;
+     (Filename : GNATCOLL.VFS.Virtual_File;
+      Buffer   : VSS.Strings.Virtual_String;
       Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type)
       return LSP.Formatters.Fallback_Indenter.Indentation_Array
    is
-      Filename         : constant GNATCOLL.VFS.Virtual_File :=
-        Context.URI_To_File (Document.URI);
       Indentation      : constant Positive :=
         Gnatformat.Configuration.Get_Indentation
           (Options, Filename.Display_Full_Name);
@@ -187,9 +187,7 @@ package body LSP.Ada_Handlers.Formatting is
    begin
       return
         LSP.Formatters.Fallback_Indenter.Get_Indentation
-          (Buffer          =>
-             VSS.Strings.Conversions.To_UTF_8_String
-               (Document.Get_Text ((0, 0), Span.an_end)),
+          (Buffer          => VSS.Strings.Conversions.To_UTF_8_String (Buffer),
            From            => Span.start.line + 1,
            To              => Span.an_end.line + 1,
            Indent_Level    => Indentation,
@@ -201,8 +199,9 @@ package body LSP.Ada_Handlers.Formatting is
    ------------------
 
    procedure Indent_Lines
-     (Context  : LSP.Ada_Contexts.Context;
-      Document : not null LSP.Ada_Documents.Document_Access;
+     (Tracer   : not null LSP.Tracers.Tracer_Access;
+      Filename : GNATCOLL.VFS.Virtual_File;
+      Document : LSP.Text_Documents.Text_Document'Class;
       Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type;
       Success  : out Boolean;
@@ -212,27 +211,36 @@ package body LSP.Ada_Handlers.Formatting is
    is
       pragma Unreferenced (Messages);
       use VSS.Strings;
+
       Indent_Lines :
         constant LSP.Formatters.Fallback_Indenter.Indentation_Array :=
-          Get_Indentation (Context, Document, Span, Options => Options);
+          Get_Indentation
+            (Filename => Filename,
+             Buffer   => Document.Slice (((0, 0), Span.an_end)),
+             Span     => Span,
+             Options  => Options);
+      Pos          : LSP.Structures.Position;
+      Line_Span    : LSP.Structures.A_Range;
    begin
-      Context.Tracer.Trace_Text
+      Tracer.Trace_Text
         (Incorrect_Code_Msg & ", using the fallback indenter");
       for Line in Indent_Lines'Range loop
          if Indent_Lines (Line) /= -1 then
+            Pos := (Line - 1, 0);
+            Line_Span := (Pos, (Pos.line + 1, 0));
             Response.Append
               (Reindent_Line
-                 (Context    => Context,
-                  Document   => Document,
+                 (Filename   => Filename,
+                  Line       => Document.Slice (Line_Span),
                   Options    => Options,
-                  Pos        => (Line - 1, 0),
+                  Pos        => Pos,
                   New_Indent => Indent_Lines (Line)));
          end if;
       end loop;
       Success := True;
    exception
       when E : others =>
-         Context.Tracer.Trace_Exception (E, Fallback_Exception_Found_Msg);
+         Tracer.Trace_Exception (E, Fallback_Exception_Found_Msg);
          Success := False;
          Error :=
            (code    =>
@@ -245,8 +253,7 @@ package body LSP.Ada_Handlers.Formatting is
    -----------------
 
    function Handle_Tabs
-     (Context  : LSP.Ada_Contexts.Context;
-      Document : not null LSP.Ada_Documents.Document_Access;
+     (Filename : GNATCOLL.VFS.Virtual_File;
       Options  : Gnatformat.Configuration.Format_Options_Type;
       S        : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String
    is
@@ -254,10 +261,9 @@ package body LSP.Ada_Handlers.Formatting is
       use type VSS.Characters.Virtual_Character;
       use VSS.Strings;
 
-      Filename     : constant GNATCOLL.VFS.Virtual_File :=
-        Context.URI_To_File (Document.URI);
       Indentation  : constant Character_Count :=
-        Character_Count (Get_Indentation (Options, Filename.Display_Full_Name));
+        Character_Count
+          (Get_Indentation (Options, Filename.Display_Full_Name));
       Use_Tabs     : constant Boolean :=
         Get_Indentation_Kind (Options, Filename.Display_Full_Name) = Tabs;
       Res          : VSS.Strings.Virtual_String;
