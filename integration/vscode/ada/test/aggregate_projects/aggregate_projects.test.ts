@@ -6,9 +6,6 @@ import { createAdaTaskProvider } from '../../src/taskProviders';
 import { activate, getCommandLines, isCoreTask } from '../utils';
 
 suite('Aggregate Projects Support', function () {
-    // Set timeout to 15 seconds unless already configured to more
-    this.timeout(Math.max(this.timeout(), 15000));
-
     let projectPath: string;
 
     this.beforeAll(async () => {
@@ -22,6 +19,9 @@ suite('Aggregate Projects Support', function () {
      * build and run the mains of all aggregated projects.
      */
     test('Ada tasks for aggregate projects', async () => {
+        // Set timeout to 15 seconds unless already configured to more
+        this.timeout(Math.max(this.timeout(), 15000));
+
         const expectedCmdLines = `
 ada: Clean current project - gprclean -P ${projectPath}
 ada: Build current project - gprbuild -P ${projectPath} '-cargs:ada' -gnatef
