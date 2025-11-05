@@ -17,11 +17,7 @@
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
         "noUnusedParameters": true,
-        "resolveJsonModule": true,
-        "baseUrl": ".",
-        "paths": {
-            "@/*": ["./*"]
-        }
+        "resolveJsonModule": true
     },
     "exclude": ["node_modules", "out", "test/visualizer_test"],
     "include": ["test", "src", ".vscode-test.mjs", "webpack.config.js"]
