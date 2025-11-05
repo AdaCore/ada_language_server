@@ -1945,10 +1945,12 @@ package body LSP.Ada_Handlers is
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionItem)
    is
+      use VSS.Strings;
       use all type Libadalang.Common.Ada_Node_Kind_Type;
 
       Context  : LSP.Ada_Context_Sets.Context_Access;
-      Node     : Libadalang.Analysis.Ada_Node;
+      Node : Libadalang.Analysis.Ada_Node;
+      Definition : Libadalang.Analysis.Defining_Name;
       C        : LSP.Structures.JSON_Event_Vectors.Cursor;
       Location : LSP.Structures.Location;
       Response : LSP.Structures.CompletionItem := Value;
@@ -1963,6 +1965,7 @@ package body LSP.Ada_Handlers is
          return;
       end if;
 
+      --  Retrieve the node at the location stored in the completion item's data
       C := Value.data.First;
       Location := LSP.Structures.LSPAny_Vectors.From_Any (C);
       Context := Self.Contexts.Get_Best_Context (Location.uri);
@@ -1974,18 +1977,25 @@ package body LSP.Ada_Handlers is
              (textDocument => (uri => Location.uri),
               position     => Location.a_range.start));
 
-      if Node.Kind = Libadalang.Common.Ada_Identifier then
-         --  When node is an identifier, take parent node to resolve to
-         --  defining name. It is a case of names of package identifiers.
-
-         Node := Node.Parent;
+      --  Return immediately if the retrieved node is not a name node
+      if Node.Is_Null or else Node.Kind not in Libadalang.Common.Ada_Name then
+         Self.Sender.On_Error_Response
+           (Id,
+            (code    => LSP.Enumerations.InvalidParams,
+             message =>
+               "Could not resolve completion item: no name "
+               & "node found at given location"));
+         return;
       end if;
 
-      --  Compute the completion item's details
-      if not Node.Is_Null then
-         declare
-            use type VSS.Strings.Virtual_String;
+      --  Get the node's enclosing defining name: in some cases, the node
+      --  can be a simple name that is part of a larger defining name
+      --  (e.g: dotted names in the case of child packages).
+      Definition := Node.As_Name.P_Enclosing_Defining_Name;
 
+      --  Compute the completion item's details
+      if not Definition.Is_Null then
+         declare
             Qual_Text    : VSS.Strings.Virtual_String;
             Loc_Text     : VSS.Strings.Virtual_String;
             Doc_Text     : VSS.Strings.Virtual_String;
@@ -1994,7 +2004,7 @@ package body LSP.Ada_Handlers is
 
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
-              (Name               => Node.As_Defining_Name,
+              (Name               => Definition,
                Origin             => Libadalang.Analysis.No_Ada_Node,
                Style              => Self.Configuration.Documentation_Style,
                Qualifier_Text     => Qual_Text,
