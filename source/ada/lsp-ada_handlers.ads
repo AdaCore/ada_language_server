@@ -413,6 +413,11 @@ private
    --  When Force is True, the diagnostics will always be sent, regardless if
    --  they have changed or not.
 
+   overriding
+   procedure Enqueue_Indexing
+     (Self : in out Message_Handler; File : GNATCOLL.VFS.Virtual_File);
+   --  Reindex files and clear document.
+
    procedure Publish_Diagnostics
      (Self : in out Message_Handler; Force : Boolean := False);
    --  Publish workspace diagnostic messages.

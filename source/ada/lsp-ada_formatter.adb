@@ -40,7 +40,7 @@ package body LSP.Ada_Formatter is
      (Parent : not null access constant Ada_Range_Formatter_Handler)
    is limited
      new LSP.Ada_Request_Jobs.Ada_Request_Job
-          (Priority => LSP.Server_Jobs.Fence)
+          (Priority => LSP.Server_Jobs.High)
    with null record;
 
    type Ada_Range_Formatter_Job_Access is access all Ada_Range_Formatter_Job;
@@ -56,7 +56,7 @@ package body LSP.Ada_Formatter is
      (Parent : not null access constant Ada_On_Type_Formatter_Handler)
    is limited
      new LSP.Ada_Request_Jobs.Ada_Request_Job
-          (Priority => LSP.Server_Jobs.Fence)
+          (Priority => LSP.Server_Jobs.High)
    with null record;
 
    type Ada_On_Type_Formatter_Job_Access is

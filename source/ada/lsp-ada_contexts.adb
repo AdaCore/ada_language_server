@@ -958,16 +958,17 @@ package body LSP.Ada_Contexts is
    -----------------------------
 
    function Project_Attribute_Value
-     (Self         : Context;
-      Attribute    : GPR2.Q_Attribute_Id;
-      Index        : String := "";
-      Default      : String := "") return String is
+     (Self      : Context;
+      Attribute : GPR2.Q_Attribute_Id;
+      Index     : String := "";
+      Default   : String := "") return String is
    begin
-      return Project_Attribute_Value
-        (View         => Self.Tree.Root_Project,
-         Attribute    => Attribute,
-         Index        => Index,
-         Default      => Default);
+      return
+        Project_Attribute_Value
+          (View      => Self.Tree.Root_Project,
+           Attribute => Attribute,
+           Index     => Index,
+           Default   => Default);
    end Project_Attribute_Value;
 
 end LSP.Ada_Contexts;

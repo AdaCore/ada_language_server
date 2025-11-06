@@ -24,6 +24,7 @@ with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;
 
 with LAL_Refactor.Sort_Case;
+with LSP.Ada_Indexing;
 with LSP.Env;
 with VSS.Characters.Latin;
 with VSS.Strings;
@@ -355,6 +356,27 @@ package body LSP.Ada_Handlers is
 
       return Self.Contexts_For_File (File);
    end Contexts_For_Position;
+
+   ----------------------
+   -- Enqueue_Indexing --
+   ----------------------
+
+   overriding
+   procedure Enqueue_Indexing
+     (Self : in out Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File)
+   is
+      Files : LSP.Ada_Indexing.File_Sets.Set;
+   begin
+      Files.Include (File);
+      LSP.Ada_Indexing.Schedule_Indexing
+        (Server        => Self.Server,
+         Handler       => Self'Unchecked_Access,
+         Configuration => Self.Configuration,
+         Project_Stamp => Self.Project_Stamp,
+         Files         => Files,
+         Index_Runtime => False);
+   end Enqueue_Indexing;
 
    ----------
    -- Free --
