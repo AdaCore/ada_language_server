@@ -15,14 +15,21 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GNATCOLL.Traces; use GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
+with Libadalang;
+with Libadalang.Analysis;
 with LSP.Ada_Documents;
 with LSP.Client_Message_Receivers;
 with LSP.Structures;
 with LSP.Server_Notifications.DidChange;
 
 package body LSP.Ada_Did_Change_Document is
+
+   Did_Change_Indexing : constant Trace_Handle :=
+     Create ("ALS.DID_CHANGE.INDEXING", On);
+   --  Should be disabled when running the testsuite
 
    type Did_Change_Job
      (Parent : not null access constant Ada_Did_Change_Handler)
@@ -101,9 +108,22 @@ package body LSP.Ada_Did_Change_Document is
            (Message.Params.textDocument.version, Changes);
       end if;
 
+      --  Clear the cacha of symbols now
+      LSP.Ada_Documents.Reset_Symbol_Cache (Self.Document.all);
+      --  Manually reparse the file in all context now so the AU is up-to-date
+      --  for the following requests.
       for Context of Self.Parent.Context.Contexts_For_File (File) loop
-         Context.Index_Document (Self.Document.all);
+         declare
+            Dummy : Libadalang.Analysis.Analysis_Unit;
+         begin
+            Dummy := Context.Get_AU (File, Reparse => True);
+         end;
       end loop;
+      --  The indexing here will do PLE and fill the database of Defining_Name
+      --  in a separate job at the lowest priority
+      if Did_Change_Indexing.Is_Active then
+         Self.Parent.Context.Enqueue_Indexing (File);
+      end if;
 
       --  Emit diagnostics
       Self.Parent.Context.Publish_Diagnostics (Self.Document);

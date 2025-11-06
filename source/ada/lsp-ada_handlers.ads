@@ -339,11 +339,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.DocumentFormattingParams);
 
-   overriding procedure On_RangeFormatting_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentRangeFormattingParams);
-
    overriding procedure On_Initialized_Notification
      (Self  : in out Message_Handler;
       Value : LSP.Structures.InitializedParams);
@@ -381,11 +376,6 @@ private
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.CompletionParams);
 
-   overriding procedure On_OnTypeFormatting_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentOnTypeFormattingParams);
-
    overriding procedure On_SignatureHelp_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
@@ -422,6 +412,11 @@ private
    --  from sources that analyze files when being opened or modified.
    --  When Force is True, the diagnostics will always be sent, regardless if
    --  they have changed or not.
+
+   overriding
+   procedure Enqueue_Indexing
+     (Self : in out Message_Handler; File : GNATCOLL.VFS.Virtual_File);
+   --  Reindex files and clear document.
 
    procedure Publish_Diagnostics
      (Self : in out Message_Handler; Force : Boolean := False);

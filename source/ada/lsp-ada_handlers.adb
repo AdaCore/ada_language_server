@@ -23,9 +23,8 @@ with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
 
-with Gnatformat.Configuration;
-
 with LAL_Refactor.Sort_Case;
+with LSP.Ada_Indexing;
 with LSP.Env;
 with VSS.Characters.Latin;
 with VSS.Strings;
@@ -34,7 +33,6 @@ with VSS.Strings.Formatters.Strings;
 with VSS.Strings.Templates;
 
 with Laltools.Common;
-with Laltools.Partial_GNATPP;
 
 with Langkit_Support.Text;
 
@@ -96,7 +94,6 @@ with LSP.Ada_Handlers.Symbols;
 with LSP.Ada_Commands;
 with LSP.Client_Side_File_Monitors;
 with LSP.Errors;
-with LSP.Formatters.Fallback_Indenter;
 with LSP.Formatters.Texts;
 with LSP.Generic_Cancel_Check;
 with LSP.GNATCOLL_Tracers.Handle;
@@ -359,6 +356,27 @@ package body LSP.Ada_Handlers is
 
       return Self.Contexts_For_File (File);
    end Contexts_For_Position;
+
+   ----------------------
+   -- Enqueue_Indexing --
+   ----------------------
+
+   overriding
+   procedure Enqueue_Indexing
+     (Self : in out Message_Handler;
+      File : GNATCOLL.VFS.Virtual_File)
+   is
+      Files : LSP.Ada_Indexing.File_Sets.Set;
+   begin
+      Files.Include (File);
+      LSP.Ada_Indexing.Schedule_Indexing
+        (Server        => Self.Server,
+         Handler       => Self'Unchecked_Access,
+         Configuration => Self.Configuration,
+         Project_Stamp => Self.Project_Stamp,
+         Files         => Files,
+         Index_Runtime => False);
+   end Enqueue_Indexing;
 
    ----------
    -- Free --
@@ -2922,271 +2940,6 @@ package body LSP.Ada_Handlers is
       end if;
    end On_Initialized_Notification;
 
-   ---------------------------------
-   -- On_OnTypeFormatting_Request --
-   ---------------------------------
-
-   overriding
-   procedure On_OnTypeFormatting_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentOnTypeFormattingParams)
-   is
-      use type VSS.Strings.Character_Count;
-      use type VSS.Strings.Virtual_String;
-
-      procedure Compute_Response;
-      --  Determines if how this document needs to be handled based on its
-      --  diagnostics and ALS settings. Dispatches to
-      --  Handle_Document_With_Diagnostics and
-      --  Handle_Document_Without_Diagnostics accordingly.
-
-      procedure Handle_Document_With_Diagnostics;
-      --  Simply adds indentation to the new line
-
-      procedure Handle_Document_Without_Diagnostics;
-      --  Adds indentation to the new line and formats the previous node
-      --  if configured to do so and taking into account where the cursor
-      --  is.
-
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Get_Open_Document (Value.textDocument.uri);
-      Response : LSP.Structures.TextEdit_Vector_Or_Null;
-
-      Full_Options : constant Gnatformat.Configuration.Format_Options_Type :=
-        LSP.Ada_Handlers.Formatting.Get_Formatting_Options
-          (Context.all, Value.options);
-
-      Indent_Array :
-        constant LSP.Formatters.Fallback_Indenter.Indentation_Array :=
-          LSP.Ada_Handlers.Formatting.Get_Indentation
-            (Context  => Context.all,
-             Document => Document,
-             Span     =>
-               ((Value.position.line, 0), (Value.position.line + 1, 0)),
-             Options  => Full_Options);
-      Indentation  : constant VSS.Strings.Character_Count :=
-        (declare
-           Indentation_First_Guess : constant VSS.Strings.Character_Count :=
-             ((if Indent_Array (Value.position.line + 1) = -1
-               then 0
-               else
-                 VSS.Strings.Character_Count
-                   (Indent_Array (Value.position.line + 1))));
-         begin
-           (if Indentation_First_Guess
-              >= VSS.Strings.Character_Count (Value.position.character)
-            then
-              Indentation_First_Guess
-              - VSS.Strings.Character_Count (Value.position.character)
-            else 0));
-      --  Do not add any indentation if the current cursor position is greater
-      --  than the calculated one.
-
-      ----------------------
-      -- Compute_Response --
-      ----------------------
-
-      procedure Compute_Response is
-      begin
-         if not LSP.Ada_Configurations.On_Type_Formatting then
-            Self.Tracer.Trace
-              ("'onTypeFormatting' is not active, yet, ALS received a request "
-               & " - exiting earlier");
-
-            return;
-         end if;
-
-         if Value.ch
-           /= LSP
-                .Ada_Configurations
-                .On_Type_Formatting_Settings
-                .firstTriggerCharacter
-         then
-            Self.Tracer.Trace
-              ("Trigger character ch is not a new line - exiting earlier");
-
-            return;
-         end if;
-
-         if Document.Has_Diagnostics (Context.all) then
-            --  This is the unhappy path: when this Document has diagnostics.
-            --  Get the previous node (based on the previous non whitespace
-            --  token) and compute the indentation.
-
-            Self.Tracer.Trace ("Document has diagnostics");
-            Handle_Document_With_Diagnostics;
-
-         else
-            --  This is the happy path: when this Document does not have any
-            --  diagnostics.
-            --  Get the previous node (based on the previous non whitespace
-            --  token), compute the indentation and format it (if configured to
-            --  to so).
-
-            Self.Tracer.Trace ("Document does not have any diagnostics");
-            Handle_Document_Without_Diagnostics;
-         end if;
-      end Compute_Response;
-
-      --------------------------------------
-      -- Handle_Document_With_Diagnostics --
-      --------------------------------------
-
-      procedure Handle_Document_With_Diagnostics is
-      begin
-         Response.Append
-           (LSP.Structures.TextEdit'
-              (a_range => (start => Value.position, an_end => Value.position),
-               newText => LSP.Ada_Handlers.Formatting.Handle_Tabs
-                      (Context.all,
-                       Document,
-                       Full_Options,
-                       Indentation * ' ')));
-      end Handle_Document_With_Diagnostics;
-
-      -----------------------------------------
-      -- Handle_Document_Without_Diagnostics --
-      -----------------------------------------
-
-      procedure Handle_Document_Without_Diagnostics is
-
-         function Is_Between
-           (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)
-            return Boolean;
-         --  Checks if Position is between Span
-
-         ----------------
-         -- Is_Between --
-         ----------------
-
-         function Is_Between
-           (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)
-            return Boolean
-         is ((Position.line = Span.start.line
-              and then Position.character >= Span.start.character)
-             or else (Position.line = Span.an_end.line
-                      and then Position.character <= Span.an_end.character)
-             or else (Position.line > Span.start.line
-                      and then Position.line < Span.an_end.line));
-
-         Token                    :
-           constant Libadalang.Common.Token_Reference :=
-             Document.Get_Token_At (Context.all, Value.position);
-         Previous_NWNC_Token      :
-           constant Libadalang.Common.Token_Reference :=
-             Laltools.Partial_GNATPP.Previous_Non_Whitespace_Non_Comment_Token
-               (Token);
-         Previous_NWNC_Token_Span : constant LSP.Structures.A_Range :=
-           Document.To_A_Range
-             (Libadalang.Common.Sloc_Range
-                (Libadalang.Common.Data (Previous_NWNC_Token)));
-
-         Formatting_Region :
-           constant Laltools.Partial_GNATPP.Formatting_Region_Type :=
-             Document.Get_Formatting_Region
-               (Context.all, Previous_NWNC_Token_Span.start);
-         Formatting_Span   : constant LSP.Structures.A_Range :=
-           Document.To_A_Range
-             (Libadalang.Slocs.Make_Range
-                (Libadalang.Slocs.Start_Sloc
-                   (Libadalang.Common.Sloc_Range
-                      (Libadalang.Common.Data
-                         (Formatting_Region.Start_Token))),
-                 Libadalang.Slocs.Start_Sloc
-                   (Libadalang.Common.Sloc_Range
-                      (Libadalang.Common.Data
-                         (Formatting_Region.End_Token)))));
-         --  This is the span that would be formatted based on the cursor
-         --  position.
-
-      begin
-         if Self.Configuration.Indent_Only then
-            Self.Tracer.Trace
-              ("'onTypeFormatting' request configured to indent only");
-
-            Response.Append
-              (LSP.Structures.TextEdit'
-                 (a_range =>
-                    (start => Value.position, an_end => Value.position),
-                  newText =>
-                    LSP.Ada_Handlers.Formatting.Handle_Tabs
-                      (Context.all,
-                       Document,
-                       Full_Options,
-                       Indentation * ' ')));
-
-            return;
-         end if;
-
-         --  onTypeFormatting is configured to also format the previous node,
-         --  however, we can only do this if the cursor is not between the
-         --  Formatting_Span.
-
-         if Is_Between (Value.position, Formatting_Span) then
-            Self.Tracer.Trace
-              ("Current position is within the Formatting_Span");
-            Self.Tracer.Trace ("Adding indentation only");
-
-            Response.Append
-              (LSP.Structures.TextEdit'
-                 (a_range =>
-                    (start => Value.position, an_end => Value.position),
-                  newText =>
-                    LSP.Ada_Handlers.Formatting.Handle_Tabs
-                      (Context.all,
-                       Document,
-                       Full_Options,
-                       Indentation * ' ')));
-
-            return;
-         end if;
-
-         Self.Tracer.Trace ("Formatting previous node and adding indentation");
-
-         declare
-            Success : Boolean;
-            Error   : LSP.Errors.ResponseError;
-
-         begin
-            LSP.Ada_Handlers.Formatting.Range_Format
-              (Context  => Context.all,
-               Document => Document,
-               Span     => Previous_NWNC_Token_Span,
-               Options  => Full_Options,
-               Success  => Success,
-               Response => Response,
-               Error    => Error);
-
-            if not Success then
-               Self.Tracer.Trace
-                 ("The 'onTypeFormatting' has failed because of a "
-                  & "Range_Format error");
-            end if;
-
-            Response.Append
-              (LSP.Structures.TextEdit'
-                 (a_range =>
-                    (start => Value.position, an_end => Value.position),
-                  newText =>
-                    LSP.Ada_Handlers.Formatting.Handle_Tabs
-                      (Context.all,
-                       Document,
-                       Full_Options,
-                       Indentation * ' ')));
-         end;
-      end Handle_Document_Without_Diagnostics;
-
-   begin
-      Self.Tracer.Trace ("On 'onTypeFormatting' Request");
-      Compute_Response;
-      Self.Tracer.Trace ("Exiting 'onTypeFormatting' Request");
-
-      Self.Sender.On_OnTypeFormatting_Response (Id, Response);
-   end On_OnTypeFormatting_Request;
-
    ------------------------------
    -- On_OutgoingCalls_Request --
    ------------------------------
@@ -3361,68 +3114,6 @@ package body LSP.Ada_Handlers is
 
       Self.Sender.On_PrepareRename_Response (Id, Response);
    end On_PrepareRename_Request;
-
-   --------------------------------
-   -- On_RangeFormatting_Request --
-   --------------------------------
-
-   overriding
-   procedure On_RangeFormatting_Request
-     (Self  : in out Message_Handler;
-      Id    : LSP.Structures.Integer_Or_Virtual_String;
-      Value : LSP.Structures.DocumentRangeFormattingParams)
-   is
-      Context  : constant LSP.Ada_Context_Sets.Context_Access :=
-        Self.Contexts.Get_Best_Context (Value.textDocument.uri);
-      Document : constant LSP.Ada_Documents.Document_Access :=
-        Self.Get_Open_Document (Value.textDocument.uri);
-
-      Response : LSP.Structures.TextEdit_Vector_Or_Null;
-      Error    : LSP.Errors.ResponseError;
-      Success  : Boolean := True;
-      Messages : VSS.String_Vectors.Virtual_String_Vector;
-
-   begin
-      if Document.Has_Diagnostics (Context.all)
-        and then Self.Configuration.Range_Formatting_Fallback
-      then
-         LSP.Ada_Handlers.Formatting.Indent_Lines
-           (Context  => Context.all,
-            Document => Document,
-            Span     => Value.a_range,
-            Options  =>
-              LSP.Ada_Handlers.Formatting.Get_Formatting_Options
-                (Context.all, Value.options),
-            Success  => Success,
-            Response => Response,
-            Messages => Messages,
-            Error    => Error);
-      else
-         LSP.Ada_Handlers.Formatting.Format
-           (Context  => Context.all,
-            Document => Document,
-            Span     => Value.a_range,
-            Options  =>
-              LSP.Ada_Handlers.Formatting.Get_Formatting_Options
-                (Context.all, Value.options),
-            Success  => Success,
-            Response => Response,
-            Messages => Messages,
-            Error    => Error);
-      end if;
-
-      if Success then
-         Self.Sender.On_RangeFormatting_Response (Id, Response);
-
-         for Message of Messages loop
-            Self.Sender.On_ShowMessage_Notification
-              ((LSP.Enumerations.Info, Message));
-         end loop;
-
-      else
-         Self.Sender.On_Error_Response (Id, Error);
-      end if;
-   end On_RangeFormatting_Request;
 
    -----------------------
    -- On_Rename_Request --

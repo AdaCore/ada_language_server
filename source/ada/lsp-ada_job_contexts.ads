@@ -114,6 +114,10 @@ package LSP.Ada_Job_Contexts is
       Force             : Boolean := False) is abstract;
    --  Publish document diagnostics
 
+   procedure Enqueue_Indexing
+     (Self : in out Ada_Job_Context;
+      File : GNATCOLL.VFS.Virtual_File) is abstract;
+
    function Contexts_For_File
      (Self : Ada_Job_Context;
       File : GNATCOLL.VFS.Virtual_File)
