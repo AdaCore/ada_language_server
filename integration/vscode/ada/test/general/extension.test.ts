@@ -5,7 +5,7 @@ import { activate, assertEqualToFileContent, showTextDocument } from '../utils';
 
 import { readFileSync, writeFileSync } from 'fs';
 import * as vscode from 'vscode';
-import { CMD_RESTART_LANG_SERVERS } from '@/src/constants';
+import { CMD_RESTART_LANG_SERVERS } from '../../src/constants';
 
 suite('Extensions Test Suite', function () {
     // Make sure the extension is activated

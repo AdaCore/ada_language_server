@@ -13,7 +13,10 @@
             "!**/node_modules/**"
          ],
          "args": [
-            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada"
+            "--extensionDevelopmentPath=${workspaceFolder}/integration/vscode/ada",
+
+            // Disable other extensions for speed
+            "--disable-extensions"
 
             // It is useful to have workspace available for local debugging. The
             // following one is provided within the repository with test folders

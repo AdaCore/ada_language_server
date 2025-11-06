@@ -100,6 +100,8 @@ export default defineConfig(
                 // --user-data-dir <path> form sometimes gets <path> considered
                 // as another workspace root directory.
                 `--user-data-dir=${tmpdir}`,
+                // Disable other extensions for speed
+                '--disable-extensions',
             ],
             // Use external installation if provided in the VSCODE env variable
             useInstallation: process.env.VSCODE ? { fromPath: process.env.VSCODE } : undefined,
