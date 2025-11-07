@@ -247,12 +247,16 @@ class IndentationTestCase:
             where the line break occurs.
         expected_indentation (str): The expected indentation string after the
             onTypeFormatting request is applied.
+        additional_text_edits (List[TextEdit]): A list of additional TextEdit
+            objects that represent other expected changes in the source code
+            (e.g: a TextEdit on the previous line when indentOnly is False).
     """
 
     description: str
     source_filename: str
     line_break_position: Position
     expected_indentation: str
+    additional_text_edits: List[TextEdit] = []
 
     @property
     def change_range(self) -> Range:
@@ -288,7 +292,7 @@ class IndentationTestCase:
                 ),
                 self.expected_indentation,
             )
-        ]
+        ] + self.additional_text_edits
 
 
 async def run_indentation_testcases(lsp, testcases, options):

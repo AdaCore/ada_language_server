@@ -88,6 +88,18 @@ package LSP.Ada_Handlers.Formatting is
    --  Messages contains any informational or warning messages.
    --  Error is set if an error occurred.
 
+   function Reindent_Line
+     (Filename   : GNATCOLL.VFS.Virtual_File;
+      Line       : VSS.Strings.Virtual_String;
+      Options    : Gnatformat.Configuration.Format_Options_Type;
+      Pos        : LSP.Structures.Position;
+      New_Indent : Natural) return LSP.Structures.TextEdit;
+   --  Reindent a line to the given new indentation.
+   --  Line contains the actual line in the document.
+   --  Options are the formatting options to handle tabs/spaces.
+   --  Pos is the LSP position of the line in the document.
+   --  New_Indent is the new indentation level for the line.
+
    function Handle_Tabs
      (Filename : GNATCOLL.VFS.Virtual_File;
       Options  : Gnatformat.Configuration.Format_Options_Type;

@@ -28,6 +28,7 @@ with LSP.Ada_Handlers.Formatting;
 with LSP.Constants;
 with LSP.Enumerations;
 with LSP.Errors;
+with LSP.Formatters.Fallback_Indenter;
 with LSP.Generic_Cancel_Check;
 with LSP.GPR_Completions;
 with LSP.GPR_Documentation;
@@ -39,6 +40,7 @@ with LSP.Text_Documents.Langkit_Documents;
 with LSP.Utils;
 
 with Gpr_Parser.Common;
+with VSS.Characters.Latin;
 with VSS.String_Vectors;
 with VSS.Strings;
 
@@ -409,7 +411,7 @@ package body LSP.GPR_Handlers is
       Response     : LSP.Structures.InitializeResult;
       Capabilities : LSP.Structures.ServerCapabilities renames
         Response.capabilities;
-
+      use VSS.Strings;
    begin
       Self.File_Reader := LSP.GPR_File_Readers.Create (Self'Unchecked_Access);
 
@@ -446,6 +448,11 @@ package body LSP.GPR_Handlers is
         (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
       Capabilities.documentFormattingProvider :=
         (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
+      Capabilities.documentOnTypeFormattingProvider :=
+        (Is_Set => True,
+         Value  =>
+           (firstTriggerCharacter => 1 * VSS.Characters.Latin.Line_Feed,
+            moreTriggerCharacter  => <>));
 
       Capabilities.textDocumentSync :=
         (Is_Set => True,
@@ -627,6 +634,76 @@ package body LSP.GPR_Handlers is
          Self.Sender.On_Error_Response (Id, Error);
       end if;
    end On_RangeFormatting_Request;
+
+   ---------------------------------
+   -- On_OnTypeFormatting_Request --
+   ---------------------------------
+
+   overriding
+   procedure On_OnTypeFormatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentOnTypeFormattingParams)
+   is
+      use VSS.Strings;
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+      Document : constant LSP.GPR_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+      Options  : constant Gnatformat.Configuration.Format_Options_Type :=
+        Gnatformat.Configuration.Default_Format_Options;
+
+      Filename : constant GNATCOLL.VFS.Virtual_File :=
+        Self.To_File (Value.textDocument.uri);
+
+      Indent_Array :
+        constant LSP.Formatters.Fallback_Indenter.Indentation_Array :=
+          LSP.Ada_Handlers.Formatting.Get_Indentation
+            (Filename => Filename,
+             Buffer   =>
+               Document.Slice (((0, 0), (Value.position.line + 1, 0))),
+             Span     =>
+               ((0, 0), (Value.position.line + 1, 0)),
+             Options  => Options);
+      Indentation  : constant VSS.Strings.Character_Count :=
+        (if Indent_Array (Value.position.line + 1) = -1
+         then 0
+         else
+           VSS.Strings.Character_Count
+             (Indent_Array (Value.position.line + 1)));
+   begin
+      --  First set the indentation for the new line
+      Response.Append
+        (LSP.Structures.TextEdit'
+           (a_range =>
+              (start => (Value.position.line, 0), an_end => Value.position),
+            newText =>
+              LSP.Ada_Handlers.Formatting.Handle_Tabs
+                (Filename => Filename,
+                 Options  => Options,
+                 S        => Indentation * ' ')));
+
+      --  If not in indent-only mode, re-indent the previous line too
+      if not Self.Configuration.Indent_Only then
+         declare
+            Prev_Line             : constant Natural :=
+              Natural'Max (Value.position.line - 1, 0);
+            Indentation : constant Natural :=
+              (if Indent_Array (Prev_Line + 1) = -1
+               then 0
+               else Indent_Array (Prev_Line + 1));
+         begin
+            Response.Append
+              (LSP.Ada_Handlers.Formatting.Reindent_Line
+                 (Filename   => Filename,
+                  Line       => Document.Get_Line (Prev_Line),
+                  Pos        => (Prev_Line, 0),
+                  Options    => Options,
+                  New_Indent => Indentation));
+         end;
+      end if;
+
+      Self.Sender.On_OnTypeFormatting_Response (Id, Response);
+   end On_OnTypeFormatting_Request;
 
    ---------------------------
    -- On_Completion_Request --
