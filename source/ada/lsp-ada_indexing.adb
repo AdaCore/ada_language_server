@@ -117,7 +117,10 @@ package body LSP.Ada_Indexing is
          Client.On_ProgressEnd_Work_Done
            (Self.Indexing_Token, (message => <>));
 
-         if Self.Handler.Project_Tree_Is_Aggregate then
+         if not Self.Handler.Is_Shutdown
+           and then Self.Index_Runtime
+           and then Self.Handler.Project_Tree_Is_Aggregate
+         then
             --  Add runtime to the invisible symbols for aggregate project
             declare
                use GPR2;
@@ -162,7 +165,8 @@ package body LSP.Ada_Indexing is
       Handler       : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Configuration : LSP.Ada_Configurations.Configuration'Class;
       Project_Stamp : LSP.Ada_Handlers.Project_Stamp;
-      Files         : File_Sets.Set) is
+      Files         : File_Sets.Set;
+      Index_Runtime : Boolean) is
    begin
       if Files.Is_Empty
         or not Configuration.Indexing_Enabled
@@ -184,7 +188,8 @@ package body LSP.Ada_Indexing is
               Total_Files_Indexed  => 0,
               Total_Files_To_Index => Natural (Files.Length),
               Progress_Report_Sent => Ada.Calendar.Clock,
-              Project_Stamp        => Project_Stamp);
+              Project_Stamp        => Project_Stamp,
+              Index_Runtime        => Index_Runtime);
 
       begin
          Server.On_Progress_Create_Request (Id, (token => Token));

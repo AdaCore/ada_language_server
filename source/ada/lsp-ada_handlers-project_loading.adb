@@ -808,7 +808,8 @@ package body LSP.Ada_Handlers.Project_Loading is
          Handler       => Self'Unchecked_Access,
          Configuration => Self.Configuration,
          Project_Stamp => Self.Project_Stamp,
-         Files         => Files);
+         Files         => Files,
+         Index_Runtime => True);
    end Enqueue_Indexing_Job;
 
    ---------------------------------------

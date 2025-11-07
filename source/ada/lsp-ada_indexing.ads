@@ -41,7 +41,8 @@ package LSP.Ada_Indexing is
       Handler       : not null access LSP.Ada_Handlers.Message_Handler'Class;
       Configuration : LSP.Ada_Configurations.Configuration'Class;
       Project_Stamp : LSP.Ada_Handlers.Project_Stamp;
-      Files         : File_Sets.Set);
+      Files         : File_Sets.Set;
+      Index_Runtime : Boolean);
 
    type Indexing_Job (<>) is new LSP.Server_Jobs.Server_Job
      with private;
@@ -82,6 +83,9 @@ private
       --  Time of send of last progress notification.
 
       Project_Stamp        : LSP.Ada_Handlers.Project_Stamp;
+
+      Index_Runtime        : Boolean := False;
+      --  True if the runtime should be indexed
    end record;
 
    overriding function Priority
