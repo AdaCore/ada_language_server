@@ -59,15 +59,15 @@ package body LSP.Text_Documents.Langkit_Documents is
       Line : constant Natural := To_LSP_Line (Index);
 
    begin
-      if Self.Line_Marker.Last_Index = Line then
+      if Self.Line_Markers.Last_Index = Line then
          return
            Self.Text.Slice
-             (Self.Line_Marker (Line), Self.Text.After_Last_Character);
+             (Self.Line_Markers (Line), Self.Text.After_Last_Character);
 
       else
          return
            Self.Text.Slice
-             (Self.Line_Marker (Line), Self.Line_Marker (Line + 1));
+             (Self.Line_Markers (Line), Self.Line_Markers (Line + 1));
       end if;
    end Line;
 
@@ -187,7 +187,7 @@ package body LSP.Text_Documents.Langkit_Documents is
       return Langkit_Support.Slocs.Source_Location
    is
       Iterator    : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.At_Character (Self.Line_Marker (Position.line));
+        Self.Text.At_Character (Self.Line_Markers (Position.line));
    begin
       return ((Line   => To_Source_Line (Position.line),
                Column => To_Source_Column (Iterator, Position.character)));

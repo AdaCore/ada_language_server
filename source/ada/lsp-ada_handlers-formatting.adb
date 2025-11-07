@@ -202,36 +202,56 @@ package body LSP.Ada_Handlers.Formatting is
      (Tracer   : not null LSP.Tracers.Tracer_Access;
       Filename : GNATCOLL.VFS.Virtual_File;
       Document : LSP.Text_Documents.Text_Document'Class;
-      Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type;
+      Span     : LSP.Structures.A_Range := LSP.Text_Documents.Empty_Range;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
       pragma Unreferenced (Messages);
+      use LSP.Structures;
+      use LSP.Text_Documents;
       use VSS.Strings;
+
+      Actual_Span : constant A_Range :=
+        (if Span = Empty_Range
+         then ((0, 0), (Integer'Max (Document.Line_Count - 1, 0), 0))
+         else Span);
+      --  If no span is provided, indent the whole document.
+
+      Buffer : constant VSS.Strings.Virtual_String :=
+        (if Span = Empty_Range
+         then Document.Text
+         else Document.Slice (((0, 0), Actual_Span.an_end)));
+      --  Get the relevant buffer to indent.
+      --  If no span is provided, get the whole document buffer.
+      --  Otherwise get the buffer from the start of the document
+      --  to the end of the given span.
 
       Indent_Lines :
         constant LSP.Formatters.Fallback_Indenter.Indentation_Array :=
           Get_Indentation
             (Filename => Filename,
-             Buffer   => Document.Slice (((0, 0), Span.an_end)),
-             Span     => Span,
+             Buffer   => Buffer,
+             Span     => Actual_Span,
              Options  => Options);
-      Pos          : LSP.Structures.Position;
-      Line_Span    : LSP.Structures.A_Range;
+      --  Get the indentation levels for each line in the span.
+
+      Pos       : LSP.Structures.Position;
    begin
-      Tracer.Trace_Text
-        (Incorrect_Code_Msg & ", using the fallback indenter");
+      Tracer.Trace_Text (Incorrect_Code_Msg & ", using the fallback indenter");
       for Line in Indent_Lines'Range loop
          if Indent_Lines (Line) /= -1 then
+            --  LSP is 0-based, while the array returned by the fallback
+            --  indenter is 1-based.
             Pos := (Line - 1, 0);
-            Line_Span := (Pos, (Pos.line + 1, 0));
+
+            --  Generate a text edit to reindent the line.
             Response.Append
               (Reindent_Line
                  (Filename   => Filename,
-                  Line       => Document.Slice (Line_Span),
+                  Line       => Document.Get_Line (Pos.line),
                   Options    => Options,
                   Pos        => Pos,
                   New_Indent => Indent_Lines (Line)));

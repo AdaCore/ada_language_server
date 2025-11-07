@@ -444,6 +444,8 @@ package body LSP.GPR_Handlers is
             others            => <>));
       Capabilities.documentRangeFormattingProvider :=
         (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
+      Capabilities.documentFormattingProvider :=
+        (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
 
       Capabilities.textDocumentSync :=
         (Is_Set => True,
@@ -508,6 +510,48 @@ package body LSP.GPR_Handlers is
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
 
+   ---------------------------
+   -- On_Formatting_Request --
+   ---------------------------
+
+   overriding
+   procedure On_Formatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentFormattingParams)
+   is
+      Document : constant LSP.GPR_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+      Error    : LSP.Errors.ResponseError;
+      Success  : Boolean := True;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+      Options  : constant Gnatformat.Configuration.Format_Options_Type :=
+        Gnatformat.Configuration.Default_Format_Options;
+   begin
+      LSP.Ada_Handlers.Formatting.Indent_Lines
+        (Tracer   => Self.Tracer,
+         Filename => Self.To_File (Value.textDocument.uri),
+         Document => Document.all,
+         Options  => Options,
+         Success  => Success,
+         Response => Response,
+         Messages => Messages,
+         Error    => Error);
+
+      if Success then
+         Self.Sender.On_Formatting_Response (Id, Response);
+
+         for Message of Messages loop
+            Self.Sender.On_ShowMessage_Notification
+              ((LSP.Enumerations.Info, Message));
+         end loop;
+
+      else
+         Self.Sender.On_Error_Response (Id, Error);
+      end if;
+   end On_Formatting_Request;
+
    --------------------------------
    -- On_RangeFormatting_Request --
    --------------------------------
@@ -527,7 +571,6 @@ package body LSP.GPR_Handlers is
       Options  : constant Gnatformat.Configuration.Format_Options_Type :=
         Gnatformat.Configuration.Default_Format_Options;
    begin
-      --  TODO: check if we can get indentation options from GNATformat
       LSP.Ada_Handlers.Formatting.Indent_Lines
         (Tracer   => Self.Tracer,
          Filename => Self.To_File (Value.textDocument.uri),

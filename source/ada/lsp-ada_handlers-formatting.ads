@@ -59,6 +59,8 @@ package LSP.Ada_Handlers.Formatting is
       return LSP.Formatters.Fallback_Indenter.Indentation_Array;
    --  Use the fallback indenter to get an array of indentation for each
    --  line in Span.
+   --  Each line in the array is 1-based indexed (i.e., the first line is at
+   --  index 1).
    --  Buffer is the content of the document referenced by Filename. Should
    --  contain the whole content of the document or a substring including
    --  at least the lines in Span.
@@ -67,14 +69,15 @@ package LSP.Ada_Handlers.Formatting is
      (Tracer   : not null LSP.Tracers.Tracer_Access;
       Filename : GNATCOLL.VFS.Virtual_File;
       Document : LSP.Text_Documents.Text_Document'Class;
-      Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type;
+      Span     : LSP.Structures.A_Range := LSP.Text_Documents.Empty_Range;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError);
    --  Generate a TextEdit_Vector to reindent the lines in Span using the
    --  fallback indenter.
+   --  If no Span is provided, the whole document is indented.
    --  Document is the document to indent.
    --  Tracer is used to log messages.
    --  Filename is the name of the file referenced by Document. Used to
