@@ -125,5 +125,7 @@
          "--disable-extensions"
       ],
       "preLaunchTask": "npm: watch - integration/vscode/ada"
-   }
+   },
+   // Use Xvfb on Linux to run the extension tests in a virtual framebuffer
+   "extension-test-runner.wrapper": ["xvfb-run", "-a"]
 }
