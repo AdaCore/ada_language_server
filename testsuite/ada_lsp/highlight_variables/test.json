@@ -1,0 +1,282 @@
+[
+   {
+      "comment": [
+         "test that we have global and localVariable SemanticTokenModifiers"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 2610087,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "textDocument": {
+                     "semanticTokens": {
+                        "requests": {
+                           "range": true,
+                           "full": {}
+                        },
+                        "tokenTypes": [
+                           "namespace",
+                           "type",
+                           "class",
+                           "enum",
+                           "interface",
+                           "struct",
+                           "typeParameter",
+                           "parameter",
+                           "variable",
+                           "property",
+                           "enumMember",
+                           "function",
+                           "keyword",
+                           "modifier",
+                           "comment",
+                           "string",
+                           "number",
+                           "operator"
+                        ],
+                        "tokenModifiers": [
+                           "declaration",
+                           "definition",
+                           "readonly",
+                           "static",
+                           "deprecated",
+                           "abstract",
+                           "modification",
+                           "documentation",
+                           "defaultLibrary",
+                           "globalVariable",
+                           "localVariable"
+                        ],
+                        "formats": [
+                           "relative"
+                        ]
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "semanticTokensProvider": {
+                        "legend": {
+                           "tokenModifiers": [
+                              "declaration",
+                              "definition",
+                              "readonly",
+                              "static",
+                              "deprecated",
+                              "abstract",
+                              "modification",
+                              "documentation",
+                              "defaultLibrary",
+                              "globalVariable",
+                              "localVariable"
+                           ]
+                        }
+                     }
+                  }
+                }
+             }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {}
+               }
+            }
+         },
+         "wait": [
+            {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                    "token": "<ANY>",
+                    "value": {
+                        "kind": "end"
+                    }
+                }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{a.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "\nwith Ada.Text_IO;\n\npackage body A is\n\n   C : Boolean := True;\n\n   -----------\n   -- Print --\n   -----------\n\n   procedure Print is\n      B : Boolean := True;\n\n   begin\n      Ada.Text_IO.Put_Line (B'Img & C'Img);\n   end Print;\n\nend A;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "textDocument/publishDiagnostics",
+               "params": {
+                  "uri": "$URI{a.adb}",
+                  "diagnostics": []
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "textDocument/semanticTokens/full",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{a.adb}"
+               },
+               "range": {
+                  "start": {
+                     "line": 0,
+                     "character": 0
+                  },
+                  "end": {
+                     "line": 32,
+                     "character": 0
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 10,
+               "result": {
+                  "data": [
+                  1,
+                  5,
+                  3,
+                  0,
+                  256,
+                  0,
+                  4,
+                  7,
+                  0,
+                  256,
+                  2,
+                  13,
+                  1,
+                  0,
+                  2,
+                  2,
+                  3,
+                  1,
+                  8,
+                  1,
+                  0,
+                  4,
+                  7,
+                  3,
+                  264,
+                  0,
+                  11,
+                  4,
+                  10,
+                  264,
+                  6,
+                  13,
+                  5,
+                  11,
+                  2,
+                  1,
+                  6,
+                  1,
+                  8,
+                  1,
+                  0,
+                  4,
+                  7,
+                  3,
+                  264,
+                  0,
+                  11,
+                  4,
+                  10,
+                  264,
+                  3,
+                  6,
+                  3,
+                  0,
+                  256,
+                  0,
+                  4,
+                  7,
+                  0,
+                  256,
+                  0,
+                  8,
+                  8,
+                  11,
+                  256,
+                  0,
+                  10,
+                  1,
+                  8,
+                  1024,
+                  0,
+                  8,
+                  1,
+                  8,
+                  512,
+                  1,
+                  7,
+                  5,
+                  11,
+                  0,
+                  2,
+                  4,
+                  1,
+                  0,
+                  0
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

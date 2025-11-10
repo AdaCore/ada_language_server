@@ -17,6 +17,8 @@
 
 with GNATCOLL.Traces;
 
+with Laltools;
+with Laltools.Common;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 with Libadalang.Common; use Libadalang.Common;
@@ -477,6 +479,7 @@ package body LSP.Ada_Highlighters is
       use all type LSP.Enumerations.SemanticTokenTypes;
       use all type LSP.Enumerations.SemanticTokenModifiers;
       use type Libadalang.Analysis.Defining_Name;
+      use type Libadalang.Analysis.Ada_Node;
 
       procedure Highlight_Token
         (Token : Libadalang.Common.Token_Reference;
@@ -496,6 +499,9 @@ package body LSP.Ada_Highlighters is
 
       function Is_Predefined (Decl : Libadalang.Analysis.Basic_Decl)
         return Boolean;
+
+      procedure Get_Variable_Modifiers (Decl : Libadalang.Analysis.Basic_Decl);
+      --  Add variable's modifiers if Decl is a variable
 
       ------------------
       -- Has_Abstract --
@@ -741,10 +747,70 @@ package body LSP.Ada_Highlighters is
          end case;
       end To_Kind;
 
+      ----------------------------
+      -- Get_Variable_Modifiers --
+      ----------------------------
+
+      procedure Get_Variable_Modifiers
+        (Decl : Libadalang.Analysis.Basic_Decl)
+      is
+         --------------------------
+         -- Investigate_Variable --
+         --------------------------
+
+         procedure Investigate_Variable;
+         procedure Investigate_Variable is
+            use Libadalang.Analysis;
+            use Langkit_Support.Slocs;
+
+            Node_Enclosing_Declarative_Part : constant Declarative_Part :=
+                Laltools.Common.Get_Enclosing_Declarative_Part (Node);
+
+            Parent : Ada_Node;
+         begin
+            if Compare
+               (Node_Enclosing_Declarative_Part.Sloc_Range,
+                Decl.Sloc_Range.Start_Sloc) = Inside
+            then
+               Highlight_Token (Node.Token_Start, localVariable);
+
+            else
+               Parent := Decl.Parent;
+               while not Parent.Is_Null loop
+                  if Parent.Kind in Ada_Subp_Body_Range
+                    or else Parent.Kind in Ada_Entry_Body
+                  then
+                     return;
+                  end if;
+                  Parent := Parent.Parent;
+               end loop;
+
+               Highlight_Token (Node.Token_Start, globalVariable);
+            end if;
+         end Investigate_Variable;
+
+      begin
+         case Decl.Kind is
+            when Ada_Generic_Formal_Obj_Decl =>
+               Investigate_Variable;
+
+            when Ada_Entry_Index_Spec | Ada_Object_Decl |
+                 Ada_Single_Protected_Decl | Ada_Single_Task_Decl =>
+               Investigate_Variable;
+
+            when Ada_For_Loop_Var_Decl |
+                 Ada_Extended_Return_Stmt_Object_Decl =>
+               Highlight_Token (Node.Token_Start, localVariable);
+
+            when others =>
+               null;
+         end case;
+      end Get_Variable_Modifiers;
+
       Failsafe_Decl : Libadalang.Analysis.Refd_Decl;
-      Def  : Libadalang.Analysis.Defining_Name;
-      Decl : Libadalang.Analysis.Basic_Decl;
-      Kind : LSP.Enumerations.SemanticTokenTypes;
+      Def           : Libadalang.Analysis.Defining_Name;
+      Decl          : Libadalang.Analysis.Basic_Decl;
+      Kind          : LSP.Enumerations.SemanticTokenTypes;
    begin
       if Node.Kind not in Ada_Identifier | Ada_String_Literal then
          --  Highlight only identifiers and operator symbols
@@ -753,11 +819,10 @@ package body LSP.Ada_Highlighters is
 
       if Node.P_Is_Defining then
          Def := Node.P_Enclosing_Defining_Name;
-
          begin
             declare
                Is_Canonical : constant Boolean :=
-                  not Def.Is_Null and then Def.P_Canonical_Part = Def;
+                 not Def.Is_Null and then Def.P_Canonical_Part = Def;
             begin
                if Is_Canonical then
                   Highlight_Token (Node.Token_Start, declaration);
@@ -793,6 +858,14 @@ package body LSP.Ada_Highlighters is
             Kind := To_Kind (Decl);
             if Kind /= Skip then
                Highlight_Token (Node.Token_Start, Kind);
+            end if;
+
+            if Kind = variable
+              --  not a declaration itself
+              and then Laltools.Common.
+                Find_First_Common_Parent (Decl, Node, True) /= Decl
+            then
+               Get_Variable_Modifiers (Decl);
             end if;
 
             begin
@@ -961,6 +1034,8 @@ package body LSP.Ada_Highlighters is
       Append_Modifier (modification, "modification");
       Append_Modifier (documentation, "documentation");
       Append_Modifier (defaultLibrary, "defaultLibrary");
+      Append_Modifier (globalVariable, "globalVariable");
+      Append_Modifier (localVariable, "localVariable");
 
       Obsolescent := +"Obsolescent";
       Ada_Package := +"Ada";
