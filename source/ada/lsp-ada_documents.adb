@@ -1013,8 +1013,9 @@ package body LSP.Ada_Documents is
       To   : LSP.Structures.Position)
       return VSS.Strings.Virtual_String
    is
+      Span : constant LSP.Structures.A_Range := (start => From, an_end => To);
    begin
-      return Self.Slice ((From, To));
+      return Self.Slice (Span);
    end Get_Text;
 
    ---------------------

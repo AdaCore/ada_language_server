@@ -23,6 +23,7 @@ with LSP.Ada_Contexts;
 with LSP.Errors;
 with LSP.Structures;
 with LSP.Formatters.Fallback_Indenter;
+with LSP.Text_Documents;
 
 with VSS.Strings;
 with VSS.String_Vectors;
@@ -51,33 +52,48 @@ package LSP.Ada_Handlers.Formatting is
    --  Format the text of the given document in the given range (span).
 
    function Get_Indentation
-     (Context  : LSP.Ada_Contexts.Context;
-      Document : not null LSP.Ada_Documents.Document_Access;
+     (Filename : GNATCOLL.VFS.Virtual_File;
+      Buffer   : VSS.Strings.Virtual_String;
       Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type)
       return LSP.Formatters.Fallback_Indenter.Indentation_Array;
    --  Use the fallback indenter to get an array of indentation for each
-   --  line in span.
+   --  line in Span.
+   --  Each line in the array is 1-based indexed (i.e., the first line is at
+   --  index 1).
+   --  Buffer is the content of the document referenced by Filename. Should
+   --  contain the whole content of the document or a substring including
+   --  at least the lines in Span.
 
    procedure Indent_Lines
-     (Context  : LSP.Ada_Contexts.Context;
-      Document : not null LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Structures.A_Range;
+     (Tracer   : not null LSP.Tracers.Tracer_Access;
+      Filename : GNATCOLL.VFS.Virtual_File;
+      Document : LSP.Text_Documents.Text_Document'Class;
       Options  : Gnatformat.Configuration.Format_Options_Type;
+      Span     : LSP.Structures.A_Range := LSP.Text_Documents.Empty_Range;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
       Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError);
    --  Generate a TextEdit_Vector to reindent the lines in Span using the
    --  fallback indenter.
+   --  If no Span is provided, the whole document is indented.
+   --  Document is the document to indent.
+   --  Tracer is used to log messages.
+   --  Filename is the name of the file referenced by Document. Used to
+   --  retrieve file-specific indentation options.
+   --  Options are the formatting options to use.
+   --  Success is set to True if indentation was successful.
+   --  Response contains the generated TextEdit_Vector.
+   --  Messages contains any informational or warning messages.
+   --  Error is set if an error occurred.
 
    function Handle_Tabs
-     (Context  : LSP.Ada_Contexts.Context;
-      Document : not null LSP.Ada_Documents.Document_Access;
+     (Filename : GNATCOLL.VFS.Virtual_File;
       Options  : Gnatformat.Configuration.Format_Options_Type;
       S        : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
-   --  Handle tabs and whitespaces convertion depending of the setting in
-   --  the context.
+   --  Handle tabs and whitespaces convertion depending on the
+   --  tabulation-related settings in Options.
 
    function Get_Formatting_Options
      (Context     : LSP.Ada_Contexts.Context;

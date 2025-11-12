@@ -29,6 +29,7 @@ repos:
           - --namespace-packages
         additional_dependencies:
           - pytest-lsp
+          - lsprotocol<2025.0.0
           - e3-testsuite
           - psutil
           - types-psutil

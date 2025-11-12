@@ -17,14 +17,17 @@
 
 with Ada.Unchecked_Deallocation;
 
+with Gnatformat.Configuration;
 with GPR2.Log;
 with GPR2.Message;
 with GPR2.Path_Name.Set;
 
 with Langkit_Support.Slocs;
 
+with LSP.Ada_Handlers.Formatting;
 with LSP.Constants;
 with LSP.Enumerations;
+with LSP.Errors;
 with LSP.Generic_Cancel_Check;
 with LSP.GPR_Completions;
 with LSP.GPR_Documentation;
@@ -204,11 +207,10 @@ package body LSP.GPR_Handlers is
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidOpenTextDocumentParams)
    is
-      URI : constant LSP.Structures.DocumentUri := Value.textDocument.uri;
-      File   : constant GNATCOLL.VFS.Virtual_File  := Self.To_File (URI);
-      Object : constant Internal_Document_Access   :=
+      URI     : constant LSP.Structures.DocumentUri := Value.textDocument.uri;
+      File    : constant GNATCOLL.VFS.Virtual_File := Self.To_File (URI);
+      Object  : constant Internal_Document_Access :=
         new LSP.GPR_Documents.Document (Self.Tracer);
-
    begin
       Self.Tracer.Trace ("In Text_Document_Did_Open");
       Self.Tracer.Trace
@@ -398,7 +400,8 @@ package body LSP.GPR_Handlers is
    -- On_Initialize_Request --
    ---------------------------
 
-   overriding procedure On_Initialize_Request
+   overriding
+   procedure On_Initialize_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.InitializeParams)
@@ -435,46 +438,60 @@ package body LSP.GPR_Handlers is
       Capabilities.declarationProvider := LSP.Constants.True;
       Capabilities.completionProvider :=
         (Is_Set => True,
-         Value  => (triggerCharacters => [" ", ".", "'"],
-                    resolveProvider   => LSP.Constants.True,
-                    others            => <>));
+         Value  =>
+           (triggerCharacters => [" ", ".", "'"],
+            resolveProvider   => LSP.Constants.True,
+            others            => <>));
+      Capabilities.documentRangeFormattingProvider :=
+        (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
+      Capabilities.documentFormattingProvider :=
+        (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
 
       Capabilities.textDocumentSync :=
         (Is_Set => True,
-         Value  => (Is_TextDocumentSyncOptions => True,
-                    TextDocumentSyncOptions =>
-                      (openClose => (Is_Set => True, Value => True),
-                       change    =>
-                         (Is_Set => True, Value => LSP.Enumerations.Full),
-                       save =>
-                         (Is_Set => True, Value => (True, True)),
-                       others    => <>)));
+         Value  =>
+           (Is_TextDocumentSyncOptions => True,
+            TextDocumentSyncOptions    =>
+              (openClose => (Is_Set => True, Value => True),
+               change    => (Is_Set => True, Value => LSP.Enumerations.Full),
+               save      => (Is_Set => True, Value => (True, True)),
+               others    => <>)));
 
       Capabilities.documentSymbolProvider :=
         (Is_Set => True,
          Value  =>
-           (Is_Boolean => False,
+           (Is_Boolean            => False,
             DocumentSymbolOptions =>
               (workDoneProgress => (Is_Set => False), label => <>)));
 
       Self.Hierarchical_Symbols :=
         Value.capabilities.textDocument.Is_Set
         and then Value.capabilities.textDocument.Value.documentSymbol.Is_Set
-        and then Value.capabilities.textDocument.Value.documentSymbol.Value
-          .hierarchicalDocumentSymbolSupport.Is_Set
-        and then Value.capabilities.textDocument.Value.documentSymbol.Value
-          .hierarchicalDocumentSymbolSupport.Value;
+        and then Value
+                   .capabilities
+                   .textDocument
+                   .Value
+                   .documentSymbol
+                   .Value
+                   .hierarchicalDocumentSymbolSupport
+                   .Is_Set
+        and then Value
+                   .capabilities
+                   .textDocument
+                   .Value
+                   .documentSymbol
+                   .Value
+                   .hierarchicalDocumentSymbolSupport
+                   .Value;
 
       declare
          use LSP.Structures.Unwrap;
 
-         Types     : LSP.Structures.Virtual_String_Vector :=
-           tokenTypes
-             (semanticTokens (Value.capabilities.textDocument));
+         Types : LSP.Structures.Virtual_String_Vector :=
+           tokenTypes (semanticTokens (Value.capabilities.textDocument));
 
          Modifiers : LSP.Structures.Virtual_String_Vector :=
-           tokenModifiers
-             (semanticTokens (Value.capabilities.textDocument));
+           tokenModifiers (semanticTokens (Value.capabilities.textDocument));
       begin
          Self.Highlighter.Initialize (Types, Modifiers);
 
@@ -486,13 +503,97 @@ package body LSP.GPR_Handlers is
                  (full    => LSP.Constants.True,
                   a_range => <>,
                   legend  =>
-                    (tokenTypes     => Types,
-                     tokenModifiers => Modifiers),
+                    (tokenTypes => Types, tokenModifiers => Modifiers),
                   others  => <>)));
       end;
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
+
+   ---------------------------
+   -- On_Formatting_Request --
+   ---------------------------
+
+   overriding
+   procedure On_Formatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentFormattingParams)
+   is
+      Document : constant LSP.GPR_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+      Error    : LSP.Errors.ResponseError;
+      Success  : Boolean := True;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+      Options  : constant Gnatformat.Configuration.Format_Options_Type :=
+        Gnatformat.Configuration.Default_Format_Options;
+   begin
+      LSP.Ada_Handlers.Formatting.Indent_Lines
+        (Tracer   => Self.Tracer,
+         Filename => Self.To_File (Value.textDocument.uri),
+         Document => Document.all,
+         Options  => Options,
+         Success  => Success,
+         Response => Response,
+         Messages => Messages,
+         Error    => Error);
+
+      if Success then
+         Self.Sender.On_Formatting_Response (Id, Response);
+
+         for Message of Messages loop
+            Self.Sender.On_ShowMessage_Notification
+              ((LSP.Enumerations.Info, Message));
+         end loop;
+
+      else
+         Self.Sender.On_Error_Response (Id, Error);
+      end if;
+   end On_Formatting_Request;
+
+   --------------------------------
+   -- On_RangeFormatting_Request --
+   --------------------------------
+
+   overriding
+   procedure On_RangeFormatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentRangeFormattingParams)
+   is
+      Document : constant LSP.GPR_Documents.Document_Access :=
+        Self.Get_Open_Document (Value.textDocument.uri);
+      Response : LSP.Structures.TextEdit_Vector_Or_Null;
+      Error    : LSP.Errors.ResponseError;
+      Success  : Boolean := True;
+      Messages : VSS.String_Vectors.Virtual_String_Vector;
+      Options  : constant Gnatformat.Configuration.Format_Options_Type :=
+        Gnatformat.Configuration.Default_Format_Options;
+   begin
+      LSP.Ada_Handlers.Formatting.Indent_Lines
+        (Tracer   => Self.Tracer,
+         Filename => Self.To_File (Value.textDocument.uri),
+         Document => Document.all,
+         Span     => Value.a_range,
+         Options  => Options,
+         Success  => Success,
+         Response => Response,
+         Messages => Messages,
+         Error    => Error);
+
+      if Success then
+         Self.Sender.On_RangeFormatting_Response (Id, Response);
+
+         for Message of Messages loop
+            Self.Sender.On_ShowMessage_Notification
+              ((LSP.Enumerations.Info, Message));
+         end loop;
+
+      else
+         Self.Sender.On_Error_Response (Id, Error);
+      end if;
+   end On_RangeFormatting_Request;
 
    ---------------------------
    -- On_Completion_Request --

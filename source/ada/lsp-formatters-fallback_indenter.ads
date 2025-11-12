@@ -17,6 +17,19 @@
 
 package LSP.Formatters.Fallback_Indenter is
 
+   type Indentation_Array is array (Natural range <>) of Integer;
+
+   function Get_Indentation
+     (Buffer          : String;
+      From, To        : Natural;
+      Indent_Level    : Natural := 3;
+      Indent_Continue : Natural := 2) return Indentation_Array;
+   --  Return an array of indentation levels for each line in Buffer, from
+   --  line From to line To (1-based).
+   --  Indent_Level is the default indentation to apply for a new line
+   --  and Indent_Continue is the indentation to apply for a continued
+   --  statement/expression.
+
    generic
       type Generic_Type is private;
    package Generic_Stack is
@@ -74,13 +87,5 @@ package LSP.Formatters.Fallback_Indenter is
       pragma Inline (Top);
       pragma Inline (Next);
    end Generic_Stack;
-
-   type Indentation_Array is array (Natural range <>) of Integer;
-
-   function Get_Indentation
-     (Buffer          : String;
-      From, To        : Natural;
-      Indent_Level    : Natural := 3;
-      Indent_Continue : Natural := 2) return Indentation_Array;
 
 end LSP.Formatters.Fallback_Indenter;
