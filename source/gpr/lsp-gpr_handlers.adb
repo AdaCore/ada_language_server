@@ -507,6 +507,39 @@ package body LSP.GPR_Handlers is
                   others  => <>)));
       end;
 
+      --  If settings were given in initializationOptions, parse and apply them.
+      if not Value.initializationOptions.Is_Empty then
+         Self.Tracer.Trace
+           ("Processing initializationOptions from initialize request");
+         declare
+            New_Configuration : LSP.Ada_Configurations.Configuration :=
+              Self.Configuration;
+            --  Start from the existing configuration so that settings parsed
+            --  from configuration files are preserved, and the settings from
+            --  initialize request are applied on top.
+
+            Messages : VSS.String_Vectors.Virtual_String_Vector;
+         begin
+            --  Parse the configuration.
+            New_Configuration.Read_JSON
+              (Value.initializationOptions, Messages);
+
+            for Message of Messages loop
+               Self.Sender.On_LogMessage_Notification
+                 ((LSP.Enumerations.Warning, Message));
+               Self.Tracer.Trace_Text (Message);
+            end loop;
+
+            --  Set it as the current configuration.
+            --  This will also save it as the initial configuration (if not done
+            --  yet through config files) so that we can restore individual
+            --  settings back to the initial state when
+            --  'onDidChangeConfiguration' provides null values.
+            Self.Set_Configuration (New_Configuration);
+         end;
+
+      end if;
+
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;
 
