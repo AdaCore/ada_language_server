@@ -158,10 +158,23 @@ private
      (Self  : in out Message_Handler;
       Value : LSP.Structures.DidSaveTextDocumentParams);
 
-   overriding procedure On_Hover_Request
+   overriding
+   procedure On_Hover_Request
      (Self  : in out Message_Handler;
       Id    : LSP.Structures.Integer_Or_Virtual_String;
       Value : LSP.Structures.HoverParams);
+
+   overriding
+   procedure On_Formatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentFormattingParams);
+
+   overriding
+   procedure On_RangeFormatting_Request
+     (Self  : in out Message_Handler;
+      Id    : LSP.Structures.Integer_Or_Virtual_String;
+      Value : LSP.Structures.DocumentRangeFormattingParams);
 
    overriding procedure On_Completion_Request
      (Self  : in out Message_Handler;

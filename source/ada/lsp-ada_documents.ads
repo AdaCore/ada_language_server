@@ -120,11 +120,11 @@ package LSP.Ada_Documents is
    --  Get an identifier at given position in the document or an empty string.
 
    function Get_Text
-     (Self    : Document;
-      From    : LSP.Structures.Position;
-      To      : LSP.Structures.Position)
+     (Self : Document;
+      From : LSP.Structures.Position;
+      To   : LSP.Structures.Position)
       return VSS.Strings.Virtual_String;
-   --  Get the text in the document between From and To
+   --  Get the text in the document between From and To.
 
    procedure Get_Completion_Node
      (Self     : Document;

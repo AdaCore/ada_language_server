@@ -89,13 +89,13 @@ package body LSP.Text_Documents is
                --  or start from first character of the new text when first
                --  line was modified.
 
-               if Low_Line /= Self.Line_Marker.First_Index then
+               if Low_Line /= Self.Line_Markers.First_Index then
                   Low_Line     := Low_Line - 1;
                   Start_Index  := Low_Line;
-                  Start_Marker := Self.Line_Marker (Low_Line);
+                  Start_Marker := Self.Line_Markers (Low_Line);
 
                else
-                  Start_Index  := Self.Line_Marker.First_Index;
+                  Start_Index  := Self.Line_Markers.First_Index;
                   Start_Marker := Self.Text.At_First_Character.Marker;
                end if;
 
@@ -105,20 +105,20 @@ package body LSP.Text_Documents is
                --  beginning of the line, or use invalid marker when last line
                --  was modified.
 
-               if High_Line /= Self.Line_Marker.Last_Index then
+               if High_Line /= Self.Line_Markers.Last_Index then
                   Delete_High := High_Line;
                   High_Line   := High_Line + 1;
-                  End_Marker  := Self.Line_Marker (High_Line);
+                  End_Marker  := Self.Line_Markers (High_Line);
                end if;
 
-               if Low_Line = Self.Line_Marker.First_Index
-                 and then High_Line = Self.Line_Marker.Last_Index
+               if Low_Line = Self.Line_Markers.First_Index
+                 and then High_Line = Self.Line_Markers.Last_Index
                then
                   Self.Recompute_Indexes;
 
                else
                   if Delete_High >= Low_Line then
-                     Self.Line_Marker.Delete
+                     Self.Line_Markers.Delete
                        (Low_Line,
                         Ada.Containers.Count_Type
                           (Delete_High - Low_Line + 1));
@@ -546,9 +546,9 @@ package body LSP.Text_Documents is
          --  The edits are ordered so we only need to check the last one.
 
          if not Edit.Is_Empty
-            and then not Self.Line_Marker.Is_Empty
+            and then not Self.Line_Markers.Is_Empty
             and then Edit.Last_Element.a_range.an_end.line not in
-              Self.Line_Marker.First_Index .. Self.Line_Marker.Last_Index
+              Self.Line_Markers.First_Index .. Self.Line_Markers.Last_Index
          then
             declare
                Element   : LSP.Structures.TextEdit := Edit.Last_Element;
@@ -926,16 +926,26 @@ package body LSP.Text_Documents is
 
    begin
       return
-        (if Self.Line_Terminator.Is_Empty then
-            --  Document has no line terminator yet, return LF as most used
-            --
-            --  Should it be platform specific? CRLF for Windows, CR for Mac?
+        (if Self.Line_Terminator.Is_Empty
+         then
+           --  Document has no line terminator yet, return LF as most used
+           --
+           --  Should it be platform specific? CRLF for Windows, CR for Mac?
 
-            1 * VSS.Characters.Latin.Line_Feed
+           1
+           * VSS.Characters.Latin.Line_Feed
 
-         else
-            Self.Line_Terminator);
+         else Self.Line_Terminator);
    end Line_Terminator;
+
+   ----------------
+   -- Line_Count --
+   ----------------
+
+   function Line_Count (Self : Text_Document'Class) return Natural is
+   begin
+      return Natural (Self.Line_Markers.Length);
+   end Line_Count;
 
    ----------------------
    -- Range_To_Markers --
@@ -950,12 +960,12 @@ package body LSP.Text_Documents is
       use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
       J1 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.At_Character (Self.Line_Marker (Span.start.line));
+        Self.Text.At_Character (Self.Line_Markers (Span.start.line));
       U1 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J1.First_UTF16_Offset;
 
       J2 : VSS.Strings.Character_Iterators.Character_Iterator :=
-        Self.Text.At_Character (Self.Line_Marker (Span.an_end.line));
+        Self.Text.At_Character (Self.Line_Markers (Span.an_end.line));
       U2 : constant VSS.Unicode.UTF16_Code_Unit_Offset :=
         J2.First_UTF16_Offset;
 
@@ -988,14 +998,14 @@ package body LSP.Text_Documents is
       use type VSS.Strings.Character_Count;
 
    begin
-      Self.Line_Marker.Clear;
+      Self.Line_Markers.Clear;
 
       --  To avoid too many reallocations during the initial filling
       --  of the index vector, pre-allocate it. Give a generous
       --  pre-allocation assuming that there is a line break every
       --  20 characters on average (this file has one line break
       --  every 33 characters).
-      Self.Line_Marker.Reserve_Capacity
+      Self.Line_Markers.Reserve_Capacity
         (Ada.Containers.Count_Type (Self.Text.Character_Length / 20));
 
       declare
@@ -1013,7 +1023,7 @@ package body LSP.Text_Documents is
               (J.Terminator_First_Marker, J.Terminator_Last_Marker);
 
             loop
-               Self.Line_Marker.Append (J.First_Marker);
+               Self.Line_Markers.Append (J.First_Marker);
                Last_Line_Terminated := J.Has_Line_Terminator;
 
                exit when not J.Forward;
@@ -1029,7 +1039,7 @@ package body LSP.Text_Documents is
          --  for corner cases.
 
          if Last_Line_Terminated then
-            Self.Line_Marker.Append (J.First_Marker);
+            Self.Line_Markers.Append (J.First_Marker);
          end if;
       end;
    end Recompute_Indexes;
@@ -1063,14 +1073,14 @@ package body LSP.Text_Documents is
               when End_Marker.Is_Valid
                 and then M.Character_Index = End_Marker.Character_Index;
 
-            Self.Line_Marker.Insert (Line, M);
+            Self.Line_Markers.Insert (Line, M);
             Line := Line + 1;
 
             exit when not J.Forward;
          end loop;
 
          if not End_Marker.Is_Valid then
-            Self.Line_Marker.Append (J.First_Marker);
+            Self.Line_Markers.Append (J.First_Marker);
          end if;
       end if;
    end Recompute_Markers;
@@ -1080,8 +1090,8 @@ package body LSP.Text_Documents is
    -----------
 
    function Slice
-     (Self    : Text_Document'Class;
-      A_Range : LSP.Structures.A_Range) return VSS.Strings.Virtual_String
+     (Self : Text_Document'Class; A_Range : LSP.Structures.A_Range)
+      return VSS.Strings.Virtual_String
    is
       First_Marker : VSS.Strings.Markers.Character_Marker;
       Last_Marker  : VSS.Strings.Markers.Character_Marker;
@@ -1091,5 +1101,34 @@ package body LSP.Text_Documents is
 
       return Self.Text.Slice (First_Marker, Last_Marker);
    end Slice;
+
+   --------------
+   -- Get_Line --
+   --------------
+
+   function Get_Line
+     (Self : Text_Document'Class; Line : Natural)
+      return VSS.Strings.Virtual_String is
+   begin
+      if Line < Self.Line_Markers.First_Index
+        or else Line > Self.Line_Markers.Last_Index
+      then
+         raise Constraint_Error with "Line index out of bounds in Get_Line";
+      end if;
+
+      declare
+         J : constant VSS.Strings.Line_Iterators.Line_Iterator :=
+           Self.Text.At_Line
+             (Position        => Self.Line_Markers (Line),
+              Terminators     => LSP_New_Line_Function_Set,
+              Keep_Terminator => True);
+      begin
+         if J.Has_Element then
+            return J.Element;
+         else
+            return VSS.Strings.Empty_Virtual_String;
+         end if;
+      end;
+   end Get_Line;
 
 end LSP.Text_Documents;

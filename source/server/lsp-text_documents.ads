@@ -29,7 +29,7 @@ package LSP.Text_Documents is
 
    LSP_New_Line_Function_Set : constant VSS.Strings.Line_Terminator_Set :=
      (VSS.Strings.CR | VSS.Strings.CRLF | VSS.Strings.LF => True,
-      others => False);
+      others                                             => False);
    --  LSP allows to use three kinds of line terminators: CR, CR+LF and LF.
 
    Empty_Range : LSP.Structures.A_Range := ((1, 1), (0, 0));
@@ -57,13 +57,21 @@ package LSP.Text_Documents is
      (Self : Text_Document'Class) return VSS.Strings.Virtual_String;
 
    function Slice
-     (Self    : Text_Document'Class;
-      A_Range : LSP.Structures.A_Range) return VSS.Strings.Virtual_String;
+     (Self : Text_Document'Class; A_Range : LSP.Structures.A_Range)
+      return VSS.Strings.Virtual_String;
    --  Return the text in the specified range.
+
+   function Get_Line
+     (Self : Text_Document'Class; Line : Natural)
+      return VSS.Strings.Virtual_String;
+   --  Return the text of the specified line (0-based).
 
    function Line_Terminator
      (Self : Text_Document'Class) return VSS.Strings.Virtual_String;
    --  Return line terminator for the document
+
+   function Line_Count (Self : Text_Document'Class) return Natural;
+   --  Return the number of lines in the document.
 
    procedure Apply_Changes
      (Self    : in out Text_Document'Class;
@@ -129,7 +137,7 @@ private
       Line_Terminator : VSS.Strings.Virtual_String;
       --  Line terminator for the text, if known, "" otherwise
 
-      Line_Marker     : Line_Marker_Vectors.Vector;
+      Line_Markers    : Line_Marker_Vectors.Vector;
       --  Within text, an array associating a line number (starting at 0) to
       --  the marker of the first character of that line in Text.
       --  This serves as cache to be able to modify text ranges in Text

@@ -137,8 +137,9 @@ package body LSP.Ada_Formatter is
           Self.Parent.Context.Get_Configuration.Range_Formatting_Fallback
       then
          LSP.Ada_Handlers.Formatting.Indent_Lines
-           (Context  => Context.all,
-            Document => Document,
+           (Tracer   => Context.Tracer,
+            Filename => Context.URI_To_File (Document.URI),
+            Document => Document.all,
             Span     => Value.a_range,
             Options  =>
               LSP.Ada_Handlers.Formatting.Get_Formatting_Options
@@ -221,8 +222,9 @@ package body LSP.Ada_Formatter is
       Indent_Array :
         constant LSP.Formatters.Fallback_Indenter.Indentation_Array :=
           LSP.Ada_Handlers.Formatting.Get_Indentation
-            (Context  => Context.all,
-             Document => Document,
+            (Filename => Context.URI_To_File (Document.URI),
+             Buffer   =>
+               Document.Get_Text ((0, 0), (Value.position.line + 1, 0)),
              Span     =>
                ((Value.position.line, 0), (Value.position.line + 1, 0)),
              Options  => Full_Options);
@@ -301,11 +303,11 @@ package body LSP.Ada_Formatter is
          Response.Append
            (LSP.Structures.TextEdit'
               (a_range => (start => Value.position, an_end => Value.position),
-               newText => LSP.Ada_Handlers.Formatting.Handle_Tabs
-                      (Context.all,
-                       Document,
-                       Full_Options,
-                       Indentation * ' ')));
+               newText =>
+                 LSP.Ada_Handlers.Formatting.Handle_Tabs
+                   (Filename => Context.URI_To_File (Document.URI),
+                    Options  => Full_Options,
+                    S        => Indentation * ' ')));
       end Handle_Document_With_Diagnostics;
 
       -----------------------------------------
@@ -374,10 +376,9 @@ package body LSP.Ada_Formatter is
                     (start => Value.position, an_end => Value.position),
                   newText =>
                     LSP.Ada_Handlers.Formatting.Handle_Tabs
-                      (Context.all,
-                       Document,
-                       Full_Options,
-                       Indentation * ' ')));
+                      (Filename => Context.URI_To_File (Document.URI),
+                       Options  => Full_Options,
+                       S        => Indentation * ' ')));
 
             return;
          end if;
@@ -398,10 +399,9 @@ package body LSP.Ada_Formatter is
                     (start => Value.position, an_end => Value.position),
                   newText =>
                     LSP.Ada_Handlers.Formatting.Handle_Tabs
-                      (Context.all,
-                       Document,
-                       Full_Options,
-                       Indentation * ' ')));
+                      (Filename => Context.URI_To_File (Document.URI),
+                       Options  => Full_Options,
+                       S        => Indentation * ' ')));
 
             return;
          end if;
@@ -430,15 +430,15 @@ package body LSP.Ada_Formatter is
             end if;
 
             Response.Append
-              (LSP.Structures.TextEdit'
-                 (a_range =>
-                    (start => Value.position, an_end => Value.position),
-                  newText =>
-                    LSP.Ada_Handlers.Formatting.Handle_Tabs
-                      (Context.all,
-                       Document,
-                       Full_Options,
-                       Indentation * ' ')));
+              (New_Item =>
+                 LSP.Structures.TextEdit'
+                   (a_range =>
+                      (start => Value.position, an_end => Value.position),
+                    newText =>
+                      LSP.Ada_Handlers.Formatting.Handle_Tabs
+                        (Filename => Context.URI_To_File (Document.URI),
+                         Options  => Full_Options,
+                         S        => Indentation * ' ')));
          end;
       end Handle_Document_Without_Diagnostics;
 
