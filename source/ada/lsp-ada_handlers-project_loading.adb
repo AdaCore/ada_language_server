@@ -804,12 +804,13 @@ package body LSP.Ada_Handlers.Project_Loading is
 
       --  Schedule the indexing job
       LSP.Ada_Indexing.Schedule_Indexing
-        (Server        => Self.Server,
-         Handler       => Self'Unchecked_Access,
-         Configuration => Self.Configuration,
-         Project_Stamp => Self.Project_Stamp,
-         Files         => Files,
-         Index_Runtime => True);
+        (Server          => Self.Server,
+         Handler         => Self'Unchecked_Access,
+         Configuration   => Self.Configuration,
+         Project_Stamp   => Self.Project_Stamp,
+         Files           => Files,
+         Index_Runtime   => True,
+         Report_Progress => True);
    end Enqueue_Indexing_Job;
 
    ---------------------------------------
