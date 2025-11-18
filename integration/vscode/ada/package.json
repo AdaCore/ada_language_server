@@ -762,26 +762,8 @@
         ],
         "problemMatchers": [
             {
-                "name": "ada",
-                "label": "Gnat Ada Problem Matcher (obsolete)",
-                "fileLocation": [
-                    "autoDetect",
-                    "${workspaceRoot}"
-                ],
-                "pattern": [
-                    {
-                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+(?:([a-z]+):\\s+)?(.*)$",
-                        "file": 1,
-                        "line": 2,
-                        "column": 3,
-                        "severity": 4,
-                        "message": 5
-                    }
-                ]
-            },
-            {
                 "name": "ada-error",
-                "label": "Gnat Ada Error Problem Matcher",
+                "label": "Ada Error Problem Matcher (parentheses and semicolon format)",
                 "fileLocation": [
                     "autoDetect",
                     "${workspaceRoot}"
@@ -790,17 +772,17 @@
                 "severity": "error",
                 "pattern": [
                     {
-                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+[\\(:]?(error)[\\):]?\\s+(.*)$",
+                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(\\((error)\\)|(error):)\\s+(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
-                        "message": 5
+                        "message": 7
                     }
                 ]
             },
             {
                 "name": "ada-warning",
-                "label": "Gnat Ada Warning Problem Matcher",
+                "label": "Ada Warning Problem Matcher (parentheses and semicolon format)",
                 "fileLocation": [
                     "autoDetect",
                     "${workspaceRoot}"
@@ -809,17 +791,17 @@
                 "severity": "warning",
                 "pattern": [
                     {
-                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+[\\(:]?(warning|medium|medium warning|low|low warning|style)[\\):]?\\s+(.*)$",
+                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(\\((warning|medium|medium warning|low|low warning|style)\\)|(warning|medium|medium warning|low|low warning|style):)\\s+(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
-                        "message": 5
+                        "message": 7
                     }
                 ]
             },
             {
                 "name": "ada-info",
-                "label": "Gnat Ada Info Problem Matcher",
+                "label": "Ada Info Problem Matcher (parentheses and semicolon format)",
                 "fileLocation": [
                     "autoDetect",
                     "${workspaceRoot}"
@@ -828,11 +810,11 @@
                 "severity": "info",
                 "pattern": [
                     {
-                        "regexp": "^([^:]:?[^:]*):(\\d+):(\\d+):\\s+[\\(:]?(info|[Nn]ote|check)[\\):]?\\s+(.*)$",
+                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(\\((info|[Nn]ote|check)\\)|(info|[Nn]ote|check):)\\s+(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
-                        "message": 5
+                        "message": 7
                     }
                 ]
             }
