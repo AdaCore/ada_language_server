@@ -370,12 +370,13 @@ package body LSP.Ada_Handlers is
    begin
       Files.Include (File);
       LSP.Ada_Indexing.Schedule_Indexing
-        (Server        => Self.Server,
-         Handler       => Self'Unchecked_Access,
-         Configuration => Self.Configuration,
-         Project_Stamp => Self.Project_Stamp,
-         Files         => Files,
-         Index_Runtime => False);
+        (Server          => Self.Server,
+         Handler         => Self'Unchecked_Access,
+         Configuration   => Self.Configuration,
+         Project_Stamp   => Self.Project_Stamp,
+         Files           => Files,
+         Index_Runtime   => False,
+         Report_Progress => False);
    end Enqueue_Indexing;
 
    ----------

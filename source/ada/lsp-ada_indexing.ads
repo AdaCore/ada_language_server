@@ -37,15 +37,16 @@ package LSP.Ada_Indexing is
       "="                 => GNATCOLL.VFS."=");
 
    procedure Schedule_Indexing
-     (Server        : not null access LSP.Servers.Server'Class;
-      Handler       : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Configuration : LSP.Ada_Configurations.Configuration'Class;
-      Project_Stamp : LSP.Ada_Handlers.Project_Stamp;
-      Files         : File_Sets.Set;
-      Index_Runtime : Boolean);
+     (Server          : not null access LSP.Servers.Server'Class;
+      Handler         : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Configuration   : LSP.Ada_Configurations.Configuration'Class;
+      Project_Stamp   : LSP.Ada_Handlers.Project_Stamp;
+      Files           : File_Sets.Set;
+      Index_Runtime   : Boolean;
+      Report_Progress : Boolean);
 
-   type Indexing_Job (<>) is new LSP.Server_Jobs.Server_Job
-     with private;
+   type Indexing_Job (<>) is new LSP.Server_Jobs.Server_Job with private;
+   type Indexing_Job_Access is access all Indexing_Job'Class;
 
 private
 
@@ -64,14 +65,11 @@ private
    --        schedule new indexing job
 
    type Indexing_Job
-     (Handler : not null access LSP.Ada_Handlers.Message_Handler'Class) is
-        new LSP.Server_Jobs.Server_Job with
-   record
-      Files_To_Index       : File_Sets.Set;
+     (Handler         : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Report_Progress : Boolean)
+   is new LSP.Server_Jobs.Server_Job with record
+      Files_To_Index : File_Sets.Set;
       --  Contains any files that need indexing.
-
-      Indexing_Token       : LSP.Structures.ProgressToken;
-      --  The token of the current indexing progress sequence
 
       Total_Files_Indexed  : Natural := 0;
       Total_Files_To_Index : Positive := 1;
@@ -79,13 +77,23 @@ private
       --  operations. Total_Files_To_Index starts at 1 so that the progress
       --  bar starts at 0%.
 
-      Progress_Report_Sent : Ada.Calendar.Time;
-      --  Time of send of last progress notification.
+      Project_Stamp : LSP.Ada_Handlers.Project_Stamp;
 
-      Project_Stamp        : LSP.Ada_Handlers.Project_Stamp;
-
-      Index_Runtime        : Boolean := False;
+      Index_Runtime : Boolean := False;
       --  True if the runtime should be indexed
+
+      case Report_Progress is
+         --  True if we should report progress while indexing.
+
+         when True =>
+            Indexing_Token       : LSP.Structures.ProgressToken;
+            --  The token of the current indexing progress sequence
+            Progress_Report_Sent : Ada.Calendar.Time;
+            --  Time of send of last progress notification.
+
+         when False =>
+            null;
+      end case;
    end record;
 
    overriding function Priority
