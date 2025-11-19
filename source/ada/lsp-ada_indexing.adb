@@ -27,56 +27,66 @@ with VSS.Strings.Templates;
 
 package body LSP.Ada_Indexing is
 
+   procedure Emit_Progress_Report
+     (Self          : in out Indexing_Job'Class;
+      Files_Indexed : Natural;
+      Total_Files   : Natural;
+      Client        :
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Force         : Boolean := False);
+   --  Emit a progress report to the client as a percentage of files indexed.
+   --  If Force is True, the progress report is sent regardless of the time
+   --  elapsed since the last report.
+
+   --------------------------
+   -- Emit_Progress_Report --
+   --------------------------
+
+   procedure Emit_Progress_Report
+     (Self          : in out Indexing_Job'Class;
+      Files_Indexed : Natural;
+      Total_Files   : Natural;
+      Client        :
+        in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
+      Force         : Boolean := False)
+   is
+      use type Ada.Calendar.Time;
+
+      Current          : constant Ada.Calendar.Time := Ada.Calendar.Clock;
+      Message_Template : VSS.Strings.Templates.Virtual_String_Template :=
+        "{}/{} files";
+
+   begin
+      if not Force and then Current - Self.Progress_Report_Sent < 0.5 then
+         --  Send only 2 notifications per second
+         return;
+      end if;
+
+      Self.Progress_Report_Sent := Current;
+
+      Client.On_ProgressReport_Work_Done
+        (Self.Indexing_Token,
+         (percentage => (True, (Files_Indexed * 100) / Total_Files),
+          message    =>
+            Message_Template.Format
+              (VSS.Strings.Formatters.Integers.Image (Files_Indexed),
+               VSS.Strings.Formatters.Integers.Image (Total_Files)),
+          others     => <>));
+   end Emit_Progress_Report;
+
    -------------
    -- Execute --
    -------------
 
-   overriding procedure Execute
+   overriding
+   procedure Execute
      (Self   : in out Indexing_Job;
       Client :
         in out LSP.Client_Message_Receivers.Client_Message_Receiver'Class;
       Status : out LSP.Server_Jobs.Execution_Status)
    is
       use type LSP.Ada_Handlers.Project_Stamp;
-
-      procedure Emit_Progress_Report (Files_Indexed, Total_Files : Natural);
-
-      --------------------------
-      -- Emit_Progress_Report --
-      --------------------------
-
-      procedure Emit_Progress_Report (Files_Indexed, Total_Files : Natural) is
-         use type Ada.Calendar.Time;
-
-         Current          : constant Ada.Calendar.Time := Ada.Calendar.Clock;
-         Message_Template : VSS.Strings.Templates.Virtual_String_Template :=
-           "{}/{} files";
-
-      begin
-         if Current - Self.Progress_Report_Sent < 0.5 then
-            --  Send only 2 notifications per second
-            return;
-         end if;
-
-         Self.Progress_Report_Sent := Current;
-
-         Client.On_ProgressReport_Work_Done
-           (Self.Indexing_Token,
-            (percentage => (True, (Files_Indexed * 100) / Total_Files),
-             message    =>
-               Message_Template.Format
-                 (VSS.Strings.Formatters.Integers.Image (Files_Indexed),
-                  VSS.Strings.Formatters.Integers.Image (Total_Files)),
-             others     => <>));
-      end Emit_Progress_Report;
-
    begin
-      if Self.Report_Progress and then Self.Total_Files_Indexed = 0 then
-         Client.On_ProgressBegin_Work_Done
-           (Self.Indexing_Token,
-            (title => "Indexing", percentage => (True, 0), others => <>));
-      end if;
-
       if Self.Handler.Get_Project_Stamp /= Self.Project_Stamp
         or Self.Handler.Is_Shutdown
       then
@@ -104,7 +114,10 @@ package body LSP.Ada_Indexing is
 
                if Self.Report_Progress then
                   Emit_Progress_Report
-                    (Self.Total_Files_Indexed, Self.Total_Files_To_Index);
+                    (Files_Indexed => Self.Total_Files_Indexed,
+                     Total_Files   => Self.Total_Files_To_Index,
+                     Self          => Self,
+                     Client        => Client);
                end if;
 
                exit;
@@ -156,7 +169,8 @@ package body LSP.Ada_Indexing is
       end if;
 
       Status :=
-        (if Self.Files_To_Index.Is_Empty then LSP.Server_Jobs.Done
+        (if Self.Files_To_Index.Is_Empty
+         then LSP.Server_Jobs.Done
          else LSP.Server_Jobs.Continue);
    end Execute;
 
@@ -185,7 +199,7 @@ package body LSP.Ada_Indexing is
            Server.Allocate_Request_Id;
          Token : constant LSP.Structures.ProgressToken :=
            Handler.Allocate_Progress_Token ("indexing");
-         Job : Indexing_Job_Access :=
+         Job   : Indexing_Job_Access :=
            new Indexing_Job
                  (Handler => Handler, Report_Progress => Report_Progress);
       begin
@@ -195,16 +209,23 @@ package body LSP.Ada_Indexing is
          Job.Project_Stamp := Project_Stamp;
          Job.Index_Runtime := Index_Runtime;
 
-         --  FIXME: wait response before sending progress notifications.
-         --  Currenctly, we just send a `window/workDoneProgress/create`
-         --  request and immediately after this start sending notifications.
-         --  We could do better, send request, wait for client response and
-         --  start progress-report sending only after response.
+         --  If progress reporting is enabled, send the initial progress
+         --  notification to the client, and immediately emit the first
+         --  progress report (0% done).
          if Report_Progress then
             Job.Indexing_Token := Token;
             Job.Progress_Report_Sent := Ada.Calendar.Clock;
 
             Server.On_Progress_Create_Request (Id, (token => Token));
+            Server.On_ProgressBegin_Work_Done
+              (Job.Indexing_Token,
+               (title => "Indexing", percentage => (True, 0), others => <>));
+            Emit_Progress_Report
+              (Self          => Job.all,
+               Files_Indexed => 0,
+               Total_Files   => Job.Total_Files_To_Index,
+               Client        => Server.all,
+               Force         => True);
          end if;
 
          Server.Enqueue (LSP.Server_Jobs.Server_Job_Access (Job));
