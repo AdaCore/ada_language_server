@@ -33,14 +33,6 @@ package body LSP.Ada_Handlers.Formatting is
      "GNATformat: Syntactically invalid code can't be formatted";
    --  Error message sent when trying to format invalid code.
 
-   function Reindent_Line
-     (Filename   : GNATCOLL.VFS.Virtual_File;
-      Line       : VSS.Strings.Virtual_String;
-      Options    : Gnatformat.Configuration.Format_Options_Type;
-      Pos        : LSP.Structures.Position;
-      New_Indent : Natural) return LSP.Structures.TextEdit;
-   --  Generate a textEdit to reindent the current line
-
    -------------------
    -- Reindent_Line --
    -------------------
