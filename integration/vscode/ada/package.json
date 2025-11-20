@@ -772,11 +772,11 @@
                 "severity": "error",
                 "pattern": [
                     {
-                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(\\((error)\\)|(error):)\\s+(.*)$",
+                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(?:\\(error\\)|error:)\\s*(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
-                        "message": 7
+                        "message": 4
                     }
                 ]
             },
@@ -791,11 +791,11 @@
                 "severity": "warning",
                 "pattern": [
                     {
-                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(\\((warning|medium|medium warning|low|low warning|style)\\)|(warning|medium|medium warning|low|low warning|style):)\\s+(.*)$",
+                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(?:\\((?:warning|medium|medium warning|low|low warning|style)\\)|(?:warning|medium|medium warning|low|low warning|style):)\\s+(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
-                        "message": 7
+                        "message": 4
                     }
                 ]
             },
@@ -810,11 +810,11 @@
                 "severity": "info",
                 "pattern": [
                     {
-                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(\\((info|[Nn]ote|check)\\)|(info|[Nn]ote|check):)\\s+(.*)$",
+                        "regexp": "^([^:]+):(\\d+):(\\d+):\\s+(?:\\((?:info|[Nn]ote|check)\\)|(?:info|[Nn]ote|check):)\\s+(.*)$",
                         "file": 1,
                         "line": 2,
                         "column": 3,
-                        "message": 7
+                        "message": 4
                     }
                 ]
             }
