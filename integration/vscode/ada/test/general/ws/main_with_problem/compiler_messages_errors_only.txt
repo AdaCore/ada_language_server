@@ -1,0 +1,25 @@
+/home/unknown/src/scenario_views.adb:774:18: error: "New_Var_Edit" is undefined (more references follow)
+/home/unknown/src/scenario_views.adb:776:07: error: no candidate interpretations match the actuals:
+/home/unknown/src/scenario_views.adb:776:07: error: missing argument for parameter "Kernel" in call to "Gtk_New" declared at gps-kernel-mdi.ads:147
+/home/unknown/src/scenario_views.adb:776:07: error: missing argument for parameter "Group" in call to "Gtk_New" declared at gps-kernel-mdi.ads:116
+/home/unknown/src/scenario_views.adb:776:07: error: missing argument for parameter "Home_Dir" in call to "Gtk_New" declared at gps-kernel.ads:100
+/home/unknown/src/scenario_views.adb:776:07: error: missing argument for parameter "Flags" in call to "Gtk_New" declared at gtk-message_dialog.ads:124
+/home/unknown/src/scenario_views.adb:776:07: error: missing argument for parameter "Flags" in call to "Gtk_New" declared at gtk-dialog.ads:223
+/home/unknown/src/scenario_views.adb:776:07: error: too many arguments in call to "Gtk_New"
+/home/unknown/src/scenario_views.adb:776:07: error: missing argument for parameter "Spacing" in call to "Gtk_New" declared at gtk-box.ads:107
+/home/unknown/src/scenario_views.adb:777:16: error: unmatched actual "Title" in call
+/home/unknown/src/scenario_views.adb:781:22: error: "Update_Variable" is undefined (more references follow)
+/home/unknown/src/scenario_views.adb:854:10: error: no candidate interpretations match the actuals:
+/home/unknown/src/scenario_views.adb:854:10: error: missing argument for parameter "Log_Dir" in call to "Gtk_New" declared at gps-kernel.ads:100
+/home/unknown/src/scenario_views.adb:854:10: error: missing argument for parameter "Buttons" in call to "Gtk_New" declared at gtk-message_dialog.ads:124
+/home/unknown/src/scenario_views.adb:854:10: error: too many arguments in call to "Gtk_New"
+/home/unknown/src/scenario_views.adb:854:26: error: found type "Kernel_Handle" defined at gps-kernel.ads:92
+/home/unknown/src/scenario_views.adb:854:26: error:   ==> in call to "Gtk_New" at gps-kernel-mdi.ads:147
+/home/unknown/src/scenario_views.adb:854:26: error: expected an access type with designated type "Gtk_Widget_Record'Class" defined at gtk-widget.ads:350
+/home/unknown/src/scenario_views.adb:854:26: error: found type "Kernel_Handle" defined at gps-kernel.ads:92
+/home/unknown/src/scenario_views.adb:854:26: error:   ==> in call to "Gtk_New" at gtkada-mdi.ads:251
+/home/unknown/src/scenario_views.adb:854:26: error: expected type "UTF8_String" defined at glib.ads:79
+/home/unknown/src/scenario_views.adb:854:26: error: found type "Kernel_Handle" defined at gps-kernel.ads:92
+/home/unknown/src/scenario_views.adb:854:26: error:   ==> in call to "Gtk_New" at gtk-dialog.ads:223
+/home/unknown/src/scenario_views.adb:857:21: error: expected type "Standard.Boolean"
+/home/unknown/src/scenario_views.adb:857:21: error: found type "Action_Filter" defined at gps-kernel.ads:458
