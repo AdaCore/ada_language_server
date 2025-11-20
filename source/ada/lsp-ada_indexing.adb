@@ -71,7 +71,7 @@ package body LSP.Ada_Indexing is
       end Emit_Progress_Report;
 
    begin
-      if Self.Total_Files_Indexed = 0 then
+      if Self.Report_Progress and then Self.Total_Files_Indexed = 0 then
          Client.On_ProgressBegin_Work_Done
            (Self.Indexing_Token,
             (title => "Indexing", percentage => (True, 0), others => <>));
@@ -102,8 +102,10 @@ package body LSP.Ada_Indexing is
                   Context.Index_File (File, Reparse => False);
                end loop;
 
-               Emit_Progress_Report
-                 (Self.Total_Files_Indexed, Self.Total_Files_To_Index);
+               if Self.Report_Progress then
+                  Emit_Progress_Report
+                    (Self.Total_Files_Indexed, Self.Total_Files_To_Index);
+               end if;
 
                exit;
             end if;
@@ -114,8 +116,10 @@ package body LSP.Ada_Indexing is
       if Self.Files_To_Index.Is_Empty then
          --  Indexing done.
 
-         Client.On_ProgressEnd_Work_Done
-           (Self.Indexing_Token, (message => <>));
+         if Self.Report_Progress then
+            Client.On_ProgressEnd_Work_Done
+              (Self.Indexing_Token, (message => <>));
+         end if;
 
          if not Self.Handler.Is_Shutdown
            and then Self.Index_Runtime
@@ -161,12 +165,13 @@ package body LSP.Ada_Indexing is
    -----------------------
 
    procedure Schedule_Indexing
-     (Server        : not null access LSP.Servers.Server'Class;
-      Handler       : not null access LSP.Ada_Handlers.Message_Handler'Class;
-      Configuration : LSP.Ada_Configurations.Configuration'Class;
-      Project_Stamp : LSP.Ada_Handlers.Project_Stamp;
-      Files         : File_Sets.Set;
-      Index_Runtime : Boolean) is
+     (Server          : not null access LSP.Servers.Server'Class;
+      Handler         : not null access LSP.Ada_Handlers.Message_Handler'Class;
+      Configuration   : LSP.Ada_Configurations.Configuration'Class;
+      Project_Stamp   : LSP.Ada_Handlers.Project_Stamp;
+      Files           : File_Sets.Set;
+      Index_Runtime   : Boolean;
+      Report_Progress : Boolean) is
    begin
       if Files.Is_Empty
         or not Configuration.Indexing_Enabled
@@ -180,26 +185,29 @@ package body LSP.Ada_Indexing is
            Server.Allocate_Request_Id;
          Token : constant LSP.Structures.ProgressToken :=
            Handler.Allocate_Progress_Token ("indexing");
-         Job   : LSP.Server_Jobs.Server_Job_Access :=
-           new Indexing_Job'
-             (Handler              => Handler,
-              Files_To_Index       => Files,
-              Indexing_Token       => Token,
-              Total_Files_Indexed  => 0,
-              Total_Files_To_Index => Natural (Files.Length),
-              Progress_Report_Sent => Ada.Calendar.Clock,
-              Project_Stamp        => Project_Stamp,
-              Index_Runtime        => Index_Runtime);
-
+         Job : Indexing_Job_Access :=
+           new Indexing_Job
+                 (Handler => Handler, Report_Progress => Report_Progress);
       begin
-         Server.On_Progress_Create_Request (Id, (token => Token));
+         Job.Files_To_Index := Files;
+         Job.Total_Files_Indexed := 0;
+         Job.Total_Files_To_Index := Natural (Files.Length);
+         Job.Project_Stamp := Project_Stamp;
+         Job.Index_Runtime := Index_Runtime;
+
          --  FIXME: wait response before sending progress notifications.
          --  Currenctly, we just send a `window/workDoneProgress/create`
          --  request and immediately after this start sending notifications.
          --  We could do better, send request, wait for client response and
          --  start progress-report sending only after response.
+         if Report_Progress then
+            Job.Indexing_Token := Token;
+            Job.Progress_Report_Sent := Ada.Calendar.Clock;
 
-         Server.Enqueue (Job);
+            Server.On_Progress_Create_Request (Id, (token => Token));
+         end if;
+
+         Server.Enqueue (LSP.Server_Jobs.Server_Job_Access (Job));
       end;
    end Schedule_Indexing;
 
