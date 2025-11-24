@@ -388,6 +388,20 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
 1: function "Get_Or_Create_Manager" is not referenced [-gnatwu]`.trim(),
         );
     });
+
+    test('problemMatchers severities (errors only)', async () => {
+        await testProblemMatchersWithCompilerMessages(
+            'compiler_messages_errors_only.txt',
+            `
+0: "New_Var_Edit" is undefined (more references follow)
+0: no candidate interpretations match the actuals:
+0: unmatched actual "Title" in call
+0: "Update_Variable" is undefined (more references follow)
+0: no candidate interpretations match the actuals:
+0: found type "Kernel_Handle" defined at gps-kernel.ads:92
+0: expected type "Standard.Boolean"`.trim(),
+        );
+    });
 });
 
 suite('Task Execution', function () {
