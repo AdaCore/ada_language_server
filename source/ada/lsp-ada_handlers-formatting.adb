@@ -215,7 +215,7 @@ package body LSP.Ada_Handlers.Formatting is
       Buffer : constant VSS.Strings.Virtual_String :=
         (if Span = Empty_Range
          then Document.Text
-         else Document.Slice (((0, 0), Actual_Span.an_end)));
+         else Document.Slice (((0, 0), (Actual_Span.an_end.line + 1, 0))));
       --  Get the relevant buffer to indent.
       --  If no span is provided, get the whole document buffer.
       --  Otherwise get the buffer from the start of the document

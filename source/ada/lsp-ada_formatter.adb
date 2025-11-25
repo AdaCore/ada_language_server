@@ -226,7 +226,7 @@ package body LSP.Ada_Formatter is
              Buffer   =>
                Document.Get_Text ((0, 0), (Value.position.line + 1, 0)),
              Span     =>
-               ((Value.position.line, 0), (Value.position.line + 1, 0)),
+               ((0, 0), (Value.position.line + 1, 0)),
              Options  => Full_Options);
       Indentation  : constant VSS.Strings.Character_Count :=
         (declare
@@ -308,6 +308,26 @@ package body LSP.Ada_Formatter is
                    (Filename => Context.URI_To_File (Document.URI),
                     Options  => Full_Options,
                     S        => Indentation * ' ')));
+
+         --  If not in indent-only mode, re-indent the previous line too
+         if not Self.Parent.Context.Get_Configuration.Indent_Only then
+            declare
+               Prev_Line   : constant Natural :=
+                 Natural'Max (Value.position.line - 1, 0);
+               Indentation : constant Natural :=
+                 (if Indent_Array (Value.position.line) = -1
+                  then 0
+                  else Indent_Array (Value.position.line));
+            begin
+               Response.Append
+                 (LSP.Ada_Handlers.Formatting.Reindent_Line
+                    (Filename   => Context.URI_To_File (Document.URI),
+                     Line       => Document.Get_Line (Prev_Line),
+                     Pos        => (Prev_Line, 0),
+                     Options    => Full_Options,
+                     New_Indent => Indentation));
+            end;
+         end if;
       end Handle_Document_With_Diagnostics;
 
       -----------------------------------------
