@@ -46,6 +46,17 @@ export class ALSClientFeatures implements StaticFeature {
      * that this client can provide user inputs
      */
     fillClientCapabilities(capabilities: ClientCapabilities): void {
+        // add custom ALS token modifiers as "known"
+        if (capabilities.textDocument !== undefined) {
+            if (capabilities.textDocument.semanticTokens !== undefined) {
+                capabilities.textDocument.semanticTokens.tokenModifiers =
+                    capabilities.textDocument.semanticTokens.tokenModifiers.concat([
+                        'globalVariable',
+                        'localVariable',
+                    ]);
+            }
+        }
+
         const advanced_refactorings = [
             'add_parameter',
             'change_parameters_type',
