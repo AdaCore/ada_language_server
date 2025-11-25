@@ -1,0 +1,7 @@
+# This test checks that all dependencies declared in the extension's package.json
+# have a corresponding entry in the deps.json documentation.
+driver: shell
+title: 'deps_doc'
+# Test only on Linux, since it depends on `bash`
+control:
+    - ['SKIP', 'env.build.os.name != "linux"']
