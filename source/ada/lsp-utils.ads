@@ -36,6 +36,7 @@ with Utils.Char_Vectors;
 with Utils.Command_Lines;
 
 with VSS.Strings.Conversions;
+with VSS.Transformers.Casing;
 
 package LSP.Utils is
 
@@ -43,6 +44,11 @@ package LSP.Utils is
      (Text : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String;
    --  Return a canonicalized value for Text. This performs case folding and
    --  brackets decoding.
+
+   function To_Lower
+     (S : VSS.Strings.Virtual_String) return VSS.Strings.Virtual_String
+   is (S.Transform (VSS.Transformers.Casing.To_Lowercase));
+   --  Convert a Virtual_String to lowercase.
 
    function Node_Location_Image
      (Node : Libadalang.Analysis.Ada_Node'Class)

@@ -48,6 +48,7 @@ project LSP_Server is
       "../source/common",
       "../source/gpr",
       "../source/ada/generated",
+      "../source/gpr/generated",
       "../source/memory");
 
    for Object_Dir use "../.obj/server";
