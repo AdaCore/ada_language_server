@@ -56,7 +56,7 @@ line  58: column  4 - 33: variable      [declaration, readonly]          : Allow
 line  64: column  4 - 12: variable      [declaration, readonly]          : Is_Parent
 line  67: column  4 - 11: variable      [declaration, readonly]          : Is_Child
 line  72: column  4 - 12: variable      [declaration, readonly]          : Line_Feed
-line  72: column 61 - 62: variable      [readonly, static, defaultLibrary] : LF
+line  72: column 61 - 62: variable      [readonly, static, defaultLibrary, globalVariable] : LF
 line  74: column 13 - 15: function      [declaration]                    : "+"
 line  74: column 18 - 21: parameter     [declaration, readonly]          : Text
 line  74: column 25 - 27: namespace     [defaultLibrary]                 : Ada
