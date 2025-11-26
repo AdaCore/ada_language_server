@@ -32,8 +32,8 @@ create_changelog >"$ext_dir/CHANGELOG.md"
    # digit of the version:
    #  0 --> pre-release
    #  1 -->     release
-   #  2 --> pre-release (based on edge branch)
-   #  3 -->     release (based on edge branch)
+   #  2 --> pre-release (based on master branch in edge mode)
+   #  3 -->     release (based on master branch in edge mode)
    case "$TAG" in
    *1 | *3)
       pre_release=""

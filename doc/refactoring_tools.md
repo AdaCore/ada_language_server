@@ -247,7 +247,7 @@ Demo source is `replace_type/` in [Code Samples](https://github.com/AdaCore/ada_
 
 * For an unresolved name, suggests all packages that can be imported and prefix to be added so that that the name gets resolved.
 
-[Source](https://github.com/AdaCore/lal-refactor/blob/edge/src/lal_refactor-auto_import.adb` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-auto_import.adb` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
 Demo source is `auto_import/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 

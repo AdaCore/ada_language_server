@@ -62,9 +62,8 @@ repo_xdiff=xdiff
 
 # Pins branches (master by default)
 
-branch_gnatdoc=edge
-branch_lal_refactor=edge
-branch_gnatformat=edge
+branch_lal_refactor=main
+branch_gnatformat=main
 branch_libgpr2=main
 branch_prettier_ada=main
 branch_vss_text=main

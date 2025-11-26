@@ -152,7 +152,7 @@ To release a new version of the VS Code extension, just put a tag with of the fo
 `22.0.3`, where `22.0` matches the current GNAT Studio development version. The
 corresponding `git` command is
 ```
-   git checkout edge
+   git checkout master
    git tag -a 22.0.3
 ```
 
