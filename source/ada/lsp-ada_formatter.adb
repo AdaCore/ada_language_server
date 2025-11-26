@@ -219,23 +219,27 @@ package body LSP.Ada_Formatter is
         LSP.Ada_Handlers.Formatting.Get_Formatting_Options
           (Context.all, Value.options);
 
+      Prev_Line : constant Natural := Natural'Max (Value.position.line - 1, 0);
       Indent_Array :
         constant LSP.Formatters.Fallback_Indenter.Indentation_Array :=
           LSP.Ada_Handlers.Formatting.Get_Indentation
             (Filename => Context.URI_To_File (Document.URI),
              Buffer   =>
+               --  Add one more line because the fallback formatter ignore
+               --  the last EOL as EOF
                Document.Get_Text ((0, 0), (Value.position.line + 1, 0)),
              Span     =>
-               ((0, 0), (Value.position.line + 1, 0)),
+               --  We possibly want to reindent the previous line
+               ((Prev_Line, 0), (Value.position.line, 0)),
              Options  => Full_Options);
       Indentation  : constant VSS.Strings.Character_Count :=
         (declare
            Indentation_First_Guess : constant VSS.Strings.Character_Count :=
-             ((if Indent_Array (Value.position.line + 1) = -1
+             ((if Indent_Array (Value.position.line) = -1
                then 0
                else
                  VSS.Strings.Character_Count
-                   (Indent_Array (Value.position.line + 1))));
+                   (Indent_Array (Value.position.line))));
          begin
            (if Indentation_First_Guess
               >= VSS.Strings.Character_Count (Value.position.character)
@@ -310,23 +314,17 @@ package body LSP.Ada_Formatter is
                     S        => Indentation * ' ')));
 
          --  If not in indent-only mode, re-indent the previous line too
-         if not Self.Parent.Context.Get_Configuration.Indent_Only then
-            declare
-               Prev_Line   : constant Natural :=
-                 Natural'Max (Value.position.line - 1, 0);
-               Indentation : constant Natural :=
-                 (if Indent_Array (Value.position.line) = -1
-                  then 0
-                  else Indent_Array (Value.position.line));
-            begin
-               Response.Append
-                 (LSP.Ada_Handlers.Formatting.Reindent_Line
-                    (Filename   => Context.URI_To_File (Document.URI),
-                     Line       => Document.Get_Line (Prev_Line),
-                     Pos        => (Prev_Line, 0),
-                     Options    => Full_Options,
-                     New_Indent => Indentation));
-            end;
+         if not Self.Parent.Context.Get_Configuration.Indent_Only
+           and then Value.position.line > 0
+           and then Indent_Array (Prev_Line) /= -1
+         then
+            Response.Append
+              (LSP.Ada_Handlers.Formatting.Reindent_Line
+                 (Filename   => Context.URI_To_File (Document.URI),
+                  Line       => Document.Get_Line (Prev_Line),
+                  Pos        => (Prev_Line, 0),
+                  Options    => Full_Options,
+                  New_Indent => Indent_Array (Prev_Line)));
          end if;
       end Handle_Document_With_Diagnostics;
 

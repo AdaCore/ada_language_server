@@ -54,7 +54,7 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
 
     await test_case(
         "Indentation when block",
-        Range(Position(21, 0), Position(23, 0)),
+        Range(Position(21, 0), Position(22, 0)),
         [
             TextEdit(
                 Range(Position(21, 0), Position(21, 0)),
@@ -69,7 +69,7 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
 
     await test_case(
         "Indentation case block",
-        Range(Position(14, 0), Position(17, 0)),
+        Range(Position(14, 0), Position(16, 0)),
         [
             TextEdit(
                 Range(Position(14, 0), Position(14, 0)),
@@ -88,7 +88,7 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
 
     await test_case(
         "Indentation case for+if",
-        Range(Position(8, 0), Position(13, 0)),
+        Range(Position(8, 0), Position(12, 0)),
         [
             TextEdit(
                 Range(Position(8, 0), Position(8, 0)),
@@ -115,7 +115,7 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
 
     await test_case(
         "Indentation case if",
-        Range(Position(4, 0), Position(7, 0)),
+        Range(Position(4, 0), Position(6, 0)),
         [
             TextEdit(
                 Range(Position(4, 0), Position(4, 0)),
@@ -134,7 +134,7 @@ async def test_on_type_formatting_indentation(lsp: ALSLanguageClient) -> None:
 
     await test_case(
         "Indentation case declare block",
-        Range(Position(0, 0), Position(3, 0)),
+        Range(Position(0, 0), Position(2, 0)),
         [
             TextEdit(
                 Range(Position(0, 0), Position(0, 0)),
