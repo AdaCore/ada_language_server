@@ -15,7 +15,7 @@
        cd ada_language_server
 
 1. If you know dependency commits numbers then create `deps.txt` file
-   with lines `<repo_name>=commit`. Otherwise checkout `edge` branch.
+   with lines `<repo_name>=commit`. Otherwise checkout `master` branch.
 
 1. Use `alr toolchain --select` to install the latest available versions of `gnat` and `gprbuild`.
 
