@@ -766,27 +766,25 @@ package body LSP.Ada_Highlighters is
             Node_Enclosing_Declarative_Part : constant Declarative_Part :=
                 Laltools.Common.Get_Enclosing_Declarative_Part (Node);
 
-            Parent : Ada_Node;
+            Parent : Ada_Node := Decl.Parent;
          begin
-            if Compare
-               (Node_Enclosing_Declarative_Part.Sloc_Range,
-                Decl.Sloc_Range.Start_Sloc) = Inside
-            then
-               Highlight_Token (Node.Token_Start, localVariable);
-
-            else
-               Parent := Decl.Parent;
-               while not Parent.Is_Null loop
-                  if Parent.Kind in Ada_Subp_Body_Range
-                    or else Parent.Kind in Ada_Entry_Body
+            while not Parent.Is_Null loop
+               if Parent.Kind in Ada_Subp_Body_Range
+                 or else Parent.Kind in Ada_Entry_Body
+               then
+                  if Compare
+                    (Node_Enclosing_Declarative_Part.Sloc_Range,
+                     Decl.Sloc_Range.Start_Sloc) = Inside
                   then
-                     return;
+                     Highlight_Token (Node.Token_Start, localVariable);
                   end if;
-                  Parent := Parent.Parent;
-               end loop;
 
-               Highlight_Token (Node.Token_Start, globalVariable);
-            end if;
+                  return;
+               end if;
+               Parent := Parent.Parent;
+            end loop;
+
+            Highlight_Token (Node.Token_Start, globalVariable);
          end Investigate_Variable;
 
       begin

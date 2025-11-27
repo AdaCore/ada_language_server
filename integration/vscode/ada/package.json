@@ -108,6 +108,16 @@
                 "path": "./syntaxes/gpr.tmLanguage.json"
             }
         ],
+        "semanticTokenModifiers": [
+            {
+                "id": "globalVariable",
+                "description": "Annotates a variable with the executable's lifetime"
+            },
+            {
+                "id": "localVariable",
+                "description": "Annotates a variable that is local to the code block"
+            }
+        ],
         "semanticTokenScopes": [
             {
                 "language": "ada",
@@ -261,7 +271,13 @@
                     ],
                     "operator.defaultLibrary": [
                         "support.function.operator.ada"
-                    ]
+                    ],
+                    "variable.globalVariable": [
+                        "variable.other.global.ada"
+                    ],
+                    "variable.localVariable": [
+                        "variable.other.local.ada"
+                     ]
                 }
             }
         ],
