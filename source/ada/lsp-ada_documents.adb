@@ -1172,11 +1172,16 @@ package body LSP.Ada_Documents is
    function To_LSP_Location
      (Self    : Document;
       Segment : Langkit_Support.Slocs.Source_Location_Range;
-      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty;
+      Hidden  : Boolean := False)
       return LSP.Structures.Location
         is (uri     => Self.URI,
             a_range => Self.To_A_Range (Segment),
-            alsKind => Kinds);
+            alsKind => Kinds,
+            hidden  =>
+              (if Hidden
+               then (Is_Set => True, Value => True)
+               else (Is_Set => False)));
 
    ----------
    -- Unit --

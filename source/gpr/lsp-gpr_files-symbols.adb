@@ -57,7 +57,8 @@ package body LSP.GPR_Files.Symbols is
                    location      =>
                      (uri     => Document_URI,
                       a_range => Symbol.A_Range,
-                      alsKind => LSP.Constants.Empty),
+                      alsKind => LSP.Constants.Empty,
+                      hidden  => (Is_Set => False)),
                    containerName => <>);
          C : constant LSP.GPR_Files.Symbol_List_Maps.Cursor :=
                File.Document_Symbols.Children_Map.Find
@@ -86,7 +87,8 @@ package body LSP.GPR_Files.Symbols is
                location      =>
                  (uri     => Document_URI,
                   a_range => Imported.A_Range,
-                  alsKind => LSP.Constants.Empty),
+                  alsKind => LSP.Constants.Empty,
+                  hidden  => (Is_Set => False)),
                containerName => <>);
             Result.Append (Item);
          end;
