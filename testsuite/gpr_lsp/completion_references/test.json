@@ -161,6 +161,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "V2"
                      },
@@ -405,6 +406,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "V2"
                      },
@@ -465,6 +467,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "Default_Switches",
                         "data": ["Compiler", "Default_Switches"]
@@ -649,6 +652,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "V2"
                      },
@@ -769,6 +773,7 @@
                "result": {
                   "isIncomplete": false,
                   "items": [
+                     "<HAS>",
                      {
                         "label": "V2"
                      },
