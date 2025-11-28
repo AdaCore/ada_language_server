@@ -1,0 +1,239 @@
+[
+   {
+      "comment": [
+         "Test completion of tool switches after comma with nested expressions",
+         "This verifies that the parenthesis counting logic correctly skips ",
+         "over nested function calls and expressions to find the attribute name"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Nested is\n  package Compiler is\n    -- Simple case: no nesting\n    for Default_Switches (\"ada\") use (\"-O2\", \n    \n    -- Nested function call in the list - after the call's closing paren\n    for Default_Switches (\"ada\") use (\"-gnatwa\", External(\"EXTRA_FLAGS\", \"-gnatwe\"), \n    \n    -- Multiple nested parentheses - after deeply nested expression\n    for Default_Switches (\"ada\") use (\n      \"-O1\",\n      External(\"FLAGS1\", External(\"FLAGS2\", \"-g\")), \n      \n    -- Concatenation with nested calls - after concatenation\n    for Default_Switches (\"ada\") use (\n      \"-O2\" & External(\"OPT\", \"\"), \n      \n  end Compiler;\nend Nested;\n",
+                  "version": 0,
+                  "uri": "$URI{nested.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{nested.gpr}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 49
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": " "
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnat",
+                        "label": "-gnat2005"
+                     },
+                     {
+                        "detail": "gnat",
+                        "label": "-gnat2012"
+                     },
+                     {
+                        "detail": "gnat",
+                        "label": "-gnat2022"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{nested.gpr}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 95
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": " "
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnat",
+                        "label": "-gnat2005"
+                     },
+                     {
+                        "detail": "gnat",
+                        "label": "-gnatp"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{nested.gpr}"
+               },
+               "position": {
+                  "line": 11,
+                  "character": 66
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": " "
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnat",
+                        "label": "-gnat2005"
+                     },
+                     {
+                        "detail": "gnat",
+                        "label": "-gnatp"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{nested.gpr}"
+               },
+               "position": {
+                  "line": 15,
+                  "character": 51
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": " "
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnat",
+                        "label": "-gnat2005"
+                     },
+                     {
+                        "detail": "gnat",
+                        "label": "-gnatp"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

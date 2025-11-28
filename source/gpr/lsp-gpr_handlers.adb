@@ -441,7 +441,7 @@ package body LSP.GPR_Handlers is
       Capabilities.completionProvider :=
         (Is_Set => True,
          Value  =>
-           (triggerCharacters => [" ", ".", "'"],
+           (triggerCharacters => [" ", ".", "'", "("],
             resolveProvider   => LSP.Constants.True,
             others            => <>));
       Capabilities.documentRangeFormattingProvider :=
