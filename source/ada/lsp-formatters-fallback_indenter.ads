@@ -21,7 +21,7 @@ package LSP.Formatters.Fallback_Indenter is
 
    function Get_Indentation
      (Buffer          : String;
-      From, To        : Natural;
+      From, To        : Positive;
       Indent_Level    : Natural := 3;
       Indent_Continue : Natural := 2) return Indentation_Array;
    --  Return an array of indentation levels for each line in Buffer, from

@@ -911,11 +911,11 @@ package body LSP.Formatters.Fallback_Indenter is
 
    function Get_Indentation
      (Buffer          : String;
-      From, To        : Natural;
+      From, To        : Positive;
       Indent_Level    : Natural := 3;
       Indent_Continue : Natural := 2) return Indentation_Array
    is
-      Result : Indentation_Array (From .. To) := (others => -1);
+      Result : Indentation_Array (From - 1 .. To - 1) := (others => -1);
 
       ---------------
       -- Constants --
@@ -1189,9 +1189,9 @@ package body LSP.Formatters.Fallback_Indenter is
             Continuation_Val := 0;
          end if;
 
-         if Line_Count in Result'Range then
-            Result (Line_Count) := Indentation;
-            if Line_Count = Result'Last then
+         if Line_Count - 1 in Result'Range then
+            Result (Line_Count - 1) := Indentation;
+            if Line_Count - 1 = Result'Last then
                raise Finished;
             end if;
          end if;
@@ -2996,7 +2996,6 @@ package body LSP.Formatters.Fallback_Indenter is
                --  first line.
 
                if Ref_Indent = Num_Spaces
-                 and then To /= 0
                  and then L not in From .. To
                then
                   Ref_Indent := Integer'Max (P - Start_Of_Line, 0);

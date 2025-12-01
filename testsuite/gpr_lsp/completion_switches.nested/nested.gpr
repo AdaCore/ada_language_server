@@ -1,0 +1,19 @@
+project Nested is
+  package Compiler is
+    -- Simple case: no nesting
+    for Default_Switches ("ada") use ("-O2",
+
+    -- Nested function call in the list - after the call's closing paren
+    for Default_Switches ("ada") use ("-gnatwa", External("EXTRA_FLAGS", "-gnatwe"),
+
+    -- Multiple nested parentheses - after deeply nested expression
+    for Default_Switches ("ada") use (
+      "-O1",
+      External("FLAGS1", External("FLAGS2", "-g")),
+
+    -- Concatenation with nested calls - after concatenation
+    for Default_Switches ("ada") use (
+      "-O2" & External("OPT", ""),
+
+  end Compiler;
+end Nested;

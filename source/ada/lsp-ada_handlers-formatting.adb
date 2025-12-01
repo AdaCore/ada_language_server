@@ -215,7 +215,12 @@ package body LSP.Ada_Handlers.Formatting is
       Buffer : constant VSS.Strings.Virtual_String :=
         (if Span = Empty_Range
          then Document.Text
-         else Document.Slice (((0, 0), Actual_Span.an_end)));
+         else
+           Document.Slice
+             (((0, 0),
+               (Natural'Min (Document.Line_Count - 1,
+                Actual_Span.an_end.line + 1),
+                0))));
       --  Get the relevant buffer to indent.
       --  If no span is provided, get the whole document buffer.
       --  Otherwise get the buffer from the start of the document
@@ -230,22 +235,17 @@ package body LSP.Ada_Handlers.Formatting is
              Options  => Options);
       --  Get the indentation levels for each line in the span.
 
-      Pos       : LSP.Structures.Position;
    begin
       Tracer.Trace_Text (Incorrect_Code_Msg & ", using the fallback indenter");
       for Line in Indent_Lines'Range loop
          if Indent_Lines (Line) /= -1 then
-            --  LSP is 0-based, while the array returned by the fallback
-            --  indenter is 1-based.
-            Pos := (Line - 1, 0);
-
             --  Generate a text edit to reindent the line.
             Response.Append
               (Reindent_Line
                  (Filename   => Filename,
-                  Line       => Document.Get_Line (Pos.line),
+                  Line       => Document.Get_Line (Line),
                   Options    => Options,
-                  Pos        => Pos,
+                  Pos        => (Line, 0),
                   New_Indent => Indent_Lines (Line)));
          end if;
       end loop;
