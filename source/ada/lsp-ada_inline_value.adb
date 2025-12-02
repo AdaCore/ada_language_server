@@ -88,7 +88,9 @@ package body LSP.Ada_Inline_Value is
 
    function Is_String
      (Tipe : Libadalang.Analysis.Base_Type_Decl) return Boolean is
-       (Ends_With (Libadalang.Text.To_Lower (Tipe.F_Name.Text), "string"));
+     ((if Tipe.F_Name.Is_Null
+      then False
+      else Ends_With (Libadalang.Text.To_Lower (Tipe.F_Name.Text), "string")));
    --  Check if Tipe has "String" suffix
 
    function Find_Scalar_Expr_After_Stop
