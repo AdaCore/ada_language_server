@@ -58,7 +58,8 @@ package body LSP.Ada_Handlers.Locations is
             Value : constant LSP.Structures.Location :=
               (uri     => URI,
                a_range => Locations.To_LSP_Range (Self, Unit, Token),
-               alsKind => LSP.Constants.Empty);
+               alsKind => LSP.Constants.Empty,
+               hidden  => (Is_Set => False));
          begin
             if not Filter.Contains (Value) then
                Result.Append (Value);
@@ -423,13 +424,22 @@ package body LSP.Ada_Handlers.Locations is
 
    begin
       if Doc /= null then
-         return Doc.To_LSP_Location (Sloc, Kinds);
+         return Doc.To_LSP_Location
+           (Segment => Sloc,
+            Kinds   => Kinds,
+            Hidden  => LSP.Utils.Is_From_Extended_Project
+              (Self.Project_Tree, File));
+
       else
          return
            (uri     => URI,
             a_range => To_LSP_Range
               (Context.Get_AU (GNATCOLL.VFS.Create_From_UTF8 (File)), Sloc),
-            alsKind => Kinds);
+            alsKind => Kinds,
+            hidden  =>
+              (if LSP.Utils.Is_From_Extended_Project (Self.Project_Tree, File)
+               then (Is_Set => True, Value => True)
+               else (Is_Set => False)));
       end if;
    end To_LSP_Location;
 
@@ -507,14 +517,22 @@ package body LSP.Ada_Handlers.Locations is
 
    begin
       if Doc /= null then
-         return Doc.To_LSP_Location (Sloc, Kind);
+         return Doc.To_LSP_Location
+           (Segment => Sloc,
+            Kinds   => Kind,
+            Hidden  => LSP.Utils.Is_From_Extended_Project
+              (Self.Project_Tree, Node.Unit.Get_Filename));
 
       else
          return
-           (uri => URI,
+           (uri     => URI,
             a_range => To_LSP_Range (Node.Unit, Sloc),
-            alsKind => Kind);
-
+            alsKind => Kind,
+            hidden  =>
+              (if LSP.Utils.Is_From_Extended_Project
+                   (Self.Project_Tree, Node.Unit.Get_Filename)
+               then (Is_Set => True, Value => True)
+               else (Is_Set => False)));
       end if;
    end To_LSP_Location;
 

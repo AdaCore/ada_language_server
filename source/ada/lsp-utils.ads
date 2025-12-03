@@ -22,6 +22,7 @@ with GNATCOLL.VFS;
 with GPR2.Message;
 with GPR2.Path_Name;
 with GPR2.Source_Reference;
+with GPR2.Project.Tree;
 
 with LSP.Enumerations;
 with LSP.Structures;
@@ -141,5 +142,11 @@ package LSP.Utils is
      (Path : GPR2.Path_Name.Object) return VSS.Strings.Virtual_String is
      (VSS.Strings.Conversions.To_Virtual_String (String (Path.Value)));
    --  Cast GPR2.Path_Name.Object to Virtual_String
+
+   function Is_From_Extended_Project
+     (Tree : GPR2.Project.Tree.Object;
+      File : String)
+      return Boolean;
+   --  Returns True if the Node belongs to the extended project
 
 end LSP.Utils;

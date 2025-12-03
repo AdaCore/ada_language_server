@@ -852,7 +852,8 @@ package body LSP.Ada_Handlers is
                   Where           =>
                     (uri     => Value.textDocument.uri,
                      a_range => Value.a_range,
-                     alsKind => LSP.Constants.Empty));
+                     alsKind => LSP.Constants.Empty,
+                     hidden  => (Is_Set => False)));
 
                Found := True;
             end if;
@@ -891,7 +892,8 @@ package body LSP.Ada_Handlers is
                   Where           =>
                     (uri     => Value.textDocument.uri,
                      a_range => Value.a_range,
-                     alsKind => LSP.Constants.Empty),
+                     alsKind => LSP.Constants.Empty,
+                     hidden  => (Is_Set => False)),
                   Syntax_Rules    => Syntax_Rules);
 
                Found := True;
@@ -932,7 +934,8 @@ package body LSP.Ada_Handlers is
                   Where           =>
                     (uri     => Value.textDocument.uri,
                      a_range => Value.a_range,
-                     alsKind => LSP.Constants.Empty));
+                     alsKind => LSP.Constants.Empty,
+                     hidden  => (Is_Set => False)));
 
                Found := True;
             end if;
@@ -977,7 +980,8 @@ package body LSP.Ada_Handlers is
                         Where           =>
                           (Value.textDocument.uri,
                            Value.a_range,
-                           LSP.Constants.Empty),
+                           LSP.Constants.Empty,
+                           (Is_Set => False)),
                         Subprogram_Kind => Ada_Subp_Kind_Procedure);
                   end if;
 
@@ -988,7 +992,8 @@ package body LSP.Ada_Handlers is
                         Where           =>
                           (Value.textDocument.uri,
                            Value.a_range,
-                           LSP.Constants.Empty),
+                           LSP.Constants.Empty,
+                           (Is_Set => False)),
                         Subprogram_Kind => Ada_Subp_Kind_Function);
                   end if;
 
@@ -1033,7 +1038,8 @@ package body LSP.Ada_Handlers is
                        Natural (SLOC.Start_Column) - 1),
                       (Natural (SLOC.End_Line) - 1,
                        Natural (SLOC.End_Column) - 1)),
-                     LSP.Constants.Empty));
+                     LSP.Constants.Empty,
+                     (Is_Set => False)));
 
                Found := True;
             end if;
@@ -1136,7 +1142,8 @@ package body LSP.Ada_Handlers is
                          Natural (Location.Column) - 1),
                          (Natural (Location.Line) - 1,
                           Natural (Location.Column) - 1)),
-                        LSP.Constants.Empty));
+                        LSP.Constants.Empty,
+                        (Is_Set => False)));
                   Found := True;
                end if;
             end if;
@@ -1171,7 +1178,8 @@ package body LSP.Ada_Handlers is
                   Where           =>
                     (uri     => Value.textDocument.uri,
                      a_range => Value.a_range,
-                     alsKind => LSP.Constants.Empty));
+                     alsKind => LSP.Constants.Empty,
+                     hidden  => (Is_Set => False)));
 
                Found := True;
             end if;
@@ -1288,7 +1296,8 @@ package body LSP.Ada_Handlers is
                   Where           =>
                     (uri     => Value.textDocument.uri,
                      a_range => Value.a_range,
-                     alsKind => LSP.Constants.Empty));
+                     alsKind => LSP.Constants.Empty,
+                     hidden  => (Is_Set => False)));
 
                Found := True;
             end if;
@@ -1320,7 +1329,8 @@ package body LSP.Ada_Handlers is
                   Where           =>
                     (Value.textDocument.uri,
                      Value.a_range,
-                     LSP.Constants.Empty));
+                     LSP.Constants.Empty,
+                     (Is_Set => False)));
 
                Found := True;
             end if;
@@ -1358,7 +1368,8 @@ package body LSP.Ada_Handlers is
                           Natural (Location.Column) - 1),
                          (Natural (Location.Line) - 1,
                           Natural (Location.Column) - 1)),
-                        LSP.Constants.Empty));
+                        LSP.Constants.Empty,
+                        (Is_Set => False)));
                end if;
 
                if Is_Sort_Declaration_Available (Node.Unit, Location) then
@@ -1371,7 +1382,8 @@ package body LSP.Ada_Handlers is
                           Natural (Location.Column) - 1),
                          (Natural (Location.Line) - 1,
                           Natural (Location.Column) - 1)),
-                        LSP.Constants.Empty));
+                        LSP.Constants.Empty,
+                        (Is_Set => False)));
                end if;
 
                Found := True;
@@ -1403,7 +1415,8 @@ package body LSP.Ada_Handlers is
                   Where           =>
                     (uri     => Value.textDocument.uri,
                      a_range => Value.a_range,
-                     alsKind => LSP.Constants.Empty));
+                     alsKind => LSP.Constants.Empty,
+                     hidden  => (Is_Set => False)));
 
                Found := True;
             end if;
@@ -1441,7 +1454,8 @@ package body LSP.Ada_Handlers is
                        Natural (Location.Column) - 1),
                       (Natural (Location.Line) - 1,
                        Natural (Location.Column) - 1)),
-                     LSP.Constants.Empty));
+                     LSP.Constants.Empty,
+                     (Is_Set => False)));
 
                Found := True;
             end if;
@@ -1515,7 +1529,8 @@ package body LSP.Ada_Handlers is
                      Where                       =>
                        (Value.textDocument.uri,
                         Value.a_range,
-                        LSP.Constants.Empty),
+                        LSP.Constants.Empty,
+                        (Is_Set => False)),
                      Requires_Full_Specification =>
                        Requires_Full_Specification);
 

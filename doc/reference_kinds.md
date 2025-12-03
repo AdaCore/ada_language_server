@@ -10,6 +10,8 @@ be 'write', 'parent', 'dispatching call', etc.
 
 We extend the result of `textDocument/references` by adding an
 extra field to the `Location` type:
+  alsKind field represents the reference kind
+  hidden field is set to True if the location is from the hidden source file (extended project)
 
 ```typescript
 
@@ -28,6 +30,7 @@ interface Location {
 	uri: DocumentUri;
 	range: Range;
         alsKind?: AlsReferenceKind[];
+        hidden?: boolean;
 }
 ```
 
