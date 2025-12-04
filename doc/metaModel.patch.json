@@ -422,6 +422,15 @@
                   }
                },
                "optional": true
+            },
+            {
+               "name": "hidden",
+               "type": {
+                  "kind": "base",
+                  "name": "boolean"
+               },
+               "optional": true,
+               "documentation": "Set to True if the location is from the hidden source file (extended project)"
             }
          ]
       },

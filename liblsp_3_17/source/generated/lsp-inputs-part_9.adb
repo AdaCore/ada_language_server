@@ -603,6 +603,12 @@ package body LSP.Inputs.Part_9 is
                   Read_A_Range (Handler, Value.a_range);
                when 3 =>  --  alsKind
                   Read_AlsReferenceKind_Set (Handler, Value.alsKind);
+               when 4 =>  --  hidden
+                  Value.hidden :=
+                    (Is_Set => True,
+                     Value  => <>);
+                  Value.hidden.Value := Handler.Boolean_Value;
+                  Handler.Read_Next;
                when others =>
                   Handler.Skip_Current_Value;
             end case;

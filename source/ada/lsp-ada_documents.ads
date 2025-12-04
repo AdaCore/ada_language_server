@@ -63,7 +63,8 @@ package LSP.Ada_Documents is
    function To_LSP_Location
      (Self    : Document;
       Segment : Langkit_Support.Slocs.Source_Location_Range;
-      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty)
+      Kinds   : LSP.Structures.AlsReferenceKind_Set := LSP.Constants.Empty;
+      Hidden  : Boolean := False)
       return LSP.Structures.Location;
    --  Convert LAL's Source_Location_Range and document's uri to a LSP location
 

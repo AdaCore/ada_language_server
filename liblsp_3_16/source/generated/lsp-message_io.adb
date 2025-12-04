@@ -449,6 +449,8 @@ package body LSP.Message_IO is
                LSP.Messages.Span'Read (S, V.span);
             elsif Key = "alsKind" then
                AlsReferenceKind_Set'Read (S, V.alsKind);
+            elsif Key = "hidden" then
+               Optional_Boolean'Read (S, V.hidden);
             else
                JS.Skip_Value;
             end if;
@@ -471,6 +473,8 @@ package body LSP.Message_IO is
       LSP.Messages.Span'Write (S, V.span);
       JS.Key ("alsKind");
       AlsReferenceKind_Set'Write (S, V.alsKind);
+      JS.Key ("hidden");
+      Optional_Boolean'Write (S, V.hidden);
       JS.End_Object;
    end Write_Location;
 

@@ -6682,6 +6682,10 @@ package body LSP.Outputs is
          Handler.Key_Name ("alsKind");
          Write_AlsReferenceKind_Set (Handler, Value.alsKind);
       end if;
+      if Value.hidden.Is_Set then
+         Handler.Key_Name ("hidden");
+         Handler.Boolean_Value (Value.hidden.Value);
+      end if;
       Handler.End_Object;
    end Write_Location;
 

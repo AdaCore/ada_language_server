@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2025, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -515,6 +515,7 @@ package LSP.Messages is
    --	uri: DocumentUri;
    --	range: Range;
    --   AlsKind?: AlsReferenceKind[];
+   --   hidden?: boolean;
    --}
    --```
    --
@@ -525,6 +526,7 @@ package LSP.Messages is
       uri     : DocumentUri;
       span    : LSP.Messages.Span;  --  range: is reserved word
       alsKind : AlsReferenceKind_Set := Empty_Set;
+      hidden  : Optional_Boolean;
    end record;
 
    overriding function "=" (Left, Right : Location) return Boolean;

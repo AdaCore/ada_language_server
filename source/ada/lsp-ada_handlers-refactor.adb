@@ -73,7 +73,8 @@ package body LSP.Ada_Handlers.Refactor is
                location => LSP.Structures.Location'
                  (uri     => Handler.To_URI (Problem.Filename),
                   a_range => LSP.Utils.To_Range (Problem.Location),
-                  alsKind => LSP.Constants.Empty),
+                  alsKind => LSP.Constants.Empty,
+                  hidden  => (Is_Set => False)),
                message  => VSS.Strings.Conversions.To_Virtual_String
                  (Problem.Info)));
 

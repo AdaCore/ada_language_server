@@ -1,0 +1,170 @@
+[
+   {
+      "comment": [
+         "Tests that we fill extendedProject field in locations"
+      ]
+   },
+   {
+      "start": {
+         "cmd": [
+            "${ALS}"
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 27422,
+               "rootUri": "$URI{.}",
+               "initializationOptions": {
+                  "ada": {
+                     "adaFileDiagnostics": true,
+                     "alireDiagnostics": true,
+                     "defaultCharset": "ISO-8859-1",
+                     "documentationStyle": "gnat",
+                     "foldComments": false,
+                     "followSymlinks": false,
+                     "gprFileDiagnostics": true,
+                     "insertWithClauses": true,
+                     "namedNotationThreshold": 3,
+                     "onTypeFormatting": {
+                        "indentOnly": true
+                     },
+                     "projectDiagnostics": true,
+                     "projectFile": "$URI{extending.gpr}",
+                     "rangeFormattingFallback": true,
+                     "scenarioVariables": {},
+                     "sourceInfoDiagnostics": true,
+                     "useGnatformat": true
+                  }
+               },
+               "capabilities": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{extending/hello.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "\nwith Ada.Text_IO;\nwith Decl.A;\nwith Decl.B;\n\nprocedure Hello\nis\n   T : Decl.Kind := Decl.A.Do_Get;\nbegin\n   Ada.Text_IO.Put_Line (T'Img);\n   Ada.Text_IO.Put_Line (Decl.B.Do_Get_B'Img);\nend;\n"
+               }
+            }
+         },
+         "wait": [
+            {
+                "jsonrpc": "2.0",
+                "method": "$/progress",
+                "params": {
+                  "token": "<ANY>",
+                  "value": {
+                    "kind": "end"
+                  }
+                }
+            }            
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "textDocument/references",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{extending/hello.adb}"
+               },
+               "position": {
+                  "line": 7,
+                  "character": 12
+               },
+               "context": {
+                  "includeDeclaration": true
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 10,
+               "result": [
+                  {
+                     "uri": "$URI{extended/decl.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 8
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 12
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  },
+                  {
+                     "uri": "$URI{extended/decl-a.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 27
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ],
+                     "hidden": true
+                  },
+                  {
+                     "uri": "$URI{extending/decl-a.ads}",
+                     "range": {
+                        "start": {
+                           "line": 2,
+                           "character": 23
+                        },
+                        "end": {
+                           "line": 2,
+                           "character": 27
+                        }
+                     },
+                     "alsKind": [
+                        "reference"
+                     ]
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
