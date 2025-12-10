@@ -1,0 +1,9 @@
+project Default is
+  package Compiler is
+    for Default_Switches ("ada") (
+  end Compiler;
+
+  package Analyzer is
+    for Switches ("ada") (
+  end Analyzer;
+end Default;

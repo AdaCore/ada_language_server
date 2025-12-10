@@ -1,0 +1,122 @@
+[
+   {
+      "comment": [
+         "Test completion of tool switches after & operator in Default_Switches/Switches"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Default is\n  Common_Ada_Switches := (\"-g\", \"-gnatX\");\n  Ada_Switches := (\"-O2\");\n\n  package Compiler is\n    for Default_Switches (\"ada\") use Common_Ada_Switches & Ada_Switches & \n  end Compiler;\nend Default;\n",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 5,
+                  "character": 74
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnat",
+                        "documentation": "Ada 2005 mode",
+                        "insertText": "\"-gnat2005\"",
+                        "kind": 12,
+                        "label": "-gnat2005"
+                     },
+                     {
+                        "detail": "gnat",
+                        "documentation": "Ada 2022 mode",
+                        "insertText": "\"-gnat2022\"",
+                        "kind": 12,
+                        "label": "-gnat2022"
+                     },
+                     {
+                        "detail": "gnat",
+                        "documentation": "Set mode for general/assertion expressions separately",
+                        "insertText": "\"-gnato??\"",
+                        "kind": 12,
+                        "label": "-gnato??"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

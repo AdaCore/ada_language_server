@@ -1,0 +1,246 @@
+[
+   {
+      "comment": [
+         "Test that tool switches completion is NOT triggered when 'use'",
+         " keyword is missing after Default_Switches or Switches attributes.",
+         " Instead, normal completions (variables, packages, projects) should",
+         " be offered."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Default is\n  package Compiler is\n    for Default_Switches (\"ada\") (  \n  end Compiler;\n\n  package Analyzer is\n    for Switches (\"ada\") (  \n  end Analyzer;\nend Default;\n",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 39
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Compiler"
+                     },
+                     {
+                        "label": "Analyzer"
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Default"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 39
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "("
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Compiler"
+                     },
+                     {
+                        "label": "Analyzer"
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Default"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 34
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Compiler"
+                     },
+                     {
+                        "label": "Analyzer"
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Default"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 34
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "("
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Compiler"
+                     },
+                     {
+                        "label": "Analyzer"
+                     },
+                     {
+                        "label": "project"
+                     },
+                     {
+                        "label": "Default"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
