@@ -3,7 +3,7 @@ project Default is
     for Default_Switches ("ada") (
   end Compiler;
 
-  package Analyzer is
+  package Prove is
     for Switches ("ada") (
-  end Analyzer;
+  end Prove;
 end Default;

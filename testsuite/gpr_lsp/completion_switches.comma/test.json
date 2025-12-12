@@ -50,7 +50,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "project Default is\n  package Compiler is\n    for Default_Switches (\"ada\") use (\"-O2\", \n  end Compiler;\n\n  package Analyzer is\n    for Default_Switches (\"ada\") use (\"--mode=prove\", \n  end Analyzer;\nend Default;\n",
+                  "text": "project Default is\n  package Compiler is\n    for Default_Switches (\"ada\") use (\"-O2\", \n  end Compiler;\n\n  package Prove is\n    for Default_Switches (\"ada\") use (\"--mode=prove\", \n  end Prove;\nend Default;\n",
                   "version": 0,
                   "uri": "$URI{default.gpr}",
                   "languageId": "Gpr"

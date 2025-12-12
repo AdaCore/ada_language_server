@@ -52,7 +52,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "project Default is\n  package Compiler is\n    for Default_Switches (\"ada\") (  \n  end Compiler;\n\n  package Analyzer is\n    for Switches (\"ada\") (  \n  end Analyzer;\nend Default;\n",
+                  "text": "project Default is\n  package Compiler is\n    for Default_Switches (\"ada\") (  \n  end Compiler;\n\n  package Prove is\n    for Switches (\"ada\") (  \n  end Prove;\nend Default;\n",
                   "version": 0,
                   "uri": "$URI{default.gpr}",
                   "languageId": "Gpr"
@@ -93,7 +93,7 @@
                         "label": "Compiler"
                      },
                      {
-                        "label": "Analyzer"
+                        "label": "Prove"
                      },
                      {
                         "label": "project"
@@ -137,7 +137,7 @@
                         "label": "Compiler"
                      },
                      {
-                        "label": "Analyzer"
+                        "label": "Prove"
                      },
                      {
                         "label": "project"
@@ -180,7 +180,7 @@
                         "label": "Compiler"
                      },
                      {
-                        "label": "Analyzer"
+                        "label": "Prove"
                      },
                      {
                         "label": "project"
@@ -224,7 +224,7 @@
                         "label": "Compiler"
                      },
                      {
-                        "label": "Analyzer"
+                        "label": "Prove"
                      },
                      {
                         "label": "project"
