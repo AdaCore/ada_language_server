@@ -351,15 +351,30 @@ package body LSP.GPR_Completions is
    begin
       --  Check if we're completing tool switches via the Default_Switches or
       --  the Switches attribute
-      if (Token_Kind = GPC.Gpr_Par_Open or else Token_Kind = GPC.Gpr_Comma)
+      if (Token_Kind = GPC.Gpr_Par_Open or else Token_Kind = GPC.Gpr_Comma or else Token_Kind = GPC.Gpr_Amp)
         and then Attribute_Token /= GPC.No_Token
       then
          declare
             use VSS.Strings;
             Attr_Name : constant VSS.Strings.Virtual_String :=
               To_Lower (VSS.Strings.To_Virtual_String (Attribute_Token.Text));
+
+            --  Check if there's a 'use' keyword between the attribute and
+            --  the current position, indicating we're in the value context
+            T : GPC.Token_Reference := Attribute_Token.Next (True);
+            Has_Use : Boolean := False;
          begin
-            if Attr_Name = "default_switches" or else Attr_Name = "switches"
+            --  Look for 'use' keyword after the attribute name
+            while T /= GPC.No_Token loop
+               if T.Data.Kind = GPC.Gpr_Use then
+                  Has_Use := True;
+                  exit;
+               end if;
+               T := T.Next (True);
+            end loop;
+
+            if Has_Use
+              and then (Attr_Name = "default_switches" or else Attr_Name = "switches")
             then
                LSP.GPR_Completions.Tools.Fill_Tools_Completion_Response
                  (File            => File,
@@ -587,8 +602,10 @@ package body LSP.GPR_Completions is
                      --  '(' or ',' in an attribute value context.
 
                      function Skip_Use_Keyword
-                       (T : GPC.Token_Reference) return GPC.Token_Reference;
-                     --  Skip past 'use' keyword if present
+                       (T : GPC.Token_Reference;
+                        Found_Use : out Boolean) return GPC.Token_Reference;
+                     --  Skip past 'use' keyword if present, setting Found_Use
+                     --  to indicate whether a 'use' keyword was found.
 
                      function Skip_To_Opening_Paren
                        (T : GPC.Token_Reference) return GPC.Token_Reference;
@@ -600,13 +617,16 @@ package body LSP.GPR_Completions is
                      ----------------------
 
                      function Skip_Use_Keyword
-                       (T : GPC.Token_Reference) return GPC.Token_Reference is
+                       (T : GPC.Token_Reference;
+                        Found_Use : out Boolean) return GPC.Token_Reference is
                      begin
                         if T /= GPC.No_Token
                           and then T.Data.Kind = GPC.Gpr_Use
                         then
+                           Found_Use := True;
                            return T.Previous (True);
                         end if;
+                        Found_Use := False;
                         return T;
                      end Skip_Use_Keyword;
 
@@ -645,14 +665,35 @@ package body LSP.GPR_Completions is
                      function Find_Attribute_Token return GPC.Token_Reference
                      is
                         T : GPC.Token_Reference := Previous.Previous (True);
+                        Found_Use : Boolean;
                      begin
                         --  Pattern: "for" Attr_Name "(" Index ")" "use" "("
-                        T := Skip_Use_Keyword (T);
+                        T := Skip_Use_Keyword (T, Found_Use);
 
-                        --  For comma, skip back through the expression list
-                        if Previous.Data.Kind = GPC.Gpr_Comma then
-                           T := Skip_To_Opening_Paren (T);
-                           T := Skip_Use_Keyword (T);
+                        --  For comma or ampersand, skip back through the expression list
+                        if Previous.Data.Kind in GPC.Gpr_Comma | GPC.Gpr_Amp
+                        then
+                           --  For ampersand, we might not have parentheses if the value
+                           --  is a concatenation of variables. Skip backwards until we
+                           --  find either a 'use' keyword or an opening paren.
+                           if Previous.Data.Kind = GPC.Gpr_Amp then
+                              while T /= GPC.No_Token
+                                and then T.Data.Kind
+                                         not in GPC.Gpr_Use | GPC.Gpr_Par_Open
+                              loop
+                                 T := T.Previous (True);
+                              end loop;
+                              T := Skip_Use_Keyword (T, Found_Use);
+                           else
+                              T := Skip_To_Opening_Paren (T);
+                              T := Skip_Use_Keyword (T, Found_Use);
+                           end if;
+                        end if;
+
+                        if not Found_Use then
+                           --  No 'use' keyword found, not in attribute
+                           --  value context.
+                           return GPC.No_Token;
                         end if;
 
                         --  Skip past index parameter: ')' Index '('
@@ -681,7 +722,7 @@ package body LSP.GPR_Completions is
                      end Find_Attribute_Token;
 
                      Attribute_Token : constant GPC.Token_Reference :=
-                       (if Previous.Data.Kind in GPC.Gpr_Par_Open | GPC.Gpr_Comma
+                       (if Previous.Data.Kind in GPC.Gpr_Par_Open | GPC.Gpr_Comma | GPC.Gpr_Amp
                         then Find_Attribute_Token
                         else GPC.No_Token);
                   begin

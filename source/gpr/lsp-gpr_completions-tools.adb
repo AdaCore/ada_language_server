@@ -48,7 +48,7 @@ package body LSP.GPR_Completions.Tools is
    --  Cache of switches per tool
 
    Package_To_Tool : constant Package_To_Tool_Maps.Map :=
-     ["compiler" => "gnat", "analyzer" => "gnatprove"];
+     ["compiler" => "gnat", "prove" => "gnatprove"];
    --  Map from GPR package name to tool name
 
    Database_Loaded : Boolean := False;
