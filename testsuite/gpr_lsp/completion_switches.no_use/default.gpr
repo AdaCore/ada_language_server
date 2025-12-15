@@ -1,9 +1,9 @@
 project Default is
   package Compiler is
-    for Default_Switches ("ada") use (
+    for Default_Switches ("ada") (
   end Compiler;
 
   package Prove is
-    for Default_Switches ("ada") use (
+    for Switches ("ada") (
   end Prove;
 end Default;

@@ -1,0 +1,8 @@
+project Default is
+  Common_Ada_Switches := ("-g", "-gnatX");
+  Ada_Switches := ("-O2");
+
+  package Compiler is
+    for Default_Switches ("ada") use Common_Ada_Switches & Ada_Switches &
+  end Compiler;
+end Default;
