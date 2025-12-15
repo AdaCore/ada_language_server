@@ -106,7 +106,8 @@
                      {
                         "detail": "gnat",
                         "documentation": "Set mode for general/assertion expressions separately",
-                        "insertText": "\"-gnato??\"",
+                        "insertText": "\"-gnato${1:??}\"",
+                        "insertTextFormat": 2,
                         "kind": 12,
                         "label": "-gnato??"
                      }
@@ -192,12 +193,16 @@
                      {
                         "detail": "gnatprove",
                         "kind": 12,
-                        "label": "--mode=m"
+                        "label": "--mode=m",
+                        "insertText": "\"--mode=${1:m}\"",
+                        "insertTextFormat": 2
                      },
                      {
                         "detail": "gnatprove",
                         "kind": 12,
-                        "label": "--report=r"
+                        "label": "--report=r",
+                        "insertText": "\"--report=${1:r}\"",
+                        "insertTextFormat": 2
                      }
                   ]
                }
@@ -241,7 +246,9 @@
                         "detail": "gnatprove",
                         "kind": 12,
                         "label": "--target=target_name",
-                        "documentation": "Specify the name of the target platform"
+                        "documentation": "Specify the name of the target platform",
+                        "insertText": "\"--target=${1:target_name}\"",
+                        "insertTextFormat": 2
                      }
                   ]
                }
