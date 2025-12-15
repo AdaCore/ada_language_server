@@ -1133,15 +1133,16 @@ async function sparkProveSubprogram(
     }
 
     /**
+     * Ask for GNATprove options before resolving the task to take into account
+     * the latest chosen options.
+     */
+    await commands.executeCommand(CMD_SPARK_ASK_OPTIONS);
+
+    /**
      * Resolve the task.
      */
     const resolvedTask = await adaExtState.getSparkTaskProvider()?.resolveTask(newTask);
     assert(resolvedTask);
-
-    /**
-     * Ask for GNATprove options
-     */
-    await commands.executeCommand(CMD_SPARK_ASK_OPTIONS);
 
     /**
      * Execute the task.

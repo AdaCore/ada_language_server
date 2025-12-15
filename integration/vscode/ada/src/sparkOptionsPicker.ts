@@ -1,5 +1,5 @@
 import { CancellationError, QuickPickItem } from 'vscode';
-import { adaExtState } from './extension';
+import { adaExtState, logger } from './extension';
 import { InputFlowAction, MultiStepInput } from './multiStepInput';
 import assert from 'assert';
 
@@ -108,17 +108,21 @@ export async function askSPARKOptions(): Promise<string[]> {
     const pickerState: PickerState = getSavedPickerState();
     try {
         await MultiStepInput.run((input) => pickProofLevel(input, pickerState));
+        const toSave = {
+            proofLevelLabel: pickerState.proofLevel.label,
+            optionLabels: pickerState.options.map((o) => o.label),
+        } satisfies SavedPickerState;
         /**
          * Save chosen selection for next usage
          */
-        adaExtState.context.workspaceState.update(WS_STATE_KEY_PICKER, {
-            proofLevelLabel: pickerState.proofLevel.label,
-            optionLabels: pickerState.options.map((o) => o.label),
-        } satisfies SavedPickerState);
+        await adaExtState.context.workspaceState.update(WS_STATE_KEY_PICKER, toSave);
+        logger.debug('Saved SPARK picker state: %j', toSave);
     } catch (err) {
         if (err == InputFlowAction.cancel) {
             // Selection was cancelled, interrupt the process
             throw new CancellationError();
+        } else {
+            throw err;
         }
     }
 
@@ -128,6 +132,7 @@ export async function askSPARKOptions(): Promise<string[]> {
 function getSavedPickerState() {
     const savedState: SavedPickerState | undefined =
         adaExtState.context.workspaceState.get(WS_STATE_KEY_PICKER);
+    logger.debug('Retrieved saved SPARK picker state: %j', savedState);
     const pickerState: PickerState = savedState
         ? {
               // The saved proof level necessarily exists in the list of
