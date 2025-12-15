@@ -187,7 +187,22 @@ export function registerCommands(context: vscode.ExtensionContext, clients: Exte
         vscode.commands.registerCommand(CMD_SPARK_PROVE_SUBP, sparkProveSubprogram),
     );
 
-    context.subscriptions.push(commands.registerCommand(CMD_SPARK_ASK_OPTIONS, askSPARKOptions));
+    context.subscriptions.push(
+        commands.registerCommand(CMD_SPARK_ASK_OPTIONS, async () => {
+            return askSPARKOptions().catch((err) => {
+                if (err instanceof vscode.CancellationError) {
+                    /**
+                     * We use a non-model error message to match the way
+                     * cancellation is reported natively by VS Code when it
+                     * occurs in CodeLens handlers.
+                     */
+                    void vscode.window.showErrorMessage('Canceled');
+                } else {
+                    throw err;
+                }
+            });
+        }),
+    );
     context.subscriptions.push(
         commands.registerCommand(CMD_SPARK_CURRENT_GNATPROVE_OPTIONS, getLastSPARKOptions),
     );
