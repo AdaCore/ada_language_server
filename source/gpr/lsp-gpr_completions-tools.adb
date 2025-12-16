@@ -17,6 +17,7 @@
 
 with Ada.Containers.Indefinite_Hashed_Maps;
 with Ada.Containers.Ordered_Maps;
+with Ada.Strings.Fixed;
 with Ada.Strings.Hash;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
@@ -87,12 +88,75 @@ package body LSP.GPR_Completions.Tools is
          --------------------
 
          procedure Process_Switch (Name : String; Value : JSON_Value) is
-            Item       : LSP.Structures.CompletionItem;
-            Switch_Doc : constant String := Value.Get;
+            Item         : LSP.Structures.CompletionItem;
+            Switch_Doc   : constant String := Value.Get;
+            Equals_Pos   : Natural;
+            Question_Pos : Natural;
+            Bracket_Pos  : Natural;
          begin
             Item.label := VSS.Strings.Conversions.To_Virtual_String (Name);
-            Item.insertText :=
-              VSS.Strings.Conversions.To_Virtual_String ("""" & Name & """");
+
+            --  Check if switch expects a parameter (contains '=')
+            Equals_Pos := Ada.Strings.Fixed.Index (Name, "=");
+
+            if Equals_Pos > 0 then
+               --  Switch expects a parameter, create a snippet
+               declare
+                  Prefix      : constant String :=
+                    Name (Name'First .. Equals_Pos);
+                  Placeholder : constant String :=
+                    Name (Equals_Pos + 1 .. Name'Last);
+               begin
+                  Item.insertText :=
+                    VSS.Strings.Conversions.To_Virtual_String
+                      ("""" & Prefix & "${1:" & Placeholder & "}""");
+                  Item.insertTextFormat :=
+                    (Is_Set => True, Value => LSP.Enumerations.Snippet);
+               end;
+            else
+               --  Check if switch has '?' or '[?...]' modifiers
+               Question_Pos := Ada.Strings.Fixed.Index (Name, "?");
+               Bracket_Pos := Ada.Strings.Fixed.Index (Name, "[");
+
+               if Bracket_Pos > 0 and then Question_Pos > Bracket_Pos then
+                  --  Switch with optional modifier [?...], e.g., -gnatn[?], -gnatn[??]
+                  declare
+                     Prefix     : constant String :=
+                       Name (Name'First .. Bracket_Pos - 1);
+                     Close_Pos  : constant Natural :=
+                       Ada.Strings.Fixed.Index (Name, "]", Bracket_Pos);
+                     Placeholder : constant String :=
+                       (if Close_Pos > Bracket_Pos + 1 then
+                          Name (Bracket_Pos + 1 .. Close_Pos - 1)
+                        else "?");
+                  begin
+                     Item.insertText :=
+                       VSS.Strings.Conversions.To_Virtual_String
+                         ("""" & Prefix & "${1:" & Placeholder & "}""");
+                     Item.insertTextFormat :=
+                       (Is_Set => True, Value => LSP.Enumerations.Snippet);
+                  end;
+               elsif Question_Pos > 0 then
+                  --  Switch with '?' modifiers, e.g., -gnato?, -gnato??
+                  declare
+                     Prefix      : constant String :=
+                       Name (Name'First .. Question_Pos - 1);
+                     Placeholder : constant String :=
+                       Name (Question_Pos .. Name'Last);
+                  begin
+                     Item.insertText :=
+                       VSS.Strings.Conversions.To_Virtual_String
+                         ("""" & Prefix & "${1:" & Placeholder & "}""");
+                     Item.insertTextFormat :=
+                       (Is_Set => True, Value => LSP.Enumerations.Snippet);
+                  end;
+               else
+                  --  Regular switch without parameter
+                  Item.insertText :=
+                    VSS.Strings.Conversions.To_Virtual_String ("""" & Name & """");
+               end if;
+            end if;
+
             Item.kind := (Is_Set => True, Value => LSP.Enumerations.Value);
             Item.detail :=
               VSS.Strings.Conversions.To_Virtual_String (Tool_Name_Str);
