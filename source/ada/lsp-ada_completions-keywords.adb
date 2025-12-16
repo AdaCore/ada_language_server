@@ -40,7 +40,7 @@ package body LSP.Ada_Completions.Keywords is
       Result : in out LSP.Structures.CompletionList)
    is
       pragma Unreferenced (Names);
-      Prev   : constant Libadalang.Common.Token_Reference :=
+      Prev : constant Libadalang.Common.Token_Reference :=
         Libadalang.Common.Previous (Token);
 
    begin
