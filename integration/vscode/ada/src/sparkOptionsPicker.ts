@@ -107,7 +107,9 @@ export async function askSPARKOptions(): Promise<string[]> {
 
     const pickerState: PickerState = getSavedPickerState();
     try {
+        logger.debug('Restored SPARK picker state: %j', pickerState);
         await MultiStepInput.run((input) => pickProofLevel(input, pickerState));
+        logger.debug('User selected SPARK picker state: %j', pickerState);
         const toSave = {
             proofLevelLabel: pickerState.proofLevel.label,
             optionLabels: pickerState.options.map((o) => o.label),
@@ -135,10 +137,9 @@ function getSavedPickerState() {
     logger.debug('Retrieved saved SPARK picker state: %j', savedState);
     const pickerState: PickerState = savedState
         ? {
-              // The saved proof level necessarily exists in the list of
-              // available levels, so we use the ! operator to convince
-              // TypeScript of that.
-              proofLevel: proofLevels.find((v) => v.label == savedState.proofLevelLabel)!,
+              proofLevel:
+                  proofLevels.find((v) => v.label == savedState.proofLevelLabel) ??
+                  defaultProofLevel,
               options: options.filter((o) => savedState.optionLabels?.find((v) => v == o.label)),
           }
         : defaultPickerState;
