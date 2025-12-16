@@ -328,3 +328,102 @@ function isGNATcovTask(t: vscode.Task): boolean {
  * such as GNAT SAS or GNATtest.
  */
 export const isCoreTask = and(negate(isGNATSASTask), negate(isGNATTestTask), negate(isGNATcovTask));
+
+/**
+ * Waits for the diagnostics of a given file to match the expected messages
+ * within a specified timeout.
+ *
+ * This function checks the diagnostics for the provided file URI and resolves
+ * when the set of diagnostic messages exactly matches the expected messages.
+ * If the expected diagnostics do not appear within the timeout period, the
+ * promise is rejected.
+ *
+ * @param expectedMessages - An array of expected diagnostic messages to wait for.
+ * @param fileUri - The URI of the file to check diagnostics for. Optional.
+ * @param timeoutMs - The maximum time to wait for the expected diagnostics, in
+ * milliseconds. Defaults to 5000ms.
+ * @returns A promise that resolves with the array of diagnostics when the
+ * expected messages are found, or rejects on timeout.
+ */
+export async function waitForExpectedDiagnostics(
+    expectedMessages: string[],
+    fileUri: Uri | undefined = undefined,
+    timeoutMs: number = 5000,
+): Promise<vscode.Diagnostic[]> {
+    return new Promise((resolve, reject) => {
+        let disposable: vscode.Disposable | undefined = undefined;
+
+        const getDiagnosticsAndMessages = (): [vscode.Diagnostic[], string[]] => {
+            let diagnostics: vscode.Diagnostic[];
+            if (fileUri) {
+                diagnostics = vscode.languages.getDiagnostics(fileUri);
+            } else {
+                // When no fileUri is provided, get all diagnostics and flatten them
+                const allDiagnostics = vscode.languages.getDiagnostics();
+                diagnostics = allDiagnostics.flatMap(([, diags]) => diags);
+            }
+            const messages = diagnostics.map((d) => d.message);
+            return [diagnostics, messages];
+        };
+
+        const timeout = setTimeout(() => {
+            disposable?.dispose();
+            const [, actualMessages] = getDiagnosticsAndMessages();
+
+            // Generate a detailed diff showing all differences
+            const missing = expectedMessages.filter((msg) => !actualMessages.includes(msg));
+            const unexpected = actualMessages.filter((msg) => !expectedMessages.includes(msg));
+
+            let errorMsg = `Timeout waiting for expected diagnostics after ${timeoutMs}ms.\n`;
+            errorMsg += `Expected ${expectedMessages.length} diagnostic(s), `;
+            errorMsg += `got ${actualMessages.length}.\n`;
+
+            if (missing.length > 0) {
+                errorMsg += `\nMissing diagnostics (${missing.length}):\n`;
+                missing.forEach((msg) => {
+                    errorMsg += `  - ${msg}\n`;
+                });
+            }
+
+            if (unexpected.length > 0) {
+                errorMsg += `\nUnexpected diagnostics (${unexpected.length}):\n`;
+                unexpected.forEach((msg) => {
+                    errorMsg += `  + ${msg}\n`;
+                });
+            }
+
+            if (missing.length === 0 && unexpected.length === 0) {
+                errorMsg += '\nNote: Same messages but possibly in different order or count.';
+            }
+
+            reject(new Error(errorMsg));
+        }, timeoutMs);
+
+        const checkDiagnostics = () => {
+            const [diagnostics, messages] = getDiagnosticsAndMessages();
+
+            // Check if we have the expected diagnostics
+            if (expectedMessages.every((msg) => messages.includes(msg))) {
+                clearTimeout(timeout);
+                disposable?.dispose();
+                // Filter diagnostics to only include those that match expected messages
+                const matchedDiagnostics = diagnostics.filter((d) =>
+                    expectedMessages.includes(d.message),
+                );
+                resolve(matchedDiagnostics);
+                return true;
+            }
+            return false;
+        };
+
+        // Check immediately in case diagnostics are already there
+        if (checkDiagnostics()) return;
+
+        // Listen for changes
+        disposable = vscode.languages.onDidChangeDiagnostics((e) => {
+            if (!fileUri || e.uris.some((uri) => uri.toString() === fileUri.toString())) {
+                checkDiagnostics();
+            }
+        });
+    });
+}
