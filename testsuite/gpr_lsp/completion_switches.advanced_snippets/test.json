@@ -1,0 +1,177 @@
+[
+   {
+      "comment": [
+         "Test completion of gprbuild switches in Builder package",
+         "Verify that different snippet formats are properly generated:",
+         "1. Space-separated arguments (e.g., --db dir)",
+         "2. Optional bracket arguments (e.g., --relocate-build-tree[=dir])",
+         "3. Regular equals arguments (e.g., --config=file.cgpr)"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Default is\n  package Builder is\n    for Default_Switches (\"ada\") use (  \n  end Builder;\nend Default;\n",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": [
+         "Test completion items with various snippet formats:",
+         "1. Space-separated argument: --db dir",
+         "2. Optional bracket argument: --relocate-build-tree[=dir]",
+         "3. Equals argument: --config=file.cgpr",
+         "4. Optional bracket with equals: --slave-env[=name]",
+         "5. Short space-separated: -aP dir",
+         "6. Regular switch without parameter: -f"
+      ]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 41
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gprbuild",
+                        "documentation": "Parse dir as an additional knowledge base",
+                        "insertText": "\"--db ${1:dir}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--db dir"
+                     },
+                     {
+                        "detail": "gprbuild",
+                        "documentation": "Root obj/lib/exec dirs are current-directory or dir",
+                        "insertText": "\"--relocate-build-tree${1:[=dir]}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--relocate-build-tree[=dir]"
+                     },
+                     {
+                        "detail": "gprbuild",
+                        "documentation": "Specify the main config project file name",
+                        "insertText": "\"--config=${1:file.cgpr}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--config=file.cgpr"
+                     },
+                     {
+                        "detail": "gprbuild",
+                        "documentation": "Use a specific slave's environment",
+                        "insertText": "\"--slave-env${1:[=name]}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--slave-env[=name]"
+                     },
+                     {
+                        "detail": "gprbuild",
+                        "documentation": "Add directory dir to project search path",
+                        "insertText": "\"-aP ${1:dir}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "-aP dir"
+                     },
+                     {
+                        "detail": "gprbuild",
+                        "documentation": "Force recompilations",
+                        "insertText": "\"-f\"",
+                        "kind": 12,
+                        "label": "-f"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "id": 100,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 100,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
