@@ -106,7 +106,7 @@
                      {
                         "detail": "gnat",
                         "documentation": "Set mode for general/assertion expressions separately",
-                        "insertText": "\"-gnato${1:??}\"",
+                        "insertText": "\"-gnato${1:??}\"$0",
                         "insertTextFormat": 2,
                         "kind": 12,
                         "label": "-gnato??"

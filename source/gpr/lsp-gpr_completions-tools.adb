@@ -109,7 +109,7 @@ package body LSP.GPR_Completions.Tools is
                begin
                   Item.insertText :=
                     VSS.Strings.Conversions.To_Virtual_String
-                      ("""" & Prefix & "${1:" & Placeholder & "}""");
+                      ("""" & Prefix & "${1:" & Placeholder & "}""$0");
                   Item.insertTextFormat :=
                     (Is_Set => True, Value => LSP.Enumerations.Snippet);
                end;
@@ -132,7 +132,7 @@ package body LSP.GPR_Completions.Tools is
                   begin
                      Item.insertText :=
                        VSS.Strings.Conversions.To_Virtual_String
-                         ("""" & Prefix & "${1:" & Placeholder & "}""");
+                         ("""" & Prefix & "${1:" & Placeholder & "}""$0");
                      Item.insertTextFormat :=
                        (Is_Set => True, Value => LSP.Enumerations.Snippet);
                   end;
@@ -146,7 +146,7 @@ package body LSP.GPR_Completions.Tools is
                   begin
                      Item.insertText :=
                        VSS.Strings.Conversions.To_Virtual_String
-                         ("""" & Prefix & "${1:" & Placeholder & "}""");
+                         ("""" & Prefix & "${1:" & Placeholder & "}""$0");
                      Item.insertTextFormat :=
                        (Is_Set => True, Value => LSP.Enumerations.Snippet);
                   end;
