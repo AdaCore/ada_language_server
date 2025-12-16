@@ -1,0 +1,3 @@
+project Gen_Proc is
+   for Main use ("main.adb");
+end Gen_Proc;

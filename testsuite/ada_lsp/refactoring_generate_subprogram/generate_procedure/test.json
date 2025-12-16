@@ -1,0 +1,247 @@
+[
+   {
+      "comment": [
+         "test generate subprogram refactoring tool : procedure variant"
+      ]
+   },
+   {
+      "start": { "cmd": ["${ALS}"] }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 59002,
+               "locale": "en-gb",
+               "rootPath": "$URI{.}",
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": ["create", "rename", "delete"]
+                     },
+                     "didChangeConfiguration": {
+                        "dynamicRegistration": true
+                     },
+                     "executeCommand": {
+                        "dynamicRegistration": true
+                     }
+                  },
+                  "textDocument": {
+                     "codeAction": {
+                        "dynamicRegistration": true,
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": [
+                                 "refactor",
+                                 "refactor.extract",
+                                 "refactor.inline",
+                                 "refactor.rewrite"
+                              ]
+                           }
+                        }
+                     }
+                  },
+                  "experimental": {
+                     "advanced_refactorings": ["replace_type"]
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "codeActionProvider": {
+                        "codeActionKinds": ["<HAS>", "refactor.rewrite"]
+                     },
+                     "executeCommandProvider": {
+                        "commands": [
+                           "<HAS>",
+                           "als-refactor-generate-subprogram-body"
+                        ]
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "trace": {
+                        "server": "off"
+                     },
+                     "projectFile": "gen_proc.gpr",
+                     "scenarioVariables": {},
+                     "defaultCharset": "iso-8859-1",
+                     "displayMethodAncestryOnNavigation": "usage_and_abstract_only",
+                     "adaFileDiagnostics": true,
+                     "useCompletionSnippets": false,
+                     "renameInComments": false
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "Ada",
+                  "version": 0,
+                  "text": "procedure Main is\n   procedure Unimplemented;\nbegin\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "range": {
+                  "start": { "line": 1, "character": 4 },
+                  "end": { "line": 1, "character": 4 }
+               },
+               "context": {
+                  "diagnostics": []
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": [
+                  "<HAS>",
+                  {
+                     "title": "Generate Procedure Body",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "command": "als-refactor-generate-subprogram-body",
+                        "title": "",
+                        "arguments": [
+                           {
+                              "context_id": "$URI{gen_proc.gpr}",
+                              "subp_start": {
+                                 "uri": "$URI{main.adb}",
+                                 "range": {
+                                    "start": { "line": 1, "character": 3 },
+                                    "end": { "line": 1, "character": 27 }
+                                 }
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "workspace/executeCommand",
+            "params": {
+               "arguments": [
+                  {
+                     "context_id": "$URI{gen_proc.gpr}",
+                     "subp_start": {
+                        "range": {
+                           "start": { "character": 3, "line": 1 },
+                           "end": { "character": 27, "line": 1 }
+                        },
+                        "uri": "$URI{main.adb}"
+                     }
+                  }
+               ],
+               "command": "als-refactor-generate-subprogram-body"
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "textDocument": {
+                              "uri": "$URI{main.adb}"
+                           },
+                           "edits": [
+                              {
+                                 "range": {
+                                    "start": { "line": 2, "character": 0 },
+                                    "end": { "line": 2, "character": 0 }
+                                 },
+                                 "newText": "\n   procedure Unimplemented is\n   begin\n      \n   end Unimplemented;\n",
+                                 "annotationId": ""
+                              }
+                           ]
+                        }
+                     ]
+                  },
+                  "label": "Generate Subprogram Body"
+               }
+            },
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

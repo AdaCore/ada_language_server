@@ -39,6 +39,7 @@ with Langkit_Support.Text;
 with LAL_Refactor.Delete_Entity;
 with LAL_Refactor.Extract_Subprogram;
 with LAL_Refactor.Extract_Variable;
+with LAL_Refactor.Generate_Subprogram;
 with LAL_Refactor.Inline_Variable;
 with LAL_Refactor.Introduce_Parameter;
 with LAL_Refactor.Pull_Up_Declaration;
@@ -78,6 +79,7 @@ with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor.Delete_Entity;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Extract_Variable;
+with LSP.Ada_Handlers.Refactor.Generate_Subprogram;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Handlers.Refactor.Inline_Variable;
 with LSP.Ada_Handlers.Refactor.Introduce_Parameter;
@@ -730,8 +732,8 @@ package body LSP.Ada_Handlers is
          Found    : in out Boolean);
       --  Look for a possible refactoring in given Node.
       --  Return Found = True if some refactoring is possible. Populate
-      --  Result with Code_Actions in this case. Return Done = True if futher
-      --  analysis has no sense.
+      --  Result with Code_Actions in this case. Return Done = True if no
+      --  further analysis is needed.
 
       ------------------------
       -- Analyse_In_Context --
@@ -783,6 +785,10 @@ package body LSP.Ada_Handlers is
 
          procedure Extract_Variable_Code_Action;
          --  Checks if the Extract Variable refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
+         procedure Generate_Subprogram_Code_Action;
+         --  Checks if the Generate Subprogram refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
          procedure Introduce_Parameter_Code_Action;
@@ -1044,6 +1050,41 @@ package body LSP.Ada_Handlers is
                Found := True;
             end if;
          end Extract_Variable_Code_Action;
+
+         -------------------------------------
+         -- Generate_Subprogram_Code_Action --
+         -------------------------------------
+
+         procedure Generate_Subprogram_Code_Action is
+            use LSP.Ada_Handlers.Refactor.Generate_Subprogram;
+            use Langkit_Support.Slocs;
+            use LAL_Refactor.Generate_Subprogram;
+            use type LSP.Structures.Position;
+            use Libadalang.Analysis;
+
+            Generate_Subprogram_Command : Command;
+
+            Decl       : Subp_Decl := No_Subp_Decl;
+            Start_SLOC : constant Source_Location :=
+              Self.From_LSP_Range (Node.Unit, Value.a_range).Start_Sloc;
+
+            Single_Location : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+         begin
+            if Single_Location
+              and then Is_Generate_Subprogram_Available
+                         (Node.Unit, Start_SLOC, Decl)
+            then
+               Generate_Subprogram_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Subp_Start      => Self.To_LSP_Location (Decl),
+                  Subp_Type       => Decl.F_Subp_Spec.F_Subp_Kind);
+               Found := True;
+            else
+               return;
+            end if;
+         end Generate_Subprogram_Code_Action;
 
          --------------------------------
          -- Import_Package_Code_Action --
@@ -1481,6 +1522,9 @@ package body LSP.Ada_Handlers is
 
          --  Extract Variable
          Extract_Variable_Code_Action;
+
+         --  Generate Subprogram
+         Generate_Subprogram_Code_Action;
 
          --  Pull Up Declaration
          Pull_Up_Declaration_Code_Action;
