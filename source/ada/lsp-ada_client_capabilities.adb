@@ -578,12 +578,27 @@ package body LSP.Ada_Client_Capabilities is
         properties
           (resolveSupport
              (completionItem
-                (completion
-                   (Self.Value.capabilities.textDocument))));
+                (completion (Self.Value.capabilities.textDocument))));
 
    begin
       return List.Contains ("detail") and then List.Contains ("documentation");
    end Resolve_Lazily;
+
+   -------------------------------
+   -- Has_Label_Details_Support --
+   -------------------------------
+
+   function Has_Label_Details_Support
+     (Self : Client_Capability'Class) return Boolean
+   is
+      use LSP.Structures.Unwrap;
+
+      Result : constant LSP.Structures.Boolean_Optional :=
+        labelDetailsSupport
+          (completionItem (completion (Self.Value.capabilities.textDocument)));
+   begin
+      return (if Result.Is_Set then Result.Value else False);
+   end Has_Label_Details_Support;
 
    -------------------------
    -- Versioned_Documents --

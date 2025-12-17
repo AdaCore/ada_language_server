@@ -63,6 +63,11 @@ package LSP.Ada_Client_Capabilities is
    function Resolve_Lazily (Self : Client_Capability'Class) return Boolean;
    --  Returns True when resolve contains `documentation` and `details`
 
+   function Has_Label_Details_Support
+     (Self : Client_Capability'Class) return Boolean;
+   --  Returns True when the client supports labelDetails in completion
+   --  items.
+
    function Token_Types (Self : Client_Capability'Class)
      return LSP.Structures.Virtual_String_Vector;
 

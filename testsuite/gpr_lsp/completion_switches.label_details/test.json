@@ -1,0 +1,211 @@
+[
+   {
+      "comment": [
+         "Test completion of tool switches when the client supports labelDetails in",
+         " completion items."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "contextSupport": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "commitCharactersSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"],
+                           "deprecatedSupport": true,
+                           "preselectSupport": true,
+                           "tagSupport": { "valueSet": [1] },
+                           "insertReplaceSupport": true,
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail",
+                                 "additionalTextEdits"
+                              ]
+                           },
+                           "insertTextModeSupport": { "valueSet": [1, 2] },
+                           "labelDetailsSupport": true
+                        }
+                     }
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Default is\n  package Compiler is\n    for Default_Switches (\"ada\") use (  \n  end Compiler;\n\n  package Prove is\n    for Default_Switches (\"ada\") use (  \n  end Prove;\nend Default;\n",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 41
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnat",
+                        "documentation": "Ada 2005 mode",
+                        "labelDetails": {
+                           "description": "Ada 2005 mode"
+                        },
+                        "insertText": "\"-gnat2005\"",
+                        "kind": 12,
+                        "label": "-gnat2005"
+                     },
+                     {
+                        "detail": "gnat",
+                        "documentation": "Ada 2022 mode",
+                        "labelDetails": {
+                           "description": "Ada 2022 mode"
+                        },
+                        "insertText": "\"-gnat2022\"",
+                        "kind": 12,
+                        "label": "-gnat2022"
+                     },
+                     {
+                        "detail": "gnat",
+                        "documentation": "Set mode for general/assertion expressions separately",
+                        "labelDetails": {
+                           "description": "Set mode for general/assertion expressions separately"
+                        },
+                        "insertText": "\"-gnato${1:??}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "-gnato??"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 39
+               },
+               "context": {
+                  "triggerKind": 2,
+                  "triggerCharacter": "("
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnat",
+                        "labelDetails": {
+                           "description": "Ada 2012 mode (default)"
+                        },
+                        "documentation": "Ada 2012 mode (default)",
+                        "insertText": "\"-gnat2012\"",
+                        "kind": 12,
+                        "label": "-gnat2012"
+                     },
+                     {
+                        "detail": "gnat",
+                        "labelDetails": {
+                           "description": "Ada 83 mode"
+                        },
+                        "documentation": "Ada 83 mode",
+                        "insertText": "\"-gnat83\"",
+                        "kind": 12,
+                        "label": "-gnat83"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

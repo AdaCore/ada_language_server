@@ -53,14 +53,11 @@ package body LSP.GPR_Completions.Tools is
      ["compiler" => "gnat", "prove" => "gnatprove", "builder" => "gprbuild"];
    --  Map from GPR package name to tool name
 
-   Database_Loaded : Boolean := False;
-   --  Flag indicating whether the database has been loaded
-
    -------------------
    -- Load_Database --
    -------------------
 
-   procedure Load_Database is
+   procedure Load_Database (Has_Label_Details_Support : Boolean) is
       use GNATCOLL.JSON;
 
       Root : JSON_Value;
@@ -183,6 +180,16 @@ package body LSP.GPR_Completions.Tools is
                     Virtual_String    =>
                       VSS.Strings.Conversions.To_Virtual_String (Switch_Doc)));
 
+            --  If the client supports labelDetails, add the switch doc there
+            if Has_Label_Details_Support then
+               Item.labelDetails :=
+                 (Is_Set => True,
+                  Value  =>
+                    (description =>
+                       VSS.Strings.Conversions.To_Virtual_String (Switch_Doc),
+                     others      => <>));
+            end if;
+
             Items.Append (Item);
          end Process_Switch;
 
@@ -207,9 +214,6 @@ package body LSP.GPR_Completions.Tools is
 
       --  Process all tools in the database
       Root.Map_JSON_Object (Process_Tool'Access);
-
-      Database_Loaded := True;
-
    exception
       when others =>
          --  Silently ignore any errors when reading the database
@@ -229,11 +233,6 @@ package body LSP.GPR_Completions.Tools is
       Tool_Name_Str : constant String := To_UTF_8_String (Tool_Name);
       Cursor        : Tool_Switches_Maps.Cursor;
    begin
-      --  Load the database if not already loaded
-      if not Database_Loaded then
-         Load_Database;
-      end if;
-
       --  Look up the tool in the cache
       Cursor := Switches_Cache.Find (Tool_Name_Str);
 
@@ -262,11 +261,6 @@ package body LSP.GPR_Completions.Tools is
       Tool_Name        : VSS.Strings.Virtual_String;
       All_Switches     : LSP.Structures.CompletionItem_Vector;
    begin
-      --  Load the database if not already loaded
-      if not Database_Loaded then
-         Load_Database;
-      end if;
-
       --  Map package name to tool name
       Tool_Name_Cursor := Package_To_Tool.Find (Package_Name);
 
