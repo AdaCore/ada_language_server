@@ -94,7 +94,7 @@ package LSP.Ada_Completions is
    --  Example: abc|;  or abc|<space>
    --  Cursor:     ^         ^
    --  Consider `abc;` or `abc<space>` and Sloc is a character after `c`, then
-   --  Token is `abc`, because a user expect it to te completed.
+   --  Token is `abc`, because a user expects it to be completed.
    --  The Node is immediate enclosing AST node for the token.
    --  The Filter could be used to quick check common completion contexts.
 

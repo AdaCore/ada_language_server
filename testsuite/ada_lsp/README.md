@@ -21,16 +21,16 @@ Table of Contents
 Test running
 ------------
 
-Before you start the tester put into the `ALS` environment
-variable the language server command line:
+Before you start the tester you must set the `ALS` environment
+variable in the language server command line:
 
-```
-export ALS=.objs/server/ada_language_server
+```shell
+export ALS=.obj/server/ada_language_server
 ```
 
-To start a test provide JSON file as argument to tester-run:
+To start a test, provide JSON file as argument to tester-run:
 ```
-tester-run test.json
+tester-run path/to/test.json
 ```
 
 If you want to debug the server with the `GDB`, then use
@@ -126,7 +126,7 @@ should be in server response, but some values have a special meaning:
 Property value - array of strings.
 
 Tester launches an OS process taking command and arguments from the array.
-The primary purpose is to launch a Python like this:
+The primary purpose is to launch a Python script like this:
 
     "shell": ["${PYTHON}", "${DIR}/makelink.py" ]
 
@@ -144,8 +144,8 @@ The primary purpose is to change `PATH` like this:
 
 Property value - array of strings or just string.
 
-Tester just ignores this command. We use it to add test desription and other
-comments to JSON test script.
+Tester just ignores this command. We use it to add test descriptions and other
+comments to JSON test scripts.
 
 Execution timeouts
 ------------------
@@ -153,8 +153,8 @@ Execution timeouts
 Each command has a limited time to run. The current timeout is 5 seconds.
 The `send` command has 4 seconds to complete, but each server message resets
 the timer, so while server sends messages the command keeps running.
-This helps for runtime library indexing when progress report messages come
-with regular interval, but whole indexing could be long.
+This helps with runtime library indexing when progress report messages come
+in regular intervals, but whole indexing may take a long time.
 
 The timeout can be increased several times by setting by setting
 `ALS_WAIT_FACTOR` environment variable. A particular command can increase

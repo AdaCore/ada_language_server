@@ -6,13 +6,14 @@ import * as vscode from 'vscode';
 import { getEnclosingSymbol, getSelectedRegion } from '../../src/commands';
 import { exe, getProjectFile } from '../../src/helpers';
 import {
-    SimpleTaskDef,
-    TASK_TYPE_ADA,
     createAdaTaskProvider,
     DEFAULT_PROBLEM_MATCHERS,
     findTaskByName,
     getConventionalTaskLabel,
     isFromWorkspace,
+    runTaskAndGetResult,
+    SimpleTaskDef,
+    TASK_TYPE_ADA,
 } from '../../src/taskProviders';
 import {
     activate,
@@ -20,11 +21,9 @@ import {
     getCmdLine,
     getCommandLines,
     isCoreTask,
-    isGNATSASTask,
-    negate,
     testTask,
+    waitForExpectedDiagnostics,
 } from '../utils';
-import { runTaskAndGetResult } from '../../src/taskProviders';
 
 suite('Task Providers', function () {
     let projectPath: string;
@@ -308,11 +307,13 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
         /**
          * Wait for the problemMatchers
          */
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        const alsDiagnostics: vscode.Diagnostic[] = vscode.languages
-            .getDiagnostics()
-            .flatMap(([, diagnostics]) => diagnostics)
-            .filter((diag) => ['ada'].includes(diag.source ?? ''));
+        const expectedDiagnostics = expectedMessages
+            .trim()
+            .split('\n')
+            .map((s) => s.substring(3)); // Remove severity prefix
+
+        const alsDiagnostics: vscode.Diagnostic[] =
+            await waitForExpectedDiagnostics(expectedDiagnostics);
 
         /**
          * Extract expected severities from the expected messages for Windows validation
@@ -392,7 +393,23 @@ ada: Run main - src/test.adb - .${path.sep}obj${path.sep}test${exe}
     test('problemMatchers severities (errors only)', async () => {
         await testProblemMatchersWithCompilerMessages(
             'compiler_messages_errors_only.txt',
-            `
+            /**
+             * When multiple messages are produced for the same SLOC, only
+             * one is captured by the problem matcher. The choice of which one
+             * is captured is different on Windows and on Linux, hence using
+             * different expected sets of messages here.
+             */
+            process.platform === 'win32'
+                ? `
+0: "New_Var_Edit" is undefined (more references follow)
+0: unmatched actual "Title" in call
+0: "Update_Variable" is undefined (more references follow)
+0: missing argument for parameter "Flags" in call to "Gtk_New" declared at gtk-message_dialog.ads:124
+0: missing argument for parameter "Buttons" in call to "Gtk_New" declared at gtk-message_dialog.ads:124
+0: expected an access type with designated type "Gtk_Widget_Record'Class" defined at gtk-widget.ads:350
+0: found type "Action_Filter" defined at gps-kernel.ads:458
+`.trim()
+                : `
 0: "New_Var_Edit" is undefined (more references follow)
 0: no candidate interpretations match the actuals:
 0: unmatched actual "Title" in call
