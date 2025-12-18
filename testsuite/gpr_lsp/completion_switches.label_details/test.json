@@ -1,8 +1,8 @@
 [
    {
       "comment": [
-         "Test completion of tool switches after comma in Default_Switches",
-         " with both completion trigger kinds (trigger character on space, and without)"
+         "Test completion of tool switches when the client supports labelDetails in",
+         " completion items."
       ]
    },
    {
@@ -14,7 +14,32 @@
       "send": {
          "request": {
             "params": {
-               "capabilities": {},
+               "capabilities": {
+                  "textDocument": {
+                     "completion": {
+                        "dynamicRegistration": true,
+                        "contextSupport": true,
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "commitCharactersSupport": true,
+                           "documentationFormat": ["markdown", "plaintext"],
+                           "deprecatedSupport": true,
+                           "preselectSupport": true,
+                           "tagSupport": { "valueSet": [1] },
+                           "insertReplaceSupport": true,
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail",
+                                 "additionalTextEdits"
+                              ]
+                           },
+                           "insertTextModeSupport": { "valueSet": [1, 2] },
+                           "labelDetailsSupport": true
+                        }
+                     }
+                  }
+               },
                "rootUri": "$URI{.}"
             },
             "id": 1,
@@ -50,7 +75,7 @@
          "request": {
             "params": {
                "textDocument": {
-                  "text": "project Default is\n  package Compiler is\n    for Default_Switches (\"ada\") use (\"-O2\", \n  end Compiler;\n\n  package Prove is\n    for Default_Switches (\"ada\") use (\"--mode=prove\", \n  end Prove;\nend Default;\n",
+                  "text": "project Default is\n  package Compiler is\n    for Default_Switches (\"ada\") use (  \n  end Compiler;\n\n  package Prove is\n    for Default_Switches (\"ada\") use (  \n  end Prove;\nend Default;\n",
                   "version": 0,
                   "uri": "$URI{default.gpr}",
                   "languageId": "Gpr"
@@ -74,11 +99,10 @@
                },
                "position": {
                   "line": 2,
-                  "character": 46
+                  "character": 41
                },
                "context": {
-                  "triggerKind": 2,
-                  "triggerCharacter": " "
+                  "triggerKind": 1
                }
             }
          },
@@ -92,6 +116,9 @@
                      {
                         "detail": "gnat",
                         "documentation": "Ada 2005 mode",
+                        "labelDetails": {
+                           "description": "Ada 2005 mode"
+                        },
                         "insertText": "\"-gnat2005\"",
                         "kind": 12,
                         "label": "-gnat2005"
@@ -99,6 +126,9 @@
                      {
                         "detail": "gnat",
                         "documentation": "Ada 2022 mode",
+                        "labelDetails": {
+                           "description": "Ada 2022 mode"
+                        },
                         "insertText": "\"-gnat2022\"",
                         "kind": 12,
                         "label": "-gnat2022"
@@ -106,6 +136,9 @@
                      {
                         "detail": "gnat",
                         "documentation": "Set mode for general/assertion expressions separately",
+                        "labelDetails": {
+                           "description": "Set mode for general/assertion expressions separately"
+                        },
                         "insertText": "\"-gnato${1:??}\"$0",
                         "insertTextFormat": 2,
                         "kind": 12,
@@ -129,10 +162,11 @@
                },
                "position": {
                   "line": 2,
-                  "character": 45
+                  "character": 39
                },
                "context": {
-                  "triggerKind": 1
+                  "triggerKind": 2,
+                  "triggerCharacter": "("
                }
             }
          },
@@ -145,6 +179,9 @@
                      "<HAS>",
                      {
                         "detail": "gnat",
+                        "labelDetails": {
+                           "description": "Ada 2012 mode (default)"
+                        },
                         "documentation": "Ada 2012 mode (default)",
                         "insertText": "\"-gnat2012\"",
                         "kind": 12,
@@ -152,95 +189,13 @@
                      },
                      {
                         "detail": "gnat",
-                        "documentation": "Suppress all checks",
-                        "insertText": "\"-gnatp\"",
+                        "labelDetails": {
+                           "description": "Ada 83 mode"
+                        },
+                        "documentation": "Ada 83 mode",
+                        "insertText": "\"-gnat83\"",
                         "kind": 12,
-                        "label": "-gnatp"
-                     }
-                  ]
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 4,
-            "method": "textDocument/completion",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{default.gpr}"
-               },
-               "position": {
-                  "line": 6,
-                  "character": 62
-               },
-               "context": {
-                  "triggerKind": 2,
-                  "triggerCharacter": " "
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": 4,
-               "result": {
-                  "isIncomplete": false,
-                  "items": [
-                     "<HAS>",
-                     {
-                        "detail": "gnatprove",
-                        "kind": 12,
-                        "label": "--report=r"
-                     },
-                     {
-                        "detail": "gnatprove",
-                        "kind": 12,
-                        "label": "--warnings=w"
-                     }
-                  ]
-               }
-            }
-         ]
-      }
-   },
-   {
-      "send": {
-         "request": {
-            "jsonrpc": "2.0",
-            "id": 5,
-            "method": "textDocument/completion",
-            "params": {
-               "textDocument": {
-                  "uri": "$URI{default.gpr}"
-               },
-               "position": {
-                  "line": 6,
-                  "character": 61
-               },
-               "context": {
-                  "triggerKind": 1
-               }
-            }
-         },
-         "wait": [
-            {
-               "id": 5,
-               "result": {
-                  "isIncomplete": false,
-                  "items": [
-                     "<HAS>",
-                     {
-                        "detail": "gnatprove",
-                        "kind": 12,
-                        "label": "--clean"
-                     },
-                     {
-                        "detail": "gnatprove",
-                        "kind": 12,
-                        "label": "--output=o"
+                        "label": "-gnat83"
                      }
                   ]
                }

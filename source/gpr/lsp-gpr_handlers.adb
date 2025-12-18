@@ -31,6 +31,7 @@ with LSP.Errors;
 with LSP.Formatters.Fallback_Indenter;
 with LSP.Generic_Cancel_Check;
 with LSP.GPR_Completions;
+with LSP.GPR_Completions.Tools;
 with LSP.GPR_Documentation;
 with LSP.GPR_File_Readers;
 with LSP.GPR_Files.References;
@@ -443,6 +444,7 @@ package body LSP.GPR_Handlers is
          Value  =>
            (triggerCharacters => [" ", ".", "'", "("],
             resolveProvider   => LSP.Constants.True,
+            completionItem => (True, (labelDetailsSupport => (True, True))),
             others            => <>));
       Capabilities.documentRangeFormattingProvider :=
         (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
@@ -546,6 +548,11 @@ package body LSP.GPR_Handlers is
          end;
 
       end if;
+
+      --  Load the database for tool completions, indicating whether
+      --  the client supports label details in completion items.
+      LSP.GPR_Completions.Tools.Load_Database
+        (Self.Client.Has_Label_Details_Support);
 
       Self.Sender.On_Initialize_Response (Id, Response);
    end On_Initialize_Request;

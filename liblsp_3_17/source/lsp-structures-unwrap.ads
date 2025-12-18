@@ -41,8 +41,13 @@ package LSP.Structures.Unwrap is
 
    function resolveSupport
      (X : completionItem_OfCompletionClientCapabilities_Optional)
-       return resolveSupport_OfWorkspaceSymbolClientCapabilities_Optional is
-         (if X.Is_Set then X.Value.resolveSupport else (Is_Set => False));
+      return resolveSupport_OfWorkspaceSymbolClientCapabilities_Optional
+   is (if X.Is_Set then X.Value.resolveSupport else (Is_Set => False));
+
+   function labelDetailsSupport
+     (X : completionItem_OfCompletionClientCapabilities_Optional)
+      return Boolean_Optional
+   is (if X.Is_Set then X.Value.labelDetailsSupport else (Is_Set => False));
 
    function snippetSupport
      (X : completionItem_OfCompletionClientCapabilities_Optional)
