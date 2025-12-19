@@ -1,0 +1,5 @@
+project Default is
+  package Builder is
+    for Default_Switches ("ada") use (
+  end Builder;
+end Default;

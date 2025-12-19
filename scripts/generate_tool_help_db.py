@@ -129,6 +129,84 @@ class GenericHelpParser(HelpParser):
         return switches
 
 
+class GprbuildHelpParser(HelpParser):
+    """Parser for gprbuild help output."""
+
+    def parse(self, help_text: str) -> Dict[str, str]:
+        """Parse gprbuild help output format.
+
+        gprbuild help has lines like:
+          -switch   Documentation text
+          --long-switch
+                   Documentation text that may span
+                   multiple lines
+          --db dir  Documentation with space-separated argument
+        """
+        switches = {}
+        current_switch = None
+        current_doc = []
+
+        lines = help_text.split("\n")
+
+        for line in lines:
+            # Check if this line starts a new switch (starts with 2 spaces and a dash)
+            # First try to match switches with space-separated arguments followed by doc
+            match_with_arg = re.match(r"^  (-+[^\s]+)\s+([a-z<][^\s]*)\s+(.+)$", line)
+            # Then try regular switches with or without documentation on same line
+            match_simple = re.match(
+                r"^  (-+[^\s]+(?:=\S+|\[=\S+\])?(?:,\s*-+\S+)?)(?:\s+(.*))?$", line
+            )
+
+            if match_with_arg:
+                # Switch with space-separated argument, like "--db dir Parse..."
+                # Save previous switch if any
+                if current_switch:
+                    switches[current_switch] = " ".join(current_doc).strip()
+
+                switch_name = match_with_arg.group(1)
+                arg_name = match_with_arg.group(2)
+                doc_text = match_with_arg.group(3).strip()
+
+                # Include argument in switch name
+                current_switch = f"{switch_name} {arg_name}"
+                current_doc = [doc_text] if doc_text else []
+            elif match_simple:
+                # Save previous switch if any
+                if current_switch:
+                    switches[current_switch] = " ".join(current_doc).strip()
+
+                # Regular switch, possibly with doc on same line
+                current_switch = match_simple.group(1)
+                doc_text = match_simple.group(2)
+                current_doc = (
+                    [doc_text.strip()] if doc_text and doc_text.strip() else []
+                )
+            elif current_switch:
+                # Check if this is a continuation line (starts with more spaces)
+                stripped = line.strip()
+                if stripped and line.startswith(" " * 11):
+                    # Continuation line with significant indentation
+                    current_doc.append(stripped)
+                elif not line.strip():
+                    # Empty line ends the current switch
+                    if current_doc:
+                        switches[current_switch] = " ".join(current_doc).strip()
+                    current_switch = None
+                    current_doc = []
+                elif not line.startswith("  -"):
+                    # Line that's part of section headers or other text, end current
+                    if current_doc:
+                        switches[current_switch] = " ".join(current_doc).strip()
+                    current_switch = None
+                    current_doc = []
+
+        # Don't forget the last switch
+        if current_switch and current_doc:
+            switches[current_switch] = " ".join(current_doc).strip()
+
+        return switches
+
+
 def run_tool_help(tool_command: str) -> Optional[str]:
     """Run a tool with its help option and capture output.
 
@@ -166,6 +244,8 @@ def select_parser(tool_name: str) -> HelpParser:
     tool_name_lower = tool_name.lower()
     if tool_name_lower in ("gnat", "gnatprove"):
         return GnatHelpParser()
+    elif tool_name_lower == "gprbuild":
+        return GprbuildHelpParser()
     else:
         return GenericHelpParser()
 
@@ -362,7 +442,7 @@ Examples:
 
     # Use default tools if --default is specified or no tools provided
     if args.default or not args.tools:
-        default_tools = ["gnat --help-ada", "gnatprove --help"]
+        default_tools = ["gnat --help-ada", "gnatprove --help", "gprbuild --help"]
         tools_to_process = default_tools
     else:
         tools_to_process = args.tools

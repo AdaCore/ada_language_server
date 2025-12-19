@@ -36,8 +36,10 @@ package LSP.GPR_Completions.Tools is
    --  and the completion response will be filled with gnat switches
    --  matching the given prefix)
 
-   procedure Load_Database;
+   procedure Load_Database (Has_Label_Details_Support : Boolean);
    --  Load the tools switches database and populate the cache
+   --  Has_Label_Details_Support indicates whether the client supports
+   --  label details in completion items.
 
    procedure Get_Tool_Switches
      (Tool_Name : VSS.Strings.Virtual_String;

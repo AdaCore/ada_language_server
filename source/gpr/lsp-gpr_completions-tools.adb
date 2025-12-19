@@ -31,12 +31,13 @@ with LSP.GPR_Completions.Tools.Database;
 
 package body LSP.GPR_Completions.Tools is
 
-   package Tool_Switches_Maps is new Ada.Containers.Indefinite_Hashed_Maps
-     (Key_Type        => String,
-      Element_Type    => LSP.Structures.CompletionItem_Vector,
-      Hash            => Ada.Strings.Hash,
-      Equivalent_Keys => "=",
-      "="             => LSP.Structures."=");
+   package Tool_Switches_Maps is new
+     Ada.Containers.Indefinite_Hashed_Maps
+       (Key_Type        => String,
+        Element_Type    => LSP.Structures.CompletionItem_Vector,
+        Hash            => Ada.Strings.Hash,
+        Equivalent_Keys => "=",
+        "="             => LSP.Structures."=");
 
    package Package_To_Tool_Maps is new
      Ada.Containers.Ordered_Maps
@@ -49,33 +50,27 @@ package body LSP.GPR_Completions.Tools is
    --  Cache of switches per tool
 
    Package_To_Tool : constant Package_To_Tool_Maps.Map :=
-     ["compiler" => "gnat", "prove" => "gnatprove"];
+     ["compiler" => "gnat", "prove" => "gnatprove", "builder" => "gprbuild"];
    --  Map from GPR package name to tool name
-
-   Database_Loaded : Boolean := False;
-   --  Flag indicating whether the database has been loaded
 
    -------------------
    -- Load_Database --
    -------------------
 
-   procedure Load_Database is
+   procedure Load_Database (Has_Label_Details_Support : Boolean) is
       use GNATCOLL.JSON;
 
       Root : JSON_Value;
 
       procedure Process_Tool
-        (Tool_Name_Str : String;
-         Tool_Object   : JSON_Value);
+        (Tool_Name_Str : String; Tool_Object : JSON_Value);
       --  Process each tool in the database
 
       ------------------
       -- Process_Tool --
       ------------------
 
-      procedure Process_Tool
-        (Tool_Name_Str : String;
-         Tool_Object   : JSON_Value)
+      procedure Process_Tool (Tool_Name_Str : String; Tool_Object : JSON_Value)
       is
          Switches : JSON_Value;
          Items    : LSP.Structures.CompletionItem_Vector;
@@ -88,73 +83,90 @@ package body LSP.GPR_Completions.Tools is
          --------------------
 
          procedure Process_Switch (Name : String; Value : JSON_Value) is
-            Item         : LSP.Structures.CompletionItem;
-            Switch_Doc   : constant String := Value.Get;
-            Equals_Pos   : Natural;
-            Question_Pos : Natural;
-            Bracket_Pos  : Natural;
+            Item       : LSP.Structures.CompletionItem;
+            Switch_Doc : constant String := Value.Get;
+
+            procedure Create_Snippet
+              (Prefix      : String;
+               Placeholder : String;
+               Separator   : String := "");
+            --  Create a snippet with the given prefix, placeholder, and
+            --  separator.
+            --  Separator can be " ", "", etc.
+
+            -------------------
+            -- Create_Snippet --
+            -------------------
+
+            procedure Create_Snippet
+              (Prefix : String; Placeholder : String; Separator : String := "")
+            is
+            begin
+               Item.insertText :=
+                 VSS.Strings.Conversions.To_Virtual_String
+                   (""""
+                    & Prefix
+                    & Separator
+                    & "${1:"
+                    & Placeholder
+                    & "}""$0");
+               Item.insertTextFormat :=
+                 (Is_Set => True, Value => LSP.Enumerations.Snippet);
+            end Create_Snippet;
+
+            Space_Pos    : constant Natural :=
+              Ada.Strings.Fixed.Index (Name, " ");
+            Bracket_Pos  : constant Natural :=
+              Ada.Strings.Fixed.Index (Name, "[");
+            Equals_Pos   : constant Natural :=
+              Ada.Strings.Fixed.Index (Name, "=");
+            Question_Pos : constant Natural :=
+              Ada.Strings.Fixed.Index (Name, "?");
          begin
             Item.label := VSS.Strings.Conversions.To_Virtual_String (Name);
 
-            --  Check if switch expects a parameter (contains '=')
-            Equals_Pos := Ada.Strings.Fixed.Index (Name, "=");
+            --  Determine switch type and create appropriate snippet
+            --  Priority: space > bracket > equals > question
 
-            if Equals_Pos > 0 then
-               --  Switch expects a parameter, create a snippet
+            if Space_Pos > 0 then
+               --  Space-separated argument: "--db dir"
+               Create_Snippet
+                 (Prefix      => Name (Name'First .. Space_Pos - 1),
+                  Placeholder => Name (Space_Pos + 1 .. Name'Last),
+                  Separator   => " ");
+
+            elsif Bracket_Pos > 0 then
+               --  Optional bracket modifier: "-gnatn[?]"
+               --  or "--relocate-build-tree[=dir]"
                declare
-                  Prefix      : constant String :=
-                    Name (Name'First .. Equals_Pos);
-                  Placeholder : constant String :=
-                    Name (Equals_Pos + 1 .. Name'Last);
+                  Close_Pos : constant Natural :=
+                    Ada.Strings.Fixed.Index (Name, "]", Bracket_Pos);
                begin
-                  Item.insertText :=
-                    VSS.Strings.Conversions.To_Virtual_String
-                      ("""" & Prefix & "${1:" & Placeholder & "}""");
-                  Item.insertTextFormat :=
-                    (Is_Set => True, Value => LSP.Enumerations.Snippet);
+                  Create_Snippet
+                    (Prefix      => Name (Name'First .. Bracket_Pos - 1),
+                     Placeholder =>
+                       (if Close_Pos > Bracket_Pos + 1
+                        then Name (Bracket_Pos .. Close_Pos)
+                        else "[?]"));
                end;
-            else
-               --  Check if switch has '?' or '[?...]' modifiers
-               Question_Pos := Ada.Strings.Fixed.Index (Name, "?");
-               Bracket_Pos := Ada.Strings.Fixed.Index (Name, "[");
 
-               if Bracket_Pos > 0 and then Question_Pos > Bracket_Pos then
-                  --  Switch with optional modifier [?...], e.g., -gnatn[?], -gnatn[??]
-                  declare
-                     Prefix     : constant String :=
-                       Name (Name'First .. Bracket_Pos - 1);
-                     Close_Pos  : constant Natural :=
-                       Ada.Strings.Fixed.Index (Name, "]", Bracket_Pos);
-                     Placeholder : constant String :=
-                       (if Close_Pos > Bracket_Pos + 1 then
-                          Name (Bracket_Pos + 1 .. Close_Pos - 1)
-                        else "?");
-                  begin
-                     Item.insertText :=
-                       VSS.Strings.Conversions.To_Virtual_String
-                         ("""" & Prefix & "${1:" & Placeholder & "}""");
-                     Item.insertTextFormat :=
-                       (Is_Set => True, Value => LSP.Enumerations.Snippet);
-                  end;
-               elsif Question_Pos > 0 then
-                  --  Switch with '?' modifiers, e.g., -gnato?, -gnato??
-                  declare
-                     Prefix      : constant String :=
-                       Name (Name'First .. Question_Pos - 1);
-                     Placeholder : constant String :=
-                       Name (Question_Pos .. Name'Last);
-                  begin
-                     Item.insertText :=
-                       VSS.Strings.Conversions.To_Virtual_String
-                         ("""" & Prefix & "${1:" & Placeholder & "}""");
-                     Item.insertTextFormat :=
-                       (Is_Set => True, Value => LSP.Enumerations.Snippet);
-                  end;
-               else
-                  --  Regular switch without parameter
-                  Item.insertText :=
-                    VSS.Strings.Conversions.To_Virtual_String ("""" & Name & """");
-               end if;
+            elsif Equals_Pos > 0 then
+               --  Equals parameter: "--config=file.cgpr"
+               Create_Snippet
+                 (Prefix      => Name (Name'First .. Equals_Pos),
+                  Placeholder => Name (Equals_Pos + 1 .. Name'Last));
+
+            elsif Question_Pos > 0 then
+               --  Question mark modifier: "-gnato?"
+               Create_Snippet
+                 (Prefix      => Name (Name'First .. Question_Pos - 1),
+                  Placeholder => Name (Question_Pos .. Name'Last));
+
+            else
+               --  Regular switch without parameter: "-f"
+               Item.insertText :=
+                 VSS.Strings.Conversions.To_Virtual_String
+                   ("""" & Name & """");
             end if;
 
             Item.kind := (Is_Set => True, Value => LSP.Enumerations.Value);
@@ -167,6 +179,16 @@ package body LSP.GPR_Completions.Tools is
                    (Is_Virtual_String => True,
                     Virtual_String    =>
                       VSS.Strings.Conversions.To_Virtual_String (Switch_Doc)));
+
+            --  If the client supports labelDetails, add the switch doc there
+            if Has_Label_Details_Support then
+               Item.labelDetails :=
+                 (Is_Set => True,
+                  Value  =>
+                    (description =>
+                       VSS.Strings.Conversions.To_Virtual_String (Switch_Doc),
+                     others      => <>));
+            end if;
 
             Items.Append (Item);
          end Process_Switch;
@@ -192,9 +214,6 @@ package body LSP.GPR_Completions.Tools is
 
       --  Process all tools in the database
       Root.Map_JSON_Object (Process_Tool'Access);
-
-      Database_Loaded := True;
-
    exception
       when others =>
          --  Silently ignore any errors when reading the database
@@ -214,11 +233,6 @@ package body LSP.GPR_Completions.Tools is
       Tool_Name_Str : constant String := To_UTF_8_String (Tool_Name);
       Cursor        : Tool_Switches_Maps.Cursor;
    begin
-      --  Load the database if not already loaded
-      if not Database_Loaded then
-         Load_Database;
-      end if;
-
       --  Look up the tool in the cache
       Cursor := Switches_Cache.Find (Tool_Name_Str);
 
@@ -241,17 +255,12 @@ package body LSP.GPR_Completions.Tools is
       use VSS.Strings;
       use VSS.Strings.Conversions;
 
-      Package_Name : constant VSS.Strings.Virtual_String :=
+      Package_Name     : constant VSS.Strings.Virtual_String :=
         To_Lower (To_Virtual_String (GPR2.Image (Current_Package)));
       Tool_Name_Cursor : Package_To_Tool_Maps.Cursor;
       Tool_Name        : VSS.Strings.Virtual_String;
       All_Switches     : LSP.Structures.CompletionItem_Vector;
    begin
-      --  Load the database if not already loaded
-      if not Database_Loaded then
-         Load_Database;
-      end if;
-
       --  Map package name to tool name
       Tool_Name_Cursor := Package_To_Tool.Find (Package_Name);
 
