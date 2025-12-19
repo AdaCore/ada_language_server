@@ -50,7 +50,15 @@ package body LSP.GPR_Completions.Tools is
    --  Cache of switches per tool
 
    Package_To_Tool : constant Package_To_Tool_Maps.Map :=
-     ["compiler" => "gnat", "prove" => "gnatprove", "builder" => "gprbuild"];
+     ["compiler" => "gnat",
+      "prove" => "gnatprove",
+      "builder" => "gprbuild",
+      "clean" => "gprclean",
+      "format" => "gnatformat",
+      "analyze" => "gnatsas",
+      "coverage" => "gnatcov",
+      "check" => "gnatcheck",
+      "emulator" => "arm-eabi-gnatemu"];
    --  Map from GPR package name to tool name
 
    -------------------

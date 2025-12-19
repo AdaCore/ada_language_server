@@ -1,0 +1,17 @@
+project Default is
+  package Clean is
+    for Switches ("ada") use (
+  end Clean;
+
+  package Format is
+    for Default_Switches ("ada") use (
+  end Format;
+
+  package Check is
+    for Default_Switches ("ada") use (
+  end Check;
+
+  package Emulator is
+    for Default_Switches ("ada") use (
+  end Emulator;
+end Default;

@@ -4,9 +4,10 @@ NOTE: this script has been developed with AI assistance.
 
 Generate an Ada package with embedded tool switches database.
 
-This script runs various tools with their help options and extracts the switches
-and their associated documentation into a structured JSON database, which is then
-embedded into an Ada package specification as string constants.
+This script runs various tools with their help options and extracts the
+switches and their associated documentation into a structured JSON database,
+which is then embedded into an Ada package specification as string
+constants.
 """
 
 import argparse
@@ -21,7 +22,7 @@ class HelpParser:
     """Base class for parsing tool help output."""
 
     def parse(self, help_text: str) -> Dict[str, str]:
-        """Parse help text and return a dictionary of switches to documentation.
+        """Parse help text and return a dictionary of switches to docs.
 
         Args:
             help_text: The raw help output from the tool
@@ -52,8 +53,8 @@ class GnatHelpParser(HelpParser):
         lines = help_text.split("\n")
 
         for line in lines:
-            # Check if this line starts a new switch (starts with 1-5 spaces and a dash)
-            # Handles both "  -switch" and " -switch" and "     --switch" patterns
+            # Check if line starts a new switch (starts with 1-5 spaces
+            # and a dash). Handles "  -switch", " -switch", "--switch"
             match = re.match(r"^ {1,5}(-+\S+(?:,\s*-+\S+)*)\s+(.*)$", line)
             if match:
                 # Save previous switch if any
@@ -64,16 +65,16 @@ class GnatHelpParser(HelpParser):
                 current_switch = match.group(1)
                 current_doc = [match.group(2)] if match.group(2).strip() else []
             elif current_switch:
-                # Continuation line - check if it's indented documentation
+                # Continuation line - check if indented documentation
                 stripped = line.strip()
                 if stripped and not line.startswith(
                     "   ."
                 ):  # Skip mode value descriptions
-                    # Only add if it doesn't look like a new section header
+                    # Only add if doesn't look like new section header
                     if not re.match(r"^[A-Z][a-z].*:$", stripped):
                         current_doc.append(stripped)
                 elif stripped == "":
-                    # Empty line might indicate end of this switch's documentation
+                    # Empty line might indicate end of switch's docs
                     pass
 
         # Don't forget the last switch
@@ -130,17 +131,18 @@ class GenericHelpParser(HelpParser):
 
 
 class GprbuildHelpParser(HelpParser):
-    """Parser for gprbuild help output."""
+    """Parser for gprbuild and gprclean style help output."""
 
     def parse(self, help_text: str) -> Dict[str, str]:
-        """Parse gprbuild help output format.
+        """Parse gprbuild/gprclean help output format.
 
-        gprbuild help has lines like:
+        Help output has lines like:
           -switch   Documentation text
+         -switch   Documentation text (gprclean uses 1 space)
           --long-switch
                    Documentation text that may span
                    multiple lines
-          --db dir  Documentation with space-separated argument
+          --db dir  Docs with space-separated argument
         """
         switches = {}
         current_switch = None
@@ -149,16 +151,22 @@ class GprbuildHelpParser(HelpParser):
         lines = help_text.split("\n")
 
         for line in lines:
-            # Check if this line starts a new switch (starts with 2 spaces and a dash)
-            # First try to match switches with space-separated arguments followed by doc
-            match_with_arg = re.match(r"^  (-+[^\s]+)\s+([a-z<][^\s]*)\s+(.+)$", line)
-            # Then try regular switches with or without documentation on same line
+            # Check if line starts new switch (starts with 1-2 spaces
+            # and a dash). First try switches with space-separated args
+            match_with_arg = re.match(
+                r"^ {1,2}(-+[^\s]+)\s+([a-z<][^\s]*)\s+(.+)$", line
+            )
+            # Then try regular switches with or without doc on same line
+            # Pattern captures switch names with optional
+            # equals/bracket modifiers and comma-separated alternatives
             match_simple = re.match(
-                r"^  (-+[^\s]+(?:=\S+|\[=\S+\])?(?:,\s*-+\S+)?)(?:\s+(.*))?$", line
+                r"^ {1,2}((?:-+[^\s,]+(?:=\S+|\[=\S+\])?(?:,\s*-+[^\s,]+"
+                r"(?:=\S+|\[=\S+\])?)*,?))(?:\s+(.*))?$",
+                line,
             )
 
             if match_with_arg:
-                # Switch with space-separated argument, like "--db dir Parse..."
+                # Switch with space-separated arg, like "--db dir"
                 # Save previous switch if any
                 if current_switch:
                     switches[current_switch] = " ".join(current_doc).strip()
@@ -182,10 +190,12 @@ class GprbuildHelpParser(HelpParser):
                     [doc_text.strip()] if doc_text and doc_text.strip() else []
                 )
             elif current_switch:
-                # Check if this is a continuation line (starts with more spaces)
+                # Check if continuation line (starts with more spaces
+                # than switch lines)
                 stripped = line.strip()
-                if stripped and line.startswith(" " * 11):
-                    # Continuation line with significant indentation
+                if stripped and line.startswith("   "):
+                    # Continuation line with indentation (at least 3
+                    # spaces, more than switch lines)
                     current_doc.append(stripped)
                 elif not line.strip():
                     # Empty line ends the current switch
@@ -193,8 +203,9 @@ class GprbuildHelpParser(HelpParser):
                         switches[current_switch] = " ".join(current_doc).strip()
                     current_switch = None
                     current_doc = []
-                elif not line.startswith("  -"):
-                    # Line that's part of section headers or other text, end current
+                elif not line.startswith(" -"):
+                    # Line part of section headers or other text, end
+                    # current
                     if current_doc:
                         switches[current_switch] = " ".join(current_doc).strip()
                     current_switch = None
@@ -203,6 +214,14 @@ class GprbuildHelpParser(HelpParser):
         # Don't forget the last switch
         if current_switch and current_doc:
             switches[current_switch] = " ".join(current_doc).strip()
+
+        # Clean up docs: remove leading "-" followed by spaces
+        # (used by tools like gnatcheck)
+        for switch in switches:
+            doc = switches[switch]
+            if doc.startswith("-"):
+                # Remove the leading dash and any spaces after it
+                switches[switch] = re.sub(r"^-\s*", "", doc)
 
         return switches
 
@@ -244,7 +263,13 @@ def select_parser(tool_name: str) -> HelpParser:
     tool_name_lower = tool_name.lower()
     if tool_name_lower in ("gnat", "gnatprove"):
         return GnatHelpParser()
-    elif tool_name_lower == "gprbuild":
+    elif tool_name_lower in (
+        "gprbuild",
+        "gprclean",
+        "gprinstall",
+        "gnatcheck",
+        "arm-eabi-gnatemu",
+    ):
         return GprbuildHelpParser()
     else:
         return GenericHelpParser()
@@ -254,12 +279,45 @@ def extract_tool_name(tool_command: str) -> str:
     """Extract the tool name from a command string.
 
     Args:
-        tool_command: Full command like "gnat --help-ada"
+        tool_command: Full command like "gnat --help-ada" or
+                      "/path/to/tool --help"
 
     Returns:
         Just the tool name, e.g., "gnat"
     """
-    return tool_command.split()[0]
+    import os
+
+    tool_path = tool_command.split()[0]
+    return os.path.basename(tool_path)
+
+
+def normalize_switch_name(switch_name: str) -> str:
+    """Normalize switch names to prefer long over short versions.
+
+    When a switch has both long and short versions separated by comma
+    (e.g., "--width, -w" or "-v, --verbose"), extract only the long
+    version. If no long version exists, use the part before the comma.
+
+    Args:
+        switch_name: The switch name, possibly with multiple versions
+
+    Returns:
+        The normalized switch name (preferring long version)
+    """
+    # Check if there's a comma indicating multiple versions
+    if "," not in switch_name:
+        return switch_name
+
+    # Split by comma to get individual versions
+    parts = [part.strip() for part in switch_name.split(",")]
+
+    # Look for a long version (starts with --)
+    long_versions = [p for p in parts if p.startswith("--")]
+    if long_versions:
+        return long_versions[0]
+
+    # No long version found, use the first part (before comma)
+    return parts[0]
 
 
 def escape_ada_string(s: str) -> str:
@@ -280,7 +338,8 @@ def split_string_for_ada(json_str: str, max_length: int = 1000) -> List[str]:
 
     Args:
         json_str: The JSON string to split
-        max_length: Maximum length of each chunk (to avoid Ada line length limits)
+        max_length: Maximum length of each chunk (to avoid Ada line
+                    length limits)
 
     Returns:
         List of string chunks
@@ -384,16 +443,22 @@ def generate_database(tool_configs: List[str], output_dir: str, pretty: bool = T
 
         if not switches:
             print(
-                f"  Warning: No switches parsed from '{tool_command}'", file=sys.stderr
+                f"  Warning: No switches parsed from '{tool_command}'",
+                file=sys.stderr,
             )
             continue
 
-        print(f"  Found {len(switches)} switches")
+        # Normalize switch names to prefer long versions
+        normalized_switches = {
+            normalize_switch_name(switch): doc for switch, doc in switches.items()
+        }
+
+        print(f"  Found {len(normalized_switches)} switches")
 
         # Store in database (use tool name as key)
         database[tool_name] = {
             "command": tool_command,
-            "switches": switches,
+            "switches": normalized_switches,
         }
 
     # Generate Ada package
@@ -416,14 +481,16 @@ Examples:
     )
 
     parser.add_argument(
-        "tools", nargs="*", help='Tool commands to process (e.g., "gnat --help-ada")'
+        "tools",
+        nargs="*",
+        help='Tool commands to process (e.g., "gnat --help-ada")',
     )
 
     parser.add_argument(
         "-o",
         "--output",
         default="source/gpr/generated",
-        help="Output directory for Ada package (default: source/gpr/generated)",
+        help="Output directory for Ada package " "(default: source/gpr/generated)",
     )
 
     parser.add_argument(
@@ -435,14 +502,18 @@ Examples:
     parser.add_argument(
         "--default",
         action="store_true",
-        help="Process default GNAT tools (gnat --help-ada, gnatprove --help)",
+        help="Process default GNAT tools " "(gnat --help-ada, gnatprove --help)",
     )
 
     args = parser.parse_args()
 
     # Use default tools if --default is specified or no tools provided
     if args.default or not args.tools:
-        default_tools = ["gnat --help-ada", "gnatprove --help", "gprbuild --help"]
+        default_tools = [
+            "gnat --help-ada",
+            "gnatprove --help",
+            "gprbuild --help",
+        ]
         tools_to_process = default_tools
     else:
         tools_to_process = args.tools

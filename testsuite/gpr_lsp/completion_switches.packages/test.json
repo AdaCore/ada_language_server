@@ -1,0 +1,283 @@
+[
+   {
+      "comment": [
+         "Test completion of tool switches for the following packages:",
+         "Clean (gprclean), Format (gnatformat), Check (gnatcheck),",
+         "and Emulator (<target>-gnatemu)"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Default is\n  package Clean is\n    for Switches (\"ada\") use (  \n  end Clean;\n\n  package Format is\n    for Default_Switches (\"ada\") use (  \n  end Format;\n\n  package Check is\n    for Default_Switches (\"ada\") use (  \n  end Check;\n\n  package Emulator is\n    for Default_Switches (\"ada\") use (  \n  end Emulator;\nend Default;\n",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 35
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gprclean",
+                        "documentation": "Only delete compiler generated files",
+                        "insertText": "\"-c\"",
+                        "kind": 12,
+                        "label": "-c"
+                     },
+                     {
+                        "detail": "gprclean",
+                        "documentation": "Force deletions of unwritable files",
+                        "insertText": "\"-f\"",
+                        "kind": 12,
+                        "label": "-f"
+                     },
+                     {
+                        "detail": "gprclean",
+                        "documentation": "Remove empty build directories",
+                        "insertText": "\"-p\"",
+                        "kind": 12,
+                        "label": "-p"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 6,
+                  "character": 41
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnatformat",
+                        "documentation": "Exit with error code 1 if the input is not  formatted correctly and prints the file names that would be formatted",
+                        "insertText": "\"--check\"",
+                        "kind": 12,
+                        "label": "--check"
+                     },
+                     {
+                        "detail": "gnatformat",
+                        "documentation": "Max line width (default value = 79)",
+                        "insertText": "\"--width\"",
+                        "kind": 12,
+                        "label": "--width"
+                     },
+                     {
+                        "detail": "gnatformat",
+                        "documentation": "Indentation size (default value = 3)",
+                        "insertText": "\"--indentation\"",
+                        "kind": 12,
+                        "label": "--indentation"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 10,
+                  "character": 41
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "gnatcheck",
+                        "documentation": "quiet mode (do not report detections in Stderr)",
+                        "insertText": "\"-q\"",
+                        "kind": 12,
+                        "label": "-q"
+                     },
+                     {
+                        "detail": "gnatcheck",
+                        "documentation": "enable the verbose mode",
+                        "insertText": "\"--verbose\"",
+                        "kind": 12,
+                        "label": "--verbose"
+                     },
+                     {
+                        "detail": "gnatcheck",
+                        "documentation": "print out the list of the currently implemented rules",
+                        "insertText": "\"--list-rules\"",
+                        "kind": 12,
+                        "label": "--list-rules"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 14,
+                  "character": 41
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 5,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "detail": "arm-eabi-gnatemu",
+                        "documentation": "Be verbose",
+                        "insertText": "\"--verbose\"",
+                        "kind": 12,
+                        "label": "--verbose"
+                     },
+                     {
+                        "detail": "arm-eabi-gnatemu",
+                        "documentation": "Display version",
+                        "insertText": "\"--version\"",
+                        "kind": 12,
+                        "label": "--version"
+                     },
+                     {
+                        "detail": "arm-eabi-gnatemu",
+                        "documentation": "Allow gdb connection on port PORT (default port is 1234)",
+                        "insertText": "\"--gdb${1:[=PORT]}\"$0",
+                        "kind": 12,
+                        "label": "--gdb[=PORT]"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
