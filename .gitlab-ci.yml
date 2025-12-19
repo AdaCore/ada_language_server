@@ -126,6 +126,29 @@ include:
     - |
       cp "$bs/tmp"/integration-testsuite-npm-deps-*-*.tar.gz "$CI_PROJECT_DIR"
 
+    # Prepare dir for Cobertura reports
+    - mkdir -v "$CI_PROJECT_DIR/coverage"
+    # Process coverage reports
+    - cov_dir="$bs/results/new/ts-coverage"
+    # Find files called `cobertura-coverage.xml` and process each one to remove
+    # source path prefixes
+    - |
+      find "$cov_dir" -name 'cobertura-coverage.xml' | while read -r f; do
+        parent_dir=$(basename $(dirname "$f"))
+        # The cobertura report has relative source paths starting with ../../../test/als/
+        # so we remove that prefix to make GitLab recognize the sources
+        prep-cobertura "$f" --relocate-source "../../../test/als/" "$CI_PROJECT_DIR/coverage/$parent_dir"
+      done
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/*/*.xml
+    # For debugging purposes, archive also the raw coverage reports
+    paths:
+      - coverage/
+
 als-cov:linux:
   variables:
     RUNNER_AFTER_SCRIPT_TIMEOUT: 10m
