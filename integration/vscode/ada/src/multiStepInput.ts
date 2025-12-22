@@ -194,7 +194,7 @@ export class MultiStepInput {
                     if (canSelectMany) {
                         resolve(<any>input.selectedItems.concat());
                     } else {
-                        resolve(<any>input.selectedItems[0]);
+                        resolve(<any>input.activeItems[0]);
                     }
                 }
             });
