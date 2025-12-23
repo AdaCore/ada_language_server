@@ -51,8 +51,9 @@ ifeq ($(DESTDIR),)
   DESTDIR=$(prefix)
 endif
 
-# Library type
-LIBRARY_TYPE?=relocatable
+# Library type. Use an env variable specific to the ALS, or fallback to
+# LIBRARY_TYPE if specified. Finally, fallback to "relocatable".
+ALS_LIBRARY_TYPE?=$(if $(LIBRARY_TYPE),$(LIBRARY_TYPE),relocatable)
 
 # Build mode (dev or prod)
 BUILD_MODE?=dev
@@ -79,9 +80,9 @@ VSCE=npx vsce
 
 LIBRARY_FLAGS=-XBUILD_MODE=$(BUILD_MODE)	\
               -XLSP_OS=$(LSP_OS)		\
-              -XLIBRARY_TYPE=$(LIBRARY_TYPE)	\
-              -XXMLADA_BUILD=$(LIBRARY_TYPE)	\
-	      -XGPR_BUILD=$(LIBRARY_TYPE)
+              -XLIBRARY_TYPE=$(ALS_LIBRARY_TYPE)	\
+              -XXMLADA_BUILD=$(ALS_LIBRARY_TYPE)	\
+	      -XGPR_BUILD=$(ALS_LIBRARY_TYPE)
 
 BUILD_FLAGS=$(LIBRARY_FLAGS)
 
@@ -97,7 +98,7 @@ else
 endif
 
 ifeq ($(ALIRE),True)
-	# When we use Alire to build ALS we expect BUILD_MODE and LIBRARY_TYPE
+	# When we use Alire to build ALS we expect BUILD_MODE and ALS_LIBRARY_TYPE
 	# is already set (see build_als.sh). OS is set in spawn crate TOML file.
 	# That's why we don't need FLAGS here.
 	COVERAGE_BUILD_FLAGS=
