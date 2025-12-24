@@ -5,6 +5,7 @@ section below it for the last release. -->
 ## \<next>
 
 * Reload `e3-testsuite` tests automatically after configuration changes
+* Provide completion for tool switches (e.g., `Default_Switches`) in GPR files
 
 ## 2026.0.202510141
 

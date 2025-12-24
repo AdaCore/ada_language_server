@@ -139,6 +139,10 @@ include:
         # so we remove that prefix to make GitLab recognize the sources
         prep-cobertura "$f" --relocate-source "../../../test/als/" "$CI_PROJECT_DIR/coverage/$parent_dir"
       done
+
+    # Compute aggregated global coverage percentage
+    - print-global-coverage coverage/**/*.xml
+  coverage: '/^Line Coverage:\s+(\d+\.\d+)$/'
   artifacts:
     when: always
     reports:
