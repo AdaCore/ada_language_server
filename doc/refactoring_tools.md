@@ -13,16 +13,18 @@
 * [Change Parameter Default Value](#change-parameter-default-value)
 * [Extract Subprogram](#extract-subprogram)
 * [Extract Variable](#extract-variable)
+* [Generate Package Body](#generate-package-body)
+* [Generate Subprogram Body](#generate-subprogram-body)
 * [Pull Up Declaration](#pull-up-declaration)
 * [Sort Case](#sort-case)
 * [Suppress Separate](#suppress-separate)
 * [Delete Entity](#delete-entity)
-* [Inline variable](#inline-variable)
+* [Inline Variable](#inline-variable)
 * [Introduce Parameter](#introduce-parameter)
 * [Replace Type](#replace-type)
 * [Auto Import](#auto-import)
 * [Sort Dependencies](#sort-dependencies)
-* [Swap If/else statments](#swap-ifelse-statments)
+* [Swap If/else Statements](#swap-ifelse-statements)
 
 ## Named Parameters
 
@@ -44,8 +46,8 @@ Demo source is `named_parameters//` in [Code Samples](https://github.com/AdaCore
 * Adds a new parameter to a subprogram.
 * All subprogram specs are updated.
 * Only parameters with correct syntax are accepted.
-* The new parameter type is infered when only the name is provided.
-* The new parameter location is infered from the cursor position.
+* The new parameter type is inferred when only the name is provided.
+* The new parameter location is inferred from the cursor position.
 
 See `src/lal_refactor-subprogram_signature.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
@@ -129,7 +131,7 @@ Demo source is `change_parameter_default_value/` in [Code Samples](https://githu
 * Extracts statements to a new subprogram.
 * The new subprogram is created in the nearest declarative part.
 * Local declarations of for loop and exception handlers are passed to the extracted subprogram as new parameters.
-* Extract function is available is the last statment is either an assignment or a return statment.
+* Extract function is available if the last statement is either an assignment, return, or returning if/else statement.
 
 See `src/lal_refactor-extract_subprogram.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
@@ -148,6 +150,41 @@ Demo source is `extract_subprogram/` in [Code Samples](https://github.com/AdaCor
 See `src/lal_refactor-extract_variable.ads` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
 ![extract-variable](media/extract_variable.gif)
+
+## Generate Package Body
+
+**Command name:** `als-refactor-generate-package-body`
+
+* Refactoring available when user is inside package spec
+* Only available if package spec includes subprogram declarations
+* Checks whether a matching package body already exists:
+  * **Generate Package Body** if none found:
+    * create new file in same directory
+    * fill with subprogram body stubs for top-level declarations
+  * **Update Package Body** if one found
+    * if package body found *and* is missing any subprogram implementations
+    * update with new subprogram body stubs
+* Not available for `generic` declarations
+* Package body must be locatable by project otherwise will not be found.
+* If file exists but is empty or lacks a `package body Example is` declaration, refactoring will fail.
+
+Source: `src/lal_refactor-generate_package.ads` in [LAL Refactor](https://github.com/AdaCore/lal-refactor).
+
+![generate-package-body](media/generate_package.gif)
+
+## Generate Subprogram Body
+
+**Command name:** `als-refactor-generate-subprogram-body`
+
+* Action title: **Generate Procedure Body** or **Generate Function Body**
+* Identifies subprogram declaration without an implementation in the same scope
+* Generates new empty subprogram body on line directly below declaration
+* Only available for nested subprogram declarations. Public declarations in packages handled by [Generate Package Body](#generate-package-body).
+* Available for `overriding` subprograms but not `generic`.
+
+Source: `src/lal_refactor-generate_subprogram.ads` in [LAL Refactor](https://github.com/AdaCore/lal-refactor).
+
+![generate-subprogram-body](media/generate_subprogram.gif)
 
 ## Pull Up Declaration
 
@@ -176,7 +213,7 @@ See `src/lal_refactor-sort_case.ads` in [LAL Refactor repository](https://github
 
 **Command name:** `als-suppress-separate`
 
-* Moves a separate subunit to it's stub in the parent package.
+* Moves a separate subunit to its stub in the parent package.
 * Use clauses in the separate subunit are moved to the subprogram's declarative part to avoid namespace collisions.
 * .bak is added to the separate subunit source filename.
 
@@ -204,7 +241,7 @@ Demo source is `delete_entity/` in [Code Samples](https://github.com/AdaCore/ada
 
 ![delete_entity](media/delete_entity.gif)
 
-## Inline variable
+## Inline Variable
 
 **Command name:** `als-refactor-inline_variable`
 
@@ -247,7 +284,7 @@ Demo source is `replace_type/` in [Code Samples](https://github.com/AdaCore/ada_
 
 * For an unresolved name, suggests all packages that can be imported and prefix to be added so that that the name gets resolved.
 
-[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-auto_import.adb` in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
+[Source](https://github.com/AdaCore/lal-refactor/blob/main/src/lal_refactor-auto_import.adb) in [LAL Refactor repository](https://github.com/AdaCore/lal-refactor).
 
 Demo source is `auto_import/` in [Code Samples](https://github.com/AdaCore/ada_language_server/blob/master/integration/vscode/Code%20Samples/refactoring_demos/).
 
@@ -265,7 +302,7 @@ Demo source is `sort_dependencies/` in [Code Samples](https://github.com/AdaCore
 
 ![replace_type](media/replace_type.gif)
 
-## Swap If/else statments
+## Swap If/else statements
 
 **Command name:** `als-refactor-swap_if_else`
 
