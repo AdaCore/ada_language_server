@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "Suppress Separate Test"
-      ]
+      "comment": ["Suppress Separate Test"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -24,11 +20,7 @@
                      "applyEdit": true,
                      "workspaceEdit": {
                         "documentChanges": true,
-                        "resourceOperations": [
-                           "create",
-                           "rename",
-                           "delete"
-                        ]
+                        "resourceOperations": ["create", "rename", "delete"]
                      },
                      "didChangeConfiguration": {
                         "dynamicRegistration": true
@@ -51,9 +43,7 @@
                         "disabledSupport": true,
                         "dataSupport": true,
                         "resolveSupport": {
-                           "properties": [
-                              "edit"
-                           ]
+                           "properties": ["edit"]
                         },
                         "codeActionLiteralSupport": {
                            "codeActionKind": {
@@ -94,10 +84,7 @@
                "result": {
                   "capabilities": {
                      "executeCommandProvider": {
-                        "commands": [
-                           "<HAS>",
-                           "als-suppress-separate"
-                        ]
+                        "commands": ["<HAS>", "als-suppress-separate"]
                      }
                   }
                }
@@ -184,9 +171,6 @@
                      "line": 2,
                      "character": 14
                   }
-               },
-               "context": {
-                  "diagnostics": []
                }
             }
          },
@@ -257,6 +241,11 @@
                   "edit": {
                      "documentChanges": [
                         {
+                           "kind": "rename",
+                           "oldUri": "$URI{test-bar.adb}",
+                           "newUri": "$URI{test-bar.adb.bak}"
+                        },
+                        {
                            "textDocument": {
                               "uri": "$URI{test.adb}",
                               "version": 1
@@ -289,11 +278,6 @@
                                  "newText": "\n   is\n      use Ada.Characters.Conversions;\n      use Ada.Numerics.Elementary_Functions;\n\n      B : Boolean;\n   begin\n      Put_Line (\"Separate_Do_Nothing\");\n      Put_Line (Ada.Numerics.Elementary_Functions.Log (10.0)'Image);\n      Ada.Assertions.Assert (1 = 1);\n      Ada.Assertions.Assert (Is_Character (Wide_Character'('a')));\n      B := Baz (2);\n   end Bar;\n"
                               }
                            ]
-                        },
-                        {
-                           "kind": "rename",
-                           "oldUri": "$URI{test-bar.adb}",
-                           "newUri": "$URI{test-bar.adb.bak}"
                         }
                      ]
                   }
