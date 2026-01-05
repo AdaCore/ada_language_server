@@ -1074,8 +1074,7 @@ package body LSP.Ada_Handlers is
               Value.a_range.start = Value.a_range.an_end;
          begin
             if Single_Location
-              and then Is_Generate_Package_Available (Node.Unit, Spec)
-              and then not Spec.Is_Null
+              and then Is_Generate_Package_Available (Node, Spec)
             then
                Generate_Package_Command.Append_Code_Action
                  (Context         => Context,
@@ -1084,9 +1083,9 @@ package body LSP.Ada_Handlers is
                   Body_Path       =>
                     VSS.Strings.Conversions.To_Virtual_String
                       (Get_Body_Path (Spec)),
-                  New_File => not Package_Body_Exists (Spec));
-                      --  Note: we call Get_Body_Path twice; once here,
-                      --  once in LAL_Refactor.Build_Package_Generator
+                  New_File        => not Package_Body_Exists (Spec));
+               --  Note: we call Get_Body_Path twice; once here,
+               --  once in LAL_Refactor.Build_Package_Generator
                Found := True;
             else
                return;
