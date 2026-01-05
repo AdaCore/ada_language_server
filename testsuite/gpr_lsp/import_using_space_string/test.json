@@ -86,7 +86,13 @@
                   "version": 1,
                   "text": "with \" \";\nproject Prj is\nend Prj;"
                }
-            }
+            },
+            "comment": [
+               "We expect one diagnostic about an invalid with clause. ",
+               "We don't want to match the actual message, since it lists all ",
+               "the directories searched to find the imported GPR project, which may ",
+               "vary depending on the environment and the machine."
+            ]
          },
          "wait": [
             {
@@ -107,7 +113,7 @@
                            }
                         },
                         "severity": 1,
-                        "message": "imported project file \" .gpr\" not found"
+                        "message": "<ANY>"
                      }
                   ]
                }
