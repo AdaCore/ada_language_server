@@ -599,7 +599,7 @@ private
 
          Prepended : GPR2.Path_Name.Set.Object :=
                           GPR2.Project.Default_Search_Paths
-                            (False, GPR2.Environment.Process_Environment);
+                            (GPR2.Environment.Process_Environment);
 
          Tab_Stop : Positive := Gpr_Parser_Support.Slocs.Default_Tab_Stop;
          --  tab expansion

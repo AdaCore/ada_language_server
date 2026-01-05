@@ -23,6 +23,7 @@ with Ada.Unchecked_Deallocation;
 
 with GNAT.OS_Lib;
 
+with LAL_Refactor.Generate_Package;
 with LAL_Refactor.Sort_Case;
 with LSP.Ada_Indexing;
 with LSP.Env;
@@ -79,6 +80,7 @@ with LSP.Ada_Handlers.Refactor.Change_Parameters_Type;
 with LSP.Ada_Handlers.Refactor.Delete_Entity;
 with LSP.Ada_Handlers.Refactor.Extract_Subprogram;
 with LSP.Ada_Handlers.Refactor.Extract_Variable;
+with LSP.Ada_Handlers.Refactor.Generate_Package;
 with LSP.Ada_Handlers.Refactor.Generate_Subprogram;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Handlers.Refactor.Inline_Variable;
@@ -787,6 +789,10 @@ package body LSP.Ada_Handlers is
          --  Checks if the Extract Variable refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
 
+         procedure Generate_Package_Code_Action;
+         --  Checks if the Generate Package refactoring tool is available,
+         --  and if so, appends a Code Action with its Command.
+
          procedure Generate_Subprogram_Code_Action;
          --  Checks if the Generate Subprogram refactoring tool is available,
          --  and if so, appends a Code Action with its Command.
@@ -1051,6 +1057,42 @@ package body LSP.Ada_Handlers is
             end if;
          end Extract_Variable_Code_Action;
 
+         -----------------------------------
+         -- Generate_Package_Code_Action --
+         -----------------------------------
+
+         procedure Generate_Package_Code_Action is
+            use Libadalang.Analysis;
+            use LAL_Refactor.Generate_Package;
+            use LSP.Ada_Handlers.Refactor.Generate_Package;
+            use type LSP.Structures.Position;
+
+            Generate_Package_Command : Command;
+            Spec                     : Base_Package_Decl :=
+              No_Base_Package_Decl;
+            Single_Location          : constant Boolean :=
+              Value.a_range.start = Value.a_range.an_end;
+         begin
+            if Single_Location
+              and then Is_Generate_Package_Available (Node.Unit, Spec)
+              and then not Spec.Is_Null
+            then
+               Generate_Package_Command.Append_Code_Action
+                 (Context         => Context,
+                  Commands_Vector => Result,
+                  Spec_Loc        => Self.To_LSP_Location (Spec),
+                  Body_Path       =>
+                    VSS.Strings.Conversions.To_Virtual_String
+                      (Get_Body_Path (Spec)),
+                  New_File => not Package_Body_Exists (Spec));
+                      --  Note: we call Get_Body_Path twice; once here,
+                      --  once in LAL_Refactor.Build_Package_Generator
+               Found := True;
+            else
+               return;
+            end if;
+         end Generate_Package_Code_Action;
+
          -------------------------------------
          -- Generate_Subprogram_Code_Action --
          -------------------------------------
@@ -1149,22 +1191,21 @@ package body LSP.Ada_Handlers is
          -- Inline_Variable_Action --
          ----------------------------
 
-         procedure Inline_Variable_Action
-         is
+         procedure Inline_Variable_Action is
             use LSP.Ada_Handlers.Refactor.Inline_Variable;
             use Langkit_Support.Slocs;
             use LAL_Refactor.Inline_Variable;
             use type LSP.Structures.Position;
 
             function Analysis_Units
-              return Libadalang.Analysis.Analysis_Unit_Array is
-              (Context.Analysis_Units);
+               return Libadalang.Analysis.Analysis_Unit_Array
+            is (Context.Analysis_Units);
 
             Single_Location : constant Boolean :=
               Value.a_range.start = Value.a_range.an_end;
-            Location : constant Source_Location :=
-              (Langkit_Support.Slocs.Line_Number
-                 (Value.a_range.start.line) + 1,
+            Location        : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number (Value.a_range.start.line)
+               + 1,
                Column_Number (Value.a_range.start.character) + 1);
 
             Inliner : Command;
@@ -1172,7 +1213,7 @@ package body LSP.Ada_Handlers is
          begin
             if Single_Location then
                if Is_Inline_Variable_Available
-                 (Node.Unit, Location, Analysis_Units'Access)
+                    (Node.Unit, Location, Analysis_Units'Access)
                then
                   Inliner.Append_Code_Action
                     (Context         => Context,
@@ -1180,7 +1221,7 @@ package body LSP.Ada_Handlers is
                      Where           =>
                        (Value.textDocument.uri,
                         ((Natural (Location.Line) - 1,
-                         Natural (Location.Column) - 1),
+                          Natural (Location.Column) - 1),
                          (Natural (Location.Line) - 1,
                           Natural (Location.Column) - 1)),
                         LSP.Constants.Empty,
@@ -1476,9 +1517,9 @@ package body LSP.Ada_Handlers is
             Single_Location : constant Boolean :=
               Value.a_range.start = Value.a_range.an_end;
 
-            Location        : constant Source_Location :=
-              (Langkit_Support.Slocs.Line_Number
-                 (Value.a_range.start.line) + 1,
+            Location : constant Source_Location :=
+              (Langkit_Support.Slocs.Line_Number (Value.a_range.start.line)
+               + 1,
                Column_Number (Value.a_range.start.character) + 1);
 
             Swap_Command : Command;
@@ -1522,6 +1563,13 @@ package body LSP.Ada_Handlers is
 
          --  Extract Variable
          Extract_Variable_Code_Action;
+
+         if Self.Client.Resource_Create_Supported
+           and then Self.Client.Versioned_Documents
+         then
+            --  Generate Package
+            Generate_Package_Code_Action;
+         end if;
 
          --  Generate Subprogram
          Generate_Subprogram_Code_Action;
@@ -4098,12 +4146,12 @@ package body LSP.Ada_Handlers is
       Edits  : LAL_Refactor.Refactoring_Edits;
       Rename : Boolean := False) return LSP.Structures.WorkspaceEdit
    is
-      File_URI   : LSP.Structures.DocumentUri;
-      Text_Edits : LSP.Structures.TextEdit_Vector;
-
       use LAL_Refactor;
       use LSP.Structures;
+      use Ada.Strings.Unbounded;
 
+      File_URI          : LSP.Structures.DocumentUri;
+      Text_Edits        : LSP.Structures.TextEdit_Vector;
       Text_Edits_Cursor : Text_Edit_Ordered_Maps.Cursor :=
         Edits.Text_Edits.First;
 
@@ -4113,8 +4161,132 @@ package body LSP.Ada_Handlers is
             (LSP.Utils.To_Range (E.Location),
              VSS.Strings.Conversions.To_Virtual_String (E.Text)));
 
+      function To_VersionedTextDocId
+        (Filepath : Unbounded_String; Version : Integer := 0)
+         return OptionalVersionedTextDocumentIdentifier
+      is ((uri     => Self.To_URI (To_String (Filepath)),
+           version => (Is_Null => False, Value => Version)));
+      --  Create a URI and initialise a version number
    begin
       return WE : LSP.Structures.WorkspaceEdit do
+         --  Resource operations are only supported if
+         --  `workspace.workspaceEdit.documentChanges` is True since they
+         --  must be sent in the `documentChanges` field.
+         --  `workspace.workspaceEdit.resourceOperations` client capability
+         --  must be checked in order to know which kind of operations are
+         --  supported.
+
+         --  Resource operations must be included before text edits
+         --  While textEdits are applied in a bottom-up order,
+         --  documentChanges (a list of resource or text edits)
+         --  must include resource operations first.
+         --  TODO : check for clashes between different resource operations
+         --  e.g. if a file must be deleted first
+
+         --  File creations
+
+         if Self.Client.Versioned_Documents
+           and then Self.Client.Resource_Create_Supported
+         then
+            for New_File of Edits.File_Creations loop
+               --  Add CreateFile edit first, then any content
+               WE.documentChanges.Append
+                 (documentChanges_OfWorkspaceEdit_Item'
+                    ((Kind   => create,
+                      create =>
+                        CreateFile'
+                          (uri    =>
+                             Self.To_URI (To_String (New_File.Filepath)),
+                           kind   => "create",
+                           others => <>))));
+
+               --  Now file content can be added
+               --  as a separate textEdit
+               --  This must be added AFTER CreateFile
+               --  so the newly created URI points to something
+               if New_File.Content not in Null_Unbounded_String then
+                  declare
+                     Annotated_Edits : TextEdit_Or_AnnotatedTextEdit_Vector;
+                     Content         : constant TextEdit :=
+                       TextEdit'
+                         (a_range => ((0, 0), (0, 0)),
+                          newText =>
+                            VSS.Strings.Conversions.To_Virtual_String
+                              (New_File.Content));
+                     --  Insert edit at top of empty file
+                  begin
+                     Annotated_Edits.Append
+                       (TextEdit_Or_AnnotatedTextEdit'
+                          (Is_TextEdit => True, TextEdit => Content));
+                     --  As we just created file,
+                     --  bump version number when editing it
+                     WE.documentChanges.Append
+                       (documentChanges_OfWorkspaceEdit_Item'
+                          ((Kind      => Variant_1,
+                            Variant_1 =>
+                              TextDocumentEdit'
+                                (edits        => Annotated_Edits,
+                                 textDocument =>
+                                   To_VersionedTextDocId
+                                     (New_File.Filepath, 1)))));
+                  end;
+               end if;
+            end loop;
+         end if;
+
+         --  File deletions
+
+         if Self.Client.Versioned_Documents then
+            for Item of Edits.File_Deletions loop
+               File_URI := Self.To_URI (To_String (Item));
+
+               if Rename and then Self.Client.Resource_Rename_Supported then
+
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'
+                       ((Kind   => LSP.Structures.rename,
+                         rename =>
+                           LSP.Structures.RenameFile'
+                             (oldUri => File_URI,
+                              newUri => File_URI & ".bak",
+                              kind   => "rename",
+                              others => <>))));
+
+               elsif not Rename and then Self.Client.Resource_Delete_Supported
+               then
+
+                  WE.documentChanges.Append
+                    (documentChanges_OfWorkspaceEdit_Item'
+                       ((Kind   => LSP.Structures.delete,
+                         delete =>
+                           LSP.Structures.DeleteFile'
+                             (uri    => File_URI,
+                              kind   => "delete",
+                              others => <>))));
+
+               end if;
+            end loop;
+         end if;
+
+         --  File renames
+
+         if Self.Client.Versioned_Documents
+           and then Self.Client.Resource_Rename_Supported
+         then
+            for File_Rename of Edits.File_Renames loop
+               WE.documentChanges.Append
+                 (documentChanges_OfWorkspaceEdit_Item'
+                    ((Kind   => LSP.Structures.rename,
+                      rename =>
+                        LSP.Structures.RenameFile'
+                          (oldUri =>
+                             Self.To_URI (To_String (File_Rename.Filepath)),
+                           newUri =>
+                             Self.To_URI (To_String (File_Rename.New_Name)),
+                           kind   => "rename",
+                           others => <>))));
+            end loop;
+         end if;
          --  Text edits
 
          while Text_Edit_Ordered_Maps.Has_Element (Text_Edits_Cursor) loop
@@ -4133,12 +4305,12 @@ package body LSP.Ada_Handlers is
 
             if Self.Client.Versioned_Documents then
                declare
-                  Annotaded_Edits : TextEdit_Or_AnnotatedTextEdit_Vector;
+                  Annotated_Edits : TextEdit_Or_AnnotatedTextEdit_Vector;
 
                begin
-                  Annotaded_Edits.Reserve_Capacity (Text_Edits.Capacity);
+                  Annotated_Edits.Reserve_Capacity (Text_Edits.Capacity);
                   for X of Text_Edits loop
-                     Annotaded_Edits.Append
+                     Annotated_Edits.Append
                        (TextEdit_Or_AnnotatedTextEdit'
                           (Is_TextEdit       => False,
                            AnnotatedTextEdit => (X with annotationId => <>)));
@@ -4151,7 +4323,7 @@ package body LSP.Ada_Handlers is
                            TextDocumentEdit'
                              (textDocument =>
                                 Self.Get_Open_Document_Version (File_URI),
-                              edits        => Annotaded_Edits))));
+                              edits        => Annotated_Edits))));
                end;
             else
                WE.changes.Insert (File_URI, Text_Edits);
@@ -4160,108 +4332,6 @@ package body LSP.Ada_Handlers is
             Text_Edit_Ordered_Maps.Next (Text_Edits_Cursor);
          end loop;
 
-         --  Resource operations are only supported if
-         --  `workspace.workspaceEdit.documentChanges` is True since they
-         --  must be sent in the `documentChanges` field.
-         --  `workspace.workspaceEdit.resourceOperations` client capability
-         --  must be checked in order to know which kind of operations are
-         --  supported.
-
-         --  File creations
-
-         if Self.Client.Versioned_Documents
-           and then Self.Client.Resource_Create_Supported
-         then
-            for File_Creation of Edits.File_Creations loop
-               WE.documentChanges.Append
-                 (documentChanges_OfWorkspaceEdit_Item'
-                    ((Kind   => create,
-                      create =>
-                        CreateFile'
-                          (uri    =>
-                             Self.To_URI
-                               (Ada.Strings.Unbounded.To_String
-                                  (File_Creation.Filepath)),
-                           others => <>))));
-
-               declare
-                  Annotaded_Edits : TextEdit_Or_AnnotatedTextEdit_Vector;
-                  Content         : constant TextEdit :=
-                    TextEdit'
-                      (a_range => ((0, 0), (0, 0)),
-                       newText =>
-                         VSS.Strings.Conversions.To_Virtual_String
-                           (File_Creation.Content));
-
-               begin
-                  Annotaded_Edits.Append
-                    (TextEdit_Or_AnnotatedTextEdit'
-                       (Is_TextEdit => True, TextEdit => Content));
-
-                  WE.documentChanges.Append
-                    (documentChanges_OfWorkspaceEdit_Item'
-                       ((Kind      => Variant_1,
-                         Variant_1 =>
-                           TextDocumentEdit'
-                             (edits => Annotaded_Edits, others => <>))));
-               end;
-            end loop;
-         end if;
-
-         --  File deletions
-
-         if Self.Client.Versioned_Documents then
-            for Item of Edits.File_Deletions loop
-               File_URI :=
-                 Self.To_URI (Ada.Strings.Unbounded.To_String (Item));
-
-               if Rename and then Self.Client.Resource_Rename_Supported then
-
-                  WE.documentChanges.Append
-                    (documentChanges_OfWorkspaceEdit_Item'
-                       ((Kind   => LSP.Structures.rename,
-                         rename =>
-                           LSP.Structures.RenameFile'
-                             (oldUri => File_URI,
-                              newUri => File_URI & ".bak",
-                              others => <>))));
-
-               elsif not Rename and then Self.Client.Resource_Delete_Supported
-               then
-
-                  WE.documentChanges.Append
-                    (documentChanges_OfWorkspaceEdit_Item'
-                       ((Kind   => LSP.Structures.delete,
-                         delete =>
-                           LSP.Structures.DeleteFile'
-                             (uri => File_URI, others => <>))));
-
-               end if;
-            end loop;
-         end if;
-
-         --  File renames
-
-         if Self.Client.Versioned_Documents
-           and then Self.Client.Resource_Rename_Supported
-         then
-            for File_Rename of Edits.File_Renames loop
-               WE.documentChanges.Append
-                 (documentChanges_OfWorkspaceEdit_Item'
-                    ((Kind   => LSP.Structures.rename,
-                      rename =>
-                        LSP.Structures.RenameFile'
-                          (oldUri =>
-                             Self.To_URI
-                               (Ada.Strings.Unbounded.To_String
-                                  (File_Rename.Filepath)),
-                           newUri =>
-                             Self.To_URI
-                               (Ada.Strings.Unbounded.To_String
-                                  (File_Rename.New_Name)),
-                           others => <>))));
-            end loop;
-         end if;
       end return;
    end To_Workspace_Edit;
 

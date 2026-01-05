@@ -1,0 +1,250 @@
+[
+   {
+      "comment": ["test Generate Package Body"]
+   },
+   {
+      "start": { "cmd": ["${ALS}"] }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "initializationOptions": {
+                  "ada": {
+                     "projectFile": "default.gpr"
+                  }
+               },
+               "processId": 59002,
+               "rootPath": "${DIR}",
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true,
+                     "workspaceEdit": {
+                        "documentChanges": true,
+                        "resourceOperations": ["create"]
+                     },
+                     "fileOperations": {
+                        "didCreate": true
+                     }
+                  },
+                  "textDocument": {
+                     "codeAction": {
+                        "codeActionLiteralSupport": {
+                           "codeActionKind": {
+                              "valueSet": ["refactor", "refactor.rewrite"]
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "codeActionProvider": {
+                        "codeActionKinds": ["<HAS>", "refactor.rewrite"]
+                     },
+                     "executeCommandProvider": {
+                        "commands": [
+                           "<HAS>",
+                           "als-refactor-generate-package-body"
+                        ]
+                     },
+                     "workspace": {
+                        "fileOperations": {
+                           "didCreate": {
+                              "filters": [
+                                 {
+                                    "scheme": "file",
+                                    "pattern": {
+                                       "glob": "**/*.ad{a,s,b,c}",
+                                       "matches": "file",
+                                       "options": {
+                                          "ignoreCase": true
+                                       }
+                                    }
+                                 }
+                              ]
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr",
+                     "defaultCharset": "iso-8859-1",
+                     "adaFileDiagnostics": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": { "kind": "end" }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkg.ads}",
+                  "languageId": "Ada",
+                  "text": "package Pkg is\n   procedure M;\nend Pkg;"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkg.ads}"
+               },
+               "range": {
+                  "start": { "line": 1, "character": 4 },
+                  "end": { "line": 1, "character": 4 }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 2,
+               "result": [
+                  "<HAS>",
+                  {
+                     "title": "Generate Package Body",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "command": "als-refactor-generate-package-body",
+                        "arguments": [
+                           {
+                              "context_id": "$URI{default.gpr}",
+                              "body_path": "${DIR}${DIR_SEP}pkg.adb",
+                              "spec_loc": {
+                                 "uri": "$URI{pkg.ads}",
+                                 "range": {
+                                    "start": { "line": 0, "character": 0 },
+                                    "end": { "line": 2, "character": 8 }
+                                 }
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "workspace/executeCommand",
+            "params": {
+               "arguments": [
+                  {
+                     "context_id": "$URI{default.gpr}",
+                     "body_path": "${DIR}${DIR_SEP}pkg.adb",
+                     "spec_loc": {
+                        "range": {
+                           "start": { "line": 0, "character": 0 },
+                           "end": { "line": 2, "character": 8 }
+                        },
+                        "uri": "$URI{pkg.ads}"
+                     }
+                  }
+               ],
+               "command": "als-refactor-generate-package-body"
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "method": "workspace/applyEdit",
+               "params": {
+                  "edit": {
+                     "documentChanges": [
+                        {
+                           "kind": "create",
+                           "uri": "$URI{pkg.adb}"
+                        },
+                        {
+                           "edits": [
+                              {
+                                 "newText": "package body Pkg is\n\n   procedure M is\n   begin\n      \n   end M;\nend Pkg;\n",
+                                 "range": {
+                                    "start": { "line": 0, "character": 0 },
+                                    "end": { "line": 0, "character": 0 }
+                                 }
+                              }
+                           ],
+                           "textDocument": {
+                              "uri": "$URI{pkg.adb}",
+                              "version": 1
+                           }
+                        }
+                     ]
+                  },
+                  "label": "Generate Package Body"
+               }
+            },
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
