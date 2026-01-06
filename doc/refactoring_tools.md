@@ -155,8 +155,8 @@ See `src/lal_refactor-extract_variable.ads` in [LAL Refactor repository](https:/
 
 **Command name:** `als-refactor-generate-package-body`
 
-* Refactoring available when user is inside package spec
-* Only available if package spec includes subprogram declarations
+* Refactoring available if package spec includes subprogram declarations
+* Only offered when cursor is in `package Spec is`, `private`, or `end Spec` lines
 * Checks whether a matching package body already exists:
   * **Generate Package Body** if none found:
     * create new file in same directory
@@ -166,7 +166,7 @@ See `src/lal_refactor-extract_variable.ads` in [LAL Refactor repository](https:/
     * update with new subprogram body stubs
 * Not available for `generic` declarations
 * Package body must be locatable by project otherwise will not be found.
-* If file exists but is empty or lacks a `package body Example is` declaration, refactoring will fail.
+* If file exists but is empty or lacks a package declaration, refactoring will fail.
 
 Source: `src/lal_refactor-generate_package.ads` in [LAL Refactor](https://github.com/AdaCore/lal-refactor).
 

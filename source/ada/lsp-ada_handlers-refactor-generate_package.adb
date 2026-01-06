@@ -130,9 +130,9 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
         Handler.Contexts.Get (Self.Context_Id).all;
       Document  : constant LSP.Ada_Documents.Document_Access :=
         Handler.Get_Open_Document (Self.Spec_Loc.uri);
-      Unit      : constant Analysis_Unit :=
-        Document.Get_Node_At (Context, Self.Spec_Loc.a_range.start).Unit;
-      Spec      : constant Base_Package_Decl := To_Package_Decl (Unit);
+      Node      : constant Ada_Node :=
+        Document.Get_Node_At (Context, Self.Spec_Loc.a_range.start);
+      Spec      : constant Base_Package_Decl := To_Package_Decl (Node);
 
       function Analysis_Units return Analysis_Unit_Array
       is (Context.Analysis_Units);
@@ -141,8 +141,8 @@ package body LSP.Ada_Handlers.Refactor.Generate_Package is
          Edits.Diagnostics.Append
            (Problem
               ("Target package specification could not be precisely located.",
-               Unit.Get_Filename,
-               Handler.From_LSP_Range (Unit, Self.Spec_Loc.a_range)));
+               Node.Unit.Get_Filename,
+               Handler.From_LSP_Range (Node.Unit, Self.Spec_Loc.a_range)));
       else
          Edits :=
            Build_Package_Generator (Spec).Refactor

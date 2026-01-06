@@ -1,6 +1,8 @@
 [
    {
-      "comment": ["test Generate Package Body"]
+      "comment": [
+         "Generate Package Body should only be triggered on package declaration lines"
+      ]
    },
    {
       "start": { "cmd": ["${ALS}"] }
@@ -128,7 +130,7 @@
                "textDocument": {
                   "uri": "$URI{pkg.ads}",
                   "languageId": "Ada",
-                  "text": "package Pkg is\n   procedure M;\nend Pkg;"
+                  "text": "package Pkg is\n   type T is private;\n   procedure Print (Item : T);\nprivate\n   type T is (Some, Enum);\nend Pkg;"
                }
             }
          },
@@ -146,14 +148,70 @@
                   "uri": "$URI{pkg.ads}"
                },
                "range": {
-                  "start": { "line": 0, "character": 4 },
-                  "end": { "line": 0, "character": 4 }
+                  "start": { "line": 1, "character": 8 },
+                  "end": { "line": 1, "character": 8 }
                }
             }
          },
          "wait": [
             {
                "id": 2,
+               "result": [
+                  "<DOES_NOT_HAVE>",
+                  {
+                     "title": "Generate Package Body"
+                  },
+                  {
+                     "title": "Update Package Body"
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkg.ads}"
+               },
+               "range": {
+                  "start": { "line": 2, "character": 0 },
+                  "end": { "line": 2, "character": 0 }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkg.ads}"
+               },
+               "range": {
+                  "start": { "line": 3, "character": 0 },
+                  "end": { "line": 3, "character": 0 }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
                "result": [
                   "<HAS>",
                   {
@@ -169,7 +227,7 @@
                                  "uri": "$URI{pkg.ads}",
                                  "range": {
                                     "start": { "line": 0, "character": 0 },
-                                    "end": { "line": 2, "character": 8 }
+                                    "end": { "line": 5, "character": 8 }
                                  }
                               }
                            }
@@ -185,59 +243,114 @@
       "send": {
          "request": {
             "jsonrpc": "2.0",
-            "id": 3,
-            "method": "workspace/executeCommand",
+            "id": 5,
+            "method": "textDocument/codeAction",
             "params": {
-               "arguments": [
-                  {
-                     "context_id": "$URI{default.gpr}",
-                     "body_path": "${DIR}${DIR_SEP}pkg.adb",
-                     "spec_loc": {
-                        "range": {
-                           "start": { "line": 0, "character": 0 },
-                           "end": { "line": 2, "character": 8 }
-                        },
-                        "uri": "$URI{pkg.ads}"
-                     }
-                  }
-               ],
-               "command": "als-refactor-generate-package-body"
+               "textDocument": {
+                  "uri": "$URI{pkg.ads}"
+               },
+               "range": {
+                  "start": { "line": 4, "character": 5 },
+                  "end": { "line": 4, "character": 5 }
+               }
             }
          },
          "wait": [
             {
-               "id": 3,
-               "method": "workspace/applyEdit",
-               "params": {
-                  "edit": {
-                     "documentChanges": [
-                        {
-                           "kind": "create",
-                           "uri": "$URI{pkg.adb}"
-                        },
-                        {
-                           "edits": [
-                              {
-                                 "newText": "package body Pkg is\n\n   procedure M is\n   begin\n      \n   end M;\nend Pkg;\n",
+               "id": 5,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkg.ads}"
+               },
+               "range": {
+                  "start": { "line": 5, "character": 0 },
+                  "end": { "line": 5, "character": 0 }
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": [
+                  "<HAS>",
+                  {
+                     "title": "Generate Package Body",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "command": "als-refactor-generate-package-body",
+                        "arguments": [
+                           {
+                              "context_id": "$URI{default.gpr}",
+                              "body_path": "${DIR}${DIR_SEP}pkg.adb",
+                              "spec_loc": {
+                                 "uri": "$URI{pkg.ads}",
                                  "range": {
                                     "start": { "line": 0, "character": 0 },
-                                    "end": { "line": 0, "character": 0 }
+                                    "end": { "line": 5, "character": 8 }
                                  }
                               }
-                           ],
-                           "textDocument": {
-                              "uri": "$URI{pkg.adb}",
-                              "version": 1
                            }
-                        }
-                     ]
-                  },
-                  "label": "Generate Package Body"
+                        ]
+                     }
+                  }
+               ]
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "textDocument/codeAction",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{pkg.ads}"
+               },
+               "range": {
+                  "start": { "line": 5, "character": 5 },
+                  "end": { "line": 5, "character": 5 }
                }
-            },
+            }
+         },
+         "wait": [
             {
-               "id": 3,
-               "result": null
+               "id": 7,
+               "result": [
+                  "<HAS>",
+                  {
+                     "title": "Generate Package Body",
+                     "kind": "refactor.rewrite",
+                     "command": {
+                        "command": "als-refactor-generate-package-body",
+                        "arguments": [
+                           {
+                              "context_id": "$URI{default.gpr}",
+                              "body_path": "${DIR}${DIR_SEP}pkg.adb",
+                              "spec_loc": {
+                                 "uri": "$URI{pkg.ads}",
+                                 "range": {
+                                    "start": { "line": 0, "character": 0 },
+                                    "end": { "line": 5, "character": 8 }
+                                 }
+                              }
+                           }
+                        ]
+                     }
+                  }
+               ]
             }
          ]
       }
