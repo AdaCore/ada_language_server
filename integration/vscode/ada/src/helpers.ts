@@ -24,6 +24,11 @@ import winston from 'winston';
 
 import { existsSync } from 'fs';
 import { EXTENSION_NAME, adaExtState, logger, mainOutputChannel } from './extension';
+import {
+    ALS_GprDependencyDirection,
+    ALS_GprDependencyItem,
+    ALS_GprDependencyParam,
+} from './visualizerTypes';
 
 /* Whether we are under Windows */
 const isWindows = process.platform === 'win32';
@@ -727,3 +732,54 @@ export function getMatchingPrefixes(
  * environment.
  */
 export const inTesting = process.env['ALS_VSCODE_TEST_ENV'] === '1';
+
+/**
+ * Check if a document is a .gpr file that belongs to the currently loaded project tree.
+ * Returns true if the document is either the root project file or part of its dependencies.
+ *
+ * @param document - the document to check
+ * @param logger - a logger instance to log errors
+ * @returns true if the document is a .gpr file that belongs to the loaded project tree
+ */
+export async function belongsToLoadedProject(
+    document: vscode.TextDocument,
+    logger: winston.Logger,
+): Promise<boolean> {
+    // Only check GPR files
+    if (document.languageId !== 'gpr') {
+        return false;
+    }
+
+    try {
+        // Get the currently loaded project file
+        const currentProjectFile = await adaExtState.getProjectFile();
+        const currentProjectUri = vscode.Uri.file(currentProjectFile);
+
+        // Check if the document is the current project file
+        if (document.uri.fsPath === currentProjectUri.fsPath) {
+            return true;
+        }
+
+        // Get the project dependencies
+        const dependencies = await vscode.commands.executeCommand<ALS_GprDependencyItem[]>(
+            'als-gpr-dependencies',
+            {
+                uri: currentProjectUri.toString(),
+                direction: ALS_GprDependencyDirection.SHOW_OUTGOING,
+            } as ALS_GprDependencyParam,
+        );
+
+        if (dependencies) {
+            // Check if the document is in the dependencies
+            return dependencies.some((dep) => {
+                const depUri = vscode.Uri.parse(dep.uri);
+                return depUri.fsPath === document.uri.fsPath;
+            });
+        }
+
+        return false;
+    } catch (error) {
+        logger.error('Failed to check if document belongs to loaded project: ' + String(error));
+        return false;
+    }
+}

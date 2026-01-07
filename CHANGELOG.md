@@ -6,6 +6,7 @@ section below it for the last release. -->
 
 * Reload `e3-testsuite` tests automatically after configuration changes
 * Provide completion for tool switches (e.g., `Default_Switches`) in GPR files
+* Automatically reload the project when GPR files are saved
 
 ## 2026.0.202510141
 
