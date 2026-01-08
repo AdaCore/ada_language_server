@@ -213,6 +213,89 @@ suite('Extensions Test Suite', function () {
         }
     });
 
+    test('Auto Reload Project On Save', async () => {
+        if (vscode.workspace.workspaceFolders !== undefined) {
+            // Get the workspace root folder
+            const folder = vscode.workspace.workspaceFolders[0].uri;
+
+            // Set the 'Always' preference for auto-reload, just for this test
+            const alwaysReloadKey = 'ada.autoReloadProject.alwaysReload';
+            await adaExtState.context.workspaceState.update(alwaysReloadKey, true);
+
+            try {
+                // Check that Exec_Dir is not initially set (should be empty or default)
+                const initialExecDir = await adaExtState.getProjectAttributeValue('Exec_Dir');
+                assert.strictEqual(initialExecDir, 'obj', 'Exec_Dir should be initially "obj"');
+
+                // Open the GPR file
+                const fileUri = vscode.Uri.joinPath(folder, 'prj.gpr');
+                const document = await vscode.workspace.openTextDocument(fileUri);
+                const editor = await vscode.window.showTextDocument(document);
+
+                // Store the original content
+                const contentBefore = document.getText();
+
+                // Edit the document to add Exec_Dir attribute
+                const text = document.getText();
+                const modifiedText = text.replace(
+                    '    for Object_Dir use "obj";',
+                    '    for Object_Dir use "obj";\n    for Exec_Dir use "bin";',
+                );
+
+                await editor.edit((editBuilder) => {
+                    const fullRange = new vscode.Range(
+                        document.positionAt(0),
+                        document.positionAt(text.length),
+                    );
+                    editBuilder.replace(fullRange, modifiedText);
+                });
+
+                // Save the document to trigger the auto-reload
+                await document.save();
+
+                // Wait a bit for the auto-reload to complete
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                // Check that Exec_Dir has been set to "bin"
+                const newExecDir = await adaExtState.getProjectAttributeValue('Exec_Dir');
+                assert.strictEqual(
+                    newExecDir,
+                    'bin',
+                    'Exec_Dir should be set to "bin" after auto-reload',
+                );
+
+                // Restore the original content using the VS Code API
+                const currentText = document.getText();
+                await editor.edit((editBuilder) => {
+                    const fullRange = new vscode.Range(
+                        document.positionAt(0),
+                        document.positionAt(currentText.length),
+                    );
+                    editBuilder.replace(fullRange, contentBefore);
+                });
+
+                // Save again to trigger another auto-reload
+                await document.save();
+
+                // Wait for the auto-reload
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                // Check that Exec_Dir is back to its initial value
+                const restoredExecDir = await adaExtState.getProjectAttributeValue('Exec_Dir');
+                assert.strictEqual(
+                    restoredExecDir,
+                    initialExecDir,
+                    'Exec_Dir should be restored to its initial value',
+                );
+            } finally {
+                // Clear the 'Always' preference
+                await adaExtState.context.workspaceState.update(alwaysReloadKey, undefined);
+            }
+        } else {
+            throw new Error('No workspace folder found for the specified URI');
+        }
+    });
+
     test('Split long comments on ENTER', async () => {
         if (vscode.workspace.workspaceFolders !== undefined) {
             // Get a file with a long comment (>80 chars)
