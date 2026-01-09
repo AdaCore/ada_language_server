@@ -13,6 +13,7 @@ import {
     CMD_BUILD_AND_RUN_GNATEMULATOR,
     CMD_BUILD_AND_RUN_MAIN,
     CMD_GPR_PROJECT_ARGS,
+    CMD_RELOAD_PROJECT,
     CMD_RESTART_LANG_SERVERS,
     CMD_OPEN_USERS_GUIDE,
     CMD_SHOW_ADA_LS_OUTPUT,
@@ -739,6 +740,51 @@ export async function checkSrcDirectories(atStartup = false, displayYesNoPopup =
             );
         }
     }
+}
+
+/**
+ * Display a popup asking the user if they want to reload the GPR project.
+ * The popup has four options:
+ * - "Yes": executes CMD_RELOAD_PROJECT
+ * - "Always": executes CMD_RELOAD_PROJECT and stores a preference to always reload without asking
+ * - "No": does nothing
+ * - "Never": does nothing and stores a preference to never ask again
+ */
+export async function autoReloadProject() {
+    const alwaysReloadKey = 'ada.autoReloadProject.alwaysReload';
+    const neverReloadKey = 'ada.autoReloadProject.neverReload';
+    const alwaysReload = adaExtState.context.workspaceState.get(alwaysReloadKey);
+    const neverReload = adaExtState.context.workspaceState.get(neverReloadKey);
+
+    // If the user previously clicked "Always", reload without asking
+    if (alwaysReload) {
+        await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
+        return;
+    }
+
+    // If the user previously clicked "Never", don't ask and don't reload
+    if (neverReload) {
+        return;
+    }
+
+    // Ask the user if they want to reload the project
+    const answer = await vscode.window.showInformationMessage(
+        'Do you want to reload the project after saving?',
+        'Yes',
+        'Always',
+        'No',
+        'Never',
+    );
+
+    if (answer === 'Yes') {
+        await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
+    } else if (answer === 'Always') {
+        await vscode.commands.executeCommand(CMD_RELOAD_PROJECT);
+        await adaExtState.context.workspaceState.update(alwaysReloadKey, true);
+    } else if (answer === 'Never') {
+        await adaExtState.context.workspaceState.update(neverReloadKey, true);
+    }
+    // If answer is 'No' or undefined (user dismissed the dialog), do nothing
 }
 
 /*

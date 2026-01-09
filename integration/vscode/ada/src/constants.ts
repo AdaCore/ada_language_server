@@ -82,6 +82,12 @@ export const CMD_SHOW_GPR_LS_OUTPUT = 'ada.showGprLSOutput';
 export const CMD_RELOAD_PROJECT = 'als-reload-project';
 
 /**
+ * Identifier for the command that retrieves the list of dependencies of the specified
+ * GPR project.
+ */
+export const CMD_GPR_PROJECT_DEPENDENCIES = 'als-gpr-dependencies';
+
+/**
  * Identifier for the command that restarts all the language servers spawned by the extension
  * (Ada and GPR).
  */

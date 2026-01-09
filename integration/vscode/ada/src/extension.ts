@@ -24,10 +24,11 @@ import Transport from 'winston-transport';
 import { ExtensionState } from './ExtensionState';
 import { ALSClientFeatures } from './alsClientFeatures';
 import { alsCommandExecutor } from './alsExecuteCommand';
-import { registerCommands } from './commands';
+import { autoReloadProject, registerCommands } from './commands';
 import {
     TERMINAL_ENV_SETTING_NAME,
     assertSupportedEnvironments,
+    belongsToLoadedProject,
     getEvaluatedTerminalEnv,
     startedInDebugMode,
 } from './helpers';
@@ -165,6 +166,16 @@ async function activateExtension(context: vscode.ExtensionContext) {
     // Subscribe to the didChangeDiagnostics event to update the status bar item's content
     context.subscriptions.push(
         vscode.languages.onDidChangeDiagnostics(adaExtState.updateStatusBarItem),
+    );
+
+    // Subscribe to the didSaveTextDocument event to reload the project when .gpr files
+    // that belong to the loaded project tree are saved
+    context.subscriptions.push(
+        vscode.workspace.onDidSaveTextDocument(async (document) => {
+            if (await belongsToLoadedProject(document, logger)) {
+                void autoReloadProject();
+            }
+        }),
     );
 
     const alsMiddleware: Middleware = {
