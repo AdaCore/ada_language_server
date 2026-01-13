@@ -1,5 +1,5 @@
 --
---  Copyright (C) 2022-2023, AdaCore
+--  Copyright (C) 2022-2026, AdaCore
 --
 --  SPDX-License-Identifier: Apache-2.0
 --
@@ -138,6 +138,11 @@ package LSP.Constants is
    function True
      return LSP.Structures.Boolean_Or_DocumentRangeFormattingOptions_Optional
       is (Is_Set => True, Value => (Is_Boolean => True, Boolean => True));
+
+   function True
+     return
+       LSP.Structures.linkedEditingRangeProvider_OfServerCapabilities_Optional
+         is (Is_Set => True, Value => (LSP.Structures.Variant_1, True));
 
    function True
      return LSP.Structures.selectionRangeProvider_OfServerCapabilities_Optional

@@ -1,0 +1,165 @@
+[
+  {
+    "comment": [
+      "This test checks textDocument/linkedEditingRange request."
+    ]
+  },
+  {
+    "start": {
+      "cmd": [
+        "${ALS}"
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 0,
+        "method": "initialize",
+        "params": {
+          "processId": 1,
+          "rootUri": "$URI{.}",
+          "capabilities": {}
+        }
+      },
+      "wait": [
+        {
+          "id": 0,
+          "result": {
+            "capabilities": {
+              "textDocumentSync": 2,
+              "linkedEditingRangeProvider": true
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "workspace/didChangeConfiguration",
+        "params": {
+          "settings": {}
+        }
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{main.adb}",
+            "languageId": "ada",
+            "version": 1,
+            "text": "with System;\nprocedure Main is\n   use type System.Address;\nbegin\n   if Main'Address = System.Null_Address then \n      Main;\n   end if;\nend Main;\n"
+          }
+        }
+      },
+      "wait": []
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "rename-1",
+        "method": "textDocument/linkedEditingRange",
+        "params": {
+          "textDocument": {
+            "uri": "$URI{main.adb}"
+          },
+          "position": {
+            "line": 1,
+            "character": 13
+          }
+        }
+      },
+      "wait": [
+        {
+          "id": "rename-1",
+          "result": {
+            "ranges": [
+              {
+                "start": {
+                  "line": 4,
+                  "character": 6
+                },
+                "end": {
+                  "line": 4,
+                  "character": 10
+                }
+              },
+              {
+                "start": {
+                  "line": 5,
+                  "character": 6
+                },
+                "end": {
+                  "line": 5,
+                  "character": 10
+                }
+              },
+              {
+                "start": {
+                  "line": 7,
+                  "character": 4
+                },
+                "end": {
+                  "line": 7,
+                  "character": 8
+                }
+              },
+              {
+                "start": {
+                  "line": 1,
+                  "character": 10
+                },
+                "end": {
+                  "line": 1,
+                  "character": 14
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "id": "shutdown",
+        "method": "shutdown",
+        "params": null
+      },
+      "wait": [
+        {
+          "id": "shutdown",
+          "result": null
+        }
+      ]
+    }
+  },
+  {
+    "send": {
+      "request": {
+        "jsonrpc": "2.0",
+        "method": "exit"
+      },
+      "wait": []
+    }
+  },
+  {
+    "stop": {
+      "exit_code": 0
+    }
+  }
+]

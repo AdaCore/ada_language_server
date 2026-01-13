@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -420,6 +420,7 @@ package body LSP.Ada_Client_Capabilities is
          Result.hoverProvider                   := LSP.Constants.True;
          Result.implementationProvider          := LSP.Constants.True;
          Result.inlineValueProvider             := LSP.Constants.True;
+         Result.linkedEditingRangeProvider      := LSP.Constants.True;
          Result.referencesProvider              := LSP.Constants.True;
          Result.selectionRangeProvider          := LSP.Constants.True;
          Result.typeDefinitionProvider          := LSP.Constants.True;
