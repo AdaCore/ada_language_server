@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+* Implementation `textDocument/linkedEditingRange` for defining names
+
 ## 2026.1.202601121
 
 * Reload `e3-testsuite` tests automatically after configuration changes

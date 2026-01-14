@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -88,6 +88,7 @@ with LSP.Ada_Handlers.Suspend_Executions;
 with LSP.Ada_Handlers;
 with LSP.Ada_Hover;
 with LSP.Ada_Inline_Value;
+with LSP.Ada_Linked_Editing_Range;
 with LSP.Ada_Prepare_Type_Hierarchy;
 with LSP.Ada_Projects;
 with LSP.Ada_References;
@@ -125,6 +126,7 @@ with LSP.Server_Requests.FoldingRange;
 with LSP.Server_Requests.Hover;
 with LSP.Server_Requests.Initialize;
 with LSP.Server_Requests.InlineValue;
+with LSP.Server_Requests.LinkedEditingRange;
 with LSP.Server_Requests.OnTypeFormatting;
 with LSP.Server_Requests.PrepareTypeHierarchy;
 with LSP.Server_Requests.RangeFormatting;
@@ -352,6 +354,10 @@ procedure LSP.Ada_Driver is
 
    Ada_Inline_Value_Handler : aliased
      LSP.Ada_Inline_Value.Ada_Inline_Value_Handler
+       (Ada_Handler'Unchecked_Access);
+
+   Ada_Linked_Editing_Handler : aliased
+     LSP.Ada_Linked_Editing_Range.Ada_Linked_Editing_Range_Handler
        (Ada_Handler'Unchecked_Access);
 
    Ada_Tokens_Full_Handler : aliased
@@ -778,6 +784,10 @@ begin
          Server.Register_Handler
            (LSP.Server_Requests.References.Request'Tag,
             Ada_References_Handler'Unchecked_Access);
+
+         Server.Register_Handler
+           (LSP.Server_Requests.LinkedEditingRange.Request'Tag,
+            Ada_Linked_Editing_Handler'Unchecked_Access);
 
          Server.Run
            (Ada_Handler'Unchecked_Access,
