@@ -4,6 +4,8 @@
 section below it for the last release. -->
 ## \<next>
 
+## 2026.1.202601121
+
 * Reload `e3-testsuite` tests automatically after configuration changes
 * Provide completion for tool switches (e.g., `Default_Switches`) in GPR files
 * New refactoring: [Generate Package Body](https://github.com/AdaCore/ada_language_server/blob/master/doc/refactoring_tools.md#generate-package-body)
