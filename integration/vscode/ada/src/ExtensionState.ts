@@ -24,6 +24,7 @@ import { TERMINAL_ENV_SETTING_NAME, exe, getArgValue, getEvaluatedTerminalEnv } 
 import {
     SimpleTaskDef,
     SimpleTaskProvider,
+    TASK_GNATSAS_REPORT,
     TASK_TYPE_ADA,
     TASK_TYPE_SPARK,
     createAdaTaskProvider,
@@ -702,7 +703,7 @@ export class ExtensionState {
 const currentlyOpenedSASSarifs: Set<vscode.Uri> = new Set();
 const currentlyOpenedGnatproveSarifs: Set<vscode.Uri> = new Set();
 
-async function closeSARIFViewerIfNeeded(e: vscode.TaskEndEvent) {
+async function closeSARIFViewerIfNeeded(e: vscode.TaskStartEvent) {
     /**
      * SARIF reports need to be closed and reopened to refresh their content.
      *
@@ -710,13 +711,29 @@ async function closeSARIFViewerIfNeeded(e: vscode.TaskEndEvent) {
      * SARIF Viewer seems to trigger sporadic errors. So it's better to close
      * the SARIF report at the start of the task.
      *
+     * Finally, closing the SARIF report at the start of the task avoids the
+     * situation where the analysis fails and an obsolete report is still
+     * displayed in the viewer.
+     *
      * Reports must be managed separately for GNATprove and for GNAT
      * SAS because we don't want an execution of GNAT SAS to close
      * reports opened for GNATprove and vice versa.
      */
 
     const task = e.execution.task;
-    if (task.definition.type == TASK_TYPE_SPARK || isGnatSASSarifTask(task)) {
+    if (
+        task.definition.type == TASK_TYPE_SPARK ||
+        isGnatSASSarifTask(task) ||
+        /**
+         * Closing the report at the start of the `gnatsas report sarif` task
+         * is not enough since that task is not reached if the `gnatsas analyze`
+         * step fails.
+         *
+         * Consequently, we close the report also when the GNAT SAS
+         * analyze+report compound task is started.
+         */
+        isGnatSASCompoundSarifTask(task)
+    ) {
         const sarif = await getSarifExtAPI();
         if (sarif) {
             const current =
@@ -737,16 +754,28 @@ function isGnatSASSarifTask(task: vscode.Task): boolean {
     );
 }
 
+function isGnatSASCompoundSarifTask(task: vscode.Task): boolean {
+    return (
+        task.definition.type == TASK_TYPE_ADA &&
+        !!(task.definition as SimpleTaskDef).compound?.some((t) =>
+            t.includes(TASK_GNATSAS_REPORT.label),
+        )
+    );
+}
+
 /**
  *
  * Open the SARIF Viewer if the given task outputs its results in
  * a SARIF file (e.g: GNAT SAS Report task).
  */
-async function openSARIFViewerIfNeeded(e: vscode.TaskStartEvent) {
+async function openSARIFViewerIfNeeded(e: vscode.TaskProcessEndEvent) {
     const task = e.execution.task;
     const definition: SimpleTaskDef = task.definition;
 
-    if (definition) {
+    /**
+     * Open the SARIF Viewer only if the task executed successfully.
+     */
+    if (definition && e.exitCode === 0) {
         const args = definition.args;
 
         if (definition.type == TASK_TYPE_SPARK || isGnatSASSarifTask(task)) {
