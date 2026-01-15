@@ -1,15 +1,13 @@
 [
    {
       "comment": [
-          "Test param completion for: expression function, null procedure and",
-          "procedure without a body"
+         "Test param completion for: expression function, null procedure and",
+         "procedure without a body"
       ]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -29,10 +27,7 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ]
+                           "documentationFormat": ["markdown", "plaintext"]
                         }
                      }
                   },
@@ -43,24 +38,19 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
@@ -81,23 +71,23 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile":"$URI{default.gpr}"
+                     "projectFile": "$URI{default.gpr}"
                   }
                }
             }
          },
          "wait": [
             {
-                "jsonrpc": "2.0",
-                "method": "$/progress",
-                "params": {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
                   "token": "<ANY>",
                   "value": {
-                    "kind": "end"
+                     "kind": "end"
                   }
-                }
+               }
             }
-        ]
+         ]
       }
    },
    {
@@ -145,7 +135,7 @@
                      {
                         "label": "Params of Bar",
                         "kind": 15,
-                        "detail": "procedure Bar (C : String)",
+                        "detail": "Foo.Bar\n\nprocedure Bar (C : String)",
                         "documentation": "at foo.adb (5:4)",
                         "sortText": "+00",
                         "insertText": "C => ${1:String})$0",
@@ -161,7 +151,7 @@
                      {
                         "label": "Params of Bar",
                         "kind": 15,
-                        "detail": "procedure Bar (A, B : Integer)",
+                        "detail": "Foo.Bar\n\nprocedure Bar (A, B : Integer)",
                         "documentation": "at foo.adb (4:4)",
                         "sortText": "+02",
                         "insertText": "${1:A : Integer}, ${2:B : Integer})$0",
@@ -184,7 +174,7 @@
                      {
                         "label": "Params of Bar",
                         "kind": 15,
-                        "detail": "function Bar\n  (I, J, K : Integer; L : Float := 1.0) return Float",
+                        "detail": "Foo.Bar\n\nfunction Bar\n  (I, J, K : Integer; L : Float := 1.0) return Float",
                         "documentation": "at foo.adb (2:4)",
                         "sortText": "+05",
                         "insertText": "I => ${1:Integer}, J => ${2:Integer}, K => ${3:Integer}, L => ${4:Float})$0",

@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-          "Check Is_Visible result from libadalang completion property"
+         "Check Is_Visible result from libadalang completion property"
       ]
    },
    {
@@ -42,24 +42,24 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
@@ -80,23 +80,23 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile":"default.gpr"
+                     "projectFile": "default.gpr"
                   }
                }
             }
          },
          "wait": [
             {
-                "jsonrpc": "2.0",
-                "method": "$/progress",
-                "params": {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
                   "token": "<ANY>",
                   "value": {
-                    "kind": "end"
+                     "kind": "end"
                   }
-                }
+               }
             }
-        ]
+         ]
       }
    },
    {
@@ -135,7 +135,14 @@
                }
             }
          },
-         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "sortReply": {
+            "result": {
+               "items": [
+                  "label",
+                  "documentation"
+               ]
+            }
+         },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -146,18 +153,18 @@
                      {
                         "label": "Child",
                         "kind": 9,
-                        "detail": "package Pkg_1.Child",
+                        "detail": "Pkg_1.Child\n\npackage Pkg_1.Child",
                         "documentation": "at pkg_1-child.ads (3:1)",
                         "sortText": "100&00001Child"
                      },
                      {
                         "label": "Child2 (invisible)",
                         "kind": 9,
-                        "detail": "package Pkg_1.Child2",
+                        "detail": "Pkg_1.Child2\n\npackage Pkg_1.Child2",
                         "documentation": "at pkg_1-child2.ads (1:1)",
                         "sortText": "~100&00002Child2",
                         "insertText": "Child2"
-                      }
+                     }
                   ]
                }
             }

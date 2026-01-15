@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-          "Test completion for Generic package parameters"
+         "Test completion for Generic package parameters"
       ]
    },
    {
@@ -71,26 +71,26 @@
             "id": 1,
             "method": "initialize"
          },
-          "wait": [
-              {
-                  "jsonrpc": "2.0",
-                  "id": 1,
-                  "result": {
-                      "capabilities": {
-                          "textDocumentSync": 2,
-                          "completionProvider": {
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ],
-                              "resolveProvider": true
-                          }
-                      }
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     }
                   }
-              }
-          ]
+               }
+            }
+         ]
       }
    },
    {
@@ -250,7 +250,7 @@
                "result": {
                   "label": "Params of G",
                   "kind": 15,
-                  "detail": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
+                  "detail": "G\n\ngeneric\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
                   "documentation": "at g.ads (3:1)\n\nSource:\n\n@formal Elt_Type\n@formal Elt_Ptr",
                   "sortText": "+0",
                   "insertText": "${1:Elt_Type : type Elt_Type(<>) is limited private;}, ${2:Elt_Ptr : type Elt_Ptr is access all Elt_Type;})$0",
@@ -485,7 +485,7 @@
                "result": {
                   "label": "Params of G",
                   "kind": 15,
-                  "detail": "generic\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
+                  "detail": "G\n\ngeneric\n    type Elt_Type(<>) is limited private;\n    type Elt_Ptr is access all Elt_Type;\npackage G",
                   "documentation": "at g.ads (3:1)\n\nSource:\n\n@formal Elt_Type\n@formal Elt_Ptr",
                   "sortText": "+0",
                   "insertText": " Elt_Ptr => ${2:type Elt_Ptr is access all Elt_Type;})$0",

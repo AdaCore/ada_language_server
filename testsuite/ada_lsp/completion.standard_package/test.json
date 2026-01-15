@@ -210,7 +210,7 @@
                      {
                         "label": "Standard",
                         "kind": 9,
-                        "detail": "package Standard",
+                        "detail": "Standard\n\npackage Standard",
                         "documentation": "at __standard (1:1)",
                         "sortText": "100&00001Standard"
                      }

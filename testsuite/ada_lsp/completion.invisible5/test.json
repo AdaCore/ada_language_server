@@ -146,7 +146,7 @@
                         {
                            "label": "Ada",
                            "kind": 9,
-                           "detail": "package Ada",
+                           "detail": "Ada\n\npackage Ada",
                            "documentation": "<ANY>",
                            "sortText": "100&00001Ada"
                         }

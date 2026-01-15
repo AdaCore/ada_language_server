@@ -1,14 +1,10 @@
 [
    {
-      "comment": [
-         "test automatically generated"
-      ]
+      "comment": ["test automatically generated"]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -28,10 +24,7 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ]
+                           "documentationFormat": ["markdown", "plaintext"]
                         }
                      }
                   },
@@ -42,24 +35,19 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
@@ -172,7 +160,7 @@
                         "sortText": "+0",
                         "insertText": " A => ${2:Integer}, B => ${3:Float})$0",
                         "insertTextFormat": 2,
-                        "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                        "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
                         "documentation": "at bar.ads (11:4)"
                      },
                      {
@@ -197,7 +185,7 @@
                         "sortText": "+3",
                         "insertText": " ${2:B : Float})$0",
                         "insertTextFormat": 2,
-                        "detail": "procedure Hello (A : Integer; B : Float)",
+                        "detail": "Bar.Hello\n\nprocedure Hello (A : Integer; B : Float)",
                         "documentation": "at bar.ads (3:4)"
                      },
                      {
@@ -275,7 +263,7 @@
                         "sortText": "+0",
                         "insertText": " A => ${2:Integer})$0",
                         "insertTextFormat": 2,
-                        "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                        "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
                         "documentation": "at bar.ads (11:4)"
                      },
                      {
@@ -353,7 +341,7 @@
                         "sortText": "+0",
                         "insertText": " ${2:B : Float})$0",
                         "insertTextFormat": 2,
-                        "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                        "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
                         "documentation": "at bar.ads (11:4)"
                      },
                      {

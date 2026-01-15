@@ -1,10 +1,10 @@
 [
    {
       "comment": [
-          "This test checks that the completionItems' 'documentation' and ",
-          "'detail' fields are computed lazily via the completionItem/resolve ",
-          "request, and not directly when seinding the results in response ",
-          "to 'textDocument/completion' request."
+         "This test checks that the completionItems' 'documentation' and ",
+         "'detail' fields are computed lazily via the completionItem/resolve ",
+         "request, and not directly when seinding the results in response ",
+         "to 'textDocument/completion' request."
       ]
    },
    {
@@ -35,10 +35,12 @@
                               "markdown",
                               "plaintext"
                            ],
-                            "resolveSupport":{
-                                "properties":[
-                                    "documentation",
-                                    "detail"]}
+                           "resolveSupport": {
+                              "properties": [
+                                 "documentation",
+                                 "detail"
+                              ]
+                           }
                         }
                      }
                   },
@@ -49,24 +51,24 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
@@ -208,7 +210,7 @@
                "result": {
                   "label": "Select_Some",
                   "kind": 3,
-                  "detail": "procedure Select_Some",
+                  "detail": "Test.Select_Some\n\nprocedure Select_Some",
                   "documentation": "at test.ads (3:4)\n\nThis a very useful comment.",
                   "sortText": "100&00001Select_Some",
                   "insertTextFormat": 1,

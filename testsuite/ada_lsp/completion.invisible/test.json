@@ -1,10 +1,10 @@
 [
    {
       "comment": [
-          "Check invisible symbols in completion.",
-          " 1. Check symbols from unopen file.",
-          " 2. Check symbols from an edited file.",
-          " 3. Check symbols from a closed file."
+         "Check invisible symbols in completion.",
+         " 1. Check symbols from unopen file.",
+         " 2. Check symbols from an edited file.",
+         " 3. Check symbols from a closed file."
       ]
    },
    {
@@ -45,24 +45,24 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
@@ -83,23 +83,23 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile":"default.gpr"
+                     "projectFile": "default.gpr"
                   }
                }
             }
          },
          "wait": [
             {
-                "jsonrpc": "2.0",
-                "method": "$/progress",
-                "params": {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
                   "token": "<ANY>",
                   "value": {
-                    "kind": "end"
+                     "kind": "end"
                   }
-                }
+               }
             }
-        ]
+         ]
       }
    },
    {
@@ -138,7 +138,14 @@
                }
             }
          },
-         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "sortReply": {
+            "result": {
+               "items": [
+                  "label",
+                  "documentation"
+               ]
+            }
+         },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -150,14 +157,14 @@
                         "label": "Invisible (invisible)",
                         "insertText": "Invisible",
                         "kind": 6,
-                        "detail": "Invisible : Integer;",
+                        "detail": "Aaa.Invisible\n\nInvisible : Integer;",
                         "documentation": "at aaa.ads (2:4)",
                         "sortText": "~100&00000Invisible"
                      },
                      {
                         "label": "Invisible_Function (invisible)",
                         "kind": 3,
-                        "detail": "function Invisible_Function (X, Y : Integer) return Integer",
+                        "detail": "Aaa.Invisible_Function\n\nfunction Invisible_Function (X, Y : Integer) return Integer",
                         "documentation": "at aaa.ads (4:4)",
                         "sortText": "~100&00001Invisible_Function",
                         "insertText": "Invisible_Function"
@@ -246,7 +253,7 @@
                         "label": "Invisible (invisible)",
                         "insertText": "Invisible",
                         "kind": 6,
-                        "detail": "Invisible : Integer;",
+                        "detail": "Aaa.Invisible\n\nInvisible : Integer;",
                         "documentation": "at aaa.ads (3:4)",
                         "sortText": "~100&-00001Invisible"
                      }
@@ -289,7 +296,14 @@
                }
             }
          },
-         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "sortReply": {
+            "result": {
+               "items": [
+                  "label",
+                  "documentation"
+               ]
+            }
+         },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -301,14 +315,14 @@
                         "label": "Invisible (invisible)",
                         "insertText": "Invisible",
                         "kind": 6,
-                        "detail": "Invisible : Integer;",
+                        "detail": "Aaa.Invisible\n\nInvisible : Integer;",
                         "documentation": "at aaa.ads (2:4)",
                         "sortText": "~100&00000Invisible"
                      },
                      {
                         "label": "Invisible_Function (invisible)",
                         "kind": 3,
-                        "detail": "function Invisible_Function (X, Y : Integer) return Integer",
+                        "detail": "Aaa.Invisible_Function\n\nfunction Invisible_Function (X, Y : Integer) return Integer",
                         "documentation": "at aaa.ads (4:4)",
                         "sortText": "~100&00001Invisible_Function",
                         "insertText": "Invisible_Function"

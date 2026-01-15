@@ -7,7 +7,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -27,7 +29,10 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": ["markdown", "plaintext"]
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ]
                         }
                      }
                   },
@@ -45,7 +50,12 @@
                   "capabilities": {
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [".", ",", "'", "("],
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
                         "resolveProvider": true
                      }
                   }
@@ -136,7 +146,7 @@
                      {
                         "label": "Foo (invisible)",
                         "kind": 9,
-                        "detail": "package Bar.Foo",
+                        "detail": "Bar.Foo\n\npackage Bar.Foo",
                         "documentation": "at bar-foo.ads (1:1)",
                         "sortText": "~100&00001Foo",
                         "filterText": "Foo",

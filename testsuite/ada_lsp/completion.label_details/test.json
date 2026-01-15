@@ -1,0 +1,259 @@
+[
+   {
+      "comment": [
+         "This test checks that we correctly set labelDetails for both visible ",
+         "and invisible completion items. labelDetails should contain the unit ",
+         "fully qualified name for visible items"
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+               "processId": 100531,
+               "rootUri": "$URI{.}",
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": true
+                  },
+                  "textDocument": {
+                     "completion": {
+                        "completionItem": {
+                           "snippetSupport": true,
+                           "documentationFormat": ["plaintext", "markdown"],
+                           "labelDetailsSupport": true
+                        }
+                     }
+                  },
+                  "window": {
+                     "workDoneProgress": true
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {
+                  "ada": {
+                     "projectFile": "default.gpr"
+                  }
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
+                  "token": "<ANY>",
+                  "value": {
+                     "kind": "end"
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "with Pkg; use Pkg;\n\nprocedure Main is\n   V : Integer := Vis;\n   V : Integer := Invis;\nbegin\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 21
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 2,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Visible_Variable",
+                        "kind": 6,
+                        "sortText": "100&00002Visible_Variable",
+                        "detail": "Pkg.Visible_Variable\n\nVisible_Variable : Integer;",
+                        "documentation": "at pkg.ads (2:4)",
+                        "labelDetails": {
+                           "description": "Pkg"
+                        }
+                     },
+                     {
+                        "label": "Visible_Function",
+                        "kind": 3,
+                        "sortText": "100&00001Visible_Function",
+                        "insertText": "Visible_Function (${1:X : Integer})$0",
+                        "insertTextFormat": 2,
+                        "detail": "Pkg.Visible_Function\n\nfunction Visible_Function (X : Integer) return Integer",
+                        "documentation": "at pkg.ads (4:4)",
+                        "labelDetails": {
+                           "description": "Pkg"
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 4,
+                  "character": 23
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     {
+                        "label": "Invisible (invisible)",
+                        "kind": 9,
+                        "sortText": "~100&00001Invisible",
+                        "filterText": "Invisible",
+                        "insertText": "Invisible",
+                        "detail": "Invisible\n\npackage Invisible",
+                        "documentation": "at invisible.ads (1:1)",
+                        "labelDetails": {
+                           "description": "Invisible"
+                        },
+                        "command": {
+                           "title": "",
+                           "command": "als-auto-import",
+                           "arguments": [
+                              {
+                                 "context": "$URI{default.gpr}",
+                                 "where": {
+                                    "textDocument": {
+                                       "uri": "$URI{main.adb}"
+                                    },
+                                    "position": {
+                                       "line": 4,
+                                       "character": 18
+                                    }
+                                 },
+                                 "import": "Invisible",
+                                 "qualifier": ""
+                              }
+                           ]
+                        }
+                     },
+                     {
+                        "label": "Invisible_Function (invisible)",
+                        "kind": 3,
+                        "sortText": "~100&00000Invisible_Function",
+                        "filterText": "Invisible_Function",
+                        "insertText": "Invisible_Function",
+                        "detail": "Invisible.Invisible_Function\n\nfunction Invisible_Function (X : Integer) return Integer",
+                        "documentation": "at invisible.ads (4:4)",
+                        "labelDetails": {
+                           "description": "Invisible"
+                        }
+                     },
+                     {
+                        "label": "Invisible_Variable (invisible)",
+                        "kind": 6,
+                        "sortText": "~100&00001Invisible_Variable",
+                        "filterText": "Invisible_Variable",
+                        "insertText": "Invisible_Variable",
+                        "detail": "Invisible.Invisible_Variable\n\nInvisible_Variable : Integer;",
+                        "documentation": "at invisible.ads (2:4)",
+                        "labelDetails": {
+                           "description": "Invisible"
+                        }
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]

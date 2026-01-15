@@ -3,12 +3,10 @@
       "comment": [
          "Test the completion parameter for a procedure taking a tagged type"
       ]
-   }, 
+   },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -28,16 +26,10 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": [
-                              "markdown",
-                              "plaintext"
-                           ],
-                            "resolveSupport": {
-                                "properties": [
-                                    "documentation",
-                                    "detail"
-                                ]
-                            }
+                           "documentationFormat": ["markdown", "plaintext"],
+                           "resolveSupport": {
+                              "properties": ["documentation", "detail"]
+                           }
                         }
                      }
                   },
@@ -48,36 +40,31 @@
             }
          },
          "wait": [
-             {
-                 "jsonrpc": "2.0",
-                 "id": 1,
-                 "result": {
-                     "capabilities": {
-                         "textDocumentSync": 2,
-                         "completionProvider": {
-                             "triggerCharacters": [
-                                 ".",
-                                 ",",
-                                 "'",
-                                 "("
-                             ],
-                             "resolveProvider": true
-                         }
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
                      }
-                 }
-             }
+                  }
+               }
+            }
          ]
       }
    },
    {
       "send": {
          "request": {
-            "jsonrpc": "2.0", 
+            "jsonrpc": "2.0",
             "method": "initialized"
-         }, 
+         },
          "wait": []
       }
-   }, 
+   },
    {
       "send": {
          "request": {
@@ -89,10 +76,10 @@
                      "defaultCharset": "ISO-8859-1"
                   }
                }
-            }, 
-            "jsonrpc": "2.0", 
+            },
+            "jsonrpc": "2.0",
             "method": "workspace/didChangeConfiguration"
-         }, 
+         },
          "wait": []
       }
    },
@@ -279,7 +266,7 @@
                "result": {
                   "label": "Params of Hello",
                   "kind": 15,
-                  "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                  "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
                   "sortText": "+0",
                   "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
@@ -499,7 +486,7 @@
                "result": {
                   "label": "Params of Bar.Hello",
                   "kind": 15,
-                  "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                  "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
                   "sortText": "+0",
                   "insertText": "M => ${1:access My_Type}, A => ${2:Integer}, B => ${3:Float})$0",
@@ -678,7 +665,7 @@
                "result": {
                   "label": "Params of M.Hello",
                   "kind": 15,
-                  "detail": "procedure Hello (M : access My_Type; A : Integer; B : Float)",
+                  "detail": "Bar.Hello\n\nprocedure Hello (M : access My_Type; A : Integer; B : Float)",
                   "documentation": "at bar.ads (11:4)",
                   "sortText": "+0",
                   "insertText": "${1:A : Integer}, ${2:B : Float})$0",

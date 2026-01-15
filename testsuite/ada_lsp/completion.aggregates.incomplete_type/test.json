@@ -167,7 +167,7 @@
                      {
                         "insertText": "Value => ${1:Integer}, Succ => ${2:Link}, Pred => ${3:Link})$0",
                         "kind": 15,
-                        "detail": "type Cell is\nrecord\n   Value : Integer;\n   Succ  : Link;\n   Pred  : Link;\nend record;",
+                        "detail": "Main.Cell\n\ntype Cell is\nrecord\n   Value : Integer;\n   Succ  : Link;\n   Pred  : Link;\nend record;",
                         "label": "Aggregate for Cell",
                         "insertTextFormat": 2,
                         "documentation": "at main.adb (6:4)",
