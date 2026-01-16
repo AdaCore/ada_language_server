@@ -112,22 +112,24 @@ package body LSP.Ada_Completions is
    -----------------------
 
    procedure Write_Completions
-     (Handler                  : in out LSP.Ada_Handlers.Message_Handler;
-      Context                  : LSP.Ada_Contexts.Context;
-      Document                 : LSP.Ada_Documents.Document;
-      Sloc                     : Langkit_Support.Slocs.Source_Location;
-      Token                    : Libadalang.Common.Token_Reference;
-      Node                     : Libadalang.Analysis.Ada_Node;
-      Names                    : Completion_Maps.Map;
-      Named_Notation_Threshold : Natural;
-      Compute_Doc_And_Details  : Boolean;
-      Result                   : in out LSP.Structures.CompletionItem_Vector)
+     (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
+      Context                   : LSP.Ada_Contexts.Context;
+      Document                  : LSP.Ada_Documents.Document;
+      Sloc                      : Langkit_Support.Slocs.Source_Location;
+      Token                     : Libadalang.Common.Token_Reference;
+      Node                      : Libadalang.Analysis.Ada_Node;
+      Names                     : Completion_Maps.Map;
+      Named_Notation_Threshold  : Natural;
+      Compute_Doc_And_Details   : Boolean;
+      Has_Label_Details_Support : Boolean;
+      Result                    : in out LSP.Structures.CompletionItem_Vector)
    is
-      package String_Sets is new Ada.Containers.Hashed_Sets
-        (VSS.Strings.Virtual_String,
-         VSS.Strings.Hash,
-         VSS.Strings."=",
-         VSS.Strings."=");
+      package String_Sets is new
+        Ada.Containers.Hashed_Sets
+          (VSS.Strings.Virtual_String,
+           VSS.Strings.Hash,
+           VSS.Strings."=",
+           VSS.Strings."=");
 
       Seen   : String_Sets.Set;
       --  Set of found visible names in canonical form
@@ -141,7 +143,8 @@ package body LSP.Ada_Completions is
       --  Write Result in two pases. Firstly append all visible names and
       --  populate Seen set. Then append invisible names not in Seen.
 
-      for Visible in reverse Boolean loop  --  Phase: True then False
+      for Visible in reverse Boolean loop
+         --  Phase: True then False
          for Cursor in Names.Iterate loop
             declare
                Append    : Boolean := False;
@@ -168,21 +171,22 @@ package body LSP.Ada_Completions is
                if Append then
                   Result.Append
                     (Document.Compute_Completion_Item
-                       (Handler                  => Handler,
-                        Context                  => Context,
-                        Sloc                     => Sloc,
-                        From                     => From,
-                        Node                     => Node,
-                        Name                     => Name,
-                        Label                    => Label,
-                        Use_Snippets             => Info.Use_Snippets,
-                        Compute_Doc_And_Details  => Compute_Doc_And_Details,
-                        Named_Notation_Threshold => Named_Notation_Threshold,
-                        Is_Dot_Call              => Info.Is_Dot_Call,
-                        Is_Visible               => Info.Is_Visible,
-                        Pos                      => Info.Pos,
-                        Weight                   => Info.Weight,
-                        Completions_Count        => Length));
+                       (Handler                   => Handler,
+                        Context                   => Context,
+                        Sloc                      => Sloc,
+                        From                      => From,
+                        Node                      => Node,
+                        Name                      => Name,
+                        Label                     => Label,
+                        Use_Snippets              => Info.Use_Snippets,
+                        Has_Label_Details_Support => Has_Label_Details_Support,
+                        Compute_Doc_And_Details   => Compute_Doc_And_Details,
+                        Named_Notation_Threshold  => Named_Notation_Threshold,
+                        Is_Dot_Call               => Info.Is_Dot_Call,
+                        Is_Visible                => Info.Is_Visible,
+                        Pos                       => Info.Pos,
+                        Weight                    => Info.Weight,
+                        Completions_Count         => Length));
                end if;
             end;
          end loop;

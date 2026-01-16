@@ -8,7 +8,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -28,7 +30,10 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": ["markdown", "plaintext"]
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ]
                         }
                      }
                   },
@@ -46,7 +51,12 @@
                   "capabilities": {
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [".", ",", "'", "("],
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
                         "resolveProvider": true
                      }
                   }
@@ -127,7 +137,14 @@
                }
             }
          },
-         "sortReply": { "result": { "items": ["label", "documentation"] } },
+         "sortReply": {
+            "result": {
+               "items": [
+                  "label",
+                  "documentation"
+               ]
+            }
+         },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -156,7 +173,7 @@
                            "command": "als-auto-import",
                            "title": ""
                         },
-                        "detail": "procedure Do_Nothing",
+                        "detail": "Foo.Do_Nothing\n\nprocedure Do_Nothing",
                         "documentation": "at foo.ads (3:4)",
                         "filterText": "Do_Nothing",
                         "insertText": "Do_Nothing",
@@ -185,7 +202,7 @@
                            "command": "als-auto-import",
                            "title": ""
                         },
-                        "detail": "type Foo_Type is tagged null record;",
+                        "detail": "Foo.Foo_Type\n\ntype Foo_Type is tagged null record;",
                         "documentation": "at foo.ads (5:4)",
                         "filterText": "Foo_Type",
                         "insertText": "Foo_Type",

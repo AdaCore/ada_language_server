@@ -36,10 +36,10 @@ with LSP.Structures;
 
 package LSP.Ada_Completions is
 
-   function Hash (Name : Libadalang.Analysis.Defining_Name)
-     return Ada.Containers.Hash_Type is
-     (Ada.Strings.Hash_Case_Insensitive (
-        Langkit_Support.Text.To_UTF8 (Name.Full_Sloc_Image)));
+   function Hash
+     (Name : Libadalang.Analysis.Defining_Name) return Ada.Containers.Hash_Type
+   is (Ada.Strings.Hash_Case_Insensitive
+         (Langkit_Support.Text.To_UTF8 (Name.Full_Sloc_Image)));
 
    function Is_Full_Sloc_Equal
      (Left, Right : Libadalang.Analysis.Defining_Name) return Boolean;
@@ -52,17 +52,17 @@ package LSP.Ada_Completions is
    --  Used to sort them accordingly on the client-side.
 
    type Name_Information is record
-      Is_Dot_Call  : Boolean;
+      Is_Dot_Call : Boolean;
       --  True if we are dealing with a dotted call.
 
-      Is_Visible   : Boolean;
+      Is_Visible : Boolean;
       --  True if the item is visible from the withed/used packages, False
       --  otherwise.
 
       Use_Snippets : Boolean;
       --  True if it's a snippet completion item.
 
-      Pos          : Integer := -1;
+      Pos : Integer := -1;
       --  The position of the item in the fully computed completion list. Used
       --  for sorting properly the items on client-side.
 
@@ -70,12 +70,13 @@ package LSP.Ada_Completions is
       --  The completion item's weight. Used for sorting on the client-side.
    end record;
 
-   package Completion_Maps is new Ada.Containers.Hashed_Maps
-     (Key_Type        => Libadalang.Analysis.Defining_Name,
-      Element_Type    => Name_Information,
-      Hash            => Hash,
-      Equivalent_Keys => Is_Full_Sloc_Equal,
-      "="             => "=");
+   package Completion_Maps is new
+     Ada.Containers.Hashed_Maps
+       (Key_Type        => Libadalang.Analysis.Defining_Name,
+        Element_Type    => Name_Information,
+        Hash            => Hash,
+        Equivalent_Keys => Is_Full_Sloc_Equal,
+        "="             => "=");
 
    type Completion_Provider is abstract tagged limited null record;
 
@@ -86,7 +87,8 @@ package LSP.Ada_Completions is
       Node   : Libadalang.Analysis.Ada_Node;
       Filter : in out LSP.Ada_Completions.Filters.Filter;
       Names  : in out Ada_Completions.Completion_Maps.Map;
-      Result : in out LSP.Structures.CompletionList) is abstract;
+      Result : in out LSP.Structures.CompletionList)
+   is abstract;
    --  Populate Names and Result with completions for given Source_Location.
    --  Names works for defining name completions to create snippets and to
    --  avoid duplicates. The Token's span encloses Sloc-1, but not Sloc itself.
@@ -99,16 +101,17 @@ package LSP.Ada_Completions is
    --  The Filter could be used to quick check common completion contexts.
 
    procedure Write_Completions
-     (Handler                  : in out LSP.Ada_Handlers.Message_Handler;
-      Context                  : LSP.Ada_Contexts.Context;
-      Document                 : LSP.Ada_Documents.Document;
-      Sloc                     : Langkit_Support.Slocs.Source_Location;
-      Token                    : Libadalang.Common.Token_Reference;
-      Node                     : Libadalang.Analysis.Ada_Node;
-      Names                    : Completion_Maps.Map;
-      Named_Notation_Threshold : Natural;
-      Compute_Doc_And_Details  : Boolean;
-      Result                   : in out LSP.Structures.CompletionItem_Vector);
+     (Handler                   : in out LSP.Ada_Handlers.Message_Handler;
+      Context                   : LSP.Ada_Contexts.Context;
+      Document                  : LSP.Ada_Documents.Document;
+      Sloc                      : Langkit_Support.Slocs.Source_Location;
+      Token                     : Libadalang.Common.Token_Reference;
+      Node                      : Libadalang.Analysis.Ada_Node;
+      Names                     : Completion_Maps.Map;
+      Named_Notation_Threshold  : Natural;
+      Compute_Doc_And_Details   : Boolean;
+      Has_Label_Details_Support : Boolean;
+      Result                    : in out LSP.Structures.CompletionItem_Vector);
    --  Convert all the completion Names into LSP completion items' results.
    --  Named_Notation_Threshold defines the number of parameters/components at
    --  which point named notation is used for subprogram/aggregate completion
@@ -116,6 +119,8 @@ package LSP.Ada_Completions is
    --  If Compute_Doc_And_Details is True, the 'detail' and 'documentation'
    --  fields for all the resulting completion items will be computed
    --  immediately, which might take time.
+   --  Has_Label_Details_Support is True when the client supports
+   --  labelDetails, which are displayed next to the completion item labels.
 
    procedure Pretty_Print_Snippet
      (Context : LSP.Ada_Contexts.Context;
@@ -127,11 +132,11 @@ package LSP.Ada_Completions is
    --  If Result is a snippet then generate a textEdit over span using GNATpp.
    --  Rule must match the content of "Prefix & Result.insertText.Value"
 
-   type Completion_Provider_Access is access all
-     LSP.Ada_Completions.Completion_Provider'Class;
+   type Completion_Provider_Access is
+     access all LSP.Ada_Completions.Completion_Provider'Class;
 
-   type Completion_Provider_List is array (Positive range <>) of
-     Completion_Provider_Access;
+   type Completion_Provider_List is
+     array (Positive range <>) of Completion_Provider_Access;
 
 private
 

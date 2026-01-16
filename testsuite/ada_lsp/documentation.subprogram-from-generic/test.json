@@ -209,7 +209,7 @@
                "result": {
                   "label": "Do_Nothing",
                   "kind": 3,
-                  "detail": "procedure Do_Nothing",
+                  "detail": "Foo.Foo_Bar.Do_Nothing\n\nprocedure Do_Nothing",
                   "documentation": "at foo.adb (5:7)\n\nIt doesn't do anything, but test documentation extraction.",
                   "sortText": "25&00001Do_Nothing",
                   "data": {

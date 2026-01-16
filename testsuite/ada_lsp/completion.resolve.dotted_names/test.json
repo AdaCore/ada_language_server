@@ -6,7 +6,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -26,7 +28,10 @@
                         "dynamicRegistration": true,
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": ["plaintext", "markdown"]
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ]
                         }
                      },
                      "documentSymbol": {
@@ -137,7 +142,7 @@
                      },
                      "uri": "$URI{src/root-child.ads}"
                   },
-                  "detail": "package Root.Child",
+                  "detail": "Root.Child\n\npackage Root.Child",
                   "documentation": "at root-child.ads (3:1)\n\nDescription of the Root.Child package",
                   "insertTextFormat": 1,
                   "kind": 9,

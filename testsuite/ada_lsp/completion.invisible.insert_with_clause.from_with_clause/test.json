@@ -135,7 +135,7 @@
                   "items": [
                      "<HAS>",
                      {
-                        "detail": "package Bar",
+                        "detail": "Bar\n\npackage Bar",
                         "documentation": "at bar.ads (1:1)",
                         "filterText": "Bar",
                         "insertText": "Bar",

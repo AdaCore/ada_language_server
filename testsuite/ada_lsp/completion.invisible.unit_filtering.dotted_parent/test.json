@@ -8,7 +8,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -28,7 +30,10 @@
                      "completion": {
                         "completionItem": {
                            "snippetSupport": true,
-                           "documentationFormat": ["markdown", "plaintext"]
+                           "documentationFormat": [
+                              "markdown",
+                              "plaintext"
+                           ]
                         }
                      }
                   },
@@ -46,7 +51,12 @@
                   "capabilities": {
                      "textDocumentSync": 2,
                      "completionProvider": {
-                        "triggerCharacters": [".", ",", "'", "("],
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
                         "resolveProvider": true
                      }
                   }
@@ -127,7 +137,14 @@
                }
             }
          },
-         "sortReply": { "result": { "items": ["label", "documentation"] } },
+         "sortReply": {
+            "result": {
+               "items": [
+                  "label",
+                  "documentation"
+               ]
+            }
+         },
          "wait": [
             {
                "jsonrpc": "2.0",
@@ -156,7 +173,7 @@
                            "command": "als-auto-import",
                            "title": ""
                         },
-                        "detail": "procedure Calculate",
+                        "detail": "Foo.Calculate\n\nprocedure Calculate",
                         "documentation": "at foo.ads (7:4)",
                         "filterText": "Calculate",
                         "insertText": "Calculate",
@@ -185,7 +202,7 @@
                            "command": "als-auto-import",
                            "title": ""
                         },
-                        "detail": "package Foo.Child",
+                        "detail": "Foo.Child\n\npackage Foo.Child",
                         "documentation": "at foo-child.ads (1:1)",
                         "filterText": "Child",
                         "insertText": "Child",

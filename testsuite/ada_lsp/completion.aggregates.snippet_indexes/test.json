@@ -195,7 +195,7 @@
                         "label": "Aggregate for Aggr_Type_1",
                         "kind": 15,
                         "sortText": "+0",
-                        "detail": "type Aggr_Type_1 is record\n   A, B, C : Integer;\nend record;",
+                        "detail": "Main.Aggr_Type_1\n\ntype Aggr_Type_1 is record\n   A, B, C : Integer;\nend record;",
                         "insertText": "A => ${1:Integer}, B => ${2:Integer}, C => ${3:Integer})$0",
                         "insertTextFormat": 2
                      },

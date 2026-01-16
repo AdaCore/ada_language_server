@@ -1,15 +1,13 @@
 [
    {
       "comment": [
-          "This test checks that aggregate completion works fine for simple ",
-          "records"
+         "This test checks that aggregate completion works fine for simple ",
+         "records"
       ]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -21,10 +19,7 @@
                   "textDocument": {
                      "completion": {
                         "completionItem": {
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "snippetSupport": true
                         },
                         "dynamicRegistration": true
@@ -66,26 +61,21 @@
             "id": 1,
             "method": "initialize"
          },
-          "wait": [
-              {
-                  "jsonrpc": "2.0",
-                  "id": 1,
-                  "result": {
-                      "capabilities": {
-                          "textDocumentSync": 2,
-                          "completionProvider": {
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ],
-                              "resolveProvider": true
-                          }
-                      }
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
                   }
-              }
-          ]
+               }
+            }
+         ]
       }
    },
    {
@@ -177,7 +167,7 @@
                      {
                         "insertText": "A => ${1:Integer}, B => ${2:Integer}, C => ${3:Integer})$0",
                         "kind": 15,
-                        "detail": "type Aggr_Type_1 is record\n   A : Integer;\n   B : Integer;\n   C : Integer;\nend record;",
+                        "detail": "Main.Aggr_Type_1\n\ntype Aggr_Type_1 is record\n   A : Integer;\n   B : Integer;\n   C : Integer;\nend record;",
                         "label": "Aggregate for Aggr_Type_1",
                         "documentation": "at main.adb (2:4)",
                         "sortText": "+0",
@@ -185,25 +175,25 @@
                      },
                      {
                         "label": "A",
-                         "kind": 5,
-                         "sortText": "+1",
-                         "insertText": "A => ",
-                         "insertTextFormat": 1
-                       },
-                       {
-                         "label": "B",
-                         "kind": 5,
-                         "sortText": "+2",
-                         "insertText": "B => ",
-                         "insertTextFormat": 1
-                       },
-                       {
-                         "label": "C",
-                         "kind": 5,
-                         "sortText": "+3",
-                         "insertText": "C => ",
-                         "insertTextFormat": 1
-                       }
+                        "kind": 5,
+                        "sortText": "+1",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+2",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "C",
+                        "kind": 5,
+                        "sortText": "+3",
+                        "insertText": "C => ",
+                        "insertTextFormat": 1
+                     }
                   ]
                }
             }

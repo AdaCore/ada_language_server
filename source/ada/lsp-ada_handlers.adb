@@ -2045,17 +2045,18 @@ package body LSP.Ada_Handlers is
          Result    => Response.Variant_2);
 
       LSP.Ada_Completions.Write_Completions
-        (Handler                  => Self,
-         Context                  => Context.all,
-         Document                 => Document.all,
-         Sloc                     => Sloc,
-         Token                    => Token,
-         Node                     => Node,
-         Names                    => Names,
-         Named_Notation_Threshold =>
+        (Handler                   => Self,
+         Context                   => Context.all,
+         Document                  => Document.all,
+         Sloc                      => Sloc,
+         Token                     => Token,
+         Node                      => Node,
+         Names                     => Names,
+         Named_Notation_Threshold  =>
            Self.Configuration.Named_Notation_Threshold,
-         Compute_Doc_And_Details  => Compute_Doc_And_Details,
-         Result                   => Response.Variant_2.items);
+         Compute_Doc_And_Details   => Compute_Doc_And_Details,
+         Has_Label_Details_Support => Self.Client.Has_Label_Details_Support,
+         Result                    => Response.Variant_2.items);
 
       Self.Sender.On_Completion_Response (Id, Response);
    end On_Completion_Request;
@@ -2121,12 +2122,14 @@ package body LSP.Ada_Handlers is
       --  Compute the completion item's details
       if not Definition.Is_Null then
          declare
-            Qual_Text    : VSS.Strings.Virtual_String;
-            Loc_Text     : VSS.Strings.Virtual_String;
-            Doc_Text     : VSS.Strings.Virtual_String;
-            Decl_Text    : VSS.Strings.Virtual_String;
-            Aspects_Text : VSS.Strings.Virtual_String;
-
+            Qual_Text            : VSS.Strings.Virtual_String;
+            Loc_Text             : VSS.Strings.Virtual_String;
+            Doc_Text             : VSS.Strings.Virtual_String;
+            Decl_Text            : VSS.Strings.Virtual_String;
+            Aspects_Text         : VSS.Strings.Virtual_String;
+            Fully_Qualified_Name : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.To_Virtual_String
+                (Definition.P_Fully_Qualified_Name);
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
               (Name               => Definition,
@@ -2138,7 +2141,11 @@ package body LSP.Ada_Handlers is
                Declaration_Text   => Decl_Text,
                Aspects_Text       => Aspects_Text);
 
-            Response.detail := Decl_Text;
+            Response.detail :=
+              Fully_Qualified_Name
+              & VSS.Characters.Latin.Line_Feed
+              & VSS.Characters.Latin.Line_Feed
+              & Decl_Text;
 
             if not Doc_Text.Is_Empty then
                Loc_Text.Append (2 * VSS.Characters.Latin.Line_Feed);

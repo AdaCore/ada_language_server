@@ -1,8 +1,8 @@
 [
    {
       "comment": [
-          "This test checks that we don't use snippets when giving a ",
-          "subprogram as a parameter."
+         "This test checks that we don't use snippets when giving a ",
+         "subprogram as a parameter."
       ]
    },
    {
@@ -105,10 +105,10 @@
             "params": {
                "settings": {
                   "ada": {
-                      "scenarioVariables": {},
-                      "defaultCharset": "ISO-8859-1",
-                      "enableIndexing": false,
-                      "adaFileDiagnostics": false
+                     "scenarioVariables": {},
+                     "defaultCharset": "ISO-8859-1",
+                     "enableIndexing": false,
+                     "adaFileDiagnostics": false
                   }
                }
             }
@@ -195,7 +195,14 @@
                }
             }
          },
-         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "sortReply": {
+            "result": {
+               "items": [
+                  "label",
+                  "documentation"
+               ]
+            }
+         },
          "wait": [
             {
                "id": 4,
@@ -205,7 +212,7 @@
                      {
                         "label": "Print_Integer",
                         "kind": 3,
-                        "detail": "procedure Print_Integer (A : integer)",
+                        "detail": "Main.Print_Integer\n\nprocedure Print_Integer (A : integer)",
                         "documentation": "at main.adb (7:4)"
                      }
                   ]

@@ -181,7 +181,7 @@
                            "command": "als-auto-import",
                            "title": ""
                         },
-                        "detail": "package Ada.Text_IO",
+                        "detail": "Ada.Text_IO\n\npackage Ada.Text_IO",
                         "documentation": "at a-textio.ads (58:1)\n\nPreconditions in this unit are meant for analysis only, not for run-time\nchecking, so that the expected exceptions are raised. This is enforced by\nsetting the corresponding assertion policy to Ignore. These preconditions\nare partial. They protect fully against Status_Error and Mode_Error,\npartially against Layout_Error (see SPARK User's Guide for details), and\nnot against other types of errors.",
                         "filterText": "Text_IO",
                         "insertText": "Text_IO",
