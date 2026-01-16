@@ -144,9 +144,13 @@ package LSP.Utils is
    --  Cast GPR2.Path_Name.Object to Virtual_String
 
    function Is_From_Extended_Project
-     (Tree : GPR2.Project.Tree.Object;
-      File : String)
-      return Boolean;
+     (Tree : GPR2.Project.Tree.Object; File : String) return Boolean;
    --  Returns True if the Node belongs to the extended project
+
+   function Remove_Quote (S : String) return String is
+     (if S'Length >= 2 and then S (S'First) = '"' and then S (S'Last) = '"'
+      then S (S'First + 1 .. S'Last - 1)
+      else S);
+   --  Remove leading & trailing '"' (useful for string tokens)
 
 end LSP.Utils;

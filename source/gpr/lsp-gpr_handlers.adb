@@ -41,6 +41,7 @@ with LSP.Text_Documents.Langkit_Documents;
 with LSP.Utils;
 
 with Gpr_Parser.Common;
+with Gpr_Parser_Support.Text;
 with VSS.Characters.Latin;
 with VSS.String_Vectors;
 with VSS.Strings;
@@ -831,28 +832,96 @@ package body LSP.GPR_Handlers is
       ---------------------
 
       procedure Fill_Definition is
-         File         : constant LSP.GPR_Files.File_Access :=
-                          LSP.GPR_Files.Parse
-                            (File_Provider => Self'Unchecked_Access,
-                             Path          => Self.To_File
-                               (Value.textDocument.uri));
+         package LKD renames LSP.Text_Documents.Langkit_Documents;
+
+         File : constant LSP.GPR_Files.File_Access :=
+           LSP.GPR_Files.Parse
+             (File_Provider => Self'Unchecked_Access,
+              Path          => Self.To_File (Value.textDocument.uri));
+
+         Position_Loc : constant Gpr_Parser.Slocs.Source_Location :=
+           LSP.GPR_Files.To_Langkit_Location
+             (LKD.To_Source_Location
+                (Line_Text => File.Get_Line
+                   (LKD.To_Source_Line (Value.position.line)),
+                 Position  => Value.position));
+
+         Token : constant Gpr_Parser.Common.Token_Reference :=
+           LSP.GPR_Files.Token (File.all, Position_Loc);
 
          Reference : constant Gpr_Parser.Common.Token_Reference :=
-                       LSP.GPR_Files.References.Token_Reference
-                         (File, Value.position);
+           LSP.GPR_Files.References.Token_Reference (File, Value.position);
 
          Location : LSP.Structures.Location;
 
          use type Gpr_Parser.Common.Token_Reference;
+         use type Gpr_Parser.Common.Token_Kind;
+
+         procedure Try_Source_File_Definition
+           (Token : Gpr_Parser.Common.Token_Reference);
+         --  Try to resolve Token as a source file mention
+
+         --------------------------------
+         -- Try_Source_File_Definition --
+         --------------------------------
+
+         procedure Try_Source_File_Definition
+           (Token : Gpr_Parser.Common.Token_Reference)
+         is
+            use type LSP.GPR_Documents.Document_Access;
+            use type GPR2.Path_Name.Object;
+
+            Document : constant LSP.GPR_Documents.Document_Access :=
+              Self.Get_Open_Document (Value.textDocument.uri);
+
+            Token_Text : constant String :=
+              Gpr_Parser_Support.Text.To_UTF8
+                (Gpr_Parser.Common.Text (Token));
+
+            Token_Value : constant String :=
+              LSP.Utils.Remove_Quote (Token_Text);
+         begin
+            if Document /= null then
+               --  Only try to resolve as a source file if it looks like a
+               --  simple source filename.
+               if GPR2.Is_Simple_Name (GPR2.Filename_Optional (Token_Value)) then
+                  declare
+                     Simple_Name     : constant GPR2.Simple_Name :=
+                       GPR2.Simple_Name (Token_Value);
+                     Source_Filename : constant GPR2.Path_Name.Object :=
+                       Document.Find_Source_File (Simple_Name);
+                  begin
+                     --  The source file mention is a source of the project:
+                     --  return its location.
+                     if Source_Filename /= GPR2.Path_Name.Undefined then
+                        Location.uri := Self.To_URI (Source_Filename);
+                        Location.a_range :=
+                          (start  => (line => 0, character => 0),
+                           an_end => (line => 0, character => 0));
+                        Response.Variant_1.Append (Location);
+                     end if;
+                  end;
+               end if;
+            end if;
+         end Try_Source_File_Definition;
 
       begin
+         --  First, try standard reference resolution (project references,
+         --  variables, attributes, etc.)
          if Reference /= Gpr_Parser.Common.No_Token then
             Location.uri :=
               LSP.GPR_File_Readers.To_URI (Reference.Origin_Filename);
             Location.a_range := To_Range (Self'Unchecked_Access, Reference);
             Response.Variant_1.Append (Location);
-         end if;
 
+         --  Otherwise, check if we're on a string literal that references a
+         --  source file (e.g., for Main use ("main.adb"))
+         elsif Token /= Gpr_Parser.Common.No_Token
+           and then Gpr_Parser.Common.Kind
+             (Gpr_Parser.Common.Data (Token)) = Gpr_Parser.Common.Gpr_String
+         then
+            Try_Source_File_Definition (Token);
+         end if;
       end Fill_Definition;
 
    begin
