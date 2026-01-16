@@ -122,6 +122,27 @@ export const TASK_GNATCOV_SETUP: PredefinedTask = {
 
 const gnatCovTasks: PredefinedTask[] = [TASK_GNATCOV_SETUP];
 
+export const TASK_GNATSAS_REPORT: PredefinedTask = {
+    label: 'Create a report after a GNAT SAS analysis',
+    taskDef: {
+        type: TASK_TYPE_ADA,
+        command: 'gnatsas',
+        args: [
+            'report',
+            'sarif',
+            `\${command:${CMD_GPR_PROJECT_ARGS}}`,
+            '-o',
+            'report.sarif',
+            '--root',
+            '${workspaceFolder}',
+        ],
+    },
+    /**
+     * Analysis results are not printed on stdio so no need to parse them
+     * with a problem matcher.
+     */
+    problemMatchers: [],
+};
 /**
  * Predefined tasks offered by the extension. Both 'ada' and 'spark' tasks are
  * included in this array. They are later on split and provided by different
@@ -200,27 +221,7 @@ const adaTasks: PredefinedTask[] = [
          */
         problemMatchers: [],
     },
-    {
-        label: 'Create a report after a GNAT SAS analysis',
-        taskDef: {
-            type: TASK_TYPE_ADA,
-            command: 'gnatsas',
-            args: [
-                'report',
-                'sarif',
-                `\${command:${CMD_GPR_PROJECT_ARGS}}`,
-                '-o',
-                'report.sarif',
-                '--root',
-                '${workspaceFolder}',
-            ],
-        },
-        /**
-         * Analysis results are not printed on stdio so no need to parse them
-         * with a problem matcher.
-         */
-        problemMatchers: [],
-    },
+    TASK_GNATSAS_REPORT,
     {
         label: 'Analyze the project with GNAT SAS and produce a report',
         taskDef: {
@@ -1205,9 +1206,31 @@ export function runTaskSequence(
 
                     writeEmitter?.fire(`Executing task: ${getConventionalTaskLabel(t)}\r\n`);
                     vscode.tasks.executeTask(t).then(undefined, (reason) => {
-                        writeEmitter?.fire(`Could not execute task: ${reason}\r\n`);
-                        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-                        reject(reason);
+                        disposable.dispose();
+
+                        if (reason instanceof Error) {
+                            /**
+                             * Enrich the error message with an explanation if possible.
+                             */
+                            let msg = 'Could not execute task: ';
+                            if (reason.message === 'Task not found') {
+                                msg +=
+                                    'Task not found. This can happen in environments with many VS Code extensions providing tasks. Try again to see if the issue persists.';
+                            } else {
+                                msg += reason.message;
+                            }
+
+                            /**
+                             * Raise the enriched error.
+                             */
+                            reject(new Error(msg));
+                        } else {
+                            /**
+                             * Forward the reason as is.
+                             */
+                            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+                            reject(reason);
+                        }
                     });
                 });
             } else {
