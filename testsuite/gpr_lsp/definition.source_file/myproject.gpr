@@ -1,0 +1,14 @@
+with "imported";
+
+project MyProject is
+
+   for Source_Dirs use ("src");
+   for Main use ("main.adb", "helper.adb", "tool.adb");
+   for Object_Dir use "obj";
+   for Exec_Dir use "bin";
+
+   package Builder is
+      for Executable ("main.adb") use "my_main";
+   end Builder;
+
+end MyProject;
