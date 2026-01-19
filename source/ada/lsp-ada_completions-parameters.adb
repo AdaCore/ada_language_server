@@ -921,7 +921,9 @@ package body LSP.Ada_Completions.Parameters is
 
          --  Find the nearest Call_Expr node in the children
          if not Cur_Node.Is_Null then
-            for Child_Node of Cur_Node.Children loop
+            for Child_Node of Cur_Node.Children
+              when not Child_Node.Is_Null
+            loop
                if Child_Node.Kind in Ada_Call_Expr_Range then
                   Cur_Node := Child_Node;
                   exit;

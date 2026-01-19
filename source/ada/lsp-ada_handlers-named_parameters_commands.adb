@@ -261,7 +261,7 @@ package body LSP.Ada_Handlers.Named_Parameters_Commands is
 
       Index := Args.Children_Count;
 
-      for Arg of reverse Args.Children loop
+      for Arg of reverse Args.Children when not Arg.Is_Null loop
          exit when Index < 1;
 
          case Arg.Kind is

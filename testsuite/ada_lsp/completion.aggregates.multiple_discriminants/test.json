@@ -88,7 +88,7 @@
             "params": {
                "settings": {
                   "ada": {
-                     "projectFile": "/home/boulanger/ancr/src/gnatstudio/subprojects/ada_language_server/testsuite/ada_lsp/completion.aggregates.multiple_discriminants/default.gpr",
+                     "projectFile": "$URI{default.gpr}",
                      "scenarioVariables": {},
                      "defaultCharset": "ISO-8859-1",
                      "adaFileDiagnostics": true,
