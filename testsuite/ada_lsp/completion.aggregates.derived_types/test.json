@@ -1,15 +1,13 @@
 [
    {
       "comment": [
-          "This test checks that aggregate completion works fine with derived ",
-          "types"
+         "This test checks that aggregate completion works fine with derived ",
+         "types"
       ]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -21,10 +19,7 @@
                   "textDocument": {
                      "completion": {
                         "completionItem": {
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "snippetSupport": true
                         },
                         "dynamicRegistration": true
@@ -66,27 +61,21 @@
             "id": 1,
             "method": "initialize"
          },
-          "wait": [
-              {
-                  "jsonrpc": "2.0",
-                  "id": 1,
-                  "result": {
-                      "capabilities": {
-                          "textDocumentSync": 2,
-                          "completionProvider": {
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ],
-                              "resolveProvider": true
-                          }
-                      }
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "triggerCharacters": [".", ",", "'", "("],
+                        "resolveProvider": true
+                     }
                   }
-              }
-          ]
-
+               }
+            }
+         ]
       }
    },
    {
@@ -198,7 +187,7 @@
                      {
                         "insertText": "Disc => 1, A => ${2:Integer}, D => ${3:Integer})$0",
                         "kind": 15,
-                        "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
+                        "detail": "Main.Derived_Rec\n\ntype Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
                         "label": "Aggregate when Disc => 1",
                         "documentation": "at main.adb (14:4)",
                         "sortText": "+00",
@@ -209,26 +198,26 @@
                         "kind": 5,
                         "sortText": "+01",
                         "insertText": "Disc => 1",
-                         "insertTextFormat": 1
+                        "insertTextFormat": 1
                      },
                      {
-                         "label": "A",
-                         "kind": 5,
-                         "sortText": "+02",
-                         "insertText": "A => ",
-                         "insertTextFormat": 1
+                        "label": "A",
+                        "kind": 5,
+                        "sortText": "+02",
+                        "insertText": "A => ",
+                        "insertTextFormat": 1
                      },
                      {
-                         "label": "D",
-                         "kind": 5,
-                         "sortText": "+03",
-                         "insertText": "D => ",
-                         "insertTextFormat": 1
+                        "label": "D",
+                        "kind": 5,
+                        "sortText": "+03",
+                        "insertText": "D => ",
+                        "insertTextFormat": 1
                      },
                      {
                         "insertText": "Disc => 2, Z => ${2:Integer}, D => ${3:Integer})$0",
                         "kind": 15,
-                        "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
+                        "detail": "Main.Derived_Rec\n\ntype Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
                         "label": "Aggregate when Disc => 2",
                         "documentation": "at main.adb (14:4)",
                         "sortText": "+04",
@@ -239,26 +228,26 @@
                         "kind": 5,
                         "sortText": "+05",
                         "insertText": "Disc => 2",
-                         "insertTextFormat": 1
+                        "insertTextFormat": 1
                      },
                      {
-                         "label": "Z",
-                         "kind": 5,
-                         "sortText": "+06",
-                         "insertText": "Z => ",
-                         "insertTextFormat": 1
+                        "label": "Z",
+                        "kind": 5,
+                        "sortText": "+06",
+                        "insertText": "Z => ",
+                        "insertTextFormat": 1
                      },
                      {
-                         "label": "D",
-                         "kind": 5,
-                         "sortText": "+07",
-                         "insertText": "D => ",
-                         "insertTextFormat": 1
+                        "label": "D",
+                        "kind": 5,
+                        "sortText": "+07",
+                        "insertText": "D => ",
+                        "insertTextFormat": 1
                      },
                      {
                         "insertText": "Disc => ${1:others}, B => ${2:Integer}, D => ${3:Integer})$0",
                         "kind": 15,
-                        "detail": "type Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
+                        "detail": "Main.Derived_Rec\n\ntype Derived_Rec is new Base_Rec with record\n   D : Integer;\nend record;",
                         "label": "Aggregate when Disc => others",
                         "documentation": "at main.adb (14:4)",
                         "sortText": "+08",
@@ -269,21 +258,21 @@
                         "kind": 5,
                         "sortText": "+09",
                         "insertText": "Disc => ",
-                         "insertTextFormat": 1
+                        "insertTextFormat": 1
                      },
                      {
-                         "label": "B",
-                         "kind": 5,
-                         "sortText": "+10",
-                         "insertText": "B => ",
-                         "insertTextFormat": 1
+                        "label": "B",
+                        "kind": 5,
+                        "sortText": "+10",
+                        "insertText": "B => ",
+                        "insertTextFormat": 1
                      },
                      {
-                         "label": "D",
-                         "kind": 5,
-                         "sortText": "+11",
-                         "insertText": "D => ",
-                         "insertTextFormat": 1
+                        "label": "D",
+                        "kind": 5,
+                        "sortText": "+11",
+                        "insertText": "D => ",
+                        "insertTextFormat": 1
                      }
                   ]
                }
@@ -291,7 +280,6 @@
          ]
       }
    },
-               
    {
       "send": {
          "request": {

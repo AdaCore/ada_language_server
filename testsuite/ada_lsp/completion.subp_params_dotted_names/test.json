@@ -7,7 +7,9 @@
    },
    {
       "start": {
-         "cmd": ["${ALS}"]
+         "cmd": [
+            "${ALS}"
+         ]
       }
    },
    {
@@ -19,7 +21,10 @@
                   "textDocument": {
                      "completion": {
                         "completionItem": {
-                           "documentationFormat": ["plaintext", "markdown"],
+                           "documentationFormat": [
+                              "plaintext",
+                              "markdown"
+                           ],
                            "snippetSupport": true
                         },
                         "completionItemKind": {},
@@ -70,7 +75,12 @@
                      "textDocumentSync": 2,
                      "completionProvider": {
                         "resolveProvider": true,
-                        "triggerCharacters": [".", ",", "'", "("]
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ]
                      }
                   }
                }
@@ -158,7 +168,11 @@
             "id": 2,
             "method": "textDocument/completion"
          },
-         "sortReply": { "result": { "items": "label" } },
+         "sortReply": {
+            "result": {
+               "items": "label"
+            }
+         },
          "wait": [
             {
                "id": 2,
@@ -168,7 +182,7 @@
                      {
                         "label": "Do_Nothing",
                         "kind": 3,
-                        "detail": "procedure Do_Nothing (Obj : My_Int; A :Integer)",
+                        "detail": "Bar.Do_Nothing\n\nprocedure Do_Nothing (Obj : My_Int; A :Integer)",
                         "documentation": "at bar.ads (7:4)",
                         "insertText": "Do_Nothing (${1:Obj : My_Int}, ${2:A : Integer})$0",
                         "insertTextFormat": 2

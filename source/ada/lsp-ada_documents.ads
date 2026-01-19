@@ -225,22 +225,23 @@ package LSP.Ada_Documents is
    --  VersionedTextDocumentIdentifier with a null version.
 
    function Compute_Completion_Item
-     (Document                 : LSP.Ada_Documents.Document;
-      Handler                  : in out LSP.Ada_Handlers.Message_Handler;
-      Context                  : LSP.Ada_Contexts.Context;
-      Sloc                     : Langkit_Support.Slocs.Source_Location;
-      From                     : Langkit_Support.Slocs.Source_Location;
-      Node                     : Libadalang.Analysis.Ada_Node;
-      Name                     : Libadalang.Analysis.Defining_Name;
-      Label                    : VSS.Strings.Virtual_String;
-      Use_Snippets             : Boolean;
-      Compute_Doc_And_Details  : Boolean;
-      Named_Notation_Threshold : Natural;
-      Is_Dot_Call              : Boolean;
-      Is_Visible               : Boolean;
-      Pos                      : Integer;
-      Weight                   : Ada_Completions.Completion_Item_Weight_Type;
-      Completions_Count        : Natural)
+     (Document                  : LSP.Ada_Documents.Document;
+      Handler                   : in out LSP.Ada_Handlers.Message_Handler;
+      Context                   : LSP.Ada_Contexts.Context;
+      Sloc                      : Langkit_Support.Slocs.Source_Location;
+      From                      : Langkit_Support.Slocs.Source_Location;
+      Node                      : Libadalang.Analysis.Ada_Node;
+      Name                      : Libadalang.Analysis.Defining_Name;
+      Label                     : VSS.Strings.Virtual_String;
+      Use_Snippets              : Boolean;
+      Compute_Doc_And_Details   : Boolean;
+      Has_Label_Details_Support : Boolean;
+      Named_Notation_Threshold  : Natural;
+      Is_Dot_Call               : Boolean;
+      Is_Visible                : Boolean;
+      Pos                       : Integer;
+      Weight                    : Ada_Completions.Completion_Item_Weight_Type;
+      Completions_Count         : Natural)
       return LSP.Structures.CompletionItem;
    --  Compute a completion item.
    --  Node is the node from which the completion starts (e.g: 'A' in 'A.').
@@ -248,6 +249,9 @@ package LSP.Ada_Documents is
    --  that should be used to compute the completion item.
    --  When Use_Snippets is True, subprogram completion items are computed
    --  as snippets that list all the subprogram's formal parameters.
+   --  Has_Label_Details_Support is set to True when the client supports
+   --  label details. If supported, it is used to display the defining name's
+   --  fully qualified name.
    --  Named_Notation_Threshold defines the number of parameters at which point
    --  named notation is used for subprogram completion snippets.
    --  Is_Dot_Call is used to know if we should omit the first parameter

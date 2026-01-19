@@ -91,21 +91,21 @@
       }
    },
    {
-    "send": {
-       "request": {
-          "jsonrpc": "2.0",
-          "method": "textDocument/didOpen",
-          "params": {
-             "textDocument": {
-                "uri": "$URI{main.adb}",
-                "languageId": "ada",
-                "version": 1,
-                "text": "\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Ba\nend Main;\n"
-             }
-          }
-       },
-       "wait": []
-    }
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "\nprocedure Main is\n   Obj : My_Int := (A => 10);\nbegin\n   Ba\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
    },
    {
       "send": {
@@ -136,7 +136,7 @@
                      {
                         "label": "Bar (invisible)",
                         "kind": 9,
-                        "detail": "package Bar",
+                        "detail": "Bar\n\npackage Bar",
                         "documentation": "at bar.ads (1:1)",
                         "sortText": "~100&00001Bar",
                         "filterText": "Bar",

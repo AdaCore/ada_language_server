@@ -92,23 +92,23 @@ package body LSP.Ada_Documents is
    -----------------------------
 
    function Compute_Completion_Item
-     (Document                 : LSP.Ada_Documents.Document;
-      Handler                  : in out LSP.Ada_Handlers.Message_Handler;
-      Context                  : LSP.Ada_Contexts.Context;
-      Sloc                     : Langkit_Support.Slocs.Source_Location;
-      From                     : Langkit_Support.Slocs.Source_Location;
-      Node                     : Libadalang.Analysis.Ada_Node;
-      Name                     : Libadalang.Analysis.Defining_Name;
-      Label                    : VSS.Strings.Virtual_String;
-      Use_Snippets             : Boolean;
-      Compute_Doc_And_Details  : Boolean;
-      Named_Notation_Threshold : Natural;
-      Is_Dot_Call              : Boolean;
-      Is_Visible               : Boolean;
-      Pos                      : Integer;
-      Weight                   : Ada_Completions.Completion_Item_Weight_Type;
-      Completions_Count        : Natural)
-      return LSP.Structures.CompletionItem
+     (Document                  : LSP.Ada_Documents.Document;
+      Handler                   : in out LSP.Ada_Handlers.Message_Handler;
+      Context                   : LSP.Ada_Contexts.Context;
+      Sloc                      : Langkit_Support.Slocs.Source_Location;
+      From                      : Langkit_Support.Slocs.Source_Location;
+      Node                      : Libadalang.Analysis.Ada_Node;
+      Name                      : Libadalang.Analysis.Defining_Name;
+      Label                     : VSS.Strings.Virtual_String;
+      Use_Snippets              : Boolean;
+      Compute_Doc_And_Details   : Boolean;
+      Has_Label_Details_Support : Boolean;
+      Named_Notation_Threshold  : Natural;
+      Is_Dot_Call               : Boolean;
+      Is_Visible                : Boolean;
+      Pos                       : Integer;
+      Weight                    : Ada_Completions.Completion_Item_Weight_Type;
+      Completions_Count         : Natural) return LSP.Structures.CompletionItem
    is
       use Libadalang.Common;
 
@@ -121,6 +121,11 @@ package body LSP.Ada_Documents is
 
       Last_Weight : constant Ada_Completions.Completion_Item_Weight_Type :=
         Ada_Completions.Completion_Item_Weight_Type'Last;
+
+      Unit_Full_Qual_Name : constant VSS.Strings.Virtual_String :=
+        VSS.Strings.To_Virtual_String
+          (Name.P_Enclosing_Compilation_Unit.P_Decl.P_Fully_Qualified_Name);
+      --  The fully qualified name of the completion item symbol's unit.
 
       function Get_Sort_Text
         (Base_Label : VSS.Strings.Virtual_String)
@@ -152,26 +157,26 @@ package body LSP.Ada_Documents is
            VSS.Strings.Conversions.To_Virtual_String
              (Langkit_Support.Text.To_UTF8 (Node.Text));
 
-         Dotted_Node         : constant Ada_Node :=
-           (if Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range then
-               Node
-            else
-               Node.Parent);
+         Dotted_Node : constant Ada_Node :=
+           (if Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range
+            then Node
+            else Node.Parent);
 
-         Is_Dotted_Name     : constant Boolean :=
-           not Dotted_Node.Is_Null and then
-           Dotted_Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range;
+         Is_Dotted_Name : constant Boolean :=
+           not Dotted_Node.Is_Null
+           and then
+             Dotted_Node.Kind in Libadalang.Common.Ada_Dotted_Name_Range;
          --  Check if we are completing a dotted name. We want to prepend the
          --  right qualifier only if it's not the case.
 
-         Dotted_Node_Prefix  : VSS.Strings.Virtual_String :=
-           (if Is_Dotted_Name then
-               VSS.Strings.Conversions.To_Virtual_String
-                 (Langkit_Support.Text.To_UTF8
+         Dotted_Node_Prefix : VSS.Strings.Virtual_String :=
+           (if Is_Dotted_Name
+            then
+              VSS.Strings.Conversions.To_Virtual_String
+                (Langkit_Support.Text.To_UTF8
                    (Dotted_Node.As_Dotted_Name.F_Prefix.Text))
-            else
-               VSS.Strings.Empty_Virtual_String);
-         --  The prefix of the dotted name we are completion, or an empty
+            else VSS.Strings.Empty_Virtual_String);
+         --  The prefix of the dotted name we are completing, or an empty
          --  string if we are not completing a dotted name.
 
          Missing_Unit_Root_Decl : constant Libadalang.Analysis.Basic_Decl :=
@@ -181,10 +186,7 @@ package body LSP.Ada_Documents is
          --  "Ada.Text_IO.Put_Line" subprogram).
 
       begin
-         Missing_Unit_Name :=
-           VSS.Strings.Conversions.To_Virtual_String
-             (Langkit_Support.Text.To_UTF8
-                (Missing_Unit_Root_Decl.P_Fully_Qualified_Name));
+         Missing_Unit_Name := Unit_Full_Qual_Name;
 
          --  We are completing a dotted name but its prefix does not match
          --  with the completion item's defining name's unit: this means we
@@ -199,15 +201,16 @@ package body LSP.Ada_Documents is
          --  if the user just type 'Child.')
          if Is_Dotted_Name
            and then not Missing_Unit_Name.Starts_With (Dotted_Node_Prefix)
-           and then not Get_From_Provider
-                          (Context => Context.LAL_Context,
-                           Name    =>
-                             Langkit_Support.Text.To_Text
-                               (VSS.Strings.Conversions.To_UTF_8_String
-                                  (Dotted_Node_Prefix)),
-                           Kind    => Libadalang.Common.Unit_Specification)
-                          .Root
-                          .Is_Null
+           and then
+             not Get_From_Provider
+                   (Context => Context.LAL_Context,
+                    Name    =>
+                      Langkit_Support.Text.To_Text
+                        (VSS.Strings.Conversions.To_UTF_8_String
+                           (Dotted_Node_Prefix)),
+                    Kind    => Libadalang.Common.Unit_Specification)
+                   .Root
+                   .Is_Null
          then
             Missing_Unit_Name := Dotted_Node_Prefix;
          end if;
@@ -218,11 +221,9 @@ package body LSP.Ada_Documents is
          --  need to add any qualifier) or if he's completing a dotted name.
          Missing_Qualifier :=
            (if Is_Dotted_Name
-                 or else Name.P_Basic_Decl = Missing_Unit_Root_Decl
-            then
-               VSS.Strings.Empty_Virtual_String
-            else
-               Missing_Unit_Name);
+              or else Name.P_Basic_Decl = Missing_Unit_Root_Decl
+            then VSS.Strings.Empty_Virtual_String
+            else Missing_Unit_Name);
       end Get_Missing_Unit_And_Qualifier;
 
       -------------------
@@ -237,11 +238,12 @@ package body LSP.Ada_Documents is
       begin
          return Sort_Text : VSS.Strings.Virtual_String do
 
-            Sort_Text := VSS.Strings.Templates.Format
-              ("{:02}&{:05}{}",
-               Weight_Formatters.Image (Last_Weight - Weight),
-               Weight_Formatters.Image (Pos),
-               VSS.Strings.Formatters.Strings.Image (Base_Label));
+            Sort_Text :=
+              VSS.Strings.Templates.Format
+                ("{:02}&{:05}{}",
+                 Weight_Formatters.Image (Last_Weight - Weight),
+                 Weight_Formatters.Image (Pos),
+                 VSS.Strings.Formatters.Strings.Image (Base_Label));
 
             if not Is_Visible then
                Sort_Text.Prepend ('~');
@@ -259,16 +261,15 @@ package body LSP.Ada_Documents is
          Auto_Import_Command : Auto_Import.Command;
          --  The auto-import command.
 
-         Missing_Unit_Name  : VSS.Strings.Virtual_String;
-         Missing_Qualifier  : VSS.Strings.Virtual_String;
+         Missing_Unit_Name : VSS.Strings.Virtual_String;
+         Missing_Qualifier : VSS.Strings.Virtual_String;
       begin
          Get_Missing_Unit_And_Qualifier (Missing_Unit_Name, Missing_Qualifier);
 
          Auto_Import_Command.Initialize
            (Context     => Context,
             Where       =>
-              ((uri => Document.URI),
-               Document.To_LSP_Position (From)),
+              ((uri => Document.URI), Document.To_LSP_Position (From)),
             With_Clause => Missing_Unit_Name,
             Prefix      => Missing_Qualifier);
 
@@ -276,8 +277,9 @@ package body LSP.Ada_Documents is
            (Is_Set => True,
             Value  =>
               (title     => <>,
-               command   => VSS.Strings.Conversions.
-                 To_Virtual_String (Auto_Import.Command'External_Tag),
+               command   =>
+                 VSS.Strings.Conversions.To_Virtual_String
+                   (Auto_Import.Command'External_Tag),
                arguments => Auto_Import_Command.Write_Command_Args));
       end Append_Auto_Import_Command;
 
@@ -286,6 +288,18 @@ package body LSP.Ada_Documents is
       Item.kind :=
         (True,
          To_Completion_Kind (LSP.Utils.Get_Decl_Kind (Name.P_Basic_Decl)));
+
+      --  When the client supports it, show the fully qualified name
+      --  via completion item label details.
+      if Has_Label_Details_Support then
+         declare
+
+         begin
+            Item.labelDetails :=
+              (Is_Set => True,
+               Value  => (description => Unit_Full_Qual_Name, others => <>));
+         end;
+      end if;
 
       if not Is_Visible then
          Item.insertText := Label;
@@ -296,8 +310,9 @@ package body LSP.Ada_Documents is
          --  are not completing within a with-clause, append a command to
          --  insert the missing with-clause/qualifier.
          if Handler.Get_Configuration.Insert_With_Clauses
-           and then not (for some Parent of Node.Parents
-                         => Parent.Kind = Ada_With_Clause)
+           and then
+             not (for some Parent of Node.Parents =>
+                    Parent.Kind = Ada_With_Clause)
          then
             Append_Auto_Import_Command;
          end if;
@@ -332,11 +347,10 @@ package body LSP.Ada_Documents is
          All_Params  : constant Libadalang.Analysis.Param_Spec_Array :=
            Subp_Spec_Node.P_Params;
 
-         Params      : constant Libadalang.Analysis.Param_Spec_Array :=
-           (if Is_Dot_Call then
-               All_Params (All_Params'First + 1 .. All_Params'Last)
-            else
-               All_Params);
+         Params : constant Libadalang.Analysis.Param_Spec_Array :=
+           (if Is_Dot_Call
+            then All_Params (All_Params'First + 1 .. All_Params'Last)
+            else All_Params);
          --  Remove the first formal parameter from the list when the dotted
          --  notation is used.
 
@@ -350,8 +364,7 @@ package body LSP.Ada_Documents is
 
          if Params'Length /= 0 then
             Item.insertTextFormat :=
-              (Is_Set => True,
-               Value  => LSP.Enumerations.Snippet);
+              (Is_Set => True, Value => LSP.Enumerations.Snippet);
 
             Insert_Text.Append (" (");
 
@@ -362,7 +375,8 @@ package body LSP.Ada_Documents is
                Nb_Params := Nb_Params + Param.F_Ids.Children_Count;
             end loop;
 
-            Use_Named_Notation := Named_Notation_Threshold > 0
+            Use_Named_Notation :=
+              Named_Notation_Threshold > 0
               and then Nb_Params >= Named_Notation_Threshold;
 
             for Param of Params loop
@@ -373,11 +387,17 @@ package body LSP.Ada_Documents is
                      Mode_Text : constant Langkit_Support.Text.Text_Type :=
                        (if Mode /= "" then Mode & " " else "");
 
-                     Named_Template      : constant
-                       VSS.Strings.Templates.Virtual_String_Template :=
+                     Named_Template      :
+                       constant VSS
+                                  .Strings
+                                  .Templates
+                                  .Virtual_String_Template :=
                          "{} => ${{{}:{}{}}, ";
-                     Positional_Template : constant
-                       VSS.Strings.Templates.Virtual_String_Template :=
+                     Positional_Template :
+                       constant VSS
+                                  .Strings
+                                  .Templates
+                                  .Virtual_String_Template :=
                          "${{{}:{} : {}{}}, ";
                      Text                : VSS.Strings.Virtual_String;
 
@@ -411,12 +431,13 @@ package body LSP.Ada_Documents is
             --  loop iteration.
 
             declare
-               First   : constant
-                 VSS.Strings.Character_Iterators.Character_Iterator :=
+               First   :
+                 constant VSS.Strings.Character_Iterators.Character_Iterator :=
                    Insert_Text.At_First_Character;
                Last    : VSS.Strings.Character_Iterators.Character_Iterator :=
                  Insert_Text.At_Last_Character;
-               Success : Boolean with Unreferenced;
+               Success : Boolean
+               with Unreferenced;
 
             begin
                Success := Last.Backward;
@@ -1125,12 +1146,14 @@ package body LSP.Ada_Documents is
       --  for these fields or if we are dealing with predefined types).
       if Compute_Doc_And_Details or else LSP.Utils.Is_Synthetic (Name) then
          declare
-            Qual_Text    : VSS.Strings.Virtual_String;
-            Decl_Text    : VSS.Strings.Virtual_String;
-            Loc_Text     : VSS.Strings.Virtual_String;
-            Doc_Text     : VSS.Strings.Virtual_String;
-            Aspects_Text : VSS.Strings.Virtual_String;
-
+            Qual_Text            : VSS.Strings.Virtual_String;
+            Decl_Text            : VSS.Strings.Virtual_String;
+            Loc_Text             : VSS.Strings.Virtual_String;
+            Doc_Text             : VSS.Strings.Virtual_String;
+            Aspects_Text         : VSS.Strings.Virtual_String;
+            Fully_Qualified_Name : constant VSS.Strings.Virtual_String :=
+              VSS.Strings.To_Virtual_String
+                (Name.P_Fully_Qualified_Name);
          begin
             LSP.Ada_Documentation.Get_Tooltip_Text
               (Name               => Name,
@@ -1142,7 +1165,11 @@ package body LSP.Ada_Documents is
                Documentation_Text => Doc_Text,
                Aspects_Text       => Aspects_Text);
 
-            Item.detail := Decl_Text;
+            Item.detail :=
+              Fully_Qualified_Name
+              & VSS.Characters.Latin.Line_Feed
+              & VSS.Characters.Latin.Line_Feed
+              & Decl_Text;
 
             if not Doc_Text.Is_Empty then
                Loc_Text.Append (2 * VSS.Characters.Latin.Line_Feed);
@@ -1151,9 +1178,9 @@ package body LSP.Ada_Documents is
 
             Item.documentation :=
               (Is_Set => True,
-               Value  => LSP.Structures.Virtual_String_Or_MarkupContent'
-                 (Is_Virtual_String => True,
-                  Virtual_String    => Loc_Text));
+               Value  =>
+                 LSP.Structures.Virtual_String_Or_MarkupContent'
+                   (Is_Virtual_String => True, Virtual_String => Loc_Text));
          end;
 
       else

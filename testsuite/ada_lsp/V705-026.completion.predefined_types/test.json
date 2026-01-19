@@ -190,7 +190,7 @@
                         "insertTextFormat": 1
                      },
                      {
-                        "detail": "type Integer is range -16#8000_0000# .. 16#7fff_ffff#;",
+                        "detail": "Standard.Integer\n\ntype Integer is range -16#8000_0000# .. 16#7fff_ffff#;",
                         "documentation": "at __standard (6:4)",
                         "kind": 7,
                         "label": "Integer",
@@ -211,7 +211,7 @@
             "params": {
                "label": "Integer",
                "kind": 7,
-               "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
+               "detail": "Standard.Integer\n\ntype Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                "documentation": "at __standard (4:3)",
                "sortText": "00&00002Integer",
                "additionalTextEdits": []
@@ -223,7 +223,7 @@
                "result": {
                   "label": "Integer",
                   "kind": 7,
-                  "detail": "type Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
+                  "detail": "Standard.Integer\n\ntype Integer is range -(2 ** 31) .. +(2 ** 31 - 1);",
                   "documentation": "at __standard (4:3)",
                   "sortText": "00&00002Integer"
                }

@@ -1,18 +1,16 @@
 [
    {
       "comment": [
-          "check that completion snippets for subprograms are properly ",
-          "formatted. This test verifies that snippets work well with ",
-          "dotted notation and with subpograms that list several parameters",
-          "with the same type with the ',' notation ",
-          "(e.g: procedure Add (A, B: Integer)"
+         "check that completion snippets for subprograms are properly ",
+         "formatted. This test verifies that snippets work well with ",
+         "dotted notation and with subpograms that list several parameters",
+         "with the same type with the ',' notation ",
+         "(e.g: procedure Add (A, B: Integer)"
       ]
    },
    {
       "start": {
-         "cmd": [
-            "${ALS}"
-         ]
+         "cmd": ["${ALS}"]
       }
    },
    {
@@ -24,10 +22,7 @@
                   "textDocument": {
                      "completion": {
                         "completionItem": {
-                           "documentationFormat": [
-                              "plaintext",
-                              "markdown"
-                           ],
+                           "documentationFormat": ["plaintext", "markdown"],
                            "snippetSupport": true
                         },
                         "completionItemKind": {},
@@ -65,27 +60,21 @@
             "id": 1,
             "method": "initialize"
          },
-          "wait":
-          [
-              {
-                  "jsonrpc": "2.0",
-                  "id": 1,
-                  "result": {
-                      "capabilities": {
-                          "textDocumentSync": 2,
-                          "completionProvider": {
-                              "resolveProvider": true,
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ]
-                          }
-                      }
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "completionProvider": {
+                        "resolveProvider": true,
+                        "triggerCharacters": [".", ",", "'", "("]
+                     }
                   }
-              }
-          ]
+               }
+            }
+         ]
       }
    },
    {
@@ -114,24 +103,25 @@
          },
          "wait": [
             {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "window/workDoneProgress/create",
-                "params": {
-                    "token": "<ANY>"
-                }
-            },  {
-                "jsonrpc": "2.0",
-                "method": "$/progress",
-                "params": {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "method": "window/workDoneProgress/create",
+               "params": {
+                  "token": "<ANY>"
+               }
+            },
+            {
+               "jsonrpc": "2.0",
+               "method": "$/progress",
+               "params": {
                   "token": "<ANY>",
                   "value": {
-                    "kind": "end"
+                     "kind": "end"
                   }
-                }
+               }
             }
-        ]
-     }
+         ]
+      }
    },
    {
       "send": {
@@ -216,30 +206,34 @@
             "id": 4,
             "method": "textDocument/completion"
          },
-         "sortReply": { "result": {"items": ["label", "documentation"]} },
+         "sortReply": {
+            "result": {
+               "items": ["label", "documentation"]
+            }
+         },
          "wait": [
             {
                "id": 4,
                "result": {
                   "isIncomplete": false,
-                        "items": [
-                           {
-                              "label": "A",
-                              "kind": 5,
-                              "detail": "type My_Int is tagged record\n   A : Integer;\nend record;",
-                              "documentation": "at bar.ads (4:7)\n\n@field A",
-                              "sortText": "00&00001A"
-                           },
-                           {
-                              "label": "Do_Nothing",
-                              "kind": 3,
-                              "detail": "procedure Do_Nothing (Obj : My_Int; A :Integer)",
-                              "documentation": "at bar.ads (7:4)",
-                              "sortText": "25&00002Do_Nothing",
-                              "insertText": "Do_Nothing (${1:A : Integer})$0",
-                              "insertTextFormat": 2
-                           }
-                        ]
+                  "items": [
+                     {
+                        "label": "A",
+                        "kind": 5,
+                        "detail": "Bar.My_Int.A\n\ntype My_Int is tagged record\n   A : Integer;\nend record;",
+                        "documentation": "at bar.ads (4:7)\n\n@field A",
+                        "sortText": "00&00001A"
+                     },
+                     {
+                        "label": "Do_Nothing",
+                        "kind": 3,
+                        "detail": "Bar.Do_Nothing\n\nprocedure Do_Nothing (Obj : My_Int; A :Integer)",
+                        "documentation": "at bar.ads (7:4)",
+                        "sortText": "25&00002Do_Nothing",
+                        "insertText": "Do_Nothing (${1:A : Integer})$0",
+                        "insertTextFormat": 2
+                     }
+                  ]
                }
             }
          ]
@@ -347,109 +341,108 @@
    },
    {
       "send": {
-          "request": {
-              "params": {
-                  "position": {
-                      "line": 11,
-                      "character": 4
-                  },
-                  "textDocument": {
-                      "uri": "$URI{src/main.adb}"
-                  }
-              },
-              "jsonrpc": "2.0",
-              "id": 6,
-              "method": "textDocument/completion"
-          },
-          "wait": [
-              {
-                  "id": 6,
-                  "result": {
-                      "isIncomplete": false,
-                      "items": [
-			"<HAS>",
-                        {
-                           "label": "A",
-                           "kind": 6,
-                           "detail": "A : Integer := 3;",
-                           "documentation": "at main.adb (10:4)"
-                        },
-                        {
-                           "label": "ASCII",
-                           "kind": 9,
-                           "detail": "package ASCII",
-                           "documentation": "<ANY>"
-                        },
-                        {
-                           "label": "Add",
-                           "kind": 3,
-                           "detail": "function Add (A, B : Integer) return Integer",
-                           "documentation": "at main.adb (6:4)",
-                           "insertText": "Add (${1:A : Integer}, ${2:B : Integer})$0",
-                           "insertTextFormat": 2
-                        },
-                        {
-                              "label": "abort",
-                              "kind": 14,
-                              "insertText": "abort",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "abs",
-                              "kind": 14,
-                              "insertText": "abs",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "abstract",
-                              "kind": 14,
-                              "insertText": "abstract",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "accept",
-                              "kind": 14,
-                              "insertText": "accept",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "access",
-                              "kind": 14,
-                              "insertText": "access",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "aliased",
-                              "kind": 14,
-                              "insertText": "aliased",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "all",
-                              "kind": 14,
-                              "insertText": "all",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "and",
-                              "kind": 14,
-                              "insertText": "and",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "array",
-                              "kind": 14,
-                              "insertText": "array",
-                              "insertTextFormat": 1
-                          },
-                          {
-                              "label": "at",
-                              "kind": 14,
-                              "insertText": "at",
-                              "insertTextFormat": 1
-                          }
-
-                      ]
+         "request": {
+            "params": {
+               "position": {
+                  "line": 11,
+                  "character": 4
+               },
+               "textDocument": {
+                  "uri": "$URI{src/main.adb}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "textDocument/completion"
+         },
+         "wait": [
+            {
+               "id": 6,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "A",
+                        "kind": 6,
+                        "detail": "Main.A\n\nA : Integer := 3;",
+                        "documentation": "at main.adb (10:4)"
+                     },
+                     {
+                        "label": "ASCII",
+                        "kind": 9,
+                        "detail": "Standard.ASCII\n\npackage ASCII",
+                        "documentation": "<ANY>"
+                     },
+                     {
+                        "label": "Add",
+                        "kind": 3,
+                        "detail": "Main.Add\n\nfunction Add (A, B : Integer) return Integer",
+                        "documentation": "at main.adb (6:4)",
+                        "insertText": "Add (${1:A : Integer}, ${2:B : Integer})$0",
+                        "insertTextFormat": 2
+                     },
+                     {
+                        "label": "abort",
+                        "kind": 14,
+                        "insertText": "abort",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "abs",
+                        "kind": 14,
+                        "insertText": "abs",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "abstract",
+                        "kind": 14,
+                        "insertText": "abstract",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "accept",
+                        "kind": 14,
+                        "insertText": "accept",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "access",
+                        "kind": 14,
+                        "insertText": "access",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "aliased",
+                        "kind": 14,
+                        "insertText": "aliased",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "all",
+                        "kind": 14,
+                        "insertText": "all",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "and",
+                        "kind": 14,
+                        "insertText": "and",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "array",
+                        "kind": 14,
+                        "insertText": "array",
+                        "insertTextFormat": 1
+                     },
+                     {
+                        "label": "at",
+                        "kind": 14,
+                        "insertText": "at",
+                        "insertTextFormat": 1
+                     }
+                  ]
                }
             }
          ]

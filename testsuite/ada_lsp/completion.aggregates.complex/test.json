@@ -1,7 +1,7 @@
 [
    {
       "comment": [
-          "Test completion for aggregate switch case for all format"
+         "Test completion for aggregate switch case for all format"
       ]
    },
    {
@@ -65,25 +65,25 @@
             "id": 1,
             "method": "initialize"
          },
-          "wait": [
-              {
-                  "jsonrpc": "2.0",
-                  "id": 1,
-                  "result": {
-                      "capabilities": {
-                          "completionProvider": {
-                              "triggerCharacters": [
-                                  ".",
-                                  ",",
-                                  "'",
-                                  "("
-                              ],
-                              "resolveProvider": true
-                          }
-                      }
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "completionProvider": {
+                        "triggerCharacters": [
+                           ".",
+                           ",",
+                           "'",
+                           "("
+                        ],
+                        "resolveProvider": true
+                     }
                   }
-              }
-          ]
+               }
+            }
+         ]
       }
    },
    {
@@ -190,7 +190,7 @@
                      {
                         "label": "Aggregate when X => -6",
                         "kind": 15,
-                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "detail": "Foo.Foo\n\ntype Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
                         "sortText": "+00",
                         "insertText": "-6, ${2:A : Integer})$0",
                         "insertTextFormat": 2,
@@ -215,7 +215,7 @@
                      {
                         "label": "Aggregate when X => -5 | -4",
                         "kind": 15,
-                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "detail": "Foo.Foo\n\ntype Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
                         "sortText": "+03",
                         "insertText": "${1:X : -5 | -4}, ${2:B : Integer})$0",
                         "insertTextFormat": 2,
@@ -240,7 +240,7 @@
                      {
                         "label": "Aggregate when X => -3 .. -1",
                         "kind": 15,
-                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "detail": "Foo.Foo\n\ntype Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
                         "sortText": "+06",
                         "insertText": "${1:X : -3 .. -1}, ${2:C : Integer})$0",
                         "insertTextFormat": 2,
@@ -265,7 +265,7 @@
                      {
                         "label": "Aggregate when X => Natural",
                         "kind": 15,
-                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "detail": "Foo.Foo\n\ntype Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
                         "sortText": "+09",
                         "insertText": "${1:X : Natural}, ${2:D : Integer})$0",
                         "insertTextFormat": 2,
@@ -290,7 +290,7 @@
                      {
                         "label": "Aggregate when X => others",
                         "kind": 15,
-                        "detail": "type Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
+                        "detail": "Foo.Foo\n\ntype Foo (X : Integer) is record\n   case X is\n      when -6 =>\n         A : Integer;\n      when -5 | -4 =>\n         B : Integer;\n      when -3 .. -1 =>\n         C : Integer;\n      when Natural =>\n         D : Integer;\n      when others =>\n         E : Integer;\n   end case;\nend record;",
                         "sortText": "+12",
                         "insertText": "${1:X : others}, ${2:E : Integer})$0",
                         "insertTextFormat": 2,
