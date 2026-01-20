@@ -5,6 +5,7 @@ section below it for the last release. -->
 ## \<next>
 
 * Implementation `textDocument/linkedEditingRange` for defining names
+* Support `textDocument/definition` for source file references in GPR files
 
 ## 2026.1.202601121
 
