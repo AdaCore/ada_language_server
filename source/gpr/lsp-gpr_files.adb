@@ -1694,7 +1694,7 @@ package body LSP.GPR_Files is
       Result : GPR2.Path_Name.Set.Object;
    begin
       Result := GPR2.Project.Default_Search_Paths (Environment);
-      for Path of Self.Prepended loop
+      for Path of reverse Self.Prepended loop
          Result.Prepend (Path);
       end loop;
       return Result;

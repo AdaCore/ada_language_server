@@ -1,0 +1,132 @@
+[
+   {
+      "comment": [
+        "test path priority in textDocument/declarationi when",
+        "GPR_PROJECT_PATH=${DIR}/first:${DIR}/last"]
+   },
+   {
+    "prepend_to_env": { "GPR_PROJECT_PATH": "${DIR}/last" }
+   },
+   {
+    "prepend_to_env": { "GPR_PROJECT_PATH": "${DIR}/first" }
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "processId": 30612,
+               "capabilities": {
+                  "workspace": {
+                     "applyEdit": false
+                  }
+               },
+               "rootUri": "$URI{.}"
+            },
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "jsonrpc": "2.0",
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {
+                        "triggerCharacters": [" ", ".", "'", "("],
+                        "resolveProvider": true
+                     },
+                     "hoverProvider": true,
+                     "declarationProvider": true,
+                     "documentSymbolProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "position": {
+                  "line": 3,
+                  "character": 25
+               },
+               "textDocument": {
+                  "uri": "$URI{test.gpr}"
+               }
+            },
+            "jsonrpc": "2.0",
+            "id": 329,
+            "method": "textDocument/declaration"
+         },
+         "wait": [
+            {
+               "id": 329,
+               "result": {
+                  "range": {
+                     "start": {
+                        "line": 0,
+                        "character": 17
+                     },
+                     "end": {
+                        "line": 0,
+                        "character": 25
+                     }
+                  },
+                  "uri": "$URI{first/imported.gpr}"
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "shutdown",
+            "method": "shutdown",
+            "params": null
+         },
+         "wait": [
+            {
+               "id": "shutdown",
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "exit"
+         },
+         "wait": []
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
