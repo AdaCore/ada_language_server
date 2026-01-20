@@ -25,7 +25,7 @@ export async function createHelloWorldProject() {
    for Main use ("hello_world.adb");
 
    package Compiler is
-      for Switches ("Ada") use ("-g", "-O0");
+      for Switches ("Ada") use ("-g", "-O0", "-gnatwa");
    end Compiler;
 end Hello_World;
 `,
@@ -35,7 +35,7 @@ end Hello_World;
             `with Ada.Text_IO;
 
 procedure Hello_World is
-   Msg : constant String := "Hello World!";
+   Msg : String := "Hello World!";
 begin
    Ada.Text_IO.Put_Line (Msg);
 end Hello_World;
