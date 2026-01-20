@@ -167,6 +167,13 @@ package LSP.GPR_Documents is
    --  if Document contains a valid Tree & Reference is a type reference
    --  returns corresponding value otherwise returns 'Undefined'
 
+   function Find_Source_File
+     (Self        : Document'Class;
+      Simple_Name : GPR2.Simple_Name)
+      return GPR2.Path_Name.Object;
+   --  Find a source file by simple name in the project's visible sources.
+   --  Returns Undefined if not found or if the tree is not loaded.
+
    function File (Self : Document'Class) return GPR2.Path_Name.Object;
 
 private

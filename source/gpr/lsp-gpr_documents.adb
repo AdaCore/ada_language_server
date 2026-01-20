@@ -17,6 +17,8 @@
 
 with Ada.Exceptions;
 
+with GPR2.Build.Source;
+with GPR2.Build.Source.Sets;
 with GPR2.Message;
 with GPR2.Options;
 with GPR2.Project.Typ.Set;
@@ -479,5 +481,36 @@ package body LSP.GPR_Documents is
       end if;
       return GPR2.Project.Typ.Undefined;
    end Get_Type;
+
+   ----------------------
+   -- Find_Source_File --
+   ----------------------
+
+   function Find_Source_File
+     (Self        : Document'Class;
+      Simple_Name : GPR2.Simple_Name)
+      return GPR2.Path_Name.Object is
+   begin
+      if not Self.Has_Errors
+        and then Self.Tree.Is_Defined
+        and then Self.Tree.Root_Project.Is_Defined
+      then
+         declare
+            use type GPR2.Simple_Name;
+            Root_View : constant GPR2.Project.View.Object :=
+              Self.Tree.Root_Project;
+            Sources   : constant GPR2.Build.Source.Sets.Object :=
+              Root_View.Visible_Sources;
+         begin
+            for Source of Sources loop
+               if Source.Path_Name.Simple_Name = Simple_Name then
+                  return Source.Path_Name;
+               end if;
+            end loop;
+         end;
+      end if;
+
+      return GPR2.Path_Name.Undefined;
+   end Find_Source_File;
 
 end LSP.GPR_Documents;

@@ -31,5 +31,10 @@
                 "appendText": "--  "
             }
         }
-    ]
+    ],
+    // Defines word definition for GPR language.
+    // Allows matching identifiers and filenames too.
+    // (e.: in 'for Main use ("main.adb")'', "main.adb" will be
+    // matched as one single word).
+    "wordPattern": "[A-Za-z][A-Za-z0-9_.-]*"
 }

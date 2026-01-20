@@ -22,6 +22,7 @@ with Ada.Characters.Handling;
 with GNATCOLL.Utils;
 
 with LSP.Alire;
+with LSP.Utils; use LSP.Utils;
 
 with VSS.Strings.Conversions;
 with VSS.Strings.Formatters.Generic_Integers;
@@ -73,12 +74,6 @@ package body LSP.GPR_Files is
      (Optional_Name_Type
         (Gpr_Parser_Support.Text.To_UTF8 (GPC.Text (Ref))));
    --  convert a token reference to a gpr2 string
-
-   function Remove_Quote (S : String) return String is
-     (if S'Length >= 2 and then S (S'First) = '"' and then S (S'Last) = '"'
-      then S (S'First + 1 .. S'Last - 1)
-      else S);
-   --  remove leading & trailing '"' (useful for string tokens)
 
    procedure Internal_Parse (File : in out LSP.GPR_Files.File);
    --  parse GPR 'File'

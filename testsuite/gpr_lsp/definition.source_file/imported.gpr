@@ -1,0 +1,6 @@
+project Imported is
+
+   for Source_Dirs use ("imported");
+   for Exec_Dir use "bin";
+
+end Imported;
