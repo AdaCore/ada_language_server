@@ -1,4 +1,4 @@
 --  Stub project for libfswatch, which is not supported on Mac OS
-with "gnatcoll";
+with "gnatcoll_core";
 project ada_libfswatch is
 end ada_libfswatch;
