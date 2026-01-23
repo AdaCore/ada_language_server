@@ -334,6 +334,7 @@ package body LSP.Ada_Formatter is
 
       procedure Handle_Document_Without_Diagnostics is
 
+         use Libadalang.Common;
          function Is_Between
            (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)
             return Boolean;
@@ -361,9 +362,11 @@ package body LSP.Ada_Formatter is
              Laltools.Partial_GNATPP.Previous_Non_Whitespace_Non_Comment_Token
                (Token);
          Previous_NWNC_Token_Span : constant LSP.Structures.A_Range :=
-           Document.To_A_Range
-             (Libadalang.Common.Sloc_Range
-                (Libadalang.Common.Data (Previous_NWNC_Token)));
+           (if Previous_NWNC_Token = No_Token
+            then LSP.Structures.A_Range'((0, 0), (0, 0))
+            else Document.To_A_Range
+              (Libadalang.Common.Sloc_Range
+                   (Libadalang.Common.Data (Previous_NWNC_Token))));
 
          Formatting_Region :
            constant Laltools.Partial_GNATPP.Formatting_Region_Type :=
