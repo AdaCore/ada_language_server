@@ -1698,7 +1698,7 @@ package body LSP.GPR_Files is
    function Search_Paths (Self : File) return GPR2.Path_Name.Set.Object is
       Result : GPR2.Path_Name.Set.Object;
    begin
-      Result := GPR2.Project.Default_Search_Paths (Environment);
+      Result := GPR2.Project.Default_Search_Paths (False, Environment);
       for Path of Self.Prepended loop
          Result.Prepend (Path);
       end loop;
