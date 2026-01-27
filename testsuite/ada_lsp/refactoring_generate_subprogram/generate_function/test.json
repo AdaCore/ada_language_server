@@ -222,7 +222,7 @@
                                     "start": { "line": 2, "character": 0 },
                                     "end": { "line": 2, "character": 0 }
                                  },
-                                 "newText": "\n   function Square (X : Integer) return Natural is\n   begin\n      \n   end Square;\n",
+                                 "newText": "\n   function Square (X : Integer) return Natural\n   is\n   begin\n      \n   end Square;\n",
                                  "annotationId": ""
                               }
                            ]
