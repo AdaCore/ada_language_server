@@ -89,6 +89,12 @@
                     ".gpr"
                 ],
                 "configuration": "./gpr-language-configuration.json"
+            },
+            {
+                "id": "jsonc",
+                "extensions": [
+                    ".als.json"
+                ]
             }
         ],
         "grammars": [
@@ -1393,9 +1399,6 @@
             "[gpr]": {
                 "editor.tabSize": 3,
                 "editor.detectIndentation": false
-            },
-            "files.associations": {
-                ".als.json": "jsonc"
             }
         },
         "walkthroughs": [
