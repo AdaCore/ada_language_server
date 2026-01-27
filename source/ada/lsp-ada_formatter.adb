@@ -17,6 +17,7 @@
 
 with Gnatformat.Configuration;
 with Laltools.Partial_GNATPP;
+with Langkit_Support.Slocs;
 with Libadalang.Common;
 with LSP.Ada_Context_Sets;
 with LSP.Ada_Configurations;
@@ -335,14 +336,6 @@ package body LSP.Ada_Formatter is
       procedure Handle_Document_Without_Diagnostics is
 
          use Libadalang.Common;
-         function Is_Between
-           (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)
-            return Boolean;
-         --  Checks if Position is between Span
-
-         ----------------
-         -- Is_Between --
-         ----------------
 
          function Is_Between
            (Position : LSP.Structures.Position; Span : LSP.Structures.A_Range)
@@ -353,6 +346,24 @@ package body LSP.Ada_Formatter is
                       and then Position.character <= Span.an_end.character)
              or else (Position.line > Span.start.line
                       and then Position.line < Span.an_end.line));
+         --  Checks if Position is between Span
+
+         function Sloc_Range
+           (Token : Libadalang.Common.Token_Reference)
+            return Langkit_Support.Slocs.Source_Location_Range is
+              (Libadalang.Common.Sloc_Range (Libadalang.Common.Data (Token)));
+
+         function Start_Sloc
+           (Token : Libadalang.Common.Token_Reference)
+            return Langkit_Support.Slocs.Source_Location is
+             (Libadalang.Slocs.Start_Sloc (Sloc_Range (Token)));
+
+         function Too_Far_Away
+           (Token : Libadalang.Common.Token_Reference;
+            Line  : Natural) return Boolean is
+             (Line - Natural (Start_Sloc (Token).Line) > 0);
+         --  Return True is there is at least one line between token and Line,
+         --  where line is zero-base LSP line number.
 
          Token                    :
            constant Libadalang.Common.Token_Reference :=
@@ -364,9 +375,7 @@ package body LSP.Ada_Formatter is
          Previous_NWNC_Token_Span : constant LSP.Structures.A_Range :=
            (if Previous_NWNC_Token = No_Token
             then LSP.Structures.A_Range'((0, 0), (0, 0))
-            else Document.To_A_Range
-              (Libadalang.Common.Sloc_Range
-                   (Libadalang.Common.Data (Previous_NWNC_Token))));
+            else Document.To_A_Range (Sloc_Range (Previous_NWNC_Token)));
 
          Formatting_Region :
            constant Laltools.Partial_GNATPP.Formatting_Region_Type :=
@@ -375,14 +384,8 @@ package body LSP.Ada_Formatter is
          Formatting_Span   : constant LSP.Structures.A_Range :=
            Document.To_A_Range
              (Libadalang.Slocs.Make_Range
-                (Libadalang.Slocs.Start_Sloc
-                   (Libadalang.Common.Sloc_Range
-                      (Libadalang.Common.Data
-                         (Formatting_Region.Start_Token))),
-                 Libadalang.Slocs.Start_Sloc
-                   (Libadalang.Common.Sloc_Range
-                      (Libadalang.Common.Data
-                         (Formatting_Region.End_Token)))));
+                (Start_Sloc (Formatting_Region.Start_Token),
+                 Start_Sloc (Formatting_Region.End_Token)));
          --  This is the span that would be formatted based on the cursor
          --  position.
 
@@ -406,9 +409,11 @@ package body LSP.Ada_Formatter is
 
          --  onTypeFormatting is configured to also format the previous node,
          --  however, we can only do this if the cursor is not between the
-         --  Formatting_Span.
+         --  Formatting_Span nor we have a line between the cursor and span.
 
-         if Is_Between (Value.position, Formatting_Span) then
+         if Is_Between (Value.position, Formatting_Span)
+           or else Too_Far_Away (Previous_NWNC_Token, Value.position.line)
+         then
             Self.Parent.Context.Get_Trace_Handle.Trace
               ("Current position is within the Formatting_Span");
             Self.Parent.Context.Get_Trace_Handle.Trace
