@@ -108,7 +108,7 @@
                                     }
                                  }
                               },
-                              "message": "foo.adb is not a source of project Testo"
+                              "message": "\"foo.adb\" is not a source of project Testo"
                            }
                         ]
                      }
@@ -273,7 +273,7 @@
                                     }
                                  }
                               },
-                              "message": "foo.adb is not a source of project Testo"
+                              "message": "\"foo.adb\" is not a source of project Testo"
                            }
                         ]
                      }
@@ -359,7 +359,7 @@
                                     }
                                  }
                               },
-                              "message": "foo.adb is not a source of project Testo"
+                              "message": "\"foo.adb\" is not a source of project Testo"
                            }
                         ]
                      }
@@ -474,7 +474,7 @@
                                     }
                                  }
                               },
-                              "message": "foo.adb is not a source of project Testo"
+                              "message": "\"foo.adb\" is not a source of project Testo"
                            }
                         ]
                      }
@@ -574,7 +574,7 @@
                                     }
                                  }
                               },
-                              "message": "foo.adb is not a source of project Testo"
+                              "message": "\"foo.adb\" is not a source of project Testo"
                            }
                         ]
                      }
@@ -689,7 +689,7 @@
                                     }
                                  }
                               },
-                              "message": "foo.adb is not a source of project Testo"
+                              "message": "\"foo.adb\" is not a source of project Testo"
                            }
                         ]
                      }
@@ -855,7 +855,7 @@
                                     }
                                  }
                               },
-                              "message": "foo.adb is not a source of project Testo"
+                              "message": "\"foo.adb\" is not a source of project Testo"
                            }
                         ]
                      }
@@ -955,7 +955,7 @@
                                     }
                                  }
                               },
-                              "message": "foo.adb is not a source of project Testo"
+                              "message": "\"foo.adb\" is not a source of project Testo"
                            }
                         ]
                      }
