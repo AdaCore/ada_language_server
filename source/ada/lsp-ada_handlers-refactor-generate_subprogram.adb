@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                        Copyright (C) 2025, AdaCore                  --
+--                        Copyright (C) 2025-2026, AdaCore                  --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -140,7 +140,7 @@ package body LSP.Ada_Handlers.Refactor.Generate_Subprogram is
       Dest_Filename   : constant String := File.Display_Full_Name;
       Document        : LSP.Ada_Documents.Document_Access;
       Node            : Ada_Node := No_Ada_Node;
-      Target_Subp     : Subp_Decl := No_Subp_Decl;
+      Target_Subp     : Basic_Subp_Decl := No_Basic_Subp_Decl;
       --  As Node is retrieved from the Decl SLOC_Range, we assume Node is
       --  a direct child of the Subp_Decl, otherwise Get_Subp_Decl fails
 

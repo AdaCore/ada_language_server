@@ -222,7 +222,7 @@
                                     "start": { "line": 2, "character": 0 },
                                     "end": { "line": 2, "character": 0 }
                                  },
-                                 "newText": "\n   procedure Unimplemented is\n   begin\n      \n   end Unimplemented;\n",
+                                 "newText": "\n   procedure Unimplemented\n   is\n   begin\n      \n   end Unimplemented;\n",
                                  "annotationId": ""
                               }
                            ]

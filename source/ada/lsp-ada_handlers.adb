@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2025, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -1105,22 +1105,26 @@ package body LSP.Ada_Handlers is
 
             Generate_Subprogram_Command : Command;
 
-            Decl       : Subp_Decl := No_Subp_Decl;
-            Start_SLOC : constant Source_Location :=
+            Decl  : Basic_Subp_Decl := No_Basic_Subp_Decl;
+            Where : constant Source_Location :=
               Self.From_LSP_Range (Node.Unit, Value.a_range).Start_Sloc;
 
             Single_Location : constant Boolean :=
               Value.a_range.start = Value.a_range.an_end;
          begin
             if Single_Location
-              and then Is_Generate_Subprogram_Available
-                         (Node.Unit, Start_SLOC, Decl)
+              and then
+                Is_Generate_Subprogram_Available (Node.Unit, Where, Decl)
             then
                Generate_Subprogram_Command.Append_Code_Action
                  (Context         => Context,
                   Commands_Vector => Result,
                   Subp_Start      => Self.To_LSP_Location (Decl),
-                  Subp_Type       => Decl.F_Subp_Spec.F_Subp_Kind);
+                  Subp_Type       =>
+                    (if Decl.P_Subp_Decl_Spec.P_Returns.Is_Null
+                     then Ada_Subp_Kind_Procedure
+                     else Ada_Subp_Kind_Function
+                 ));
                Found := True;
             else
                return;

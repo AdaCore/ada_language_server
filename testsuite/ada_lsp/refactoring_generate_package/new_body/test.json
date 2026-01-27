@@ -218,7 +218,7 @@
                         {
                            "edits": [
                               {
-                                 "newText": "package body Pkg is\n\n   procedure M is\n   begin\n      \n   end M;\nend Pkg;\n",
+                                 "newText": "\npackage body Pkg is\n\n   procedure M\n   is\n   begin\n      \n   end M;\n\nend Pkg;\n",
                                  "range": {
                                     "start": { "line": 0, "character": 0 },
                                     "end": { "line": 0, "character": 0 }
