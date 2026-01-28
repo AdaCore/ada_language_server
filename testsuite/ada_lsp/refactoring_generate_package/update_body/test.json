@@ -215,7 +215,7 @@
                            "edits": [
                               {
                                  "annotationId": "",
-                                 "newText": "\n   function F (A : Integer) return Boolean is\n   begin\n      \n   end F;\n\n   overriding function F (A : Natural) return Boolean is\n   begin\n      \n   end F;\n",
+                                 "newText": "\n   function F (A : Integer) return Boolean\n   is\n   begin\n      \n   end F;\n\n   overriding function F (A : Natural) return Boolean\n   is\n   begin\n      \n   end F;\n",
                                  "range": {
                                     "start": { "line": 5, "character": 0 },
                                     "end": { "line": 5, "character": 0 }
