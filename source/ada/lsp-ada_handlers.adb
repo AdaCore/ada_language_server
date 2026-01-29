@@ -1105,7 +1105,7 @@ package body LSP.Ada_Handlers is
 
             Generate_Subprogram_Command : Command;
 
-            Decl  : Basic_Subp_Decl := No_Basic_Subp_Decl;
+            Decl  : Subp_Decl := No_Subp_Decl;
             Where : constant Source_Location :=
               Self.From_LSP_Range (Node.Unit, Value.a_range).Start_Sloc;
 
@@ -1120,11 +1120,7 @@ package body LSP.Ada_Handlers is
                  (Context         => Context,
                   Commands_Vector => Result,
                   Subp_Start      => Self.To_LSP_Location (Decl),
-                  Subp_Type       =>
-                    (if Decl.P_Subp_Decl_Spec.P_Returns.Is_Null
-                     then Ada_Subp_Kind_Procedure
-                     else Ada_Subp_Kind_Function
-                 ));
+                  Subp_Type       => Decl.F_Subp_Spec.F_Subp_Kind);
                Found := True;
             else
                return;
