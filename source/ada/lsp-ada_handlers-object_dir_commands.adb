@@ -15,6 +15,7 @@
 -- of the license.                                                          --
 ------------------------------------------------------------------------------
 
+with GPR2;
 with GPR2.Project.View;
 
 with VSS.JSON.Streams;
@@ -59,8 +60,12 @@ package body LSP.Ada_Handlers.Object_Dir_Commands is
    begin
       if Handler.Project_Tree.Is_Defined then
          Element := Handler.Project_Tree.Root_Project;
-         Value := VSS.Strings.Conversions.To_Virtual_String
-           (String (Element.Object_Directory.Value));
+         if Element.Is_Defined
+           and then Element.Kind in GPR2.With_Object_Dir_Kind
+         then
+            Value := VSS.Strings.Conversions.To_Virtual_String
+              (String (Element.Object_Directory.Value));
+         end if;
       end if;
 
       Response := (Is_Null => False, Value => <>);

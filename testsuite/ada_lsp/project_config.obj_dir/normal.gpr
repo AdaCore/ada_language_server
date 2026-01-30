@@ -1,0 +1,5 @@
+project Normal is
+
+   for Object_Dir use "obj";
+
+end Normal;
