@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -85,15 +85,10 @@ package body LSP.Ada_Handlers.Formatting is
    procedure Format
      (Context  : LSP.Ada_Contexts.Context;
       Document : not null LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector;
-      Error    : out LSP.Errors.ResponseError)
-   is
-      pragma Unreferenced (Messages);
-      use type LSP.Structures.A_Range;
+      Error    : out LSP.Errors.ResponseError) is
    begin
       if Document.Has_Diagnostics (Context) then
          Success := False;
@@ -105,11 +100,7 @@ package body LSP.Ada_Handlers.Formatting is
          return;
       end if;
 
-      if Span /= LSP.Constants.Empty then
-         Response := Document.Range_Format (Context, Span, Options);
-      else
-         Response := Document.Format (Context, Options);
-      end if;
+      Document.Format (Context, Options, Response);
       Success := True;
 
    exception
@@ -144,9 +135,8 @@ package body LSP.Ada_Handlers.Formatting is
 
          return;
       end if;
-      Response.Clear;
-      Response.Append
-        (Document.Range_Format (Context, Span, Options => Options));
+
+      Document.Range_Format (Context, Span, Options, Response);
       Success := True;
 
    exception
@@ -198,10 +188,8 @@ package body LSP.Ada_Handlers.Formatting is
       Span     : LSP.Structures.A_Range := LSP.Text_Documents.Empty_Range;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError)
    is
-      pragma Unreferenced (Messages);
       use LSP.Structures;
       use LSP.Text_Documents;
       use VSS.Strings;

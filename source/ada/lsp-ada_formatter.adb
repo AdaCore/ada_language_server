@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2025, AdaCore                          --
+--                     Copyright (C) 2025-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -32,8 +32,8 @@ with LSP.Formatters.Fallback_Indenter;
 with LSP.Server_Requests.OnTypeFormatting;
 with LSP.Server_Requests.RangeFormatting;
 with LSP.Structures;
+with LSP.Utils;
 with VSS.Strings;
-with VSS.String_Vectors;
 
 package body LSP.Ada_Formatter is
 
@@ -128,12 +128,15 @@ package body LSP.Ada_Formatter is
       Response : LSP.Structures.TextEdit_Vector_Or_Null;
       Error    : LSP.Errors.ResponseError;
       Success  : Boolean := True;
-      Messages : VSS.String_Vectors.Virtual_String_Vector;
 
    begin
       Status := LSP.Server_Jobs.Done;
 
-      if Document.Has_Diagnostics (Context.all)
+      if LSP.Utils.Is_Empty_Range (Value.a_range) then
+         Error :=
+           (code    => LSP.Enumerations.InvalidParams,
+            message => "Empty range");
+      elsif Document.Has_Diagnostics (Context.all)
         and then
           Self.Parent.Context.Get_Configuration.Range_Formatting_Fallback
       then
@@ -147,10 +150,9 @@ package body LSP.Ada_Formatter is
                 (Context.all, Value.options),
             Success  => Success,
             Response => Response,
-            Messages => Messages,
             Error    => Error);
       else
-         LSP.Ada_Handlers.Formatting.Format
+         LSP.Ada_Handlers.Formatting.Range_Format
            (Context  => Context.all,
             Document => Document,
             Span     => Value.a_range,
@@ -159,18 +161,11 @@ package body LSP.Ada_Formatter is
                 (Context.all, Value.options),
             Success  => Success,
             Response => Response,
-            Messages => Messages,
             Error    => Error);
       end if;
 
       if Success then
          Client.On_RangeFormatting_Response (Message.Id, Response);
-
-         for Message of Messages loop
-            Client.On_ShowMessage_Notification
-              ((LSP.Enumerations.Info, Message));
-         end loop;
-
       else
          Client.On_Error_Response (Message.Id, Error);
       end if;

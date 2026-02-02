@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2022-2025, AdaCore                     --
+--                     Copyright (C) 2022-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -573,7 +573,6 @@ package body LSP.GPR_Handlers is
       Response : LSP.Structures.TextEdit_Vector_Or_Null;
       Error    : LSP.Errors.ResponseError;
       Success  : Boolean := True;
-      Messages : VSS.String_Vectors.Virtual_String_Vector;
       Options  : constant Gnatformat.Configuration.Format_Options_Type :=
         Gnatformat.Configuration.Default_Format_Options;
    begin
@@ -584,17 +583,10 @@ package body LSP.GPR_Handlers is
          Options  => Options,
          Success  => Success,
          Response => Response,
-         Messages => Messages,
          Error    => Error);
 
       if Success then
          Self.Sender.On_Formatting_Response (Id, Response);
-
-         for Message of Messages loop
-            Self.Sender.On_ShowMessage_Notification
-              ((LSP.Enumerations.Info, Message));
-         end loop;
-
       else
          Self.Sender.On_Error_Response (Id, Error);
       end if;
@@ -615,7 +607,6 @@ package body LSP.GPR_Handlers is
       Response : LSP.Structures.TextEdit_Vector_Or_Null;
       Error    : LSP.Errors.ResponseError;
       Success  : Boolean := True;
-      Messages : VSS.String_Vectors.Virtual_String_Vector;
       Options  : constant Gnatformat.Configuration.Format_Options_Type :=
         Gnatformat.Configuration.Default_Format_Options;
    begin
@@ -627,17 +618,10 @@ package body LSP.GPR_Handlers is
          Options  => Options,
          Success  => Success,
          Response => Response,
-         Messages => Messages,
          Error    => Error);
 
       if Success then
          Self.Sender.On_RangeFormatting_Response (Id, Response);
-
-         for Message of Messages loop
-            Self.Sender.On_ShowMessage_Notification
-              ((LSP.Enumerations.Info, Message));
-         end loop;
-
       else
          Self.Sender.On_Error_Response (Id, Error);
       end if;

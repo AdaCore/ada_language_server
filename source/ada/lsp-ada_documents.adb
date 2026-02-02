@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2025, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -50,7 +50,6 @@ with LSP.Predicates;
 with LSP.Structures.LSPAny_Vectors;
 pragma Warnings
   (Off, "child unit * hides compilation unit with the same name");
-with LSP.Utils;
 pragma Warnings (On, "child unit * hides compilation unit with the same name");
 
 package body LSP.Ada_Documents is
@@ -483,13 +482,12 @@ package body LSP.Ada_Documents is
    -- Format --
    ------------
 
-   function Format
+   procedure Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
-      Options : Gnatformat.Configuration.Format_Options_Type)
-      return LSP.Structures.TextEdit_Vector
+      Options : Gnatformat.Configuration.Format_Options_Type;
+      Result  : out LSP.Structures.TextEdit_Vector)
    is
-      Result : LSP.Structures.TextEdit_Vector;
 
       Formatted_Document : constant VSS.Strings.Virtual_String :=
         VSS.Strings.Conversions.To_Virtual_String
@@ -501,9 +499,6 @@ package body LSP.Ada_Documents is
         (New_Text => Formatted_Document,
          Span     => LSP.Text_Documents.Empty_Range,
          Edit     => Result);
-      --  Self.Needleman_Diff (New_Text => Formatted_Document, Edit => Result);
-
-      return Result;
    end Format;
 
    --------------------
@@ -1075,40 +1070,30 @@ package body LSP.Ada_Documents is
    -- Range_Format --
    ------------------
 
-   function Range_Format
+   procedure Range_Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
-      Options : Gnatformat.Configuration.Format_Options_Type)
-      return LSP.Structures.TextEdit_Vector
+      Options : Gnatformat.Configuration.Format_Options_Type;
+      Result  : out LSP.Structures.TextEdit_Vector)
    is
       use type LSP.Structures.A_Range;
       use Gnatformat.Configuration;
 
-      Result : LSP.Structures.TextEdit_Vector;
+      Range_Formatted_Document :
+        constant Gnatformat.Edits.Formatting_Edit_Type :=
+          Gnatformat.Formatting.Range_Format
+            (Self.Unit (Context),
+             Self.To_Source_Location_Range (Span),
+             Options);
    begin
-      if Span = LSP.Text_Documents.Empty_Range then
-         return Result;
-      end if;
-
-      declare
-
-         Range_Formatted_Document :
-           constant Gnatformat.Edits.Formatting_Edit_Type :=
-             Gnatformat.Formatting.Range_Format
-               (Self.Unit (Context),
-                Self.To_Source_Location_Range (Span),
-                Options);
-      begin
-         Self.Diff_C
-           (New_Text =>
-              VSS.Strings.Conversions.To_Virtual_String
-                (Range_Formatted_Document.Text_Edit.Text),
-            Span     =>
-              Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
-            Edit     => Result);
-         return Result;
-      end;
+      Self.Diff_C
+        (New_Text =>
+           VSS.Strings.Conversions.To_Virtual_String
+             (Range_Formatted_Document.Text_Edit.Text),
+         Span     =>
+           Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
+         Edit     => Result);
    end Range_Format;
 
    ------------------------

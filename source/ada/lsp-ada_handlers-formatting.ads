@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2023, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -24,22 +24,20 @@ with LSP.Errors;
 with LSP.Structures;
 with LSP.Formatters.Fallback_Indenter;
 with LSP.Text_Documents;
+with LSP.Utils;
 
 with VSS.Strings;
-with VSS.String_Vectors;
 
 package LSP.Ada_Handlers.Formatting is
 
    procedure Format
      (Context  : LSP.Ada_Contexts.Context;
       Document : not null LSP.Ada_Documents.Document_Access;
-      Span     : LSP.Structures.A_Range;
       Options  : Gnatformat.Configuration.Format_Options_Type;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError);
-   --  Format the text of the given document in the given range (span).
+   --  Format the text of the given document.
 
    procedure Range_Format
      (Context  : LSP.Ada_Contexts.Context;
@@ -48,7 +46,8 @@ package LSP.Ada_Handlers.Formatting is
       Options  : Gnatformat.Configuration.Format_Options_Type;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Error    : out LSP.Errors.ResponseError);
+      Error    : out LSP.Errors.ResponseError)
+        with Pre => not LSP.Utils.Is_Empty_Range (Span);
    --  Format the text of the given document in the given range (span).
 
    function Get_Indentation
@@ -73,7 +72,6 @@ package LSP.Ada_Handlers.Formatting is
       Span     : LSP.Structures.A_Range := LSP.Text_Documents.Empty_Range;
       Success  : out Boolean;
       Response : out LSP.Structures.TextEdit_Vector;
-      Messages : out VSS.String_Vectors.Virtual_String_Vector;
       Error    : out LSP.Errors.ResponseError);
    --  Generate a TextEdit_Vector to reindent the lines in Span using the
    --  fallback indenter.
@@ -85,7 +83,6 @@ package LSP.Ada_Handlers.Formatting is
    --  Options are the formatting options to use.
    --  Success is set to True if indentation was successful.
    --  Response contains the generated TextEdit_Vector.
-   --  Messages contains any informational or warning messages.
    --  Error is set if an error occurred.
 
    function Reindent_Line
