@@ -188,7 +188,7 @@ package body LSP.Text_Documents is
           (Terminators     => LSP_New_Line_Function_Set,
            Keep_Terminator => False);
 
-      Cur       : XDiff.Edits := C_Edit;
+      Cur       : XDiff.Edits := XDiff.First_Edit (C_Edit);
 
       function Get_Range
         (Cur_Edit : XDiff.Edits) return LSP.Structures.A_Range;
@@ -239,29 +239,30 @@ package body LSP.Text_Documents is
          use VSS.Strings;
          Res : VSS.Strings.Virtual_String := VSS.Strings.Empty_Virtual_String;
       begin
-         for I in Start_Line .. End_Line loop
-            Res.Append (Lines (I) & VSS.Characters.Latin.Line_Feed);
-         end loop;
+         --  If Start_Line is -1 then we are only deleting and not inserting
+         --  anything.
+         if Start_Line > -1 then
+            for I in Start_Line .. End_Line loop
+               Res.Append (Lines (I) & VSS.Characters.Latin.Line_Feed);
+            end loop;
+         end if;
          return Res;
       end Get_Slice;
    begin
-
-      loop
-         --  Discard the first node which is fake and will have -1 for all its
-         --  value. Only Delete_Line_Start is allowed to have -1 to indicate
-         --  that nothing should be deleted.
-         if XDiff.Delete_Line_End (Cur) /= -1 then
+      if not XDiff.Is_Empty (Cur) then
+         loop
             Edit.Append
               (LSP.Structures.TextEdit'
                  (a_range => Get_Range (Cur),
-                  newText => Get_Slice (New_Lines,
-                    XDiff.Insert_Line_Start (Cur),
-                    XDiff.Insert_Line_End (Cur))));
-         end if;
-         exit when not XDiff.Has_Next (Cur);
-         Cur := XDiff.Next_Edit (Cur);
-      end loop;
-
+                  newText =>
+                    Get_Slice
+                      (New_Lines,
+                       XDiff.Insert_Line_Start (Cur),
+                       XDiff.Insert_Line_End (Cur))));
+            exit when not XDiff.Has_Next (Cur);
+            Cur := XDiff.Next_Edit (Cur);
+         end loop;
+      end if;
       XDiff.Free_Edits (C_Edit);
    end Diff_C;
 
