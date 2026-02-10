@@ -1,0 +1,135 @@
+[
+   {
+      "comment": ["This test checks renaming a protected procedure."]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 0,
+            "method": "initialize",
+            "params": {
+               "processId": 1,
+               "rootUri": "$URI{.}",
+               "capabilities": {}
+            }
+         },
+         "wait": [
+            {
+               "id": 0,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": 2,
+                     "renameProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "workspace/didChangeConfiguration",
+            "params": {
+               "settings": {}
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}",
+                  "languageId": "ada",
+                  "version": 1,
+                  "text": "procedure Main is\n   protected M is\n      procedure Foo;\n   end M;\n\n   protected body M is\n      procedure Foo is\n      begin\n         null;\n      end Foo;\n   end M;\nbegin\n   null;\nend Main;\n"
+               }
+            }
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": "1",
+            "method": "textDocument/rename",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{main.adb}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 18
+               },
+               "newName": "Bar"
+            }
+         },
+         "wait": [
+            {
+               "id": "1",
+               "result": {
+                  "changes": {
+                     "$URI{main.adb}": [
+                        {
+                           "range": {
+                              "start": { "line": 2, "character": 16 },
+                              "end": { "line": 2, "character": 19 }
+                           },
+                           "newText": "Bar"
+                        },
+                        {
+                           "range": {
+                              "start": { "line": 6, "character": 16 },
+                              "end": { "line": 6, "character": 19 }
+                           },
+                           "newText": "Bar"
+                        },
+                        {
+                           "range": {
+                              "start": { "line": 9, "character": 10 },
+                              "end": { "line": 9, "character": 13 }
+                           },
+                           "newText": "Bar"
+                        }
+                     ]
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
