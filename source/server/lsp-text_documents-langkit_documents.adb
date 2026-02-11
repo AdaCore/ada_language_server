@@ -145,6 +145,7 @@ package body LSP.Text_Documents.Langkit_Documents is
      (Iterator : in out VSS.Strings.Character_Iterators.Character_Iterator;
       Column   : Natural)
    return Langkit_Support.Slocs.Column_Number is
+      use type Langkit_Support.Slocs.Column_Number;
       use type VSS.Strings.Character_Index;
       use type VSS.Unicode.UTF16_Code_Unit_Offset;
 
@@ -160,7 +161,13 @@ package body LSP.Text_Documents.Langkit_Documents is
       end loop;
 
       return Langkit_Support.Slocs.Column_Number
-        (Iterator.Character_Index - Line_First_Character);
+        (Iterator.Character_Index - Line_First_Character)
+          + (if Integer (Iterator.First_UTF16_Offset - Line_Offset) <= Column
+             then 1 else 0);
+      --  In LSP the end position of a range is exclusive, so column could
+      --  point after end of line. Increment column in this case.
+      --  Example: (0:0-1:0), end position in LAL will be 2:1 even if line 2
+      --  is an empty line.
    end To_Source_Column;
 
    ----------------------

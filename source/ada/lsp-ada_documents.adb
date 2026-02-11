@@ -23,6 +23,7 @@ with Gnatformat.Formatting;
 
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
+with Langkit_Support.Token_Data_Handlers;
 
 with Laltools.Common;
 
@@ -41,6 +42,7 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Documents.Source_Info_Diagnostics;
+with LSP.Ada_Handlers.Formatting;
 with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Id_Iterators;
@@ -48,9 +50,6 @@ with LSP.Enumerations;
 with LSP.Formatters.Texts;
 with LSP.Predicates;
 with LSP.Structures.LSPAny_Vectors;
-pragma Warnings
-  (Off, "child unit * hides compilation unit with the same name");
-pragma Warnings (On, "child unit * hides compilation unit with the same name");
 
 package body LSP.Ada_Documents is
    pragma Warnings (Off);
@@ -1078,15 +1077,86 @@ package body LSP.Ada_Documents is
       Result  : out LSP.Structures.TextEdit_Vector)
    is
       use type LSP.Structures.A_Range;
+      use type Langkit_Support.Slocs.Line_Number;
+      use type Langkit_Support.Slocs.Column_Number;
+      use type Langkit_Support.Slocs.Source_Location;
+      use type Langkit_Support.Slocs.Source_Location_Range;
+      use type Libadalang.Common.Token_Reference;
+      use type Langkit_Support.Token_Data_Handlers.Token_Index;
+
       use Gnatformat.Configuration;
+
+      function To_GNATformat_Range (Span : LSP.Structures.A_Range)
+        return Langkit_Support.Slocs.Source_Location_Range;
+      --  Convert range selection to one accepted by gnatformat.
+      --  It looks like gnatformat has its own vision on selection range:
+      --  column = 0 has special meaning and End_Sloc is not excluded
+      --  from the range.
+
+      -------------------------
+      -- To_GNATformat_Range --
+      -------------------------
+
+      function To_GNATformat_Range (Span : LSP.Structures.A_Range)
+        return Langkit_Support.Slocs.Source_Location_Range
+      is
+         use type Langkit_Support.Slocs.Line_Number;
+         use type Langkit_Support.Slocs.Column_Number;
+
+         Result : Langkit_Support.Slocs.Source_Location_Range :=
+           Self.To_Source_Location_Range (Span);
+      begin
+         if Result.End_Column <= 1 then
+            --  Increment end_line because gnatformat includes it in the range
+            --  while LAL and LSP exclude.
+            Result.End_Line := Langkit_Support.Slocs.Line_Number'Max
+              (Result.Start_Line, Result.End_Line - 1);
+         end if;
+
+         Result.Start_Column := 1;  --  Start_Column is ignored by gnatformat
+         Result.End_Column := 1;
+         --  Any End_Column /= 0 will be expanded to end of line by gnatformat
+         --  See Gnatformat.Formatting.Widen_Initial_Selection
+
+         return Result;
+      end To_GNATformat_Range;
+
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.Unit (Context);
+
+      Origin : constant Langkit_Support.Slocs.Source_Location_Range :=
+        Self.To_Source_Location_Range (Range_Format.Span);
+
+      Lines : constant Langkit_Support.Slocs.Source_Location_Range :=
+        (Start_Line   => Origin.Start_Line,
+         Start_Column => 1,
+         End_Line     => Origin.End_Line +
+                           (if Origin.End_Column = 1 then 0 else 1),
+         End_Column   => 1);
+      --  Origin span rounded to lines bounds
+
+      Text : VSS.Strings.Virtual_String;
 
       Range_Formatted_Document :
         constant Gnatformat.Edits.Formatting_Edit_Type :=
-          Gnatformat.Formatting.Range_Format
-            (Self.Unit (Context),
-             Self.To_Source_Location_Range (Span),
-             Options);
+          Gnatformat.Formatting.Range_Format (Unit, Lines, Options);
+
+      Ok : Boolean;
    begin
+      LSP.Ada_Handlers.Formatting.Narrow_Range_Format
+        (Unit, Lines, Range_Formatted_Document, Text, Ok);
+
+      if Ok then
+         declare
+            Edit : constant LSP.Structures.TextEdit :=
+              (a_range => Self.To_A_Range (Lines),
+               newText => Text);
+         begin
+            Result.Append (Edit);
+            return;
+         end;
+      end if;
+
       Self.Diff_C
         (New_Text =>
            VSS.Strings.Conversions.To_Virtual_String

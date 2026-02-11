@@ -37,7 +37,7 @@ async def sendFormattingRequestsAndAssertErrors(lsp, main_adb_uri, formatter):
         await lsp.text_document_range_formatting_async(
             DocumentRangeFormattingParams(
                 TextDocumentIdentifier(main_adb_uri),
-                Range(Position(4, 0), Position(3, 0)),
+                Range(Position(3, 0), Position(4, 0)),
                 FormattingOptions(tab_size=3, insert_spaces=False),
             )
         )
