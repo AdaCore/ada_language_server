@@ -27,6 +27,7 @@ package LSP.GPR_Completions.Tools is
    procedure Fill_Tools_Completion_Response
      (File            : LSP.GPR_Files.File_Access;
       Current_Package : GPR2.Package_Id;
+      Index           : VSS.Strings.Virtual_String;
       Prefix          : VSS.Strings.Virtual_String;
       Response        : in out LSP.Structures.Completion_Result);
    --  Fill the given completion response with tool switches
@@ -35,6 +36,10 @@ package LSP.GPR_Completions.Tools is
    --  (i.e: if the current package is "compiler", the tool is "gnat",
    --  and the completion response will be filled with gnat switches
    --  matching the given prefix)
+   --  Index corresponds to the switches attribute's index, which
+   --  is used to retrieve command-specific switches
+   --  (e.g: switches for "gnatsas review" are specified via
+   --  "for Switches ("review") use (...);" in the Analyzer package).
 
    procedure Load_Database (Has_Label_Details_Support : Boolean);
    --  Load the tools switches database and populate the cache
