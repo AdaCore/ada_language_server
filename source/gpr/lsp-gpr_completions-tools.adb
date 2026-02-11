@@ -55,7 +55,7 @@ package body LSP.GPR_Completions.Tools is
       "builder"  => "gprbuild",
       "clean"    => "gprclean",
       "format"   => "gnatformat",
-      "analyze"  => "gnatsas",
+      "analyzer" => "gnatsas",
       "coverage" => "gnatcov",
       "check"    => "gnatcheck",
       "emulator" => "arm-eabi-gnatemu"];

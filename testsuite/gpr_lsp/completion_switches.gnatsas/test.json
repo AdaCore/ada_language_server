@@ -1,0 +1,204 @@
+[
+   {
+      "comment": [
+         "Test switches completion for gnatsas ('Analyzer' package in GPR files).",
+         "This test checks that the correct switches are offered ",
+         "for the 'review' and 'analyze' commands of gnatsas, in ",
+         "addition to the gnatsas common switches."
+      ]
+   },
+   {
+      "start": {
+         "cmd": ["${ALS}", "--language-gpr"]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "capabilities": {},
+               "rootUri": "$URI{.}"
+            },
+            "id": 1,
+            "method": "initialize"
+         },
+         "wait": [
+            {
+               "id": 1,
+               "result": {
+                  "capabilities": {
+                     "textDocumentSync": {
+                        "openClose": true,
+                        "change": 1
+                     },
+                     "completionProvider": {}
+                  }
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "method": "initialized"
+         },
+         "wait": []
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "params": {
+               "textDocument": {
+                  "text": "project Default is\n  package Analyzer is\n    for Default_Switches (\"review\") use (  \n    for Default_Switches (\"analyze\") use (  \n  end Analyzer;\nend Default;\n",
+                  "version": 0,
+                  "uri": "$URI{default.gpr}",
+                  "languageId": "Gpr"
+               }
+            },
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen"
+         },
+         "wait": []
+      }
+   },
+   {
+      "comment": ["'review' command index: expect base + review switches."]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 2,
+                  "character": 43
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 3,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "--help[=FMT]",
+                        "kind": 12,
+                        "detail": "gnatsas",
+                        "documentation": "(default=auto) Show this help in format FMT. The value FMT must be one of auto, pager, groff or plain. With auto, the format is pager or plain whenever the TERM env var is dumb or undefined.",
+                        "insertText": "\"--help${1:[=FMT]}\"$0",
+                        "insertTextFormat": 2
+                     },
+                     {
+                        "detail": "gnatsas review",
+                        "documentation": "Import reviews from specified csv file",
+                        "insertText": "\"--from-csv=${1:VAL}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--from-csv=VAL"
+                     },
+                     {
+                        "detail": "gnatsas review",
+                        "documentation": "Import reviews from specified review file",
+                        "insertText": "\"--import=${1:VAL}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--import=VAL"
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "comment": ["'analyze' command index: expect base + analyze switches."]
+   },
+   {
+      "send": {
+         "request": {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "textDocument/completion",
+            "params": {
+               "textDocument": {
+                  "uri": "$URI{default.gpr}"
+               },
+               "position": {
+                  "line": 3,
+                  "character": 44
+               },
+               "context": {
+                  "triggerKind": 1
+               }
+            }
+         },
+         "wait": [
+            {
+               "id": 4,
+               "result": {
+                  "isIncomplete": false,
+                  "items": [
+                     "<HAS>",
+                     {
+                        "label": "--help[=FMT]",
+                        "kind": 12,
+                        "detail": "gnatsas",
+                        "documentation": "(default=auto) Show this help in format FMT. The value FMT must be one of auto, pager, groff or plain. With auto, the format is pager or plain whenever the TERM env var is dumb or undefined.",
+                        "insertText": "\"--help${1:[=FMT]}\"$0",
+                        "insertTextFormat": 2
+                     },
+                     {
+                        "detail": "gnatsas analyze",
+                        "documentation": "Set a name for this analysis run. When set, the run name is displayed in the GNAT SAS report window of GNAT Studio. Also impacts the name of the file containing the analysis results, which becomes NAME.sam instead of <project>.<timeline>.sam.",
+                        "insertText": "\"--run-name=${1:NAME}\"$0",
+                        "insertTextFormat": 2,
+                        "kind": 12,
+                        "label": "--run-name=NAME"
+                     },
+                     {
+                        "label": "--timeline=VAL",
+                        "kind": 12,
+                        "detail": "gnatsas analyze",
+                        "documentation": "Timeline to use for the analysis.",
+                        "insertText": "\"--timeline=${1:VAL}\"$0",
+                        "insertTextFormat": 2
+                     }
+                  ]
+               }
+            }
+         ]
+      }
+   },
+   {
+      "send": {
+         "request": {
+            "id": 100,
+            "method": "shutdown"
+         },
+         "wait": [
+            {
+               "id": 100,
+               "result": null
+            }
+         ]
+      }
+   },
+   {
+      "stop": {
+         "exit_code": 0
+      }
+   }
+]
