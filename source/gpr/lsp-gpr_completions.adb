@@ -30,6 +30,7 @@ with LSP.Text_Documents.Langkit_Documents;
 with LSP.Utils; use LSP.Utils;
 
 with VSS.String_Vectors;
+with VSS.Strings;
 with VSS.Strings.Conversions;
 
 package body LSP.GPR_Completions is
@@ -376,11 +377,44 @@ package body LSP.GPR_Completions is
             if Has_Use
               and then (Attr_Name = "default_switches" or else Attr_Name = "switches")
             then
-               LSP.GPR_Completions.Tools.Fill_Tools_Completion_Response
-                 (File            => File,
-                  Current_Package => Current_Package,
-                  Prefix          => Prefix,
-                  Response        => Response);
+               declare
+                  Left_Par    : constant GPC.Token_Reference :=
+                    Attribute_Token.Next (True);
+                  Index_Token : GPC.Token_Reference := GPC.No_Token;
+                  Index       : VSS.Strings.Virtual_String :=
+                    VSS.Strings.Empty_Virtual_String;
+               begin
+                  if Left_Par /= GPC.No_Token
+                    and then Left_Par.Data.Kind = GPC.Gpr_Par_Open
+                  then
+                     --  If completing after '(', look for an index parameter
+                     --  to determine if the tool switches are for a specific
+                     --  command (e.g. "gnatsas review")
+                     Index_Token := Left_Par.Next (True);
+
+                     if Index_Token /= GPC.No_Token
+                       and then Index_Token.Data.Kind = GPC.Gpr_String
+                     then
+                        declare
+                           Raw_Text : constant String :=
+                             Ada.Characters.Conversions.To_String
+                               (Index_Token.Text);
+                        begin
+                           Index :=
+                             To_Lower
+                               (VSS.Strings.Conversions.To_Virtual_String
+                                  (Remove_Quote (Raw_Text)));
+                        end;
+                     end if;
+                  end if;
+
+                  LSP.GPR_Completions.Tools.Fill_Tools_Completion_Response
+                    (File            => File,
+                     Current_Package => Current_Package,
+                     Index           => Index,
+                     Prefix          => Prefix,
+                     Response        => Response);
+               end;
                return;
             end if;
          end;

@@ -1,0 +1,6 @@
+project Default is
+  package Analyzer is
+    for Default_Switches ("review") use (
+    for Default_Switches ("analyze") use (
+  end Analyzer;
+end Default;
