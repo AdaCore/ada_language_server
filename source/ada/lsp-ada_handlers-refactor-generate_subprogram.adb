@@ -141,8 +141,7 @@ package body LSP.Ada_Handlers.Refactor.Generate_Subprogram is
       Document        : LSP.Ada_Documents.Document_Access;
       Node            : Ada_Node := No_Ada_Node;
       Target_Subp     : Subp_Decl := No_Subp_Decl;
-      --  As Node is retrieved from the Decl SLOC_Range, we assume Node is
-      --  a direct child of the Subp_Decl, otherwise Get_Subp_Decl fails
+      --  Get_Subp_Decl will marshall node into a Subp_Decl
 
       function Analysis_Units return Analysis_Unit_Array
       is (Context.Analysis_Units);
@@ -159,7 +158,7 @@ package body LSP.Ada_Handlers.Refactor.Generate_Subprogram is
                  Node));
       else
          Edits :=
-           Create_Subprogram_Generator (Target_Subp, Dest_Filename).Refactor
+           Create_Subprogram_Generator (Target_Subp).Refactor
              (Analysis_Units'Access);
       end if;
    exception
@@ -168,14 +167,15 @@ package body LSP.Ada_Handlers.Refactor.Generate_Subprogram is
            (E,
             VSS.Strings.Conversions.To_Virtual_String
               ("Failed to retrieve document or node from LSP range."));
-      Edits.Diagnostics.Append
-        (New_Item =>
-           Report_Error
-             (Msg  => "The target subprogram could not be resolved precisely.",
-              SLOC =>
-                Message_Handler.From_LSP_Range
-                  (Context.Get_AU (File), Self.Subp_Start.a_range),
-              File => Dest_Filename));
+         Edits.Diagnostics.Append
+           (New_Item =>
+              Report_Error
+                (Msg  =>
+                   "The target subprogram could not be resolved precisely.",
+                 SLOC =>
+                   Message_Handler.From_LSP_Range
+                     (Context.Get_AU (File), Self.Subp_Start.a_range),
+                 File => Dest_Filename));
          Document.Cleanup;
    end Refactor;
 

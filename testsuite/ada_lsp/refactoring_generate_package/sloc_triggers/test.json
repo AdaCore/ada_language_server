@@ -188,7 +188,15 @@
          "wait": [
             {
                "id": 3,
-               "result": null
+               "result": [
+                  "<DOES_NOT_HAVE>",
+                  {
+                     "title": "Generate Package Body"
+                  },
+                  {
+                     "title": "Update Package Body"
+                  }
+               ]
             }
          ]
       }
