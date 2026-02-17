@@ -51,13 +51,13 @@ package body LSP.GPR_Completions.Tools is
 
    Package_To_Tool : constant Package_To_Tool_Maps.Map :=
      ["compiler" => "gnat",
-      "prove" => "gnatprove",
-      "builder" => "gprbuild",
-      "clean" => "gprclean",
-      "format" => "gnatformat",
-      "analyze" => "gnatsas",
+      "prove"    => "gnatprove",
+      "builder"  => "gprbuild",
+      "clean"    => "gprclean",
+      "format"   => "gnatformat",
+      "analyzer" => "gnatsas",
       "coverage" => "gnatcov",
-      "check" => "gnatcheck",
+      "check"    => "gnatcheck",
       "emulator" => "arm-eabi-gnatemu"];
    --  Map from GPR package name to tool name
 
@@ -237,7 +237,6 @@ package body LSP.GPR_Completions.Tools is
       Result    : in out LSP.Structures.CompletionItem_Vector)
    is
       use VSS.Strings.Conversions;
-
       Tool_Name_Str : constant String := To_UTF_8_String (Tool_Name);
       Cursor        : Tool_Switches_Maps.Cursor;
    begin
@@ -245,7 +244,7 @@ package body LSP.GPR_Completions.Tools is
       Cursor := Switches_Cache.Find (Tool_Name_Str);
 
       if Tool_Switches_Maps.Has_Element (Cursor) then
-         Result := Tool_Switches_Maps.Element (Cursor);
+         Result.Append_Vector (Tool_Switches_Maps.Element (Cursor));
       end if;
    end Get_Tool_Switches;
 
@@ -256,6 +255,7 @@ package body LSP.GPR_Completions.Tools is
    procedure Fill_Tools_Completion_Response
      (File            : LSP.GPR_Files.File_Access;
       Current_Package : GPR2.Package_Id;
+      Index         : VSS.Strings.Virtual_String;
       Prefix          : VSS.Strings.Virtual_String;
       Response        : in out LSP.Structures.Completion_Result)
    is
@@ -268,6 +268,7 @@ package body LSP.GPR_Completions.Tools is
       Tool_Name_Cursor : Package_To_Tool_Maps.Cursor;
       Tool_Name        : VSS.Strings.Virtual_String;
       All_Switches     : LSP.Structures.CompletionItem_Vector;
+      Command_Key      : VSS.Strings.Virtual_String;
    begin
       --  Map package name to tool name
       Tool_Name_Cursor := Package_To_Tool.Find (Package_Name);
@@ -281,6 +282,13 @@ package body LSP.GPR_Completions.Tools is
 
       --  Get all switches for the tool
       Get_Tool_Switches (Tool_Name, All_Switches);
+
+      --  If an index is provided, get command-specific switches
+      --  and add them to the list
+      if not Index.Is_Empty then
+         Command_Key := Tool_Name & " " & Index;
+         Get_Tool_Switches (Command_Key, All_Switches);
+      end if;
 
       --  Filter switches by prefix and add to response
       for Item of All_Switches loop
