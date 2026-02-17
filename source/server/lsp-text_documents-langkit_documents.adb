@@ -64,10 +64,14 @@ package body LSP.Text_Documents.Langkit_Documents is
            Self.Text.Slice
              (Self.Line_Markers (Line), Self.Text.After_Last_Character);
 
+      elsif Self.Line_Markers.Last_Index + 1 = Line then
+         return VSS.Strings.Empty_Virtual_String;
+
       else
          return
            Self.Text.Slice
              (Self.Line_Markers (Line), Self.Line_Markers (Line + 1));
+
       end if;
    end Line;
 

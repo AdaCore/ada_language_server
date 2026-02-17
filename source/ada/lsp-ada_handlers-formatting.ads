@@ -18,6 +18,7 @@
 --  This package provides implementation of the code formatting requests.
 
 with Gnatformat.Configuration;
+with Gnatformat.Edits;
 
 with LSP.Ada_Contexts;
 with LSP.Errors;
@@ -49,6 +50,21 @@ package LSP.Ada_Handlers.Formatting is
       Error    : out LSP.Errors.ResponseError)
         with Pre => not LSP.Utils.Is_Empty_Range (Span);
    --  Format the text of the given document in the given range (span).
+
+   procedure Narrow_Range_Format
+     (Unit    : Libadalang.Analysis.Analysis_Unit;
+      Span    : Langkit_Support.Slocs.Source_Location_Range;
+      Edit    : Gnatformat.Edits.Formatting_Edit_Type;
+      Result  : out VSS.Strings.Virtual_String;
+      Success : out Boolean);
+   --  Auxiliary procedure for Range Formatting. The procedure takes the result
+   --  of gnatformat as input and attempts to limit the formatting area to the
+   --  specified range. Parameters
+   --  * @param Unit - source code unit
+   --  * @param Span - range to be formatted
+   --  * @param Edit - gnatformat result covering the desired range
+   --  * @param Result - calculated result
+   --  * @param Success - processing status
 
    function Get_Indentation
      (Filename : GNATCOLL.VFS.Virtual_File;

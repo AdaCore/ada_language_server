@@ -1086,8 +1086,10 @@ package body LSP.Ada_Documents is
 
       use Gnatformat.Configuration;
 
-      function To_GNATformat_Range (Span : LSP.Structures.A_Range)
-        return Langkit_Support.Slocs.Source_Location_Range;
+      function To_GNATformat_Range
+        (Unit : Libadalang.Analysis.Analysis_Unit;
+         Span : LSP.Structures.A_Range)
+           return Langkit_Support.Slocs.Source_Location_Range;
       --  Convert range selection to one accepted by gnatformat.
       --  It looks like gnatformat has its own vision on selection range:
       --  column = 0 has special meaning and End_Sloc is not excluded
@@ -1097,8 +1099,10 @@ package body LSP.Ada_Documents is
       -- To_GNATformat_Range --
       -------------------------
 
-      function To_GNATformat_Range (Span : LSP.Structures.A_Range)
-        return Langkit_Support.Slocs.Source_Location_Range
+      function To_GNATformat_Range
+        (Unit : Libadalang.Analysis.Analysis_Unit;
+         Span : LSP.Structures.A_Range)
+           return Langkit_Support.Slocs.Source_Location_Range
       is
          use type Langkit_Support.Slocs.Line_Number;
          use type Langkit_Support.Slocs.Column_Number;
@@ -1114,9 +1118,9 @@ package body LSP.Ada_Documents is
          end if;
 
          Result.Start_Column := 1;  --  Start_Column is ignored by gnatformat
-         Result.End_Column := 1;
-         --  Any End_Column /= 0 will be expanded to end of line by gnatformat
-         --  See Gnatformat.Formatting.Widen_Initial_Selection
+         Result.End_Column :=
+           Unit.Get_Line (Positive (Result.End_Line))'Length - 1;
+         --  Expanded to end of line
 
          return Result;
       end To_GNATformat_Range;
@@ -1124,37 +1128,42 @@ package body LSP.Ada_Documents is
       Unit : constant Libadalang.Analysis.Analysis_Unit :=
         Self.Unit (Context);
 
-      Origin : constant Langkit_Support.Slocs.Source_Location_Range :=
-        Self.To_Source_Location_Range (Range_Format.Span);
+      Format_Range : constant Langkit_Support.Slocs.Source_Location_Range :=
+        To_GNATformat_Range (Unit, Range_Format.Span);
+      --  Origin span rounded to lines bounds (end position is included)
 
-      Lines : constant Langkit_Support.Slocs.Source_Location_Range :=
-        (Start_Line   => Origin.Start_Line,
+      Excluded : constant Langkit_Support.Slocs.Source_Location_Range :=
+        (Start_Line   => Format_Range.Start_Line,
          Start_Column => 1,
-         End_Line     => Origin.End_Line +
-                           (if Origin.End_Column = 1 then 0 else 1),
+         End_Line     => Format_Range.End_Line + 1,
          End_Column   => 1);
-      --  Origin span rounded to lines bounds
+      --  Selection range (end position is excluded)
 
       Text : VSS.Strings.Virtual_String;
 
       Range_Formatted_Document :
         constant Gnatformat.Edits.Formatting_Edit_Type :=
-          Gnatformat.Formatting.Range_Format (Unit, Lines, Options);
+          Gnatformat.Formatting.Range_Format (Unit, Format_Range, Options);
 
       Ok : Boolean;
    begin
       LSP.Ada_Handlers.Formatting.Narrow_Range_Format
-        (Unit, Lines, Range_Formatted_Document, Text, Ok);
+        (Unit, Excluded, Range_Formatted_Document, Text, Ok);
 
       if Ok then
-         declare
-            Edit : constant LSP.Structures.TextEdit :=
-              (a_range => Self.To_A_Range (Lines),
-               newText => Text);
-         begin
-            Result.Append (Edit);
-            return;
-         end;
+         Self.Diff_C
+           (New_Text => Text,
+            Span     => Self.To_A_Range (Format_Range),
+            Edit     => Result);
+         return;
+         --  declare
+         --     Edit : constant LSP.Structures.TextEdit :=
+         --       (a_range => Self.To_A_Range (Excluded),
+         --        newText => Text);
+         --  begin
+         --     Result.Append (Edit);
+         --     return;
+         --  end;
       end if;
 
       Self.Diff_C
