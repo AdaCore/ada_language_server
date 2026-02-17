@@ -56,5 +56,9 @@ package LSP.GPR_Completions.Tools is
    --  the given tool and index
    --  (e.g: for tool "gnatsas", if Index is "review", return switches specified
    --  via "for Switches ("review") use (...);" in the Analyzer package).
+   --  For multi-word indices like "report text", tries full match first,
+   --  then falls back to just the first word ("report") if no full match exists.
+   --  This allows variants of a command (e.g., different report formats) to
+   --  share the same set of switches based on the base command.
 
 end LSP.GPR_Completions.Tools;

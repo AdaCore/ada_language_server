@@ -244,7 +244,7 @@ package body LSP.GPR_Completions.Tools is
       Cursor        : Tool_Switches_Maps.Cursor;
    begin
 
-         --  Get the general tool switches first
+      --  Get the general tool switches first
       Cursor := Switches_Cache.Find (Tool_Name_Str);
       if Tool_Switches_Maps.Has_Element (Cursor) then
          Result.Append_Vector (Tool_Switches_Maps.Element (Cursor));
@@ -259,8 +259,25 @@ package body LSP.GPR_Completions.Tools is
          end if;
 
       elsif not Index.Is_Empty then
-         --  Append command-specific switches for the given index
+         --  Append command-specific switches for the given index.
+         --  For multi-word indices like "report text", try full match first,
+         --  then fall back to just the first word (e.g., "report")
          Cursor := Switches_Cache.Find (Tool_Name_Str & " " & Index_Str);
+
+         if not Tool_Switches_Maps.Has_Element (Cursor) then
+            --  Try just the first word
+            declare
+               Space_Pos : constant Natural :=
+                 Ada.Strings.Fixed.Index (Index_Str, " ");
+            begin
+               if Space_Pos > 0 then
+                  Cursor := Switches_Cache.Find
+                    (Tool_Name_Str & " " &
+                     Index_Str (Index_Str'First .. Space_Pos - 1));
+               end if;
+            end;
+         end if;
+
          if Tool_Switches_Maps.Has_Element (Cursor) then
             Result.Append_Vector (Tool_Switches_Maps.Element (Cursor));
          end if;
