@@ -1,0 +1,7 @@
+project Default is
+  package Coverage is
+    for Default_Switches ("run") use (
+    for Default_Switches ("coverage") use (
+    for Default_Switches ("*") use (
+  end Coverage;
+end Default;
