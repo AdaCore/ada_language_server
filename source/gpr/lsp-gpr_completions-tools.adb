@@ -234,17 +234,53 @@ package body LSP.GPR_Completions.Tools is
 
    procedure Get_Tool_Switches
      (Tool_Name : VSS.Strings.Virtual_String;
+      Index     : VSS.Strings.Virtual_String;
       Result    : in out LSP.Structures.CompletionItem_Vector)
    is
+      use VSS.Strings;
       use VSS.Strings.Conversions;
       Tool_Name_Str : constant String := To_UTF_8_String (Tool_Name);
+      Index_Str     : constant String := To_UTF_8_String (Index);
       Cursor        : Tool_Switches_Maps.Cursor;
    begin
-      --  Look up the tool in the cache
-      Cursor := Switches_Cache.Find (Tool_Name_Str);
 
+      --  Get the general tool switches first
+      Cursor := Switches_Cache.Find (Tool_Name_Str);
       if Tool_Switches_Maps.Has_Element (Cursor) then
          Result.Append_Vector (Tool_Switches_Maps.Element (Cursor));
+      end if;
+
+      --  Special case for "*": append all the command-specific switches, in
+      --  addition to the general tool switches.
+      if Index_Str = "*" then
+         Cursor := Switches_Cache.Find (Tool_Name_Str & " *");
+         if Tool_Switches_Maps.Has_Element (Cursor) then
+            Result.Append_Vector (Tool_Switches_Maps.Element (Cursor));
+         end if;
+
+      elsif not Index.Is_Empty then
+         --  Append command-specific switches for the given index.
+         --  For multi-word indices like "report text", try full match first,
+         --  then fall back to just the first word (e.g., "report")
+         Cursor := Switches_Cache.Find (Tool_Name_Str & " " & Index_Str);
+
+         if not Tool_Switches_Maps.Has_Element (Cursor) then
+            --  Try just the first word
+            declare
+               Space_Pos : constant Natural :=
+                 Ada.Strings.Fixed.Index (Index_Str, " ");
+            begin
+               if Space_Pos > 0 then
+                  Cursor := Switches_Cache.Find
+                    (Tool_Name_Str & " " &
+                     Index_Str (Index_Str'First .. Space_Pos - 1));
+               end if;
+            end;
+         end if;
+
+         if Tool_Switches_Maps.Has_Element (Cursor) then
+            Result.Append_Vector (Tool_Switches_Maps.Element (Cursor));
+         end if;
       end if;
    end Get_Tool_Switches;
 
@@ -255,7 +291,7 @@ package body LSP.GPR_Completions.Tools is
    procedure Fill_Tools_Completion_Response
      (File            : LSP.GPR_Files.File_Access;
       Current_Package : GPR2.Package_Id;
-      Index         : VSS.Strings.Virtual_String;
+      Index           : VSS.Strings.Virtual_String;
       Prefix          : VSS.Strings.Virtual_String;
       Response        : in out LSP.Structures.Completion_Result)
    is
@@ -268,7 +304,6 @@ package body LSP.GPR_Completions.Tools is
       Tool_Name_Cursor : Package_To_Tool_Maps.Cursor;
       Tool_Name        : VSS.Strings.Virtual_String;
       All_Switches     : LSP.Structures.CompletionItem_Vector;
-      Command_Key      : VSS.Strings.Virtual_String;
    begin
       --  Map package name to tool name
       Tool_Name_Cursor := Package_To_Tool.Find (Package_Name);
@@ -280,15 +315,11 @@ package body LSP.GPR_Completions.Tools is
 
       Tool_Name := Package_To_Tool_Maps.Element (Tool_Name_Cursor);
 
-      --  Get all switches for the tool
-      Get_Tool_Switches (Tool_Name, All_Switches);
-
-      --  If an index is provided, get command-specific switches
-      --  and add them to the list
-      if not Index.Is_Empty then
-         Command_Key := Tool_Name & " " & Index;
-         Get_Tool_Switches (Command_Key, All_Switches);
-      end if;
+      --  Get switches for the tool, handling the index parameter
+      --  (including the special "*" case where only command-specific switches
+      --  are returned without the general tool switches)
+      Get_Tool_Switches
+        (Tool_Name => Tool_Name, Index => Index, Result => All_Switches);
 
       --  Filter switches by prefix and add to response
       for Item of All_Switches loop
