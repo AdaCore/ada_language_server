@@ -72,6 +72,9 @@ package LSP.Utils is
    --  to convert LAL's Source_Location_Range to LSP's Range. Consider to
    --  use Document.To_LSP_Range instead, or add necessary wrapper.
 
+   function Is_Empty_Range (Value : LSP.Structures.A_Range) return Boolean;
+   --  Check if range is empty
+
    function Get_Location
      (Unit : Libadalang.Analysis.Analysis_Unit;
       Span : Langkit_Support.Slocs.Source_Location_Range)
@@ -152,5 +155,12 @@ package LSP.Utils is
       then S (S'First + 1 .. S'Last - 1)
       else S);
    --  Remove leading & trailing '"' (useful for string tokens)
+
+private
+
+   function Is_Empty_Range (Value : LSP.Structures.A_Range) return Boolean is
+     (Value.an_end.line < Value.start.line
+      or (Value.an_end.line = Value.start.line
+        and Value.an_end.character <= Value.start.character));
 
 end LSP.Utils;

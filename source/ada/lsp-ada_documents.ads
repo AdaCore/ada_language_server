@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2025, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -20,6 +20,7 @@
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 with Gnatformat.Configuration;
+with LSP.Utils;
 with VSS.Strings;
 
 with Libadalang.Analysis;
@@ -167,19 +168,20 @@ package LSP.Ada_Documents is
    --  Given Position, get the region that would be formatted if
    --  Range_Formatting was called.
 
-   function Format
+   procedure Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
-      Options : Gnatformat.Configuration.Format_Options_Type)
-      return LSP.Structures.TextEdit_Vector;
+      Options : Gnatformat.Configuration.Format_Options_Type;
+      Result  : out LSP.Structures.TextEdit_Vector);
    --  Format Self with formatting options based on Context
 
-   function Range_Format
+   procedure Range_Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
-      Options : Gnatformat.Configuration.Format_Options_Type)
-      return LSP.Structures.TextEdit_Vector;
+      Options : Gnatformat.Configuration.Format_Options_Type;
+      Result  : out LSP.Structures.TextEdit_Vector)
+     with Pre => not LSP.Utils.Is_Empty_Range (Span);
    --  Format part of Self defined by Span with formatting options based on
    --  Context.
 

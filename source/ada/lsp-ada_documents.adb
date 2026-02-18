@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 --                         Language Server Protocol                         --
 --                                                                          --
---                     Copyright (C) 2018-2025, AdaCore                     --
+--                     Copyright (C) 2018-2026, AdaCore                     --
 --                                                                          --
 -- This is free software;  you can redistribute it  and/or modify it  under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -23,6 +23,7 @@ with Gnatformat.Formatting;
 
 with Langkit_Support.Symbols;
 with Langkit_Support.Text;
+with Langkit_Support.Token_Data_Handlers;
 
 with Laltools.Common;
 
@@ -41,6 +42,7 @@ with LSP.Ada_Contexts;
 with LSP.Ada_Documentation;
 with LSP.Ada_Documents.LAL_Diagnostics;
 with LSP.Ada_Documents.Source_Info_Diagnostics;
+with LSP.Ada_Handlers.Formatting;
 with LSP.Ada_Handlers.Locations;
 with LSP.Ada_Handlers.Refactor.Auto_Import;
 with LSP.Ada_Id_Iterators;
@@ -48,10 +50,6 @@ with LSP.Enumerations;
 with LSP.Formatters.Texts;
 with LSP.Predicates;
 with LSP.Structures.LSPAny_Vectors;
-pragma Warnings
-  (Off, "child unit * hides compilation unit with the same name");
-with LSP.Utils;
-pragma Warnings (On, "child unit * hides compilation unit with the same name");
 
 package body LSP.Ada_Documents is
    pragma Warnings (Off);
@@ -483,13 +481,12 @@ package body LSP.Ada_Documents is
    -- Format --
    ------------
 
-   function Format
+   procedure Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
-      Options : Gnatformat.Configuration.Format_Options_Type)
-      return LSP.Structures.TextEdit_Vector
+      Options : Gnatformat.Configuration.Format_Options_Type;
+      Result  : out LSP.Structures.TextEdit_Vector)
    is
-      Result : LSP.Structures.TextEdit_Vector;
 
       Formatted_Document : constant VSS.Strings.Virtual_String :=
         VSS.Strings.Conversions.To_Virtual_String
@@ -501,9 +498,6 @@ package body LSP.Ada_Documents is
         (New_Text => Formatted_Document,
          Span     => LSP.Text_Documents.Empty_Range,
          Edit     => Result);
-      --  Self.Needleman_Diff (New_Text => Formatted_Document, Edit => Result);
-
-      return Result;
    end Format;
 
    --------------------
@@ -1075,40 +1069,110 @@ package body LSP.Ada_Documents is
    -- Range_Format --
    ------------------
 
-   function Range_Format
+   procedure Range_Format
      (Self    : Document;
       Context : LSP.Ada_Contexts.Context;
       Span    : LSP.Structures.A_Range;
-      Options : Gnatformat.Configuration.Format_Options_Type)
-      return LSP.Structures.TextEdit_Vector
+      Options : Gnatformat.Configuration.Format_Options_Type;
+      Result  : out LSP.Structures.TextEdit_Vector)
    is
       use type LSP.Structures.A_Range;
+      use type Langkit_Support.Slocs.Line_Number;
+      use type Langkit_Support.Slocs.Column_Number;
+      use type Langkit_Support.Slocs.Source_Location;
+      use type Langkit_Support.Slocs.Source_Location_Range;
+      use type Libadalang.Common.Token_Reference;
+      use type Langkit_Support.Token_Data_Handlers.Token_Index;
+
       use Gnatformat.Configuration;
 
-      Result : LSP.Structures.TextEdit_Vector;
-   begin
-      if Span = LSP.Text_Documents.Empty_Range then
+      function To_GNATformat_Range
+        (Unit : Libadalang.Analysis.Analysis_Unit;
+         Span : LSP.Structures.A_Range)
+           return Langkit_Support.Slocs.Source_Location_Range;
+      --  Convert range selection to one accepted by gnatformat.
+      --  It looks like gnatformat has its own vision on selection range:
+      --  column = 0 has special meaning and End_Sloc is not excluded
+      --  from the range.
+
+      -------------------------
+      -- To_GNATformat_Range --
+      -------------------------
+
+      function To_GNATformat_Range
+        (Unit : Libadalang.Analysis.Analysis_Unit;
+         Span : LSP.Structures.A_Range)
+           return Langkit_Support.Slocs.Source_Location_Range
+      is
+         use type Langkit_Support.Slocs.Line_Number;
+         use type Langkit_Support.Slocs.Column_Number;
+
+         Result : Langkit_Support.Slocs.Source_Location_Range :=
+           Self.To_Source_Location_Range (Span);
+      begin
+         if Result.End_Column <= 1 then
+            --  Increment end_line because gnatformat includes it in the range
+            --  while LAL and LSP exclude.
+            Result.End_Line := Langkit_Support.Slocs.Line_Number'Max
+              (Result.Start_Line, Result.End_Line - 1);
+         end if;
+
+         Result.Start_Column := 1;  --  Start_Column is ignored by gnatformat
+         Result.End_Column :=
+           Unit.Get_Line (Positive (Result.End_Line))'Length - 1;
+         --  Expanded to end of line
+
          return Result;
+      end To_GNATformat_Range;
+
+      Unit : constant Libadalang.Analysis.Analysis_Unit :=
+        Self.Unit (Context);
+
+      Format_Range : constant Langkit_Support.Slocs.Source_Location_Range :=
+        To_GNATformat_Range (Unit, Range_Format.Span);
+      --  Origin span rounded to lines bounds (end position is included)
+
+      Excluded : constant Langkit_Support.Slocs.Source_Location_Range :=
+        (Start_Line   => Format_Range.Start_Line,
+         Start_Column => 1,
+         End_Line     => Format_Range.End_Line + 1,
+         End_Column   => 1);
+      --  Selection range (end position is excluded)
+
+      Text : VSS.Strings.Virtual_String;
+
+      Range_Formatted_Document :
+        constant Gnatformat.Edits.Formatting_Edit_Type :=
+          Gnatformat.Formatting.Range_Format (Unit, Format_Range, Options);
+
+      Ok : Boolean;
+   begin
+      LSP.Ada_Handlers.Formatting.Narrow_Range_Format
+        (Unit, Excluded, Range_Formatted_Document, Text, Ok);
+
+      if Ok then
+         Self.Diff_C
+           (New_Text => Text,
+            Span     => Self.To_A_Range (Format_Range),
+            Edit     => Result);
+         return;
+         --  declare
+         --     Edit : constant LSP.Structures.TextEdit :=
+         --       (a_range => Self.To_A_Range (Excluded),
+         --        newText => Text);
+         --  begin
+         --     Result.Append (Edit);
+         --     return;
+         --  end;
       end if;
 
-      declare
-
-         Range_Formatted_Document :
-           constant Gnatformat.Edits.Formatting_Edit_Type :=
-             Gnatformat.Formatting.Range_Format
-               (Self.Unit (Context),
-                Self.To_Source_Location_Range (Span),
-                Options);
-      begin
-         Self.Diff_C
-           (New_Text =>
-              VSS.Strings.Conversions.To_Virtual_String
-                (Range_Formatted_Document.Text_Edit.Text),
-            Span     =>
-              Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
-            Edit     => Result);
-         return Result;
-      end;
+      Self.Diff_C
+        (New_Text =>
+           VSS.Strings.Conversions.To_Virtual_String
+             (Range_Formatted_Document.Text_Edit.Text),
+         Span     =>
+           Self.To_A_Range (Range_Formatted_Document.Text_Edit.Location),
+         Edit     => Result);
    end Range_Format;
 
    ------------------------
