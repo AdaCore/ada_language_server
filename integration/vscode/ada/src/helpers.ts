@@ -546,7 +546,7 @@ export async function showErrorMessageWithOpenLogButton(
 /**
  *
  * @param data - input data to process
- * @param threads - number of async functions processing the data. Must be strictly positive 0.
+ * @param threads - number of async functions processing the data. Must be strictly positive.
  * @param op - the function to process the data
  * @returns the processed
  */
@@ -556,6 +556,7 @@ export async function parallelize<T, Result>(
     op: (arg: T) => Result | Promise<Result>,
     token?: CancellationToken,
 ): Promise<Result[]> {
+    assert(Number.isInteger(threads));
     assert(threads > 0);
     const len = data.length;
     let start = 0;
