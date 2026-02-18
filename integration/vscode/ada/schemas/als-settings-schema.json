@@ -48,11 +48,6 @@
             "default": null,
             "markdownDescription": "This setting must be used in conjunction with the `relocateBuildTree` setting.\n\nIt specifies the root directory for artifact relocation. It corresponds to the [--root-dir GPRbuild command line switch](https://docs.adacore.com/gprbuild-docs/html/gprbuild_ug/building_with_gprbuild.html#switches)."
         },
-        "useGnatformat": {
-            "type": "boolean",
-            "default": true,
-            "markdownDescription": "Enable GNATformat as the formatting provider for Ada source files."
-        },
         "rangeFormattingFallback": {
             "type": "boolean",
             "default": true,

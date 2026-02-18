@@ -43,7 +43,7 @@
                "settings": {
                   "ada": {
                      "unknownAttr": "Hello",
-                     "USEGNATFORMAT": false,
+                     "DOCUMENTATIONSTYLE": "gnat",
                      "logThreshold": false,
                      "insertWithClauses": true
                   }
@@ -55,14 +55,14 @@
                "method": "window/showMessage",
                "params": {
                   "type": 2,
-                  "message": "Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
+                  "message": "Ada settings are case sensitive: \"DOCUMENTATIONSTYLE\" has been ignored please set it to \"documentationStyle\"."
                }
            },
            {
                "method": "window/logMessage",
                "params": {
                   "type": 2,
-                  "message": "Ada settings are case sensitive: \"USEGNATFORMAT\" has been ignored please set it to \"useGnatformat\"."
+                  "message": "Ada settings are case sensitive: \"DOCUMENTATIONSTYLE\" has been ignored please set it to \"documentationStyle\"."
                }
            },
            {

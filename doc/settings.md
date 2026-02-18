@@ -85,7 +85,6 @@ prefixing each setting name with `ada.`, e.g.
         "LIBRARY_TYPE": "static"
     },
     "ada.onTypeFormatting.indentOnly": true,
-    "ada.useGnatformat": true
 }
 ```
 
@@ -122,7 +121,6 @@ Settings understood by the Ada Language Server itself, independently from the LS
 * [documentationStyle](#documentationstyle)
 * [onTypeFormatting.indentOnly](#ontypeformattingindentonly)
 * [rangeFormattingFallback](#rangeFormattingFallback)
-* [useGnatformat](#usegnatformat)
 
 ----
 
@@ -424,11 +422,6 @@ Conversely, in VS Code this settings can be set without nesting:
 This option controls if the `textDocument/rangeFormatting` request should fallback to another
 indenter in case the code is not syntactically correct. If disabled, `textDocument/rangeFormatting`
 will return an error if the code is not syntactically correct.
-
-### useGnatformat
-
-GNATpp has been removed as a provider for formatting requests. GNATformat is now enabled by default
-and this settings is now obsolete.
 
 ### logThreshold
 

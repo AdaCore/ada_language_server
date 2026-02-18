@@ -354,26 +354,6 @@
                 "title": "Formatting",
                 "order": 1,
                 "properties": {
-                    "ada.useGnatformat": {
-                        "scope": "window",
-                        "enum": [
-                            true,
-                            false,
-                            null
-                        ],
-                        "enumItemLabels": [
-                            null,
-                            null,
-                            "Provided by .als.json (default: true)"
-                        ],
-                        "markdownEnumDescriptions": [
-                            "true",
-                            "false",
-                            "Provided by [`.als.json`](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md) if it exists at the workspace root, otherwise defaults to `true`."
-                        ],
-                        "default": null,
-                        "markdownDescription": "Enable GNATformat as the formatting provider for Ada source files.\n\nIf not set in VS Code, this setting takes its value from the [`.als.json`](https://github.com/AdaCore/ada_language_server/blob/master/doc/settings.md) file at the root of the workspace, if that file exists. Otherwise it defaults to `true`."
-                    },
                     "ada.onTypeFormatting.indentOnly": {
                         "scope": "window",
                         "enum": [
